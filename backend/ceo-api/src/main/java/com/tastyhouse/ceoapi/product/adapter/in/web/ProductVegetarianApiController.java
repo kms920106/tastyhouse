@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianSt
 import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianRequestCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductVegetarianQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianQueryUseCase;
 
 /**
  * 점주 메뉴 채식 설정 API.
@@ -38,11 +38,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductVegetarianQueryS
 @RequestMapping("/api/products")
 public class ProductVegetarianApiController {
 
-    private final ProductVegetarianQueryService productVegetarianQueryService;
+    private final ProductVegetarianQueryUseCase productVegetarianQueryService;
     private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;
 
     public ProductVegetarianApiController(
-        ProductVegetarianQueryService productVegetarianQueryService,
+        ProductVegetarianQueryUseCase productVegetarianQueryService,
         ProductVegetarianCommandUseCase productVegetarianCommandUseCase
     ) {
         this.productVegetarianQueryService = productVegetarianQueryService;

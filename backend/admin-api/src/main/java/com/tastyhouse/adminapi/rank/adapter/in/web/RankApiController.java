@@ -36,7 +36,7 @@ import com.tastyhouse.adminapi.rank.application.port.in.RankPeriodUpdateCommand;
 import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeCreateCommand;
 import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeDeleteCommand;
 import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.adminapi.rank.application.service.RankQueryService;
+import com.tastyhouse.adminapi.rank.application.port.in.RankQueryUseCase;
 
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController
@@ -44,11 +44,11 @@ import com.tastyhouse.adminapi.rank.application.service.RankQueryService;
 public class RankApiController {
 
     private final RankCommandUseCase rankCommandUseCase;
-    private final RankQueryService rankQueryService;
+    private final RankQueryUseCase rankQueryUseCase;
 
-    public RankApiController(RankCommandUseCase rankCommandUseCase, RankQueryService rankQueryService) {
+    public RankApiController(RankCommandUseCase rankCommandUseCase, RankQueryUseCase rankQueryUseCase) {
         this.rankCommandUseCase = rankCommandUseCase;
-        this.rankQueryService = rankQueryService;
+        this.rankQueryUseCase = rankQueryUseCase;
     }
 
     @Operation(summary = "회원 랭킹 목록 조회", description = "유저별 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
@@ -56,7 +56,7 @@ public class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankQueryService.getMemberRankList(search.type(), search.limit());
+        List<RankMemberListItemResponse> ranks = rankQueryUseCase.getMemberRankList(search.type(), search.limit());
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
@@ -71,7 +71,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 기간 목록 조회", description = "등록된 랭킹 기간 목록을 조회합니다.")
     @GetMapping("/v1/periods")
     public ResponseEntity<ApiResponse<List<RankPeriodListItemResponse>>> getPeriods() {
-        List<RankPeriodListItemResponse> periods = rankQueryService.getPeriods();
+        List<RankPeriodListItemResponse> periods = rankQueryUseCase.getPeriods();
         return ResponseEntity.ok(ApiResponse.success(periods));
     }
 
@@ -86,7 +86,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 기간 상세 조회", description = "랭킹 기간 상세를 조회합니다.")
     @GetMapping("/v1/periods/{id}")
     public ResponseEntity<ApiResponse<RankPeriodDetailResponse>> getPeriod(@PathVariable Long id) {
-        RankPeriodDetailResponse response = rankQueryService.getPeriod(id);
+        RankPeriodDetailResponse response = rankQueryUseCase.getPeriod(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -112,7 +112,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 목록 조회", description = "해당 기간의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/periods/{id}/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes(@PathVariable Long id) {
-        List<RankPrizeListItemResponse> prizes = rankQueryService.getPrizesByPeriod(id);
+        List<RankPrizeListItemResponse> prizes = rankQueryUseCase.getPrizesByPeriod(id);
         return ResponseEntity.ok(ApiResponse.success(prizes));
     }
 
@@ -130,7 +130,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 상세 조회", description = "랭킹 경품 상세를 조회합니다.")
     @GetMapping("/v1/prizes/{prizeId}")
     public ResponseEntity<ApiResponse<RankPrizeDetailResponse>> getPrize(@PathVariable Long prizeId) {
-        RankPrizeDetailResponse response = rankQueryService.getPrize(prizeId);
+        RankPrizeDetailResponse response = rankQueryUseCase.getPrize(prizeId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

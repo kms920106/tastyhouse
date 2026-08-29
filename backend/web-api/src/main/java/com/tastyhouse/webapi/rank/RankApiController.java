@@ -13,20 +13,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.rank.application.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.request.RankSearchRequest;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/ranks")
 @Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
 
-    private final RankQueryService rankQueryService;
+    private final RankQueryUseCase rankQueryService;
 
-    public RankApiController(RankQueryService rankQueryService) {
+    public RankApiController(RankQueryUseCase rankQueryService) {
         this.rankQueryService = rankQueryService;
     }
 

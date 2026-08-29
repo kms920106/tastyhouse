@@ -16,6 +16,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResponse;
 import com.tastyhouse.adminapi.file.response.FileResponse;
+import com.tastyhouse.adminapi.banner.application.port.in.BannerQueryUseCase;
 
 /**
  * 배너 관리 조회 서비스.
@@ -29,7 +30,7 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class BannerQueryService {
+public class BannerQueryService implements BannerQueryUseCase {
 
     private final BannerQueryDao bannerQueryDao;
 
@@ -37,6 +38,7 @@ public class BannerQueryService {
         this.bannerQueryDao = bannerQueryDao;
     }
 
+    @Override
     public PaginationResponse<BannerListItemResponse> getBanners(String type, String title, Boolean visible, int page, int size) {
         BannerType bannerType = type == null ? null : BannerType.from(type);
         BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
@@ -46,6 +48,7 @@ public class BannerQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public BannerDetailResponse getBanner(Long id) {
         BannerDetailResult bannerDetail = bannerQueryDao.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));

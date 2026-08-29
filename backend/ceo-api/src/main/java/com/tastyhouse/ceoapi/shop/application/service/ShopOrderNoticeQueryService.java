@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopOrderNoticeQueryDao;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 
@@ -19,7 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderNoticeQueryService {
+public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
 
     private final ShopOrderNoticeQueryDao shopOrderNoticeQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -36,6 +37,7 @@ public class ShopOrderNoticeQueryService {
      * 가게의 주문안내를 조회한다. 미설정이면 {@code content}가 null인 빈 응답을 돌려준다
      * (사유는 {@code ShopOrderNoticeResponse#empty} 참조).
      */
+    @Override
     public ShopOrderNoticeResponse getOrderNotice(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

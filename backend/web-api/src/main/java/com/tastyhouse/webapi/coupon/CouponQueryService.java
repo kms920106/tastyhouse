@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
 import com.tastyhouse.infrastructure.coupon.query.MemberCouponResult;
+import com.tastyhouse.webapi.coupon.application.port.in.CouponQueryUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
 
 /**
@@ -22,7 +23,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResp
  */
 @Service
 @Transactional(readOnly = true)
-public class CouponQueryService {
+public class CouponQueryService implements CouponQueryUseCase {
 
     private final CouponQueryDao couponQueryDao;
 
@@ -33,6 +34,7 @@ public class CouponQueryService {
     /**
      * 내 쿠폰함 — 사용·만료분까지 전부 조회한다.
      */
+    @Override
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
         return couponQueryDao.findMemberCoupons(memberId)
             .stream()
@@ -43,6 +45,7 @@ public class CouponQueryService {
     /**
      * 지금 사용할 수 있는 내 쿠폰만 조회한다(주문 화면 쿠폰 선택).
      */
+    @Override
     public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
         return couponQueryDao.findAvailableMemberCoupons(memberId, LocalDateTime.now())
             .stream()

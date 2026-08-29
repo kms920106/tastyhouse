@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeApproveCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeRejectCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopImageChangeQueryService;
 
 import java.util.List;
 
@@ -25,17 +24,18 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRequestSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeQueryUseCase;
 
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopImageChangeAdminApiController {
 
-    private final ShopImageChangeQueryService shopImageChangeQueryService;
+    private final ShopImageChangeQueryUseCase shopImageChangeQueryUseCase;
     private final ShopImageChangeCommandUseCase shopImageChangeCommandUseCase;
 
-    public ShopImageChangeAdminApiController(ShopImageChangeQueryService shopImageChangeQueryService, ShopImageChangeCommandUseCase shopImageChangeCommandUseCase) {
-        this.shopImageChangeQueryService = shopImageChangeQueryService;
+    public ShopImageChangeAdminApiController(ShopImageChangeQueryUseCase shopImageChangeQueryUseCase, ShopImageChangeCommandUseCase shopImageChangeCommandUseCase) {
+        this.shopImageChangeQueryUseCase = shopImageChangeQueryUseCase;
         this.shopImageChangeCommandUseCase = shopImageChangeCommandUseCase;
     }
 
@@ -45,7 +45,7 @@ public class ShopImageChangeAdminApiController {
         @Valid @ModelAttribute ShopImageChangeRequestSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse = shopImageChangeQueryService.getImageChangeRequests(
+        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse = shopImageChangeQueryUseCase.getImageChangeRequests(
             search.status(), search.imageType(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(

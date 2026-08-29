@@ -10,6 +10,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopMenuCollectionImageRequestRe
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 메뉴모음컷 검수 조회 서비스(CQRS query 측).
@@ -18,7 +19,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionIm
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopMenuCollectionImageQueryService {
+public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -26,6 +27,7 @@ public class ShopMenuCollectionImageQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopMenuCollectionImageRequestItemResponse> getMenuCollectionImageRequests(
         String status,
         int page,

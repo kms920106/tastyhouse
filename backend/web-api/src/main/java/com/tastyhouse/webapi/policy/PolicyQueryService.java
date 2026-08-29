@@ -3,15 +3,17 @@ package com.tastyhouse.webapi.policy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.policy.model.PolicyType;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyDocumentResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyListItemResult;
 import com.tastyhouse.infrastructure.policy.query.PolicyQueryDao;
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.policy.application.port.in.PolicyDetailQueryUseCase;
+import com.tastyhouse.webapi.policy.application.port.in.PolicyVersionListQueryUseCase;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 
@@ -27,7 +29,7 @@ import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class PolicyQueryService {
+public class PolicyQueryService implements PolicyDetailQueryUseCase, PolicyVersionListQueryUseCase {
 
     private final PolicyQueryDao policyQueryDao;
 
@@ -35,50 +37,62 @@ public class PolicyQueryService {
         this.policyQueryDao = policyQueryDao;
     }
 
+    @Override
     public PolicyDetailResponse getLatestTermsOfService() {
         return getLatestByType(PolicyType.TERMS_OF_SERVICE);
     }
 
+    @Override
     public PolicyDetailResponse getLatestPrivacyPolicy() {
         return getLatestByType(PolicyType.PRIVACY_POLICY);
     }
 
+    @Override
     public PolicyDetailResponse getLatestElectronicFinancialTransactions() {
         return getLatestByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS);
     }
 
+    @Override
     public PolicyDetailResponse getLatestAgeVerification() {
         return getLatestByType(PolicyType.AGE_VERIFICATION);
     }
 
+    @Override
     public PolicyDetailResponse getTermsOfServiceByVersion(String version) {
         return getByTypeAndVersion(PolicyType.TERMS_OF_SERVICE, version);
     }
 
+    @Override
     public PolicyDetailResponse getPrivacyPolicyByVersion(String version) {
         return getByTypeAndVersion(PolicyType.PRIVACY_POLICY, version);
     }
 
+    @Override
     public PolicyDetailResponse getElectronicFinancialTransactionsByVersion(String version) {
         return getByTypeAndVersion(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, version);
     }
 
+    @Override
     public PolicyDetailResponse getAgeVerificationByVersion(String version) {
         return getByTypeAndVersion(PolicyType.AGE_VERIFICATION, version);
     }
 
+    @Override
     public PaginationResponse<PolicyListItemResponse> getTermsOfServiceList(int page, int size) {
         return getListByType(PolicyType.TERMS_OF_SERVICE, page, size);
     }
 
+    @Override
     public PaginationResponse<PolicyListItemResponse> getPrivacyPolicyList(int page, int size) {
         return getListByType(PolicyType.PRIVACY_POLICY, page, size);
     }
 
+    @Override
     public PaginationResponse<PolicyListItemResponse> getElectronicFinancialTransactionsList(int page, int size) {
         return getListByType(PolicyType.ELECTRONIC_FINANCIAL_TRANSACTIONS, page, size);
     }
 
+    @Override
     public PaginationResponse<PolicyListItemResponse> getAgeVerificationList(int page, int size) {
         return getListByType(PolicyType.AGE_VERIFICATION, page, size);
     }

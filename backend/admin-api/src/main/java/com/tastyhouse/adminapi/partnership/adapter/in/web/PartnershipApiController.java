@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.adminapi.partnership.application.service.PartnershipQueryService;
+import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipQueryUseCase;
 
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController
@@ -33,11 +33,11 @@ import com.tastyhouse.adminapi.partnership.application.service.PartnershipQueryS
 public class PartnershipApiController {
 
     private final PartnershipCommandUseCase partnershipCommandUseCase;
-    private final PartnershipQueryService partnershipQueryService;
+    private final PartnershipQueryUseCase partnershipQueryUseCase;
 
-    public PartnershipApiController(PartnershipCommandUseCase partnershipCommandUseCase, PartnershipQueryService partnershipQueryService) {
+    public PartnershipApiController(PartnershipCommandUseCase partnershipCommandUseCase, PartnershipQueryUseCase partnershipQueryUseCase) {
         this.partnershipCommandUseCase = partnershipCommandUseCase;
-        this.partnershipQueryService = partnershipQueryService;
+        this.partnershipQueryUseCase = partnershipQueryUseCase;
     }
 
     @Operation(summary = "제휴 신청 목록 조회", description = "제휴 신청 목록을 페이징 조회합니다. 상호명/담당자명/연락처/처리상태/접수기간 필터를 지원합니다.")
@@ -46,7 +46,7 @@ public class PartnershipApiController {
         @Valid @ModelAttribute PartnershipSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipQueryService.getPartnershipRequests(
+        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipQueryUseCase.getPartnershipRequests(
             search.businessName(), search.contactName(), search.contactPhone(), search.status(),
             search.startDate(), search.endDate(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
@@ -55,7 +55,7 @@ public class PartnershipApiController {
     @Operation(summary = "제휴 신청 상세 조회", description = "제휴 신청 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<PartnershipRequestDetailResponse>> getPartnershipRequest(@PathVariable Long id) {
-        PartnershipRequestDetailResponse response = partnershipQueryService.getPartnershipRequest(id);
+        PartnershipRequestDetailResponse response = partnershipQueryUseCase.getPartnershipRequest(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -10,6 +10,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopContentBoardResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardQueryUseCase;
 
 /**
  * admin용 가게 콘텐츠보드 검수 조회 서비스(CQRS query 측).
@@ -18,7 +19,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardList
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopContentBoardQueryService {
+public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -26,6 +27,7 @@ public class ShopContentBoardQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopContentBoardListItemResponse> getContentBoards(
         Long shopId,
         Boolean hidden,

@@ -3,14 +3,15 @@ package com.tastyhouse.webapi.notification.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
-import com.tastyhouse.infrastructure.notification.query.NotificationListItemResult;
-import com.tastyhouse.infrastructure.notification.query.NotificationQueryDao;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.notification.query.NotificationListItemResult;
+import com.tastyhouse.infrastructure.notification.query.NotificationQueryDao;
 import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
+import com.tastyhouse.webapi.notification.application.port.in.NotificationQueryUseCase;
 
 /**
  * 알림함 조회 서비스(CQRS query 측).
@@ -20,7 +21,7 @@ import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationLi
  */
 @Service
 @Transactional(readOnly = true)
-public class NotificationQueryService {
+public class NotificationQueryService implements NotificationQueryUseCase {
 
     private final NotificationQueryDao notificationQueryDao;
 
@@ -31,6 +32,7 @@ public class NotificationQueryService {
     /**
      * 내 알림 목록 — 최신순.
      */
+    @Override
     public PaginationResponse<NotificationListItemResponse> findNotifications(Long memberId, int page, int size) {
         PageResult<NotificationListItemResult> pageResult =
             notificationQueryDao.findNotificationsByMemberId(memberId, PageQuery.of(page, size));
@@ -41,6 +43,7 @@ public class NotificationQueryService {
     /**
      * 내 미읽음 알림 개수 — 헤더 배지용.
      */
+    @Override
     public long countUnread(Long memberId) {
         return notificationQueryDao.countUnreadByMemberId(memberId);
     }

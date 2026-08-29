@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeHideCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeUnhideCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopOrderNoticeQueryService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopOrderNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
  * 주문안내 검수 관리자 API.
@@ -36,20 +36,20 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeRespo
 public class ShopOrderNoticeAdminApiController {
 
     private final ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase;
-    private final ShopOrderNoticeQueryService shopOrderNoticeQueryService;
+    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase;
 
     public ShopOrderNoticeAdminApiController(
         ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase,
-        ShopOrderNoticeQueryService shopOrderNoticeQueryService
+        ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase
     ) {
         this.shopOrderNoticeCommandUseCase = shopOrderNoticeCommandUseCase;
-        this.shopOrderNoticeQueryService = shopOrderNoticeQueryService;
+        this.shopOrderNoticeQueryUseCase = shopOrderNoticeQueryUseCase;
     }
 
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내 본문과 게시중단 여부·사유를 조회합니다.")
     @GetMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<ShopOrderNoticeResponse>> getOrderNotice(@PathVariable Long id) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(id);
+        ShopOrderNoticeResponse response = shopOrderNoticeQueryUseCase.getOrderNotice(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

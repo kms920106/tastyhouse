@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.follow.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -13,6 +13,7 @@ import com.tastyhouse.infrastructure.member.follow.query.MemberFollowQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberListItemResponse;
 import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchListItemResponse;
+import com.tastyhouse.webapi.follow.application.port.in.FollowQueryUseCase;
 
 /**
  * 팔로우 조회 서비스.
@@ -25,7 +26,7 @@ import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchLi
  */
 @Service
 @Transactional(readOnly = true)
-public class FollowQueryService {
+public class FollowQueryService implements FollowQueryUseCase {
 
     private final MemberFollowQueryDao memberFollowQueryDao;
     private final MemberQueryDao memberQueryDao;
@@ -41,32 +42,38 @@ public class FollowQueryService {
         this.memberFollowRepository = memberFollowRepository;
     }
 
+    @Override
     public boolean isFollowing(Long viewerMemberId, Long targetMemberId) {
         return memberFollowRepository.existsByFollowerIdAndFollowingId(
             MemberId.of(viewerMemberId), MemberId.of(targetMemberId)
         );
     }
 
+    @Override
     public long countFollowing(Long memberId) {
         return memberFollowRepository.countByFollowerId(MemberId.of(memberId));
     }
 
+    @Override
     public long countFollower(Long memberId) {
         return memberFollowRepository.countByFollowingId(MemberId.of(memberId));
     }
 
+    @Override
     public PaginationResponse<FollowMemberListItemResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
         return PaginationResponse.from(memberFollowQueryDao
             .findFollowingList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
             .map(this::toFollowMemberListItemResponse));
     }
 
+    @Override
     public PaginationResponse<FollowMemberListItemResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
         return PaginationResponse.from(memberFollowQueryDao
             .findFollowerList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
             .map(this::toFollowMemberListItemResponse));
     }
 
+    @Override
     public PaginationResponse<FollowMemberSearchListItemResponse> searchMembersByNickname(
         String nickname,
         Long viewerMemberId,

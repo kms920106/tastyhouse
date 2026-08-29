@@ -28,7 +28,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryCommandU
 import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryCreateCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductCategoryQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryQueryUseCase;
 
 /**
  * 점주 메뉴그룹(카테고리) 관리 API.
@@ -45,11 +45,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductCategoryQuerySer
 @RequestMapping("/api/products")
 public class ProductCategoryApiController {
 
-    private final ProductCategoryQueryService productCategoryQueryService;
+    private final ProductCategoryQueryUseCase productCategoryQueryService;
     private final ProductCategoryCommandUseCase productCategoryCommandUseCase;
 
     public ProductCategoryApiController(
-        ProductCategoryQueryService productCategoryQueryService,
+        ProductCategoryQueryUseCase productCategoryQueryService,
         ProductCategoryCommandUseCase productCategoryCommandUseCase
     ) {
         this.productCategoryQueryService = productCategoryQueryService;

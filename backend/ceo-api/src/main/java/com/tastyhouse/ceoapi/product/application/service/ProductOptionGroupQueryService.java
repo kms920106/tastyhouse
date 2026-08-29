@@ -10,6 +10,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupL
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductsResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -28,7 +29,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductOptionGroupQueryService {
+public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final CupDepositPolicy cupDepositPolicy;
@@ -48,6 +49,7 @@ public class ProductOptionGroupQueryService {
      * 가게의 옵션그룹 목록을 반환한다. <b>감춘 그룹·옵션도 포함</b>하며 그룹별 연결 메뉴 수를 함께
      * 담는다(마지막 연결이라 해제가 거부될지 화면이 미리 안내할 수 있게).
      */
+    @Override
     public List<ProductOptionGroupResponse> getProductOptionGroups(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -63,6 +65,7 @@ public class ProductOptionGroupQueryService {
      * 이 점주는 그 그룹에 접근할 수 없다 — 빈 결과를 "연결된 메뉴가 없다"로 응답하면 남의 가게
      * 옵션그룹의 존재 여부를 확인해 주는 통로가 된다.
      */
+    @Override
     public List<ProductOptionGroupLinkedProductResponse> getLinkedProducts(
         Long ceoId,
         Long shopId,
@@ -90,6 +93,7 @@ public class ProductOptionGroupQueryService {
      * 후보 그룹마다 {@link #getLinkedProducts}를 개별 호출하던 N+1을 없앤다({@code playwright-issue-v2.md}
      * 이슈 5).
      */
+    @Override
     public List<ProductOptionGroupLinkedProductsResponse> getLinkedProductsByShop(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

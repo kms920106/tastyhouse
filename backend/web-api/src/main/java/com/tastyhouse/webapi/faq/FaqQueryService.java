@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.faq.query.FaqCategoryResult;
 import com.tastyhouse.infrastructure.faq.query.FaqQueryDao;
 import com.tastyhouse.infrastructure.faq.query.FaqResult;
+import com.tastyhouse.webapi.faq.application.port.in.FaqQueryUseCase;
 import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
 import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 
@@ -19,7 +20,7 @@ import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class FaqQueryService {
+public class FaqQueryService implements FaqQueryUseCase {
 
     private final FaqQueryDao faqQueryDao;
 
@@ -27,6 +28,7 @@ public class FaqQueryService {
         this.faqQueryDao = faqQueryDao;
     }
 
+    @Override
     public List<FaqCategoryListItemResponse> getFaqCategories() {
         return faqQueryDao.findVisibleCategories().stream()
             .map(this::toFaqCategoryListItemResponse)
@@ -36,6 +38,7 @@ public class FaqQueryService {
     /**
      * 노출 FAQ 목록을 조회한다. categoryId가 null이면 전체 카테고리를 대상으로 한다.
      */
+    @Override
     public List<FaqListItemResponse> getFaqList(Long categoryId) {
         return faqQueryDao.findVisibleFaqs(categoryId).stream()
             .map(this::toFaqListItemResponse)

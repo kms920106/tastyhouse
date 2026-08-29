@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAllergenTypeResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -24,7 +25,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductNutritionQueryService {
+public class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -34,6 +35,7 @@ public class ProductNutritionQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ProductNutritionResponse getNutrition(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateProductOwnedByShop(shopId, productId);
@@ -46,6 +48,7 @@ public class ProductNutritionQueryService {
     /**
      * 알레르기 유발성분 코드 목록을 법령 열거 순서(enum 선언 순서)대로 돌려준다.
      */
+    @Override
     public List<ProductAllergenTypeResponse> getAllergenTypes() {
         return Arrays.stream(AllergenType.values())
             .map(allergenType -> ProductAllergenTypeResponse.from(allergenType.name(), allergenType.getDescription()))

@@ -27,6 +27,7 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemRespon
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderProductOptionResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderProductResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.response.PaymentSummaryResponse;
+import com.tastyhouse.adminapi.order.application.port.in.OrderQueryUseCase;
 
 /**
  * 주문 관리 조회 서비스(admin-api).
@@ -39,7 +40,7 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.PaymentSummaryRespo
  */
 @Service
 @Transactional(readOnly = true)
-public class OrderQueryService {
+public class OrderQueryService implements OrderQueryUseCase {
 
     private final OrderQueryDao orderQueryDao;
 
@@ -50,6 +51,7 @@ public class OrderQueryService {
     /**
      * 주문 관리 목록.
      */
+    @Override
     public PaginationResponse<OrderListItemResponse> getOrders(
         Long shopId,
         String orderStatus,
@@ -81,6 +83,7 @@ public class OrderQueryService {
     /**
      * 주문 관리 상세.
      */
+    @Override
     public OrderDetailResponse getOrder(Long id) {
         OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));

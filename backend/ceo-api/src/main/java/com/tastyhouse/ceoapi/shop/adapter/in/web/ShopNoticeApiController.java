@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopNoticeQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopNoticeQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeCreateRequest;
@@ -37,10 +37,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopNoticeUpdateCommand;
 @RequestMapping("/api/shops")
 public class ShopNoticeApiController {
 
-    private final ShopNoticeQueryService shopNoticeQueryService;
+    private final ShopNoticeQueryUseCase shopNoticeQueryService;
     private final ShopNoticeCommandUseCase shopNoticeCommandUseCase;
 
-    public ShopNoticeApiController(ShopNoticeQueryService shopNoticeQueryService, ShopNoticeCommandUseCase shopNoticeCommandUseCase) {
+    public ShopNoticeApiController(ShopNoticeQueryUseCase shopNoticeQueryService, ShopNoticeCommandUseCase shopNoticeCommandUseCase) {
         this.shopNoticeQueryService = shopNoticeQueryService;
         this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
     }

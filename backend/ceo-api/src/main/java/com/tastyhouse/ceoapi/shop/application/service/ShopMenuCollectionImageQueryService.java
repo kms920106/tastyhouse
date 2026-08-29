@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopMenuCollectionImageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
@@ -17,7 +18,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopMenuCollectionImageQueryService {
+public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -30,6 +31,7 @@ public class ShopMenuCollectionImageQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

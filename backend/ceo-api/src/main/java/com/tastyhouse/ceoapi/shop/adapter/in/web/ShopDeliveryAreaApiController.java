@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopDeliveryAreaPolygonQueryService;
-import com.tastyhouse.ceoapi.shop.application.service.ShopDeliveryAreaQueryService;
-import com.tastyhouse.ceoapi.shop.application.service.ShopDeliveryAreaRadiusQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonQueryUseCase;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaQueryUseCase;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkRequest;
@@ -48,16 +48,16 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusAppl
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaApiController {
 
-    private final ShopDeliveryAreaQueryService shopDeliveryAreaQueryService;
+    private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryService;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
-    private final ShopDeliveryAreaRadiusQueryService shopDeliveryAreaRadiusQueryService;
-    private final ShopDeliveryAreaPolygonQueryService shopDeliveryAreaPolygonQueryService;
+    private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryService;
+    private final ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryService;
 
     public ShopDeliveryAreaApiController(
-        ShopDeliveryAreaQueryService shopDeliveryAreaQueryService,
+        ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryService,
         ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase,
-        ShopDeliveryAreaRadiusQueryService shopDeliveryAreaRadiusQueryService,
-        ShopDeliveryAreaPolygonQueryService shopDeliveryAreaPolygonQueryService
+        ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryService,
+        ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryService
     ) {
         this.shopDeliveryAreaQueryService = shopDeliveryAreaQueryService;
         this.shopDeliveryAreaCommandUseCase = shopDeliveryAreaCommandUseCase;

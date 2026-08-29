@@ -17,6 +17,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationDetailResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationListItemResponse;
+import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationQueryUseCase;
 
 /**
  * 매장 가격 인증 요청 검수 조회 서비스(CQRS query 측).
@@ -27,7 +28,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerific
  */
 @Service
 @Transactional(readOnly = true)
-public class StorePriceVerificationQueryService {
+public class StorePriceVerificationQueryService implements StorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationQueryDao storePriceVerificationQueryDao;
 
@@ -35,6 +36,7 @@ public class StorePriceVerificationQueryService {
         this.storePriceVerificationQueryDao = storePriceVerificationQueryDao;
     }
 
+    @Override
     public PaginationResponse<StorePriceVerificationListItemResponse> getVerifications(
         String status,
         int page,
@@ -52,6 +54,7 @@ public class StorePriceVerificationQueryService {
      * 인증 요청 상세 — 헤더와 대상 항목을 <b>두 쿼리로</b> 나눠 조회해 조립한다. 한 쿼리로 조인하면
      * 요청 1건이 항목 수만큼 부풀고, 항목 0건인 요청이 조인에서 탈락한다.
      */
+    @Override
     public StorePriceVerificationDetailResponse getVerification(Long verificationId) {
         StorePriceVerificationListItemResult dto = storePriceVerificationQueryDao
             .findVerificationById(verificationId)

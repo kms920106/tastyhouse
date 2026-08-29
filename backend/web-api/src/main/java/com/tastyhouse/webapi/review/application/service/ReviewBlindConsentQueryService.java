@@ -8,6 +8,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.review.query.ReviewBlindNoticeResult;
 import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestQueryDao;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
+import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentQueryUseCase;
 
 /**
  * 게시중단 리뷰 안내 조회 서비스(CQRS query 측).
@@ -27,7 +28,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeRes
  */
 @Service
 @Transactional(readOnly = true)
-public class ReviewBlindConsentQueryService {
+public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUseCase {
 
     private final ReviewBlindRequestQueryDao reviewBlindRequestQueryDao;
 
@@ -40,6 +41,7 @@ public class ReviewBlindConsentQueryService {
      *
      * @throws ResourceNotFoundException 리뷰가 없거나, 게시중단 상태가 아니거나, 타인의 리뷰인 경우
      */
+    @Override
     public ReviewBlindNoticeResponse getBlindNotice(Long reviewId, Long memberId) {
         ReviewBlindNoticeResult notice = reviewBlindRequestQueryDao.findBlindNotice(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));

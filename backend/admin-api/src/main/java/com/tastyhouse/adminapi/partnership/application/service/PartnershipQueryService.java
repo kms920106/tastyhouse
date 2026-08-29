@@ -17,6 +17,7 @@ import com.tastyhouse.infrastructure.partnership.query.PartnershipSearchConditio
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
+import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipQueryUseCase;
 
 /**
  * 제휴 신청 관리 조회 서비스.
@@ -29,7 +30,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
  */
 @Service
 @Transactional(readOnly = true)
-public class PartnershipQueryService {
+public class PartnershipQueryService implements PartnershipQueryUseCase {
 
     private final PartnershipQueryDao partnershipQueryDao;
 
@@ -37,6 +38,7 @@ public class PartnershipQueryService {
         this.partnershipQueryDao = partnershipQueryDao;
     }
 
+    @Override
     public PaginationResponse<PartnershipRequestListItemResponse> getPartnershipRequests(
         String businessName,
         String contactName,
@@ -55,6 +57,7 @@ public class PartnershipQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public PartnershipRequestDetailResponse getPartnershipRequest(Long id) {
         PartnershipRequestDetailResult detail = partnershipQueryDao.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));

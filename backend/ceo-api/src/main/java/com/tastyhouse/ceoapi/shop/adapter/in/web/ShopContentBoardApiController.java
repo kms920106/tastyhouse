@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopContentBoardQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopContentBoardQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardCreateRequest;
@@ -33,10 +33,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopContentBoardUpdateComm
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
 
-    private final ShopContentBoardQueryService shopContentBoardQueryService;
+    private final ShopContentBoardQueryUseCase shopContentBoardQueryService;
     private final ShopContentBoardCommandUseCase shopContentBoardCommandUseCase;
 
-    public ShopContentBoardApiController(ShopContentBoardQueryService shopContentBoardQueryService, ShopContentBoardCommandUseCase shopContentBoardCommandUseCase) {
+    public ShopContentBoardApiController(ShopContentBoardQueryUseCase shopContentBoardQueryService, ShopContentBoardCommandUseCase shopContentBoardCommandUseCase) {
         this.shopContentBoardQueryService = shopContentBoardQueryService;
         this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
     }

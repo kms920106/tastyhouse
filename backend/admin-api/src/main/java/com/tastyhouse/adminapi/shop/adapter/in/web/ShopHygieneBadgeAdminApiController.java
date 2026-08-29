@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeDeleteCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopHygieneBadgeQueryService;
 
 import java.util.List;
 
@@ -22,24 +21,25 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopHygieneBadgeCreateRequest;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeAdminApiController {
 
-    private final ShopHygieneBadgeQueryService shopHygieneBadgeQueryService;
+    private final ShopHygieneBadgeQueryUseCase shopHygieneBadgeQueryUseCase;
     private final ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase;
 
-    public ShopHygieneBadgeAdminApiController(ShopHygieneBadgeQueryService shopHygieneBadgeQueryService, ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase) {
-        this.shopHygieneBadgeQueryService = shopHygieneBadgeQueryService;
+    public ShopHygieneBadgeAdminApiController(ShopHygieneBadgeQueryUseCase shopHygieneBadgeQueryUseCase, ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase) {
+        this.shopHygieneBadgeQueryUseCase = shopHygieneBadgeQueryUseCase;
         this.shopHygieneBadgeCommandUseCase = shopHygieneBadgeCommandUseCase;
     }
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")
     public ResponseEntity<ApiResponse<List<ShopHygieneBadgeResponse>>> getHygieneBadges(@PathVariable Long id) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryService.getHygieneBadges(id);
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryUseCase.getHygieneBadges(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

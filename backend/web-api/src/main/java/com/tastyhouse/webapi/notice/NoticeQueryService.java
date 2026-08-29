@@ -3,11 +3,12 @@ package com.tastyhouse.webapi.notice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeListItemResult;
 import com.tastyhouse.infrastructure.notice.query.NoticeQueryDao;
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.notice.application.port.in.NoticeQueryUseCase;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 
 /**
@@ -18,7 +19,7 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class NoticeQueryService {
+public class NoticeQueryService implements NoticeQueryUseCase {
 
     private final NoticeQueryDao noticeQueryDao;
 
@@ -26,6 +27,7 @@ public class NoticeQueryService {
         this.noticeQueryDao = noticeQueryDao;
     }
 
+    @Override
     public PaginationResponse<NoticeListItemResponse> getNoticeList(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<NoticeListItemResponse> pageResult = noticeQueryDao.findVisibleNotices(pageQuery)

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopChangeHistoryQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopChangeHistoryQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -27,9 +27,9 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListI
 @RequestMapping("/api/shops")
 public class ShopChangeHistoryApiController {
 
-    private final ShopChangeHistoryQueryService shopChangeHistoryQueryService;
+    private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryService;
 
-    public ShopChangeHistoryApiController(ShopChangeHistoryQueryService shopChangeHistoryQueryService) {
+    public ShopChangeHistoryApiController(ShopChangeHistoryQueryUseCase shopChangeHistoryQueryService) {
         this.shopChangeHistoryQueryService = shopChangeHistoryQueryService;
     }
 

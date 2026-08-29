@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
 import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
 import com.tastyhouse.infrastructure.point.query.PointQueryDao;
+import com.tastyhouse.webapi.point.application.port.in.PointQueryUseCase;
 import com.tastyhouse.webapi.point.response.PointHistoryItemResponse;
 import com.tastyhouse.webapi.point.response.PointHistoryResponse;
 import com.tastyhouse.webapi.point.response.PointResponse;
@@ -22,7 +23,7 @@ import com.tastyhouse.webapi.point.response.PointUsableResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class PointQueryService {
+public class PointQueryService implements PointQueryUseCase {
 
     private final PointQueryDao pointQueryDao;
 
@@ -30,12 +31,14 @@ public class PointQueryService {
         this.pointQueryDao = pointQueryDao;
     }
 
+    @Override
     public PointResponse getMemberPoint(Long memberId) {
         return pointQueryDao.findBalanceByMemberId(memberId)
             .map(this::toPointResponse)
             .orElseGet(() -> PointResponse.of(0, 0));
     }
 
+    @Override
     public PointHistoryResponse getPointHistory(Long memberId) {
         PointResponse pointResponse = getMemberPoint(memberId);
 
@@ -51,6 +54,7 @@ public class PointQueryService {
         );
     }
 
+    @Override
     public PointUsableResponse getUsablePoint(Long memberId) {
         return pointQueryDao.findBalanceByMemberId(memberId)
             .map(result -> PointUsableResponse.of(result.availablePoints()))

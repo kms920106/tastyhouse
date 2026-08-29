@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.service.StorePriceUnverifiedItem;
 import com.tastyhouse.domain.product.service.StorePriceVerificationService;
@@ -26,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopStorePriceVerificationQueryService {
+public class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
     private final StorePriceVerificationReader storePriceVerificationReader;
@@ -42,6 +43,7 @@ public class ShopStorePriceVerificationQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopStorePriceVerificationResponse getLatestVerification(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

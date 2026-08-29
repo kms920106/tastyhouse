@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopBusinessHourQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
@@ -36,10 +36,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourUpdateComm
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
 
-    private final ShopBusinessHourQueryService shopBusinessHourQueryService;
+    private final ShopBusinessHourQueryUseCase shopBusinessHourQueryService;
     private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;
 
-    public ShopBusinessHourApiController(ShopBusinessHourQueryService shopBusinessHourQueryService, ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase) {
+    public ShopBusinessHourApiController(ShopBusinessHourQueryUseCase shopBusinessHourQueryService, ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase) {
         this.shopBusinessHourQueryService = shopBusinessHourQueryService;
         this.shopBusinessHourCommandUseCase = shopBusinessHourCommandUseCase;
     }

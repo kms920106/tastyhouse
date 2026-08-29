@@ -28,18 +28,18 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewSortTypeRe
 import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatisticsResponse;
 import com.tastyhouse.ceoapi.review.application.port.in.ShopReviewCommandUseCase;
 import com.tastyhouse.ceoapi.review.application.port.in.ShopReviewSortTypeChangeCommand;
-import com.tastyhouse.ceoapi.review.application.service.ShopReviewQueryService;
+import com.tastyhouse.ceoapi.review.application.port.in.ShopReviewQueryUseCase;
 
 @Tag(name = "Ceo Shop Review", description = "점주 리뷰 관리 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopReviewApiController {
 
-    private final ShopReviewQueryService shopReviewQueryService;
+    private final ShopReviewQueryUseCase shopReviewQueryService;
     private final ShopReviewCommandUseCase shopReviewCommandUseCase;
 
     public ShopReviewApiController(
-        ShopReviewQueryService shopReviewQueryService,
+        ShopReviewQueryUseCase shopReviewQueryService,
         ShopReviewCommandUseCase shopReviewCommandUseCase
     ) {
         this.shopReviewQueryService = shopReviewQueryService;

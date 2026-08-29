@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopPhoneNumberResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberResponse;
@@ -15,7 +16,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopPhoneNumberQueryService {
+public class ShopPhoneNumberQueryService implements ShopPhoneNumberQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -25,6 +26,7 @@ public class ShopPhoneNumberQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopPhoneNumberResponse> getPhoneNumbers(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findPhoneNumbers(shopId).stream()

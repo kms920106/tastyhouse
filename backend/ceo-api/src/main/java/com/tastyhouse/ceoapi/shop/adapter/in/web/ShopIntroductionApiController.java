@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopIntroductionQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopIntroductionUpdateRequest;
@@ -28,10 +28,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionUpdateComm
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
 
-    private final ShopIntroductionQueryService shopIntroductionQueryService;
+    private final ShopIntroductionQueryUseCase shopIntroductionQueryService;
     private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;
 
-    public ShopIntroductionApiController(ShopIntroductionQueryService shopIntroductionQueryService, ShopIntroductionCommandUseCase shopIntroductionCommandUseCase) {
+    public ShopIntroductionApiController(ShopIntroductionQueryUseCase shopIntroductionQueryService, ShopIntroductionCommandUseCase shopIntroductionCommandUseCase) {
         this.shopIntroductionQueryService = shopIntroductionQueryService;
         this.shopIntroductionCommandUseCase = shopIntroductionCommandUseCase;
     }

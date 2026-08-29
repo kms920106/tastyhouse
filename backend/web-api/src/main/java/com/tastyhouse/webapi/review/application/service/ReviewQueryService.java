@@ -12,6 +12,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
@@ -22,6 +26,9 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.review.query.BestReviewListItemResult;
@@ -35,13 +42,6 @@ import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
 import com.tastyhouse.infrastructure.review.query.ShopReviewDisplaySettingQueryDao;
 import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.review.ReviewListType;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewCommentListResponse;
@@ -54,6 +54,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewProductRespons
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewReplyResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoResponse;
+import com.tastyhouse.webapi.review.application.port.in.ReviewQueryUseCase;
 
 /**
  * 리뷰 조회 서비스(web).
@@ -74,7 +75,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoRespo
  */
 @Service
 @Transactional(readOnly = true)
-public class ReviewQueryService {
+public class ReviewQueryService implements ReviewQueryUseCase {
 
     private final ReviewQueryDao reviewQueryDao;
     private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
@@ -105,6 +106,7 @@ public class ReviewQueryService {
     /**
      * 베스트 리뷰 목록.
      */
+    @Override
     public PaginationResponse<ReviewBestListItemResponse> searchBestReviewList(int page, int size) {
         PageResult<ReviewBestListItemResponse> pageResult = reviewQueryDao.findBestReviews(PageQuery.of(page, size))
             .map(this::toBestReviewListItemResponse);
@@ -114,6 +116,7 @@ public class ReviewQueryService {
     /**
      * 최신 리뷰 목록 — FOLLOWING이면 로그인 회원이 팔로우한 회원들의 리뷰만 조회한다.
      */
+    @Override
     public PaginationResponse<ReviewLatestListItemResponse> searchLatestReviewList(
         int page,
         int size,
@@ -137,6 +140,7 @@ public class ReviewQueryService {
      * <p>{@code viewerMemberId}는 <b>선택적</b>이다({@code null} = 비로그인). 사장님만보기 리뷰는
      * 작성자 본인에게만 노출되며, 그 외에는 빈 결과가 돌아가 컨트롤러가 404를 낸다.
      */
+    @Override
     public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId, Long viewerMemberId) {
         return findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
             .map(result -> toReviewDetailResponse(result, viewerMemberId));
@@ -153,6 +157,7 @@ public class ReviewQueryService {
      * 사장님만보기 리뷰를 <b>작성자 본인에게만</b> 노출하므로, 뷰어를 넘기지 않으면 사장님만보기로 등록하는
      * 순간 등록 자체는 성공했는데 응답 조립에서 {@code REVIEW_NOT_FOUND}(404)가 나는 회귀가 생긴다.
      */
+    @Override
     public ReviewResponse getReviewResponse(Long reviewId, Long authorMemberId) {
         ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId), authorMemberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
@@ -174,6 +179,7 @@ public class ReviewQueryService {
     /**
      * 리뷰 좋아요 여부.
      */
+    @Override
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
         boolean liked = reviewQueryDao.existsLike(ReviewId.of(reviewId), memberId);
         return ReviewLikeStatusResponse.from(liked);
@@ -187,6 +193,7 @@ public class ReviewQueryService {
      * {@code hidden}·{@code ownerOnly} 두 축을 함께 판정하므로 가드 한 번으로 둘 다 막힌다(추가 쿼리
      * 1회 비용은 감수한다).
      */
+    @Override
     public ReviewCommentListResponse searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
         requireVisibleReview(reviewId, viewerMemberId);
 
@@ -221,6 +228,7 @@ public class ReviewQueryService {
     /**
      * 리뷰 상세 + 연결 상품 정보. 상품이 없어도 리뷰 정보만으로 응답한다(상품 필드는 비운다).
      */
+    @Override
     public Optional<ReviewProductResponse> findReviewProduct(Long reviewId, Long viewerMemberId) {
         Optional<ReviewDetailResult> reviewDetailOpt = findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId);
         if (reviewDetailOpt.isEmpty()) {
@@ -287,6 +295,7 @@ public class ReviewQueryService {
     /**
      * 리뷰 작성 화면 정보 — 주문 상품에서 상품을 찾아 가격·대표 이미지와 작성 이력 여부를 함께 준다.
      */
+    @Override
     public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.AUTH_REQUIRED);
@@ -339,6 +348,7 @@ public class ReviewQueryService {
     /**
      * 특정 회원이 쓴 리뷰 목록(대표 이미지 1장).
      */
+    @Override
     public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
         PageResult<ReviewMemberListItemResponse> pageResult =
             reviewQueryDao.findReviewsByMemberId(memberId, PageQuery.of(page, size))
@@ -469,6 +479,7 @@ public class ReviewQueryService {
      * command 서비스를 부른다 — command 서비스가 query 서비스를 주입받는 것은 CQRS 교차 주입 금지
      * 규약 위반이기 때문이다. 한쪽으로 통일하려다 중복 쿼리를 만들지 말 것.
      */
+    @Override
     public void requireVisibleReview(Long reviewId, Long viewerMemberId) {
         findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));

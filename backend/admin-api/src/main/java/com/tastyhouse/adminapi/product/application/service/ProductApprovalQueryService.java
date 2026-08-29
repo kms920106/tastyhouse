@@ -14,6 +14,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImageChangeRequestItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductRepresentativeRequestItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarianRequestItemResponse;
+import com.tastyhouse.adminapi.product.application.port.in.ProductApprovalQueryUseCase;
 
 /**
  * 메뉴 이미지·채식·사장님 추천 승인요청 검수 조회 서비스(CQRS query 측).
@@ -22,7 +23,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarian
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductApprovalQueryService {
+public class ProductApprovalQueryService implements ProductApprovalQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
 
@@ -30,6 +31,7 @@ public class ProductApprovalQueryService {
         this.productQueryDao = productQueryDao;
     }
 
+    @Override
     public PaginationResponse<ProductImageChangeRequestItemResponse> getImageChangeRequests(
         String status,
         int page,
@@ -43,6 +45,7 @@ public class ProductApprovalQueryService {
         return PaginationResponse.from(pageResult.map(this::toProductImageChangeRequestItemResponse));
     }
 
+    @Override
     public PaginationResponse<ProductVegetarianRequestItemResponse> getVegetarianRequests(
         String status,
         int page,
@@ -56,6 +59,7 @@ public class ProductApprovalQueryService {
         return PaginationResponse.from(pageResult.map(this::toProductVegetarianRequestItemResponse));
     }
 
+    @Override
     public PaginationResponse<ProductRepresentativeRequestItemResponse> getRepresentativeRequests(
         String status,
         int page,

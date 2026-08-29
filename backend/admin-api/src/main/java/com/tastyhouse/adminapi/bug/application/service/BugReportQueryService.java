@@ -26,6 +26,7 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportDetailRespon
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResponse;
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.MemberSummaryResponse;
 import com.tastyhouse.adminapi.file.response.FileResponse;
+import com.tastyhouse.adminapi.bug.application.port.in.BugReportQueryUseCase;
 
 /**
  * 버그 제보 관리 조회 서비스.
@@ -42,7 +43,7 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class BugReportQueryService {
+public class BugReportQueryService implements BugReportQueryUseCase {
 
     private final BugReportQueryDao bugReportQueryDao;
     private final MemberQueryDao memberQueryDao;
@@ -52,6 +53,7 @@ public class BugReportQueryService {
         this.memberQueryDao = memberQueryDao;
     }
 
+    @Override
     public PaginationResponse<BugReportListItemResponse> getBugReports(
         String title,
         String content,
@@ -83,6 +85,7 @@ public class BugReportQueryService {
         return PaginationResponse.from(responsePage);
     }
 
+    @Override
     public BugReportDetailResponse getBugReport(Long id) {
         BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));

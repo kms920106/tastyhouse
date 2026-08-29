@@ -5,21 +5,22 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewListItemResult;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewQueryDao;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewWritableItemResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritableItemResponse;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewQueryUseCase;
 
 /**
  * 메뉴 평가 조회 서비스(CQRS query 측).
@@ -32,7 +33,7 @@ import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritab
  */
 @Service
 @Transactional(readOnly = true)
-public class MenuReviewQueryService {
+public class MenuReviewQueryService implements MenuReviewQueryUseCase {
 
     private final MenuReviewQueryDao menuReviewQueryDao;
     private final OrderRepository orderRepository;
@@ -46,6 +47,7 @@ public class MenuReviewQueryService {
      * 한 주문의 평가 가능 메뉴 목록 — 평가 제외 상품({@code is_rating_excluded = 1})은 담기지 않는다.
      * 이미 평가한 항목도 기존 값과 함께 내려준다.
      */
+    @Override
     public List<MenuReviewWritableItemResponse> findWritableItems(Long orderId, Long memberId) {
         Order order = orderRepository.findById(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
@@ -61,6 +63,7 @@ public class MenuReviewQueryService {
     /**
      * 상품별 메뉴 평가 목록(공개 조회) — 숨김 제외, 최신순.
      */
+    @Override
     public PaginationResponse<MenuReviewListItemResponse> findByProductId(Long productId, int page, int size) {
         PageResult<MenuReviewListItemResult> pageResult =
             menuReviewQueryDao.findVisibleByProductId(productId, PageQuery.of(page, size));

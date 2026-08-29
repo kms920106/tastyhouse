@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.shop.query.ShopOriginInfoResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 
 /**
  * 손님용 가게 원산지 표시 조회 서비스(CQRS query 측).
@@ -19,7 +20,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopOriginInfoQueryService {
+public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -27,6 +28,7 @@ public class ShopOriginInfoQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public ShopOriginInfoResponse getOriginInfo(Long shopId) {
         return shopQueryDao.findOriginInfo(shopId)
             .map(this::toShopOriginInfoResponse)

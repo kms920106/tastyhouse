@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopDeliveryAreaAdjustmentQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentCreateRequest;
@@ -31,11 +31,11 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaAdjustment
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentApiController {
 
-    private final ShopDeliveryAreaAdjustmentQueryService shopDeliveryAreaAdjustmentQueryService;
+    private final ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryService;
     private final ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 
     public ShopDeliveryAreaAdjustmentApiController(
-        ShopDeliveryAreaAdjustmentQueryService shopDeliveryAreaAdjustmentQueryService,
+        ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryService,
         ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
     ) {
         this.shopDeliveryAreaAdjustmentQueryService = shopDeliveryAreaAdjustmentQueryService;

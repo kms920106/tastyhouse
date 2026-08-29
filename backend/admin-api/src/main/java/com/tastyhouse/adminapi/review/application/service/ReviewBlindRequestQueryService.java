@@ -18,6 +18,7 @@ import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestSearchCondit
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestDetailResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestListItemResponse;
+import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestQueryUseCase;
 
 /**
  * 리뷰 게시중단 요청 심사 조회 서비스(admin, CQRS query 측).
@@ -29,7 +30,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequest
  */
 @Service
 @Transactional(readOnly = true)
-public class ReviewBlindRequestQueryService {
+public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUseCase {
 
     private final ReviewBlindRequestQueryDao reviewBlindRequestQueryDao;
 
@@ -40,6 +41,7 @@ public class ReviewBlindRequestQueryService {
     /**
      * 게시중단 요청 목록 — 상점·상태·사유·기간으로 필터링한다.
      */
+    @Override
     public PaginationResponse<ReviewBlindRequestListItemResponse> getBlindRequests(
         Long shopId,
         String status,
@@ -64,6 +66,7 @@ public class ReviewBlindRequestQueryService {
     /**
      * 게시중단 요청 심사 상세.
      */
+    @Override
     public ReviewBlindRequestDetailResponse getBlindRequest(Long id) {
         ReviewBlindRequestDetailResult detail = reviewBlindRequestQueryDao.findBlindRequestDetail(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));

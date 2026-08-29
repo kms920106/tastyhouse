@@ -27,7 +27,7 @@ import com.tastyhouse.adminapi.bug.application.port.in.BugReportAssignCommand;
 import com.tastyhouse.adminapi.bug.application.port.in.BugReportClassifyCommand;
 import com.tastyhouse.adminapi.bug.application.port.in.BugReportCommandUseCase;
 import com.tastyhouse.adminapi.bug.application.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.adminapi.bug.application.service.BugReportQueryService;
+import com.tastyhouse.adminapi.bug.application.port.in.BugReportQueryUseCase;
 
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController
@@ -35,11 +35,11 @@ import com.tastyhouse.adminapi.bug.application.service.BugReportQueryService;
 public class BugReportApiController {
 
     private final BugReportCommandUseCase bugReportCommandUseCase;
-    private final BugReportQueryService bugReportQueryService;
+    private final BugReportQueryUseCase bugReportQueryUseCase;
 
-    public BugReportApiController(BugReportCommandUseCase bugReportCommandUseCase, BugReportQueryService bugReportQueryService) {
+    public BugReportApiController(BugReportCommandUseCase bugReportCommandUseCase, BugReportQueryUseCase bugReportQueryUseCase) {
         this.bugReportCommandUseCase = bugReportCommandUseCase;
-        this.bugReportQueryService = bugReportQueryService;
+        this.bugReportQueryUseCase = bugReportQueryUseCase;
     }
 
     @Operation(summary = "버그 제보 목록 조회", description = "버그 제보 목록을 페이징 조회합니다. title/content는 부분 일치 검색, memberId는 정확 일치합니다.")
@@ -48,7 +48,7 @@ public class BugReportApiController {
         @Valid @ModelAttribute BugReportSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportQueryService.getBugReports(
+        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportQueryUseCase.getBugReports(
             search.title(), search.content(), search.memberId(),
             search.status(), search.category(), search.priority(),
             pageRequest.page(), pageRequest.size()
@@ -59,7 +59,7 @@ public class BugReportApiController {
     @Operation(summary = "버그 제보 상세 조회", description = "버그 제보 상세를 조회합니다. 첨부 이미지 URL과 제보 회원 정보를 포함합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BugReportDetailResponse>> getBugReport(@PathVariable Long id) {
-        BugReportDetailResponse response = bugReportQueryService.getBugReport(id);
+        BugReportDetailResponse response = bugReportQueryUseCase.getBugReport(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.review.adapter.in.web;
 import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestApproveCommand;
 import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestCommandUseCase;
 import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestRejectCommand;
-import com.tastyhouse.adminapi.review.application.service.ReviewBlindRequestQueryService;
 
 import java.util.List;
 
@@ -26,20 +25,21 @@ import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewBlindRequestR
 import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewBlindRequestSearchRequest;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestDetailResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestListItemResponse;
+import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestQueryUseCase;
 
 @Tag(name = "Review Blind Request Admin", description = "리뷰 게시중단 요청 심사 API")
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewBlindRequestApiController {
 
-    private final ReviewBlindRequestQueryService reviewBlindRequestQueryService;
+    private final ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase;
     private final ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase;
 
     public ReviewBlindRequestApiController(
-        ReviewBlindRequestQueryService reviewBlindRequestQueryService,
+        ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase,
         ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase
     ) {
-        this.reviewBlindRequestQueryService = reviewBlindRequestQueryService;
+        this.reviewBlindRequestQueryUseCase = reviewBlindRequestQueryUseCase;
         this.reviewBlindRequestCommandUseCase = reviewBlindRequestCommandUseCase;
     }
 
@@ -49,7 +49,7 @@ public class ReviewBlindRequestApiController {
         @Valid @ModelAttribute ReviewBlindRequestSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ReviewBlindRequestListItemResponse> pageResponse = reviewBlindRequestQueryService.getBlindRequests(
+        PaginationResponse<ReviewBlindRequestListItemResponse> pageResponse = reviewBlindRequestQueryUseCase.getBlindRequests(
             search.shopId(),
             search.status(),
             search.reason(),
@@ -66,7 +66,7 @@ public class ReviewBlindRequestApiController {
     @Operation(summary = "게시중단 요청 상세 조회", description = "리뷰 게시중단 요청 심사 상세를 조회합니다.")
     @GetMapping("/v1/blind-requests/{id}")
     public ResponseEntity<ApiResponse<ReviewBlindRequestDetailResponse>> getBlindRequest(@PathVariable Long id) {
-        ReviewBlindRequestDetailResponse response = reviewBlindRequestQueryService.getBlindRequest(id);
+        ReviewBlindRequestDetailResponse response = reviewBlindRequestQueryUseCase.getBlindRequest(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

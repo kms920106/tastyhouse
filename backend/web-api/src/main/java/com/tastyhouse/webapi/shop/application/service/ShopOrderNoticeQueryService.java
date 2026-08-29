@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.infrastructure.shop.query.ShopOrderNoticeQueryDao;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
  * 손님용 주문안내 조회 서비스(CQRS query 측).
@@ -21,7 +22,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderNoticeQueryService {
+public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
 
     private final ShopOrderNoticeQueryDao shopOrderNoticeQueryDao;
 
@@ -33,6 +34,7 @@ public class ShopOrderNoticeQueryService {
      * 가게의 주문안내를 조회한다. 미설정이거나 관리자 게시중단 상태면 {@code null}을 돌려준다
      * ({@code ApiResponse.data}가 null이 된다).
      */
+    @Override
     public ShopOrderNoticeResponse getOrderNotice(Long shopId) {
         return shopOrderNoticeQueryDao.findVisibleOrderNotice(shopId)
             .map(result -> ShopOrderNoticeResponse.of(result.content()))

@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupComma
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupCreateCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQueryUseCase;
 
 /**
  * 점주 옵션그룹 관리 API.
@@ -50,11 +50,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupQuery
 @RequestMapping("/api/products")
 public class ProductOptionGroupApiController {
 
-    private final ProductOptionGroupQueryService productOptionGroupQueryService;
+    private final ProductOptionGroupQueryUseCase productOptionGroupQueryService;
     private final ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase;
 
     public ProductOptionGroupApiController(
-        ProductOptionGroupQueryService productOptionGroupQueryService,
+        ProductOptionGroupQueryUseCase productOptionGroupQueryService,
         ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase
     ) {
         this.productOptionGroupQueryService = productOptionGroupQueryService;

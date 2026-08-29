@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequ
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceResponse;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceReplaceCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductPriceQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceQueryUseCase;
 
 /**
  * 점주 메뉴 가격(배달가·매장가·픽업가) 관리 API.
@@ -45,11 +45,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductPriceQueryServic
 @RequestMapping("/api/products")
 public class ProductPriceApiController {
 
-    private final ProductPriceQueryService productPriceQueryService;
+    private final ProductPriceQueryUseCase productPriceQueryService;
     private final ProductPriceCommandUseCase productPriceCommandUseCase;
 
     public ProductPriceApiController(
-        ProductPriceQueryService productPriceQueryService,
+        ProductPriceQueryUseCase productPriceQueryService,
         ProductPriceCommandUseCase productPriceCommandUseCase
     ) {
         this.productPriceQueryService = productPriceQueryService;

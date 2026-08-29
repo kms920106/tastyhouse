@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
@@ -53,7 +54,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopRequestQueryService {
+public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
     private final ShopRequestQueryDao shopRequestQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -71,6 +72,7 @@ public class ShopRequestQueryService {
      *
      * <p>소유권 검증을 가장 먼저 수행한다 — 생략하면 남의 가게 요청 이력이 통째로 새는 IDOR가 된다.
      */
+    @Override
     public PaginationResponse<ShopRequestListItemResponse> getRequests(
         Long ceoId,
         Long shopId,
@@ -106,6 +108,7 @@ public class ShopRequestQueryService {
      * 요청 상세를 조회한다. 존재하지 않거나 다른 가게의 요청이면 404다 — 403으로 응답하면 다른 가게 요청의
      * 존재 자체가 드러난다.
      */
+    @Override
     public ShopRequestDetailResponse getRequestDetail(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -124,6 +127,7 @@ public class ShopRequestQueryService {
     /**
      * 요청건 문의 스레드를 작성순으로 조회한다.
      */
+    @Override
     public List<ShopRequestCommentResponse> getComments(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -139,6 +143,7 @@ public class ShopRequestQueryService {
     /**
      * 필터 드롭다운용 요청 유형·상태 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
+    @Override
     public ShopRequestTypeCatalogResponse getRequestTypes() {
         List<ShopRequestTypeResponse> requestTypes = Arrays.stream(ShopRequestType.values())
             .map(this::toRequestTypeResponse)

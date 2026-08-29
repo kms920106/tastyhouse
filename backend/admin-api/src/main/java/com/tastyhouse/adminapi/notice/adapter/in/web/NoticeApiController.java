@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.notice.application.port.in.NoticeCommandUseCase;
 import com.tastyhouse.adminapi.notice.application.port.in.NoticeCreateCommand;
 import com.tastyhouse.adminapi.notice.application.port.in.NoticeDeleteCommand;
 import com.tastyhouse.adminapi.notice.application.port.in.NoticeUpdateCommand;
-import com.tastyhouse.adminapi.notice.application.service.NoticeQueryService;
+import com.tastyhouse.adminapi.notice.application.port.in.NoticeQueryUseCase;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
@@ -36,11 +36,11 @@ import com.tastyhouse.adminapi.notice.application.service.NoticeQueryService;
 public class NoticeApiController {
 
     private final NoticeCommandUseCase noticeCommandUseCase;
-    private final NoticeQueryService noticeQueryService;
+    private final NoticeQueryUseCase noticeQueryUseCase;
 
-    public NoticeApiController(NoticeCommandUseCase noticeCommandUseCase, NoticeQueryService noticeQueryService) {
+    public NoticeApiController(NoticeCommandUseCase noticeCommandUseCase, NoticeQueryUseCase noticeQueryUseCase) {
         this.noticeCommandUseCase = noticeCommandUseCase;
-        this.noticeQueryService = noticeQueryService;
+        this.noticeQueryUseCase = noticeQueryUseCase;
     }
 
     @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -49,7 +49,7 @@ public class NoticeApiController {
         @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<NoticeListItemResponse> pageResponse = noticeQueryService.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResponse = noticeQueryUseCase.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -64,7 +64,7 @@ public class NoticeApiController {
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세을 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        NoticeDetailResponse response = noticeQueryService.getNotice(id);
+        NoticeDetailResponse response = noticeQueryUseCase.getNotice(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

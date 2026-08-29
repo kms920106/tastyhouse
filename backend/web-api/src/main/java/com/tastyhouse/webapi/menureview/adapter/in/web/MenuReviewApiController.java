@@ -17,11 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCommandUseCase;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCreateCommand;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewDeleteCommand;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewUpdateCommand;
-import com.tastyhouse.webapi.menureview.application.service.MenuReviewQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -30,6 +25,11 @@ import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewCreateR
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewUpdateRequest;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritableItemResponse;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCommandUseCase;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCreateCommand;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewDeleteCommand;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewQueryUseCase;
+import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewUpdateCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**
@@ -44,11 +44,11 @@ import com.tastyhouse.webapi.security.CurrentUser;
 public class MenuReviewApiController {
 
     private final MenuReviewCommandUseCase menuReviewCommandUseCase;
-    private final MenuReviewQueryService menuReviewQueryService;
+    private final MenuReviewQueryUseCase menuReviewQueryService;
 
     public MenuReviewApiController(
         MenuReviewCommandUseCase menuReviewCommandUseCase,
-        MenuReviewQueryService menuReviewQueryService
+        MenuReviewQueryUseCase menuReviewQueryService
     ) {
         this.menuReviewCommandUseCase = menuReviewCommandUseCase;
         this.menuReviewQueryService = menuReviewQueryService;

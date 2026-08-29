@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageApproveCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageRejectCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopMenuCollectionImageQueryService;
 
 import java.util.List;
 
@@ -25,6 +24,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 메뉴모음컷 검수 관리자 API.
@@ -40,14 +40,14 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionIm
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageAdminApiController {
 
-    private final ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase;
 
     public ShopMenuCollectionImageAdminApiController(
-        ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService,
+        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase,
         ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase
     ) {
-        this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;
+        this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
         this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;
     }
 
@@ -60,7 +60,7 @@ public class ShopMenuCollectionImageAdminApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ShopMenuCollectionImageRequestItemResponse> pageResponse =
-            shopMenuCollectionImageQueryService.getMenuCollectionImageRequests(
+            shopMenuCollectionImageQueryUseCase.getMenuCollectionImageRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         return ResponseEntity.ok(ApiResponse.success(

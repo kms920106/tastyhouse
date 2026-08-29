@@ -10,6 +10,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestCommentResult;
 import com.tastyhouse.infrastructure.shop.query.ShopRequestQueryDao;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentQueryUseCase;
 
 /**
  * 담당자용 요청건 문의 스레드 조회 서비스(CQRS query 측).
@@ -21,7 +22,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentRe
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopRequestCommentQueryService {
+public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUseCase {
 
     private final ShopRequestQueryDao shopRequestQueryDao;
 
@@ -32,6 +33,7 @@ public class ShopRequestCommentQueryService {
     /**
      * 요청건 문의 스레드를 작성순으로 조회한다.
      */
+    @Override
     public List<ShopRequestCommentResponse> getComments(Long requestId) {
         shopRequestQueryDao.findRequestDetail(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));

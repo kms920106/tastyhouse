@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemRespon
 import com.tastyhouse.adminapi.order.application.port.in.OrderCommandUseCase;
 import com.tastyhouse.adminapi.order.application.port.in.OrderDeleteCommand;
 import com.tastyhouse.adminapi.order.application.port.in.OrderStatusChangeCommand;
-import com.tastyhouse.adminapi.order.application.service.OrderQueryService;
+import com.tastyhouse.adminapi.order.application.port.in.OrderQueryUseCase;
 
 @Tag(name = "Order Admin", description = "주문 관리자 API")
 @RestController
@@ -33,11 +33,11 @@ import com.tastyhouse.adminapi.order.application.service.OrderQueryService;
 public class OrderApiController {
 
     private final OrderCommandUseCase orderCommandUseCase;
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryUseCase orderQueryUseCase;
 
-    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryService orderQueryService) {
+    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryUseCase) {
         this.orderCommandUseCase = orderCommandUseCase;
-        this.orderQueryService = orderQueryService;
+        this.orderQueryUseCase = orderQueryUseCase;
     }
 
     @Operation(summary = "주문 목록 조회", description = "주문 목록을 페이징 조회합니다. 가게/주문상태/주문방법/결제상태/주문번호/주문자명/기간 필터를 지원합니다.")
@@ -46,7 +46,7 @@ public class OrderApiController {
         @Valid @ModelAttribute OrderSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<OrderListItemResponse> pageResponse = orderQueryService.getOrders(
+        PaginationResponse<OrderListItemResponse> pageResponse = orderQueryUseCase.getOrders(
             search.shopId(), search.orderStatus(), search.orderMethod(), search.paymentStatus(),
             search.orderNumber(), search.ordererName(), search.startDate(), search.endDate(),
             pageRequest.page(), pageRequest.size());
@@ -56,7 +56,7 @@ public class OrderApiController {
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrder(@PathVariable Long id) {
-        OrderDetailResponse response = orderQueryService.getOrder(id);
+        OrderDetailResponse response = orderQueryUseCase.getOrder(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

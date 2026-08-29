@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopConvenienceInfoQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopAmenityAssignmentResult;
 import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
@@ -19,7 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopConvenienceInfoQueryService {
+public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -29,6 +30,7 @@ public class ShopConvenienceInfoQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopConvenienceInfoResponse getConvenienceInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findConvenienceInfo(shopId)
@@ -36,6 +38,7 @@ public class ShopConvenienceInfoQueryService {
             .orElseGet(() -> ShopConvenienceInfoResponse.from(null, shopId, false, false, false, false, null, null, null));
     }
 
+    @Override
     public List<ShopAmenityResponse> getAmenities(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findAmenityAssignments(shopId).stream()

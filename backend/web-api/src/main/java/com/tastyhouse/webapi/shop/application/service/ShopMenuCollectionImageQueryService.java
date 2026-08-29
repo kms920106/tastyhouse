@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.shop.query.ShopMenuCollectionImageExposureResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 손님용 메뉴모음컷 조회 서비스(CQRS query 측).
@@ -17,7 +18,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImag
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopMenuCollectionImageQueryService {
+public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -25,6 +26,7 @@ public class ShopMenuCollectionImageQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long shopId) {
         return shopQueryDao.findExposedMenuCollectionImages(shopId).stream()
             .map(this::toShopMenuCollectionImageResponse)

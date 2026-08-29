@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureHourResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -34,7 +35,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductExposureQueryService {
+public class ProductExposureQueryService implements ProductExposureQueryUseCase {
 
     /** 노출 판정 기준 타임존 — 목록 SQL 술어({@code ProductQueryDao})와 같은 값이어야 한다. */
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
@@ -56,6 +57,7 @@ public class ProductExposureQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ProductExposureResponse getExposure(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

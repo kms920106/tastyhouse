@@ -9,19 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.point.application.port.in.PointQueryUseCase;
 import com.tastyhouse.webapi.point.response.PointHistoryResponse;
 import com.tastyhouse.webapi.point.response.PointResponse;
 import com.tastyhouse.webapi.point.response.PointUsableResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Point", description = "내 포인트 조회 API")
 public class PointApiController {
 
-    private final PointQueryService pointQueryService;
+    private final PointQueryUseCase pointQueryService;
 
-    public PointApiController(PointQueryService pointQueryService) {
+    public PointApiController(PointQueryUseCase pointQueryService) {
         this.pointQueryService = pointQueryService;
     }
 

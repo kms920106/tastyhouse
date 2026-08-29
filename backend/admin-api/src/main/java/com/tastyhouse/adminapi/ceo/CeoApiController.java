@@ -11,22 +11,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.ceo.response.CeoListItemResponse;
+import com.tastyhouse.adminapi.ceo.application.port.in.CeoQueryUseCase;
 
 @Tag(name = "Ceo Admin", description = "점주 관리자 API")
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoApiController {
 
-    private final CeoQueryService ceoQueryService;
+    private final CeoQueryUseCase ceoQueryUseCase;
 
-    public CeoApiController(CeoQueryService ceoQueryService) {
-        this.ceoQueryService = ceoQueryService;
+    public CeoApiController(CeoQueryUseCase ceoQueryUseCase) {
+        this.ceoQueryUseCase = ceoQueryUseCase;
     }
 
     @Operation(summary = "점주 목록 조회", description = "가게 배정용 점주 Select 드롭다운을 위한 전체 점주 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<CeoListItemResponse>>> getCeos() {
-        List<CeoListItemResponse> ceos = ceoQueryService.getCeos();
+        List<CeoListItemResponse> ceos = ceoQueryUseCase.getCeos();
         return ResponseEntity.ok(ApiResponse.success(ceos));
     }
 }

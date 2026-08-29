@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
@@ -18,7 +19,7 @@ import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopHygieneBadgeQueryService {
+public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -28,6 +29,7 @@ public class ShopHygieneBadgeQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopHygieneBadgeResponse> getHygieneBadges(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findHygieneBadges(shopId).stream()

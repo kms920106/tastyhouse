@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopRiderGuideQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopRiderGuideQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
@@ -32,10 +32,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopRiderVisitGuideUpdateC
 @RequestMapping("/api/shops")
 public class ShopRiderGuideApiController {
 
-    private final ShopRiderGuideQueryService shopRiderGuideQueryService;
+    private final ShopRiderGuideQueryUseCase shopRiderGuideQueryService;
     private final ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase;
 
-    public ShopRiderGuideApiController(ShopRiderGuideQueryService shopRiderGuideQueryService, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
+    public ShopRiderGuideApiController(ShopRiderGuideQueryUseCase shopRiderGuideQueryService, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
         this.shopRiderGuideQueryService = shopRiderGuideQueryService;
         this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
     }

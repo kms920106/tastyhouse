@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopBreakTimeResult;
 import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
@@ -22,7 +23,7 @@ import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopBusinessHourQueryService {
+public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -32,6 +33,7 @@ public class ShopBusinessHourQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findBusinessHours(shopId).stream()
@@ -39,6 +41,7 @@ public class ShopBusinessHourQueryService {
             .toList();
     }
 
+    @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findBreakTimes(shopId).stream()

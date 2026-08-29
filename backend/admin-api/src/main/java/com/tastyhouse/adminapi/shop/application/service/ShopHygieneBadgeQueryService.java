@@ -8,13 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
 
 /**
  * admin용 가게 위생 인증 뱃지 조회 서비스(CQRS query 측). 소유권 검증 없이 전체 가게를 대상으로 한다.
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopHygieneBadgeQueryService {
+public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -22,6 +23,7 @@ public class ShopHygieneBadgeQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public List<ShopHygieneBadgeResponse> getHygieneBadges(Long shopId) {
         return shopQueryDao.findHygieneBadges(shopId).stream()
             .map(this::toShopHygieneBadgeResponse)

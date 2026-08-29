@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.reservation.service.SlotPolicy;
-import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.reservation.service.SlotPolicy;
+import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.infrastructure.reservation.query.ReservationDetailResult;
 import com.tastyhouse.infrastructure.reservation.query.ReservationQueryDao;
 import com.tastyhouse.infrastructure.reservation.query.ReservationResult;
@@ -25,6 +25,7 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDeta
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlotAvailabilityResponse;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationQueryUseCase;
 
 /**
  * 예약 조회 서비스(web).
@@ -37,7 +38,7 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot
  */
 @Service
 @Transactional(readOnly = true)
-public class ReservationQueryService {
+public class ReservationQueryService implements ReservationQueryUseCase {
 
     /**
      * 슬롯 과거 여부 판정 기준 시간대 — 서비스 운영 지역(한국) 고정.
@@ -53,6 +54,7 @@ public class ReservationQueryService {
     /**
      * 특정 가게·날짜의 슬롯별 가용성. 슬롯 행이 없는 시간대는 예약 0건이므로 정원 전체가 잔여다.
      */
+    @Override
     public ReservationSlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
         Map<LocalTime, Integer> remainingByTime = reservationQueryDao.findSlotOccupancies(shopId, date).stream()
             .collect(Collectors.toMap(SlotOccupancyResult::slotTime, SlotOccupancyResult::remaining));
@@ -78,6 +80,7 @@ public class ReservationQueryService {
     /**
      * 내 예약 목록.
      */
+    @Override
     public List<ReservationResponse> getMyReservations(Long memberId) {
         return reservationQueryDao.findReservationsByMemberId(memberId).stream()
             .map(this::toReservationResponse)
@@ -88,6 +91,7 @@ public class ReservationQueryService {
      * 특정 가게의 예약 목록(점주 화면).
      * TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요.
      */
+    @Override
     public List<ReservationResponse> getShopReservations(Long shopId) {
         return reservationQueryDao.findReservationsByShopId(shopId).stream()
             .map(this::toReservationResponse)
@@ -97,6 +101,7 @@ public class ReservationQueryService {
     /**
      * 단건 조회 후 Response 조립에 쓰는 공통 경로 — 예약 생성·상태전이 직후 응답에도 재사용한다.
      */
+    @Override
     public ReservationResponse getReservation(Long id) {
         ReservationResult result = reservationQueryDao.findReservationById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -106,6 +111,7 @@ public class ReservationQueryService {
     /**
      * 예약 완료 화면 상세 — 본인 예약만 조회할 수 있다.
      */
+    @Override
     public ReservationCompleteDetailResponse getCompleteDetail(Long memberId, Long id) {
         ReservationResult result = reservationQueryDao.findReservationById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
@@ -123,6 +129,7 @@ public class ReservationQueryService {
     /**
      * 예약 상세(예약자 정보 포함) — 본인 예약만 조회할 수 있다.
      */
+    @Override
     public ReservationDetailResponse getReservationDetail(Long memberId, Long id) {
         ReservationDetailResult result = reservationQueryDao.findReservationDetailById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));

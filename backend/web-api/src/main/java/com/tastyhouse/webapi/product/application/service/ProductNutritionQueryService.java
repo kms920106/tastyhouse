@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.infrastructure.product.query.ProductNutritionResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
+import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUseCase;
 
 /**
  * 손님용 메뉴 영양성분·알레르기 조회 서비스(CQRS query 측).
@@ -23,7 +24,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionRes
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductNutritionQueryService {
+public class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
 
@@ -31,6 +32,7 @@ public class ProductNutritionQueryService {
         this.productQueryDao = productQueryDao;
     }
 
+    @Override
     public ProductNutritionResponse getNutrition(Long productId) {
         return productQueryDao.findNutrition(productId)
             .map(dto -> toProductNutritionResponse(dto, toAllergenLabels(productQueryDao.findAllergenTypes(productId))))

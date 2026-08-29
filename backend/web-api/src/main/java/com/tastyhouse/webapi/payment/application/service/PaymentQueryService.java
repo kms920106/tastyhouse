@@ -3,17 +3,18 @@ package com.tastyhouse.webapi.payment.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.vo.PaymentId;
+import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.infrastructure.payment.query.PaymentQueryDao;
 import com.tastyhouse.infrastructure.payment.query.PaymentRefundResult;
 import com.tastyhouse.infrastructure.payment.query.PaymentResult;
 import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
+import com.tastyhouse.webapi.payment.application.port.in.PaymentQueryUseCase;
 
 /**
  * 회원 결제 조회 서비스(web-api).
@@ -29,7 +30,7 @@ import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class PaymentQueryService {
+public class PaymentQueryService implements PaymentQueryUseCase {
 
     private final PaymentQueryDao paymentQueryDao;
 
@@ -40,6 +41,7 @@ public class PaymentQueryService {
     /**
      * 결제 단건(PK) — 요청 회원의 결제가 아니면 {@code PAYMENT_ACCESS_DENIED}.
      */
+    @Override
     public PaymentResponse getPayment(Long memberId, Long id) {
         return toPaymentResponse(
             validateOwnership(loadPayment(id), memberId, ErrorCode.PAYMENT_ACCESS_DENIED)
@@ -52,6 +54,7 @@ public class PaymentQueryService {
      * <p>PG사가 서버 간 통신으로 호출하는 승인 콜백 경로 전용이다. 인증된 회원이 없어 소유권을 대조할 수
      * 없으므로 검증 없이 조회한다(기존 동작 보존 — 콜백 승인 자체도 소유권을 검증하지 않는다).
      */
+    @Override
     public PaymentResponse getPayment(Long id) {
         return toPaymentResponse(loadPayment(id));
     }
@@ -67,6 +70,7 @@ public class PaymentQueryService {
      * <p>주문 자체가 없어도 결제가 조회되지 않으므로(DAO의 inner join) 주문 미존재와 결제 미존재를 모두
      * {@code PAYMENT_NOT_FOUND}로 응답한다.
      */
+    @Override
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
         PaymentResult result = paymentQueryDao.findPaymentByOrderId(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
@@ -78,6 +82,7 @@ public class PaymentQueryService {
      *
      * <p>환불 요청 command 직후의 응답 조립용 재조회다 — 소유권은 요청 시점에 이미 검증되었다.
      */
+    @Override
     public PaymentRefundResponse getRefund(Long refundId) {
         PaymentRefundResult result = paymentQueryDao.findRefundById(PaymentRefundId.of(refundId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));

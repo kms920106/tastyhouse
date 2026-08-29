@@ -7,11 +7,12 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
@@ -20,12 +21,12 @@ import com.tastyhouse.infrastructure.order.query.OrderPaymentResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
 import com.tastyhouse.infrastructure.order.query.OrderProductResult;
 import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderProductOptionResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderProductResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.PaymentSummaryResponse;
+import com.tastyhouse.webapi.order.application.port.in.OrderQueryUseCase;
 import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 
 /**
@@ -39,7 +40,7 @@ import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
  */
 @Service
 @Transactional(readOnly = true)
-public class OrderQueryService {
+public class OrderQueryService implements OrderQueryUseCase {
 
     private final OrderQueryDao orderQueryDao;
     private final ReviewQueryService reviewQueryService;
@@ -52,6 +53,7 @@ public class OrderQueryService {
     /**
      * 내 주문 목록.
      */
+    @Override
     public PaginationResponse<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<OrderListItemResponse> pageResult = orderQueryDao
@@ -63,6 +65,7 @@ public class OrderQueryService {
     /**
      * 내 주문 상세 — 요청 회원의 주문이 아니면 {@code ORDER_ACCESS_DENIED}.
      */
+    @Override
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
         OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));

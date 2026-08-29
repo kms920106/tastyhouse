@@ -3,12 +3,12 @@ package com.tastyhouse.webapi.member.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberNicknameAvailabilityResponse;
@@ -16,6 +16,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPersonalInfoRe
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPhoneAvailabilityResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberProfileResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
+import com.tastyhouse.webapi.member.application.port.in.MemberQueryUseCase;
 
 /**
  * 회원 조회 서비스.
@@ -28,7 +29,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class MemberQueryService {
+public class MemberQueryService implements MemberQueryUseCase {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
@@ -38,17 +39,20 @@ public class MemberQueryService {
         this.memberRepository = memberRepository;
     }
 
+    @Override
     public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
         boolean available = !memberRepository.existsByNickname(nickname);
         return MemberNicknameAvailabilityResponse.from(available);
     }
 
+    @Override
     public MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
         boolean available = !memberRepository.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
         return MemberPhoneAvailabilityResponse.from(available);
     }
 
     /** 타 회원 프로필 조회 — 식별자는 노출하지 않는다. */
+    @Override
     public MemberProfileResponse getMemberProfile(Long targetMemberId) {
         MemberWithProfileImageResult result = findProfile(targetMemberId);
         return MemberProfileResponse.from(
@@ -60,6 +64,7 @@ public class MemberQueryService {
     }
 
     /** 본인 프로필 조회 — 소유권 비교용 식별자를 함께 내보낸다. */
+    @Override
     public MyProfileResponse getMyProfile(Long memberId) {
         MemberWithProfileImageResult result = findProfile(memberId);
         return MyProfileResponse.from(
@@ -71,6 +76,7 @@ public class MemberQueryService {
         );
     }
 
+    @Override
     public MemberPersonalInfoResponse getPersonalInfo(Long memberId) {
         Member member = getMember(memberId);
         return MemberPersonalInfoResponse.of(

@@ -11,27 +11,28 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.security.ratelimit.RateLimit;
-import com.tastyhouse.security.ratelimit.RateLimitKeyType;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.security.ratelimit.RateLimit;
+import com.tastyhouse.security.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.search.application.port.in.SearchQueryUseCase;
 import com.tastyhouse.webapi.search.request.SearchKeywordRequest;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
 import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/search")
 @Tag(name = "Search", description = "검색 API")
 public class SearchApiController {
 
-    private final SearchQueryService searchQueryService;
+    private final SearchQueryUseCase searchQueryService;
 
-    public SearchApiController(SearchQueryService searchQueryService) {
+    public SearchApiController(SearchQueryUseCase searchQueryService) {
         this.searchQueryService = searchQueryService;
     }
 

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonQueryUseCase;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
@@ -46,7 +47,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygo
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaPolygonQueryService {
+public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQueryUseCase {
 
     /** 후보 프리필터 박스를 넓히는 각도(약 5.5km). 도메인 저장 경로와 같은 값이어야 결과가 일치한다. */
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");
@@ -71,6 +72,7 @@ public class ShopDeliveryAreaPolygonQueryService {
      * 저장된 도형을 조회한다. <b>미설정은 404가 아니라 {@code exists: false}인 200</b>이다 — 도형 없이
      * 행정동만 직접 등록한 가게가 정상적으로 존재한다.
      */
+    @Override
     public ShopDeliveryAreaPolygonResponse getPolygon(Long ceoId, Long shopId) {
         ShopLocationResult shopLocation = shopDeliveryAreaQueryDao.findShopLocation(ceoId, shopId);
         ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryDao.findPolygon(shopId).orElse(null);
@@ -114,6 +116,7 @@ public class ShopDeliveryAreaPolygonQueryService {
      * <p>{@code blockedAdminDongs}를 함께 계산하므로 점주는 저장에서 409를 맞기 전에 배달팁을 정리할 수
      * 있다 — 저장이 실패한 뒤에야 원인을 알려주면 도형을 다시 그려야 한다고 오해하기 쉽다.
      */
+    @Override
     public ShopDeliveryAreaPolygonPreviewResponse previewPolygon(
         Long ceoId,
         Long shopId,

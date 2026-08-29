@@ -23,6 +23,7 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventDetailResponse
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventListItemResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse;
 import com.tastyhouse.adminapi.file.response.FileResponse;
+import com.tastyhouse.adminapi.event.application.port.in.EventQueryUseCase;
 
 /**
  * 이벤트 관리 조회 서비스(admin).
@@ -35,7 +36,7 @@ import com.tastyhouse.adminapi.file.response.FileResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class EventQueryService {
+public class EventQueryService implements EventQueryUseCase {
 
     private final EventQueryDao eventQueryDao;
 
@@ -43,6 +44,7 @@ public class EventQueryService {
         this.eventQueryDao = eventQueryDao;
     }
 
+    @Override
     public PaginationResponse<EventListItemResponse> getEvents(String name, String status, int page, int size) {
         EventStatus eventStatus = status == null ? null : EventStatus.from(status);
         EventSearchCondition condition = EventSearchCondition.of(name, eventStatus);
@@ -53,18 +55,21 @@ public class EventQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public EventDetailResponse getEvent(Long id) {
         EventManagementDetailResult detail = eventQueryDao.findEventDetailById(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
         return toEventDetailResponse(detail);
     }
 
+    @Override
     public EventAnnouncementResponse getAnnouncement(Long id) {
         EventAnnouncementResult announcement = eventQueryDao.findAnnouncementByEventId(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
         return toEventAnnouncementResponse(announcement);
     }
 
+    @Override
     public List<EventWinnerResponse> getWinners(Long id) {
         return eventQueryDao.findWinnersByEventId(EventId.of(id)).stream()
             .map(this::toEventWinnerResponse)

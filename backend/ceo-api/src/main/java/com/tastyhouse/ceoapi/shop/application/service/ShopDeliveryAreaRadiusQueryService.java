@@ -6,6 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.infrastructure.region.query.AdminDongCandidateResult;
 import com.tastyhouse.infrastructure.region.query.AdminDongQueryDao;
@@ -33,7 +34,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaRadiusQueryService {
+public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiusQueryUseCase {
 
     private final AdminDongQueryDao adminDongQueryDao;
     private final ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao;
@@ -46,6 +47,7 @@ public class ShopDeliveryAreaRadiusQueryService {
         this.shopDeliveryAreaQueryDao = shopDeliveryAreaQueryDao;
     }
 
+    @Override
     public ShopDeliveryAreaRadiusPreviewResponse previewRadius(Long ceoId, Long shopId, int radiusMeters) {
         ShopDeliveryAreaPolicy.validateRadius(radiusMeters);
 

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopClosedDayQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
@@ -33,10 +33,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopTemporaryClosureDelete
 @RequestMapping("/api/shops")
 public class ShopClosedDayApiController {
 
-    private final ShopClosedDayQueryService shopClosedDayQueryService;
+    private final ShopClosedDayQueryUseCase shopClosedDayQueryService;
     private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
 
-    public ShopClosedDayApiController(ShopClosedDayQueryService shopClosedDayQueryService, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
+    public ShopClosedDayApiController(ShopClosedDayQueryUseCase shopClosedDayQueryService, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
         this.shopClosedDayQueryService = shopClosedDayQueryService;
         this.shopClosedDayCommandUseCase = shopClosedDayCommandUseCase;
     }

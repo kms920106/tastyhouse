@@ -4,7 +4,6 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideCommandUse
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderPickupLocationUpdateCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderVisitGuideDeleteCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderVisitGuideRevisionCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopRiderGuideQueryService;
 
 import java.util.List;
 
@@ -33,17 +32,18 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideDe
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideRevisionRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideQueryUseCase;
 
 @Tag(name = "Shop Rider Guide Admin", description = "라이더 가게방문 안내 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRiderGuideAdminApiController {
 
-    private final ShopRiderGuideQueryService shopRiderGuideQueryService;
+    private final ShopRiderGuideQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase;
 
-    public ShopRiderGuideAdminApiController(ShopRiderGuideQueryService shopRiderGuideQueryService, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
-        this.shopRiderGuideQueryService = shopRiderGuideQueryService;
+    public ShopRiderGuideAdminApiController(ShopRiderGuideQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
+        this.shopRiderGuideQueryUseCase = shopRiderGuideQueryUseCase;
         this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
     }
 
@@ -54,7 +54,7 @@ public class ShopRiderGuideAdminApiController {
         @Valid @ModelAttribute ShopRiderGuideSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopRiderGuideListItemResponse> pageResponse = shopRiderGuideQueryService.getRiderGuides(
+        PaginationResponse<ShopRiderGuideListItemResponse> pageResponse = shopRiderGuideQueryUseCase.getRiderGuides(
             search.shopName(), search.hasVisitGuide(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -66,7 +66,7 @@ public class ShopRiderGuideAdminApiController {
         description = "가게 단건의 라이더 안내 문구·픽업 위치와 최근 변경 이력(최대 20건)을 조회합니다.")
     @GetMapping("/v1/{id}/rider-guide")
     public ResponseEntity<ApiResponse<ShopRiderGuideDetailResponse>> getRiderGuide(@PathVariable Long id) {
-        ShopRiderGuideDetailResponse response = shopRiderGuideQueryService.getRiderGuide(id);
+        ShopRiderGuideDetailResponse response = shopRiderGuideQueryUseCase.getRiderGuide(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

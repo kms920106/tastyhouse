@@ -5,14 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
+import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.SearchReviewItemResult;
 import com.tastyhouse.infrastructure.search.query.PopularKeywordResult;
@@ -20,8 +20,9 @@ import com.tastyhouse.infrastructure.search.query.RecommendedKeywordResult;
 import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopBookmarkedItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.product.application.service.ProductQueryService;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.product.application.service.ProductQueryService;
+import com.tastyhouse.webapi.search.application.port.in.SearchQueryUseCase;
 import com.tastyhouse.webapi.search.response.SearchPopularKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchRecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.response.SearchReviewListItemResponse;
@@ -40,7 +41,7 @@ import com.tastyhouse.webapi.search.response.SearchShopListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class SearchQueryService {
+public class SearchQueryService implements SearchQueryUseCase {
 
     private final SearchQueryDao searchQueryDao;
     private final ProductQueryService productQueryService;
@@ -62,24 +63,28 @@ public class SearchQueryService {
         this.memberDeliveryAddressQueryDao = memberDeliveryAddressQueryDao;
     }
 
+    @Override
     public List<SearchPopularKeywordResponse> getPopularKeywords() {
         return searchQueryDao.findVisiblePopularKeywords().stream()
             .map(this::toSearchPopularKeywordResponse)
             .toList();
     }
 
+    @Override
     public List<SearchRecommendedKeywordResponse> getRecommendedKeywords() {
         return searchQueryDao.findVisibleRecommendedKeywords().stream()
             .map(this::toSearchRecommendedKeywordResponse)
             .toList();
     }
 
+    @Override
     public PaginationResponse<ProductSummaryResponse> searchMenus(String query, int page, int size) {
         String keyword = validateKeyword(query);
         return PaginationResponse.from(productQueryService.searchByKeyword(keyword, page, size)
             .map(this::toProductSummaryResponse));
     }
 
+    @Override
     public PaginationResponse<SearchReviewListItemResponse> searchReviews(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
@@ -87,6 +92,7 @@ public class SearchQueryService {
             .map(this::toSearchReviewListItemResponse));
     }
 
+    @Override
     public PaginationResponse<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
@@ -98,6 +104,7 @@ public class SearchQueryService {
     }
 
     /** 비로그인 검색 — 배송지를 알 수 없으므로 배달지역 필터를 걸지 않는다. */
+    @Override
     public PaginationResponse<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);

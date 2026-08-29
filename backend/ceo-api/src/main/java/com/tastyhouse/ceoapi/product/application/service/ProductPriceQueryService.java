@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.service.ProductPriceService;
@@ -25,7 +26,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductPriceQueryService {
+public class ProductPriceQueryService implements ProductPriceQueryUseCase {
 
     private final ProductPriceService productPriceService;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -38,6 +39,7 @@ public class ProductPriceQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ProductPriceResponse> getPrices(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

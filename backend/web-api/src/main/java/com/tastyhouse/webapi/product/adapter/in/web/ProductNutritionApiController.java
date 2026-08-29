@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.product.application.service.ProductNutritionQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
+import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUseCase;
 
 /**
  * 손님용 메뉴 영양성분·알레르기 조회 API.
@@ -27,9 +27,9 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionRes
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
 
-    private final ProductNutritionQueryService productNutritionQueryService;
+    private final ProductNutritionQueryUseCase productNutritionQueryService;
 
-    public ProductNutritionApiController(ProductNutritionQueryService productNutritionQueryService) {
+    public ProductNutritionApiController(ProductNutritionQueryUseCase productNutritionQueryService) {
         this.productNutritionQueryService = productNutritionQueryService;
     }
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopOwnerMessageResult;
@@ -20,7 +21,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopIntroductionQueryService {
+public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ProhibitedWordValidator prohibitedWordValidator;
@@ -36,6 +37,7 @@ public class ShopIntroductionQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         String message = shopQueryDao.findLatestOwnerMessage(shopId)
@@ -44,6 +46,7 @@ public class ShopIntroductionQueryService {
         return ShopIntroductionResponse.from(message);
     }
 
+    @Override
     public ShopIntroductionValidationResponse validateIntroduction(Long ceoId, Long shopId, String message) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         List<String> violations = prohibitedWordValidator.findViolations(message);

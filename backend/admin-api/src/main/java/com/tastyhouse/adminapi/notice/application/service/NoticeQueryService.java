@@ -14,6 +14,7 @@ import com.tastyhouse.infrastructure.notice.query.NoticeSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResponse;
+import com.tastyhouse.adminapi.notice.application.port.in.NoticeQueryUseCase;
 
 /**
  * 공지사항 관리 조회 서비스.
@@ -23,7 +24,7 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResp
  */
 @Service
 @Transactional(readOnly = true)
-public class NoticeQueryService {
+public class NoticeQueryService implements NoticeQueryUseCase {
 
     private final NoticeQueryDao noticeQueryDao;
 
@@ -31,6 +32,7 @@ public class NoticeQueryService {
         this.noticeQueryDao = noticeQueryDao;
     }
 
+    @Override
     public PaginationResponse<NoticeListItemResponse> getNotices(String title, String content, Boolean visible, int page, int size) {
         NoticeSearchCondition condition = NoticeSearchCondition.of(title, content, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
@@ -39,6 +41,7 @@ public class NoticeQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public NoticeDetailResponse getNotice(Long id) {
         NoticeDetailResult noticeDetail = noticeQueryDao.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTICE_NOT_FOUND));

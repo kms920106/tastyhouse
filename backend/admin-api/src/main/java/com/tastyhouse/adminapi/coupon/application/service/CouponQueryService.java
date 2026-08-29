@@ -18,6 +18,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponListItemResponse;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemResponse;
+import com.tastyhouse.adminapi.coupon.application.port.in.CouponQueryUseCase;
 
 /**
  * 쿠폰 관리 조회 서비스(admin).
@@ -27,7 +28,7 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemRe
  */
 @Service
 @Transactional(readOnly = true)
-public class CouponQueryService {
+public class CouponQueryService implements CouponQueryUseCase {
 
     private final CouponQueryDao couponQueryDao;
 
@@ -35,6 +36,7 @@ public class CouponQueryService {
         this.couponQueryDao = couponQueryDao;
     }
 
+    @Override
     public PaginationResponse<CouponListItemResponse> getCoupons(
         String name,
         String discountType,
@@ -51,12 +53,14 @@ public class CouponQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public CouponDetailResponse getCoupon(Long id) {
         CouponDetailResult couponDetail = couponQueryDao.findCouponDetailById(CouponId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
         return toCouponDetailResponse(couponDetail);
     }
 
+    @Override
     public PaginationResponse<MemberCouponItemResponse> getIssuedCoupons(Long id, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
 

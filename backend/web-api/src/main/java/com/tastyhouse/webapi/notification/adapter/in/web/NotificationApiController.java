@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.notification.application.port.in.NotificationCommandUseCase;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAllAsReadCommand;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAsReadCommand;
-import com.tastyhouse.webapi.notification.application.service.NotificationQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
+import com.tastyhouse.webapi.notification.application.port.in.NotificationCommandUseCase;
+import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAllAsReadCommand;
+import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAsReadCommand;
+import com.tastyhouse.webapi.notification.application.port.in.NotificationQueryUseCase;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**
@@ -36,11 +36,11 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @Tag(name = "Notification", description = "인앱 알림함 API")
 public class NotificationApiController {
 
-    private final NotificationQueryService notificationQueryService;
+    private final NotificationQueryUseCase notificationQueryService;
     private final NotificationCommandUseCase notificationCommandUseCase;
 
     public NotificationApiController(
-        NotificationQueryService notificationQueryService,
+        NotificationQueryUseCase notificationQueryService,
         NotificationCommandUseCase notificationCommandUseCase
     ) {
         this.notificationQueryService = notificationQueryService;

@@ -31,7 +31,7 @@ import com.tastyhouse.adminapi.coupon.application.port.in.CouponCreateCommand;
 import com.tastyhouse.adminapi.coupon.application.port.in.CouponDeleteCommand;
 import com.tastyhouse.adminapi.coupon.application.port.in.CouponIssueCommand;
 import com.tastyhouse.adminapi.coupon.application.port.in.CouponUpdateCommand;
-import com.tastyhouse.adminapi.coupon.application.service.CouponQueryService;
+import com.tastyhouse.adminapi.coupon.application.port.in.CouponQueryUseCase;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
@@ -39,11 +39,11 @@ import com.tastyhouse.adminapi.coupon.application.service.CouponQueryService;
 public class CouponApiController {
 
     private final CouponCommandUseCase couponCommandUseCase;
-    private final CouponQueryService couponQueryService;
+    private final CouponQueryUseCase couponQueryUseCase;
 
-    public CouponApiController(CouponCommandUseCase couponCommandUseCase, CouponQueryService couponQueryService) {
+    public CouponApiController(CouponCommandUseCase couponCommandUseCase, CouponQueryUseCase couponQueryUseCase) {
         this.couponCommandUseCase = couponCommandUseCase;
-        this.couponQueryService = couponQueryService;
+        this.couponQueryUseCase = couponQueryUseCase;
     }
 
     @Operation(summary = "쿠폰 목록 조회", description = "쿠폰 목록을 페이징 조회합니다. (삭제된 쿠폰 제외) discountType 미지정 시 전체 유형, name은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -52,7 +52,7 @@ public class CouponApiController {
         @Valid @ModelAttribute CouponSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<CouponListItemResponse> pageResponse = couponQueryService.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<CouponListItemResponse> pageResponse = couponQueryUseCase.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -67,7 +67,7 @@ public class CouponApiController {
     @Operation(summary = "쿠폰 상세 조회", description = "쿠폰 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<CouponDetailResponse>> getCoupon(@PathVariable Long id) {
-        CouponDetailResponse response = couponQueryService.getCoupon(id);
+        CouponDetailResponse response = couponQueryUseCase.getCoupon(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -107,7 +107,7 @@ public class CouponApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MemberCouponItemResponse> pageResponse = couponQueryService.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PaginationResponse<MemberCouponItemResponse> pageResponse = couponQueryUseCase.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 }

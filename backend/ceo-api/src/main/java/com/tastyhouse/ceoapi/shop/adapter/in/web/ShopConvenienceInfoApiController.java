@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopConvenienceInfoQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopConvenienceInfoQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
@@ -33,10 +33,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopConvenienceInfoUpdateC
 @RequestMapping("/api/shops")
 public class ShopConvenienceInfoApiController {
 
-    private final ShopConvenienceInfoQueryService shopConvenienceInfoQueryService;
+    private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryService;
     private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;
 
-    public ShopConvenienceInfoApiController(ShopConvenienceInfoQueryService shopConvenienceInfoQueryService, ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase) {
+    public ShopConvenienceInfoApiController(ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryService, ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase) {
         this.shopConvenienceInfoQueryService = shopConvenienceInfoQueryService;
         this.shopConvenienceInfoCommandUseCase = shopConvenienceInfoCommandUseCase;
     }

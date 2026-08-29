@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItemResponse;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryQueryUseCase;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -35,7 +36,7 @@ import com.tastyhouse.infrastructure.ceo.query.CeoLoginHistorySearchCondition;
  */
 @Service
 @Transactional(readOnly = true)
-public class CeoLoginHistoryQueryService {
+public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase {
 
     /** 로그인 이력 조회 가능 기간(일). */
     private static final int RETENTION_DAYS = 90;
@@ -52,6 +53,7 @@ public class CeoLoginHistoryQueryService {
     /**
      * 내 로그인 이력 목록을 최신순으로 페이징 조회한다.
      */
+    @Override
     public PaginationResponse<CeoLoginHistoryListItemResponse> getLoginHistories(
         Long ceoId,
         String result,

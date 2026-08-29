@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopDeliveryTipQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipDistanceUpdateRequest;
@@ -53,10 +53,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipTiersUpdate
 @RequestMapping("/api/shops")
 public class ShopDeliveryTipApiController {
 
-    private final ShopDeliveryTipQueryService shopDeliveryTipQueryService;
+    private final ShopDeliveryTipQueryUseCase shopDeliveryTipQueryService;
     private final ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase;
 
-    public ShopDeliveryTipApiController(ShopDeliveryTipQueryService shopDeliveryTipQueryService, ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase) {
+    public ShopDeliveryTipApiController(ShopDeliveryTipQueryUseCase shopDeliveryTipQueryService, ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase) {
         this.shopDeliveryTipQueryService = shopDeliveryTipQueryService;
         this.shopDeliveryTipCommandUseCase = shopDeliveryTipCommandUseCase;
     }

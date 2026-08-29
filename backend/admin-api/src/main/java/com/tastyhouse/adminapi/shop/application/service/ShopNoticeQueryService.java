@@ -9,6 +9,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopNoticeManagementListItemResu
 import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeQueryUseCase;
 
 /**
  * admin용 점주 공지 검수 조회 서비스(CQRS query 측).
@@ -17,7 +18,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagement
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopNoticeQueryService {
+public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
 
     private final ShopNoticeQueryDao shopNoticeQueryDao;
 
@@ -25,6 +26,7 @@ public class ShopNoticeQueryService {
         this.shopNoticeQueryDao = shopNoticeQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopNoticeManagementListItemResponse> getNotices(
         Long shopId,
         String shopName,

@@ -9,6 +9,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressItemResult;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddressItemResponse;
+import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressQueryUseCase;
 
 /**
  * 회원 배달 주소록 조회 서비스.
@@ -20,7 +21,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddres
  */
 @Service
 @Transactional(readOnly = true)
-public class MemberDeliveryAddressQueryService {
+public class MemberDeliveryAddressQueryService implements MemberDeliveryAddressQueryUseCase {
 
     private final MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao;
 
@@ -28,6 +29,7 @@ public class MemberDeliveryAddressQueryService {
         this.memberDeliveryAddressQueryDao = memberDeliveryAddressQueryDao;
     }
 
+    @Override
     public List<MemberDeliveryAddressItemResponse> getMyDeliveryAddresses(Long memberId) {
         return memberDeliveryAddressQueryDao.findByMemberId(MemberId.of(memberId))
             .stream()

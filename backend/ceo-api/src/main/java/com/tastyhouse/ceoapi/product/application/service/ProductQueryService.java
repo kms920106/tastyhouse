@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -18,7 +19,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductQueryService {
+public class ProductQueryService implements ProductQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -28,6 +29,7 @@ public class ProductQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ProductDetailResponse getProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

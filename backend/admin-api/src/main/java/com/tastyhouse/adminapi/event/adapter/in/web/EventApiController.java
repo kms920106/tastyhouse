@@ -37,7 +37,7 @@ import com.tastyhouse.adminapi.event.application.port.in.EventDeleteCommand;
 import com.tastyhouse.adminapi.event.application.port.in.EventUpdateCommand;
 import com.tastyhouse.adminapi.event.application.port.in.EventWinnerCreateCommand;
 import com.tastyhouse.adminapi.event.application.port.in.EventWinnerDeleteCommand;
-import com.tastyhouse.adminapi.event.application.service.EventQueryService;
+import com.tastyhouse.adminapi.event.application.port.in.EventQueryUseCase;
 
 @Tag(name = "Event Admin", description = "이벤트 관리자 API")
 @RestController
@@ -45,11 +45,11 @@ import com.tastyhouse.adminapi.event.application.service.EventQueryService;
 public class EventApiController {
 
     private final EventCommandUseCase eventCommandUseCase;
-    private final EventQueryService eventQueryService;
+    private final EventQueryUseCase eventQueryUseCase;
 
-    public EventApiController(EventCommandUseCase eventCommandUseCase, EventQueryService eventQueryService) {
+    public EventApiController(EventCommandUseCase eventCommandUseCase, EventQueryUseCase eventQueryUseCase) {
         this.eventCommandUseCase = eventCommandUseCase;
-        this.eventQueryService = eventQueryService;
+        this.eventQueryUseCase = eventQueryUseCase;
     }
 
     @Operation(summary = "이벤트 목록 조회", description = "이벤트 목록을 페이징 조회합니다. (삭제된 이벤트 제외) name은 부분 일치 검색, status 미지정 시 전체 상태 조회")
@@ -58,7 +58,7 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<EventListItemResponse> pageResponse = eventQueryService.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<EventListItemResponse> pageResponse = eventQueryUseCase.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -73,7 +73,7 @@ public class EventApiController {
     @Operation(summary = "이벤트 상세 조회", description = "이벤트 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<EventDetailResponse>> getEvent(@PathVariable Long id) {
-        EventDetailResponse response = eventQueryService.getEvent(id);
+        EventDetailResponse response = eventQueryUseCase.getEvent(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -121,7 +121,7 @@ public class EventApiController {
     @Operation(summary = "당첨자 발표 공지 조회", description = "이벤트의 당첨자 발표 공지를 조회합니다.")
     @GetMapping("/v1/{id}/announcement")
     public ResponseEntity<ApiResponse<EventAnnouncementResponse>> getAnnouncement(@PathVariable Long id) {
-        EventAnnouncementResponse response = eventQueryService.getAnnouncement(id);
+        EventAnnouncementResponse response = eventQueryUseCase.getAnnouncement(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -139,7 +139,7 @@ public class EventApiController {
     @Operation(summary = "당첨자 목록 조회", description = "이벤트의 당첨자 목록을 순위순으로 조회합니다.")
     @GetMapping("/v1/{id}/winners")
     public ResponseEntity<ApiResponse<List<EventWinnerResponse>>> getWinners(@PathVariable Long id) {
-        List<EventWinnerResponse> winners = eventQueryService.getWinners(id);
+        List<EventWinnerResponse> winners = eventQueryUseCase.getWinners(id);
         return ResponseEntity.ok(ApiResponse.success(winners));
     }
 

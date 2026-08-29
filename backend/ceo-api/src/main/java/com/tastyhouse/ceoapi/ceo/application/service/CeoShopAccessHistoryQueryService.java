@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryListItemResponse;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoShopAccessHistoryQueryUseCase;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -28,7 +29,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopCeoAssignmentHistorySearchCo
  */
 @Service
 @Transactional(readOnly = true)
-public class CeoShopAccessHistoryQueryService {
+public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQueryUseCase {
 
     /** 접근권한 이력 조회 가능 기간(년). */
     private static final int RETENTION_YEARS = 5;
@@ -47,6 +48,7 @@ public class CeoShopAccessHistoryQueryService {
     /**
      * 내 시스템 접근권한 이력 목록을 최신순으로 페이징 조회한다.
      */
+    @Override
     public PaginationResponse<CeoShopAccessHistoryListItemResponse> getShopAccessHistories(
         Long ceoId,
         String actionType,

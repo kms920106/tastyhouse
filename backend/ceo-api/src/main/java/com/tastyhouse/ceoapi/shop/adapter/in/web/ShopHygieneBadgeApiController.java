@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopHygieneBadgeQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
@@ -21,9 +21,9 @@ import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeApiController {
 
-    private final ShopHygieneBadgeQueryService shopHygieneBadgeQueryService;
+    private final ShopHygieneBadgeQueryUseCase shopHygieneBadgeQueryService;
 
-    public ShopHygieneBadgeApiController(ShopHygieneBadgeQueryService shopHygieneBadgeQueryService) {
+    public ShopHygieneBadgeApiController(ShopHygieneBadgeQueryUseCase shopHygieneBadgeQueryService) {
         this.shopHygieneBadgeQueryService = shopHygieneBadgeQueryService;
     }
 

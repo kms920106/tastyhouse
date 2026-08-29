@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionRes
 import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductNutritionQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionQueryUseCase;
 
 /**
  * 점주 메뉴 영양성분·알레르기 관리 API.
@@ -44,10 +44,10 @@ import com.tastyhouse.ceoapi.product.application.service.ProductNutritionQuerySe
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
 
-    private final ProductNutritionQueryService productNutritionQueryService;
+    private final ProductNutritionQueryUseCase productNutritionQueryService;
     private final ProductNutritionCommandUseCase productNutritionCommandUseCase;
 
-    public ProductNutritionApiController(ProductNutritionQueryService productNutritionQueryService, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
+    public ProductNutritionApiController(ProductNutritionQueryUseCase productNutritionQueryService, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
         this.productNutritionQueryService = productNutritionQueryService;
         this.productNutritionCommandUseCase = productNutritionCommandUseCase;
     }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopSuspensionQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSuspensionResult;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse;
@@ -15,7 +16,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopSuspensionQueryService {
+public class ShopSuspensionQueryService implements ShopSuspensionQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -25,6 +26,7 @@ public class ShopSuspensionQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopSuspensionResponse> getSuspensions(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findSuspensions(shopId).stream()

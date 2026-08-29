@@ -18,6 +18,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqDetailResponse;
 import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
+import com.tastyhouse.adminapi.faq.application.port.in.FaqQueryUseCase;
 
 /**
  * FAQ 관리 조회 서비스.
@@ -29,7 +30,7 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class FaqQueryService {
+public class FaqQueryService implements FaqQueryUseCase {
 
     private final FaqQueryDao faqQueryDao;
 
@@ -37,18 +38,21 @@ public class FaqQueryService {
         this.faqQueryDao = faqQueryDao;
     }
 
+    @Override
     public List<FaqCategoryResponse> getCategories() {
         return faqQueryDao.findAllCategories().stream()
             .map(this::toFaqCategoryResponse)
             .toList();
     }
 
+    @Override
     public FaqCategoryResponse getCategory(Long categoryId) {
         FaqCategoryManagementResult categoryDetail = faqQueryDao.findCategoryDetailById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
         return toFaqCategoryResponse(categoryDetail);
     }
 
+    @Override
     public PaginationResponse<FaqListItemResponse> getFaqs(Long categoryId, String question, Boolean visible, int page, int size) {
         FaqSearchCondition condition = FaqSearchCondition.of(categoryId, question, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
@@ -57,6 +61,7 @@ public class FaqQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public FaqDetailResponse getFaq(Long id) {
         FaqDetailResult faqDetail = faqQueryDao.findFaqDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_NOT_FOUND));

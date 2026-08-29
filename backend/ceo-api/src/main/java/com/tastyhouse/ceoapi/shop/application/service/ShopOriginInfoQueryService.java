@@ -3,6 +3,7 @@ package com.tastyhouse.ceoapi.shop.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 import com.tastyhouse.domain.shop.model.OriginSourceType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopOriginInfoResult;
@@ -18,7 +19,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopOriginInfoQueryService {
+public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -28,6 +29,7 @@ public class ShopOriginInfoQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopOriginInfoResponse getOriginInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findOriginInfo(shopId)

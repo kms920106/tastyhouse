@@ -21,15 +21,6 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.review.application.port.in.ReviewCommandUseCase;
-import com.tastyhouse.webapi.review.application.port.in.ReviewCommentCreateCommand;
-import com.tastyhouse.webapi.review.application.port.in.ReviewCreateCommand;
-import com.tastyhouse.webapi.review.application.port.in.ReviewDeleteCommand;
-import com.tastyhouse.webapi.review.application.port.in.ReviewLikeToggleCommand;
-import com.tastyhouse.webapi.review.application.port.in.ReviewReplyCreateCommand;
-import com.tastyhouse.webapi.review.application.port.in.ReviewUpdateCommand;
-import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 import com.tastyhouse.webapi.review.adapter.in.web.request.CommentCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReviewCreateRequest;
@@ -45,6 +36,15 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewMemberListItem
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewProductResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoResponse;
+import com.tastyhouse.webapi.review.application.port.in.ReviewCommandUseCase;
+import com.tastyhouse.webapi.review.application.port.in.ReviewCommentCreateCommand;
+import com.tastyhouse.webapi.review.application.port.in.ReviewCreateCommand;
+import com.tastyhouse.webapi.review.application.port.in.ReviewDeleteCommand;
+import com.tastyhouse.webapi.review.application.port.in.ReviewLikeToggleCommand;
+import com.tastyhouse.webapi.review.application.port.in.ReviewQueryUseCase;
+import com.tastyhouse.webapi.review.application.port.in.ReviewReplyCreateCommand;
+import com.tastyhouse.webapi.review.application.port.in.ReviewUpdateCommand;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -52,11 +52,11 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoRespo
 public class ReviewApiController {
 
     private final ReviewCommandUseCase reviewCommandUseCase;
-    private final ReviewQueryService reviewQueryService;
+    private final ReviewQueryUseCase reviewQueryService;
 
     public ReviewApiController(
         ReviewCommandUseCase reviewCommandUseCase,
-        ReviewQueryService reviewQueryService
+        ReviewQueryUseCase reviewQueryService
     ) {
         this.reviewCommandUseCase = reviewCommandUseCase;
         this.reviewQueryService = reviewQueryService;

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopSuspensionQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopSuspensionQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionBulkCreateRequest;
@@ -31,10 +31,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopSuspensionReleaseComma
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
 
-    private final ShopSuspensionQueryService shopSuspensionQueryService;
+    private final ShopSuspensionQueryUseCase shopSuspensionQueryService;
     private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;
 
-    public ShopSuspensionApiController(ShopSuspensionQueryService shopSuspensionQueryService, ShopSuspensionCommandUseCase shopSuspensionCommandUseCase) {
+    public ShopSuspensionApiController(ShopSuspensionQueryUseCase shopSuspensionQueryService, ShopSuspensionCommandUseCase shopSuspensionCommandUseCase) {
         this.shopSuspensionQueryService = shopSuspensionQueryService;
         this.shopSuspensionCommandUseCase = shopSuspensionCommandUseCase;
     }

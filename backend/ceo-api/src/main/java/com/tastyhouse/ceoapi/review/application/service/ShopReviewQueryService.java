@@ -19,6 +19,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewListItemRe
 import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewMonthlyStatResponse;
 import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewSortTypeResponse;
 import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatisticsResponse;
+import com.tastyhouse.ceoapi.review.application.port.in.ShopReviewQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -54,7 +55,7 @@ import com.tastyhouse.infrastructure.review.query.ShopReviewSortTypeResult;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopReviewQueryService {
+public class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
     /** 원문 ②의 "리뷰 고유 번호 16자리" 표시 폭. */
     private static final int REVIEW_NUMBER_LENGTH = 16;
@@ -90,6 +91,7 @@ public class ShopReviewQueryService {
      *
      * <p>{@code sortType}이 생략되면 저장된 기본 정렬을, 그것도 없으면 최신순을 적용한다.
      */
+    @Override
     public PaginationResponse<ShopReviewListItemResponse> getReviews(
         Long ceoId,
         Long shopId,
@@ -133,6 +135,7 @@ public class ShopReviewQueryService {
      * <p>리뷰가 이 가게 것이 아니면 {@code SHOP_ACCESS_DENIED}(403)다 — 리뷰는 web에 공개된 리소스라
      * 존재 자체가 비밀이 아니므로 404로 숨기지 않는다.
      */
+    @Override
     public ShopReviewDetailResponse getReviewDetail(Long ceoId, Long shopId, Long reviewId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -152,6 +155,7 @@ public class ShopReviewQueryService {
      * <p><b>당일 포함 최근 180일 리뷰가 1건도 없으면 전체 대시보드를 노출하지 않는다</b>(원문 규격) —
      * 게이트를 먼저 판정해 통과하지 못하면 나머지 집계 쿼리를 아예 실행하지 않는다.
      */
+    @Override
     public ShopReviewStatisticsResponse getStatistics(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -192,6 +196,7 @@ public class ShopReviewQueryService {
     /**
      * 저장된 리뷰 정렬 설정을 조회한다. 미설정 가게는 기본값 {@code LATEST}에 {@code updatedAt = null}이다.
      */
+    @Override
     public ShopReviewSortTypeResponse getSortType(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -203,6 +208,7 @@ public class ShopReviewQueryService {
     /**
      * 게시중단 요청 사유 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
+    @Override
     public List<ReviewBlindReasonCatalogResponse> getBlindReasons() {
         return Arrays.stream(ReviewBlindReason.values())
             .map(reason -> ReviewBlindReasonCatalogResponse.from(reason.name(), reason.getDescription()))

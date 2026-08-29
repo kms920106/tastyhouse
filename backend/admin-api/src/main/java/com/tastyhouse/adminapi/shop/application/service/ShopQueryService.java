@@ -46,6 +46,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryIma
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.StationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopQueryUseCase;
 
 /**
  * admin용 가게 관리 조회 서비스(CQRS query 측).
@@ -55,7 +56,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopQueryService {
+public class ShopQueryService implements ShopQueryUseCase {
 
     private final ShopRepository shopRepository;
     private final ShopQueryDao shopQueryDao;
@@ -74,12 +75,14 @@ public class ShopQueryService {
         this.shopChoiceQueryDao = shopChoiceQueryDao;
     }
 
+    @Override
     public List<StationResponse> getStations() {
         return shopChoiceQueryDao.findAllStations().stream()
             .map(station -> StationResponse.from(station.id(), station.stationName()))
             .toList();
     }
 
+    @Override
     public PaginationResponse<ShopListItemResponse> getShops(
         String name,
         Long stationId,
@@ -105,6 +108,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public ShopDetailResponse getShop(Long id) {
         ShopId shopId = ShopId.of(id);
         Shop shop = shopRepository.findById(shopId)
@@ -135,6 +139,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long id) {
         return shopQueryDao.findBusinessHours(id).stream()
             .map(this::toShopBusinessHourResponse)
@@ -153,6 +158,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long id) {
         return shopQueryDao.findBreakTimes(id).stream()
             .map(this::toShopBreakTimeResponse)
@@ -169,6 +175,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopClosedDayResponse> getClosedDays(Long id) {
         return shopQueryDao.findClosedDays(id).stream()
             .map(this::toShopClosedDayResponse)
@@ -183,6 +190,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopAmenityCategoryResponse> getAmenityCategories() {
         return shopQueryDao.findAllAmenityCategories().stream()
             .map(this::toShopAmenityCategoryResponse)
@@ -201,6 +209,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopFoodTypeCategoryResponse> getFoodTypeCategories() {
         return shopQueryDao.findAllFoodTypeCategories().stream()
             .map(this::toShopFoodTypeCategoryResponse)
@@ -219,6 +228,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopAmenityResponse> getShopAmenities(Long id) {
         return shopQueryDao.findAmenityAssignments(id).stream()
             .map(this::toShopAmenityResponse)
@@ -235,6 +245,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopFoodTypeResponse> getShopFoodTypes(Long id) {
         return shopQueryDao.findFoodTypeAssignments(id).stream()
             .map(this::toShopFoodTypeResponse)
@@ -251,12 +262,14 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<TagResponse> getTags() {
         return shopChoiceQueryDao.findAllTags().stream()
             .map(tag -> TagResponse.from(tag.id(), tag.tagName()))
             .toList();
     }
 
+    @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long id) {
         return shopQueryDao.findOrderMethods(id).stream()
             .map(this::toShopOrderMethodItemResponse)
@@ -271,6 +284,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopBannerImageItemResponse> getBannerImages(Long id) {
         return shopQueryDao.findBannerImages(id).stream()
             .map(image -> ShopBannerImageItemResponse.from(
@@ -281,6 +295,7 @@ public class ShopQueryService {
             .toList();
     }
 
+    @Override
     public List<ShopPhotoCategoryResponse> getPhotoCategories(Long id) {
         return shopQueryDao.findPhotoCategories(id).stream()
             .map(this::toShopPhotoCategoryResponse)
@@ -291,6 +306,7 @@ public class ShopQueryService {
         return ShopPhotoCategoryResponse.from(category.id(), category.name());
     }
 
+    @Override
     public List<ShopPhotoCategoryImageItemResponse> getPhotoCategoryImages(Long categoryId) {
         return shopQueryDao.findPhotoCategoryImages(categoryId).stream()
             .map(this::toShopPhotoCategoryImageItemResponse)
@@ -307,6 +323,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public PaginationResponse<ShopChoiceListItemResponse> getShopChoices(int page, int size) {
         PageResult<ShopChoiceListItemResponse> pageResult =
             shopChoiceQueryDao.findEditorChoices(PageQuery.of(page, size))
@@ -314,6 +331,7 @@ public class ShopQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public ShopChoiceDetailResponse getShopChoice(Long id) {
         return shopChoiceQueryDao.findShopChoiceById(id)
             .map(dto -> ShopChoiceDetailResponse.from(dto.id(), dto.shopId(), dto.title(), dto.content()))

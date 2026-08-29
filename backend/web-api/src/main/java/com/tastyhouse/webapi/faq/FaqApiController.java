@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.webapi.faq.application.port.in.FaqQueryUseCase;
 import com.tastyhouse.webapi.faq.request.FaqSearchRequest;
 import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
 import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
@@ -21,9 +22,9 @@ import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
 @Tag(name = "FAQ", description = "자주하는 질문 API")
 public class FaqApiController {
 
-    private final FaqQueryService faqQueryService;
+    private final FaqQueryUseCase faqQueryService;
 
-    public FaqApiController(FaqQueryService faqQueryService) {
+    public FaqApiController(FaqQueryUseCase faqQueryService) {
         this.faqQueryService = faqQueryService;
     }
 

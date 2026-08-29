@@ -28,7 +28,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductImageChangeReque
 import com.tastyhouse.ceoapi.product.application.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductImageReorderCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductImageQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductImageQueryUseCase;
 
 /**
  * 점주 메뉴 이미지 관리 API.
@@ -47,11 +47,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductImageQueryServic
 @RequestMapping("/api/products")
 public class ProductImageApiController {
 
-    private final ProductImageQueryService productImageQueryService;
+    private final ProductImageQueryUseCase productImageQueryService;
     private final ProductImageCommandUseCase productImageCommandUseCase;
 
     public ProductImageApiController(
-        ProductImageQueryService productImageQueryService,
+        ProductImageQueryUseCase productImageQueryService,
         ProductImageCommandUseCase productImageCommandUseCase
     ) {
         this.productImageQueryService = productImageQueryService;

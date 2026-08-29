@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.product.query.ProductCategoryManagementResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
@@ -19,7 +20,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductCategoryQueryService {
+public class ProductCategoryQueryService implements ProductCategoryQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -36,6 +37,7 @@ public class ProductCategoryQueryService {
      * 가게의 메뉴그룹 목록을 {@code sort} 오름차순으로 반환한다. <b>숨긴 그룹도 포함</b>하며
      * 소속 메뉴 수를 함께 담는다(그룹 삭제 가능 여부를 화면이 미리 안내할 수 있게).
      */
+    @Override
     public List<ProductCategoryResponse> getProductCategories(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

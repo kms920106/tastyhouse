@@ -21,6 +21,7 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodDetailResp
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodListItemResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeDetailResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemResponse;
+import com.tastyhouse.adminapi.rank.application.port.in.RankQueryUseCase;
 
 /**
  * 랭킹 관리 조회 서비스(admin).
@@ -33,7 +34,7 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemRes
  */
 @Service
 @Transactional(readOnly = true)
-public class RankQueryService {
+public class RankQueryService implements RankQueryUseCase {
 
     private final RankQueryDao rankQueryDao;
 
@@ -41,6 +42,7 @@ public class RankQueryService {
         this.rankQueryDao = rankQueryDao;
     }
 
+    @Override
     public List<RankMemberListItemResponse> getMemberRankList(String type, int limit) {
         RankType rankType = RankType.from(type);
         LocalDate baseDate = LocalDate.now();
@@ -50,24 +52,28 @@ public class RankQueryService {
             .toList();
     }
 
+    @Override
     public List<RankPeriodListItemResponse> getPeriods() {
         return rankQueryDao.findAllPeriods().stream()
             .map(this::toPeriodListItemResponse)
             .toList();
     }
 
+    @Override
     public RankPeriodDetailResponse getPeriod(Long id) {
         RankPeriodResult period = rankQueryDao.findPeriodById(RankPeriodId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
         return toPeriodDetailResponse(period);
     }
 
+    @Override
     public List<RankPrizeListItemResponse> getPrizesByPeriod(Long periodId) {
         return rankQueryDao.findPrizesByPeriodId(RankPeriodId.of(periodId)).stream()
             .map(this::toPrizeListItemResponse)
             .toList();
     }
 
+    @Override
     public RankPrizeDetailResponse getPrize(Long prizeId) {
         RankPrizeManagementResult prize = rankQueryDao.findPrizeById(RankPrizeId.of(prizeId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
@@ -30,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemRes
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderAvailabilityQueryService {
+public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQueryUseCase {
 
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopOperatingStatusService shopOperatingStatusService;
@@ -52,6 +53,7 @@ public class ShopOrderAvailabilityQueryService {
      * <p>가게가 불가면 전 유형이 그 사유를 그대로 물려받고, 가게가 가능하면 유형별 임시중지만 개별
      * 유형을 불가로 만든다 — 두 경우 모두 도메인 계산기의 판정 결과를 그대로 옮긴다.
      */
+    @Override
     public ShopOrderAvailabilityResponse getOrderAvailability(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -75,6 +77,7 @@ public class ShopOrderAvailabilityQueryService {
     /**
      * 가게에 배정된 주문유형 목록을 조회한다. 배정 변경(등록·삭제)은 이 모듈의 범위가 아니다.
      */
+    @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopQueryDao.findOrderMethods(shopId).stream()

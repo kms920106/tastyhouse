@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.repository.CeoRepository;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoQueryUseCase;
 
 /**
  * 점주 계정 조회 서비스.
@@ -19,7 +20,7 @@ import com.tastyhouse.domain.ceo.repository.CeoRepository;
  */
 @Service
 @Transactional(readOnly = true)
-public class CeoQueryService {
+public class CeoQueryService implements CeoQueryUseCase {
 
     private final CeoRepository ceoRepository;
 
@@ -37,6 +38,7 @@ public class CeoQueryService {
     /**
      * 최초 점주 시드 멱등성 확인용 존재 검증.
      */
+    @Override
     public boolean existsByUsername(String username) {
         return ceoRepository.existsByUsername(username);
     }

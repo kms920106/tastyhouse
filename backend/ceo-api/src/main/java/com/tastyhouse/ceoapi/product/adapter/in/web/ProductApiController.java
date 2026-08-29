@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductDeleteUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductUpdateCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductUpdateUseCase;
-import com.tastyhouse.ceoapi.product.application.service.ProductQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductQueryUseCase;
 
 /**
  * 점주 메뉴 CRUD API.
@@ -44,13 +44,13 @@ import com.tastyhouse.ceoapi.product.application.service.ProductQueryService;
 @RequestMapping("/api/products")
 public class ProductApiController {
 
-    private final ProductQueryService productQueryService;
+    private final ProductQueryUseCase productQueryService;
     private final ProductCreateUseCase productCreateUseCase;
     private final ProductUpdateUseCase productUpdateUseCase;
     private final ProductDeleteUseCase productDeleteUseCase;
 
     public ProductApiController(
-        ProductQueryService productQueryService,
+        ProductQueryUseCase productQueryService,
         ProductCreateUseCase productCreateUseCase,
         ProductUpdateUseCase productUpdateUseCase,
         ProductDeleteUseCase productDeleteUseCase

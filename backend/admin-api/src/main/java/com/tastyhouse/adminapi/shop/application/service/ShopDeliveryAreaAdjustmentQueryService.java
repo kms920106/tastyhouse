@@ -14,6 +14,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaAdjustmentQueryD
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
 
 /**
  * admin용 배달지역 조정 신청 검수 조회 서비스(CQRS query 측).
@@ -23,7 +24,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdju
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaAdjustmentQueryService {
+public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaAdjustmentQueryUseCase {
 
     private final ShopDeliveryAreaAdjustmentQueryDao shopDeliveryAreaAdjustmentQueryDao;
 
@@ -31,6 +32,7 @@ public class ShopDeliveryAreaAdjustmentQueryService {
         this.shopDeliveryAreaAdjustmentQueryDao = shopDeliveryAreaAdjustmentQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopDeliveryAreaAdjustmentListItemResponse> getAdjustmentRequests(
         String status,
         Long shopId,
@@ -45,6 +47,7 @@ public class ShopDeliveryAreaAdjustmentQueryService {
         return PaginationResponse.from(pageResult.map(this::toShopDeliveryAreaAdjustmentListItemResponse));
     }
 
+    @Override
     public ShopDeliveryAreaAdjustmentDetailResponse getAdjustmentRequest(Long requestId) {
         ShopDeliveryAreaAdjustmentDetailResult dto = shopDeliveryAreaAdjustmentQueryDao.findAdjustmentRequestById(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));

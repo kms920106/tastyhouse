@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianRequestResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianStatusResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopFoodTypeCategoryReader;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -26,7 +27,7 @@ import com.tastyhouse.infrastructure.product.query.ProductVegetarianSettingResul
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductVegetarianQueryService {
+public class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -45,6 +46,7 @@ public class ProductVegetarianQueryService {
         this.productVegetarianApprovalService = productVegetarianApprovalService;
     }
 
+    @Override
     public ProductVegetarianStatusResponse getVegetarianStatus(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

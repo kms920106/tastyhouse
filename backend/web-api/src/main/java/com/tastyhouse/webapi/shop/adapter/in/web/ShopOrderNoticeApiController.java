@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.shop.application.service.ShopOrderNoticeQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
  * 손님용 주문안내 조회 API.
@@ -28,9 +28,9 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
 
-    private final ShopOrderNoticeQueryService shopOrderNoticeQueryService;
+    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService;
 
-    public ShopOrderNoticeApiController(ShopOrderNoticeQueryService shopOrderNoticeQueryService) {
+    public ShopOrderNoticeApiController(ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService) {
         this.shopOrderNoticeQueryService = shopOrderNoticeQueryService;
     }
 

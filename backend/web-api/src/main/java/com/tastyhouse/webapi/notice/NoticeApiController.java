@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.notice.application.port.in.NoticeQueryUseCase;
 import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 
 @RestController
@@ -21,9 +22,9 @@ import com.tastyhouse.webapi.notice.response.NoticeListItemResponse;
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
 
-    private final NoticeQueryService noticeQueryService;
+    private final NoticeQueryUseCase noticeQueryService;
 
-    public NoticeApiController(NoticeQueryService noticeQueryService) {
+    public NoticeApiController(NoticeQueryUseCase noticeQueryService) {
         this.noticeQueryService = noticeQueryService;
     }
 

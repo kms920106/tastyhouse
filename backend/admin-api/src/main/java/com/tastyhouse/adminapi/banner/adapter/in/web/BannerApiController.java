@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.banner.application.port.in.BannerCommandUseCase;
 import com.tastyhouse.adminapi.banner.application.port.in.BannerCreateCommand;
 import com.tastyhouse.adminapi.banner.application.port.in.BannerDeleteCommand;
 import com.tastyhouse.adminapi.banner.application.port.in.BannerUpdateCommand;
-import com.tastyhouse.adminapi.banner.application.service.BannerQueryService;
+import com.tastyhouse.adminapi.banner.application.port.in.BannerQueryUseCase;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController
@@ -36,11 +36,11 @@ import com.tastyhouse.adminapi.banner.application.service.BannerQueryService;
 public class BannerApiController {
 
     private final BannerCommandUseCase bannerCommandUseCase;
-    private final BannerQueryService bannerQueryService;
+    private final BannerQueryUseCase bannerQueryUseCase;
 
-    public BannerApiController(BannerCommandUseCase bannerCommandUseCase, BannerQueryService bannerQueryService) {
+    public BannerApiController(BannerCommandUseCase bannerCommandUseCase, BannerQueryUseCase bannerQueryUseCase) {
         this.bannerCommandUseCase = bannerCommandUseCase;
-        this.bannerQueryService = bannerQueryService;
+        this.bannerQueryUseCase = bannerQueryUseCase;
     }
 
     @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회, title은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -49,7 +49,7 @@ public class BannerApiController {
         @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BannerListItemResponse> pageResponse = bannerQueryService.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<BannerListItemResponse> pageResponse = bannerQueryUseCase.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -64,7 +64,7 @@ public class BannerApiController {
     @Operation(summary = "배너 상세 조회", description = "배너 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BannerDetailResponse>> getBanner(@PathVariable Long id) {
-        BannerDetailResponse response = bannerQueryService.getBanner(id);
+        BannerDetailResponse response = bannerQueryUseCase.getBanner(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

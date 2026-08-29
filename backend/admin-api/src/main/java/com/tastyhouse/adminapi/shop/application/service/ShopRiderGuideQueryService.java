@@ -19,6 +19,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetail
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideHistoryResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderPickupLocationResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideQueryUseCase;
 
 /**
  * admin용 라이더 안내 검수 조회 서비스(CQRS query 측).
@@ -27,7 +28,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderPickupLocat
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopRiderGuideQueryService {
+public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
     private final ShopRiderGuideQueryDao shopRiderGuideQueryDao;
 
@@ -35,6 +36,7 @@ public class ShopRiderGuideQueryService {
         this.shopRiderGuideQueryDao = shopRiderGuideQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopRiderGuideListItemResponse> getRiderGuides(
         String shopName,
         Boolean hasVisitGuide,
@@ -47,6 +49,7 @@ public class ShopRiderGuideQueryService {
         return PaginationResponse.from(pageResult.map(this::toShopRiderGuideListItemResponse));
     }
 
+    @Override
     public ShopRiderGuideDetailResponse getRiderGuide(Long shopId) {
         ShopRiderGuideResult result = shopRiderGuideQueryDao.findRiderGuide(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));

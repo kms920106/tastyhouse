@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.product.service.ProductFeedbackService;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -28,7 +29,7 @@ import com.tastyhouse.infrastructure.product.query.ProductFeedbackSummaryResult;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductFeedbackQueryService {
+public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase {
 
     private final ProductFeedbackQueryDao productFeedbackQueryDao;
     private final ProductFeedbackService productFeedbackService;
@@ -47,6 +48,7 @@ public class ProductFeedbackQueryService {
     /**
      * 가게의 지난 한 주 고객 의견을 메뉴 × 유형 집계로 조회한다.
      */
+    @Override
     public PaginationResponse<ProductFeedbackResponse> getFeedbacks(Long ceoId, Long shopId, int page, int size) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -60,6 +62,7 @@ public class ProductFeedbackQueryService {
     /**
      * 확인하지 않은 의견이 있는지 — 화면 아이콘의 빨간 점 판정.
      */
+    @Override
     public ProductFeedbackUnreadResponse getUnread(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

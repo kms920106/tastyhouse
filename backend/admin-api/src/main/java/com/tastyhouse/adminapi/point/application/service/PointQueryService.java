@@ -13,6 +13,7 @@ import com.tastyhouse.infrastructure.point.query.PointSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointBalanceResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryResponse;
+import com.tastyhouse.adminapi.point.application.port.in.PointQueryUseCase;
 
 /**
  * 포인트 관리 조회 서비스.
@@ -22,7 +23,7 @@ import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class PointQueryService {
+public class PointQueryService implements PointQueryUseCase {
 
     private final PointQueryDao pointQueryDao;
 
@@ -30,12 +31,14 @@ public class PointQueryService {
         this.pointQueryDao = pointQueryDao;
     }
 
+    @Override
     public PointBalanceResponse getPointBalance(Long memberId) {
         return pointQueryDao.findBalanceByMemberId(memberId)
             .map(result -> toPointBalanceResponse(memberId, result))
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
     }
 
+    @Override
     public PaginationResponse<PointHistoryResponse> getPointHistories(Long memberId, String type, int page, int size) {
         PointType pointType = type == null ? null : PointType.from(type);
         PointSearchCondition condition = PointSearchCondition.of(memberId, pointType);

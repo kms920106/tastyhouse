@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
@@ -26,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopQueryService {
+public class ShopQueryService implements ShopQueryUseCase {
 
     private final ShopSearchQueryDao shopSearchQueryDao;
     private final ShopQueryDao shopQueryDao;
@@ -42,6 +43,7 @@ public class ShopQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public PaginationResponse<ShopListItemResponse> getMyShops(
         Long ceoId,
         String name,
@@ -57,6 +59,7 @@ public class ShopQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public ShopDetailResponse getMyShop(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return toShopDetailResponse(shop);

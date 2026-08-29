@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopChangeHistoryQueryUseCase;
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
@@ -37,7 +38,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeTypeResponse
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopChangeHistoryQueryService {
+public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseCase {
 
     /** 변경이력 조회 가능 기간(개월). */
     private static final int RETENTION_MONTHS = 6;
@@ -58,6 +59,7 @@ public class ShopChangeHistoryQueryService {
      *
      * <p>소유권 검증을 가장 먼저 수행한다 — 생략하면 남의 가게 변경이력이 통째로 새는 IDOR가 된다.
      */
+    @Override
     public PaginationResponse<ShopChangeHistoryListItemResponse> getChangeHistories(
         Long ceoId,
         Long shopId,
@@ -94,6 +96,7 @@ public class ShopChangeHistoryQueryService {
     /**
      * 필터 드롭다운용 대분류·중분류 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
+    @Override
     public List<ShopChangeCategoryResponse> getChangeHistoryTypes() {
         return Arrays.stream(ShopChangeCategory.values())
             .map(this::toCategoryResponse)

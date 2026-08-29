@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseCommandUseCas
 import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseDeleteCommand;
 import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseUpdateCommand;
-import com.tastyhouse.ceoapi.ceo.application.service.CeoReplyPhraseQueryService;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseQueryUseCase;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 
 /**
@@ -38,11 +38,11 @@ import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 public class CeoReplyPhraseApiController {
 
     private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
-    private final CeoReplyPhraseQueryService ceoReplyPhraseQueryService;
+    private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryService;
 
     public CeoReplyPhraseApiController(
         CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase,
-        CeoReplyPhraseQueryService ceoReplyPhraseQueryService
+        CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryService
     ) {
         this.ceoReplyPhraseCommandUseCase = ceoReplyPhraseCommandUseCase;
         this.ceoReplyPhraseQueryService = ceoReplyPhraseQueryService;

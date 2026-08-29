@@ -26,7 +26,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupMergeQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeQueryUseCase;
 
 /**
  * 점주 옵션그룹 <b>합치기</b> API.
@@ -42,11 +42,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupMerge
 @RequestMapping("/api/products")
 public class ProductOptionGroupMergeApiController {
 
-    private final ProductOptionGroupMergeQueryService productOptionGroupMergeQueryService;
+    private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryService;
     private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;
 
     public ProductOptionGroupMergeApiController(
-        ProductOptionGroupMergeQueryService productOptionGroupMergeQueryService,
+        ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryService,
         ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase
     ) {
         this.productOptionGroupMergeQueryService = productOptionGroupMergeQueryService;

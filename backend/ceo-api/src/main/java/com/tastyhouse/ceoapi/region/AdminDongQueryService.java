@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.ceoapi.region.application.port.in.AdminDongQueryUseCase;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoRing;
@@ -33,7 +34,7 @@ import com.tastyhouse.ceoapi.region.response.AdminDongTreeResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class AdminDongQueryService {
+public class AdminDongQueryService implements AdminDongQueryUseCase {
 
     private static final String LEVEL_SIDO = "SIDO";
     private static final String LEVEL_SIGUNGU = "SIGUNGU";
@@ -56,6 +57,7 @@ public class AdminDongQueryService {
         this.geoRingsResolver = geoRingsResolver;
     }
 
+    @Override
     public PaginationResponse<AdminDongItemResponse> getAdminDongs(String keyword, int page, int size) {
         PageResult<AdminDongItemResult> pageResult = adminDongQueryDao.findAdminDongPage(keyword, PageQuery.of(page, size));
 
@@ -71,6 +73,7 @@ public class AdminDongQueryService {
      * <p>{@code sigunguName}만 단독으로 오면 400이다 — 같은 이름의 시군구가 여러 시도에 존재하므로
      * ("중구"는 서울·부산·대구 등에 있다) 상위 계층 없이는 대상을 특정할 수 없다.
      */
+    @Override
     public AdminDongTreeResponse getAdminDongTree(String sidoName, String sigunguName) {
         boolean hasSido = StringUtils.hasText(sidoName);
         boolean hasSigungu = StringUtils.hasText(sigunguName);
@@ -100,6 +103,7 @@ public class AdminDongQueryService {
      * <p>bbox가 임계 면적을 넘으면 <b>400이 아니라 빈 배열 + {@code truncated: true}</b>로 응답한다 —
      * 지도를 축소하는 것은 정상 조작이고, 그때마다 오류를 띄우면 화면이 쓸 수 없게 된다.
      */
+    @Override
     public AdminDongBoundaryResponse getAdminDongBoundaries(
         BigDecimal swLat,
         BigDecimal swLng,

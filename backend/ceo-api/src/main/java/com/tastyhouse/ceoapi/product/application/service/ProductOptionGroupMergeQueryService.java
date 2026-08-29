@@ -18,6 +18,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupMergeSuggestionGroupResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupMergeSuggestionOptionResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupMergeSuggestionResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -40,7 +41,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductOptionGroupMergeQueryService {
+public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQueryUseCase {
 
     /** 기준과 후보가 완전히 같은 옵션. */
     private static final String DIFF_SAME = "SAME";
@@ -67,6 +68,7 @@ public class ProductOptionGroupMergeQueryService {
      * ({@link ProductOptionGroupSignature} 참조 — SQL과 Java 두 벌로 유지하면 인코딩 차이만으로
      * 제외 기능이 조용히 깨진다). 계산한 서명으로 점주가 [X]로 제외한 묶음을 걸러낸다.
      */
+    @Override
     public List<ProductOptionGroupMergeSuggestionResponse> getMergeSuggestions(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -110,6 +112,7 @@ public class ProductOptionGroupMergeQueryService {
      * 여기서 통과했다고 실행이 보장되지는 않는다(그 사이 다른 탭에서 상태가 바뀔 수 있다). 목적은
      * 되돌릴 수 없는 버튼을 누르기 전에 명백한 불가 사유를 먼저 보여주는 것이다.
      */
+    @Override
     public ProductOptionGroupMergePreviewResponse getMergePreview(
         Long ceoId,
         Long shopId,

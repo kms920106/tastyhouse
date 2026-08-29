@@ -2,7 +2,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentCreateCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopRequestCommentQueryService;
 
 import java.util.List;
 
@@ -22,20 +21,21 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.config.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentQueryUseCase;
 
 @Tag(name = "Admin Shop Request Comment", description = "관리자 요청건 문의 답변 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRequestCommentApiController {
 
-    private final ShopRequestCommentQueryService shopRequestCommentQueryService;
+    private final ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase;
     private final ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase;
 
     public ShopRequestCommentApiController(
-        ShopRequestCommentQueryService shopRequestCommentQueryService,
+        ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase,
         ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase
     ) {
-        this.shopRequestCommentQueryService = shopRequestCommentQueryService;
+        this.shopRequestCommentQueryUseCase = shopRequestCommentQueryUseCase;
         this.shopRequestCommentCommandUseCase = shopRequestCommentCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ShopRequestCommentApiController {
     public ResponseEntity<ApiResponse<List<ShopRequestCommentResponse>>> getComments(
         @PathVariable Long requestId
     ) {
-        List<ShopRequestCommentResponse> response = shopRequestCommentQueryService.getComments(requestId);
+        List<ShopRequestCommentResponse> response = shopRequestCommentQueryUseCase.getComments(requestId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

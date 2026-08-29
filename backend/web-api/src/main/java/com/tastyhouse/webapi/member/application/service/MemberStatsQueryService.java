@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.webapi.follow.application.service.FollowQueryService;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.application.port.in.MemberStatsQueryUseCase;
 import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 
 /**
@@ -15,7 +16,7 @@ import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
  * 이 클래스는 표현용 집계 조회만 수행한다.
  */
 @Service
-public class MemberStatsQueryService {
+public class MemberStatsQueryService implements MemberStatsQueryUseCase {
 
     private final ReviewQueryService reviewQueryService;
     private final FollowQueryService followQueryService;
@@ -27,6 +28,7 @@ public class MemberStatsQueryService {
 
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
+    @Override
     public MemberStatsResponse getMemberStats(Long memberId) {
         long reviewCount = reviewQueryService.countVisibleReviewsByMemberId(memberId);
         long followingCount = followQueryService.countFollowing(memberId);

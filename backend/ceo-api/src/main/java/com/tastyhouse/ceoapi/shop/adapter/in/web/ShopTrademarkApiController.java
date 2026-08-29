@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopTrademarkQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusResponse;
@@ -27,10 +27,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopTrademarkCommandUseCas
 @RequestMapping("/api/shops")
 public class ShopTrademarkApiController {
 
-    private final ShopTrademarkQueryService shopTrademarkQueryService;
+    private final ShopTrademarkQueryUseCase shopTrademarkQueryService;
     private final ShopTrademarkCommandUseCase shopTrademarkCommandUseCase;
 
-    public ShopTrademarkApiController(ShopTrademarkQueryService shopTrademarkQueryService, ShopTrademarkCommandUseCase shopTrademarkCommandUseCase) {
+    public ShopTrademarkApiController(ShopTrademarkQueryUseCase shopTrademarkQueryService, ShopTrademarkCommandUseCase shopTrademarkCommandUseCase) {
         this.shopTrademarkQueryService = shopTrademarkQueryService;
         this.shopTrademarkCommandUseCase = shopTrademarkCommandUseCase;
     }

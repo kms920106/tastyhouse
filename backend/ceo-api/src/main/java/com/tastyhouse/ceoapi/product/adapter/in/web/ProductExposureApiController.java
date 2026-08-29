@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResp
 import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureClearCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureReplaceCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductExposureQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureQueryUseCase;
 
 /**
  * 점주 메뉴 노출기간 관리 API.
@@ -41,11 +41,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductExposureQuerySer
 @RequestMapping("/api/products")
 public class ProductExposureApiController {
 
-    private final ProductExposureQueryService productExposureQueryService;
+    private final ProductExposureQueryUseCase productExposureQueryService;
     private final ProductExposureCommandUseCase productExposureCommandUseCase;
 
     public ProductExposureApiController(
-        ProductExposureQueryService productExposureQueryService,
+        ProductExposureQueryUseCase productExposureQueryService,
         ProductExposureCommandUseCase productExposureCommandUseCase
     ) {
         this.productExposureQueryService = productExposureQueryService;

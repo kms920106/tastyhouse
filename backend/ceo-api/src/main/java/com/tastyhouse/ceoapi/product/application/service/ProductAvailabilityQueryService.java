@@ -12,6 +12,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailability
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityItemResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityGroupResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityItemResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductAvailabilityQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.product.query.ProductAvailabilityItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductAvailabilitySearchCondition;
@@ -30,7 +31,7 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductAvailabilityQueryService {
+public class ProductAvailabilityQueryService implements ProductAvailabilityQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -49,6 +50,7 @@ public class ProductAvailabilityQueryService {
      * <p>DAO가 카테고리 {@code sort} → 상품 {@code sort} 오름차순으로 이미 정렬해 주므로,
      * 조립은 등장 순서를 유지하는 {@link LinkedHashMap} 그룹핑으로 충분하다.
      */
+    @Override
     public List<ProductAvailabilityGroupResponse> getProductAvailability(
         Long ceoId,
         Long shopId,
@@ -82,6 +84,7 @@ public class ProductAvailabilityQueryService {
     /**
      * 옵션 탭 목록을 옵션그룹 단위로 반환한다. 일반 옵션그룹과 공통 옵션그룹이 하나의 목록으로 합쳐진다.
      */
+    @Override
     public List<ProductOptionAvailabilityGroupResponse> getProductOptionAvailability(
         Long ceoId,
         Long shopId,

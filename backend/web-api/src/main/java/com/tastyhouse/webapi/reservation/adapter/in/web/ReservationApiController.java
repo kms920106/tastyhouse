@@ -18,20 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCancelCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCommandUseCase;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCompleteCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationConfirmCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCreateCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationRejectCommand;
-import com.tastyhouse.webapi.reservation.application.service.ReservationQueryService;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationSearchRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlotAvailabilityResponse;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationCancelCommand;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationCommandUseCase;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationCompleteCommand;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationConfirmCommand;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationCreateCommand;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationQueryUseCase;
+import com.tastyhouse.webapi.reservation.application.port.in.ReservationRejectCommand;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -39,11 +39,11 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot
 public class ReservationApiController {
 
     private final ReservationCommandUseCase reservationCommandUseCase;
-    private final ReservationQueryService reservationQueryService;
+    private final ReservationQueryUseCase reservationQueryService;
 
     public ReservationApiController(
         ReservationCommandUseCase reservationCommandUseCase,
-        ReservationQueryService reservationQueryService
+        ReservationQueryUseCase reservationQueryService
     ) {
         this.reservationCommandUseCase = reservationCommandUseCase;
         this.reservationQueryService = reservationQueryService;

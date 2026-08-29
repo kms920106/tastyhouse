@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopStatusQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopStatusUpdateRequest;
@@ -25,10 +25,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusUpdateCommand;
 @RequestMapping("/api/shops")
 public class ShopStatusApiController {
 
-    private final ShopStatusQueryService shopStatusQueryService;
+    private final ShopStatusQueryUseCase shopStatusQueryService;
     private final ShopStatusCommandUseCase shopStatusCommandUseCase;
 
-    public ShopStatusApiController(ShopStatusQueryService shopStatusQueryService, ShopStatusCommandUseCase shopStatusCommandUseCase) {
+    public ShopStatusApiController(ShopStatusQueryUseCase shopStatusQueryService, ShopStatusCommandUseCase shopStatusCommandUseCase) {
         this.shopStatusQueryService = shopStatusQueryService;
         this.shopStatusCommandUseCase = shopStatusCommandUseCase;
     }

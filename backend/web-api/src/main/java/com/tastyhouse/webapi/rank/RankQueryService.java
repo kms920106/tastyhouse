@@ -7,15 +7,16 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
 import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
 import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
 import com.tastyhouse.infrastructure.rank.query.RankPrizeResult;
 import com.tastyhouse.infrastructure.rank.query.RankQueryDao;
+import com.tastyhouse.webapi.rank.application.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
 import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
@@ -33,7 +34,7 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class RankQueryService {
+public class RankQueryService implements RankQueryUseCase {
 
     private final RankQueryDao rankQueryDao;
     private final MemberQueryDao memberQueryDao;
@@ -43,17 +44,20 @@ public class RankQueryService {
         this.memberQueryDao = memberQueryDao;
     }
 
+    @Override
     public Optional<RankDurationResponse> getDuration() {
         return rankQueryDao.findActiveDuration()
             .map(dto -> RankDurationResponse.from(dto.startAt(), dto.endAt()));
     }
 
+    @Override
     public List<RankPrizeListItemResponse> getPrizes() {
         return rankQueryDao.findActivePrizes().stream()
             .map(this::toPrizeListItemResponse)
             .toList();
     }
 
+    @Override
     public List<RankMemberListItemResponse> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
@@ -63,6 +67,7 @@ public class RankQueryService {
             .toList();
     }
 
+    @Override
     public RankMemberListItemResponse getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();

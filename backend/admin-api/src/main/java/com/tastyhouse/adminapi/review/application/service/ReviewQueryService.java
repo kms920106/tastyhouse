@@ -23,6 +23,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewCommentListI
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewListItemResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDetailResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewReplyListItemResponse;
+import com.tastyhouse.adminapi.review.application.port.in.ReviewQueryUseCase;
 
 /**
  * 리뷰 관리 조회 서비스(admin).
@@ -35,7 +36,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewReplyListIte
  */
 @Service
 @Transactional(readOnly = true)
-public class ReviewQueryService {
+public class ReviewQueryService implements ReviewQueryUseCase {
 
     private final ReviewManagementQueryDao reviewManagementQueryDao;
     private final ReviewQueryDao reviewQueryDao;
@@ -48,6 +49,7 @@ public class ReviewQueryService {
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 필터링한다.
      */
+    @Override
     public PaginationResponse<ReviewListItemResponse> getReviews(
         Long shopId,
         Long productId,
@@ -69,6 +71,7 @@ public class ReviewQueryService {
     /**
      * 리뷰 상세(숨김 포함) — 상세 본문 조회와 태그명 조회를 조합한다.
      */
+    @Override
     public ReviewManagementDetailResponse getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
         ReviewManagementDetailResult detail = reviewManagementQueryDao.findReviewManagementDetail(reviewId)
@@ -85,6 +88,7 @@ public class ReviewQueryService {
     /**
      * 리뷰의 댓글·답글 목록(숨김 포함).
      */
+    @Override
     public List<ReviewCommentListItemResponse> getComments(Long id) {
         ReviewId reviewId = ReviewId.of(id);
         List<ReviewCommentListItemResult> comments = reviewManagementQueryDao.findCommentsIncludingHidden(reviewId);

@@ -28,7 +28,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkCommandU
 import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkCreateCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkDeleteCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkReplaceCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductShopLinkQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkQueryUseCase;
 
 /**
  * 점주 메뉴-가게 연결 관리 API — 하나의 메뉴를 여러 가게 메뉴판에 노출한다.
@@ -50,11 +50,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductShopLinkQuerySer
 @RequestMapping("/api/products")
 public class ProductShopLinkApiController {
 
-    private final ProductShopLinkQueryService productShopLinkQueryService;
+    private final ProductShopLinkQueryUseCase productShopLinkQueryService;
     private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;
 
     public ProductShopLinkApiController(
-        ProductShopLinkQueryService productShopLinkQueryService,
+        ProductShopLinkQueryUseCase productShopLinkQueryService,
         ProductShopLinkCommandUseCase productShopLinkCommandUseCase
     ) {
         this.productShopLinkQueryService = productShopLinkQueryService;

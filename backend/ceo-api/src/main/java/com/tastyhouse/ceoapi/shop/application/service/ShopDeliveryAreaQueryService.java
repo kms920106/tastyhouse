@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaItemResult;
 import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaQueryDao;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemResponse;
@@ -18,7 +19,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemRe
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaQueryService {
+public class ShopDeliveryAreaQueryService implements ShopDeliveryAreaQueryUseCase {
 
     private final ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -28,6 +29,7 @@ public class ShopDeliveryAreaQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public List<ShopDeliveryAreaItemResponse> getDeliveryAreas(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

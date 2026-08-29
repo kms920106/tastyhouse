@@ -44,7 +44,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUntilChangeCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUntilChangeUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUseCase;
-import com.tastyhouse.ceoapi.product.application.service.ProductAvailabilityQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductAvailabilityQueryUseCase;
 
 /**
  * 점주 메뉴·옵션 품절·숨김 관리 API.
@@ -59,7 +59,7 @@ import com.tastyhouse.ceoapi.product.application.service.ProductAvailabilityQuer
 @RequestMapping("/api/products")
 public class ProductAvailabilityApiController {
 
-    private final ProductAvailabilityQueryService productAvailabilityQueryService;
+    private final ProductAvailabilityQueryUseCase productAvailabilityQueryService;
     private final ProductSoldOutUseCase productSoldOutUseCase;
     private final ProductHideUseCase productHideUseCase;
     private final ProductReleaseUseCase productReleaseUseCase;
@@ -70,7 +70,7 @@ public class ProductAvailabilityApiController {
     private final ProductOptionSoldOutUntilChangeUseCase productOptionSoldOutUntilChangeUseCase;
 
     public ProductAvailabilityApiController(
-        ProductAvailabilityQueryService productAvailabilityQueryService,
+        ProductAvailabilityQueryUseCase productAvailabilityQueryService,
         ProductSoldOutUseCase productSoldOutUseCase,
         ProductHideUseCase productHideUseCase,
         ProductReleaseUseCase productReleaseUseCase,

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.ceoapi.region.application.port.in.AdminDongQueryUseCase;
 import com.tastyhouse.ceoapi.region.request.AdminDongBoundarySearchRequest;
 import com.tastyhouse.ceoapi.region.request.AdminDongSearchRequest;
 import com.tastyhouse.ceoapi.region.request.AdminDongTreeRequest;
@@ -26,9 +27,9 @@ import com.tastyhouse.ceoapi.region.response.AdminDongTreeResponse;
 @RequestMapping("/api/admin-dongs")
 public class AdminDongApiController {
 
-    private final AdminDongQueryService adminDongQueryService;
+    private final AdminDongQueryUseCase adminDongQueryService;
 
-    public AdminDongApiController(AdminDongQueryService adminDongQueryService) {
+    public AdminDongApiController(AdminDongQueryUseCase adminDongQueryService) {
         this.adminDongQueryService = adminDongQueryService;
     }
 

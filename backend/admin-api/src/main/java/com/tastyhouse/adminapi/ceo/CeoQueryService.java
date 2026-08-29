@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.infrastructure.ceo.query.CeoListItemResult;
 import com.tastyhouse.infrastructure.ceo.query.CeoQueryDao;
 import com.tastyhouse.adminapi.ceo.response.CeoListItemResponse;
+import com.tastyhouse.adminapi.ceo.application.port.in.CeoQueryUseCase;
 
 /**
  * admin용 점주(ceo) 조회 서비스.
@@ -20,7 +21,7 @@ import com.tastyhouse.adminapi.ceo.response.CeoListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class CeoQueryService {
+public class CeoQueryService implements CeoQueryUseCase {
 
     private final CeoQueryDao ceoQueryDao;
 
@@ -28,6 +29,7 @@ public class CeoQueryService {
         this.ceoQueryDao = ceoQueryDao;
     }
 
+    @Override
     public List<CeoListItemResponse> getCeos() {
         return ceoQueryDao.findAllCeos().stream()
             .map(this::toCeoListItemResponse)

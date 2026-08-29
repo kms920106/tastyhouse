@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopRequestQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -36,11 +36,11 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestCommentCreateCo
 @RequestMapping("/api/shops")
 public class ShopRequestApiController {
 
-    private final ShopRequestQueryService shopRequestQueryService;
+    private final ShopRequestQueryUseCase shopRequestQueryService;
     private final ShopRequestCommandUseCase shopRequestCommandUseCase;
 
     public ShopRequestApiController(
-        ShopRequestQueryService shopRequestQueryService,
+        ShopRequestQueryUseCase shopRequestQueryService,
         ShopRequestCommandUseCase shopRequestCommandUseCase
     ) {
         this.shopRequestQueryService = shopRequestQueryService;

@@ -21,6 +21,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.webapi.shop.StorePriceVerificationReader;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopPriceBadgeQueryUseCase;
 
 /**
  * 손님용 가게 매장가격 뱃지 조회 서비스(CQRS query 측).
@@ -41,7 +42,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopPriceBadgeQueryService {
+public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
 
     /**
      * 픽업가 설정일 이후 영업일을 찾을 최대 일수.
@@ -90,6 +91,7 @@ public class ShopPriceBadgeQueryService {
      * <p>가게가 없거나 메뉴·가격이 하나도 없어도 예외를 던지지 않고 두 플래그가 모두 {@code false}인
      * 응답을 준다 — 뱃지는 <b>부가 표시</b>라 판정 불가가 가게 화면 전체를 깨서는 안 된다.
      */
+    @Override
     public ShopPriceBadgeResponse getPriceBadges(Long shopId) {
         LocalDateTime now = LocalDateTime.now();
 

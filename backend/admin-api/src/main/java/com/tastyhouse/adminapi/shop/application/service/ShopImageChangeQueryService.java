@@ -11,6 +11,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeQueryUseCase;
 
 /**
  * admin용 가게 이미지(상표/대표이미지) 변경요청 검수 조회 서비스(CQRS query 측).
@@ -19,7 +20,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeReque
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopImageChangeQueryService {
+public class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
 
@@ -27,6 +28,7 @@ public class ShopImageChangeQueryService {
         this.shopQueryDao = shopQueryDao;
     }
 
+    @Override
     public PaginationResponse<ShopImageChangeRequestItemResponse> getImageChangeRequests(
         String status,
         String imageType,

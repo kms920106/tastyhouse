@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopPhoneNumberQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopPhoneNumberCreateRequest;
@@ -31,10 +31,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberPrimaryDesi
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
 
-    private final ShopPhoneNumberQueryService shopPhoneNumberQueryService;
+    private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryService;
     private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;
 
-    public ShopPhoneNumberApiController(ShopPhoneNumberQueryService shopPhoneNumberQueryService, ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase) {
+    public ShopPhoneNumberApiController(ShopPhoneNumberQueryUseCase shopPhoneNumberQueryService, ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase) {
         this.shopPhoneNumberQueryService = shopPhoneNumberQueryService;
         this.shopPhoneNumberCommandUseCase = shopPhoneNumberCommandUseCase;
     }

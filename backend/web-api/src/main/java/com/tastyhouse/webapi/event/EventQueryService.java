@@ -14,6 +14,7 @@ import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
 import com.tastyhouse.infrastructure.event.query.EventDetailResult;
 import com.tastyhouse.infrastructure.event.query.EventListItemResult;
 import com.tastyhouse.infrastructure.event.query.EventQueryDao;
+import com.tastyhouse.webapi.event.application.port.in.EventQueryUseCase;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
 import com.tastyhouse.webapi.event.response.EventListItemResponse;
@@ -28,7 +29,7 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class EventQueryService {
+public class EventQueryService implements EventQueryUseCase {
 
     private final EventQueryDao eventQueryDao;
 
@@ -36,12 +37,14 @@ public class EventQueryService {
         this.eventQueryDao = eventQueryDao;
     }
 
+    @Override
     public PaginationResponse<EventListItemResponse> getEventList(String status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return PaginationResponse.from(eventQueryDao.findEventListItemsByStatus(EventStatus.from(status), pageQuery)
             .map(this::toEventListItemResponse));
     }
 
+    @Override
     public EventDetailResponse getEventDetail(Long eventId) {
         EventDetailResult detail = eventQueryDao.findEventBannerById(EventId.of(eventId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
@@ -49,6 +52,7 @@ public class EventQueryService {
         return EventDetailResponse.from(detail.bannerUrl());
     }
 
+    @Override
     public PaginationResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return PaginationResponse.from(eventQueryDao.findAnnouncements(pageQuery)

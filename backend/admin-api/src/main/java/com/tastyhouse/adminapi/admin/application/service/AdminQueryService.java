@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.domain.admin.repository.AdminRepository;
+import com.tastyhouse.adminapi.admin.application.port.in.AdminQueryUseCase;
 
 /**
  * 관리자 계정 조회 서비스.
@@ -17,7 +18,7 @@ import com.tastyhouse.domain.admin.repository.AdminRepository;
  */
 @Service
 @Transactional(readOnly = true)
-public class AdminQueryService {
+public class AdminQueryService implements AdminQueryUseCase {
 
     private final AdminRepository adminRepository;
 
@@ -35,6 +36,7 @@ public class AdminQueryService {
     /**
      * SUPER_ADMIN 시드 멱등성 확인용 존재 검증.
      */
+    @Override
     public boolean existsByUsername(String username) {
         return adminRepository.existsByUsername(username);
     }

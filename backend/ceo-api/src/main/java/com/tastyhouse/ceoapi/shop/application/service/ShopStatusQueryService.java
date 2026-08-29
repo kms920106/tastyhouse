@@ -3,6 +3,7 @@ package com.tastyhouse.ceoapi.shop.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
@@ -12,7 +13,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopStatusQueryService {
+public class ShopStatusQueryService implements ShopStatusQueryUseCase {
 
     private final ShopOwnershipValidator shopOwnershipValidator;
 
@@ -20,6 +21,7 @@ public class ShopStatusQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopStatusResponse getStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return ShopStatusResponse.from(shop.isHidden(), shop.isPermanentlyClosed());

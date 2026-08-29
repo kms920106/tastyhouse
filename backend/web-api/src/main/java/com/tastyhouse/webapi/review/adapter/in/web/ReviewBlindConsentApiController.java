@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
+import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentCommand;
 import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentCommandUseCase;
+import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentQueryUseCase;
 import com.tastyhouse.webapi.review.application.port.in.ReviewBlindRejectCommand;
-import com.tastyhouse.webapi.review.application.service.ReviewBlindConsentQueryService;
-import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 /**
  * 게시중단된 내 리뷰의 삭제 동의·거부 API.
@@ -36,11 +36,11 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeRes
 public class ReviewBlindConsentApiController {
 
     private final ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase;
-    private final ReviewBlindConsentQueryService reviewBlindConsentQueryService;
+    private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryService;
 
     public ReviewBlindConsentApiController(
         ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase,
-        ReviewBlindConsentQueryService reviewBlindConsentQueryService
+        ReviewBlindConsentQueryUseCase reviewBlindConsentQueryService
     ) {
         this.reviewBlindConsentCommandUseCase = reviewBlindConsentCommandUseCase;
         this.reviewBlindConsentQueryService = reviewBlindConsentQueryService;

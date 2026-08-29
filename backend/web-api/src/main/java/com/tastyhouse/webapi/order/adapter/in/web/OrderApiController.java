@@ -18,13 +18,13 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.application.port.in.OrderCommandUseCase;
 import com.tastyhouse.webapi.order.application.port.in.OrderCreateCommand;
-import com.tastyhouse.webapi.order.application.service.OrderQueryService;
+import com.tastyhouse.webapi.order.application.port.in.OrderQueryUseCase;
+import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -32,9 +32,9 @@ import com.tastyhouse.webapi.order.application.service.OrderQueryService;
 public class OrderApiController {
 
     private final OrderCommandUseCase orderCommandUseCase;
-    private final OrderQueryService orderQueryService;
+    private final OrderQueryUseCase orderQueryService;
 
-    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryService orderQueryService) {
+    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryService) {
         this.orderCommandUseCase = orderCommandUseCase;
         this.orderQueryService = orderQueryService;
     }

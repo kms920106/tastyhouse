@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryRespons
 import com.tastyhouse.adminapi.point.application.port.in.PointCommandUseCase;
 import com.tastyhouse.adminapi.point.application.port.in.PointDeductCommand;
 import com.tastyhouse.adminapi.point.application.port.in.PointEarnCommand;
-import com.tastyhouse.adminapi.point.application.service.PointQueryService;
+import com.tastyhouse.adminapi.point.application.port.in.PointQueryUseCase;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
 @RestController
@@ -33,17 +33,17 @@ import com.tastyhouse.adminapi.point.application.service.PointQueryService;
 public class PointApiController {
 
     private final PointCommandUseCase pointCommandUseCase;
-    private final PointQueryService pointQueryService;
+    private final PointQueryUseCase pointQueryUseCase;
 
-    public PointApiController(PointCommandUseCase pointCommandUseCase, PointQueryService pointQueryService) {
+    public PointApiController(PointCommandUseCase pointCommandUseCase, PointQueryUseCase pointQueryUseCase) {
         this.pointCommandUseCase = pointCommandUseCase;
-        this.pointQueryService = pointQueryService;
+        this.pointQueryUseCase = pointQueryUseCase;
     }
 
     @Operation(summary = "회원 포인트 잔액 조회", description = "회원의 사용 가능 포인트와 이번 달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/members/{memberId}")
     public ResponseEntity<ApiResponse<PointBalanceResponse>> getPointBalance(@PathVariable Long memberId) {
-        PointBalanceResponse response = pointQueryService.getPointBalance(memberId);
+        PointBalanceResponse response = pointQueryUseCase.getPointBalance(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -54,7 +54,7 @@ public class PointApiController {
         @Valid @ModelAttribute PointSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<PointHistoryResponse> pageResponse = pointQueryService.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<PointHistoryResponse> pageResponse = pointQueryUseCase.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 

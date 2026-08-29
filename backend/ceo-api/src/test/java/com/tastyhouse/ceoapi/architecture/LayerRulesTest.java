@@ -203,19 +203,22 @@ class LayerRulesTest {
     }
 
     /**
-     * 컨트롤러는 인바운드 포트(UseCase 인터페이스)만 주입하고 {@code *CommandService} 구체 클래스를
-     * 알지 않는다. 이 규칙이 완전 매핑 전환의 <b>컴파일 게이트</b>다 — 인터페이스를 만들어 두어도
-     * 컨트롤러가 구체 클래스를 계속 주입하면 경계는 이름만 남는다.
+     * 컨트롤러는 인바운드 포트(UseCase 인터페이스)만 주입하고 {@code *CommandService}·
+     * {@code *QueryService} 구체 클래스를 알지 않는다. 이 규칙이 완전 매핑 전환의
+     * <b>컴파일 게이트</b>다 — 인터페이스를 만들어 두어도 컨트롤러가 구체 클래스를 계속 주입하면
+     * 경계는 이름만 남는다.
      *
-     * <p>{@code *QueryService} 구체 주입 금지는 챕터 03에서 추가한다. 이 챕터 동안 컨트롤러는
-     * QueryService를 구체 클래스로 계속 주입하므로, 지금 함께 막으면 전 컨트롤러가 위반이 된다.
+     * <p>챕터 03에서 {@code *QueryService}까지 확장했다. 이제 컨트롤러는 Command/Query 어느 쪽
+     * 구체 서비스도 주입하지 않는다. 서비스끼리의 협력 주입(예: QueryService가 다른 QueryService를
+     * 주입)은 컨트롤러가 아니므로 이 규칙의 대상이 아니다.
      */
     @Test
     void controllersShouldDependOnUseCasesOnly() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
             .should().dependOnClassesThat().haveSimpleNameEndingWith("CommandService")
-            .because("컨트롤러는 CommandUseCase 인터페이스만 주입한다(구체 클래스 금지)");
+            .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
+            .because("컨트롤러는 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
 
         rule.check(classes);
     }
@@ -231,6 +234,24 @@ class LayerRulesTest {
             .that().haveSimpleNameEndingWith("CommandService")
             .should().implement(resideInAPackage("..application.port.in.."))
             .because("CommandService는 대응 CommandUseCase를 구현한다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code *QueryService}는 인바운드 포트를 최소 1개 구현한다. 위
+     * {@code commandServicesShouldImplementUseCase}의 읽기 경로 짝이다 — 컨트롤러가 구체 클래스를
+     * 안 볼 뿐 서비스가 아무 인터페이스도 구현하지 않는 상태를 막는다.
+     *
+     * <p>조회 입력은 Command record로 묶지 않는다(챕터 03 스펙). 인터페이스는 기존 시그니처를
+     * 그대로 싣고, 읽기 포트화(DAO → QueryPort 교체)는 챕터 04의 몫이다.
+     */
+    @Test
+    void queryServicesShouldImplementUseCase() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("QueryService")
+            .should().implement(resideInAPackage("..application.port.in.."))
+            .because("QueryService는 대응 QueryUseCase를 구현한다");
 
         rule.check(classes);
     }

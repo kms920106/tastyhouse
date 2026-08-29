@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
+import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseQueryUseCase;
 import com.tastyhouse.infrastructure.ceo.query.CeoReplyPhraseQueryDao;
 import com.tastyhouse.infrastructure.ceo.query.CeoReplyPhraseResult;
 
@@ -21,7 +22,7 @@ import com.tastyhouse.infrastructure.ceo.query.CeoReplyPhraseResult;
  */
 @Service
 @Transactional(readOnly = true)
-public class CeoReplyPhraseQueryService {
+public class CeoReplyPhraseQueryService implements CeoReplyPhraseQueryUseCase {
 
     /** 이름 미입력 시 표시명으로 쓸 내용 앞부분의 길이(자). */
     private static final int DISPLAY_NAME_LENGTH = 20;
@@ -38,6 +39,7 @@ public class CeoReplyPhraseQueryService {
     /**
      * 내 자주 쓰는 문구 목록을 정렬 순서대로 조회한다. 5건 상한이라 페이징하지 않는다.
      */
+    @Override
     public List<CeoReplyPhraseResponse> getReplyPhrases(Long ceoId) {
         return ceoReplyPhraseQueryDao.findReplyPhrases(ceoId).stream()
             .map(this::toReplyPhraseResponse)

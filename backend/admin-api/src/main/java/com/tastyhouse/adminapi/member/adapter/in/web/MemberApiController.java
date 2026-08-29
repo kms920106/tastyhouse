@@ -26,18 +26,18 @@ import com.tastyhouse.adminapi.member.application.port.in.MemberActivateCommand;
 import com.tastyhouse.adminapi.member.application.port.in.MemberCommandUseCase;
 import com.tastyhouse.adminapi.member.application.port.in.MemberSuspendCommand;
 import com.tastyhouse.adminapi.member.application.port.in.MemberWithdrawCommand;
-import com.tastyhouse.adminapi.member.application.service.MemberQueryService;
+import com.tastyhouse.adminapi.member.application.port.in.MemberQueryUseCase;
 
 @Tag(name = "Member Admin", description = "회원 관리자 API")
 @RestController
 @RequestMapping("/api/members")
 public class MemberApiController {
 
-    private final MemberQueryService memberQueryService;
+    private final MemberQueryUseCase memberQueryUseCase;
     private final MemberCommandUseCase memberCommandUseCase;
 
-    public MemberApiController(MemberQueryService memberQueryService, MemberCommandUseCase memberCommandUseCase) {
-        this.memberQueryService = memberQueryService;
+    public MemberApiController(MemberQueryUseCase memberQueryUseCase, MemberCommandUseCase memberCommandUseCase) {
+        this.memberQueryUseCase = memberQueryUseCase;
         this.memberCommandUseCase = memberCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class MemberApiController {
         @Valid @ModelAttribute MemberSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MemberListItemResponse> pageResponse = memberQueryService.getMembers(
+        PaginationResponse<MemberListItemResponse> pageResponse = memberQueryUseCase.getMembers(
             search.nickname(), search.username(), search.phone(), search.status(), search.grade(),
             pageRequest.page(), pageRequest.size()
         );
@@ -57,7 +57,7 @@ public class MemberApiController {
     @Operation(summary = "회원 상세 조회", description = "회원 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<MemberDetailResponse>> getMember(@PathVariable Long id) {
-        MemberDetailResponse response = memberQueryService.getMember(id);
+        MemberDetailResponse response = memberQueryUseCase.getMember(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

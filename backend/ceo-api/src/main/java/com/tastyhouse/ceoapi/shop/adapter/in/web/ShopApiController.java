@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -27,9 +27,9 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @RequestMapping("/api/shops")
 public class ShopApiController {
 
-    private final ShopQueryService shopQueryService;
+    private final ShopQueryUseCase shopQueryService;
 
-    public ShopApiController(ShopQueryService shopQueryService) {
+    public ShopApiController(ShopQueryUseCase shopQueryService) {
         this.shopQueryService = shopQueryService;
     }
 

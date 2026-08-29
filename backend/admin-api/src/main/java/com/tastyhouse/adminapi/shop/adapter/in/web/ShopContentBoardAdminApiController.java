@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardDeleteCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardHiddenChangeCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopContentBoardQueryService;
 
 import java.util.List;
 
@@ -26,17 +25,18 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardQueryUseCase;
 
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardAdminApiController {
 
-    private final ShopContentBoardQueryService shopContentBoardQueryService;
+    private final ShopContentBoardQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardCommandUseCase shopContentBoardCommandUseCase;
 
-    public ShopContentBoardAdminApiController(ShopContentBoardQueryService shopContentBoardQueryService, ShopContentBoardCommandUseCase shopContentBoardCommandUseCase) {
-        this.shopContentBoardQueryService = shopContentBoardQueryService;
+    public ShopContentBoardAdminApiController(ShopContentBoardQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardCommandUseCase shopContentBoardCommandUseCase) {
+        this.shopContentBoardQueryUseCase = shopContentBoardQueryUseCase;
         this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
     }
 
@@ -46,7 +46,7 @@ public class ShopContentBoardAdminApiController {
         @Valid @ModelAttribute ShopContentBoardSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopContentBoardListItemResponse> pageResponse = shopContentBoardQueryService.getContentBoards(
+        PaginationResponse<ShopContentBoardListItemResponse> pageResponse = shopContentBoardQueryUseCase.getContentBoards(
             search.shopId(), search.hidden(), search.contentType(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(

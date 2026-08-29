@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResp
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackReadCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductFeedbackQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackQueryUseCase;
 
 /**
  * 점주 메뉴 정보 고객 의견 확인 API.
@@ -45,11 +45,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductFeedbackQuerySer
 @RequestMapping("/api/products")
 public class ProductFeedbackApiController {
 
-    private final ProductFeedbackQueryService productFeedbackQueryService;
+    private final ProductFeedbackQueryUseCase productFeedbackQueryService;
     private final ProductFeedbackCommandUseCase productFeedbackCommandUseCase;
 
     public ProductFeedbackApiController(
-        ProductFeedbackQueryService productFeedbackQueryService,
+        ProductFeedbackQueryUseCase productFeedbackQueryService,
         ProductFeedbackCommandUseCase productFeedbackCommandUseCase
     ) {
         this.productFeedbackQueryService = productFeedbackQueryService;

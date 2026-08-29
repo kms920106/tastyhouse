@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopNoticeQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
@@ -20,7 +21,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopNoticeQueryService {
+public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
 
     private final ShopNoticeQueryDao shopNoticeQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -36,6 +37,7 @@ public class ShopNoticeQueryService {
         this.prohibitedWordValidator = prohibitedWordValidator;
     }
 
+    @Override
     public List<ShopNoticeResponse> getNotices(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -47,6 +49,7 @@ public class ShopNoticeQueryService {
     /**
      * 등록·수정 전 본문의 금칙어 위반 단어 목록을 돌려준다(위반이 없으면 빈 목록). 예외를 던지지 않는다.
      */
+    @Override
     public List<String> validateNotice(Long ceoId, Long shopId, String content) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return prohibitedWordValidator.findViolations(content);

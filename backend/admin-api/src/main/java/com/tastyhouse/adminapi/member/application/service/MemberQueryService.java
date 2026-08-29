@@ -18,6 +18,7 @@ import com.tastyhouse.infrastructure.member.query.MemberSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResponse;
+import com.tastyhouse.adminapi.member.application.port.in.MemberQueryUseCase;
 
 /**
  * 회원 관리 조회 서비스.
@@ -31,7 +32,7 @@ import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResp
  */
 @Service
 @Transactional(readOnly = true)
-public class MemberQueryService {
+public class MemberQueryService implements MemberQueryUseCase {
 
     private final MemberQueryDao memberQueryDao;
     private final MemberRepository memberRepository;
@@ -41,6 +42,7 @@ public class MemberQueryService {
         this.memberRepository = memberRepository;
     }
 
+    @Override
     public PaginationResponse<MemberListItemResponse> getMembers(
         String nickname,
         String username,
@@ -63,6 +65,7 @@ public class MemberQueryService {
         return PaginationResponse.from(pageResult);
     }
 
+    @Override
     public MemberDetailResponse getMember(Long id) {
         MemberId memberId = MemberId.of(id);
         Member member = memberRepository.findById(memberId)

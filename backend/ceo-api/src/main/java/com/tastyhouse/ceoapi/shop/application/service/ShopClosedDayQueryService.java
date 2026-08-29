@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
@@ -22,7 +23,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopTemporaryClosureRe
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopClosedDayQueryService {
+public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -32,6 +33,7 @@ public class ShopClosedDayQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopClosedDaysResponse getClosedDays(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

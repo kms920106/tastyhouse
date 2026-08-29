@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopRiderGuideQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
@@ -25,7 +26,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopRiderGuideQueryService {
+public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
     private final ShopRiderGuideQueryDao shopRiderGuideQueryDao;
     private final ShopRiderGuideValidator shopRiderGuideValidator;
@@ -41,6 +42,7 @@ public class ShopRiderGuideQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopRiderGuideResponse getRiderGuide(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
@@ -53,6 +55,7 @@ public class ShopRiderGuideQueryService {
     /**
      * 저장 전 위반 사유를 미리 조회한다. 위반이 있어도 예외를 던지지 않고 200으로 사유 목록을 반환한다.
      */
+    @Override
     public ShopRiderVisitGuideValidationResponse validateVisitGuide(Long ceoId, Long shopId, String visitGuide) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

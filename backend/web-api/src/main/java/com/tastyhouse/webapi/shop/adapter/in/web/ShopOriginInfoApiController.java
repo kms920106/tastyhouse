@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.shop.application.service.ShopOriginInfoQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 
 /**
  * 손님용 가게 원산지 표시 조회 API.
@@ -29,9 +29,9 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
 
-    private final ShopOriginInfoQueryService shopOriginInfoQueryService;
+    private final ShopOriginInfoQueryUseCase shopOriginInfoQueryService;
 
-    public ShopOriginInfoApiController(ShopOriginInfoQueryService shopOriginInfoQueryService) {
+    public ShopOriginInfoApiController(ShopOriginInfoQueryUseCase shopOriginInfoQueryService) {
         this.shopOriginInfoQueryService = shopOriginInfoQueryService;
     }
 

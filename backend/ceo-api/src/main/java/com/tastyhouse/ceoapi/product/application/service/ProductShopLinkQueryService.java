@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResponse;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.product.query.ProductShopLinkQueryDao;
 import com.tastyhouse.infrastructure.product.query.ProductShopLinkResult;
@@ -18,7 +19,7 @@ import com.tastyhouse.infrastructure.product.query.ProductShopLinkResult;
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductShopLinkQueryService {
+public class ProductShopLinkQueryService implements ProductShopLinkQueryUseCase {
 
     private final ProductShopLinkQueryDao productShopLinkQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -34,6 +35,7 @@ public class ProductShopLinkQueryService {
     /**
      * 이 메뉴를 연결할 수 있는 가게 목록(= 점주 소유 전체 가게)과 각각의 연결 여부를 조회한다.
      */
+    @Override
     public List<ProductShopLinkResponse> getShopLinks(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

@@ -14,15 +14,21 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shop.model.Amenity;
+import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
@@ -38,17 +44,11 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.geo.GeoDistance;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
+import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
 import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
@@ -80,8 +80,8 @@ import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
 import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryResult;
 import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
-import com.tastyhouse.webapi.product.application.service.ProductQueryService;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
+import com.tastyhouse.webapi.product.application.service.ProductQueryService;
 import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ScheduledOrderSlotItemResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ScheduledOrderSlotsResponse;
@@ -118,6 +118,9 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewStatisticsRe
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopDetailQueryUseCase;
+import com.tastyhouse.webapi.shop.application.port.in.ShopOrderInfoQueryUseCase;
+import com.tastyhouse.webapi.shop.application.port.in.ShopSearchQueryUseCase;
 
 /**
  * 회원용 가게 조회 서비스(CQRS query 측).
@@ -131,7 +134,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopQueryService {
+public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQueryUseCase, ShopOrderInfoQueryUseCase {
 
     /** productCategoryId가 null인(미분류) 메뉴 묶음에 붙이는 표시용 카테고리명. */
     private static final String UNCATEGORIZED_CATEGORY_NAME = "미분류";
@@ -189,6 +192,7 @@ public class ShopQueryService {
         this.reviewQueryService = reviewQueryService;
     }
 
+    @Override
     public List<ShopMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
         BigDecimal lat = BigDecimal.valueOf(latitude);
         BigDecimal lon = BigDecimal.valueOf(longitude);
@@ -221,6 +225,7 @@ public class ShopQueryService {
         return memberDeliveryAddressQueryDao.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
     }
 
+    @Override
     public PaginationResponse<ShopBestListItemResponse> searchBestShops(Long memberId, int page, int size) {
         PageResult<BestShopItemResult> result =
             shopSearchQueryDao.findBestShops(resolveDeliveryAdminDongId(memberId), PageQuery.of(page, size));
@@ -230,6 +235,7 @@ public class ShopQueryService {
         return PaginationResponse.from(result.map(dto -> convertToBestShopListItemResponse(dto, statusMap)));
     }
 
+    @Override
     public PaginationResponse<ShopLatestListItemResponse> searchLatestShops(
         Long stationId,
         List<String> foodTypes,
@@ -262,6 +268,7 @@ public class ShopQueryService {
         return status == null ? null : status.name();
     }
 
+    @Override
     public List<ShopEditorChoiceResponse> searchEditorChoices(int page, int size) {
         return shopChoiceQueryDao.findEditorChoices(PageQuery.of(page, size)).content().stream()
             .map(this::convertToEditorChoiceResponse)
@@ -328,18 +335,21 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public List<ShopStationListItemResponse> searchAllStations() {
         return shopChoiceQueryDao.findAllStations().stream()
             .map(station -> ShopStationListItemResponse.from(station.id(), station.stationName()))
             .toList();
     }
 
+    @Override
     public List<ShopFoodTypeListItemResponse> searchAllFoodTypes() {
         return shopQueryDao.findVisibleFoodTypeCategories().stream()
             .map(this::convertToFoodTypeListItemResponse)
             .toList();
     }
 
+    @Override
     public List<ShopAmenityListItemResponse> searchAllAmenities() {
         return shopQueryDao.findVisibleAmenityCategories().stream()
             .map(this::convertToAmenityListItemResponse)
@@ -364,6 +374,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public ShopDetailResponse getShopDetail(Long shopId) {
         Shop shop = findVisibleShop(shopId);
 
@@ -416,6 +427,7 @@ public class ShopQueryService {
      *
      * <p>가게가 없으면 도메인 서비스가 {@code SHOP_NOT_FOUND}(404)를 던진다.
      */
+    @Override
     public ScheduledOrderSlotsResponse getScheduledOrderSlots(Long shopId, String orderMethod) {
         OrderMethod method = OrderMethod.from(orderMethod);
         List<ScheduledOrderSlot> slots = scheduledOrderSlotService.findAvailableSlots(
@@ -479,6 +491,7 @@ public class ShopQueryService {
      * 계산기가 도메인 모델을 받으므로 표현용 Result를 도메인으로 되돌리는 변환을 두지 않기 위함이다.
      * 화면 표기용 목록(지역 이름 조립 등)만 infra query DAO에서 받는다.
      */
+    @Override
     public ShopDeliveryTipResponse getShopDeliveryTip(
         Long shopId,
         Long memberId,
@@ -711,6 +724,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public ShopInfoResponse getShopInfo(Long shopId) {
         findVisibleShop(shopId);
         List<ShopBusinessHourResult> businessHours = shopQueryDao.findBusinessHours(shopId);
@@ -784,6 +798,7 @@ public class ShopQueryService {
      * <p>공지가 없는 것은 에러가 아니라 {@code null}이다. 대부분의 가게에 공지가 없으므로 404를 쓰면
      * 프론트가 정상 상태를 에러로 처리하게 된다. 가게 자체가 없으면 {@code SHOP_NOT_FOUND}(404)다.
      */
+    @Override
     public ShopNoticeResponse getShopNotice(Long shopId) {
         findVisibleShop(shopId);
         return shopNoticeQueryDao.findExposedNotice(shopId)
@@ -791,6 +806,7 @@ public class ShopQueryService {
             .orElse(null);
     }
 
+    @Override
     public List<ShopBannerResponse> getShopBanners(Long shopId) {
         return shopQueryDao.findBannerImages(shopId).stream()
             .map(this::convertToShopBannerResponse)
@@ -801,6 +817,7 @@ public class ShopQueryService {
      * 카테고리가 없는(미분류) 메뉴도 손님 화면에 노출되도록, 노출 카테고리 묶음 뒤에
      * 미분류 묶음을 추가한다. 미분류 메뉴가 없으면 이 묶음 자체를 응답에 포함하지 않는다.
      */
+    @Override
     public List<ShopProductCategoryResponse> getShopProducts(Long shopId) {
         List<ShopProductItemResult> shopProducts = productQueryService.findShopProducts(shopId);
 
@@ -840,6 +857,7 @@ public class ShopQueryService {
         return categoryResponses;
     }
 
+    @Override
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {
         List<ShopPhotoCategoryResult> categories = shopQueryDao.findPhotoCategories(shopId);
         List<ShopPhotoCategoryImageResult> images = shopQueryDao.findAllPhotoCategoryImages();
@@ -863,6 +881,7 @@ public class ShopQueryService {
             .toList();
     }
 
+    @Override
     public ShopReviewsByRatingPageResponse getShopReviewsByRatingWithPagination(
         Long shopId,
         int page,
@@ -909,6 +928,7 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public ShopReviewStatisticsResponse getShopReviewStatistics(Long shopId) {
         ShopReviewStatisticsResult statistics = reviewQueryService.findShopReviewStatistics(shopId);
 
@@ -983,6 +1003,7 @@ public class ShopQueryService {
      * 규칙과 집계는 {@code ProductQueryDao#findPopularProducts}가 소유하고, 이 메서드는 응답 변환만
      * 담당한다.
      */
+    @Override
     public List<ShopPopularProductResponse> getPopularProducts(Long shopId) {
         return productQueryService.findPopularProducts(shopId).stream()
             .map(this::convertToPopularProductResponse)
@@ -1020,11 +1041,13 @@ public class ShopQueryService {
         );
     }
 
+    @Override
     public ShopBookmarkResponse isBookmarked(Long shopId, Long memberId) {
         boolean isBookmarked = shopBookmarkRepository.existsByShopIdAndMemberId(shopId, MemberId.of(memberId));
         return ShopBookmarkResponse.from(isBookmarked);
     }
 
+    @Override
     public ShopOrderMethodResponse getShopOrderMethods(Long shopId) {
         findVisibleShop(shopId);
 

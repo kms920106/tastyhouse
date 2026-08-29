@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.banner.application.port.in.BannerQueryUseCase;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 
 @RestController
@@ -21,9 +22,9 @@ import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 @Tag(name = "Banner", description = "배너 관리 API")
 public class BannerApiController {
 
-    private final BannerQueryService bannerQueryService;
+    private final BannerQueryUseCase bannerQueryService;
 
-    public BannerApiController(BannerQueryService bannerQueryService) {
+    public BannerApiController(BannerQueryUseCase bannerQueryService) {
         this.bannerQueryService = bannerQueryService;
     }
 

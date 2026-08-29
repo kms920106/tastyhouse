@@ -9,23 +9,24 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.product.query.OptionGroupResult;
+import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductBatchItem;
 import com.tastyhouse.infrastructure.product.query.ProductBatchResult;
 import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
 import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
 import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
 import com.tastyhouse.infrastructure.product.query.ProductPriceResult;
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
-import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
 import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
@@ -35,7 +36,6 @@ import com.tastyhouse.infrastructure.review.query.ProductReviewStatisticsResult;
 import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
 import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductBatchResponse;
@@ -52,6 +52,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewStatis
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapi.product.application.port.in.ProductQueryUseCase;
 
 /**
  * 회원용 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryDao}만 주입하고, 조회 결과를
@@ -64,7 +65,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscoun
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductQueryService {
+public class ProductQueryService implements ProductQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
     private final ReviewQueryDao reviewQueryDao;
@@ -83,6 +84,7 @@ public class ProductQueryService {
         this.menuReviewStatisticsQueryDao = menuReviewStatisticsQueryDao;
     }
 
+    @Override
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<ProductTodayDiscountListItemResponse> pageResult =
@@ -113,6 +115,7 @@ public class ProductQueryService {
      * <p>가격 행이 없는 메뉴(이관 이전 데이터)는 예외를 던지지 않고 빈 목록을 준다 — 가격 행 도입 전에
      * 등록된 메뉴의 상세가 500으로 막히면 그 메뉴는 아예 팔 수 없게 된다.
      */
+    @Override
     public ProductDetailResponse findProductById(Long productId, String orderMethod) {
         ProductDetailResult dto = loadProductDetail(productId);
         Long menuReviewCount = menuReviewStatisticsQueryDao.countVisibleByProductId(productId);
@@ -159,6 +162,7 @@ public class ProductQueryService {
         return ProductPriceResponse.from(dto.id(), price.getPriceName(), price.resolvePrice(orderMethod));
     }
 
+    @Override
     public ProductReviewCountResponse findProductReviewCount(Long productId) {
         loadProductDetail(productId);
         ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
@@ -166,6 +170,7 @@ public class ProductQueryService {
         return ProductReviewCountResponse.from(total != null ? total.intValue() : 0);
     }
 
+    @Override
     public ProductOptionGroupsResponse findProductOptions(Long productId) {
         loadProductDetail(productId);
         ProductOptionsResult result = productQueryDao.findProductOptions(productId);
@@ -184,6 +189,7 @@ public class ProductQueryService {
      * <p>가격 행 조회는 메뉴별로 부르지 않고 한 번에 읽어 {@code productId}로 그룹핑한다 — 장바구니
      * 항목 수만큼 쿼리가 나가는 N+1을 피한다.
      */
+    @Override
     public ProductBatchResponse findProductsBatch(ProductBatchRequest request) {
         List<ProductBatchItem> items = request.items().stream()
             .map(item -> ProductBatchItem.of(item.productId(), item.optionId()))
@@ -286,12 +292,14 @@ public class ProductQueryService {
         );
     }
 
+    @Override
     public ProductImagesResponse findProductImages(Long productId) {
         loadProductDetail(productId);
         List<String> imageUrls = productQueryDao.findProductImageUrls(productId);
         return ProductImagesResponse.from(imageUrls);
     }
 
+    @Override
     public ProductReviewsByRatingPageResponse getProductReviewsByRatingWithPagination(
         Long productId,
         int page,
@@ -338,6 +346,7 @@ public class ProductQueryService {
         );
     }
 
+    @Override
     public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
         ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
         ProductDetailResult product = loadProductDetail(productId);

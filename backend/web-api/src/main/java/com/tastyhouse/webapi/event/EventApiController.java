@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.webapi.event.application.port.in.EventQueryUseCase;
 import com.tastyhouse.webapi.event.request.EventSearchRequest;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
@@ -25,9 +26,9 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
 @Tag(name = "Event", description = "이벤트 관리 API")
 public class EventApiController {
 
-    private final EventQueryService eventQueryService;
+    private final EventQueryUseCase eventQueryService;
 
-    public EventApiController(EventQueryService eventQueryService) {
+    public EventApiController(EventQueryUseCase eventQueryService) {
         this.eventQueryService = eventQueryService;
     }
 

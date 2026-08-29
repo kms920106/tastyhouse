@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopOrderAvailabilityQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderAvailabilityResponse;
@@ -22,9 +22,9 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemRes
 @RequestMapping("/api/shops")
 public class ShopOrderAvailabilityApiController {
 
-    private final ShopOrderAvailabilityQueryService shopOrderAvailabilityQueryService;
+    private final ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService;
 
-    public ShopOrderAvailabilityApiController(ShopOrderAvailabilityQueryService shopOrderAvailabilityQueryService) {
+    public ShopOrderAvailabilityApiController(ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService) {
         this.shopOrderAvailabilityQueryService = shopOrderAvailabilityQueryService;
     }
 

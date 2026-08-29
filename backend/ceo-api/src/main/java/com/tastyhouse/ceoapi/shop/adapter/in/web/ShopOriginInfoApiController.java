@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopOriginInfoQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOriginInfoUpdateRequest;
@@ -37,10 +37,10 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopOriginInfoUpdateComman
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
 
-    private final ShopOriginInfoQueryService shopOriginInfoQueryService;
+    private final ShopOriginInfoQueryUseCase shopOriginInfoQueryService;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
 
-    public ShopOriginInfoApiController(ShopOriginInfoQueryService shopOriginInfoQueryService, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
+    public ShopOriginInfoApiController(ShopOriginInfoQueryUseCase shopOriginInfoQueryService, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
         this.shopOriginInfoQueryService = shopOriginInfoQueryService;
         this.shopOriginInfoCommandUseCase = shopOriginInfoCommandUseCase;
     }

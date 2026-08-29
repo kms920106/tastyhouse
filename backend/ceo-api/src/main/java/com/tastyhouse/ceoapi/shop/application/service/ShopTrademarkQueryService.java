@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.infrastructure.shop.query.ShopImageChangeRequestResult;
@@ -21,7 +22,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusRespons
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopTrademarkQueryService {
+public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
 
     private final ShopQueryDao shopQueryDao;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -31,6 +32,7 @@ public class ShopTrademarkQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         String trademarkImageUrl = shopQueryDao.findShopImageUrls(shopId)
@@ -39,6 +41,7 @@ public class ShopTrademarkQueryService {
         return toShopImageStatusResponse(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
     }
 
+    @Override
     public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         String thumbnailImageUrl = shopQueryDao.findShopImageUrls(shopId)

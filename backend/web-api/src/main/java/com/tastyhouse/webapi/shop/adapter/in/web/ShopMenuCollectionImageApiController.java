@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.shop.application.service.ShopMenuCollectionImageQueryService;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.webapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 손님용 메뉴모음컷 조회 API — 가게를 열었을 때 가장 먼저, 가장 상단에서 보이는 이미지.
@@ -31,10 +31,10 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
 
-    private final ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService
+        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService
     ) {
         this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;
     }

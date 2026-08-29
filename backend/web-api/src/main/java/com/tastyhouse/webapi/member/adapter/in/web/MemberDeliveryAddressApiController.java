@@ -17,17 +17,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressCreateRequest;
+import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressUpdateRequest;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddressItemResponse;
 import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressChangeDefaultCommand;
 import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressCommandUseCase;
 import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressCreateCommand;
 import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressDeleteCommand;
+import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressQueryUseCase;
 import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressUpdateCommand;
-import com.tastyhouse.webapi.member.application.service.MemberDeliveryAddressQueryService;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressCreateRequest;
-import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressUpdateRequest;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddressItemResponse;
 
 @RestController
 @RequestMapping("/api/members")
@@ -35,11 +35,11 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddres
 public class MemberDeliveryAddressApiController {
 
     private final MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase;
-    private final MemberDeliveryAddressQueryService memberDeliveryAddressQueryService;
+    private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryService;
 
     public MemberDeliveryAddressApiController(
         MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase,
-        MemberDeliveryAddressQueryService memberDeliveryAddressQueryService
+        MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryService
     ) {
         this.memberDeliveryAddressCommandUseCase = memberDeliveryAddressCommandUseCase;
         this.memberDeliveryAddressQueryService = memberDeliveryAddressQueryService;

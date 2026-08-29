@@ -25,6 +25,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemRe
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionResponse;
+import com.tastyhouse.adminapi.product.application.port.in.ProductQueryUseCase;
 
 /**
  * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryDao}만 주입하고, 조회 결과를
@@ -32,7 +33,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionResp
  */
 @Service
 @Transactional(readOnly = true)
-public class ProductQueryService {
+public class ProductQueryService implements ProductQueryUseCase {
 
     private final ProductQueryDao productQueryDao;
 
@@ -40,6 +41,7 @@ public class ProductQueryService {
         this.productQueryDao = productQueryDao;
     }
 
+    @Override
     public PaginationResponse<ProductListItemResponse> getProducts(
         Long shopId,
         Long productCategoryId,
@@ -71,6 +73,7 @@ public class ProductQueryService {
         );
     }
 
+    @Override
     public ProductDetailResponse getProduct(Long id) {
         ProductDetailResult dto = productQueryDao.findProductDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -99,6 +102,7 @@ public class ProductQueryService {
         );
     }
 
+    @Override
     public ProductOptionGroupsResponse getProductOptions(Long id) {
         ProductOptionsResult result = productQueryDao.findProductOptions(id);
         List<ProductOptionGroupResponse> optionGroups = result.optionGroups().stream()
@@ -137,11 +141,13 @@ public class ProductQueryService {
         );
     }
 
+    @Override
     public ProductImagesResponse getProductImages(Long id) {
         List<String> imageUrls = productQueryDao.findProductImageUrls(id);
         return ProductImagesResponse.from(imageUrls);
     }
 
+    @Override
     public List<ProductCategoryResponse> getProductCategories(Long shopId) {
         return productQueryDao.findProductCategories(shopId).stream()
             .map(this::toProductCategoryResponse)

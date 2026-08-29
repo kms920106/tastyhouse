@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupLinkC
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupLinkCommandUseCase;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupOrderChangeCommand;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupUnlinkCommand;
-import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupQueryService;
+import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQueryUseCase;
 
 /**
  * 점주 메뉴-옵션그룹 연결 API.
@@ -47,11 +47,11 @@ import com.tastyhouse.ceoapi.product.application.service.ProductOptionGroupQuery
 @RequestMapping("/api/products")
 public class ProductOptionGroupLinkApiController {
 
-    private final ProductOptionGroupQueryService productOptionGroupQueryService;
+    private final ProductOptionGroupQueryUseCase productOptionGroupQueryService;
     private final ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase;
 
     public ProductOptionGroupLinkApiController(
-        ProductOptionGroupQueryService productOptionGroupQueryService,
+        ProductOptionGroupQueryUseCase productOptionGroupQueryService,
         ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase
     ) {
         this.productOptionGroupQueryService = productOptionGroupQueryService;

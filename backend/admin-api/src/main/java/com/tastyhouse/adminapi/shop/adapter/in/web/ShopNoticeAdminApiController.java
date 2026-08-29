@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.shop.adapter.in.web;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeCommandUseCase;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeHideCommand;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeUnhideCommand;
-import com.tastyhouse.adminapi.shop.application.service.ShopNoticeQueryService;
 
 import java.util.List;
 
@@ -27,6 +26,7 @@ import com.tastyhouse.adminapi.config.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
+import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeQueryUseCase;
 
 /**
  * 점주 공지 검수 관리자 API.
@@ -40,11 +40,11 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagement
 @RequestMapping("/api/shops")
 public class ShopNoticeAdminApiController {
 
-    private final ShopNoticeQueryService shopNoticeQueryService;
+    private final ShopNoticeQueryUseCase shopNoticeQueryUseCase;
     private final ShopNoticeCommandUseCase shopNoticeCommandUseCase;
 
-    public ShopNoticeAdminApiController(ShopNoticeQueryService shopNoticeQueryService, ShopNoticeCommandUseCase shopNoticeCommandUseCase) {
-        this.shopNoticeQueryService = shopNoticeQueryService;
+    public ShopNoticeAdminApiController(ShopNoticeQueryUseCase shopNoticeQueryUseCase, ShopNoticeCommandUseCase shopNoticeCommandUseCase) {
+        this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
         this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
     }
 
@@ -54,7 +54,7 @@ public class ShopNoticeAdminApiController {
         @Valid @ModelAttribute ShopNoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopNoticeManagementListItemResponse> pageResponse = shopNoticeQueryService.getNotices(
+        PaginationResponse<ShopNoticeManagementListItemResponse> pageResponse = shopNoticeQueryUseCase.getNotices(
             search.shopId(), search.shopName(), search.hidden(), pageRequest.page(), pageRequest.size()
         );
         return ResponseEntity.ok(ApiResponse.success(

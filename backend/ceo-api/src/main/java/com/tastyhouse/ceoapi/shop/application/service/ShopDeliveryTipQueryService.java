@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipQueryUseCase;
 import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipQueryDao;
 import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRegionResult;
 import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipScheduleResult;
@@ -30,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipTierIte
  */
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryTipQueryService {
+public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase {
 
     private static final String EXTRA_TIP_TYPE_NONE = "NONE";
     private static final String EXTRA_TIP_TYPE_DISTANCE = "DISTANCE";
@@ -43,6 +44,7 @@ public class ShopDeliveryTipQueryService {
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
+    @Override
     public ShopDeliveryTipSettingResponse getDeliveryTips(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 

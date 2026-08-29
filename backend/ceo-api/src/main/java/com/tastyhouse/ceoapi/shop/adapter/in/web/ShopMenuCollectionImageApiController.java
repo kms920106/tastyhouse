@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.service.ShopMenuCollectionImageQueryService;
+import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
@@ -50,11 +50,11 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageReo
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
 
-    private final ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService;
     private final ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageQueryService shopMenuCollectionImageQueryService,
+        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService,
         ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase
     ) {
         this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;

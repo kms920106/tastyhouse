@@ -3,12 +3,13 @@ package com.tastyhouse.webapi.banner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.infrastructure.banner.query.BannerListItemResult;
 import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.banner.application.port.in.BannerQueryUseCase;
 import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
 
 /**
@@ -23,7 +24,7 @@ import com.tastyhouse.webapi.banner.response.BannerListItemResponse;
  */
 @Service
 @Transactional(readOnly = true)
-public class BannerQueryService {
+public class BannerQueryService implements BannerQueryUseCase {
 
     private final BannerQueryDao bannerQueryDao;
 
@@ -31,10 +32,12 @@ public class BannerQueryService {
         this.bannerQueryDao = bannerQueryDao;
     }
 
+    @Override
     public PaginationResponse<BannerListItemResponse> getHomeBanners(int page, int size) {
         return getBannersByType(BannerType.HOME, page, size);
     }
 
+    @Override
     public PaginationResponse<BannerListItemResponse> getSidebarBanners(int page, int size) {
         return getBannersByType(BannerType.SIDEBAR, page, size);
     }

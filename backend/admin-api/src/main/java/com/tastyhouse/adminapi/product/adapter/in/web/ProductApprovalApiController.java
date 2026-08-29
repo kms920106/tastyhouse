@@ -29,7 +29,7 @@ import com.tastyhouse.adminapi.product.application.port.in.ProductRepresentative
 import com.tastyhouse.adminapi.product.application.port.in.ProductRepresentativeRejectCommand;
 import com.tastyhouse.adminapi.product.application.port.in.ProductVegetarianApproveCommand;
 import com.tastyhouse.adminapi.product.application.port.in.ProductVegetarianRejectCommand;
-import com.tastyhouse.adminapi.product.application.service.ProductApprovalQueryService;
+import com.tastyhouse.adminapi.product.application.port.in.ProductApprovalQueryUseCase;
 
 /**
  * 메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API.
@@ -47,14 +47,14 @@ import com.tastyhouse.adminapi.product.application.service.ProductApprovalQueryS
 @RequestMapping("/api/products")
 public class ProductApprovalApiController {
 
-    private final ProductApprovalQueryService productApprovalQueryService;
+    private final ProductApprovalQueryUseCase productApprovalQueryUseCase;
     private final ProductApprovalCommandUseCase productApprovalCommandUseCase;
 
     public ProductApprovalApiController(
-        ProductApprovalQueryService productApprovalQueryService,
+        ProductApprovalQueryUseCase productApprovalQueryUseCase,
         ProductApprovalCommandUseCase productApprovalCommandUseCase
     ) {
-        this.productApprovalQueryService = productApprovalQueryService;
+        this.productApprovalQueryUseCase = productApprovalQueryUseCase;
         this.productApprovalCommandUseCase = productApprovalCommandUseCase;
     }
 
@@ -66,7 +66,7 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ProductImageChangeRequestItemResponse> pageResponse =
-            productApprovalQueryService.getImageChangeRequests(
+            productApprovalQueryUseCase.getImageChangeRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         return ResponseEntity.ok(ApiResponse.success(
@@ -102,7 +102,7 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ProductVegetarianRequestItemResponse> pageResponse =
-            productApprovalQueryService.getVegetarianRequests(
+            productApprovalQueryUseCase.getVegetarianRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         return ResponseEntity.ok(ApiResponse.success(
@@ -139,7 +139,7 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ProductRepresentativeRequestItemResponse> pageResponse =
-            productApprovalQueryService.getRepresentativeRequests(
+            productApprovalQueryUseCase.getRepresentativeRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         return ResponseEntity.ok(ApiResponse.success(
