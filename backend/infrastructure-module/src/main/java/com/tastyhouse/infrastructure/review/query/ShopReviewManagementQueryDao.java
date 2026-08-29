@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ShopReviewManagementQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestHistoryResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementSearchCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,7 +64,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * ({@code BooleanBuilder} 금지 — 프로젝트 공통 규약).
  */
 @Repository
-public class ShopReviewManagementQueryDao {
+public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPort {
 
     /** 정렬용 좋아요 별칭 — 존재 판정 서브쿼리와 같은 테이블이라 별칭을 분리한다. */
     private static final QReviewLikeJpaEntity sortReviewLike = new QReviewLikeJpaEntity("sortReviewLike");
@@ -85,6 +90,7 @@ public class ShopReviewManagementQueryDao {
      * <p>사장님 답변은 {@code UNIQUE(review_id)}라 left join이 행을 늘리지 않으므로 본 쿼리에서 함께
      * 투영한다(미답변 탭 판정도 이 join의 {@code null} 여부로 한다).
      */
+    @Override
     public PageResult<ShopReviewManagementListItemResult> findShopReviews(
         ShopReviewManagementSearchCondition condition,
         PageQuery pageQuery
@@ -151,6 +157,7 @@ public class ShopReviewManagementQueryDao {
     /**
      * 점주 리뷰 상세. 목록과 달리 항목별 평점·태그·게시중단 요청 이력까지 담는다.
      */
+    @Override
     public Optional<ShopReviewManagementDetailResult> findShopReviewDetail(ReviewId reviewId) {
         Long id = reviewId.value();
 
@@ -208,6 +215,7 @@ public class ShopReviewManagementQueryDao {
     /**
      * 리뷰 1건의 게시중단 요청 이력 — 최신순. 취소·반려된 과거 요청도 남긴다(재요청 판단 근거).
      */
+    @Override
     public List<ReviewBlindRequestHistoryResult> findBlindRequestHistory(ReviewId reviewId) {
         return queryFactory
             .select(Projections.constructor(ReviewBlindRequestHistoryResult.class,

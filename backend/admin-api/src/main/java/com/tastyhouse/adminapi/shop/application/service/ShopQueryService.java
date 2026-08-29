@@ -5,29 +5,27 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopAmenityAssignmentResult;
-import com.tastyhouse.infrastructure.shop.query.ShopAmenityCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBreakTimeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
-import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
-import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeAssignmentResult;
-import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
-import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
-import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageManagementResult;
-import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
+import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
+import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
+import com.tastyhouse.application.shop.port.out.ShopFoodTypeAssignmentResult;
+import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
+import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagementResult;
+import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopManagementDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopAmenityCategoryResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopAmenityResponse;
@@ -51,33 +49,30 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopQueryUseCase;
 /**
  * admin용 가게 관리 조회 서비스(CQRS query 측).
  *
- * <p>표현 목적 조회는 전부 infra query DAO에서 Result를 받아 Response로 조립한다. 가게 단건 상세만
- * 도메인 모델이 필요해 write 포트({@code ShopRepository})를 쓴다.
+ * <p>표현 목적 조회는 전부 읽기 포트에서 Result를 받아 Response로 조립한다. 가게 단건 관리 상세도
+ * 마찬가지라 write 포트를 주입하지 않는다.
  */
 @Service
 @Transactional(readOnly = true)
 public class ShopQueryService implements ShopQueryUseCase {
 
-    private final ShopRepository shopRepository;
-    private final ShopQueryDao shopQueryDao;
-    private final ShopSearchQueryDao shopSearchQueryDao;
-    private final ShopChoiceQueryDao shopChoiceQueryDao;
+    private final ShopQueryPort shopQueryPort;
+    private final ShopSearchQueryPort shopSearchQueryPort;
+    private final ShopChoiceQueryPort shopChoiceQueryPort;
 
     public ShopQueryService(
-        ShopRepository shopRepository,
-        ShopQueryDao shopQueryDao,
-        ShopSearchQueryDao shopSearchQueryDao,
-        ShopChoiceQueryDao shopChoiceQueryDao
+        ShopQueryPort shopQueryPort,
+        ShopSearchQueryPort shopSearchQueryPort,
+        ShopChoiceQueryPort shopChoiceQueryPort
     ) {
-        this.shopRepository = shopRepository;
-        this.shopQueryDao = shopQueryDao;
-        this.shopSearchQueryDao = shopSearchQueryDao;
-        this.shopChoiceQueryDao = shopChoiceQueryDao;
+        this.shopQueryPort = shopQueryPort;
+        this.shopSearchQueryPort = shopSearchQueryPort;
+        this.shopChoiceQueryPort = shopChoiceQueryPort;
     }
 
     @Override
     public List<StationResponse> getStations() {
-        return shopChoiceQueryDao.findAllStations().stream()
+        return shopChoiceQueryPort.findAllStations().stream()
             .map(station -> StationResponse.from(station.id(), station.stationName()))
             .toList();
     }
@@ -92,7 +87,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed);
         PageResult<ShopListItemResponse> pageResult =
-            shopSearchQueryDao.findShops(condition, PageQuery.of(page, size))
+            shopSearchQueryPort.findShops(condition, PageQuery.of(page, size))
                 .map(this::toShopListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -110,38 +105,37 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public ShopDetailResponse getShop(Long id) {
-        ShopId shopId = ShopId.of(id);
-        Shop shop = shopRepository.findById(shopId)
+        ShopManagementDetailResult shop = shopQueryPort.findManagementDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         return toShopDetailResponse(shop);
     }
 
-    private ShopDetailResponse toShopDetailResponse(Shop shop) {
-        String thumbnailImageUrl = shopQueryDao.findShopImageUrls(shop.getId())
+    private ShopDetailResponse toShopDetailResponse(ShopManagementDetailResult shop) {
+        String thumbnailImageUrl = shopQueryPort.findShopImageUrls(shop.id())
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
 
         return ShopDetailResponse.from(
-            shop.getId(),
-            shop.getStationId() == null ? null : shop.getStationId().value(),
-            shop.getName(),
-            shop.getLatitude(),
-            shop.getLongitude(),
-            shop.getRating(),
-            shop.getRoadAddress(),
-            shop.getLotAddress(),
-            shop.getPhoneNumber(),
+            shop.id(),
+            shop.stationId(),
+            shop.name(),
+            shop.latitude(),
+            shop.longitude(),
+            shop.rating(),
+            shop.roadAddress(),
+            shop.lotAddress(),
+            shop.phoneNumber(),
             thumbnailImageUrl,
-            shop.isPermanentlyClosed(),
-            shop.isCupDepositEnabled(),
-            shop.getCreatedAt(),
-            shop.getUpdatedAt()
+            shop.permanentlyClosed(),
+            shop.cupDepositEnabled(),
+            shop.createdAt(),
+            shop.updatedAt()
         );
     }
 
     @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long id) {
-        return shopQueryDao.findBusinessHours(id).stream()
+        return shopQueryPort.findBusinessHours(id).stream()
             .map(this::toShopBusinessHourResponse)
             .toList();
     }
@@ -160,7 +154,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long id) {
-        return shopQueryDao.findBreakTimes(id).stream()
+        return shopQueryPort.findBreakTimes(id).stream()
             .map(this::toShopBreakTimeResponse)
             .toList();
     }
@@ -177,7 +171,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopClosedDayResponse> getClosedDays(Long id) {
-        return shopQueryDao.findClosedDays(id).stream()
+        return shopQueryPort.findClosedDays(id).stream()
             .map(this::toShopClosedDayResponse)
             .toList();
     }
@@ -192,7 +186,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopAmenityCategoryResponse> getAmenityCategories() {
-        return shopQueryDao.findAllAmenityCategories().stream()
+        return shopQueryPort.findAllAmenityCategories().stream()
             .map(this::toShopAmenityCategoryResponse)
             .toList();
     }
@@ -211,7 +205,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopFoodTypeCategoryResponse> getFoodTypeCategories() {
-        return shopQueryDao.findAllFoodTypeCategories().stream()
+        return shopQueryPort.findAllFoodTypeCategories().stream()
             .map(this::toShopFoodTypeCategoryResponse)
             .toList();
     }
@@ -230,7 +224,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopAmenityResponse> getShopAmenities(Long id) {
-        return shopQueryDao.findAmenityAssignments(id).stream()
+        return shopQueryPort.findAmenityAssignments(id).stream()
             .map(this::toShopAmenityResponse)
             .toList();
     }
@@ -247,7 +241,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopFoodTypeResponse> getShopFoodTypes(Long id) {
-        return shopQueryDao.findFoodTypeAssignments(id).stream()
+        return shopQueryPort.findFoodTypeAssignments(id).stream()
             .map(this::toShopFoodTypeResponse)
             .toList();
     }
@@ -264,14 +258,14 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<TagResponse> getTags() {
-        return shopChoiceQueryDao.findAllTags().stream()
+        return shopChoiceQueryPort.findAllTags().stream()
             .map(tag -> TagResponse.from(tag.id(), tag.tagName()))
             .toList();
     }
 
     @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long id) {
-        return shopQueryDao.findOrderMethods(id).stream()
+        return shopQueryPort.findOrderMethods(id).stream()
             .map(this::toShopOrderMethodItemResponse)
             .toList();
     }
@@ -286,7 +280,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopBannerImageItemResponse> getBannerImages(Long id) {
-        return shopQueryDao.findBannerImages(id).stream()
+        return shopQueryPort.findBannerImages(id).stream()
             .map(image -> ShopBannerImageItemResponse.from(
                 image.id(),
                 image.imageUrl(),
@@ -297,7 +291,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopPhotoCategoryResponse> getPhotoCategories(Long id) {
-        return shopQueryDao.findPhotoCategories(id).stream()
+        return shopQueryPort.findPhotoCategories(id).stream()
             .map(this::toShopPhotoCategoryResponse)
             .toList();
     }
@@ -308,7 +302,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopPhotoCategoryImageItemResponse> getPhotoCategoryImages(Long categoryId) {
-        return shopQueryDao.findPhotoCategoryImages(categoryId).stream()
+        return shopQueryPort.findPhotoCategoryImages(categoryId).stream()
             .map(this::toShopPhotoCategoryImageItemResponse)
             .toList();
     }
@@ -326,14 +320,14 @@ public class ShopQueryService implements ShopQueryUseCase {
     @Override
     public PaginationResponse<ShopChoiceListItemResponse> getShopChoices(int page, int size) {
         PageResult<ShopChoiceListItemResponse> pageResult =
-            shopChoiceQueryDao.findEditorChoices(PageQuery.of(page, size))
+            shopChoiceQueryPort.findEditorChoices(PageQuery.of(page, size))
                 .map(dto -> ShopChoiceListItemResponse.from(dto.id(), dto.shopId(), dto.name(), dto.title()));
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public ShopChoiceDetailResponse getShopChoice(Long id) {
-        return shopChoiceQueryDao.findShopChoiceById(id)
+        return shopChoiceQueryPort.findShopChoiceById(id)
             .map(dto -> ShopChoiceDetailResponse.from(dto.id(), dto.shopId(), dto.title(), dto.content()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }

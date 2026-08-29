@@ -18,24 +18,24 @@ import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
-import com.tastyhouse.infrastructure.product.query.OptionGroupResult;
-import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
-import com.tastyhouse.infrastructure.product.query.ProductBatchItem;
-import com.tastyhouse.infrastructure.product.query.ProductBatchResult;
-import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
-import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
-import com.tastyhouse.infrastructure.product.query.ProductPriceResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
-import com.tastyhouse.infrastructure.product.query.SearchProductItemResult;
-import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
-import com.tastyhouse.infrastructure.product.query.TodayDiscountProductResult;
-import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.ProductReviewStatisticsResult;
-import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
+import com.tastyhouse.application.product.port.out.OptionGroupResult;
+import com.tastyhouse.application.product.port.out.PopularProductItemResult;
+import com.tastyhouse.application.product.port.out.ProductBatchItem;
+import com.tastyhouse.application.product.port.out.ProductBatchResult;
+import com.tastyhouse.application.product.port.out.ProductCategoryResult;
+import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductOptionsResult;
+import com.tastyhouse.application.product.port.out.ProductPriceResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.SearchProductItemResult;
+import com.tastyhouse.application.product.port.out.ShopProductItemResult;
+import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
+import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ProductReviewStatisticsResult;
+import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductBatchOptionResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductBatchResponse;
@@ -55,11 +55,11 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscoun
 import com.tastyhouse.webapi.product.application.port.in.ProductQueryUseCase;
 
 /**
- * 회원용 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryDao}만 주입하고, 조회 결과를
+ * 회원용 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryPort}만 주입하고, 조회 결과를
  * Response로 조립한다(private 매퍼). web-api에는 상품 command 경로가 없어 QueryService만 둔다.
  *
  * <p>상품 화면이 곁들여 보여주는 리뷰 통계·평점대별 목록은 review 도메인의
- * {@link ReviewQueryDao}·{@link ReviewStatisticsQueryDao}를 직접 주입해 조회한다 — 이 조회들은 상품 화면
+ * {@link ReviewQueryPort}·{@link ReviewStatisticsQueryPort}를 직접 주입해 조회한다 — 이 조회들은 상품 화면
  * 전용이라 리뷰 쪽에는 다른 호출부가 없었고, review QueryService를 경유하면 그쪽이 상품 정보를 얻기 위해 이
  * 서비스를 다시 주입해야 해서 빈 순환 참조가 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다.
  */
@@ -67,28 +67,28 @@ import com.tastyhouse.webapi.product.application.port.in.ProductQueryUseCase;
 @Transactional(readOnly = true)
 public class ProductQueryService implements ProductQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
-    private final ReviewQueryDao reviewQueryDao;
-    private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
-    private final MenuReviewStatisticsQueryDao menuReviewStatisticsQueryDao;
+    private final ProductQueryPort productQueryPort;
+    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
+    private final MenuReviewStatisticsQueryPort menuReviewStatisticsQueryPort;
 
     public ProductQueryService(
-        ProductQueryDao productQueryDao,
-        ReviewQueryDao reviewQueryDao,
-        ReviewStatisticsQueryDao reviewStatisticsQueryDao,
-        MenuReviewStatisticsQueryDao menuReviewStatisticsQueryDao
+        ProductQueryPort productQueryPort,
+        ReviewQueryPort reviewQueryPort,
+        ReviewStatisticsQueryPort reviewStatisticsQueryPort,
+        MenuReviewStatisticsQueryPort menuReviewStatisticsQueryPort
     ) {
-        this.productQueryDao = productQueryDao;
-        this.reviewQueryDao = reviewQueryDao;
-        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
-        this.menuReviewStatisticsQueryDao = menuReviewStatisticsQueryDao;
+        this.productQueryPort = productQueryPort;
+        this.reviewQueryPort = reviewQueryPort;
+        this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
+        this.menuReviewStatisticsQueryPort = menuReviewStatisticsQueryPort;
     }
 
     @Override
     public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<ProductTodayDiscountListItemResponse> pageResult =
-            productQueryDao.findTodayDiscountProducts(pageQuery)
+            productQueryPort.findTodayDiscountProducts(pageQuery)
                 .map(this::toTodayDiscountProductListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -118,9 +118,9 @@ public class ProductQueryService implements ProductQueryUseCase {
     @Override
     public ProductDetailResponse findProductById(Long productId, String orderMethod) {
         ProductDetailResult dto = loadProductDetail(productId);
-        Long menuReviewCount = menuReviewStatisticsQueryDao.countVisibleByProductId(productId);
+        Long menuReviewCount = menuReviewStatisticsQueryPort.countVisibleByProductId(productId);
         OrderMethod resolvedOrderMethod = OrderMethod.from(orderMethod);
-        List<ProductPriceResponse> prices = productQueryDao.findProductPrices(productId).stream()
+        List<ProductPriceResponse> prices = productQueryPort.findProductPrices(productId).stream()
             .map(price -> toProductPriceResponse(price, resolvedOrderMethod))
             .toList();
         return ProductDetailResponse.from(
@@ -173,7 +173,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     @Override
     public ProductOptionGroupsResponse findProductOptions(Long productId) {
         loadProductDetail(productId);
-        ProductOptionsResult result = productQueryDao.findProductOptions(productId);
+        ProductOptionsResult result = productQueryPort.findProductOptions(productId);
         return ProductOptionGroupsResponse.from(toOptionGroupResponses(result));
     }
 
@@ -196,7 +196,7 @@ public class ProductQueryService implements ProductQueryUseCase {
             .toList();
 
         OrderMethod orderMethod = OrderMethod.from(request.orderMethod());
-        List<ProductBatchResult> results = productQueryDao.findProductsBatch(items);
+        List<ProductBatchResult> results = productQueryPort.findProductsBatch(items);
         Map<Long, List<ProductPriceResponse>> pricesByProductId =
             findBatchPricesByProductId(results, orderMethod);
 
@@ -226,7 +226,7 @@ public class ProductQueryService implements ProductQueryUseCase {
             .distinct()
             .toList();
 
-        return productQueryDao.findProductPricesByProductIds(productIds).stream()
+        return productQueryPort.findProductPricesByProductIds(productIds).stream()
             .collect(Collectors.groupingBy(
                 ProductPriceResult::productId,
                 LinkedHashMap::new,
@@ -295,7 +295,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     @Override
     public ProductImagesResponse findProductImages(Long productId) {
         loadProductDetail(productId);
-        List<String> imageUrls = productQueryDao.findProductImageUrls(productId);
+        List<String> imageUrls = productQueryPort.findProductImageUrls(productId);
         return ProductImagesResponse.from(imageUrls);
     }
 
@@ -365,35 +365,35 @@ public class ProductQueryService implements ProductQueryUseCase {
      */
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return productQueryDao.searchByKeyword(keyword, pageQuery);
+        return productQueryPort.searchByKeyword(keyword, pageQuery);
     }
 
     /**
      * 가게 상세 화면의 상품 목록 — shop 도메인이 카테고리별로 그룹핑해 조립한다.
      */
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
-        return productQueryDao.findShopProducts(shopId);
+        return productQueryPort.findShopProducts(shopId);
     }
 
     /**
      * 가게 상세 상단 인기 메뉴 그룹 — shop 도메인이 응답을 조립한다.
      *
-     * <p>사장님 추천 우선 채우기와 판매량 순위 조합은 DAO가 소유한다({@code ProductQueryDao#findPopularProducts}) —
+     * <p>사장님 추천 우선 채우기와 판매량 순위 조합은 DAO가 소유한다({@code ProductQueryPort#findPopularProducts}) —
      * 두 갈래를 각각 조회해 이어 붙이는 규칙이 SQL 인접 계층에 있어야 인덱스·집계 창을 한눈에 검토할 수 있다.
      */
     public List<PopularProductItemResult> findPopularProducts(Long shopId) {
-        return productQueryDao.findPopularProducts(shopId);
+        return productQueryPort.findPopularProducts(shopId);
     }
 
     /**
      * 가게의 노출 상품 카테고리 목록 — shop 도메인이 카테고리별 상품 묶음을 조립할 때 사용한다.
      */
     public List<ProductCategoryResult> findShopProductCategories(Long shopId) {
-        return productQueryDao.findProductCategories(shopId);
+        return productQueryPort.findProductCategories(shopId);
     }
 
     private ProductDetailResult loadProductDetail(Long productId) {
-        return productQueryDao.findProductDetailById(productId)
+        return productQueryPort.findProductDetailById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
@@ -401,14 +401,14 @@ public class ProductQueryService implements ProductQueryUseCase {
      * 상품의 리뷰 평점 통계. 리뷰가 없으면 평균값은 모두 null이고 건수만 0이다.
      */
     private ProductReviewStatisticsResult findProductReviewStatistics(Long productId) {
-        Long totalCount = reviewStatisticsQueryDao.countVisibleByProductId(productId);
+        Long totalCount = reviewStatisticsQueryPort.countVisibleByProductId(productId);
 
         if (totalCount > 0) {
             return new ProductReviewStatisticsResult(
                 totalCount,
-                reviewStatisticsQueryDao.getAverageTasteRatingByProductId(productId),
-                reviewStatisticsQueryDao.getAverageAmountRatingByProductId(productId),
-                reviewStatisticsQueryDao.getAveragePriceRatingByProductId(productId)
+                reviewStatisticsQueryPort.getAverageTasteRatingByProductId(productId),
+                reviewStatisticsQueryPort.getAverageAmountRatingByProductId(productId),
+                reviewStatisticsQueryPort.getAveragePriceRatingByProductId(productId)
             );
         }
 
@@ -421,14 +421,14 @@ public class ProductQueryService implements ProductQueryUseCase {
     private ReviewsByRatingResult findProductReviewsByRating(Long productId, int page, int size, Boolean hasImage) {
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         for (int rating = 1; rating <= 5; rating++) {
-            reviewsByRating.put(rating, reviewQueryDao.findReviewsByProductIdAndRating(productId, rating, 5));
+            reviewsByRating.put(rating, reviewQueryPort.findReviewsByProductIdAndRating(productId, rating, 5));
         }
 
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryDao.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST);
+            reviewQueryPort.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST);
 
-        Long totalReviewCount = reviewStatisticsQueryDao.countVisibleByProductId(productId);
+        Long totalReviewCount = reviewStatisticsQueryPort.countVisibleByProductId(productId);
 
         return new ReviewsByRatingResult(
             reviewsByRating,

@@ -11,11 +11,11 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.RankType;
-import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
-import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
-import com.tastyhouse.infrastructure.rank.query.MemberRankResult;
-import com.tastyhouse.infrastructure.rank.query.RankPrizeResult;
-import com.tastyhouse.infrastructure.rank.query.RankQueryDao;
+import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeResult;
+import com.tastyhouse.application.rank.port.out.RankQueryPort;
 import com.tastyhouse.webapi.rank.application.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.response.RankMemberListItemResponse;
@@ -25,34 +25,34 @@ import com.tastyhouse.webapi.rank.response.RankPrizeListItemResponse;
  * 랭킹 조회 서비스(web).
  *
  * <p>랭킹은 web에서 조회 전용이므로(집계·기간·경품 관리는 admin/batch 몫) CommandService 없이
- * QueryService만 둔다. infra read 어댑터({@link RankQueryDao})만 주입해 조회하고 Response를 조립한다
+ * QueryService만 둔다. 읽기 포트({@link RankQueryPort})만 주입해 조회하고 Response를 조립한다
  * (패턴 2/3). 랭킹 경품·회원 랭킹의 이미지 URL은 DAO가 완성해 주므로 여기서는 값을 그대로 응답에 전달한다.
  *
  * <p>내 랭킹 조회는 랭킹에 들지 못한 회원도 자기 정보를 볼 수 있어야 하므로, 랭킹 행이 없으면
- * {@link MemberQueryDao}로 회원 프로필만 읽어 리뷰 0건·순위 없음으로 응답한다. 프로필 이미지는 그 DAO가
+ * {@link MemberQueryPort}로 회원 프로필만 읽어 리뷰 0건·순위 없음으로 응답한다. 프로필 이미지는 그 DAO가
  * 표시용 URL까지 변환해 담으므로 여기서는 값을 그대로 응답에 전달한다.
  */
 @Service
 @Transactional(readOnly = true)
 public class RankQueryService implements RankQueryUseCase {
 
-    private final RankQueryDao rankQueryDao;
-    private final MemberQueryDao memberQueryDao;
+    private final RankQueryPort rankQueryPort;
+    private final MemberQueryPort memberQueryPort;
 
-    public RankQueryService(RankQueryDao rankQueryDao, MemberQueryDao memberQueryDao) {
-        this.rankQueryDao = rankQueryDao;
-        this.memberQueryDao = memberQueryDao;
+    public RankQueryService(RankQueryPort rankQueryPort, MemberQueryPort memberQueryPort) {
+        this.rankQueryPort = rankQueryPort;
+        this.memberQueryPort = memberQueryPort;
     }
 
     @Override
     public Optional<RankDurationResponse> getDuration() {
-        return rankQueryDao.findActiveDuration()
+        return rankQueryPort.findActiveDuration()
             .map(dto -> RankDurationResponse.from(dto.startAt(), dto.endAt()));
     }
 
     @Override
     public List<RankPrizeListItemResponse> getPrizes() {
-        return rankQueryDao.findActivePrizes().stream()
+        return rankQueryPort.findActivePrizes().stream()
             .map(this::toPrizeListItemResponse)
             .toList();
     }
@@ -62,7 +62,7 @@ public class RankQueryService implements RankQueryUseCase {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        return rankQueryDao.findMemberRanks(type, baseDate, limit).stream()
+        return rankQueryPort.findMemberRanks(type, baseDate, limit).stream()
             .map(this::toMemberListItemResponse)
             .toList();
     }
@@ -73,7 +73,7 @@ public class RankQueryService implements RankQueryUseCase {
         LocalDate baseDate = LocalDate.now();
         MemberId id = MemberId.of(memberId);
 
-        return rankQueryDao.findMemberRank(memberId, type, baseDate)
+        return rankQueryPort.findMemberRank(memberId, type, baseDate)
             .map(this::toMemberListItemResponse)
             .orElseGet(() -> toUnrankedMemberResponse(id));
     }
@@ -82,7 +82,7 @@ public class RankQueryService implements RankQueryUseCase {
      * 아직 랭킹에 들지 못한 회원의 응답 — 프로필만 채우고 리뷰 수 0·순위 없음으로 내려준다.
      */
     private RankMemberListItemResponse toUnrankedMemberResponse(MemberId memberId) {
-        MemberWithProfileImageResult member = memberQueryDao.findMemberWithProfileImageById(memberId)
+        MemberWithProfileImageResult member = memberQueryPort.findMemberWithProfileImageById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return RankMemberListItemResponse.of(

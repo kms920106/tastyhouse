@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -126,6 +127,16 @@ class LayerRulesTest {
             throw new AssertionError(
                 "봉인 목록이 비었습니다 — SEALED_PERSISTENCE_TO_QUERY와 짝 테스트를 제거하고 순수 강제로 전환하세요.");
         }
+    }
+
+    @Test
+    void queryDaosShouldImplementQueryPorts() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("QueryDao")
+            .should().implement(resideInAPackage("com.tastyhouse.application..port.out.."))
+            .because("조회 계약은 응용 계층이 소유하고 DAO가 구현한다");
+
+        rule.check(classes);
     }
 
     private static DescribedPredicate<JavaClass> sealed() {

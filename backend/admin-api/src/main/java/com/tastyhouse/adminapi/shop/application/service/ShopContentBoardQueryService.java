@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopContentBoardResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardQueryUseCase;
@@ -21,10 +21,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardQueryUse
 @Transactional(readOnly = true)
 public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
-    public ShopContentBoardQueryService(ShopQueryDao shopQueryDao) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopContentBoardQueryService(ShopQueryPort shopQueryPort) {
+        this.shopQueryPort = shopQueryPort;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCas
     ) {
         ShopContentType type = contentType == null ? null : ShopContentType.from(contentType);
 
-        PageResult<ShopContentBoardResult> pageResult = shopQueryDao
+        PageResult<ShopContentBoardResult> pageResult = shopQueryPort
             .findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopContentBoardListItemResponse));

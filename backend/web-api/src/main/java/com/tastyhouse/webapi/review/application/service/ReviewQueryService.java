@@ -16,32 +16,29 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.order.model.OrderProduct;
-import com.tastyhouse.domain.order.repository.OrderProductRepository;
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
-import com.tastyhouse.infrastructure.review.query.BestReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.MyReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewCommentItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewDetailResult;
-import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewReplyItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
-import com.tastyhouse.infrastructure.review.query.ShopReviewDisplaySettingQueryDao;
-import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
+import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
+import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewCommentItemResult;
+import com.tastyhouse.application.review.port.out.ReviewDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewReplyItemResult;
+import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
 import com.tastyhouse.webapi.review.ReviewListType;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBestListItemResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewCommentListResponse;
@@ -59,7 +56,7 @@ import com.tastyhouse.webapi.review.application.port.in.ReviewQueryUseCase;
 /**
  * 리뷰 조회 서비스(web).
  *
- * <p>infra read 어댑터({@link ReviewQueryDao}·{@link ReviewStatisticsQueryDao})만 주입해 조회하고
+ * <p>읽기 포트({@link ReviewQueryPort}·{@link ReviewStatisticsQueryPort})만 주입해 조회하고
  * Response를 조립한다(private 매퍼).
  * 파일 경로 → 표시용 URL 변환은 DAO({@code FileUrlResolver})가 담당하므로 이 계층은 이미 URL이 된
  * 필드를 그대로 조립한다(응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
@@ -68,7 +65,7 @@ import com.tastyhouse.webapi.review.application.port.in.ReviewQueryUseCase;
  * DAO는 단일 조회 단위만 제공한다.
  *
  * <p>리뷰 화면이 곁들여 보여주는 상품 정보(상품명·가격·대표 이미지)는 다른 도메인의 QueryService를 경유하지
- * 않고 {@link ProductQueryDao}를 직접 주입해 조회한다 — 서비스를 경유하면 상품 쪽이 리뷰 통계를 얻기 위해
+ * 않고 {@link ProductQueryPort}를 직접 주입해 조회한다 — 서비스를 경유하면 상품 쪽이 리뷰 통계를 얻기 위해
  * 이 서비스를 다시 주입해야 해서 빈 순환 참조가 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다.
  *
  * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
@@ -77,30 +74,27 @@ import com.tastyhouse.webapi.review.application.port.in.ReviewQueryUseCase;
 @Transactional(readOnly = true)
 public class ReviewQueryService implements ReviewQueryUseCase {
 
-    private final ReviewQueryDao reviewQueryDao;
-    private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
-    private final ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao;
-    private final MemberFollowRepository memberFollowRepository;
-    private final ProductQueryDao productQueryDao;
-    private final OrderProductRepository orderProductRepository;
-    private final OrderRepository orderRepository;
+    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
+    private final ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort;
+    private final ProductQueryPort productQueryPort;
+    private final MemberFollowQueryPort memberFollowQueryPort;
+    private final OrderQueryPort orderQueryPort;
 
     public ReviewQueryService(
-        ReviewQueryDao reviewQueryDao,
-        ReviewStatisticsQueryDao reviewStatisticsQueryDao,
-        ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao,
-        MemberFollowRepository memberFollowRepository,
-        ProductQueryDao productQueryDao,
-        OrderProductRepository orderProductRepository,
-        OrderRepository orderRepository
+        ReviewQueryPort reviewQueryPort,
+        ReviewStatisticsQueryPort reviewStatisticsQueryPort,
+        ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort,
+        ProductQueryPort productQueryPort,
+        MemberFollowQueryPort memberFollowQueryPort,
+        OrderQueryPort orderQueryPort
     ) {
-        this.reviewQueryDao = reviewQueryDao;
-        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
-        this.shopReviewDisplaySettingQueryDao = shopReviewDisplaySettingQueryDao;
-        this.memberFollowRepository = memberFollowRepository;
-        this.productQueryDao = productQueryDao;
-        this.orderProductRepository = orderProductRepository;
-        this.orderRepository = orderRepository;
+        this.reviewQueryPort = reviewQueryPort;
+        this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
+        this.shopReviewDisplaySettingQueryPort = shopReviewDisplaySettingQueryPort;
+        this.productQueryPort = productQueryPort;
+        this.memberFollowQueryPort = memberFollowQueryPort;
+        this.orderQueryPort = orderQueryPort;
     }
 
     /**
@@ -108,7 +102,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      */
     @Override
     public PaginationResponse<ReviewBestListItemResponse> searchBestReviewList(int page, int size) {
-        PageResult<ReviewBestListItemResponse> pageResult = reviewQueryDao.findBestReviews(PageQuery.of(page, size))
+        PageResult<ReviewBestListItemResponse> pageResult = reviewQueryPort.findBestReviews(PageQuery.of(page, size))
             .map(this::toBestReviewListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -128,7 +122,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             pageResult = findLatestReviewsByFollowing(MemberId.of(memberId), page, size)
                 .map(this::toLatestReviewListItemResponse);
         } else {
-            pageResult = reviewQueryDao.findLatestReviews(PageQuery.of(page, size))
+            pageResult = reviewQueryPort.findLatestReviews(PageQuery.of(page, size))
                 .map(this::toLatestReviewListItemResponse);
         }
         return PaginationResponse.from(pageResult);
@@ -181,7 +175,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      */
     @Override
     public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
-        boolean liked = reviewQueryDao.existsLike(ReviewId.of(reviewId), memberId);
+        boolean liked = reviewQueryPort.existsLike(ReviewId.of(reviewId), memberId);
         return ReviewLikeStatusResponse.from(liked);
     }
 
@@ -197,7 +191,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     public ReviewCommentListResponse searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
         requireVisibleReview(reviewId, viewerMemberId);
 
-        List<ReviewCommentItemResult> comments = reviewQueryDao.findComments(ReviewId.of(reviewId));
+        List<ReviewCommentItemResult> comments = reviewQueryPort.findComments(ReviewId.of(reviewId));
 
         if (comments.isEmpty()) {
             return ReviewCommentListResponse.from(List.of(), 0);
@@ -207,7 +201,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             .map(comment -> ReviewCommentId.of(comment.id()))
             .toList();
 
-        List<ReviewReplyItemResult> allReplies = reviewQueryDao.findVisibleReplies(commentIds);
+        List<ReviewReplyItemResult> allReplies = reviewQueryPort.findVisibleReplies(commentIds);
 
         Map<Long, List<ReviewReplyItemResult>> repliesByCommentId = allReplies.stream()
             .collect(Collectors.groupingBy(ReviewReplyItemResult::commentId));
@@ -240,7 +234,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         List<String> reviewImageUrls = reviewDetail.imageUrls();
         String reviewMemberProfileImageUrl = reviewDetail.memberProfileImageUrl();
 
-        return productQueryDao.findProductDetailById(findProductIdOfReview(reviewId))
+        return productQueryPort.findProductDetailById(findProductIdOfReview(reviewId))
             .map(product -> {
                 Integer price = product.discountPrice() != null
                     ? product.discountPrice()
@@ -301,36 +295,35 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             throw new BusinessException(ErrorCode.AUTH_REQUIRED);
         }
 
-        OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
+        OrderProductOwnershipResult ownership = orderQueryPort.findOrderProductOwnership(orderProductId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
-        Order order = orderRepository.findById(orderProduct.getOrderId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
-        if (!order.getMemberId().equals(MemberId.of(memberId))) {
+        if (ownership.orderMemberId() == null) {
+            throw new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        if (!ownership.orderMemberId().equals(memberId)) {
             throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
         }
 
-        ProductDetailResult product = productQueryDao.findProductDetailById(orderProduct.getProductId().value())
+        ProductDetailResult product = productQueryPort.findProductDetailById(ownership.productId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.discountPrice() != null
             ? product.discountPrice()
             : product.originalPrice();
 
-        boolean reviewed = reviewQueryDao.existsByOrderIdAndProductIdAndMemberId(
-            orderProduct.getOrderId().value(), orderProduct.getProductId().value(), memberId
+        boolean reviewed = reviewQueryPort.existsByOrderIdAndProductIdAndMemberId(
+            ownership.orderId(), ownership.productId(), memberId
         );
-
-        OrderMethod orderMethod = order.getOrderMethod();
 
         return ReviewWriteInfoResponse.from(
             product.id(),
             product.name(),
             getFirstImageUrl(product.id()),
             price,
-            orderProduct.getOrderId().value(),
+            ownership.orderId(),
             reviewed,
-            orderMethod == null ? null : orderMethod.name()
+            ownership.orderMethod()
         );
     }
 
@@ -341,7 +334,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         if (sortType != null) {
             return ReviewSortType.from(sortType);
         }
-        return shopReviewDisplaySettingQueryDao.findSortTypeByShopId(shopId)
+        return shopReviewDisplaySettingQueryPort.findSortTypeByShopId(shopId)
             .orElse(ReviewSortType.LATEST);
     }
 
@@ -351,7 +344,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
         PageResult<ReviewMemberListItemResponse> pageResult =
-            reviewQueryDao.findReviewsByMemberId(memberId, PageQuery.of(page, size))
+            reviewQueryPort.findReviewsByMemberId(memberId, PageQuery.of(page, size))
                 .map(dto -> ReviewMemberListItemResponse.from(
                     dto.id(),
                     dto.imageUrl()
@@ -366,7 +359,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * {@link ReviewSortType#LATEST}다. <b>명시되면 그 값이 우선</b>한다 — 고객이 앱에서 정렬을 바꿔 볼 수
      * 있어야 하므로 점주 설정이 명시적 선택을 덮어써서는 안 된다.
      *
-     * <p>점주 설정을 write 포트가 아니라 {@code ShopReviewDisplaySettingQueryDao}로 읽는다 — 조회 전용
+     * <p>점주 설정을 write 포트가 아니라 {@code ShopReviewDisplaySettingQueryPort}로 읽는다 — 조회 전용
      * 서비스에 write 포트를 주입하면 CQRS 교차 주입 금지 규칙을 어긴다.
      */
     public ReviewsByRatingResult findShopReviewsByRating(
@@ -378,11 +371,11 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     ) {
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         for (int rating = 1; rating <= 5; rating++) {
-            reviewsByRating.put(rating, reviewQueryDao.findReviewsByShopIdAndRating(shopId, rating, 5));
+            reviewsByRating.put(rating, reviewQueryPort.findReviewsByShopIdAndRating(shopId, rating, 5));
         }
 
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<LatestReviewListItemResult> allReviewsPage = reviewQueryDao.findLatestReviewsByShopId(
+        PageResult<LatestReviewListItemResult> allReviewsPage = reviewQueryPort.findLatestReviewsByShopId(
             shopId,
             null,
             pageQuery,
@@ -390,7 +383,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             resolveSortType(shopId, sortType)
         );
 
-        Long totalReviewCount = reviewStatisticsQueryDao.countVisibleByShopId(shopId);
+        Long totalReviewCount = reviewStatisticsQueryPort.countVisibleByShopId(shopId);
 
         return new ReviewsByRatingResult(
             reviewsByRating,
@@ -403,33 +396,32 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         );
     }
 
-
     /**
      * 가게 리뷰 통계 — 리뷰가 하나도 없으면 평균·재방문율·월별 집계를 계산하지 않고 비운다.
      */
     public ShopReviewStatisticsResult findShopReviewStatistics(Long shopId) {
-        Long totalCount = reviewStatisticsQueryDao.countVisibleByShopId(shopId);
+        Long totalCount = reviewStatisticsQueryPort.countVisibleByShopId(shopId);
 
-        Map<Integer, Long> ratingMap = reviewStatisticsQueryDao.getRatingCounts(shopId);
+        Map<Integer, Long> ratingMap = reviewStatisticsQueryPort.getRatingCounts(shopId);
         for (int rating = 1; rating <= 5; rating++) {
             ratingMap.putIfAbsent(rating, 0L);
         }
 
         if (totalCount > 0) {
-            Long willRevisitCount = reviewStatisticsQueryDao.countWillRevisit(shopId);
+            Long willRevisitCount = reviewStatisticsQueryPort.countWillRevisit(shopId);
             double willRevisitPercentage = (willRevisitCount * 100.0) / totalCount;
 
             int currentYear = LocalDateTime.now().getYear();
-            Map<Integer, Long> monthlyMap = reviewStatisticsQueryDao.getMonthlyReviewCounts(shopId, currentYear);
+            Map<Integer, Long> monthlyMap = reviewStatisticsQueryPort.getMonthlyReviewCounts(shopId, currentYear);
 
             return new ShopReviewStatisticsResult(
                 totalCount,
-                reviewStatisticsQueryDao.getAverageTasteRating(shopId),
-                reviewStatisticsQueryDao.getAverageAmountRating(shopId),
-                reviewStatisticsQueryDao.getAveragePriceRating(shopId),
-                reviewStatisticsQueryDao.getAverageAtmosphereRating(shopId),
-                reviewStatisticsQueryDao.getAverageKindnessRating(shopId),
-                reviewStatisticsQueryDao.getAverageHygieneRating(shopId),
+                reviewStatisticsQueryPort.getAverageTasteRating(shopId),
+                reviewStatisticsQueryPort.getAverageAmountRating(shopId),
+                reviewStatisticsQueryPort.getAveragePriceRating(shopId),
+                reviewStatisticsQueryPort.getAverageAtmosphereRating(shopId),
+                reviewStatisticsQueryPort.getAverageKindnessRating(shopId),
+                reviewStatisticsQueryPort.getAverageHygieneRating(shopId),
                 willRevisitPercentage,
                 ratingMap,
                 monthlyMap
@@ -448,7 +440,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 회원이 쓴 노출 리뷰 수.
      */
     public long countVisibleReviewsByMemberId(Long memberId) {
-        return reviewStatisticsQueryDao.countVisibleReviewsByMemberId(memberId);
+        return reviewStatisticsQueryPort.countVisibleReviewsByMemberId(memberId);
     }
 
     /**
@@ -458,14 +450,14 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 쿼리가 나가므로(N+1), 호출부가 루프 전에 이 메서드로 1회 조회한 뒤 메모리에서 판정한다.
      */
     public Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds) {
-        return reviewQueryDao.findReviewedProductIds(orderId, memberId, productIds);
+        return reviewQueryPort.findReviewedProductIds(orderId, memberId, productIds);
     }
 
     /**
      * 내가 쓴 리뷰 목록(원본 result 반환 — 호출부가 Response를 조립한다).
      */
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
-        return reviewQueryDao.findMyReviews(memberId, PageQuery.of(page, size));
+        return reviewQueryPort.findMyReviews(memberId, PageQuery.of(page, size));
     }
 
     /**
@@ -489,12 +481,12 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 리뷰 상세 결과 — 본문 조회 후 태그명을 덧붙인다. 과거 core 조회 서비스가 하던 조합을 그대로 옮겼다.
      */
     private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId, Long viewerMemberId) {
-        return reviewQueryDao.findReviewDetail(reviewId, viewerMemberId).map(result -> {
-            List<Long> tagIds = reviewQueryDao.findTagIdsByReviewId(reviewId.value());
+        return reviewQueryPort.findReviewDetail(reviewId, viewerMemberId).map(result -> {
+            List<Long> tagIds = reviewQueryPort.findTagIdsByReviewId(reviewId.value());
             if (tagIds.isEmpty()) {
                 return result;
             }
-            return result.withTagNames(reviewQueryDao.findTagNamesByIds(tagIds));
+            return result.withTagNames(reviewQueryPort.findTagNamesByIds(tagIds));
         });
     }
 
@@ -502,7 +494,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 리뷰가 가리키는 상품 식별자 — 상품 정보 조회에만 쓰인다. 상세 조회로 리뷰 존재는 이미 확인된 상태다.
      */
     private Long findProductIdOfReview(Long reviewId) {
-        return reviewQueryDao.findProductIdByReviewId(reviewId)
+        return reviewQueryPort.findProductIdByReviewId(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
     }
 
@@ -510,13 +502,13 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 팔로잉 타임라인 — 팔로우한 회원이 없으면 조회하지 않고 빈 페이지를 돌려준다.
      */
     private PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(MemberId memberId, int page, int size) {
-        List<Long> followingMemberIds = memberFollowRepository.findFollowingIdsByFollowerId(memberId);
+        List<Long> followingMemberIds = memberFollowQueryPort.findFollowingIds(memberId);
 
         if (followingMemberIds.isEmpty()) {
             return PageResult.empty(page, size);
         }
 
-        return reviewQueryDao.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
+        return reviewQueryPort.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
     }
 
     private ReviewBestListItemResponse toBestReviewListItemResponse(BestReviewListItemResult dto) {
@@ -622,7 +614,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     }
 
     private String getFirstImageUrl(Long productId) {
-        return productQueryDao.findProductImageUrls(productId).stream()
+        return productQueryPort.findProductImageUrls(productId).stream()
             .findFirst()
             .orElse(null);
     }

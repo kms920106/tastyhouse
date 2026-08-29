@@ -1,5 +1,11 @@
 package com.tastyhouse.infrastructure.banner.query;
 
+import com.tastyhouse.application.banner.port.out.BannerQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerDetailResult;
+import com.tastyhouse.application.banner.port.out.BannerListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +32,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  *
  * <p>이미지 파일 조인({@code QUploadedFileJpaEntity})은 같은 모듈 내 참조라 Q타입을 직접 쓴다.
  * 조인으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
- * {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
+ * {@code Projections.constructor}는 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
  * 직후 재조립한다. 변환 자체는 순수 문자열 연산이라 추가 쿼리가 발생하지 않는다.
  *
  * <p>도메인당 DAO 1개 원칙에 따라 소비자별 메서드를 이 한 클래스에 둔다. 메서드명에는 admin 마커를
@@ -34,7 +40,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 포함한 관리 조회, {@code findVisibleBannersByType}은 현재 노출 중인 배너만).
  */
 @Repository
-public class BannerQueryDao {
+public class BannerQueryDao implements BannerQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -48,6 +54,7 @@ public class BannerQueryDao {
      * 회원 노출용 배너 목록 조회 — 유형이 일치하고 노출(visible=true) 상태이며 현재 시각이 노출 기간
      * 안에 있는 배너만 조회한다. 이미지가 필수라 파일을 inner join 한다.
      */
+    @Override
     public PageResult<BannerListItemResult> findVisibleBannersByType(BannerType type, PageQuery pageQuery) {
         LocalDateTime now = LocalDateTime.now();
 
@@ -64,7 +71,7 @@ public class BannerQueryDao {
             .fetchOne();
 
         List<BannerListItemResult> banners = queryFactory
-            .select(new QBannerListItemResult(
+            .select(Projections.constructor(BannerListItemResult.class,
                 bannerJpaEntity.id,
                 bannerJpaEntity.title,
                 uploadedFileJpaEntity.filePath,
@@ -94,6 +101,7 @@ public class BannerQueryDao {
      * 관리 목록 조회 — 비노출·노출기간 만료 배너를 포함하며 type/title 부분일치·visible 필터를
      * 적용한다. 이미지가 없을 수 있어 파일을 left join 한다.
      */
+    @Override
     public PageResult<BannerManagementListItemResult> findAllBanners(BannerSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(bannerJpaEntity.id.count())
@@ -107,7 +115,7 @@ public class BannerQueryDao {
             .fetchOne();
 
         List<BannerManagementListItemResult> banners = queryFactory
-            .select(new QBannerManagementListItemResult(
+            .select(Projections.constructor(BannerManagementListItemResult.class,
                 bannerJpaEntity.id,
                 bannerJpaEntity.type,
                 bannerJpaEntity.title,
@@ -142,13 +150,14 @@ public class BannerQueryDao {
     /**
      * 관리 상세 조회 — 비노출·노출기간 만료 배너도 조회된다. 이미지가 없을 수 있어 파일을 left join 한다.
      */
+    @Override
     public Optional<BannerDetailResult> findDetailById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
 
         BannerDetailResult detail = queryFactory
-            .select(new QBannerDetailResult(
+            .select(Projections.constructor(BannerDetailResult.class,
                 bannerJpaEntity.id,
                 bannerJpaEntity.type,
                 bannerJpaEntity.title,
@@ -172,7 +181,7 @@ public class BannerQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code @QueryProjection}이
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code Projections.constructor}가
      * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private BannerListItemResult withResolvedImageUrl(BannerListItemResult row) {

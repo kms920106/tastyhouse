@@ -13,8 +13,8 @@ import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.AllergenType;
-import com.tastyhouse.infrastructure.product.query.ProductNutritionResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductNutritionResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 점주용 메뉴 영양성분·알레르기 조회 서비스(CQRS query 측).
@@ -27,11 +27,11 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 @Transactional(readOnly = true)
 public class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ProductNutritionQueryService(ProductQueryDao productQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.productQueryDao = productQueryDao;
+    public ProductNutritionQueryService(ProductQueryPort productQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -40,8 +40,8 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateProductOwnedByShop(shopId, productId);
 
-        return productQueryDao.findNutrition(productId)
-            .map(dto -> toProductNutritionResponse(dto, productQueryDao.findAllergenTypes(productId)))
+        return productQueryPort.findNutrition(productId)
+            .map(dto -> toProductNutritionResponse(dto, productQueryPort.findAllergenTypes(productId)))
             .orElse(null);
     }
 
@@ -63,7 +63,7 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
      * 가게에 걸리므로, 원본 가게만 인정하면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다.
      */
     private void validateProductOwnedByShop(Long shopId, Long productId) {
-        boolean owned = productQueryDao.existsProductInShop(productId, shopId);
+        boolean owned = productQueryPort.existsProductInShop(productId, shopId);
         if (!owned) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }

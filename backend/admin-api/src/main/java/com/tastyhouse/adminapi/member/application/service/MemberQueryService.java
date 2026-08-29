@@ -3,18 +3,17 @@ package com.tastyhouse.adminapi.member.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.member.query.MemberListItemResult;
-import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
-import com.tastyhouse.infrastructure.member.query.MemberSearchCondition;
+import com.tastyhouse.application.member.port.out.MemberListItemResult;
+import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
+import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberDetailResponse;
 import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResponse;
@@ -23,9 +22,9 @@ import com.tastyhouse.adminapi.member.application.port.in.MemberQueryUseCase;
 /**
  * 회원 관리 조회 서비스.
  *
- * <p>목록·검색은 infra read 어댑터({@link MemberQueryDao})로 투영하고, 상세는 회원 도메인 모델을 그대로
- * 노출해야 해서 write 포트({@link MemberRepository})의 단건 로드를 쓴다 — 상세 응답이 아이디·연락처·
- * 알림 수신 설정 등 도메인 모델의 거의 모든 필드를 필요로 하므로 별도 read model을 두는 이점이 없다.
+ * <p>목록·검색도 상세도 모두 읽기 포트({@link MemberQueryPort})의 투영으로 답한다 — 상세 응답이
+ * 아이디·연락처·알림 수신 설정 등 많은 필드를 요구하지만 전부 화면에 그대로 실리는 표현용이라,
+ * 애그리거트를 로드할 이유가 없다(write 포트 미주입).
  *
  * <p>HTTP 경계에서 받은 {@code String} 필터값은 여기서 core enum으로 승격하고, Response로 내보낼 때는
  * 다시 {@code name()} 문자열로 되돌린다(api 모듈은 core enum을 노출하지 않는다).
@@ -34,12 +33,10 @@ import com.tastyhouse.adminapi.member.application.port.in.MemberQueryUseCase;
 @Transactional(readOnly = true)
 public class MemberQueryService implements MemberQueryUseCase {
 
-    private final MemberQueryDao memberQueryDao;
-    private final MemberRepository memberRepository;
+    private final MemberQueryPort memberQueryPort;
 
-    public MemberQueryService(MemberQueryDao memberQueryDao, MemberRepository memberRepository) {
-        this.memberQueryDao = memberQueryDao;
-        this.memberRepository = memberRepository;
+    public MemberQueryService(MemberQueryPort memberQueryPort) {
+        this.memberQueryPort = memberQueryPort;
     }
 
     @Override
@@ -60,39 +57,38 @@ public class MemberQueryService implements MemberQueryUseCase {
             grade == null ? null : MemberGrade.from(grade)
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<MemberListItemResponse> pageResult = memberQueryDao.findMembers(condition, pageQuery)
+        PageResult<MemberListItemResponse> pageResult = memberQueryPort.findMembers(condition, pageQuery)
             .map(this::toMemberListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public MemberDetailResponse getMember(Long id) {
-        MemberId memberId = MemberId.of(id);
-        Member member = memberRepository.findById(memberId)
+        MemberManagementDetailResult member = memberQueryPort.findManagementDetailById(MemberId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return toMemberDetailResponse(member);
     }
 
-    private MemberDetailResponse toMemberDetailResponse(Member member) {
-        String profileImageUrl = memberQueryDao.findProfileImageUrl(member.getMemberId()).orElse(null);
+    private MemberDetailResponse toMemberDetailResponse(MemberManagementDetailResult member) {
+        String profileImageUrl = memberQueryPort.findProfileImageUrl(MemberId.of(member.id())).orElse(null);
 
         return MemberDetailResponse.from(
-            member.getId(),
-            member.getUsername(),
-            member.getNickname(),
-            member.getFullName(),
-            member.getPhoneNumber() != null ? member.getPhoneNumber().value() : null,
-            member.getGender().name(),
-            member.getBirthDate(),
-            member.getMemberGrade().name(),
-            member.getMemberStatus().name(),
-            member.getStatusMessage(),
+            member.id(),
+            member.username(),
+            member.nickname(),
+            member.fullName(),
+            member.phoneNumber(),
+            member.gender(),
+            member.birthDate(),
+            member.memberGrade(),
+            member.memberStatus(),
+            member.statusMessage(),
             profileImageUrl,
-            member.isPushNotificationEnabled(),
-            member.isMarketingInfoEnabled(),
-            member.isEventInfoEnabled(),
-            member.getCreatedAt()
+            member.pushNotificationEnabled(),
+            member.marketingInfoEnabled(),
+            member.eventInfoEnabled(),
+            member.createdAt()
         );
     }
 

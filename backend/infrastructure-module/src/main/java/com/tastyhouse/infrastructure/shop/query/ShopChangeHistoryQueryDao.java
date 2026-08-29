@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +25,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopChangeHistoryJ
  * {@code DATE(created_at) = ?}처럼 컬럼에 함수를 씌우면 인덱스를 타지 못한다.
  */
 @Repository
-public class ShopChangeHistoryQueryDao {
+public class ShopChangeHistoryQueryDao implements ShopChangeHistoryQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -33,6 +36,7 @@ public class ShopChangeHistoryQueryDao {
     /**
      * 가게 변경이력 목록 페이징 — 최신순({@code created_at DESC}).
      */
+    @Override
     public PageResult<ShopChangeHistoryResult> findChangeHistoryPage(
         ShopChangeHistorySearchCondition condition,
         PageQuery pageQuery

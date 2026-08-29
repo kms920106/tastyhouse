@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import java.util.Optional;
 
 import com.querydsl.core.types.ConstructorExpression;
@@ -21,7 +23,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderNoticeJpa
  * 노출되는 결함이 되고, 쿼리 자체가 걸러내면 그 실수가 물리적으로 불가능해진다.
  */
 @Repository
-public class ShopOrderNoticeQueryDao {
+public class ShopOrderNoticeQueryDao implements ShopOrderNoticeQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -32,6 +34,7 @@ public class ShopOrderNoticeQueryDao {
     /**
      * 가게의 주문안내(점주 화면) — 게시중단 여부와 무관하게 내려간다. 미설정이면 빈 값이다.
      */
+    @Override
     public Optional<ShopOrderNoticeResult> findOrderNotice(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(projection())
@@ -44,6 +47,7 @@ public class ShopOrderNoticeQueryDao {
      * 가게의 노출 가능한 주문안내(손님 화면) — 게시중단({@code is_hidden = true})된 문구는 걸러진다.
      * 미설정이거나 게시중단이면 빈 값이다.
      */
+    @Override
     public Optional<ShopOrderNoticeResult> findVisibleOrderNotice(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(projection())

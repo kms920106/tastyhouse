@@ -14,8 +14,8 @@ import com.tastyhouse.domain.product.service.ProductFeedbackService;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.product.query.ProductFeedbackQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductFeedbackSummaryResult;
+import com.tastyhouse.application.product.port.out.ProductFeedbackQueryPort;
+import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 
 /**
  * 점주용 고객 의견 조회 서비스(CQRS query 측).
@@ -31,16 +31,16 @@ import com.tastyhouse.infrastructure.product.query.ProductFeedbackSummaryResult;
 @Transactional(readOnly = true)
 public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase {
 
-    private final ProductFeedbackQueryDao productFeedbackQueryDao;
+    private final ProductFeedbackQueryPort productFeedbackQueryPort;
     private final ProductFeedbackService productFeedbackService;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductFeedbackQueryService(
-        ProductFeedbackQueryDao productFeedbackQueryDao,
+        ProductFeedbackQueryPort productFeedbackQueryPort,
         ProductFeedbackService productFeedbackService,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productFeedbackQueryDao = productFeedbackQueryDao;
+        this.productFeedbackQueryPort = productFeedbackQueryPort;
         this.productFeedbackService = productFeedbackService;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -53,7 +53,7 @@ public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         LocalDateTime since = LocalDateTime.now().minusDays(ProductFeedbackService.FEEDBACK_WINDOW_DAYS);
-        PageResult<ProductFeedbackSummaryResult> result = productFeedbackQueryDao.findFeedbackSummaries(
+        PageResult<ProductFeedbackSummaryResult> result = productFeedbackQueryPort.findFeedbackSummaries(
             shopId, since, PageQuery.of(page, size)
         );
         return PaginationResponse.from(result.map(this::toProductFeedbackResponse));

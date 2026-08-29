@@ -13,9 +13,9 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
-import com.tastyhouse.infrastructure.shop.query.ShopCeoAssignmentHistoryQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopCeoAssignmentHistoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopCeoAssignmentHistorySearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistorySearchCondition;
 
 /**
  * 점주 본인 시스템 접근권한 이력 조회 서비스(CQRS query 측).
@@ -37,12 +37,12 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
     /** 시작일 미지정 시 종료일로부터 거슬러 올라가는 기본 조회 폭(년). */
     private static final int DEFAULT_RANGE_YEARS = 1;
 
-    private final ShopCeoAssignmentHistoryQueryDao shopCeoAssignmentHistoryQueryDao;
+    private final ShopCeoAssignmentHistoryQueryPort shopCeoAssignmentHistoryQueryPort;
 
     public CeoShopAccessHistoryQueryService(
-        ShopCeoAssignmentHistoryQueryDao shopCeoAssignmentHistoryQueryDao
+        ShopCeoAssignmentHistoryQueryPort shopCeoAssignmentHistoryQueryPort
     ) {
-        this.shopCeoAssignmentHistoryQueryDao = shopCeoAssignmentHistoryQueryDao;
+        this.shopCeoAssignmentHistoryQueryPort = shopCeoAssignmentHistoryQueryPort;
     }
 
     /**
@@ -79,7 +79,7 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
         PageQuery pageQuery = PageQuery.of(page, size);
 
         PageResult<CeoShopAccessHistoryListItemResponse> pageResult =
-            shopCeoAssignmentHistoryQueryDao.findShopAccessHistoryPage(condition, pageQuery)
+            shopCeoAssignmentHistoryQueryPort.findShopAccessHistoryPage(condition, pageQuery)
                 .map(this::toListItemResponse);
         return PaginationResponse.from(pageResult);
     }

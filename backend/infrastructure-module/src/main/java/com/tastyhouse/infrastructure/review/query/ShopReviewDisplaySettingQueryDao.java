@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
@@ -18,7 +20,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QShopReviewDispla
  * write 포트를 주입하면 CQRS 교차 주입 금지 규칙을 어긴다. 그래서 값만 투영하는 이 DAO를 둔다.
  */
 @Repository
-public class ShopReviewDisplaySettingQueryDao {
+public class ShopReviewDisplaySettingQueryDao implements ShopReviewDisplaySettingQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -31,6 +33,7 @@ public class ShopReviewDisplaySettingQueryDao {
      * ({@link ReviewSortType#LATEST})으로 접는 판단은 소비 Service가 한다(행 부재와 명시적 LATEST를
      * 구분해야 {@code updatedAt}을 {@code null}로 응답할 수 있다).
      */
+    @Override
     public Optional<ReviewSortType> findSortTypeByShopId(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(shopReviewDisplaySettingJpaEntity.sortType)
@@ -42,6 +45,7 @@ public class ShopReviewDisplaySettingQueryDao {
     /**
      * 정렬 설정 조회 화면용 투영(정렬값 + 최종 변경 시각). 미설정이면 {@code Optional.empty()}다.
      */
+    @Override
     public Optional<ShopReviewSortTypeResult> findSortTypeSettingByShopId(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(Projections.constructor(ShopReviewSortTypeResult.class,

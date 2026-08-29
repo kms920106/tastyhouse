@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemResponse;
 
 /**
@@ -21,11 +21,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemRe
 @Transactional(readOnly = true)
 public class ShopDeliveryAreaQueryService implements ShopDeliveryAreaQueryUseCase {
 
-    private final ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao;
+    private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopDeliveryAreaQueryService(ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopDeliveryAreaQueryDao = shopDeliveryAreaQueryDao;
+    public ShopDeliveryAreaQueryService(ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopDeliveryAreaQueryPort = shopDeliveryAreaQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -33,7 +33,7 @@ public class ShopDeliveryAreaQueryService implements ShopDeliveryAreaQueryUseCas
     public List<ShopDeliveryAreaItemResponse> getDeliveryAreas(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopDeliveryAreaQueryDao.findDeliveryAreas(shopId).stream()
+        return shopDeliveryAreaQueryPort.findDeliveryAreas(shopId).stream()
             .map(this::toShopDeliveryAreaItemResponse)
             .toList();
     }

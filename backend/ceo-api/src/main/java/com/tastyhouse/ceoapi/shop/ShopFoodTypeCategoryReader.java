@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 
 /**
  * 가게에 배정된 음식 유형(카테고리) 이름을 읽어주는 협력 빈.
@@ -22,16 +22,16 @@ import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 @Component
 public class ShopFoodTypeCategoryReader {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
-    public ShopFoodTypeCategoryReader(ShopQueryDao shopQueryDao) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopFoodTypeCategoryReader(ShopQueryPort shopQueryPort) {
+        this.shopQueryPort = shopQueryPort;
     }
 
     /**
      * 가게 카테고리 표시명 집합. 배정이 없으면 빈 집합이다(그 경우 이름 기반 거절 근거가 없다).
      */
     public Set<String> readCategoryNames(Long shopId) {
-        return Set.copyOf(shopQueryDao.findFoodTypeCategoryNames(shopId));
+        return Set.copyOf(shopQueryPort.findFoodTypeCategoryNames(shopId));
     }
 }

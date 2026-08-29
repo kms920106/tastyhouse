@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.MemberReviewCountQueryPort;
+import com.tastyhouse.application.review.port.out.MemberReviewCountResult;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -10,7 +13,7 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewMemberCountResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResult;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
@@ -23,7 +26,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * 여기만 고치면 랭킹과 등급이 함께 같은 기준으로 전환된다.
  */
 @Repository
-public class MemberReviewCountQueryDao {
+public class MemberReviewCountQueryDao implements MemberReviewCountQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final MenuReviewStatisticsQueryDao menuReviewStatisticsQueryDao;
@@ -61,6 +64,7 @@ public class MemberReviewCountQueryDao {
      * MENU_REVIEW 쪽에는 {@code hidden} 필터가 있는 것과 비대칭으로 보여도 <b>고치지 말 것</b>.
      * MENU_REVIEW는 신규 테이블이라 소급 영향이 없어 처음부터 걸 수 있었을 뿐이다.
      */
+    @Override
     public List<MemberReviewCountResult> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return mergeAndSort(
             findReviewCounts(startDate, endDate),
@@ -109,7 +113,7 @@ public class MemberReviewCountQueryDao {
         NumberPath<Long> memberIdPath = reviewJpaEntity.memberId;
 
         return queryFactory
-            .select(new QMemberReviewCountResult(
+            .select(Projections.constructor(MemberReviewCountResult.class,
                 memberIdPath,
                 reviewJpaEntity.count(),
                 reviewJpaEntity.createdAt.max()

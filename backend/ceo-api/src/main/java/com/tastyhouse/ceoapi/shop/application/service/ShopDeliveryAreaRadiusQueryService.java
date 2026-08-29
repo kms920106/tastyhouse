@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
-import com.tastyhouse.infrastructure.region.query.AdminDongCandidateResult;
-import com.tastyhouse.infrastructure.region.query.AdminDongQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopLocationResult;
+import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
+import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoCircle;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaCandidateResponse;
@@ -36,36 +36,36 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
 @Transactional(readOnly = true)
 public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiusQueryUseCase {
 
-    private final AdminDongQueryDao adminDongQueryDao;
-    private final ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao;
+    private final AdminDongQueryPort adminDongQueryPort;
+    private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;
 
     public ShopDeliveryAreaRadiusQueryService(
-        AdminDongQueryDao adminDongQueryDao,
-        ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao
+        AdminDongQueryPort adminDongQueryPort,
+        ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort
     ) {
-        this.adminDongQueryDao = adminDongQueryDao;
-        this.shopDeliveryAreaQueryDao = shopDeliveryAreaQueryDao;
+        this.adminDongQueryPort = adminDongQueryPort;
+        this.shopDeliveryAreaQueryPort = shopDeliveryAreaQueryPort;
     }
 
     @Override
     public ShopDeliveryAreaRadiusPreviewResponse previewRadius(Long ceoId, Long shopId, int radiusMeters) {
         ShopDeliveryAreaPolicy.validateRadius(radiusMeters);
 
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryDao.findShopLocation(ceoId, shopId);
+        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
         GeoPoint center = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
         // 원 근사 다각형은 표시·bbox 계산용이고, "반경 안인가"는 하버사인으로 직접 잰다.
         var circle = GeoCircle.approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS);
         var candidateBox = circle.boundingBox();
 
-        List<AdminDongCandidateResult> candidates = adminDongQueryDao.findCandidatesWithinBoundingBox(
+        List<AdminDongCandidateResult> candidates = adminDongQueryPort.findCandidatesWithinBoundingBox(
             candidateBox.minLatitude(),
             candidateBox.maxLatitude(),
             candidateBox.minLongitude(),
             candidateBox.maxLongitude()
         );
 
-        Set<Long> registered = shopDeliveryAreaQueryDao.findAdminDongIds(shopId);
+        Set<Long> registered = shopDeliveryAreaQueryPort.findAdminDongIds(shopId);
 
         List<ShopDeliveryAreaCandidateResponse> withinRadius = candidates.stream()
             .filter(candidate -> hasCenter(candidate) && isWithinRadius(center, candidate, radiusMeters))

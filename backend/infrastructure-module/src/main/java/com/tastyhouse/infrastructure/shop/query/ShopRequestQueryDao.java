@@ -1,5 +1,13 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestReviewBlindDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestSearchCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,7 +52,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestIndexJp
  * {@code ~FileId}를 노출하지 않는 규칙). 목록에서는 join 없이 존재 여부만 담는다.
  */
 @Repository
-public class ShopRequestQueryDao {
+public class ShopRequestQueryDao implements ShopRequestQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -57,6 +65,7 @@ public class ShopRequestQueryDao {
     /**
      * 요청처리 현황 목록 페이징 — 최신순({@code created_at DESC, id DESC}).
      */
+    @Override
     public PageResult<ShopRequestListItemResult> findRequestPage(
         ShopRequestSearchCondition condition,
         PageQuery pageQuery
@@ -104,6 +113,7 @@ public class ShopRequestQueryDao {
     /**
      * 요청처리 현황 상세(인덱스 부분). 유형별 원본은 아래 두 메서드가 별도로 투영한다.
      */
+    @Override
     public Optional<ShopRequestDetailResult> findRequestDetail(Long requestId) {
         ShopRequestDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestDetailResult.class,
@@ -131,6 +141,7 @@ public class ShopRequestQueryDao {
     /**
      * 이미지 변경요청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
      */
+    @Override
     public Optional<ShopRequestImageChangeDetailResult> findImageChangeDetail(Long sourceRequestId) {
         ShopRequestImageChangeDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestImageChangeDetailResult.class,
@@ -156,6 +167,7 @@ public class ShopRequestQueryDao {
     /**
      * 배달지역 조정 신청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
      */
+    @Override
     public Optional<ShopRequestAdjustmentDetailResult> findAdjustmentDetail(Long sourceRequestId) {
         ShopRequestAdjustmentDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestAdjustmentDetailResult.class,
@@ -191,6 +203,7 @@ public class ShopRequestQueryDao {
      * 리뷰 관리 화면으로 이동하지 않고 확인할 수 있어야 한다. 첨부 파일이 없는 유형이라
      * {@code UPLOADED_FILE} join은 없다.
      */
+    @Override
     public Optional<ShopRequestReviewBlindDetailResult> findReviewBlindDetail(Long sourceRequestId) {
         ShopRequestReviewBlindDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestReviewBlindDetailResult.class,
@@ -217,6 +230,7 @@ public class ShopRequestQueryDao {
      * 문의와 답변이 오간 순서대로 읽혀야 한다. 페이징하지 않는 것도 같은 이유로, 요청 1건당 대화량이 적고
      * 화면이 스레드를 통째로 보여준다.
      */
+    @Override
     public List<ShopRequestCommentResult> findComments(Long requestId) {
         return queryFactory
             .select(Projections.constructor(ShopRequestCommentResult.class,

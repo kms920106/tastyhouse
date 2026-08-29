@@ -14,9 +14,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.ceo.query.CeoLoginHistoryQueryDao;
-import com.tastyhouse.infrastructure.ceo.query.CeoLoginHistoryResult;
-import com.tastyhouse.infrastructure.ceo.query.CeoLoginHistorySearchCondition;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
 
 /**
  * 점주 본인 로그인 이력 조회 서비스(CQRS query 측).
@@ -44,10 +44,10 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
     /** 시작일 미지정 시 종료일로부터 거슬러 올라가는 기본 조회 폭(일). */
     private static final int DEFAULT_RANGE_DAYS = 29;
 
-    private final CeoLoginHistoryQueryDao ceoLoginHistoryQueryDao;
+    private final CeoLoginHistoryQueryPort ceoLoginHistoryQueryPort;
 
-    public CeoLoginHistoryQueryService(CeoLoginHistoryQueryDao ceoLoginHistoryQueryDao) {
-        this.ceoLoginHistoryQueryDao = ceoLoginHistoryQueryDao;
+    public CeoLoginHistoryQueryService(CeoLoginHistoryQueryPort ceoLoginHistoryQueryPort) {
+        this.ceoLoginHistoryQueryPort = ceoLoginHistoryQueryPort;
     }
 
     /**
@@ -80,7 +80,7 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
         PageQuery pageQuery = PageQuery.of(page, size);
 
         PageResult<CeoLoginHistoryListItemResponse> pageResult =
-            ceoLoginHistoryQueryDao.findLoginHistoryPage(condition, pageQuery)
+            ceoLoginHistoryQueryPort.findLoginHistoryPage(condition, pageQuery)
                 .map(this::toListItemResponse);
         return PaginationResponse.from(pageResult);
     }

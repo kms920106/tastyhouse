@@ -10,9 +10,9 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.product.query.StorePriceVerificationItemResult;
-import com.tastyhouse.infrastructure.product.query.StorePriceVerificationListItemResult;
-import com.tastyhouse.infrastructure.product.query.StorePriceVerificationQueryDao;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationDetailResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationItemResponse;
@@ -30,10 +30,10 @@ import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificatio
 @Transactional(readOnly = true)
 public class StorePriceVerificationQueryService implements StorePriceVerificationQueryUseCase {
 
-    private final StorePriceVerificationQueryDao storePriceVerificationQueryDao;
+    private final StorePriceVerificationQueryPort storePriceVerificationQueryPort;
 
-    public StorePriceVerificationQueryService(StorePriceVerificationQueryDao storePriceVerificationQueryDao) {
-        this.storePriceVerificationQueryDao = storePriceVerificationQueryDao;
+    public StorePriceVerificationQueryService(StorePriceVerificationQueryPort storePriceVerificationQueryPort) {
+        this.storePriceVerificationQueryPort = storePriceVerificationQueryPort;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class StorePriceVerificationQueryService implements StorePriceVerificatio
     ) {
         StorePriceVerificationStatus verificationStatus = promoteStatus(status);
 
-        PageResult<StorePriceVerificationListItemResult> pageResult = storePriceVerificationQueryDao
+        PageResult<StorePriceVerificationListItemResult> pageResult = storePriceVerificationQueryPort
             .findVerificationPage(verificationStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toStorePriceVerificationListItemResponse));
@@ -56,12 +56,12 @@ public class StorePriceVerificationQueryService implements StorePriceVerificatio
      */
     @Override
     public StorePriceVerificationDetailResponse getVerification(Long verificationId) {
-        StorePriceVerificationListItemResult dto = storePriceVerificationQueryDao
+        StorePriceVerificationListItemResult dto = storePriceVerificationQueryPort
             .findVerificationById(verificationId)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
 
-        List<StorePriceVerificationItemResponse> items = storePriceVerificationQueryDao
+        List<StorePriceVerificationItemResponse> items = storePriceVerificationQueryPort
             .findVerificationItems(verificationId)
             .stream()
             .map(this::toStorePriceVerificationItemResponse)

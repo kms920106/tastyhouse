@@ -9,15 +9,12 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewListItemResult;
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewQueryDao;
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewWritableItemResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.menureview.port.out.MenuReviewListItemResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewQueryPort;
+import com.tastyhouse.application.menureview.port.out.MenuReviewWritableItemResult;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritableItemResponse;
 import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewQueryUseCase;
@@ -25,22 +22,22 @@ import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewQueryUseCa
 /**
  * 메뉴 평가 조회 서비스(CQRS query 측).
  *
- * <p>{@link MenuReviewQueryDao}를 주입해 조회하고 Result → Response 변환을 private 매퍼로 조립한다.
+ * <p>{@link MenuReviewQueryPort}를 주입해 조회하고 Result → Response 변환을 private 매퍼로 조립한다.
  *
  * <p>평가 가능 메뉴 목록은 <b>주문 소유권을 먼저 검증</b>한다 — 생략하면 남의 주문 내역(메뉴 구성)이
  * 통째로 새는 IDOR이 된다. 그 검증에는 애그리거트 단건 로드가 필요하므로 write 포트
- * {@code OrderRepository#findById}를 쓴다(표현용 투영이 아니라 접근 판정 입력이다).
+ * 읽기 포트({@code OrderQueryPort#findOrderMemberId})로 주문자 ID만 조회해 대조한다 — 상태를 바꾸지 않는 화면 접근 판정이라 표현 목적 조회다.
  */
 @Service
 @Transactional(readOnly = true)
 public class MenuReviewQueryService implements MenuReviewQueryUseCase {
 
-    private final MenuReviewQueryDao menuReviewQueryDao;
-    private final OrderRepository orderRepository;
+    private final MenuReviewQueryPort menuReviewQueryPort;
+    private final OrderQueryPort orderQueryPort;
 
-    public MenuReviewQueryService(MenuReviewQueryDao menuReviewQueryDao, OrderRepository orderRepository) {
-        this.menuReviewQueryDao = menuReviewQueryDao;
-        this.orderRepository = orderRepository;
+    public MenuReviewQueryService(MenuReviewQueryPort menuReviewQueryPort, OrderQueryPort orderQueryPort) {
+        this.menuReviewQueryPort = menuReviewQueryPort;
+        this.orderQueryPort = orderQueryPort;
     }
 
     /**
@@ -49,13 +46,13 @@ public class MenuReviewQueryService implements MenuReviewQueryUseCase {
      */
     @Override
     public List<MenuReviewWritableItemResponse> findWritableItems(Long orderId, Long memberId) {
-        Order order = orderRepository.findById(OrderId.of(orderId))
+        Long orderMemberId = orderQueryPort.findOrderMemberId(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
-        if (!order.getMemberId().equals(MemberId.of(memberId))) {
+        if (!orderMemberId.equals(memberId)) {
             throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        return menuReviewQueryDao.findWritableItemsByOrderId(orderId).stream()
+        return menuReviewQueryPort.findWritableItemsByOrderId(orderId).stream()
             .map(this::toWritableItemResponse)
             .toList();
     }
@@ -66,7 +63,7 @@ public class MenuReviewQueryService implements MenuReviewQueryUseCase {
     @Override
     public PaginationResponse<MenuReviewListItemResponse> findByProductId(Long productId, int page, int size) {
         PageResult<MenuReviewListItemResult> pageResult =
-            menuReviewQueryDao.findVisibleByProductId(productId, PageQuery.of(page, size));
+            menuReviewQueryPort.findVisibleByProductId(productId, PageQuery.of(page, size));
 
         return PaginationResponse.from(PageResult.of(
             pageResult.content().stream().map(this::toListItemResponse).toList(),

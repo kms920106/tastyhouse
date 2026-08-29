@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.point.query;
 
+import com.tastyhouse.application.point.port.out.PointQueryPort;
+import com.tastyhouse.application.point.port.out.PointBalanceResult;
+import com.tastyhouse.application.point.port.out.PointHistoryResult;
+import com.tastyhouse.application.point.port.out.PointSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +32,7 @@ import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.po
  * ({@code findPointHistoryPage})은 시그니처로 구분한다.
  */
 @Repository
-public class PointQueryDao {
+public class PointQueryDao implements PointQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -38,9 +43,10 @@ public class PointQueryDao {
     /**
      * 회원 포인트 잔액 조회 — 포인트 계정이 없는 회원이면 비어 있다(소비 측에서 0으로 대체).
      */
+    @Override
     public Optional<PointBalanceResult> findBalanceByMemberId(Long memberId) {
         PointBalanceResult balance = queryFactory
-            .select(new QPointBalanceResult(
+            .select(Projections.constructor(PointBalanceResult.class,
                 pointJpaEntity.availablePoints,
                 pointJpaEntity.expiredThisMonth
             ))
@@ -54,9 +60,10 @@ public class PointQueryDao {
     /**
      * 회원 포인트 이력 전체 조회(최신순) — web의 내 포인트 내역 화면이 페이징 없이 전체를 소비한다.
      */
+    @Override
     public List<PointHistoryResult> findPointHistories(Long memberId) {
         return queryFactory
-            .select(new QPointHistoryResult(
+            .select(Projections.constructor(PointHistoryResult.class,
                 pointHistoryJpaEntity.pointType,
                 pointHistoryJpaEntity.pointAmount,
                 pointHistoryJpaEntity.reason,
@@ -71,6 +78,7 @@ public class PointQueryDao {
     /**
      * 회원 포인트 이력 페이징 조회(최신순) — 유형(pointType) 필터를 선택적으로 적용한다.
      */
+    @Override
     public PageResult<PointHistoryResult> findPointHistoryPage(PointSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(pointHistoryJpaEntity.id.count())
@@ -82,7 +90,7 @@ public class PointQueryDao {
             .fetchOne();
 
         List<PointHistoryResult> content = queryFactory
-            .select(new QPointHistoryResult(
+            .select(Projections.constructor(PointHistoryResult.class,
                 pointHistoryJpaEntity.pointType,
                 pointHistoryJpaEntity.pointAmount,
                 pointHistoryJpaEntity.reason,

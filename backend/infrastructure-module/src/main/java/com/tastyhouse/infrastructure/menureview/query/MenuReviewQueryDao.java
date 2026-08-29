@@ -1,5 +1,9 @@
 package com.tastyhouse.infrastructure.menureview.query;
 
+import com.tastyhouse.application.menureview.port.out.MenuReviewQueryPort;
+import com.tastyhouse.application.menureview.port.out.MenuReviewListItemResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewWritableItemResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,10 +29,10 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntit
  * <p>집계(상품 평점 재집계·기간 집계)는 용도가 달라 {@link MenuReviewStatisticsQueryDao}가 담당한다.
  *
  * <p>파일 join으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
- * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어 fetch 직후 재조립한다.
+ * {@code Projections.constructor}는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어 fetch 직후 재조립한다.
  */
 @Repository
-public class MenuReviewQueryDao {
+public class MenuReviewQueryDao implements MenuReviewQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -48,9 +52,10 @@ public class MenuReviewQueryDao {
      * ({@code ORDER_PRODUCT.image_file_id})을 쓴다 — 이후 상품 이미지가 바뀌어도 주문 당시 본 메뉴를
      * 그대로 보여주기 위함이다.
      */
+    @Override
     public List<MenuReviewWritableItemResult> findWritableItemsByOrderId(Long orderId) {
         return queryFactory
-            .select(new QMenuReviewWritableItemResult(
+            .select(Projections.constructor(MenuReviewWritableItemResult.class,
                 orderProductJpaEntity.id,
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
@@ -82,6 +87,7 @@ public class MenuReviewQueryDao {
     /**
      * 상품별 메뉴 평가 목록(고객 공개 조회) — 숨김 제외, 최신순.
      */
+    @Override
     public PageResult<MenuReviewListItemResult> findVisibleByProductId(Long productId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(menuReviewJpaEntity.count())
@@ -90,7 +96,7 @@ public class MenuReviewQueryDao {
             .fetchOne();
 
         List<MenuReviewListItemResult> content = queryFactory
-            .select(new QMenuReviewListItemResult(
+            .select(Projections.constructor(MenuReviewListItemResult.class,
                 menuReviewJpaEntity.id,
                 memberJpaEntity.nickname,
                 uploadedFileJpaEntity.filePath,

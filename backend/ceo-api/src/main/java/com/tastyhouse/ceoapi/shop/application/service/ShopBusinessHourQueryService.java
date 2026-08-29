@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopBreakTimeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
+import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 
@@ -25,18 +25,18 @@ import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 @Transactional(readOnly = true)
 public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopBusinessHourQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopBusinessHourQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findBusinessHours(shopId).stream()
+        return shopQueryPort.findBusinessHours(shopId).stream()
             .map(this::toShopBusinessHourResponse)
             .toList();
     }
@@ -44,7 +44,7 @@ public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCas
     @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findBreakTimes(shopId).stream()
+        return shopQueryPort.findBreakTimes(shopId).stream()
             .map(this::toShopBreakTimeResponse)
             .toList();
     }

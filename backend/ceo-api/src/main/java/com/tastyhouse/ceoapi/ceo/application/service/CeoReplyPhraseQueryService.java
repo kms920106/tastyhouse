@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseQueryUseCase;
-import com.tastyhouse.infrastructure.ceo.query.CeoReplyPhraseQueryDao;
-import com.tastyhouse.infrastructure.ceo.query.CeoReplyPhraseResult;
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 
 /**
  * 자주 쓰는 문구 조회 서비스(CQRS query 측).
@@ -30,10 +30,10 @@ public class CeoReplyPhraseQueryService implements CeoReplyPhraseQueryUseCase {
     /** 내용이 잘렸음을 나타내는 말줄임표. */
     private static final String ELLIPSIS = "…";
 
-    private final CeoReplyPhraseQueryDao ceoReplyPhraseQueryDao;
+    private final CeoReplyPhraseQueryPort ceoReplyPhraseQueryPort;
 
-    public CeoReplyPhraseQueryService(CeoReplyPhraseQueryDao ceoReplyPhraseQueryDao) {
-        this.ceoReplyPhraseQueryDao = ceoReplyPhraseQueryDao;
+    public CeoReplyPhraseQueryService(CeoReplyPhraseQueryPort ceoReplyPhraseQueryPort) {
+        this.ceoReplyPhraseQueryPort = ceoReplyPhraseQueryPort;
     }
 
     /**
@@ -41,7 +41,7 @@ public class CeoReplyPhraseQueryService implements CeoReplyPhraseQueryUseCase {
      */
     @Override
     public List<CeoReplyPhraseResponse> getReplyPhrases(Long ceoId) {
-        return ceoReplyPhraseQueryDao.findReplyPhrases(ceoId).stream()
+        return ceoReplyPhraseQueryPort.findReplyPhrases(ceoId).stream()
             .map(this::toReplyPhraseResponse)
             .toList();
     }

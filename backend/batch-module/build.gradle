@@ -1,6 +1,7 @@
 dependencies {
     // 내부 모듈
     implementation project(':domain-module')
+    implementation project(':application-common-module')
     implementation project(':infrastructure-module')
     implementation project(':external-api')
     // logging-module이 p6spy를 api로 노출하지만, batch는 HTTP 요청이 없어 p6spy를 쓰지 않으므로

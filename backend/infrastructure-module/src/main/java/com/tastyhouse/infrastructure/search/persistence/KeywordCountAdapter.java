@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.search.port.KeywordCount;
 import com.tastyhouse.domain.search.port.KeywordCountPort;
-import com.tastyhouse.infrastructure.search.query.KeywordCountResult;
+import com.tastyhouse.application.search.port.out.KeywordCountResult;
 import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
 
 /**

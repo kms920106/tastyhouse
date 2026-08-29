@@ -1,5 +1,11 @@
 package com.tastyhouse.infrastructure.bug.query;
 
+import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
+import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
+import com.tastyhouse.application.bug.port.out.BugReportImageResult;
+import com.tastyhouse.application.bug.port.out.BugReportListItemResult;
+import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +38,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 소비하므로(web-api는 제보 등록만 한다) 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
  */
 @Repository
-public class BugReportQueryDao {
+public class BugReportQueryDao implements BugReportQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -46,6 +52,7 @@ public class BugReportQueryDao {
      * 관리 목록 조회 — 제목/내용 부분일치·회원·처리상태·분류·우선순위 필터를 적용하고 첨부 이미지 개수를
      * 서브쿼리 count로 함께 투영한다.
      */
+    @Override
     public PageResult<BugReportListItemResult> findBugReports(BugReportSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(bugReportJpaEntity.id.count())
@@ -61,7 +68,7 @@ public class BugReportQueryDao {
             .fetchOne();
 
         List<BugReportListItemResult> items = queryFactory
-            .select(new QBugReportListItemResult(
+            .select(Projections.constructor(BugReportListItemResult.class,
                 bugReportJpaEntity.id,
                 bugReportJpaEntity.memberId,
                 bugReportJpaEntity.device,
@@ -95,13 +102,14 @@ public class BugReportQueryDao {
     /**
      * 관리 상세 조회 — 스칼라 필드를 투영한 뒤 첨부 이미지 파일 ID 목록을 정렬 순서대로 합쳐 조립한다.
      */
+    @Override
     public Optional<BugReportDetailResult> findDetailById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
 
         BugReportDetailProjection projection = queryFactory
-            .select(new QBugReportDetailProjection(
+            .select(Projections.constructor(BugReportDetailProjection.class,
                 bugReportJpaEntity.id,
                 bugReportJpaEntity.memberId,
                 bugReportJpaEntity.device,
@@ -128,7 +136,7 @@ public class BugReportQueryDao {
         }
 
         List<BugReportImageResult> images = findImages(id);
-        return Optional.of(BugReportDetailResult.from(projection, images));
+        return Optional.of(toDetailResult(projection, images));
     }
 
     /**
@@ -137,7 +145,7 @@ public class BugReportQueryDao {
      */
     private List<BugReportImageResult> findImages(Long bugReportId) {
         return queryFactory
-            .select(new QBugReportImageResult(
+            .select(Projections.constructor(BugReportImageResult.class,
                 bugReportImageJpaEntity.imageFileId,
                 uploadedFileJpaEntity.originalFilename,
                 uploadedFileJpaEntity.filePath
@@ -183,4 +191,34 @@ public class BugReportQueryDao {
     private BooleanExpression priorityEq(BugReportPriority priority) {
         return priority != null ? bugReportJpaEntity.priority.eq(priority) : null;
     }
+
+    /**
+     * 스칼라 투영과 이미지 2차 조회 결과를 최종 Result로 합친다.
+     *
+     * <p>조립에 쓰는 {@link BugReportDetailProjection}은 이 어댑터 내부 전용 타입이라 포트 DTO 쪽에
+     * 팩토리를 둘 수 없다(둘 경우 application-common-module이 infra를 참조하게 된다).
+     */
+    private BugReportDetailResult toDetailResult(BugReportDetailProjection projection,
+                                                 List<BugReportImageResult> images) {
+        return new BugReportDetailResult(
+            projection.id(),
+            projection.memberId(),
+            projection.device(),
+            projection.title(),
+            projection.content(),
+            projection.status(),
+            projection.category(),
+            projection.priority(),
+            projection.assigneeAdminId(),
+            projection.adminAnswer(),
+            projection.resolvedAt(),
+            projection.appVersion(),
+            projection.platform(),
+            projection.osVersion(),
+            images,
+            projection.createdAt(),
+            projection.updatedAt()
+        );
+    }
+
 }

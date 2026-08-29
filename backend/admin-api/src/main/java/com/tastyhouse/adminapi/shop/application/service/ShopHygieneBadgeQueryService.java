@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
 
@@ -17,15 +17,15 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopHygieneBadgeQueryUse
 @Transactional(readOnly = true)
 public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
-    public ShopHygieneBadgeQueryService(ShopQueryDao shopQueryDao) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopHygieneBadgeQueryService(ShopQueryPort shopQueryPort) {
+        this.shopQueryPort = shopQueryPort;
     }
 
     @Override
     public List<ShopHygieneBadgeResponse> getHygieneBadges(Long shopId) {
-        return shopQueryDao.findHygieneBadges(shopId).stream()
+        return shopQueryPort.findHygieneBadges(shopId).stream()
             .map(this::toShopHygieneBadgeResponse)
             .toList();
     }

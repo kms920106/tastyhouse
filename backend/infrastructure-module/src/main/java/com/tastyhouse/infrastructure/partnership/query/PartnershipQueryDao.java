@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.partnership.query;
 
+import com.tastyhouse.application.partnership.port.out.PartnershipQueryPort;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestDetailResult;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
+import com.tastyhouse.application.partnership.port.out.PartnershipSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +31,7 @@ import static com.tastyhouse.infrastructure.partnership.persistence.QPartnership
  * 소비하므로(web-api는 신청 생성만 한다) 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
  */
 @Repository
-public class PartnershipQueryDao {
+public class PartnershipQueryDao implements PartnershipQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -37,6 +42,7 @@ public class PartnershipQueryDao {
     /**
      * 관리 목록 조회 — 상호명/담당자명/연락처 부분일치·처리상태·접수기간 필터를 적용한다.
      */
+    @Override
     public PageResult<PartnershipRequestListItemResult> findPartnershipRequests(PartnershipSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(partnershipRequestJpaEntity.id.count())
@@ -53,7 +59,7 @@ public class PartnershipQueryDao {
             .fetchOne();
 
         List<PartnershipRequestListItemResult> items = queryFactory
-            .select(new QPartnershipRequestListItemResult(
+            .select(Projections.constructor(PartnershipRequestListItemResult.class,
                 partnershipRequestJpaEntity.id,
                 partnershipRequestJpaEntity.businessName,
                 partnershipRequestJpaEntity.contactName,
@@ -83,13 +89,14 @@ public class PartnershipQueryDao {
     /**
      * 관리 상세 조회 — 삭제되지 않은 신청 단건을 투영한다.
      */
+    @Override
     public Optional<PartnershipRequestDetailResult> findDetailById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
 
         PartnershipRequestDetailResult detail = queryFactory
-            .select(new QPartnershipRequestDetailResult(
+            .select(Projections.constructor(PartnershipRequestDetailResult.class,
                 partnershipRequestJpaEntity.id,
                 partnershipRequestJpaEntity.businessName,
                 partnershipRequestJpaEntity.address,

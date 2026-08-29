@@ -10,13 +10,13 @@ import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.bug.query.BugReportDetailResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportImageResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportListItemResult;
-import com.tastyhouse.infrastructure.bug.query.BugReportQueryDao;
-import com.tastyhouse.infrastructure.bug.query.BugReportSearchCondition;
-import com.tastyhouse.infrastructure.member.query.MemberQueryDao;
-import com.tastyhouse.infrastructure.member.query.MemberWithProfileImageResult;
+import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
+import com.tastyhouse.application.bug.port.out.BugReportImageResult;
+import com.tastyhouse.application.bug.port.out.BugReportListItemResult;
+import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
+import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
+import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -31,11 +31,11 @@ import com.tastyhouse.adminapi.bug.application.port.in.BugReportQueryUseCase;
 /**
  * 버그 제보 관리 조회 서비스.
  *
- * <p>infra read 어댑터({@link BugReportQueryDao})만 주입해 제보를 조회하고 Response를 조립한다. write
+ * <p>읽기 포트({@link BugReportQueryPort})만 주입해 제보를 조회하고 Response를 조립한다. write
  * 포트를 주입하지 않으며, 쓰기는 {@link BugReportCommandService}가 담당한다.
  *
  * <p>제보자 요약 정보는 다른 컨텍스트(member)의 조회 서비스에서 가져와 이 서비스가 합성한다. 첨부
- * 이미지는 {@link BugReportQueryDao}가 이미 파일명·URL까지 join으로 함께 가져오므로 이 서비스는 추가
+ * 이미지는 {@link BugReportQueryPort}가 이미 파일명·URL까지 join으로 함께 가져오므로 이 서비스는 추가
  * 파일 조회 없이 그대로 매핑만 한다.
  *
  * <p>HTTP 경계에서 받은 {@code String} 필터값은 여기서 core enum으로 승격하고, Response로 내보낼 때는
@@ -45,12 +45,12 @@ import com.tastyhouse.adminapi.bug.application.port.in.BugReportQueryUseCase;
 @Transactional(readOnly = true)
 public class BugReportQueryService implements BugReportQueryUseCase {
 
-    private final BugReportQueryDao bugReportQueryDao;
-    private final MemberQueryDao memberQueryDao;
+    private final BugReportQueryPort bugReportQueryPort;
+    private final MemberQueryPort memberQueryPort;
 
-    public BugReportQueryService(BugReportQueryDao bugReportQueryDao, MemberQueryDao memberQueryDao) {
-        this.bugReportQueryDao = bugReportQueryDao;
-        this.memberQueryDao = memberQueryDao;
+    public BugReportQueryService(BugReportQueryPort bugReportQueryPort, MemberQueryPort memberQueryPort) {
+        this.bugReportQueryPort = bugReportQueryPort;
+        this.memberQueryPort = memberQueryPort;
     }
 
     @Override
@@ -73,9 +73,9 @@ public class BugReportQueryService implements BugReportQueryUseCase {
             priority == null ? null : BugReportPriority.from(priority)
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<BugReportListItemResult> pageResult = bugReportQueryDao.findBugReports(condition, pageQuery);
+        PageResult<BugReportListItemResult> pageResult = bugReportQueryPort.findBugReports(condition, pageQuery);
 
-        Map<Long, MemberWithProfileImageResult> membersById = memberQueryDao.findMemberWithProfileImagesByIds(
+        Map<Long, MemberWithProfileImageResult> membersById = memberQueryPort.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(BugReportListItemResult::memberId).toList()
         );
 
@@ -87,10 +87,10 @@ public class BugReportQueryService implements BugReportQueryUseCase {
 
     @Override
     public BugReportDetailResponse getBugReport(Long id) {
-        BugReportDetailResult detail = bugReportQueryDao.findDetailById(id)
+        BugReportDetailResult detail = bugReportQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
-        MemberSummaryResponse member = memberQueryDao.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
+        MemberSummaryResponse member = memberQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
             .map(this::toMemberSummaryResponse)
             .orElse(null);
 

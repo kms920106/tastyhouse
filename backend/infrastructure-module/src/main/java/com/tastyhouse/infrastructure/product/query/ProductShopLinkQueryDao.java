@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.product.query;
 
+import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
+import com.tastyhouse.application.product.port.out.ProductShopLinkResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,7 +20,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 별 파일로 두면 그 형태가 한눈에 보인다({@code StorePriceVerificationQueryDao}가 같은 이유로 분리돼 있다).
  */
 @Repository
-public class ProductShopLinkQueryDao {
+public class ProductShopLinkQueryDao implements ProductShopLinkQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -34,9 +37,10 @@ public class ProductShopLinkQueryDao {
      * <p>연결 링크와 그 링크가 가리키는 메뉴그룹을 {@code left join}으로 붙인다 — 연결되지 않은 가게는
      * 링크가 없고, 연결됐더라도 메뉴그룹이 비어 있을 수 있어 어느 쪽도 행을 떨어뜨려서는 안 된다.
      */
+    @Override
     public List<ProductShopLinkResult> findOwnedShopLinks(Long ceoId, Long productId) {
         return queryFactory
-            .select(new QProductShopLinkResult(
+            .select(Projections.constructor(ProductShopLinkResult.class,
                 shopJpaEntity.id,
                 shopJpaEntity.name,
                 productShopLinkJpaEntity.productCategoryId,
@@ -65,6 +69,7 @@ public class ProductShopLinkQueryDao {
      * <p>가게마다 {@code ShopOwnershipValidator}를 반복 호출하지 않는 이유는 연결 목록이 여러 건이라
      * 그만큼 가게 조회가 늘기 때문이다 — 한 번에 읽어 집합으로 대조한다.
      */
+    @Override
     public List<Long> findOwnedShopIds(Long ceoId) {
         return queryFactory
             .select(shopJpaEntity.id)

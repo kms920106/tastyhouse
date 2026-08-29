@@ -12,14 +12,14 @@ import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestAdjustmentDetailResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestCommentResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestDetailResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestImageChangeDetailResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestReviewBlindDetailResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestSearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRequestReviewBlindDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestSearchCondition;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -56,14 +56,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeRespons
 @Transactional(readOnly = true)
 public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
-    private final ShopRequestQueryDao shopRequestQueryDao;
+    private final ShopRequestQueryPort shopRequestQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopRequestQueryService(
-        ShopRequestQueryDao shopRequestQueryDao,
+        ShopRequestQueryPort shopRequestQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopRequestQueryDao = shopRequestQueryDao;
+        this.shopRequestQueryPort = shopRequestQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -99,7 +99,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         PageQuery pageQuery = PageQuery.of(page, size);
 
         PageResult<ShopRequestListItemResponse> pageResult =
-            shopRequestQueryDao.findRequestPage(condition, pageQuery)
+            shopRequestQueryPort.findRequestPage(condition, pageQuery)
                 .map(this::toListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -112,7 +112,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     public ShopRequestDetailResponse getRequestDetail(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopRequestDetailResult detail = shopRequestQueryDao.findRequestDetail(requestId)
+        ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
             .filter(row -> shopId.equals(row.shopId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
@@ -131,11 +131,11 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     public List<ShopRequestCommentResponse> getComments(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopRequestDetailResult detail = shopRequestQueryDao.findRequestDetail(requestId)
+        ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
             .filter(row -> shopId.equals(row.shopId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestQueryDao.findComments(detail.requestId()).stream()
+        return shopRequestQueryPort.findComments(detail.requestId()).stream()
             .map(this::toCommentResponse)
             .toList();
     }
@@ -165,7 +165,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
     private ShopRequestDetailResponse toImageChangeDetailResponse(ShopRequestDetailResult detail) {
         ShopRequestImageChangeDetailResult source =
-            shopRequestQueryDao.findImageChangeDetail(detail.sourceRequestId())
+            shopRequestQueryPort.findImageChangeDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         ShopRequestImageChangeResponse imageChange = ShopRequestImageChangeResponse.from(
@@ -204,7 +204,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      */
     private ShopRequestDetailResponse toReviewBlindDetailResponse(ShopRequestDetailResult detail) {
         ShopRequestReviewBlindDetailResult source =
-            shopRequestQueryDao.findReviewBlindDetail(detail.sourceRequestId())
+            shopRequestQueryPort.findReviewBlindDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         ShopRequestReviewBlindResponse reviewBlind = ShopRequestReviewBlindResponse.from(
@@ -255,7 +255,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
     private ShopRequestDetailResponse toAdjustmentDetailResponse(ShopRequestDetailResult detail) {
         ShopRequestAdjustmentDetailResult source =
-            shopRequestQueryDao.findAdjustmentDetail(detail.sourceRequestId())
+            shopRequestQueryPort.findAdjustmentDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         ShopRequestAdjustmentResponse adjustment = ShopRequestAdjustmentResponse.from(

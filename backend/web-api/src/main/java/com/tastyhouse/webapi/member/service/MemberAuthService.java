@@ -6,27 +6,37 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.webapi.member.application.service.MemberQueryService;
+import com.tastyhouse.domain.member.repository.MemberRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
 import com.tastyhouse.webapi.config.jwt.service.TokenService;
 
+/**
+ * 회원 인증 협력 서비스.
+ *
+ * <p>비밀번호 검증은 도메인 모델({@code Member#getPassword})이 있어야 하므로 write 포트
+ * ({@link MemberRepository})로 애그리거트를 직접 로드한다 — 표현용 투영이 아니라 도메인 상태 검증이라
+ * 읽기 포트의 몫이 아니다. 과거에는 {@code MemberQueryService#getMember}를 빌려 썼는데, 그 탓에
+ * {@code *QueryService}가 write 포트를 들고 있어야 했고 CQRS 교차 주입 금지 규칙의 예외로 남아 있었다.
+ */
 @Service
 public class MemberAuthService {
 
-    private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenService tokenService;
 
     public MemberAuthService(
-        MemberQueryService memberQueryService,
+        MemberRepository memberRepository,
         PasswordEncoder passwordEncoder,
         JwtTokenProvider jwtTokenProvider,
         TokenService tokenService
     ) {
-        this.memberQueryService = memberQueryService;
+        this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
@@ -35,7 +45,8 @@ public class MemberAuthService {
     // 입력한 비밀번호가 저장된 비밀번호와 일치하는지 검증
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberQueryService.getMember(memberId);
+        Member member = memberRepository.findById(MemberId.of(memberId))
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
             throw new BusinessException(ErrorCode.MEMBER_PASSWORD_MISMATCH);

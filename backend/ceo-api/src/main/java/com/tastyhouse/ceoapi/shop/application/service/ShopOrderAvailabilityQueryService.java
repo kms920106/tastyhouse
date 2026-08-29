@@ -12,8 +12,8 @@ import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderAvailabilityResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodAvailabilityResponse;
@@ -35,16 +35,16 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
 
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopOperatingStatusService shopOperatingStatusService;
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
     public ShopOrderAvailabilityQueryService(
         ShopOwnershipValidator shopOwnershipValidator,
         ShopOperatingStatusService shopOperatingStatusService,
-        ShopQueryDao shopQueryDao
+        ShopQueryPort shopQueryPort
     ) {
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopOperatingStatusService = shopOperatingStatusService;
-        this.shopQueryDao = shopQueryDao;
+        this.shopQueryPort = shopQueryPort;
     }
 
     /**
@@ -80,7 +80,7 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
     @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findOrderMethods(shopId).stream()
+        return shopQueryPort.findOrderMethods(shopId).stream()
             .map(this::toShopOrderMethodItemResponse)
             .toList();
     }

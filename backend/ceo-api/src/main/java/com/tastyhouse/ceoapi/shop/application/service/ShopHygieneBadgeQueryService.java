@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopHygieneBadgeQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopHygieneBadgeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 
 /**
@@ -21,18 +21,18 @@ import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
 @Transactional(readOnly = true)
 public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopHygieneBadgeQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopHygieneBadgeQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopHygieneBadgeResponse> getHygieneBadges(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findHygieneBadges(shopId).stream()
+        return shopQueryPort.findHygieneBadges(shopId).stream()
             .map(this::toShopHygieneBadgeResponse)
             .toList();
     }

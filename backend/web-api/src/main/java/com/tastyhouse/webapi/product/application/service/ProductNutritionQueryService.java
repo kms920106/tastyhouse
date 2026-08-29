@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.product.model.AllergenType;
-import com.tastyhouse.infrastructure.product.query.ProductNutritionResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductNutritionResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
 import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUseCase;
 
@@ -18,7 +18,7 @@ import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUs
  * 않는다.
  *
  * <p><b>알레르기 코드를 한글 라벨로 바꾸는 것이 이 서비스의 몫이다.</b> DAO는 코드를 투영하고
- * ({@code ProductQueryDao#findAllergenTypes}) 점주 응답은 그 코드를 그대로 쓰므로, 라벨 변환을 DAO에
+ * ({@code ProductQueryPort#findAllergenTypes}) 점주 응답은 그 코드를 그대로 쓰므로, 라벨 변환을 DAO에
  * 넣으면 점주 경로가 라벨을 다시 코드로 되돌려야 한다. 변환은 {@link AllergenType}의 한글 설명을
  * 그대로 쓴다 — 라벨 목록을 이 모듈에 복제하면 성분이 추가될 때 두 곳이 갈린다.
  */
@@ -26,16 +26,16 @@ import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUs
 @Transactional(readOnly = true)
 public class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
 
-    public ProductNutritionQueryService(ProductQueryDao productQueryDao) {
-        this.productQueryDao = productQueryDao;
+    public ProductNutritionQueryService(ProductQueryPort productQueryPort) {
+        this.productQueryPort = productQueryPort;
     }
 
     @Override
     public ProductNutritionResponse getNutrition(Long productId) {
-        return productQueryDao.findNutrition(productId)
-            .map(dto -> toProductNutritionResponse(dto, toAllergenLabels(productQueryDao.findAllergenTypes(productId))))
+        return productQueryPort.findNutrition(productId)
+            .map(dto -> toProductNutritionResponse(dto, toAllergenLabels(productQueryPort.findAllergenTypes(productId))))
             .orElse(null);
     }
 

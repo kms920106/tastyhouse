@@ -14,11 +14,11 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvaila
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityItemResponse;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductAvailabilityQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.product.query.ProductAvailabilityItemResult;
-import com.tastyhouse.infrastructure.product.query.ProductAvailabilitySearchCondition;
-import com.tastyhouse.infrastructure.product.query.ProductOptionAvailabilityGroupResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionAvailabilityItemResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult;
+import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
+import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
+import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityItemResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 점주용 품절·숨김 관리 목록 조회 서비스(CQRS query 측).
@@ -33,14 +33,14 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 @Transactional(readOnly = true)
 public class ProductAvailabilityQueryService implements ProductAvailabilityQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductAvailabilityQueryService(
-        ProductQueryDao productQueryDao,
+        ProductQueryPort productQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryDao = productQueryDao;
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -62,7 +62,7 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
 
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
-        List<ProductAvailabilityItemResult> rows = productQueryDao.findProductAvailability(condition);
+        List<ProductAvailabilityItemResult> rows = productQueryPort.findProductAvailability(condition);
 
         // 카테고리 미지정 메뉴(categoryId == null)도 한 묶음으로 모은다 — 화면에서 "분류 없음"으로 표시한다.
         Map<CategoryKey, List<ProductAvailabilityItemResponse>> grouped = new LinkedHashMap<>();
@@ -97,7 +97,7 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
 
-        return productQueryDao.findProductOptionAvailability(condition).stream()
+        return productQueryPort.findProductOptionAvailability(condition).stream()
             .map(this::toProductOptionAvailabilityGroupResponse)
             .toList();
     }

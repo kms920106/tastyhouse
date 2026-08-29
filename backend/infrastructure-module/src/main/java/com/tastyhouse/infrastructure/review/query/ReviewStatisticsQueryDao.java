@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +13,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
-
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
@@ -63,7 +64,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * 점주가 자기 가게 피드백의 일부를 볼 수 없게 된다(점주용에서 제외).
  */
 @Repository
-public class ReviewStatisticsQueryDao {
+public class ReviewStatisticsQueryDao implements ReviewStatisticsQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -84,6 +85,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게의 고객 노출 리뷰 수(숨김·사장님만보기 제외).
      */
+    @Override
     public Long countVisibleByShopId(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.count())
@@ -95,6 +97,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 재방문 의사 리뷰 수.
      */
+    @Override
     public Long countWillRevisit(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.count())
@@ -110,6 +113,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 맛 평점 평균.
      */
+    @Override
     public Double getAverageTasteRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
@@ -121,6 +125,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 양 평점 평균.
      */
+    @Override
     public Double getAverageAmountRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
@@ -132,6 +137,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 가격 평점 평균.
      */
+    @Override
     public Double getAveragePriceRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
@@ -143,6 +149,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 분위기 평점 평균.
      */
+    @Override
     public Double getAverageAtmosphereRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.atmosphereRating.avg())
@@ -154,6 +161,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 친절 평점 평균.
      */
+    @Override
     public Double getAverageKindnessRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.kindnessRating.avg())
@@ -165,6 +173,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게 위생 평점 평균.
      */
+    @Override
     public Double getAverageHygieneRating(Long shopId) {
         return queryFactory
             .select(reviewJpaEntity.hygieneRating.avg())
@@ -176,6 +185,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게의 총점 구간(내림 정수)별 리뷰 수.
      */
+    @Override
     public Map<Integer, Long> getRatingCounts(Long shopId) {
         List<Tuple> results = queryFactory
             .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
@@ -194,6 +204,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 가게의 해당 연도 월별 리뷰 수.
      */
+    @Override
     public Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year) {
         List<Tuple> results = queryFactory
             .select(reviewJpaEntity.createdAt.month(), reviewJpaEntity.count())
@@ -221,6 +232,7 @@ public class ReviewStatisticsQueryDao {
      *
      * <p>리뷰가 0건이면 {@code null}을 돌려준다(0.0이 아니다 — "평점 0점"과 구분해야 한다).
      */
+    @Override
     public Double getAverageTotalRating(Long shopId, LocalDateTime from, LocalDateTime to) {
         return queryFactory
             .select(reviewJpaEntity.totalRating.avg())
@@ -241,6 +253,7 @@ public class ReviewStatisticsQueryDao {
      * 설명해야 하기 때문이다. 월별 그래프는 이미 {@code [from, to)}로 집계하므로, 헤더 카운트가 상한 없이
      * 집계되면 미래 시각 행(시계 오차·백필·관리자 보정)이 헤더에만 포함돼 "그래프 합 ≠ 총 건수"가 된다.
      */
+    @Override
     public long countBetween(Long shopId, LocalDateTime from, LocalDateTime to) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())
@@ -258,6 +271,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 기간 내 리뷰 수 — 180일 노출 게이트·최근 30일 카운트용.
      */
+    @Override
     public long countSince(Long shopId, LocalDateTime from) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())
@@ -277,6 +291,7 @@ public class ReviewStatisticsQueryDao {
      * <p>항목별로 메서드를 6개 두면 통계 조회가 쿼리 6번이 된다. 같은 {@code WHERE}·같은 기간이라 한
      * 쿼리에서 함께 집계하는 것이 자연스럽다.
      */
+    @Override
     public ShopReviewCategoryAverageResult getCategoryAverages(Long shopId, LocalDateTime from, LocalDateTime to) {
         Tuple row = queryFactory
             .select(
@@ -312,6 +327,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 기간 내 재방문 의사 리뷰 수.
      */
+    @Override
     public long countWillRevisitBetween(Long shopId, LocalDateTime from, LocalDateTime to) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())
@@ -382,6 +398,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 기간 내 월별 평균 종합 평점 — <b>신설</b>. 기존에는 월별 <i>카운트</i>만 있었다.
      */
+    @Override
     public Map<String, Double> getMonthlyAverageRatings(Long shopId, LocalDateTime from, LocalDateTime to) {
         List<Tuple> results = queryFactory
             .select(yearMonthKey(), reviewJpaEntity.totalRating.avg())
@@ -416,6 +433,7 @@ public class ReviewStatisticsQueryDao {
      *
      * <p>{@code PRODUCT.rating} 재집계와는 무관하다(클래스 Javadoc 참고).
      */
+    @Override
     public Long countVisibleByProductId(Long productId) {
         return queryFactory
             .select(reviewJpaEntity.count())
@@ -427,6 +445,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 상품 맛 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
+    @Override
     public Double getAverageTasteRatingByProductId(Long productId) {
         return queryFactory
             .select(reviewJpaEntity.tasteRating.avg())
@@ -438,6 +457,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 상품 양 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
+    @Override
     public Double getAverageAmountRatingByProductId(Long productId) {
         return queryFactory
             .select(reviewJpaEntity.amountRating.avg())
@@ -449,6 +469,7 @@ public class ReviewStatisticsQueryDao {
     /**
      * 상품 가격 평점 평균 — 상품 상세의 매장 리뷰 통계용.
      */
+    @Override
     public Double getAveragePriceRatingByProductId(Long productId) {
         return queryFactory
             .select(reviewJpaEntity.priceRating.avg())
@@ -463,6 +484,7 @@ public class ReviewStatisticsQueryDao {
      * <p>사장님만보기를 제외하는 이유는 어뷰징 방지다 — 비공개 리뷰를 양산해 랭킹을 올리는 경로를 막는다
      * (비공개라 신고·모니터링 대상도 되지 않는다).
      */
+    @Override
     public long countVisibleReviewsByMemberId(Long memberId) {
         Long count = queryFactory
             .select(reviewJpaEntity.count())

@@ -1,5 +1,13 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewCommentItemResult;
+import com.tastyhouse.application.review.port.out.ReviewDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewReplyItemResult;
+import com.tastyhouse.application.review.port.out.SearchReviewItemResult;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +65,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * {@code ReviewStatisticsQueryDao}로 분리했다. 여기에는 web/공용 목록·상세 조회만 둔다.
  */
 @Repository
-public class ReviewQueryDao {
+public class ReviewQueryDao implements ReviewQueryPort {
 
     private static final QReviewImageJpaEntity subReviewImage = new QReviewImageJpaEntity("subReviewImage");
     private static final QReviewLikeJpaEntity subReviewLike = new QReviewLikeJpaEntity("subReviewLike");
@@ -111,9 +119,10 @@ public class ReviewQueryDao {
     /**
      * 베스트 리뷰 목록 — 총점 높은 순 → 최신순. 대표 이미지(정렬값이 가장 작은 리뷰 이미지)를 함께 투영한다.
      */
+    @Override
     public PageResult<BestReviewListItemResult> findBestReviews(PageQuery pageQuery) {
         JPAQuery<BestReviewListItemResult> query = queryFactory
-            .select(new QBestReviewListItemResult(
+            .select(Projections.constructor(BestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 uploadedFileJpaEntity.filePath,
                 stationJpaEntity.stationName,
@@ -158,9 +167,10 @@ public class ReviewQueryDao {
     /**
      * 최신 리뷰 목록 — 작성 최신순.
      */
+    @Override
     public PageResult<LatestReviewListItemResult> findLatestReviews(PageQuery pageQuery) {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -214,9 +224,10 @@ public class ReviewQueryDao {
     /**
      * 팔로잉한 회원들이 쓴 최신 리뷰 목록.
      */
+    @Override
     public PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, PageQuery pageQuery) {
         JPAQuery<LatestReviewListItemResult> query = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -276,6 +287,7 @@ public class ReviewQueryDao {
     /**
      * 가게별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식({@link ReviewSortType})을 지원한다.
      */
+    @Override
     public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
         var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
         if (rating != null) {
@@ -310,7 +322,7 @@ public class ReviewQueryDao {
         }
 
         JPAQuery<LatestReviewListItemResult> query = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -365,6 +377,7 @@ public class ReviewQueryDao {
     /**
      * 상품별 리뷰 목록 — 평점·이미지 유무 필터와 정렬 방식을 지원한다.
      */
+    @Override
     public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
         var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
         if (rating != null) {
@@ -399,7 +412,7 @@ public class ReviewQueryDao {
         }
 
         JPAQuery<LatestReviewListItemResult> query = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -454,6 +467,7 @@ public class ReviewQueryDao {
     /**
      * 가게의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
+    @Override
     public List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit) {
         var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
 
@@ -467,7 +481,7 @@ public class ReviewQueryDao {
         }
 
         List<LatestReviewListItemResult> reviews = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -516,6 +530,7 @@ public class ReviewQueryDao {
     /**
      * 상품의 특정 평점대 리뷰를 제한 건수만큼 조회한다(평점별 미리보기).
      */
+    @Override
     public List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit) {
         var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
 
@@ -529,7 +544,7 @@ public class ReviewQueryDao {
         }
 
         List<LatestReviewListItemResult> reviews = queryFactory
-            .select(new QLatestReviewListItemResult(
+            .select(Projections.constructor(LatestReviewListItemResult.class,
                 reviewJpaEntity.id,
                 stationJpaEntity.stationName,
                 reviewJpaEntity.totalRating,
@@ -582,9 +597,10 @@ public class ReviewQueryDao {
      * 작성자 본인일 때만 조회되며, 그 외에는 비어 있는 결과가 돌아가 호출부가 404를 낸다
      * ({@link #visibleToViewer(Long)} 참고).
      */
+    @Override
     public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId, Long viewerMemberId) {
         ReviewDetailResult result = queryFactory
-            .select(new QReviewDetailResult(
+            .select(Projections.constructor(ReviewDetailResult.class,
                 reviewJpaEntity.id,
                 shopJpaEntity.id,
                 shopJpaEntity.name,
@@ -642,6 +658,7 @@ public class ReviewQueryDao {
      * <p>단 {@code hidden}(관리자 게시중단) 필터는 유지한다 — 게시중단은 정책 위반 제재라 사장님만보기보다
      * 상위이며, 본인에게도 보이지 않는 것이 올바른 동작이다.
      */
+    @Override
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
             .select(reviewJpaEntity.id)
@@ -695,6 +712,7 @@ public class ReviewQueryDao {
      * 보이면 안 된다. 위 {@link #findMyReviews}(마이페이지=본인, 포함)와 쿼리가 거의 같지만 정책이
      * <b>정반대</b>이므로, 한쪽을 고칠 때 다른 쪽을 함께 고치지 말 것.
      */
+    @Override
     public PageResult<MyReviewListItemResult> findReviewsByMemberId(Long memberId, PageQuery pageQuery) {
         List<Long> allReviewIds = queryFactory
             .select(reviewJpaEntity.id)
@@ -733,6 +751,7 @@ public class ReviewQueryDao {
     /**
      * 키워드로 리뷰를 검색한다(이미지가 있는 리뷰만, 대표 이미지 1장).
      */
+    @Override
     public PageResult<SearchReviewItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
         Long total = queryFactory
             .select(reviewJpaEntity.countDistinct())
@@ -779,6 +798,7 @@ public class ReviewQueryDao {
     /**
      * 해당 주문·상품에 대해 그 회원이 이미 리뷰를 썼는지(중복 작성 차단용).
      */
+    @Override
     public boolean existsByOrderIdAndProductIdAndMemberId(Long orderId, Long productId, Long memberId) {
         return queryFactory
             .selectOne()
@@ -798,6 +818,7 @@ public class ReviewQueryDao {
      * 쿼리가 나가므로(N+1), 상품 식별자를 모아 {@code IN} 한 번으로 조회하고 소비 모듈이 메모리에서
      * 판정하도록 한다. 입력이 비어 있으면 조회하지 않는다.
      */
+    @Override
     public Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds) {
         if (productIds == null || productIds.isEmpty()) {
             return Set.of();
@@ -820,6 +841,7 @@ public class ReviewQueryDao {
     /**
      * 리뷰가 가리키는 상품 식별자. 리뷰 상세와 상품 정보를 함께 보여주는 화면에서 쓴다.
      */
+    @Override
     public Optional<Long> findProductIdByReviewId(Long reviewId) {
         return Optional.ofNullable(queryFactory
             .select(reviewJpaEntity.productId)
@@ -831,6 +853,7 @@ public class ReviewQueryDao {
     /**
      * 회원이 해당 리뷰에 좋아요를 눌렀는지 여부.
      */
+    @Override
     public boolean existsLike(ReviewId reviewId, Long memberId) {
         return queryFactory
             .selectOne()
@@ -849,9 +872,10 @@ public class ReviewQueryDao {
      * 이미지 경로까지 함께 투영한다(web 응답이 프로필 이미지 URL을 포함하기 때문). 숨김 댓글도 그대로
      * 내려주는 것은 기존 web 동작을 보존하기 위함이다 — 답글만 숨김을 제외한다.
      */
+    @Override
     public List<ReviewCommentItemResult> findComments(ReviewId reviewId) {
         return queryFactory
-            .select(new QReviewCommentItemResult(
+            .select(Projections.constructor(ReviewCommentItemResult.class,
                 reviewCommentJpaEntity.id,
                 reviewCommentJpaEntity.reviewId,
                 reviewCommentJpaEntity.memberId,
@@ -878,6 +902,7 @@ public class ReviewQueryDao {
      * <p>작성자 프로필 이미지 경로를 함께 투영하며, 답글 대상 회원(replyTo)은 없을 수 있어 leftJoin으로
      * 붙인다.
      */
+    @Override
     public List<ReviewReplyItemResult> findVisibleReplies(List<ReviewCommentId> commentIds) {
         if (commentIds.isEmpty()) {
             return List.of();
@@ -886,7 +911,7 @@ public class ReviewQueryDao {
         List<Long> ids = commentIds.stream().map(ReviewCommentId::value).toList();
 
         return queryFactory
-            .select(new QReviewReplyItemResult(
+            .select(Projections.constructor(ReviewReplyItemResult.class,
                 reviewReplyJpaEntity.id,
                 reviewReplyJpaEntity.commentId,
                 reviewReplyJpaEntity.memberId,
@@ -917,6 +942,7 @@ public class ReviewQueryDao {
     /**
      * 리뷰에 달린 태그 ID 목록.
      */
+    @Override
     public List<Long> findTagIdsByReviewId(Long reviewId) {
         return queryFactory
             .select(reviewTagJpaEntity.tagId)
@@ -928,6 +954,7 @@ public class ReviewQueryDao {
     /**
      * 태그 ID 목록에 해당하는 태그명 목록. 입력이 비어 있으면 조회하지 않고 빈 목록을 돌려준다.
      */
+    @Override
     public List<String> findTagNamesByIds(List<Long> tagIds) {
         if (tagIds.isEmpty()) {
             return List.of();
@@ -1078,7 +1105,7 @@ public class ReviewQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}는 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private SearchReviewItemResult withResolvedImageUrl(SearchReviewItemResult row) {

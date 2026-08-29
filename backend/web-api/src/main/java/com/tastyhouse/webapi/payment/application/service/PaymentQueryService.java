@@ -9,9 +9,9 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
-import com.tastyhouse.infrastructure.payment.query.PaymentQueryDao;
-import com.tastyhouse.infrastructure.payment.query.PaymentRefundResult;
-import com.tastyhouse.infrastructure.payment.query.PaymentResult;
+import com.tastyhouse.application.payment.port.out.PaymentQueryPort;
+import com.tastyhouse.application.payment.port.out.PaymentRefundResult;
+import com.tastyhouse.application.payment.port.out.PaymentResult;
 import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentRefundResponse;
 import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
 import com.tastyhouse.webapi.payment.application.port.in.PaymentQueryUseCase;
@@ -19,7 +19,7 @@ import com.tastyhouse.webapi.payment.application.port.in.PaymentQueryUseCase;
 /**
  * 회원 결제 조회 서비스(web-api).
  *
- * <p>infra query DAO({@link PaymentQueryDao})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
+ * <p>infra query DAO({@link PaymentQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
  * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
  *
  * <p>결제 조회는 회원 스코프이므로, DAO가 주문에서 함께 투영한 {@code memberId}를 요청 회원과 대조해
@@ -32,10 +32,10 @@ import com.tastyhouse.webapi.payment.application.port.in.PaymentQueryUseCase;
 @Transactional(readOnly = true)
 public class PaymentQueryService implements PaymentQueryUseCase {
 
-    private final PaymentQueryDao paymentQueryDao;
+    private final PaymentQueryPort paymentQueryPort;
 
-    public PaymentQueryService(PaymentQueryDao paymentQueryDao) {
-        this.paymentQueryDao = paymentQueryDao;
+    public PaymentQueryService(PaymentQueryPort paymentQueryPort) {
+        this.paymentQueryPort = paymentQueryPort;
     }
 
     /**
@@ -60,7 +60,7 @@ public class PaymentQueryService implements PaymentQueryUseCase {
     }
 
     private PaymentResult loadPayment(Long id) {
-        return paymentQueryDao.findPaymentById(PaymentId.of(id))
+        return paymentQueryPort.findPaymentById(PaymentId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
@@ -72,7 +72,7 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      */
     @Override
     public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
-        PaymentResult result = paymentQueryDao.findPaymentByOrderId(OrderId.of(orderId))
+        PaymentResult result = paymentQueryPort.findPaymentByOrderId(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
         return toPaymentResponse(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
     }
@@ -84,7 +84,7 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      */
     @Override
     public PaymentRefundResponse getRefund(Long refundId) {
-        PaymentRefundResult result = paymentQueryDao.findRefundById(PaymentRefundId.of(refundId))
+        PaymentRefundResult result = paymentQueryPort.findRefundById(PaymentRefundId.of(refundId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));
         return toPaymentRefundResponse(result);
     }

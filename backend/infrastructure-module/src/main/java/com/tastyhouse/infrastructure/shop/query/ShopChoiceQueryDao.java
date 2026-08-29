@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
+import com.tastyhouse.application.shop.port.out.StationResult;
+import com.tastyhouse.application.shop.port.out.TagResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,8 +24,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
-import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
-import com.tastyhouse.infrastructure.product.query.QProductSimpleResult;
+import com.tastyhouse.application.product.port.out.ProductSimpleResult;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
@@ -42,7 +47,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * 담당한다.
  */
 @Repository
-public class ShopChoiceQueryDao {
+public class ShopChoiceQueryDao implements ShopChoiceQueryPort {
 
     /**
      * 상품의 대표 이미지(노출 중 최소 sort)를 고르기 위한 서브쿼리 별칭.
@@ -61,6 +66,7 @@ public class ShopChoiceQueryDao {
      * 에디터 추천 목록 — 가게 정보와 대표 상품 {@value EditorChoicePolicy#PRODUCT_LIMIT}건을 함께 채운다.
      * 폐업·노출정지 가게의 추천은 제외한다.
      */
+    @Override
     public PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery) {
         Long totalCount = queryFactory
             .select(shopChoiceJpaEntity.count())
@@ -118,6 +124,7 @@ public class ShopChoiceQueryDao {
     /**
      * 에디터 추천 단건(수정 화면) — 가게 정보 없이 추천 본문만. 없으면 비어 있다.
      */
+    @Override
     public Optional<ShopChoiceDetailResult> findShopChoiceById(Long id) {
         return Optional.ofNullable(
             queryFactory
@@ -136,6 +143,7 @@ public class ShopChoiceQueryDao {
     /**
      * 전체 태그 목록 — 최근 등록 순.
      */
+    @Override
     public List<TagResult> findAllTags() {
         return queryFactory
             .select(Projections.constructor(TagResult.class,
@@ -150,6 +158,7 @@ public class ShopChoiceQueryDao {
     /**
      * 전체 지하철역 목록 — 역명 순.
      */
+    @Override
     public List<StationResult> findAllStations() {
         return queryFactory
             .select(Projections.constructor(StationResult.class,
@@ -169,7 +178,8 @@ public class ShopChoiceQueryDao {
             return Map.of();
         }
 
-        QProductSimpleResult productProjection = new QProductSimpleResult(
+        ConstructorExpression<ProductSimpleResult> productProjection = Projections.constructor(
+            ProductSimpleResult.class,
             productJpaEntity.id,
             shopJpaEntity.name,
             productJpaEntity.name,
@@ -219,7 +229,7 @@ public class ShopChoiceQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}가 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private ProductSimpleResult withResolvedImageUrl(ProductSimpleResult row) {

@@ -10,8 +10,8 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopRiderGuideQueryUseCase
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderGuideResponse;
@@ -28,16 +28,16 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
 @Transactional(readOnly = true)
 public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
-    private final ShopRiderGuideQueryDao shopRiderGuideQueryDao;
+    private final ShopRiderGuideQueryPort shopRiderGuideQueryPort;
     private final ShopRiderGuideValidator shopRiderGuideValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopRiderGuideQueryService(
-        ShopRiderGuideQueryDao shopRiderGuideQueryDao,
+        ShopRiderGuideQueryPort shopRiderGuideQueryPort,
         ShopRiderGuideValidator shopRiderGuideValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopRiderGuideQueryDao = shopRiderGuideQueryDao;
+        this.shopRiderGuideQueryPort = shopRiderGuideQueryPort;
         this.shopRiderGuideValidator = shopRiderGuideValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -46,7 +46,7 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
     public ShopRiderGuideResponse getRiderGuide(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopRiderGuideResult result = shopRiderGuideQueryDao.findRiderGuide(shopId)
+        ShopRiderGuideResult result = shopRiderGuideQueryPort.findRiderGuide(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         return toShopRiderGuideResponse(result);

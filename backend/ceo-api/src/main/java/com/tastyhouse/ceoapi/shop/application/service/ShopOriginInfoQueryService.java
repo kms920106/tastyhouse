@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 import com.tastyhouse.domain.shop.model.OriginSourceType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopOriginInfoResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
 
 /**
@@ -21,18 +21,18 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @Transactional(readOnly = true)
 public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopOriginInfoQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopOriginInfoQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public ShopOriginInfoResponse getOriginInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findOriginInfo(shopId)
+        return shopQueryPort.findOriginInfo(shopId)
             .map(this::toShopOriginInfoResponse)
             .orElseGet(() -> ShopOriginInfoResponse.from(OriginSourceType.DIRECT.name(), null, null, null));
     }

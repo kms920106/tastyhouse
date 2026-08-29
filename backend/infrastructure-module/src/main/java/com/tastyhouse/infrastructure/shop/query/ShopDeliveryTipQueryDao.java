@@ -1,5 +1,11 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,7 +43,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryTipTie
  * 필요로 하는 등 소비 지점마다 필요한 파트가 다르기 때문이다. 소비 Service가 필요한 것만 조합한다.
  */
 @Repository
-public class ShopDeliveryTipQueryDao {
+public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
 
     /**
      * 배달팁 <b>상한</b> 표기에서 가정하는 최대 배달 거리(m).
@@ -59,6 +65,7 @@ public class ShopDeliveryTipQueryDao {
     }
 
     /** 배달팁 설정 헤더. 설정한 적이 없는 가게는 빈 Optional이다. */
+    @Override
     public Optional<ShopDeliveryTipSettingResult> findSetting(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(Projections.constructor(ShopDeliveryTipSettingResult.class,
@@ -74,6 +81,7 @@ public class ShopDeliveryTipQueryDao {
     }
 
     /** 구간별 배달팁 목록. 구간 순서(= 주문금액 오름차순)로 내려준다. */
+    @Override
     public List<ShopDeliveryTipTierResult> findTiers(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ShopDeliveryTipTierResult.class,
@@ -89,6 +97,7 @@ public class ShopDeliveryTipQueryDao {
     }
 
     /** 지역별 배달팁 목록 — 행정동 마스터를 조인해 표시용 이름까지 완성한다. */
+    @Override
     public List<ShopDeliveryTipRegionResult> findRegionTips(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ShopDeliveryTipRegionResult.class,
@@ -105,6 +114,7 @@ public class ShopDeliveryTipQueryDao {
     }
 
     /** 시간별 배달팁 목록. */
+    @Override
     public List<ShopDeliveryTipScheduleResult> findScheduleTips(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ShopDeliveryTipScheduleResult.class,
@@ -124,6 +134,7 @@ public class ShopDeliveryTipQueryDao {
      * 공휴일 배달팁 금액. 설정하지 않았으면 0이다 — 미설정과 0원을 구분하지 않는 것이 이 팁의 규격이다
      * (0원 저장은 삭제로 해석된다).
      */
+    @Override
     public int findHolidayTipAmount(Long shopId) {
         Integer tipAmount = queryFactory
             .select(shopDeliveryTipHolidayJpaEntity.tipAmount)
@@ -158,6 +169,7 @@ public class ShopDeliveryTipQueryDao {
      * 올림 계산({@link #distanceUpperBound})이라 스칼라 서브쿼리 한 방으로는 낼 수 없고, 쿼리 수가
      * 가게 수와 무관하게 상수라 목록 규모가 커져도 비용이 늘지 않는다.
      */
+    @Override
     public Map<Long, ShopDeliveryTipRangeResult> findTipRanges(List<Long> shopIds) {
         if (shopIds == null || shopIds.isEmpty()) {
             return Map.of();
@@ -226,18 +238,18 @@ public class ShopDeliveryTipQueryDao {
             int maxExtraByLocation = Math.max(distanceUpperBound(setting), maxRegionTip);
 
             // 추가 배달팁 4종은 전부 조건부라 하한에 넣지 않는다 — 위 Javadoc 참고.
-            int minDeliveryTip = minTierTip;
             int maxDeliveryTip = maxTierTip
                 + maxExtraByLocation
                 + maxScheduleTips.getOrDefault(shopId, 0)
                 + holidayTips.getOrDefault(shopId, 0);
 
-            ranges.put(shopId, new ShopDeliveryTipRangeResult(shopId, minDeliveryTip, maxDeliveryTip));
+            ranges.put(shopId, new ShopDeliveryTipRangeResult(shopId, minTierTip, maxDeliveryTip));
         }
         return ranges;
     }
 
     /** 가게 한 곳의 배달팁 하한/상한. 설정이 없으면 0/0이다({@link #findTipRanges}와 같은 규칙). */
+    @Override
     public ShopDeliveryTipRangeResult findTipRange(Long shopId) {
         return findTipRanges(List.of(shopId)).getOrDefault(shopId, ShopDeliveryTipRangeResult.none(shopId));
     }

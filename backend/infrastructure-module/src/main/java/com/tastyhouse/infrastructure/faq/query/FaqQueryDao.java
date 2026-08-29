@@ -1,5 +1,13 @@
 package com.tastyhouse.infrastructure.faq.query;
 
+import com.tastyhouse.application.faq.port.out.FaqQueryPort;
+import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
+import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
+import com.tastyhouse.application.faq.port.out.FaqDetailResult;
+import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
+import com.tastyhouse.application.faq.port.out.FaqResult;
+import com.tastyhouse.application.faq.port.out.FaqSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +35,7 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
  * ({@code findAllCategories}는 비노출 포함 전체, {@code findVisibleCategories}는 노출분만).
  */
 @Repository
-public class FaqQueryDao {
+public class FaqQueryDao implements FaqQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -38,9 +46,10 @@ public class FaqQueryDao {
     /**
      * 회원 노출 카테고리 목록 조회 — 노출(visible=true) 카테고리만 정렬 순서대로 조회한다.
      */
+    @Override
     public List<FaqCategoryResult> findVisibleCategories() {
         return queryFactory
-            .select(new QFaqCategoryResult(
+            .select(Projections.constructor(FaqCategoryResult.class,
                 faqCategoryJpaEntity.id,
                 faqCategoryJpaEntity.name,
                 faqCategoryJpaEntity.sort
@@ -54,9 +63,10 @@ public class FaqQueryDao {
     /**
      * 관리 카테고리 목록 조회 — 비노출 카테고리도 포함한다.
      */
+    @Override
     public List<FaqCategoryManagementResult> findAllCategories() {
         return queryFactory
-            .select(new QFaqCategoryManagementResult(
+            .select(Projections.constructor(FaqCategoryManagementResult.class,
                 faqCategoryJpaEntity.id,
                 faqCategoryJpaEntity.name,
                 faqCategoryJpaEntity.sort,
@@ -72,13 +82,14 @@ public class FaqQueryDao {
     /**
      * 관리 카테고리 상세 조회 — 비노출 카테고리도 조회된다.
      */
+    @Override
     public Optional<FaqCategoryManagementResult> findCategoryDetailById(Long categoryId) {
         if (categoryId == null) {
             return Optional.empty();
         }
 
         FaqCategoryManagementResult detail = queryFactory
-            .select(new QFaqCategoryManagementResult(
+            .select(Projections.constructor(FaqCategoryManagementResult.class,
                 faqCategoryJpaEntity.id,
                 faqCategoryJpaEntity.name,
                 faqCategoryJpaEntity.sort,
@@ -96,9 +107,10 @@ public class FaqQueryDao {
      * 회원 노출 항목 목록 조회 — 노출(visible=true) 항목만 조회한다. categoryId가 null이면 전체
      * 카테고리를 대상으로 하고, 값이 있으면 그 카테고리로 한정한다.
      */
+    @Override
     public List<FaqResult> findVisibleFaqs(Long categoryId) {
         return queryFactory
-            .select(new QFaqResult(
+            .select(Projections.constructor(FaqResult.class,
                 faqJpaEntity.id,
                 faqJpaEntity.faqCategoryId,
                 faqJpaEntity.question,
@@ -118,6 +130,7 @@ public class FaqQueryDao {
     /**
      * 관리 항목 목록 조회 — 비노출 항목을 포함하며 categoryId·visible 필터와 question 부분일치를 적용한다.
      */
+    @Override
     public PageResult<FaqManagementListItemResult> findAllFaqs(FaqSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(faqJpaEntity.id.count())
@@ -131,7 +144,7 @@ public class FaqQueryDao {
             .fetchOne();
 
         List<FaqManagementListItemResult> items = queryFactory
-            .select(new QFaqManagementListItemResult(
+            .select(Projections.constructor(FaqManagementListItemResult.class,
                 faqJpaEntity.id,
                 faqJpaEntity.faqCategoryId,
                 faqJpaEntity.question,
@@ -157,13 +170,14 @@ public class FaqQueryDao {
     /**
      * 관리 항목 상세 조회 — 비노출 항목도 조회된다.
      */
+    @Override
     public Optional<FaqDetailResult> findFaqDetailById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
 
         FaqDetailResult detail = queryFactory
-            .select(new QFaqDetailResult(
+            .select(Projections.constructor(FaqDetailResult.class,
                 faqJpaEntity.id,
                 faqJpaEntity.faqCategoryId,
                 faqJpaEntity.question,

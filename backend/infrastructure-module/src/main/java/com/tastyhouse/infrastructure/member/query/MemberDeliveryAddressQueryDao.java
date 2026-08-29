@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.member.query;
 
+import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
+import com.tastyhouse.application.member.port.out.MemberDeliveryAddressItemResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +27,7 @@ import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEnti
  * 목록에서 빠지면 안 되기 때문이다. 그 경우 {@code regionName}은 null로 내려간다.
  */
 @Repository
-public class MemberDeliveryAddressQueryDao {
+public class MemberDeliveryAddressQueryDao implements MemberDeliveryAddressQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -35,9 +38,10 @@ public class MemberDeliveryAddressQueryDao {
     /**
      * 회원의 배달 주소 목록. 기본 배송지를 먼저 노출하고 그다음은 등록 순으로 정렬한다.
      */
+    @Override
     public List<MemberDeliveryAddressItemResult> findByMemberId(MemberId memberId) {
         return queryFactory
-            .select(new QMemberDeliveryAddressItemResult(
+            .select(Projections.constructor(MemberDeliveryAddressItemResult.class,
                 memberDeliveryAddressJpaEntity.id,
                 memberDeliveryAddressJpaEntity.alias,
                 memberDeliveryAddressJpaEntity.roadAddress,
@@ -66,6 +70,7 @@ public class MemberDeliveryAddressQueryDao {
      * <p>기본 배송지가 없거나, 있어도 주소 문자열 매칭에 실패해 {@code admin_dong_id}가 null이면
      * 비어 있다 — 호출부는 그 경우 필터를 걸지 않는다.
      */
+    @Override
     public Optional<Long> findDefaultAdminDongId(MemberId memberId) {
         return Optional.ofNullable(queryFactory
             .select(memberDeliveryAddressJpaEntity.adminDongId)

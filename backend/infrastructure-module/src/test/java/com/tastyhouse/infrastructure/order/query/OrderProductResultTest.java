@@ -5,6 +5,8 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
+import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.domain.file.port.FileStoragePort;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 

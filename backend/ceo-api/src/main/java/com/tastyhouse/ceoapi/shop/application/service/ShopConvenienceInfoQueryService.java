@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopConvenienceInfoQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopAmenityAssignmentResult;
-import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
+import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopAmenityResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoResponse;
 
@@ -22,18 +22,18 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
 @Transactional(readOnly = true)
 public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopConvenienceInfoQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopConvenienceInfoQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public ShopConvenienceInfoResponse getConvenienceInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findConvenienceInfo(shopId)
+        return shopQueryPort.findConvenienceInfo(shopId)
             .map(this::toShopConvenienceInfoResponse)
             .orElseGet(() -> ShopConvenienceInfoResponse.from(null, shopId, false, false, false, false, null, null, null));
     }
@@ -41,7 +41,7 @@ public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQuery
     @Override
     public List<ShopAmenityResponse> getAmenities(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findAmenityAssignments(shopId).stream()
+        return shopQueryPort.findAmenityAssignments(shopId).stream()
             .map(this::toShopAmenityResponse)
             .toList();
     }

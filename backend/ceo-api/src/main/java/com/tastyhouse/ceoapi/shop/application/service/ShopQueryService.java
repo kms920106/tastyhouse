@@ -8,11 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
-import com.tastyhouse.infrastructure.shop.query.ShopListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchCondition;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -29,17 +29,17 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @Transactional(readOnly = true)
 public class ShopQueryService implements ShopQueryUseCase {
 
-    private final ShopSearchQueryDao shopSearchQueryDao;
-    private final ShopQueryDao shopQueryDao;
+    private final ShopSearchQueryPort shopSearchQueryPort;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopQueryService(
-        ShopSearchQueryDao shopSearchQueryDao,
-        ShopQueryDao shopQueryDao,
+        ShopSearchQueryPort shopSearchQueryPort,
+        ShopQueryPort shopQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopSearchQueryDao = shopSearchQueryDao;
-        this.shopQueryDao = shopQueryDao;
+        this.shopSearchQueryPort = shopSearchQueryPort;
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -54,7 +54,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed, ceoId);
         PageResult<ShopListItemResponse> pageResult =
-            shopSearchQueryDao.findShops(condition, PageQuery.of(page, size))
+            shopSearchQueryPort.findShops(condition, PageQuery.of(page, size))
                 .map(this::toShopListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -77,7 +77,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     }
 
     private ShopDetailResponse toShopDetailResponse(Shop shop) {
-        Optional<ShopImageUrlsResult> imageUrls = shopQueryDao.findShopImageUrls(shop.getId());
+        Optional<ShopImageUrlsResult> imageUrls = shopQueryPort.findShopImageUrls(shop.getId());
         String thumbnailImageUrl = imageUrls.map(ShopImageUrlsResult::thumbnailImageUrl).orElse(null);
         String trademarkImageUrl = imageUrls.map(ShopImageUrlsResult::trademarkImageUrl).orElse(null);
 

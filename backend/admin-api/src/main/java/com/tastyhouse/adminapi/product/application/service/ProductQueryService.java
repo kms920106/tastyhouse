@@ -9,14 +9,14 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.product.query.OptionGroupResult;
-import com.tastyhouse.infrastructure.product.query.OptionResult;
-import com.tastyhouse.infrastructure.product.query.ProductCategoryResult;
-import com.tastyhouse.infrastructure.product.query.ProductDetailResult;
-import com.tastyhouse.infrastructure.product.query.ProductListItemResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionsResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductSearchCondition;
+import com.tastyhouse.application.product.port.out.OptionGroupResult;
+import com.tastyhouse.application.product.port.out.OptionResult;
+import com.tastyhouse.application.product.port.out.ProductCategoryResult;
+import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductListItemResult;
+import com.tastyhouse.application.product.port.out.ProductOptionsResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductCategoryResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductDetailResponse;
@@ -28,17 +28,17 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionResp
 import com.tastyhouse.adminapi.product.application.port.in.ProductQueryUseCase;
 
 /**
- * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryDao}만 주입하고, 조회 결과를
+ * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryPort}만 주입하고, 조회 결과를
  * Response로 조립한다(private 매퍼). 생성·수정은 {@link ProductCommandService}가 담당한다.
  */
 @Service
 @Transactional(readOnly = true)
 public class ProductQueryService implements ProductQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
 
-    public ProductQueryService(ProductQueryDao productQueryDao) {
-        this.productQueryDao = productQueryDao;
+    public ProductQueryService(ProductQueryPort productQueryPort) {
+        this.productQueryPort = productQueryPort;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     ) {
         ProductSearchCondition condition = ProductSearchCondition.of(shopId, productCategoryId, name, visible, soldOut);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<ProductListItemResponse> pageResult = productQueryDao.findProducts(condition, pageQuery)
+        PageResult<ProductListItemResponse> pageResult = productQueryPort.findProducts(condition, pageQuery)
             .map(this::toProductListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -75,7 +75,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductDetailResponse getProduct(Long id) {
-        ProductDetailResult dto = productQueryDao.findProductDetailById(id)
+        ProductDetailResult dto = productQueryPort.findProductDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         return toProductDetailResponse(dto);
     }
@@ -104,7 +104,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductOptionGroupsResponse getProductOptions(Long id) {
-        ProductOptionsResult result = productQueryDao.findProductOptions(id);
+        ProductOptionsResult result = productQueryPort.findProductOptions(id);
         List<ProductOptionGroupResponse> optionGroups = result.optionGroups().stream()
             .map(this::toOptionGroupResponse)
             .toList();
@@ -143,13 +143,13 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductImagesResponse getProductImages(Long id) {
-        List<String> imageUrls = productQueryDao.findProductImageUrls(id);
+        List<String> imageUrls = productQueryPort.findProductImageUrls(id);
         return ProductImagesResponse.from(imageUrls);
     }
 
     @Override
     public List<ProductCategoryResponse> getProductCategories(Long shopId) {
-        return productQueryDao.findProductCategories(shopId).stream()
+        return productQueryPort.findProductCategories(shopId).stream()
             .map(this::toProductCategoryResponse)
             .toList();
     }

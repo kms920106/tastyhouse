@@ -81,8 +81,10 @@ class LayerRulesTest {
     void controllersShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
-            .because("컨트롤러는 infra query DAO를 직접 주입하지 않는다(조회는 QueryService 경유)");
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
+            .because("컨트롤러는 조회 어댑터도 읽기 포트도 직접 주입하지 않는다(조회는 QueryService 경유)");
 
         rule.check(classes);
     }
@@ -125,9 +127,11 @@ class LayerRulesTest {
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
-            .because("CommandService는 ..query..를 주입하지 않는다(CQRS 교차 주입 금지)");
+            .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -147,11 +151,11 @@ class LayerRulesTest {
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            // P5 이관으로 ShopDetailRepository 주입은 사라졌고, 남은 것은 가게 단건 상세
-            // (ShopRepository#findById — 도메인 모델을 그대로 응답에 매핑)뿐이다.
-            .and().haveSimpleNameNotEndingWith("ShopQueryService")     // TODO(P7)
-            .and().haveSimpleNameNotEndingWith("MemberQueryService")   // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("AdminQueryService")    // TODO(P5)
+            // 챕터 04로 가게·회원 관리 상세는 읽기 포트의 투영(ShopManagementDetailResult·
+            // MemberManagementDetailResult)으로 이관됐다. 남은 AdminQueryService는 인증(UserDetails 로드)·
+            // 시드 멱등성 확인만 하며 표현 목적 read model이 없다 — 엔티티/원시값 반환 + 불변식 검증
+            // 경로라 "write 포트 잔류 판정 기준"에 해당하므로 이관 대상이 아니다.
+            .and().haveSimpleNameNotEndingWith("AdminQueryService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -325,4 +329,14 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void shouldNotDependOnInfrastructureQuery() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
+            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
+
+        rule.check(classes);
+    }
+
 }

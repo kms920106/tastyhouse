@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRegionResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipScheduleResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipSettingResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipTierResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipDistanceResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipRegionItemResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipScheduleItemResponse;
@@ -36,11 +36,11 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
     private static final String EXTRA_TIP_TYPE_NONE = "NONE";
     private static final String EXTRA_TIP_TYPE_DISTANCE = "DISTANCE";
 
-    private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
+    private final ShopDeliveryTipQueryPort shopDeliveryTipQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopDeliveryTipQueryService(ShopDeliveryTipQueryDao shopDeliveryTipQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
+    public ShopDeliveryTipQueryService(ShopDeliveryTipQueryPort shopDeliveryTipQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopDeliveryTipQueryPort = shopDeliveryTipQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -48,15 +48,15 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
     public ShopDeliveryTipSettingResponse getDeliveryTips(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryDao.findSetting(shopId).orElse(null);
+        ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryPort.findSetting(shopId).orElse(null);
 
-        List<ShopDeliveryTipTierItemResponse> tiers = shopDeliveryTipQueryDao.findTiers(shopId).stream()
+        List<ShopDeliveryTipTierItemResponse> tiers = shopDeliveryTipQueryPort.findTiers(shopId).stream()
             .map(this::toShopDeliveryTipTierItemResponse)
             .toList();
-        List<ShopDeliveryTipRegionItemResponse> regions = shopDeliveryTipQueryDao.findRegionTips(shopId).stream()
+        List<ShopDeliveryTipRegionItemResponse> regions = shopDeliveryTipQueryPort.findRegionTips(shopId).stream()
             .map(this::toShopDeliveryTipRegionItemResponse)
             .toList();
-        List<ShopDeliveryTipScheduleItemResponse> schedules = shopDeliveryTipQueryDao.findScheduleTips(shopId).stream()
+        List<ShopDeliveryTipScheduleItemResponse> schedules = shopDeliveryTipQueryPort.findScheduleTips(shopId).stream()
             .map(this::toShopDeliveryTipScheduleItemResponse)
             .toList();
 
@@ -66,7 +66,7 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
             toShopDeliveryTipDistanceResponse(setting),
             regions,
             schedules,
-            shopDeliveryTipQueryDao.findHolidayTipAmount(shopId)
+            shopDeliveryTipQueryPort.findHolidayTipAmount(shopId)
         );
     }
 

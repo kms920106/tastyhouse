@@ -10,10 +10,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.partnership.query.PartnershipQueryDao;
-import com.tastyhouse.infrastructure.partnership.query.PartnershipRequestDetailResult;
-import com.tastyhouse.infrastructure.partnership.query.PartnershipRequestListItemResult;
-import com.tastyhouse.infrastructure.partnership.query.PartnershipSearchCondition;
+import com.tastyhouse.application.partnership.port.out.PartnershipQueryPort;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestDetailResult;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
+import com.tastyhouse.application.partnership.port.out.PartnershipSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
@@ -22,7 +22,7 @@ import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipQueryU
 /**
  * 제휴 신청 관리 조회 서비스.
  *
- * <p>infra read 어댑터({@link PartnershipQueryDao})만 주입해 조회하고 Response를 조립한다. write 포트를
+ * <p>읽기 포트({@link PartnershipQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트를
  * 주입하지 않으며, 쓰기는 {@link PartnershipCommandService}가 담당한다.
  *
  * <p>HTTP 경계에서 받은 {@code String} 상태값은 여기서 {@code PartnershipStatus.from}으로 승격하고,
@@ -32,10 +32,10 @@ import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipQueryU
 @Transactional(readOnly = true)
 public class PartnershipQueryService implements PartnershipQueryUseCase {
 
-    private final PartnershipQueryDao partnershipQueryDao;
+    private final PartnershipQueryPort partnershipQueryPort;
 
-    public PartnershipQueryService(PartnershipQueryDao partnershipQueryDao) {
-        this.partnershipQueryDao = partnershipQueryDao;
+    public PartnershipQueryService(PartnershipQueryPort partnershipQueryPort) {
+        this.partnershipQueryPort = partnershipQueryPort;
     }
 
     @Override
@@ -52,14 +52,14 @@ public class PartnershipQueryService implements PartnershipQueryUseCase {
         PartnershipStatus partnershipStatus = status == null ? null : PartnershipStatus.from(status);
         PartnershipSearchCondition condition = PartnershipSearchCondition.of(businessName, contactName, contactPhone, partnershipStatus, startDate, endDate);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<PartnershipRequestListItemResponse> pageResult = partnershipQueryDao.findPartnershipRequests(condition, pageQuery)
+        PageResult<PartnershipRequestListItemResponse> pageResult = partnershipQueryPort.findPartnershipRequests(condition, pageQuery)
             .map(this::toPartnershipRequestListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public PartnershipRequestDetailResponse getPartnershipRequest(Long id) {
-        PartnershipRequestDetailResult detail = partnershipQueryDao.findDetailById(id)
+        PartnershipRequestDetailResult detail = partnershipQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
         return toPartnershipRequestDetailResponse(detail);
     }

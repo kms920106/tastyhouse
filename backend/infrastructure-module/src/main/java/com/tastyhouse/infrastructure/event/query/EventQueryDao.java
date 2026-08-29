@@ -1,5 +1,14 @@
 package com.tastyhouse.infrastructure.event.query;
 
+import com.tastyhouse.application.event.port.out.EventQueryPort;
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventDetailResult;
+import com.tastyhouse.application.event.port.out.EventListItemResult;
+import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
+import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
+import com.tastyhouse.application.event.port.out.EventSearchCondition;
+import com.tastyhouse.application.event.port.out.EventWinnerResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,14 +45,14 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  *
  * <p>썸네일·배너 파일 경로는 같은 모듈의 {@code UploadedFileJpaEntity}를 left join해 얻는다(파일 미등록
  * 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). 조인으로 얻은 저장 경로는
- * {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 — {@code @QueryProjection}은 record
+ * {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 — {@code Projections.constructor}는 record
  * 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  *
  * <p>삭제 필터링은 이관 이전 동작을 그대로 보존한다 — admin 관리 목록/상세와 당첨자 목록은 soft delete
  * 분을 제외하고, web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.
  */
 @Repository
-public class EventQueryDao {
+public class EventQueryDao implements EventQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -56,9 +65,10 @@ public class EventQueryDao {
     /**
      * 상태별 이벤트 목록 페이징 조회(web 노출 목록) — 시작 일시 내림차순.
      */
+    @Override
     public PageResult<EventListItemResult> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
         List<EventListItemResult> content = queryFactory
-            .select(new QEventListItemResult(
+            .select(Projections.constructor(EventListItemResult.class,
                 eventJpaEntity.id,
                 eventJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
@@ -88,9 +98,10 @@ public class EventQueryDao {
     /**
      * 이벤트 배너 이미지 URL 조회(web 상세) — 이벤트가 없으면 비어 있다(소비 측에서 404로 변환).
      */
+    @Override
     public Optional<EventDetailResult> findEventBannerById(EventId eventId) {
         EventDetailResult result = queryFactory
-            .select(new QEventDetailResult(
+            .select(Projections.constructor(EventDetailResult.class,
                 uploadedFileJpaEntity.filePath
             ))
             .from(eventJpaEntity)
@@ -104,6 +115,7 @@ public class EventQueryDao {
     /**
      * 이벤트 관리 목록 페이징 조회(admin) — 이벤트명 부분일치·상태 필터를 선택적으로 적용한다.
      */
+    @Override
     public PageResult<EventManagementListItemResult> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(eventJpaEntity.id.count())
@@ -116,7 +128,7 @@ public class EventQueryDao {
             .fetchOne();
 
         List<EventManagementListItemResult> content = queryFactory
-            .select(new QEventManagementListItemResult(
+            .select(Projections.constructor(EventManagementListItemResult.class,
                 eventJpaEntity.id,
                 eventJpaEntity.name,
                 eventJpaEntity.status,
@@ -148,12 +160,13 @@ public class EventQueryDao {
      * 이벤트 관리 상세 조회(admin) — 삭제된 이벤트면 비어 있다(소비 측에서 404로 변환). 썸네일·배너
      * 이미지를 각각 별도 alias로 left join해 파일명·URL까지 함께 투영한다(추가 조회 없음).
      */
+    @Override
     public Optional<EventManagementDetailResult> findEventDetailById(EventId eventId) {
         QUploadedFileJpaEntity thumbnailFile = new QUploadedFileJpaEntity("thumbnailFile");
         QUploadedFileJpaEntity bannerFile = new QUploadedFileJpaEntity("bannerFile");
 
         EventManagementDetailResult detail = queryFactory
-            .select(new QEventManagementDetailResult(
+            .select(Projections.constructor(EventManagementDetailResult.class,
                 eventJpaEntity.id,
                 eventJpaEntity.name,
                 eventJpaEntity.description,
@@ -183,9 +196,10 @@ public class EventQueryDao {
     /**
      * 이벤트의 당첨자 목록 조회(admin) — 순위 오름차순, 삭제분 제외.
      */
+    @Override
     public List<EventWinnerResult> findWinnersByEventId(EventId eventId) {
         return queryFactory
-            .select(new QEventWinnerResult(
+            .select(Projections.constructor(EventWinnerResult.class,
                 eventWinnerJpaEntity.id,
                 eventWinnerJpaEntity.eventId,
                 eventWinnerJpaEntity.rankNo,
@@ -202,6 +216,7 @@ public class EventQueryDao {
     /**
      * 이벤트의 당첨자 발표 단건 조회(admin) — 발표가 없으면 비어 있다(소비 측에서 404로 변환).
      */
+    @Override
     public Optional<EventAnnouncementResult> findAnnouncementByEventId(EventId eventId) {
         EventAnnouncementResult result = selectAnnouncement()
             .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
@@ -213,6 +228,7 @@ public class EventQueryDao {
     /**
      * 전체 이벤트의 당첨자 발표 목록 페이징 조회(web) — 발표 일시 내림차순.
      */
+    @Override
     public PageResult<EventAnnouncementResult> findAnnouncements(PageQuery pageQuery) {
         List<EventAnnouncementResult> content = selectAnnouncement()
             .orderBy(eventAnnouncementJpaEntity.announcedAt.desc())
@@ -233,7 +249,7 @@ public class EventQueryDao {
      */
     private JPAQuery<EventAnnouncementResult> selectAnnouncement() {
         return queryFactory
-            .select(new QEventAnnouncementResult(
+            .select(Projections.constructor(EventAnnouncementResult.class,
                 eventAnnouncementJpaEntity.id,
                 eventAnnouncementJpaEntity.eventId,
                 eventAnnouncementJpaEntity.name,
@@ -244,7 +260,7 @@ public class EventQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code @QueryProjection}이
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code Projections.constructor}가
      * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private EventListItemResult withResolvedThumbnailUrl(EventListItemResult row) {

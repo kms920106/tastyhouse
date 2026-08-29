@@ -1,5 +1,12 @@
 package com.tastyhouse.infrastructure.coupon.query;
 
+import com.tastyhouse.application.coupon.port.out.CouponQueryPort;
+import com.tastyhouse.application.coupon.port.out.CouponDetailResult;
+import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
+import com.tastyhouse.application.coupon.port.out.CouponSearchCondition;
+import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
+import com.tastyhouse.application.coupon.port.out.MemberCouponResult;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +41,7 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaE
  * 보존해 원본 쿠폰의 삭제 여부를 필터링하지 않는다(이미 발급된 보유분은 계속 보인다).
  */
 @Repository
-public class CouponQueryDao {
+public class CouponQueryDao implements CouponQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -45,6 +52,7 @@ public class CouponQueryDao {
     /**
      * 쿠폰 목록 페이징 조회(admin) — 쿠폰명 부분일치·할인유형·노출여부 필터를 선택적으로 적용한다.
      */
+    @Override
     public PageResult<CouponListItemResult> findAllCoupons(CouponSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(couponJpaEntity.id.count())
@@ -58,7 +66,7 @@ public class CouponQueryDao {
             .fetchOne();
 
         List<CouponListItemResult> content = queryFactory
-            .select(new QCouponListItemResult(
+            .select(Projections.constructor(CouponListItemResult.class,
                 couponJpaEntity.id,
                 couponJpaEntity.name,
                 couponJpaEntity.discountType,
@@ -90,9 +98,10 @@ public class CouponQueryDao {
     /**
      * 쿠폰 상세 조회(admin) — 삭제된 쿠폰이면 비어 있다(소비 측에서 404로 변환).
      */
+    @Override
     public Optional<CouponDetailResult> findCouponDetailById(CouponId couponId) {
         CouponDetailResult detail = queryFactory
-            .select(new QCouponDetailResult(
+            .select(Projections.constructor(CouponDetailResult.class,
                 couponJpaEntity.id,
                 couponJpaEntity.name,
                 couponJpaEntity.description,
@@ -119,6 +128,7 @@ public class CouponQueryDao {
     /**
      * 특정 쿠폰의 회원 발급 현황 페이징 조회(admin).
      */
+    @Override
     public PageResult<MemberCouponItemResult> findIssuedMemberCoupons(CouponId couponId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(memberCouponJpaEntity.id.count())
@@ -127,7 +137,7 @@ public class CouponQueryDao {
             .fetchOne();
 
         List<MemberCouponItemResult> content = queryFactory
-            .select(new QMemberCouponItemResult(
+            .select(Projections.constructor(MemberCouponItemResult.class,
                 memberCouponJpaEntity.id,
                 memberCouponJpaEntity.memberId,
                 memberCouponJpaEntity.used,
@@ -148,6 +158,7 @@ public class CouponQueryDao {
     /**
      * 회원이 보유한 쿠폰 전체 조회(web 내 쿠폰함) — 사용·만료분도 함께 보여준다.
      */
+    @Override
     public List<MemberCouponResult> findMemberCoupons(Long memberId) {
         return selectMemberCoupons()
             .where(memberCouponJpaEntity.memberId.eq(memberId))
@@ -157,6 +168,7 @@ public class CouponQueryDao {
     /**
      * 회원이 지금 사용할 수 있는 쿠폰만 조회(web 주문 화면의 쿠폰 선택) — 미사용 &amp; 미만료분.
      */
+    @Override
     public List<MemberCouponResult> findAvailableMemberCoupons(Long memberId, LocalDateTime now) {
         return selectMemberCoupons()
             .where(
@@ -172,7 +184,7 @@ public class CouponQueryDao {
      */
     private JPAQuery<MemberCouponResult> selectMemberCoupons() {
         return queryFactory
-            .select(new QMemberCouponResult(
+            .select(Projections.constructor(MemberCouponResult.class,
                 memberCouponJpaEntity.id,
                 couponJpaEntity.id,
                 couponJpaEntity.name,

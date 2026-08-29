@@ -33,15 +33,15 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestHistoryResult;
-import com.tastyhouse.infrastructure.review.query.ReviewStatisticsQueryDao;
-import com.tastyhouse.infrastructure.review.query.ShopReviewCategoryAverageResult;
-import com.tastyhouse.infrastructure.review.query.ShopReviewDisplaySettingQueryDao;
-import com.tastyhouse.infrastructure.review.query.ShopReviewManagementDetailResult;
-import com.tastyhouse.infrastructure.review.query.ShopReviewManagementListItemResult;
-import com.tastyhouse.infrastructure.review.query.ShopReviewManagementQueryDao;
-import com.tastyhouse.infrastructure.review.query.ShopReviewManagementSearchCondition;
-import com.tastyhouse.infrastructure.review.query.ShopReviewSortTypeResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestHistoryResult;
+import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementSearchCondition;
+import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 
 /**
  * 점주 리뷰 관리 조회 서비스(CQRS query 측).
@@ -69,20 +69,20 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
     /** 원문 "최근 리뷰수"의 기준 기간. */
     private static final int RECENT_REVIEW_DAYS = 30;
 
-    private final ShopReviewManagementQueryDao shopReviewManagementQueryDao;
-    private final ReviewStatisticsQueryDao reviewStatisticsQueryDao;
-    private final ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao;
+    private final ShopReviewManagementQueryPort shopReviewManagementQueryPort;
+    private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
+    private final ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopReviewQueryService(
-        ShopReviewManagementQueryDao shopReviewManagementQueryDao,
-        ReviewStatisticsQueryDao reviewStatisticsQueryDao,
-        ShopReviewDisplaySettingQueryDao shopReviewDisplaySettingQueryDao,
+        ShopReviewManagementQueryPort shopReviewManagementQueryPort,
+        ReviewStatisticsQueryPort reviewStatisticsQueryPort,
+        ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopReviewManagementQueryDao = shopReviewManagementQueryDao;
-        this.reviewStatisticsQueryDao = reviewStatisticsQueryDao;
-        this.shopReviewDisplaySettingQueryDao = shopReviewDisplaySettingQueryDao;
+        this.shopReviewManagementQueryPort = shopReviewManagementQueryPort;
+        this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
+        this.shopReviewDisplaySettingQueryPort = shopReviewDisplaySettingQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -124,7 +124,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         PageQuery pageQuery = PageQuery.of(page, size);
 
         PageResult<ShopReviewListItemResponse> pageResult =
-            shopReviewManagementQueryDao.findShopReviews(condition, pageQuery)
+            shopReviewManagementQueryPort.findShopReviews(condition, pageQuery)
                 .map(this::toListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -140,7 +140,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopReviewManagementDetailResult detail =
-            shopReviewManagementQueryDao.findShopReviewDetail(ReviewId.of(reviewId))
+            shopReviewManagementQueryPort.findShopReviewDetail(ReviewId.of(reviewId))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         if (!shopId.equals(detail.shopId())) {
             throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
@@ -161,7 +161,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime gateFrom = now.minusDays(DASHBOARD_GATE_DAYS);
-        if (reviewStatisticsQueryDao.countSince(shopId, gateFrom) == 0) {
+        if (reviewStatisticsQueryPort.countSince(shopId, gateFrom) == 0) {
             return ShopReviewStatisticsResponse.empty();
         }
 
@@ -170,18 +170,18 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         LocalDateTime periodFrom = firstMonth.atDay(1).atStartOfDay();
         LocalDateTime periodTo = currentMonth.plusMonths(1).atDay(1).atStartOfDay();
 
-        long totalReviewCount = reviewStatisticsQueryDao.countBetween(shopId, periodFrom, periodTo);
+        long totalReviewCount = reviewStatisticsQueryPort.countBetween(shopId, periodFrom, periodTo);
         long willRevisitCount =
-            reviewStatisticsQueryDao.countWillRevisitBetween(shopId, periodFrom, periodTo);
+            reviewStatisticsQueryPort.countWillRevisitBetween(shopId, periodFrom, periodTo);
         ShopReviewCategoryAverageResult averages =
-            reviewStatisticsQueryDao.getCategoryAverages(shopId, periodFrom, periodTo);
+            reviewStatisticsQueryPort.getCategoryAverages(shopId, periodFrom, periodTo);
 
         return ShopReviewStatisticsResponse.from(
             true,
-            roundToTenth(reviewStatisticsQueryDao.getAverageTotalRating(shopId, periodFrom, periodTo)),
+            roundToTenth(reviewStatisticsQueryPort.getAverageTotalRating(shopId, periodFrom, periodTo)),
             totalReviewCount,
-            reviewStatisticsQueryDao.countSince(shopId, now.minusDays(RECENT_REVIEW_DAYS)),
-            normalizeRatingCounts(reviewStatisticsQueryDao.getRatingCounts(shopId, periodFrom, periodTo)),
+            reviewStatisticsQueryPort.countSince(shopId, now.minusDays(RECENT_REVIEW_DAYS)),
+            normalizeRatingCounts(reviewStatisticsQueryPort.getRatingCounts(shopId, periodFrom, periodTo)),
             roundToTenth(averages.tasteRating()),
             roundToTenth(averages.amountRating()),
             roundToTenth(averages.priceRating()),
@@ -200,7 +200,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
     public ShopReviewSortTypeResponse getSortType(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopReviewDisplaySettingQueryDao.findSortTypeSettingByShopId(shopId)
+        return shopReviewDisplaySettingQueryPort.findSortTypeSettingByShopId(shopId)
             .map(this::toSortTypeResponse)
             .orElseGet(() -> toSortTypeResponse(new ShopReviewSortTypeResult(ReviewSortType.LATEST, null)));
     }
@@ -227,9 +227,9 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         LocalDateTime periodFrom,
         LocalDateTime periodTo
     ) {
-        Map<String, Long> counts = reviewStatisticsQueryDao.getMonthlyReviewCounts(shopId, periodFrom, periodTo);
+        Map<String, Long> counts = reviewStatisticsQueryPort.getMonthlyReviewCounts(shopId, periodFrom, periodTo);
         Map<String, Double> averages =
-            reviewStatisticsQueryDao.getMonthlyAverageRatings(shopId, periodFrom, periodTo);
+            reviewStatisticsQueryPort.getMonthlyAverageRatings(shopId, periodFrom, periodTo);
 
         List<ShopReviewMonthlyStatResponse> monthlyStats = new java.util.ArrayList<>(STATISTICS_MONTHS);
         for (int offset = 0; offset < STATISTICS_MONTHS; offset++) {
@@ -279,7 +279,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         if (sortType != null) {
             return ReviewSortType.from(sortType);
         }
-        return shopReviewDisplaySettingQueryDao.findSortTypeByShopId(shopId)
+        return shopReviewDisplaySettingQueryPort.findSortTypeByShopId(shopId)
             .orElse(ReviewSortType.LATEST);
     }
 

@@ -13,11 +13,11 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.region.query.AdminDongBoundaryResult;
-import com.tastyhouse.infrastructure.region.query.AdminDongItemResult;
-import com.tastyhouse.infrastructure.region.query.AdminDongQueryDao;
-import com.tastyhouse.infrastructure.region.query.AdminDongTreeItemResult;
-import com.tastyhouse.infrastructure.shared.query.GeoRingsResolver;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryResult;
+import com.tastyhouse.application.region.port.out.AdminDongItemResult;
+import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
+import com.tastyhouse.application.shared.port.out.GeoRingsPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.region.response.AdminDongBoundaryItemResponse;
 import com.tastyhouse.ceoapi.region.response.AdminDongBoundaryResponse;
@@ -49,17 +49,17 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
     /** 한 번의 bbox 조회로 내려보낼 최대 행정동 수. 임계 면적 안이라도 응답 크기를 최종적으로 제한한다. */
     private static final int MAX_BOUNDARY_ITEMS = 200;
 
-    private final AdminDongQueryDao adminDongQueryDao;
-    private final GeoRingsResolver geoRingsResolver;
+    private final AdminDongQueryPort adminDongQueryPort;
+    private final GeoRingsPort geoRingsPort;
 
-    public AdminDongQueryService(AdminDongQueryDao adminDongQueryDao, GeoRingsResolver geoRingsResolver) {
-        this.adminDongQueryDao = adminDongQueryDao;
-        this.geoRingsResolver = geoRingsResolver;
+    public AdminDongQueryService(AdminDongQueryPort adminDongQueryPort, GeoRingsPort geoRingsPort) {
+        this.adminDongQueryPort = adminDongQueryPort;
+        this.geoRingsPort = geoRingsPort;
     }
 
     @Override
     public PaginationResponse<AdminDongItemResponse> getAdminDongs(String keyword, int page, int size) {
-        PageResult<AdminDongItemResult> pageResult = adminDongQueryDao.findAdminDongPage(keyword, PageQuery.of(page, size));
+        PageResult<AdminDongItemResult> pageResult = adminDongQueryPort.findAdminDongPage(keyword, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toAdminDongItemResponse));
     }
@@ -86,14 +86,14 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
         }
 
         if (!hasSido) {
-            return toAdminDongTreeResponse(LEVEL_SIDO, adminDongQueryDao.findSidoNames());
+            return toAdminDongTreeResponse(LEVEL_SIDO, adminDongQueryPort.findSidoNames());
         }
         if (!hasSigungu) {
-            return toAdminDongTreeResponse(LEVEL_SIGUNGU, adminDongQueryDao.findSigunguNames(sidoName.trim()));
+            return toAdminDongTreeResponse(LEVEL_SIGUNGU, adminDongQueryPort.findSigunguNames(sidoName.trim()));
         }
         return toAdminDongTreeResponse(
             LEVEL_DONG,
-            adminDongQueryDao.findDongs(sidoName.trim(), sigunguName.trim())
+            adminDongQueryPort.findDongs(sidoName.trim(), sigunguName.trim())
         );
     }
 
@@ -129,7 +129,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
         }
 
         if (hasIds) {
-            return toAdminDongBoundaryResponse(adminDongQueryDao.findBoundariesByIds(adminDongIds));
+            return toAdminDongBoundaryResponse(adminDongQueryPort.findBoundariesByIds(adminDongIds));
         }
 
         if (level == null) {
@@ -139,7 +139,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
             return AdminDongBoundaryResponse.from(true, List.of());
         }
 
-        return toAdminDongBoundaryResponse(adminDongQueryDao.findBoundariesWithinBoundingBox(
+        return toAdminDongBoundaryResponse(adminDongQueryPort.findBoundariesWithinBoundingBox(
             swLat, neLat, swLng, neLng, MAX_BOUNDARY_ITEMS
         ));
     }
@@ -199,7 +199,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
      * "경계가 빈 도형이다"를 구분한다.
      */
     private List<List<AdminDongPointResponse>> toRings(String boundary) {
-        List<GeoRing> rings = geoRingsResolver.resolveRings(boundary);
+        List<GeoRing> rings = geoRingsPort.resolveRings(boundary);
         if (rings.isEmpty()) {
             return null;
         }

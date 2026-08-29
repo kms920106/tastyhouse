@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuidePickupPresenceResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +31,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopRiderGuideJpaE
  * 가게 상세·목록 조회는 {@code SHOP_RIDER_GUIDE}를 조인하지 않는다.
  */
 @Repository
-public class ShopRiderGuideQueryDao {
+public class ShopRiderGuideQueryDao implements ShopRiderGuideQueryPort {
 
     /**
      * 관리자 검수 화면의 이력 노출 상한. 그 이상은 별도 페이징 엔드포인트를 두지 않고 필요해지면 추가한다.
@@ -43,6 +48,7 @@ public class ShopRiderGuideQueryDao {
      * 가게 단건의 라이더 안내 — 아직 등록 이력이 없어도 가게가 존재하면 결과를 반환한다("미등록"은
      * 오류가 아니라 정상 상태이므로 라이더 안내 테이블을 left join 한다).
      */
+    @Override
     public Optional<ShopRiderGuideResult> findRiderGuide(Long shopId) {
         return Optional.ofNullable(
             queryFactory
@@ -72,6 +78,7 @@ public class ShopRiderGuideQueryDao {
      * 라이더 안내가 등록된 가게 목록 — 최근 변경분부터 검수하는 실제 운영 순서를 따라
      * {@code updatedAt} 내림차순으로 정렬한다.
      */
+    @Override
     public PageResult<ShopRiderGuideListItemResult> findRiderGuidePage(
         String shopName,
         Boolean hasVisitGuide,
@@ -124,6 +131,7 @@ public class ShopRiderGuideQueryDao {
     /**
      * 가게별 라이더 안내 변경 이력 — 최근 {@value #HISTORY_LIMIT}건까지 최신순으로 반환한다.
      */
+    @Override
     public List<ShopRiderGuideHistoryResult> findHistories(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ShopRiderGuideHistoryResult.class,

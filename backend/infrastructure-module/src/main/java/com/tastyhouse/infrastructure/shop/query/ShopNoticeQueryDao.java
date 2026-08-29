@@ -1,5 +1,9 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopNoticeImageResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +35,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeJpaEntit
  * 조립 형태를 가지므로 {@code ShopQueryDao}에 섞지 않고 별도 DAO로 둔다.
  */
 @Repository
-public class ShopNoticeQueryDao {
+public class ShopNoticeQueryDao implements ShopNoticeQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -44,6 +48,7 @@ public class ShopNoticeQueryDao {
     /**
      * 가게의 공지 목록(점주 화면) — 노출중 공지를 맨 위로, 그다음 최근 등록 순.
      */
+    @Override
     public List<ShopNoticeResult> findNotices(Long shopId) {
         List<ShopNoticeRow> rows = queryFactory
             .select(Projections.constructor(ShopNoticeRow.class,
@@ -79,6 +84,7 @@ public class ShopNoticeQueryDao {
     /**
      * 가게에서 현재 앱에 노출 중인 공지(web 화면) — {@code exposed = true AND hidden = false} 최대 1건.
      */
+    @Override
     public Optional<ShopNoticeResult> findExposedNotice(Long shopId) {
         return Optional.ofNullable(queryFactory
                 .select(Projections.constructor(ShopNoticeRow.class,
@@ -112,6 +118,7 @@ public class ShopNoticeQueryDao {
     /**
      * 공지 목록 페이징(관리 화면) — 가게·가게명·게시중단 여부로 필터하며, 최근 등록 순.
      */
+    @Override
     public PageResult<ShopNoticeManagementListItemResult> findNoticePage(
         Long shopId,
         String shopName,

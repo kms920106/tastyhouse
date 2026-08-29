@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaAdjustmentListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaAdjustmentQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentItemResponse;
 
 /**
@@ -21,14 +21,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjust
 @Transactional(readOnly = true)
 public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaAdjustmentQueryUseCase {
 
-    private final ShopDeliveryAreaAdjustmentQueryDao shopDeliveryAreaAdjustmentQueryDao;
+    private final ShopDeliveryAreaAdjustmentQueryPort shopDeliveryAreaAdjustmentQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaAdjustmentQueryService(
-        ShopDeliveryAreaAdjustmentQueryDao shopDeliveryAreaAdjustmentQueryDao,
+        ShopDeliveryAreaAdjustmentQueryPort shopDeliveryAreaAdjustmentQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopDeliveryAreaAdjustmentQueryDao = shopDeliveryAreaAdjustmentQueryDao;
+        this.shopDeliveryAreaAdjustmentQueryPort = shopDeliveryAreaAdjustmentQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -36,7 +36,7 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
     public List<ShopDeliveryAreaAdjustmentItemResponse> getAdjustmentRequests(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopDeliveryAreaAdjustmentQueryDao.findAdjustmentRequests(shopId).stream()
+        return shopDeliveryAreaAdjustmentQueryPort.findAdjustmentRequests(shopId).stream()
             .map(this::toShopDeliveryAreaAdjustmentItemResponse)
             .toList();
     }

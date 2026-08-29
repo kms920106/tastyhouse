@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.infrastructure.faq.query.FaqCategoryResult;
-import com.tastyhouse.infrastructure.faq.query.FaqQueryDao;
-import com.tastyhouse.infrastructure.faq.query.FaqResult;
+import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
+import com.tastyhouse.application.faq.port.out.FaqQueryPort;
+import com.tastyhouse.application.faq.port.out.FaqResult;
 import com.tastyhouse.webapi.faq.application.port.in.FaqQueryUseCase;
 import com.tastyhouse.webapi.faq.response.FaqCategoryListItemResponse;
 import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
@@ -16,21 +16,21 @@ import com.tastyhouse.webapi.faq.response.FaqListItemResponse;
  * FAQ 조회 서비스.
  *
  * <p>회원 노출용 조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다. infra read
- * 어댑터({@link FaqQueryDao})를 주입해 노출(visible=true) 카테고리·항목만 조회한다.
+ * 어댑터({@link FaqQueryPort})를 주입해 노출(visible=true) 카테고리·항목만 조회한다.
  */
 @Service
 @Transactional(readOnly = true)
 public class FaqQueryService implements FaqQueryUseCase {
 
-    private final FaqQueryDao faqQueryDao;
+    private final FaqQueryPort faqQueryPort;
 
-    public FaqQueryService(FaqQueryDao faqQueryDao) {
-        this.faqQueryDao = faqQueryDao;
+    public FaqQueryService(FaqQueryPort faqQueryPort) {
+        this.faqQueryPort = faqQueryPort;
     }
 
     @Override
     public List<FaqCategoryListItemResponse> getFaqCategories() {
-        return faqQueryDao.findVisibleCategories().stream()
+        return faqQueryPort.findVisibleCategories().stream()
             .map(this::toFaqCategoryListItemResponse)
             .toList();
     }
@@ -40,7 +40,7 @@ public class FaqQueryService implements FaqQueryUseCase {
      */
     @Override
     public List<FaqListItemResponse> getFaqList(Long categoryId) {
-        return faqQueryDao.findVisibleFaqs(categoryId).stream()
+        return faqQueryPort.findVisibleFaqs(categoryId).stream()
             .map(this::toFaqListItemResponse)
             .toList();
     }

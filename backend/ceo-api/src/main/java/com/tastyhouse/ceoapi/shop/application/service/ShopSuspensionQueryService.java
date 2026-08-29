@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopSuspensionQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopSuspensionResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSuspensionResult;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse;
 
 /**
@@ -18,18 +18,18 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
 @Transactional(readOnly = true)
 public class ShopSuspensionQueryService implements ShopSuspensionQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopSuspensionQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopSuspensionQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopSuspensionResponse> getSuspensions(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryDao.findSuspensions(shopId).stream()
+        return shopQueryPort.findSuspensions(shopId).stream()
             .map(this::toShopSuspensionResponse)
             .toList();
     }

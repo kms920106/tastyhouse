@@ -6,8 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopMenuCollectionImageRequestResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
@@ -21,10 +21,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageQ
 @Transactional(readOnly = true)
 public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
-    public ShopMenuCollectionImageQueryService(ShopQueryDao shopQueryDao) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopMenuCollectionImageQueryService(ShopQueryPort shopQueryPort) {
+        this.shopQueryPort = shopQueryPort;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionIm
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ShopMenuCollectionImageRequestResult> pageResult = shopQueryDao
+        PageResult<ShopMenuCollectionImageRequestResult> pageResult = shopQueryPort
             .findMenuCollectionImageRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopMenuCollectionImageRequestItemResponse));

@@ -9,9 +9,9 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.policy.query.PolicyDocumentResult;
-import com.tastyhouse.infrastructure.policy.query.PolicyListItemResult;
-import com.tastyhouse.infrastructure.policy.query.PolicyQueryDao;
+import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
+import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
+import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
 import com.tastyhouse.webapi.policy.application.port.in.PolicyDetailQueryUseCase;
 import com.tastyhouse.webapi.policy.application.port.in.PolicyVersionListQueryUseCase;
 import com.tastyhouse.webapi.policy.response.PolicyDetailResponse;
@@ -21,7 +21,7 @@ import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
  * 약관·정책 조회 서비스.
  *
  * <p>회원 노출용 조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다(쓰기는 admin-api의
- * {@code PolicyCommandService}가 담당). infra read 어댑터({@link PolicyQueryDao})를 주입해 조회하고
+ * {@code PolicyCommandService}가 담당). 읽기 포트({@link PolicyQueryPort})를 주입해 조회하고
  * Response를 조립하며, write 포트는 주입하지 않는다.
  *
  * <p>정책 유형은 약관 종류별 전용 엔드포인트로 고정되어 있어 HTTP 파라미터로 받지 않고 이 서비스가
@@ -31,10 +31,10 @@ import com.tastyhouse.webapi.policy.response.PolicyListItemResponse;
 @Transactional(readOnly = true)
 public class PolicyQueryService implements PolicyDetailQueryUseCase, PolicyVersionListQueryUseCase {
 
-    private final PolicyQueryDao policyQueryDao;
+    private final PolicyQueryPort policyQueryPort;
 
-    public PolicyQueryService(PolicyQueryDao policyQueryDao) {
-        this.policyQueryDao = policyQueryDao;
+    public PolicyQueryService(PolicyQueryPort policyQueryPort) {
+        this.policyQueryPort = policyQueryPort;
     }
 
     @Override
@@ -98,20 +98,20 @@ public class PolicyQueryService implements PolicyDetailQueryUseCase, PolicyVersi
     }
 
     private PolicyDetailResponse getLatestByType(PolicyType type) {
-        PolicyDocumentResult result = policyQueryDao.findCurrentByType(type)
+        PolicyDocumentResult result = policyQueryPort.findCurrentByType(type)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_CURRENT_NOT_FOUND));
         return toPolicyDetailResponse(result);
     }
 
     private PolicyDetailResponse getByTypeAndVersion(PolicyType type, String version) {
-        PolicyDocumentResult result = policyQueryDao.findByTypeAndVersion(type, version)
+        PolicyDocumentResult result = policyQueryPort.findByTypeAndVersion(type, version)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
         return toPolicyDetailResponse(result);
     }
 
     private PaginationResponse<PolicyListItemResponse> getListByType(PolicyType type, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<PolicyListItemResponse> pageResult = policyQueryDao.findAllByType(type, pageQuery)
+        PageResult<PolicyListItemResponse> pageResult = policyQueryPort.findAllByType(type, pageQuery)
             .map(this::toPolicyListItemResponse);
         return PaginationResponse.from(pageResult);
     }

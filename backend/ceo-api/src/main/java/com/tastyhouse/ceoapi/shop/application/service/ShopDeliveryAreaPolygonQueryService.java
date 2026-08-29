@@ -18,12 +18,12 @@ import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
-import com.tastyhouse.infrastructure.region.query.AdminDongCandidateResult;
-import com.tastyhouse.infrastructure.region.query.AdminDongQueryDao;
-import com.tastyhouse.infrastructure.shared.query.GeoRingsResolver;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaPolygonResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryAreaQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopLocationResult;
+import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
+import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.shared.port.out.GeoRingsPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.GeoPointRequest;
@@ -54,18 +54,18 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
 
     private static final String BLOCKED_REASON_REGION_TIP = "REGION_TIP";
 
-    private final AdminDongQueryDao adminDongQueryDao;
-    private final ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao;
-    private final GeoRingsResolver geoRingsResolver;
+    private final AdminDongQueryPort adminDongQueryPort;
+    private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;
+    private final GeoRingsPort geoRingsPort;
 
     public ShopDeliveryAreaPolygonQueryService(
-        AdminDongQueryDao adminDongQueryDao,
-        ShopDeliveryAreaQueryDao shopDeliveryAreaQueryDao,
-        GeoRingsResolver geoRingsResolver
+        AdminDongQueryPort adminDongQueryPort,
+        ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort,
+        GeoRingsPort geoRingsPort
     ) {
-        this.adminDongQueryDao = adminDongQueryDao;
-        this.shopDeliveryAreaQueryDao = shopDeliveryAreaQueryDao;
-        this.geoRingsResolver = geoRingsResolver;
+        this.adminDongQueryPort = adminDongQueryPort;
+        this.shopDeliveryAreaQueryPort = shopDeliveryAreaQueryPort;
+        this.geoRingsPort = geoRingsPort;
     }
 
     /**
@@ -74,8 +74,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
      */
     @Override
     public ShopDeliveryAreaPolygonResponse getPolygon(Long ceoId, Long shopId) {
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryDao.findShopLocation(ceoId, shopId);
-        ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryDao.findPolygon(shopId).orElse(null);
+        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
+        ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryPort.findPolygon(shopId).orElse(null);
 
         if (stored == null) {
             return ShopDeliveryAreaPolygonResponse.from(
@@ -88,7 +88,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             );
         }
 
-        GeoPolygon polygon = geoRingsResolver.resolvePolygon(stored.rings());
+        GeoPolygon polygon = geoRingsPort.resolvePolygon(stored.rings());
         GeoPoint storedCenter = GeoPoint.of(stored.centerLatitude(), stored.centerLongitude());
         GeoPoint currentLocation = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
@@ -105,7 +105,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             ShopDeliveryAreaPolicy.DEFAULT_EXPOSURE_RADIUS_METERS,
             stored.ringCount(),
             stored.vertexCount(),
-            shopDeliveryAreaQueryDao.findAdminDongIdsBySource(shopId, "POLYGON").size(),
+            shopDeliveryAreaQueryPort.findAdminDongIdsBySource(shopId, "POLYGON").size(),
             stored.updatedAt()
         );
     }
@@ -122,7 +122,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         Long shopId,
         List<List<GeoPointRequest>> rings
     ) {
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryDao.findShopLocation(ceoId, shopId);
+        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
         GeoPolygon polygon = ShopDeliveryAreaGeoMapper.toPolygonFromRequest(rings);
         ShopDeliveryAreaPolicy.validateShape(polygon);
 
@@ -138,9 +138,9 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             .map(AdminDongId::value)
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        Set<Long> registered = shopDeliveryAreaQueryDao.findAdminDongIds(shopId);
-        Set<Long> currentPolygonDongs = shopDeliveryAreaQueryDao.findAdminDongIdsBySource(shopId, "POLYGON");
-        Set<Long> regionTipDongs = shopDeliveryAreaQueryDao.findRegionTipAdminDongIds(shopId);
+        Set<Long> registered = shopDeliveryAreaQueryPort.findAdminDongIds(shopId);
+        Set<Long> currentPolygonDongs = shopDeliveryAreaQueryPort.findAdminDongIdsBySource(shopId, "POLYGON");
+        Set<Long> regionTipDongs = shopDeliveryAreaQueryPort.findRegionTipAdminDongIds(shopId);
 
         List<ShopDeliveryAreaCandidateResponse> projectedResponses = projected.stream()
             .map(candidateById::get)
@@ -170,7 +170,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
 
     private List<AdminDongCandidateResult> loadCandidates(GeoPolygon polygon) {
         var candidateBox = polygon.boundingBox().expand(CANDIDATE_BOX_MARGIN_DEGREES);
-        return adminDongQueryDao.findCandidatesWithinBoundingBox(
+        return adminDongQueryPort.findCandidatesWithinBoundingBox(
             candidateBox.minLatitude(),
             candidateBox.maxLatitude(),
             candidateBox.minLongitude(),
@@ -197,7 +197,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
                 null,
                 true,
                 candidateCenter,
-                geoRingsResolver.resolveRings(candidate.boundary())
+                geoRingsPort.resolveRings(candidate.boundary())
             ));
         }
         return domainCandidates;
@@ -208,7 +208,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             return List.of();
         }
 
-        return adminDongQueryDao.findBoundariesByIds(closing).stream()
+        return adminDongQueryPort.findBoundariesByIds(closing).stream()
             .map(dto -> ShopDeliveryAreaCandidateResponse.from(
                 dto.adminDongId(),
                 dto.regionName(),
@@ -225,7 +225,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             return List.of();
         }
 
-        return adminDongQueryDao.findBoundariesByIds(blocked).stream()
+        return adminDongQueryPort.findBoundariesByIds(blocked).stream()
             .map(dto -> ShopDeliveryAreaBlockedResponse.from(
                 dto.adminDongId(),
                 dto.regionName(),

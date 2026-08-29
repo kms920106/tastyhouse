@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.point.query.PointBalanceResult;
-import com.tastyhouse.infrastructure.point.query.PointHistoryResult;
-import com.tastyhouse.infrastructure.point.query.PointQueryDao;
-import com.tastyhouse.infrastructure.point.query.PointSearchCondition;
+import com.tastyhouse.application.point.port.out.PointBalanceResult;
+import com.tastyhouse.application.point.port.out.PointHistoryResult;
+import com.tastyhouse.application.point.port.out.PointQueryPort;
+import com.tastyhouse.application.point.port.out.PointSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointBalanceResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryResponse;
@@ -18,22 +18,22 @@ import com.tastyhouse.adminapi.point.application.port.in.PointQueryUseCase;
 /**
  * 포인트 관리 조회 서비스.
  *
- * <p>infra read 어댑터({@link PointQueryDao})만 주입해 조회하고 Response를 조립한다. write 포트·도메인
+ * <p>읽기 포트({@link PointQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트·도메인
  * 서비스를 주입하지 않으며, 수동 적립·차감은 {@link PointCommandService}가 담당한다.
  */
 @Service
 @Transactional(readOnly = true)
 public class PointQueryService implements PointQueryUseCase {
 
-    private final PointQueryDao pointQueryDao;
+    private final PointQueryPort pointQueryPort;
 
-    public PointQueryService(PointQueryDao pointQueryDao) {
-        this.pointQueryDao = pointQueryDao;
+    public PointQueryService(PointQueryPort pointQueryPort) {
+        this.pointQueryPort = pointQueryPort;
     }
 
     @Override
     public PointBalanceResponse getPointBalance(Long memberId) {
-        return pointQueryDao.findBalanceByMemberId(memberId)
+        return pointQueryPort.findBalanceByMemberId(memberId)
             .map(result -> toPointBalanceResponse(memberId, result))
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
     }
@@ -43,7 +43,7 @@ public class PointQueryService implements PointQueryUseCase {
         PointType pointType = type == null ? null : PointType.from(type);
         PointSearchCondition condition = PointSearchCondition.of(memberId, pointType);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<PointHistoryResponse> pageResult = pointQueryDao.findPointHistoryPage(condition, pageQuery)
+        PageResult<PointHistoryResponse> pageResult = pointQueryPort.findPointHistoryPage(condition, pageQuery)
             .map(this::toPointHistoryResponse);
         return PaginationResponse.from(pageResult);
     }

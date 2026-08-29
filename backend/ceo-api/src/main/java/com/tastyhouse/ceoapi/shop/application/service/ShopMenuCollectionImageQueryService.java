@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
-import com.tastyhouse.infrastructure.shop.query.ShopMenuCollectionImageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
 
 /**
@@ -20,14 +20,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @Transactional(readOnly = true)
 public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopMenuCollectionImageQueryService(
-        ShopQueryDao shopQueryDao,
+        ShopQueryPort shopQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopQueryDao = shopQueryDao;
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -35,7 +35,7 @@ public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionIm
     public List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopQueryDao.findMenuCollectionImages(shopId).stream()
+        return shopQueryPort.findMenuCollectionImages(shopId).stream()
             .map(this::toShopMenuCollectionImageResponse)
             .toList();
     }

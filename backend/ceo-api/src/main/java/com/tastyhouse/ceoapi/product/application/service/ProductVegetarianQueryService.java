@@ -15,9 +15,9 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductVegetarianRequestResult;
-import com.tastyhouse.infrastructure.product.query.ProductVegetarianSettingResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
+import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
 
 /**
  * 점주용 메뉴 채식 설정 현황 조회 서비스(CQRS query 측).
@@ -29,18 +29,18 @@ import com.tastyhouse.infrastructure.product.query.ProductVegetarianSettingResul
 @Transactional(readOnly = true)
 public class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopFoodTypeCategoryReader shopFoodTypeCategoryReader;
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
 
     public ProductVegetarianQueryService(
-        ProductQueryDao productQueryDao,
+        ProductQueryPort productQueryPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopFoodTypeCategoryReader shopFoodTypeCategoryReader,
         ProductVegetarianApprovalService productVegetarianApprovalService
     ) {
-        this.productQueryDao = productQueryDao;
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopFoodTypeCategoryReader = shopFoodTypeCategoryReader;
         this.productVegetarianApprovalService = productVegetarianApprovalService;
@@ -50,13 +50,13 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
     public ProductVegetarianStatusResponse getVegetarianStatus(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductVegetarianSettingResult setting = productQueryDao.findVegetarianSetting(productId)
+        ProductVegetarianSettingResult setting = productQueryPort.findVegetarianSetting(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!setting.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        List<ProductVegetarianRequestResponse> requests = productQueryDao.findVegetarianRequests(productId).stream()
+        List<ProductVegetarianRequestResponse> requests = productQueryPort.findVegetarianRequests(productId).stream()
             .map(this::toProductVegetarianRequestResponse)
             .toList();
 

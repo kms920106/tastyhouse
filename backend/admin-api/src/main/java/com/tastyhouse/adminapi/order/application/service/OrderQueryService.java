@@ -14,13 +14,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
-import com.tastyhouse.infrastructure.order.query.OrderManagementListItemResult;
-import com.tastyhouse.infrastructure.order.query.OrderPaymentResult;
-import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
-import com.tastyhouse.infrastructure.order.query.OrderProductResult;
-import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
-import com.tastyhouse.infrastructure.order.query.OrderSearchCondition;
+import com.tastyhouse.application.order.port.out.OrderDetailResult;
+import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
+import com.tastyhouse.application.order.port.out.OrderPaymentResult;
+import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
+import com.tastyhouse.application.order.port.out.OrderProductResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.order.port.out.OrderSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemResponse;
@@ -32,7 +32,7 @@ import com.tastyhouse.adminapi.order.application.port.in.OrderQueryUseCase;
 /**
  * 주문 관리 조회 서비스(admin-api).
  *
- * <p>infra query DAO({@link OrderQueryDao})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
+ * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
  * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
  *
  * <p>enum 후보값은 HTTP 경계에서 {@code String}으로 받아 여기서 {@code Enum.from(...)}으로 승격한다
@@ -42,10 +42,10 @@ import com.tastyhouse.adminapi.order.application.port.in.OrderQueryUseCase;
 @Transactional(readOnly = true)
 public class OrderQueryService implements OrderQueryUseCase {
 
-    private final OrderQueryDao orderQueryDao;
+    private final OrderQueryPort orderQueryPort;
 
-    public OrderQueryService(OrderQueryDao orderQueryDao) {
-        this.orderQueryDao = orderQueryDao;
+    public OrderQueryService(OrderQueryPort orderQueryPort) {
+        this.orderQueryPort = orderQueryPort;
     }
 
     /**
@@ -75,7 +75,7 @@ public class OrderQueryService implements OrderQueryUseCase {
             endDate
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<OrderListItemResponse> pageResult = orderQueryDao.findOrders(condition, pageQuery)
+        PageResult<OrderListItemResponse> pageResult = orderQueryPort.findOrders(condition, pageQuery)
             .map(this::toOrderListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -85,7 +85,7 @@ public class OrderQueryService implements OrderQueryUseCase {
      */
     @Override
     public OrderDetailResponse getOrder(Long id) {
-        OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(id))
+        OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         return toOrderDetailResponse(result);
     }

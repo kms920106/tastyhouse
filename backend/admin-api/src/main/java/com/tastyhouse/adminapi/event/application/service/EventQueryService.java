@@ -11,12 +11,12 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
-import com.tastyhouse.infrastructure.event.query.EventManagementDetailResult;
-import com.tastyhouse.infrastructure.event.query.EventManagementListItemResult;
-import com.tastyhouse.infrastructure.event.query.EventQueryDao;
-import com.tastyhouse.infrastructure.event.query.EventSearchCondition;
-import com.tastyhouse.infrastructure.event.query.EventWinnerResult;
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
+import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
+import com.tastyhouse.application.event.port.out.EventQueryPort;
+import com.tastyhouse.application.event.port.out.EventSearchCondition;
+import com.tastyhouse.application.event.port.out.EventWinnerResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventAnnouncementResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventDetailResponse;
@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.event.application.port.in.EventQueryUseCase;
 /**
  * 이벤트 관리 조회 서비스(admin).
  *
- * <p>infra read 어댑터({@link EventQueryDao})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
+ * <p>읽기 포트({@link EventQueryPort})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
  * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
  *
  * <p>파일 URL 조립은 DAO가 join으로 함께 파일명·URL까지 완성해 주므로(목록·상세 모두) 이 서비스는
@@ -38,10 +38,10 @@ import com.tastyhouse.adminapi.event.application.port.in.EventQueryUseCase;
 @Transactional(readOnly = true)
 public class EventQueryService implements EventQueryUseCase {
 
-    private final EventQueryDao eventQueryDao;
+    private final EventQueryPort eventQueryPort;
 
-    public EventQueryService(EventQueryDao eventQueryDao) {
-        this.eventQueryDao = eventQueryDao;
+    public EventQueryService(EventQueryPort eventQueryPort) {
+        this.eventQueryPort = eventQueryPort;
     }
 
     @Override
@@ -50,28 +50,28 @@ public class EventQueryService implements EventQueryUseCase {
         EventSearchCondition condition = EventSearchCondition.of(name, eventStatus);
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<EventListItemResponse> pageResult = eventQueryDao.findAllEvents(condition, pageQuery)
+        PageResult<EventListItemResponse> pageResult = eventQueryPort.findAllEvents(condition, pageQuery)
             .map(this::toEventListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public EventDetailResponse getEvent(Long id) {
-        EventManagementDetailResult detail = eventQueryDao.findEventDetailById(EventId.of(id))
+        EventManagementDetailResult detail = eventQueryPort.findEventDetailById(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
         return toEventDetailResponse(detail);
     }
 
     @Override
     public EventAnnouncementResponse getAnnouncement(Long id) {
-        EventAnnouncementResult announcement = eventQueryDao.findAnnouncementByEventId(EventId.of(id))
+        EventAnnouncementResult announcement = eventQueryPort.findAnnouncementByEventId(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
         return toEventAnnouncementResponse(announcement);
     }
 
     @Override
     public List<EventWinnerResponse> getWinners(Long id) {
-        return eventQueryDao.findWinnersByEventId(EventId.of(id)).stream()
+        return eventQueryPort.findWinnersByEventId(EventId.of(id)).stream()
             .map(this::toEventWinnerResponse)
             .toList();
     }

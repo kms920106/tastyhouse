@@ -1,5 +1,39 @@
 package com.tastyhouse.infrastructure.product.query;
 
+import com.tastyhouse.application.product.port.out.ProductBatchItem;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.BatchOptionResult;
+import com.tastyhouse.application.product.port.out.OptionGroupResult;
+import com.tastyhouse.application.product.port.out.OptionResult;
+import com.tastyhouse.application.product.port.out.PopularProductItemResult;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult;
+import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
+import com.tastyhouse.application.product.port.out.ProductBatchResult;
+import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
+import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
+import com.tastyhouse.application.product.port.out.ProductCategoryResult;
+import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
+import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductImageManagementResult;
+import com.tastyhouse.application.product.port.out.ProductListItemResult;
+import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
+import com.tastyhouse.application.product.port.out.ProductNutritionResult;
+import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
+import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityItemResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
+import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionsResult;
+import com.tastyhouse.application.product.port.out.ProductPriceResult;
+import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductSearchCondition;
+import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
+import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
+import com.tastyhouse.application.product.port.out.SearchProductItemResult;
+import com.tastyhouse.application.product.port.out.ShopProductItemResult;
+import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -81,10 +115,10 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조).
  *
  * <p>조인으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
- * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
+ * {@code Projections.constructor}는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
-public class ProductQueryDao {
+public class ProductQueryDao implements ProductQueryPort {
 
     /**
      * 상품의 대표 이미지(노출 중 최소 sort)를 고르기 위한 서브쿼리 별칭.
@@ -186,10 +220,11 @@ public class ProductQueryDao {
     /**
      * 오늘의 할인 상품 목록 — 할인가가 설정된 노출 상품을 할인율 내림차순으로 페이징한다.
      */
+    @Override
     public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery) {
         LocalDateTime now = nowInServiceZone();
         JPAQuery<TodayDiscountProductResult> query = queryFactory
-            .select(new QTodayDiscountProductResult(
+            .select(Projections.constructor(TodayDiscountProductResult.class,
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
@@ -239,6 +274,7 @@ public class ProductQueryDao {
     /**
      * 통합검색 상품 결과 — 판매 중(노출·비품절) 상품 중 영업 중인 가게의 것만 검색한다.
      */
+    @Override
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
         BooleanExpression searchable = productJpaEntity.name.containsIgnoreCase(keyword)
             .and(productJpaEntity.visible.eq(true))
@@ -260,7 +296,7 @@ public class ProductQueryDao {
         }
 
         List<SearchProductItemResult> content = queryFactory
-            .select(new QSearchProductItemResult(
+            .select(Projections.constructor(SearchProductItemResult.class,
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
@@ -293,6 +329,7 @@ public class ProductQueryDao {
      * 상품 옵션 목록 — 개별 옵션 그룹과 공통 옵션 그룹을 단일 목록으로 병합해 반환한다(개별 먼저).
      * 그룹·옵션을 각각 배치(in) 조회해 N+1을 방지한다.
      */
+    @Override
     public ProductOptionsResult findProductOptions(Long productId) {
         List<OptionGroupResult> result = new ArrayList<>();
         result.addAll(findNormalOptionGroups(productId));
@@ -472,6 +509,7 @@ public class ProductQueryDao {
      * </ul>
      * 상품/옵션/그룹을 각각 배치(in) 조회하여 N+1 을 방지합니다.
      */
+    @Override
     public List<ProductBatchResult> findProductsBatch(List<ProductBatchItem> items) {
         if (items == null || items.isEmpty()) {
             return List.of();
@@ -708,6 +746,7 @@ public class ProductQueryDao {
     /**
      * 상품의 노출 이미지 표시용 URL 목록(sort 오름차순). 화면 이미지 갤러리용.
      */
+    @Override
     public List<String> findProductImageUrls(Long productId) {
         List<String> filePaths = queryFactory
             .select(uploadedFileJpaEntity.filePath)
@@ -735,9 +774,10 @@ public class ProductQueryDao {
      * <p>품절·노출은 메뉴가 소유하므로({@code Product.soldOut}·{@code visible}) 링크로 분리하지 않는다.
      * 링크가 1개인 메뉴는 이 조회의 결과가 이전과 완전히 동일하다 — 이 설계의 안전장치다.
      */
+    @Override
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
         return queryFactory
-            .select(new QShopProductItemResult(
+            .select(Projections.constructor(ShopProductItemResult.class,
                 productJpaEntity.id,
                 productShopLinkJpaEntity.productCategoryId,
                 productJpaEntity.name,
@@ -773,6 +813,7 @@ public class ProductQueryDao {
     /**
      * 관리자 상품 목록 — 조건 페이징 조회.
      */
+    @Override
     public PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(productJpaEntity.count())
@@ -792,7 +833,7 @@ public class ProductQueryDao {
         }
 
         List<ProductListItemResult> content = queryFactory
-            .select(new QProductListItemResult(
+            .select(Projections.constructor(ProductListItemResult.class,
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
@@ -825,11 +866,12 @@ public class ProductQueryDao {
     /**
      * 상품 상세 — web(간략)·admin(관리) 양쪽이 공유한다. 노출 여부와 무관하게 단건 조회한다.
      */
+    @Override
     public Optional<ProductDetailResult> findProductDetailById(Long productId) {
         return Optional.ofNullable(
             queryFactory
-                .select(new QProductDetailResult(
-                    productJpaEntity.id,
+                .select(Projections.constructor(ProductDetailResult.class,
+                productJpaEntity.id,
                     productJpaEntity.shopId,
                     productJpaEntity.productCategoryId,
                     productJpaEntity.name,
@@ -861,6 +903,7 @@ public class ProductQueryDao {
      * <b>표현 목적</b>이라 여기에 둔다. 조회 서비스({@code *QueryService})가 write 포트를 주입하는 것은
      * ArchUnit {@code queryServicesShouldNotDependOnWritePorts}가 금지하므로, 손님 조회 경로는 이 DAO를 쓴다.
      */
+    @Override
     public List<ProductPriceResult> findProductPrices(Long productId) {
         return queryFactory
             .select(Projections.constructor(ProductPriceResult.class,
@@ -888,6 +931,7 @@ public class ProductQueryDao {
      * <p>가격 행이 없는 메뉴는 결과에 등장하지 않는다 — 소비 측이 빈 목록으로 다루면 되고, 그때 화면은
      * 기존 {@code PRODUCT.original_price} 경로로 표시된다(가격 행 도입 이전 데이터 호환).
      */
+    @Override
     public List<ProductPriceResult> findProductPricesByProductIds(List<Long> productIds) {
         if (productIds == null || productIds.isEmpty()) {
             return List.of();
@@ -922,6 +966,7 @@ public class ProductQueryDao {
      * 파는 메뉴들이 매장가와 같은가"를 묻는 것이므로 판정 대상은 그 가게 메뉴판의 구성이다. 가격은
      * 연결된 가게끼리 공유되므로 가격 행 자체는 메뉴 단위 그대로다.
      */
+    @Override
     public List<ProductPriceResult> findShopProductPrices(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ProductPriceResult.class,
@@ -954,6 +999,7 @@ public class ProductQueryDao {
      * <b>이고</b> {@code deleted = false})은 반드시 일치해야 한다 — 어긋나면 같은 가게의 뱃지가 점주
      * 화면과 손님 화면에서 다르게 켜진다.
      */
+    @Override
     public long countVisibleProducts(Long shopId) {
         Long count = queryFactory
             .select(productJpaEntity.count())
@@ -967,11 +1013,12 @@ public class ProductQueryDao {
      * 점주 메뉴 상세 관리 화면 — 메뉴그룹명과 대표 이미지 URL까지 조인해 완성한다. 삭제 여부와 무관하게
      * 단건 조회하지 않고(관리 화면은 살아있는 메뉴만 다룸) {@link #notDeleted()}를 적용한다.
      */
+    @Override
     public Optional<ProductManagementDetailResult> findProductManagementDetailById(Long productId) {
         return Optional.ofNullable(
             queryFactory
-                .select(new QProductManagementDetailResult(
-                    productJpaEntity.id,
+                .select(Projections.constructor(ProductManagementDetailResult.class,
+                productJpaEntity.id,
                     productJpaEntity.shopId,
                     productJpaEntity.productCategoryId,
                     productCategoryJpaEntity.name,
@@ -1009,6 +1056,7 @@ public class ProductQueryDao {
      * <p>알레르기 성분은 {@link #findAllergenTypes(Long)}로 따로 읽는다 — 1:N을 함께 조인하면 성분
      * 개수만큼 행이 늘어나 수치 14개가 중복 투영된다.
      */
+    @Override
     public Optional<ProductNutritionResult> findNutrition(Long productId) {
         return Optional.ofNullable(
             queryFactory
@@ -1044,6 +1092,7 @@ public class ProductQueryDao {
      * 알파벳순이 법령 열거 순서와 무관해 화면 나열 순서가 고지 순서와 어긋나기 때문이다. 저장 순서를
      * 유지하면 점주가 체크한 순서(= 화면의 법령 순서)가 그대로 보인다.
      */
+    @Override
     public List<String> findAllergenTypes(Long productId) {
         return queryFactory
             .select(productAllergenJpaEntity.allergenType.stringValue())
@@ -1091,9 +1140,10 @@ public class ProductQueryDao {
      * <p>관리 화면은 숨긴 그룹도 봐야 하므로 이것을 쓰지 않고
      * {@link #findProductCategoriesForManagement}를 쓴다.
      */
+    @Override
     public List<ProductCategoryResult> findProductCategories(Long shopId) {
         return queryFactory
-            .select(new QProductCategoryResult(
+            .select(Projections.constructor(ProductCategoryResult.class,
                 productCategoryJpaEntity.id,
                 productCategoryJpaEntity.shopId,
                 productCategoryJpaEntity.name,
@@ -1116,9 +1166,10 @@ public class ProductQueryDao {
      * <p>메뉴 수는 삭제된 메뉴를 제외한다. 이 값이 0이 아니면 그룹 삭제가
      * {@code PRODUCT_CATEGORY_HAS_PRODUCTS}로 거절되므로, 화면이 미리 안내할 수 있다.
      */
+    @Override
     public List<ProductCategoryManagementResult> findProductCategoriesForManagement(Long shopId) {
         return queryFactory
-            .select(new QProductCategoryManagementResult(
+            .select(Projections.constructor(ProductCategoryManagementResult.class,
                 productCategoryJpaEntity.id,
                 productCategoryJpaEntity.shopId,
                 productCategoryJpaEntity.name,
@@ -1154,6 +1205,7 @@ public class ProductQueryDao {
      * <p>{@code visible} 필터를 걸지 않는 이유는 메뉴그룹 관리 목록과 같다 — 이 화면이 숨김 상태를
      * 조작하므로, 필터를 걸면 감춘(소프트 삭제된) 그룹이 목록에서 영구히 사라져 되살릴 수 없다.
      */
+    @Override
     public List<ProductOptionGroupManagementResult> findProductOptionGroupsForManagement(Long shopId) {
         // select와 Tuple.get이 같은 표현식 인스턴스를 참조해야 하므로 서브쿼리를 지역 변수로 추출한다.
         Expression<Long> linkedProductCount = JPAExpressions
@@ -1269,6 +1321,7 @@ public class ProductQueryDao {
      * 호출부가 이 값으로 소유권을 역판정한다. 결과가 비면 소유 가게를 판정할 수 없다는 뜻이므로
      * 호출부는 이를 "접근 불가"로 다뤄야 한다(빈 목록을 "허용"으로 읽으면 IDOR이 열린다).
      */
+    @Override
     public List<ProductOptionGroupLinkedProductResult> findLinkedProductsByOptionGroupId(Long optionGroupId) {
         return queryFactory
             .select(productJpaEntity.id, productJpaEntity.shopId, productJpaEntity.name)
@@ -1293,6 +1346,7 @@ public class ProductQueryDao {
      * <p>단일 가게 불변식(옵션그룹은 한 가게에만 속한다) 덕분에, 이 가게의 메뉴로 조인을 걸면 결과가
      * 곧 이 가게 옵션그룹 전체의 연결 목록이 된다 — 그룹마다 다시 조회할 필요가 없다.
      */
+    @Override
     public Map<Long, List<ProductOptionGroupLinkedProductResult>> findLinkedProductsByShop(Long shopId) {
         return queryFactory
             .select(
@@ -1343,6 +1397,7 @@ public class ProductQueryDao {
      *       옵션 30개쯤에서 목록을 잘라 <b>서로 다른 그룹이 같다고 판정되는 조용한 오탐</b>을 만든다.</li>
      * </ul>
      */
+    @Override
     public List<ProductOptionGroupMergeCandidateResult> findOptionGroupMergeCandidates(Long shopId) {
         Query query = entityManager.createNativeQuery(MERGE_CANDIDATE_SQL);
         query.setParameter("shopId", shopId);
@@ -1367,6 +1422,7 @@ public class ProductQueryDao {
      * 만드는 것은 query 서비스인데, 그 서비스가 exclusion write 포트를 주입하면
      * {@code queryServicesShouldNotDependOnWritePorts} 규칙을 위반한다.
      */
+    @Override
     public Set<String> findOptionGroupMergeExcludedSignatures(Long shopId) {
         return Set.copyOf(queryFactory
             .select(productOptionGroupMergeExclusionJpaEntity.groupSignature)
@@ -1405,6 +1461,7 @@ public class ProductQueryDao {
      * <p>품절·숨김 자체는 메뉴가 소유하므로 링크로 분리하지 않는다 — 한 가게에서 품절하면 연결된 모든
      * 가게에서 품절이다.
      */
+    @Override
     public List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition) {
         return queryFactory
             .select(
@@ -1460,6 +1517,7 @@ public class ProductQueryDao {
      * 손님 화면 조회와 달리 {@code visible.eq(true)} 필터를 걸지 않고, {@code keyword}는 옵션명을 기준으로
      * 매칭한다.
      */
+    @Override
     public List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(
         ProductAvailabilitySearchCondition condition
     ) {
@@ -1719,6 +1777,7 @@ public class ProductQueryDao {
      * 내보내지만, 관리 화면은 순서 변경·삭제 대상을 지목해야 하므로 <b>이미지 식별자</b>가 필요하고
      * 숨김 상태도 보여야 한다.
      */
+    @Override
     public List<ProductImageManagementResult> findProductImagesForManagement(Long productId) {
         return queryFactory
             .select(Projections.constructor(ProductImageManagementResult.class,
@@ -1752,6 +1811,7 @@ public class ProductQueryDao {
      * <p>삭제된 메뉴는 없는 것으로 다룬다 — "메뉴 없음"과 "남의 가게 메뉴"를 호출부가 같은
      * {@code PRODUCT_NOT_FOUND}로 합쳐 존재 여부가 새지 않게 한다.
      */
+    @Override
     public boolean existsProductInShop(Long productId, Long shopId) {
         Integer found = queryFactory
             .selectOne()
@@ -1773,6 +1833,7 @@ public class ProductQueryDao {
     /**
      * 특정 메뉴의 이미지 변경요청 목록 — 최근 요청 순.
      */
+    @Override
     public List<ProductImageChangeRequestResult> findImageChangeRequests(Long productId) {
         return imageChangeRequestProjection()
             .where(productImageChangeRequestJpaEntity.productId.eq(productId))
@@ -1786,6 +1847,7 @@ public class ProductQueryDao {
     /**
      * 관리자 검수용 이미지 변경요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
      */
+    @Override
     public PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(
         ApprovalStatus status,
         PageQuery pageQuery
@@ -1816,6 +1878,7 @@ public class ProductQueryDao {
     /**
      * 특정 메뉴의 채식 설정 요청 목록 — 최근 요청 순.
      */
+    @Override
     public List<ProductVegetarianRequestResult> findVegetarianRequests(Long productId) {
         return vegetarianRequestProjection()
             .where(productVegetarianRequestJpaEntity.productId.eq(productId))
@@ -1826,6 +1889,7 @@ public class ProductQueryDao {
     /**
      * 관리자 검수용 채식 설정 요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
      */
+    @Override
     public PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(
         ApprovalStatus status,
         PageQuery pageQuery
@@ -1853,6 +1917,7 @@ public class ProductQueryDao {
     /**
      * 관리자 검수용 사장님 추천 지정 요청 페이징 목록 — 승인 상태로 필터하며 최근 요청 순.
      */
+    @Override
     public PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(
         ApprovalStatus status,
         PageQuery pageQuery
@@ -1907,6 +1972,7 @@ public class ProductQueryDao {
      * <p>양쪽 모두 <b>판매중지·숨김·미노출 메뉴를 제외</b>한다({@link #findShopProducts}와 같은 술어).
      * 주문할 수 없는 메뉴를 상단에 올리면 손님이 눌렀을 때 막힌다.
      */
+    @Override
     public List<PopularProductItemResult> findPopularProducts(Long shopId) {
         LocalDateTime now = nowInServiceZone();
 
@@ -1955,6 +2021,7 @@ public class ProductQueryDao {
      * <p>{@code shopId}를 함께 담는 이유는 소비 측(ceo-api)이 <b>이 메뉴가 정말 그 가게 것인지</b>
      * 재확인해야 하기 때문이다 — 경로의 메뉴 id와 query의 가게 id가 서로를 검증하지 않으면 IDOR이 된다.
      */
+    @Override
     public Optional<ProductVegetarianSettingResult> findVegetarianSetting(Long productId) {
         return Optional.ofNullable(
             queryFactory
@@ -1975,6 +2042,7 @@ public class ProductQueryDao {
      * <p>요일·시간대 축은 판정 계산기가 도메인 모델을 필요로 하므로 write 포트({@code
      * ProductExposureHourRepository})를 통해 별도로 읽는다 — 이 투영은 기간 축과 소유 가게만 담는다.
      */
+    @Override
     public Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId) {
         return Optional.ofNullable(
             queryFactory
@@ -2068,7 +2136,7 @@ public class ProductQueryDao {
      */
     private com.querydsl.jpa.JPQLQuery<PopularProductItemResult> popularProductProjection() {
         return queryFactory
-            .select(new QPopularProductItemResult(
+            .select(Projections.constructor(PopularProductItemResult.class,
                 productJpaEntity.id,
                 productJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
@@ -2187,11 +2255,12 @@ public class ProductQueryDao {
     /**
      * BBQ 옵션 동기화가 필요한 상품 1건 — 동기화 대상 식별자와 기본 옵션 생성용 상품명을 함께 투영한다.
      */
+    @Override
     public Optional<ProductBbqSyncTargetResult> findFirstBbqSyncTarget() {
         return Optional.ofNullable(
             queryFactory
-                .select(new QProductBbqSyncTargetResult(
-                    productBbqJpaEntity.productId,
+                .select(Projections.constructor(ProductBbqSyncTargetResult.class,
+                productBbqJpaEntity.productId,
                     productBbqJpaEntity.bbqMenuId,
                     productJpaEntity.name
                 ))
@@ -2203,7 +2272,7 @@ public class ProductQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}는 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private SearchProductItemResult withResolvedImageUrl(SearchProductItemResult row) {
@@ -2559,10 +2628,6 @@ public class ProductQueryDao {
 
     // ── @Convert VO 컬럼의 raw Long path ───────────────────────────────────
 
-
-
-
-
     /**
      * 배치 조회 내부 계산용 옵션 정보(개별/공통 구분 포함). DAO 밖으로 나가지 않는다.
      */
@@ -2586,14 +2651,5 @@ public class ProductQueryDao {
             return common ? -groupId : groupId;
         }
     }
-
-
-
-
-
-
-
-
-
 
 }

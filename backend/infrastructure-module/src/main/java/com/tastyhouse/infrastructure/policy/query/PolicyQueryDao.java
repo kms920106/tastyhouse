@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.policy.query;
 
+import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
+import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
+import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +28,7 @@ import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJp
  * 없어(활성/비활성 모두 공개 조회 가능) admin/web 구분이 필요하지 않으므로 메서드가 하나씩만 있다.
  */
 @Repository
-public class PolicyQueryDao {
+public class PolicyQueryDao implements PolicyQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -34,6 +39,7 @@ public class PolicyQueryDao {
     /**
      * 유형별 현행 정책 상세 조회 — 같은 유형에서 {@code current=true}인 단건을 조회한다.
      */
+    @Override
     public Optional<PolicyDocumentResult> findCurrentByType(PolicyType type) {
         PolicyDocumentResult result = queryFactory
             .select(policyDocumentDetailProjection())
@@ -50,6 +56,7 @@ public class PolicyQueryDao {
     /**
      * 유형·버전으로 정책 상세 조회 — 과거 버전 열람에 사용하므로 현행 여부를 따지지 않는다.
      */
+    @Override
     public Optional<PolicyDocumentResult> findByTypeAndVersion(PolicyType type, String version) {
         PolicyDocumentResult result = queryFactory
             .select(policyDocumentDetailProjection())
@@ -66,6 +73,7 @@ public class PolicyQueryDao {
     /**
      * 유형별 정책 버전 이력 목록 조회 — 최신 생성 순으로 페이징한다.
      */
+    @Override
     public PageResult<PolicyListItemResult> findAllByType(PolicyType type, PageQuery pageQuery) {
         Long total = queryFactory
             .select(policyDocumentJpaEntity.id.count())
@@ -74,7 +82,7 @@ public class PolicyQueryDao {
             .fetchOne();
 
         List<PolicyListItemResult> policies = queryFactory
-            .select(new QPolicyListItemResult(
+            .select(Projections.constructor(PolicyListItemResult.class,
                 policyDocumentJpaEntity.id,
                 policyDocumentJpaEntity.type,
                 policyDocumentJpaEntity.version,
@@ -96,9 +104,9 @@ public class PolicyQueryDao {
     /**
      * 상세 조회 두 메서드가 같은 필드 셋을 투영하므로 프로젝션 정의를 공유한다.
      */
-    private QPolicyDocumentResult policyDocumentDetailProjection() {
-        return new QPolicyDocumentResult(
-            policyDocumentJpaEntity.id,
+    private ConstructorExpression<PolicyDocumentResult> policyDocumentDetailProjection() {
+        return Projections.constructor(PolicyDocumentResult.class,
+                policyDocumentJpaEntity.id,
             policyDocumentJpaEntity.type,
             policyDocumentJpaEntity.version,
             policyDocumentJpaEntity.title,

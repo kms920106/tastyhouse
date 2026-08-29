@@ -11,10 +11,10 @@ import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestDetailResult;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestSearchCondition;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestDetailResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestListItemResponse;
@@ -32,10 +32,10 @@ import com.tastyhouse.adminapi.review.application.port.in.ReviewBlindRequestQuer
 @Transactional(readOnly = true)
 public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUseCase {
 
-    private final ReviewBlindRequestQueryDao reviewBlindRequestQueryDao;
+    private final ReviewBlindRequestQueryPort reviewBlindRequestQueryPort;
 
-    public ReviewBlindRequestQueryService(ReviewBlindRequestQueryDao reviewBlindRequestQueryDao) {
-        this.reviewBlindRequestQueryDao = reviewBlindRequestQueryDao;
+    public ReviewBlindRequestQueryService(ReviewBlindRequestQueryPort reviewBlindRequestQueryPort) {
+        this.reviewBlindRequestQueryPort = reviewBlindRequestQueryPort;
     }
 
     /**
@@ -57,7 +57,7 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
         ReviewBlindRequestSearchCondition condition = ReviewBlindRequestSearchCondition.of(
             shopId, blindStatus, blindReason, startDate, endDate
         );
-        PageResult<ReviewBlindRequestListItemResponse> pageResult = reviewBlindRequestQueryDao
+        PageResult<ReviewBlindRequestListItemResponse> pageResult = reviewBlindRequestQueryPort
             .findBlindRequestPage(condition, PageQuery.of(page, size))
             .map(this::toReviewBlindRequestListItemResponse);
         return PaginationResponse.from(pageResult);
@@ -68,7 +68,7 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
      */
     @Override
     public ReviewBlindRequestDetailResponse getBlindRequest(Long id) {
-        ReviewBlindRequestDetailResult detail = reviewBlindRequestQueryDao.findBlindRequestDetail(id)
+        ReviewBlindRequestDetailResult detail = reviewBlindRequestQueryPort.findBlindRequestDetail(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
         return toReviewBlindRequestDetailResponse(detail);
     }

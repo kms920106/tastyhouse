@@ -1,5 +1,14 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
+import com.tastyhouse.application.shop.port.out.BestShopItemResult;
+import com.tastyhouse.application.shop.port.out.LatestShopItemResult;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
+import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +58,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
  * 카티전 곱이 생기기 때문이다.
  */
 @Repository
-public class ShopSearchQueryDao {
+public class ShopSearchQueryDao implements ShopSearchQueryPort {
 
     /**
      * 지도 마커 조회 반경(m). 위·경도 1도 ≈ 111km 근사로 사각 범위를 계산한다.
@@ -78,11 +87,12 @@ public class ShopSearchQueryDao {
     /**
      * 현재 위치 주변 가게 마커 목록. 폐업·노출정지 가게는 제외한다.
      */
+    @Override
     public List<ShopMapMarkerResult> findNearbyShops(BigDecimal latitude, BigDecimal longitude) {
         BigDecimal degreeDiff = BigDecimal.valueOf(MAP_MARKER_RADIUS_METERS / METERS_PER_DEGREE);
 
         return queryFactory
-            .select(new QShopMapMarkerResult(
+            .select(Projections.constructor(ShopMapMarkerResult.class,
                 shopJpaEntity.id,
                 shopJpaEntity.latitude,
                 shopJpaEntity.longitude,
@@ -104,6 +114,7 @@ public class ShopSearchQueryDao {
      * @param deliveryAdminDongId 회원 기본 배송지의 행정동. {@code null}이면 배달지역 필터를 걸지 않는다
      *                            ({@link #deliveryAreaCovers} 참고)
      */
+    @Override
     public PageResult<BestShopItemResult> findBestShops(Long deliveryAdminDongId, PageQuery pageQuery) {
         BooleanExpression[] conditions = {
             shopJpaEntity.rating.isNotNull(),
@@ -155,6 +166,7 @@ public class ShopSearchQueryDao {
      * 최신 가게 목록 — 등록 최신 순. 역·음식유형·편의시설로 필터한다(편의시설은 지정한 항목을 모두 갖춘
      * 가게만). 폐업·노출정지 가게는 제외한다.
      */
+    @Override
     public PageResult<LatestShopItemResult> findLatestShops(
         Long stationId,
         List<FoodType> foodTypes,
@@ -259,6 +271,7 @@ public class ShopSearchQueryDao {
     /**
      * 상호명 키워드 검색 결과 — 평점 높은 순. 로그인 회원이면 즐겨찾기 여부를 함께 채운다.
      */
+    @Override
     public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(
         String keyword,
         Long memberId,
@@ -323,6 +336,7 @@ public class ShopSearchQueryDao {
     /**
      * 내 즐겨찾기 가게 목록 — 즐겨찾기 등록 최신 순. 폐업·노출정지 가게는 제외한다.
      */
+    @Override
     public PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(Long memberId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(shopBookmarkJpaEntity.count())
@@ -338,7 +352,7 @@ public class ShopSearchQueryDao {
         }
 
         List<ShopBookmarkedItemResult> rows = queryFactory
-            .select(new QShopBookmarkedItemResult(
+            .select(Projections.constructor(ShopBookmarkedItemResult.class,
                 shopJpaEntity.id,
                 shopBookmarkJpaEntity.id,
                 shopJpaEntity.name,
@@ -376,6 +390,7 @@ public class ShopSearchQueryDao {
     /**
      * 가게 목록 페이징(관리·점주 화면) — 상호명·역·폐업여부·소유 점주로 필터하며, 최근 등록 순.
      */
+    @Override
     public PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
             .select(shopJpaEntity.count())
@@ -393,7 +408,7 @@ public class ShopSearchQueryDao {
         }
 
         List<ShopListItemResult> content = queryFactory
-            .select(new QShopListItemResult(
+            .select(Projections.constructor(ShopListItemResult.class,
                 shopJpaEntity.id,
                 shopJpaEntity.name,
                 stationJpaEntity.stationName,
@@ -579,7 +594,7 @@ public class ShopSearchQueryDao {
 
     /**
      * 투영된 저장 경로를 표시용 URL로 바꾸고 배달팁 하한/상한을 채워 재조립한다.
-     * {@code @QueryProjection}이 생성자 직접 투영이라 두 변환 모두 투영식에 넣을 수 없어 fetch 직후
+     * {@code Projections.constructor}가 생성자 직접 투영이라 두 변환 모두 투영식에 넣을 수 없어 fetch 직후
      * 호출한다(배달팁 범위는 올림 계산이 섞여 SQL 집계로 표현되지 않는다 —
      * {@link ShopDeliveryTipQueryDao#findTipRanges} 참고).
      */

@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.infrastructure.product.query.ProductShopLinkQueryDao;
+import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
 
 /**
  * 로그인 점주가 소유한 가게 ID 집합을 제공하는 인가 협력 빈.
@@ -26,14 +26,14 @@ import com.tastyhouse.infrastructure.product.query.ProductShopLinkQueryDao;
 @Component
 public class OwnedShopIdProvider {
 
-    private final ProductShopLinkQueryDao productShopLinkQueryDao;
+    private final ProductShopLinkQueryPort productShopLinkQueryPort;
 
-    public OwnedShopIdProvider(ProductShopLinkQueryDao productShopLinkQueryDao) {
-        this.productShopLinkQueryDao = productShopLinkQueryDao;
+    public OwnedShopIdProvider(ProductShopLinkQueryPort productShopLinkQueryPort) {
+        this.productShopLinkQueryPort = productShopLinkQueryPort;
     }
 
     /** 이 점주가 소유한 가게 ID 전부. 소유 가게가 없으면 빈 집합이다. */
     public Set<Long> findOwnedShopIds(Long ceoId) {
-        return new HashSet<>(productShopLinkQueryDao.findOwnedShopIds(ceoId));
+        return new HashSet<>(productShopLinkQueryPort.findOwnedShopIds(ceoId));
     }
 }

@@ -24,12 +24,12 @@
 - **presentation + application 레이어를 담당**: 컨트롤러는 도메인을 직접 호출하지 않고 도메인별 서비스를 통해서만 호출한다. JPA Repository·`EntityManager`를 직접 주입하지 않는다.
   - **도메인당 CQRS 분리**가 이 모듈의 표준 구조다. 과거 `core-module`의 `application/` 계층이 하던 역할이 전환으로 이 모듈의 도메인 패키지로 내려왔고, 도메인당 두 서비스로 분해된다.
     - `{도메인}CommandService`(`@Transactional`): domain write 포트(`XxxRepository`)·도메인 서비스만 주입. 생성/수정/삭제/상태전이를 수행하고 **식별자만 반환**한다. POJO 도메인은 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다.
-    - `{도메인}QueryService`(`@Transactional(readOnly = true)`): infrastructure-module의 `{도메인}QueryDao`만 주입. 조회와 Response 조립(private 매퍼)을 담당한다.
+    - `{도메인}QueryService`(`@Transactional(readOnly = true)`): `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입(`infrastructure-module`의 DAO 구현체는 알지 않는다). 조회와 Response 조립(private 매퍼)을 담당한다.
     - 조회만 있는 도메인은 QueryService만 둔다(reference: `notice/NoticeQueryService`, `banner/BannerQueryService`, `policy/PolicyQueryService`). 명령만 있는 도메인은 CommandService만 둔다(reference: `bug/BugReportCommandService`, `partnership/PartnershipCommandService`). 둘 다 있는 도메인은 컨트롤러가 필요한 쪽을 각각 주입한다(reference: `order/OrderCommandService`+`OrderQueryService`, `payment/`, `reservation/`, `review/`, `shop/`).
     - CommandService가 `..query..`를, QueryService가 write 포트를 서로 주입하지 않는다. command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다.
     - 인증·소셜 로그인·파일 등 애그리거트 CRUD가 아닌 흐름 지향 서비스는 CQRS 쌍이 아닌 단일 서비스로 남아 있다(`auth/AuthService`, `member/MemberService`, `file/FileService`, `grade/GradeService`, `referral/ReferralService`).
   - 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다(ID는 `Long`, enum 후보는 `String`으로 받아 서비스에서 승격).
-  - **QueryDSL은 쓰지 않는다**: `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`..infrastructure..persistence..` import가 **0건**이며, `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. infra 중 import가 허용되는 것은 `..query..`(QueryDao·Result·SearchCondition)뿐이다.
+  - **QueryDSL도 infrastructure도 모른다 (개정)**: `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며, `architecture/LayerRulesTest`(ArchUnit)의 `shouldNotDependOnInfrastructureQuery`가 봉인 목록 없이 이를 차단한다. 조회 계약(`{Ctx}QueryPort`·Result·SearchCondition)은 `application-common-module`(`com.tastyhouse.application..port.out..`)에서 import한다.
 - 도메인별 폴더(`member/`, `order/`, `shop/` …) 안에 `request/`·`response/` DTO를 둔다.
 - **import 순서 — presentation 내부 서브정렬**: 자사 import의 presentation 계층(`com.tastyhouse.webapi.*`) 안에서는 공용 인프라(`common`·`config`·`security`·`ratelimit`·`exception`)를 도메인 전용(`<도메인>.request`·`.response`)보다 **위**에 둔다. 각 서브그룹 내부는 알파벳순, 사이 빈 줄 없음. 상세·근거·예시는 루트 CLAUDE.md 참고.
 - **DTO 조립 시 `new` 직접 호출 지양**: 컨트롤러·서비스에서 response/condition을 `new`로 조립하지 않고, 대상 record 자신의 정적 팩토리 `of(...)`/`from(...)`로 위임한다. Request DTO에는 `toCommand()` 같은 변환 메서드를 두지 않고, 컨트롤러가 Request를 원시 필드로 언패킹해 서비스에 전달한다. Response record는 `core-free`(도메인 타입 미import)로 두고, Result → 원시 파라미터 언패킹은 서비스의 private 매퍼(`toXxxResponse(XxxResult dto)`)가 담당한다. 예외: `PaginationResponse.from(PageResult<T>)`는 공용 페이징 계약 위임이라 그대로 둔다. 상세는 루트 CLAUDE.md 참고.
@@ -42,7 +42,7 @@
 
 ### Testing Requirements
 - `@WebMvcTest` / `@SpringBootTest` + `spring-security-test`로 인증 흐름 검증.
-- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — `applicationServicesShouldNotDependOnWebLayer`(클래스명 `*CommandService`/`*QueryService`로 대상을 잡아 `org.springframework.web.bind..`/`web.servlet..`/`org.springframework.http..`/`jakarta.servlet..` 의존 차단. `MultipartFile`은 업로드 경계 타입이라 제외), `controllersShouldNotDependOnRepositories`, `shouldNotDependOnQuerydsl`, `shouldNotDependOnInfrastructurePersistence` 4개. `allowEmptyShould(true)`를 쓰지 않으므로 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다(과거 `..application..` 패키지를 매칭하던 규칙이 전환 후 대상 0건으로 공허 통과하던 문제를 이렇게 해소했다).
+- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — `applicationServicesShouldNotDependOnWebLayer`(클래스명 `*CommandService`/`*QueryService`로 대상을 잡아 `org.springframework.web.bind..`/`web.servlet..`/`org.springframework.http..`/`jakarta.servlet..` 의존 차단. `MultipartFile`은 업로드 경계 타입이라 제외), `controllersShouldNotDependOnRepositories`, `controllersShouldNotDependOnQueryDaos`, `commandServicesShouldNotDependOnQueryDaos`, `shouldNotDependOnQuerydsl`, `shouldNotDependOnInfrastructurePersistence`, `shouldNotDependOnInfrastructureQuery`(챕터 04 신설 — `com.tastyhouse.infrastructure..query..` 의존 전면 금지, 봉인 목록 없음). `allowEmptyShould(true)`를 쓰지 않으므로 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다(과거 `..application..` 패키지를 매칭하던 규칙이 전환 후 대상 0건으로 공허 통과하던 문제를 이렇게 해소했다).
 
 ### Common Patterns
 - **JWT 인증 메커니즘(access/refresh 발급·검증·필터·EntryPoint·AccessDeniedHandler)은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. web-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `memberId` 클레임·`CustomUserDetails` 재구성을 주입하고, **web 전용 검증 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드만 추가**한다. 공용 필터는 `config/jwt/JwtConfig`가 web 전용 블랙리스트 저장소로 빈 등록한다.
@@ -59,7 +59,8 @@
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`
-- `infrastructure-module` (implementation) — `<ctx>/query/`의 `{도메인}QueryDao`·Result DTO·SearchCondition 주입용(`..persistence..`는 ArchUnit이 차단)
+- `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition 주입용
+- `infrastructure-module` (implementation) — 빈 스캔 대상(`{도메인}QueryDao`가 실제로 뜨는 곳)이지만 `com.tastyhouse.infrastructure..`는 소스 레벨에서 import하지 않는다(ArchUnit이 차단)
 - `external-api` — OAuth/결제/메시징/파일 어댑터
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit
 - `logging-module` — 요청/응답 로깅(p6spy 전이)

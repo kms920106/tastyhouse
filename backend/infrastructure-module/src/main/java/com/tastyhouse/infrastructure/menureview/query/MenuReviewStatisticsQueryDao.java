@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.menureview.query;
 
+import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
+import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResult;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,7 +28,7 @@ import static com.tastyhouse.infrastructure.menureview.persistence.QMenuReviewJp
  * 것과 다르므로, 두 DAO를 비교하며 "필터가 누락됐다"고 오해하지 말 것.
  */
 @Repository
-public class MenuReviewStatisticsQueryDao {
+public class MenuReviewStatisticsQueryDao implements MenuReviewStatisticsQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -36,6 +39,7 @@ public class MenuReviewStatisticsQueryDao {
     /**
      * 상품의 고객 노출 메뉴 평가 수(숨김 제외).
      */
+    @Override
     public Long countVisibleByProductId(Long productId) {
         return queryFactory
             .select(menuReviewJpaEntity.count())
@@ -48,6 +52,7 @@ public class MenuReviewStatisticsQueryDao {
      * 상품의 고객 노출 메뉴 평가 평균 평점(숨김 제외). 대상이 없으면 {@code null}이다
      * ("평점 0점"과 구분해야 하므로 0.0이 아니다).
      */
+    @Override
     public Double getAverageRatingByProductId(Long productId) {
         return queryFactory
             .select(menuReviewJpaEntity.rating.avg())
@@ -65,11 +70,12 @@ public class MenuReviewStatisticsQueryDao {
      * <p>정렬은 하지 않는다 — 소비 측({@code MemberReviewCountQueryDao})이 REVIEW 집계와 병합한 <b>뒤에</b>
      * 정렬해야 하므로, 여기서 정렬해도 그 결과가 유지되지 않는다.
      */
+    @Override
     public List<MenuReviewMemberCountResult> countByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         NumberPath<Long> memberIdPath = menuReviewJpaEntity.memberId;
 
         return queryFactory
-            .select(new QMenuReviewMemberCountResult(
+            .select(Projections.constructor(MenuReviewMemberCountResult.class,
                 memberIdPath,
                 menuReviewJpaEntity.count(),
                 menuReviewJpaEntity.createdAt.max()

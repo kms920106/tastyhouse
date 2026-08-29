@@ -11,13 +11,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.review.query.ReviewCommentListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewManagementDetailResult;
-import com.tastyhouse.infrastructure.review.query.ReviewManagementQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewQueryDao;
-import com.tastyhouse.infrastructure.review.query.ReviewReplyListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewSearchCondition;
+import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewManagementDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewManagementQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewCommentListItemResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewListItemResponse;
@@ -29,7 +29,7 @@ import com.tastyhouse.adminapi.review.application.port.in.ReviewQueryUseCase;
  * 리뷰 관리 조회 서비스(admin).
  *
  * <p>관리 화면은 숨김 리뷰·댓글·답글까지 모두 봐야 하므로 관리 전용 read 어댑터
- * ({@link ReviewManagementQueryDao})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewQueryDao}를
+ * ({@link ReviewManagementQueryPort})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewQueryPort}를
  * 쓴다. 파일 경로 → 표시용 URL 변환은 DAO가 담당하므로 이 계층은 이미 URL이 된 필드를 그대로 조립한다.
  *
  * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
@@ -38,12 +38,12 @@ import com.tastyhouse.adminapi.review.application.port.in.ReviewQueryUseCase;
 @Transactional(readOnly = true)
 public class ReviewQueryService implements ReviewQueryUseCase {
 
-    private final ReviewManagementQueryDao reviewManagementQueryDao;
-    private final ReviewQueryDao reviewQueryDao;
+    private final ReviewManagementQueryPort reviewManagementQueryPort;
+    private final ReviewQueryPort reviewQueryPort;
 
-    public ReviewQueryService(ReviewManagementQueryDao reviewManagementQueryDao, ReviewQueryDao reviewQueryDao) {
-        this.reviewManagementQueryDao = reviewManagementQueryDao;
-        this.reviewQueryDao = reviewQueryDao;
+    public ReviewQueryService(ReviewManagementQueryPort reviewManagementQueryPort, ReviewQueryPort reviewQueryPort) {
+        this.reviewManagementQueryPort = reviewManagementQueryPort;
+        this.reviewQueryPort = reviewQueryPort;
     }
 
     /**
@@ -63,7 +63,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         int size
     ) {
         ReviewSearchCondition condition = ReviewSearchCondition.of(shopId, productId, memberId, hidden, ownerOnly, content, minRating, maxRating);
-        PageResult<ReviewListItemResponse> pageResult = reviewManagementQueryDao.findReviews(condition, PageQuery.of(page, size))
+        PageResult<ReviewListItemResponse> pageResult = reviewManagementQueryPort.findReviews(condition, PageQuery.of(page, size))
             .map(this::toReviewListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -74,12 +74,12 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public ReviewManagementDetailResponse getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        ReviewManagementDetailResult detail = reviewManagementQueryDao.findReviewManagementDetail(reviewId)
+        ReviewManagementDetailResult detail = reviewManagementQueryPort.findReviewManagementDetail(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        List<Long> tagIds = reviewQueryDao.findTagIdsByReviewId(reviewId.value());
+        List<Long> tagIds = reviewQueryPort.findTagIdsByReviewId(reviewId.value());
         if (!tagIds.isEmpty()) {
-            detail = detail.withTagNames(reviewQueryDao.findTagNamesByIds(tagIds));
+            detail = detail.withTagNames(reviewQueryPort.findTagNamesByIds(tagIds));
         }
 
         return toReviewManagementDetailResponse(detail);
@@ -91,12 +91,12 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public List<ReviewCommentListItemResponse> getComments(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        List<ReviewCommentListItemResult> comments = reviewManagementQueryDao.findCommentsIncludingHidden(reviewId);
+        List<ReviewCommentListItemResult> comments = reviewManagementQueryPort.findCommentsIncludingHidden(reviewId);
 
         List<ReviewCommentId> commentIds = comments.stream()
             .map(comment -> ReviewCommentId.of(comment.id()))
             .toList();
-        List<ReviewReplyListItemResult> replies = reviewManagementQueryDao.findRepliesIncludingHidden(commentIds);
+        List<ReviewReplyListItemResult> replies = reviewManagementQueryPort.findRepliesIncludingHidden(commentIds);
 
         return comments.stream()
             .map(comment -> toReviewCommentListItemResponse(comment, replies))

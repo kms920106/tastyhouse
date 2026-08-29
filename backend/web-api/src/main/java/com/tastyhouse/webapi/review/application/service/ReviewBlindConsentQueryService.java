@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindNoticeResult;
-import com.tastyhouse.infrastructure.review.query.ReviewBlindRequestQueryDao;
+import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentQueryUseCase;
 
@@ -30,10 +30,10 @@ import com.tastyhouse.webapi.review.application.port.in.ReviewBlindConsentQueryU
 @Transactional(readOnly = true)
 public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUseCase {
 
-    private final ReviewBlindRequestQueryDao reviewBlindRequestQueryDao;
+    private final ReviewBlindRequestQueryPort reviewBlindRequestQueryPort;
 
-    public ReviewBlindConsentQueryService(ReviewBlindRequestQueryDao reviewBlindRequestQueryDao) {
-        this.reviewBlindRequestQueryDao = reviewBlindRequestQueryDao;
+    public ReviewBlindConsentQueryService(ReviewBlindRequestQueryPort reviewBlindRequestQueryPort) {
+        this.reviewBlindRequestQueryPort = reviewBlindRequestQueryPort;
     }
 
     /**
@@ -43,7 +43,7 @@ public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUs
      */
     @Override
     public ReviewBlindNoticeResponse getBlindNotice(Long reviewId, Long memberId) {
-        ReviewBlindNoticeResult notice = reviewBlindRequestQueryDao.findBlindNotice(reviewId)
+        ReviewBlindNoticeResult notice = reviewBlindRequestQueryPort.findBlindNotice(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!notice.reviewMemberId().equals(memberId)) {

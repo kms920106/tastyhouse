@@ -1,5 +1,9 @@
 package com.tastyhouse.infrastructure.payment.query;
 
+import com.tastyhouse.application.payment.port.out.PaymentQueryPort;
+import com.tastyhouse.application.payment.port.out.PaymentRefundResult;
+import com.tastyhouse.application.payment.port.out.PaymentResult;
+import com.querydsl.core.types.Projections;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQuery;
@@ -27,7 +31,7 @@ import static com.tastyhouse.infrastructure.payment.persistence.QPaymentRefundJp
  * admin-api에 결제 소비자가 생길 때 이 DAO에 메서드로 추가한다(호출부 없는 조회를 미리 만들지 않는다).
  */
 @Repository
-public class PaymentQueryDao {
+public class PaymentQueryDao implements PaymentQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -45,6 +49,7 @@ public class PaymentQueryDao {
      * 임의의 한 건을 조용히 고르는 대신 {@code fetchOne}으로 즉시 실패시킨다 — 기존
      * {@code PaymentRepository#findByOrderId}와 동일한 fail-loud 시맨틱을 유지한다.
      */
+    @Override
     public Optional<PaymentResult> findPaymentByOrderId(OrderId orderId) {
         return Optional.ofNullable(
             selectPayment()
@@ -59,6 +64,7 @@ public class PaymentQueryDao {
      * <p>command 경로(생성·승인·취소·현장완료·환불)가 커밋 후 응답을 조립할 때 재조회하는 경로다
      * (CQRS 분리 — command는 식별자만 돌려주고 조립은 조회가 담당).
      */
+    @Override
     public Optional<PaymentResult> findPaymentById(PaymentId paymentId) {
         return Optional.ofNullable(
             selectPayment()
@@ -73,10 +79,11 @@ public class PaymentQueryDao {
      * <p>환불 요청 command가 커밋 후 응답을 조립할 때 재조회하는 경로다. 소유권은 요청 시점에 이미
      * 검증되었고 이 조회는 그 직후 재조회이므로 회원 스코프를 다시 대조하지 않는다.
      */
+    @Override
     public Optional<PaymentRefundResult> findRefundById(PaymentRefundId refundId) {
         return Optional.ofNullable(
             queryFactory
-                .select(new QPaymentRefundResult(
+                .select(Projections.constructor(PaymentRefundResult.class,
                     paymentRefundJpaEntity.id,
                     paymentRefundJpaEntity.paymentId,
                     paymentRefundJpaEntity.refundAmount,
@@ -97,7 +104,7 @@ public class PaymentQueryDao {
      */
     private JPAQuery<PaymentResult> selectPayment() {
         return queryFactory
-            .select(new QPaymentResult(
+            .select(Projections.constructor(PaymentResult.class,
                 paymentJpaEntity.id,
                 paymentJpaEntity.orderId,
                 orderJpaEntity.memberId,

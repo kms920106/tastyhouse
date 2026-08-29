@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.ceo.query;
 
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 import java.util.List;
 
 import com.querydsl.core.types.Projections;
@@ -15,7 +17,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoReplyPhraseJpaEn
  * 프론트가 쓰지 않을 분기를 떠안게 된다.
  */
 @Repository
-public class CeoReplyPhraseQueryDao {
+public class CeoReplyPhraseQueryDao implements CeoReplyPhraseQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -29,6 +31,7 @@ public class CeoReplyPhraseQueryDao {
      * <p>{@code id}를 2차 정렬 키로 두는 이유는 삭제 후 {@code sort}를 재정렬하지 않아 순번이 같은 행이
      * 생길 수 있기 때문이다 — 동률일 때 등록순으로 안정 정렬된다.
      */
+    @Override
     public List<CeoReplyPhraseResult> findReplyPhrases(Long ceoId) {
         return queryFactory
             .select(Projections.constructor(CeoReplyPhraseResult.class,

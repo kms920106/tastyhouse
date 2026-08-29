@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.product.query.ProductImageChangeRequestResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductRepresentativeRequestResult;
-import com.tastyhouse.infrastructure.product.query.ProductVegetarianRequestResult;
+import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImageChangeRequestItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductRepresentativeRequestItemResponse;
@@ -25,10 +25,10 @@ import com.tastyhouse.adminapi.product.application.port.in.ProductApprovalQueryU
 @Transactional(readOnly = true)
 public class ProductApprovalQueryService implements ProductApprovalQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
 
-    public ProductApprovalQueryService(ProductQueryDao productQueryDao) {
-        this.productQueryDao = productQueryDao;
+    public ProductApprovalQueryService(ProductQueryPort productQueryPort) {
+        this.productQueryPort = productQueryPort;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductImageChangeRequestResult> pageResult = productQueryDao
+        PageResult<ProductImageChangeRequestResult> pageResult = productQueryPort
             .findImageChangeRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductImageChangeRequestItemResponse));
@@ -53,7 +53,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductVegetarianRequestResult> pageResult = productQueryDao
+        PageResult<ProductVegetarianRequestResult> pageResult = productQueryPort
             .findVegetarianRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductVegetarianRequestItemResponse));
@@ -67,7 +67,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductRepresentativeRequestResult> pageResult = productQueryDao
+        PageResult<ProductRepresentativeRequestResult> pageResult = productQueryPort
             .findRepresentativeRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductRepresentativeRequestItemResponse));

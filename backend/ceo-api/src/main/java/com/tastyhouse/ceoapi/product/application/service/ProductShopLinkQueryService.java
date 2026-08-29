@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResponse;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.product.query.ProductShopLinkQueryDao;
-import com.tastyhouse.infrastructure.product.query.ProductShopLinkResult;
+import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
+import com.tastyhouse.application.product.port.out.ProductShopLinkResult;
 
 /**
  * 점주용 메뉴-가게 연결 조회 서비스(CQRS query 측).
@@ -21,14 +21,14 @@ import com.tastyhouse.infrastructure.product.query.ProductShopLinkResult;
 @Transactional(readOnly = true)
 public class ProductShopLinkQueryService implements ProductShopLinkQueryUseCase {
 
-    private final ProductShopLinkQueryDao productShopLinkQueryDao;
+    private final ProductShopLinkQueryPort productShopLinkQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductShopLinkQueryService(
-        ProductShopLinkQueryDao productShopLinkQueryDao,
+        ProductShopLinkQueryPort productShopLinkQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productShopLinkQueryDao = productShopLinkQueryDao;
+        this.productShopLinkQueryPort = productShopLinkQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -39,7 +39,7 @@ public class ProductShopLinkQueryService implements ProductShopLinkQueryUseCase 
     public List<ProductShopLinkResponse> getShopLinks(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productShopLinkQueryDao.findOwnedShopLinks(ceoId, productId).stream()
+        return productShopLinkQueryPort.findOwnedShopLinks(ceoId, productId).stream()
             .map(this::toProductShopLinkResponse)
             .toList();
     }

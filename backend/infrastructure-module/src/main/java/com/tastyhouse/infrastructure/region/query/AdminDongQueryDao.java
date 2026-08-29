@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.region.query;
 
+import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryResult;
+import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
+import com.tastyhouse.application.region.port.out.AdminDongItemResult;
+import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +33,7 @@ import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEnti
  * 프론트가 시/도·시군구·동 세 조각을 받아 문자열을 조립하지 않도록 한다.
  */
 @Repository
-public class AdminDongQueryDao {
+public class AdminDongQueryDao implements AdminDongQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -40,6 +45,7 @@ public class AdminDongQueryDao {
      * 사용 중({@code is_active = true})인 행정동을 키워드로 검색한다 — 키워드가 비어 있으면 전체.
      * 주소 인덱스({@code idx_admin_dong_name}) 순서에 맞춰 시/도 → 시군구 → 동 순으로 정렬한다.
      */
+    @Override
     public PageResult<AdminDongItemResult> findAdminDongPage(String keyword, PageQuery pageQuery) {
         Long total = queryFactory
             .select(adminDongJpaEntity.count())
@@ -77,6 +83,7 @@ public class AdminDongQueryDao {
      * <p>전 계층을 한 번에 내리지 않고 3단 lazy 조회로 나눈 이유는, 전국 행정동이 3,600건을 넘어 한 번에
      * 내리면 응답이 비대해지고 대부분이 화면에 쓰이지 않기 때문이다.
      */
+    @Override
     public List<AdminDongTreeItemResult> findSidoNames() {
         return queryFactory
             .select(Projections.constructor(AdminDongTreeItemResult.class,
@@ -93,6 +100,7 @@ public class AdminDongQueryDao {
     }
 
     /** 특정 시도의 시군구 목록. */
+    @Override
     public List<AdminDongTreeItemResult> findSigunguNames(String sidoName) {
         return queryFactory
             .select(Projections.constructor(AdminDongTreeItemResult.class,
@@ -112,6 +120,7 @@ public class AdminDongQueryDao {
      * 특정 시군구의 행정동 목록. 이 레벨에서만 식별자({@code adminDongId}·{@code code})가 채워진다 —
      * 상위 두 레벨은 그룹핑 이름일 뿐 마스터 테이블에 자기 행이 없다.
      */
+    @Override
     public List<AdminDongTreeItemResult> findDongs(String sidoName, String sigunguName) {
         return queryFactory
             .select(Projections.constructor(AdminDongTreeItemResult.class,
@@ -136,6 +145,7 @@ public class AdminDongQueryDao {
      * <p>경계를 보유하지 않은 동도 함께 내려보낸다 — 경계가 없다고 목록에서 빼면 화면이 "이 지역에 동이
      * 없다"로 오해하게 되고, 실제로는 좌표만 있고 경계 시드가 아직 안 들어온 정상 상태다.
      */
+    @Override
     public List<AdminDongBoundaryResult> findBoundariesWithinBoundingBox(
         BigDecimal minLatitude,
         BigDecimal maxLatitude,
@@ -157,6 +167,7 @@ public class AdminDongQueryDao {
     }
 
     /** 식별자 목록으로 행정동 경계를 조회한다(화면이 특정 동만 다시 그릴 때). */
+    @Override
     public List<AdminDongBoundaryResult> findBoundariesByIds(Collection<Long> adminDongIds) {
         if (adminDongIds.isEmpty()) {
             return List.of();
@@ -175,6 +186,7 @@ public class AdminDongQueryDao {
      *
      * <p>표시용 이름까지 조립해 내려보내므로 조회 측이 이름을 얻으려고 다시 조회하지 않는다.
      */
+    @Override
     public List<AdminDongCandidateResult> findCandidatesWithinBoundingBox(
         BigDecimal minLatitude,
         BigDecimal maxLatitude,

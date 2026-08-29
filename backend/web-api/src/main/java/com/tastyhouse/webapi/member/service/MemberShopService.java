@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shared.page.PageQuery;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
 
 /**
@@ -17,15 +17,15 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItem
 @Service
 public class MemberShopService {
 
-    private final ShopSearchQueryDao shopSearchQueryDao;
+    private final ShopSearchQueryPort shopSearchQueryPort;
 
-    public MemberShopService(ShopSearchQueryDao shopSearchQueryDao) {
-        this.shopSearchQueryDao = shopSearchQueryDao;
+    public MemberShopService(ShopSearchQueryPort shopSearchQueryPort) {
+        this.shopSearchQueryPort = shopSearchQueryPort;
     }
 
     @Transactional(readOnly = true)
     public PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
-        return PaginationResponse.from(shopSearchQueryDao.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
+        return PaginationResponse.from(shopSearchQueryPort.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
             .map(dto -> ShopBookmarkListItemResponse.from(
                 dto.shopId(),
                 dto.bookmarkId(),

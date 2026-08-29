@@ -23,11 +23,11 @@ import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
-import com.tastyhouse.infrastructure.product.query.ProductOptionGroupLinkedProductResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionGroupManagementResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionGroupMergeCandidateResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionManagementResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
+import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 옵션그룹 합치기의 조회 측(추천 목록 · 미리보기 diff).
@@ -50,14 +50,14 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
     /** 이름은 같은데 가격이 다른 옵션 — 합치면 기준 가격이 이긴다. */
     private static final String DIFF_PRICE_DIFFERS = "PRICE_DIFFERS";
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupMergeQueryService(
-        ProductQueryDao productQueryDao,
+        ProductQueryPort productQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryDao = productQueryDao;
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -73,16 +73,16 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupMergeCandidateResult> candidates =
-            productQueryDao.findOptionGroupMergeCandidates(shopId);
+            productQueryPort.findOptionGroupMergeCandidates(shopId);
         if (candidates.isEmpty()) {
             return List.of();
         }
 
-        Set<String> excluded = productQueryDao.findOptionGroupMergeExcludedSignatures(shopId);
+        Set<String> excluded = productQueryPort.findOptionGroupMergeExcludedSignatures(shopId);
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productQueryDao.findLinkedProductsByShop(shopId);
+            productQueryPort.findLinkedProductsByShop(shopId);
         Map<Long, ProductOptionGroupManagementResult> groupById =
-            productQueryDao.findProductOptionGroupsForManagement(shopId).stream()
+            productQueryPort.findProductOptionGroupsForManagement(shopId).stream()
                 .collect(Collectors.toMap(ProductOptionGroupManagementResult::id, group -> group,
                     (first, second) -> first, LinkedHashMap::new));
 
@@ -122,7 +122,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, ProductOptionGroupManagementResult> groupById =
-            productQueryDao.findProductOptionGroupsForManagement(shopId).stream()
+            productQueryPort.findProductOptionGroupsForManagement(shopId).stream()
                 .collect(Collectors.toMap(ProductOptionGroupManagementResult::id, group -> group,
                     (first, second) -> first, LinkedHashMap::new));
 
@@ -146,7 +146,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
         }
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productQueryDao.findLinkedProductsByShop(shopId);
+            productQueryPort.findLinkedProductsByShop(shopId);
 
         String blockedReason = findBlockedReason(base, candidates, linkedByGroupId);
         return ProductOptionGroupMergePreviewResponse.from(

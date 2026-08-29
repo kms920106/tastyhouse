@@ -10,10 +10,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideHistoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopRiderGuideResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideHistoryResponse;
@@ -30,10 +30,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideQueryUseCa
 @Transactional(readOnly = true)
 public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
-    private final ShopRiderGuideQueryDao shopRiderGuideQueryDao;
+    private final ShopRiderGuideQueryPort shopRiderGuideQueryPort;
 
-    public ShopRiderGuideQueryService(ShopRiderGuideQueryDao shopRiderGuideQueryDao) {
-        this.shopRiderGuideQueryDao = shopRiderGuideQueryDao;
+    public ShopRiderGuideQueryService(ShopRiderGuideQueryPort shopRiderGuideQueryPort) {
+        this.shopRiderGuideQueryPort = shopRiderGuideQueryPort;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
         int page,
         int size
     ) {
-        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideQueryDao
+        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideQueryPort
             .findRiderGuidePage(shopName, hasVisitGuide, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopRiderGuideListItemResponse));
@@ -51,10 +51,10 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
     @Override
     public ShopRiderGuideDetailResponse getRiderGuide(Long shopId) {
-        ShopRiderGuideResult result = shopRiderGuideQueryDao.findRiderGuide(shopId)
+        ShopRiderGuideResult result = shopRiderGuideQueryPort.findRiderGuide(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
-        List<ShopRiderGuideHistoryResponse> histories = shopRiderGuideQueryDao.findHistories(shopId).stream()
+        List<ShopRiderGuideHistoryResponse> histories = shopRiderGuideQueryPort.findHistories(shopId).stream()
             .map(this::toShopRiderGuideHistoryResponse)
             .toList();
 

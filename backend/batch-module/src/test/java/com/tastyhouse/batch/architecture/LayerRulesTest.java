@@ -6,6 +6,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -122,4 +124,51 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void shouldNotDependOnInfrastructureQuery() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
+            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code *SchedulerService}는 인바운드 포트를 최소 1개 구현한다.
+     *
+     * <p>api 모듈의 {@code commandServicesShouldImplementUseCase}에 대응하는 batch 규칙이다. 챕터 04
+     * §5로 batch도 {@code <job>/adapter/in/scheduler}(트리거) · {@code application/port/in}(잡 UseCase) ·
+     * {@code application/service}(구현) 구조를 갖췄다. 이 규칙이 없으면 트리거가 구체 서비스를 직접
+     * 주입하는 이전 형태로 되돌아가도 아무것도 걸리지 않는다.
+     *
+     * <p>배치 잡은 스케줄이 유일한 입력이라 Command record를 두지 않으므로, api 모듈의
+     * {@code commandRecordsShouldBeBoundaryTyped}에 대응하는 규칙은 두지 않는다.
+     */
+    @Test
+    void schedulerServicesShouldImplementUseCase() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("SchedulerService")
+            .should().implement(resideInAPackage("..application.port.in.."))
+            .because("SchedulerService는 대응 잡 UseCase를 구현한다");
+
+        rule.check(classes);
+    }
+
+    /**
+     * {@code @Scheduled} 트리거는 인바운드 포트만 주입한다(구체 서비스 금지).
+     *
+     * <p>위 {@code schedulerServicesShouldImplementUseCase}의 짝이다 — 서비스가 인터페이스를 구현하기만
+     * 하고 트리거가 여전히 구체 클래스를 주입하면 포트를 도입한 목적이 사라진다.
+     */
+    @Test
+    void schedulersShouldDependOnUseCasesOnly() {
+        ArchRule rule = noClasses()
+            .that().haveSimpleNameEndingWith("Scheduler")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("SchedulerService")
+            .because("트리거는 잡 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
+
+        rule.check(classes);
+    }
+
 }

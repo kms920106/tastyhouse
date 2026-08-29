@@ -10,10 +10,10 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.infrastructure.event.query.EventAnnouncementResult;
-import com.tastyhouse.infrastructure.event.query.EventDetailResult;
-import com.tastyhouse.infrastructure.event.query.EventListItemResult;
-import com.tastyhouse.infrastructure.event.query.EventQueryDao;
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventDetailResult;
+import com.tastyhouse.application.event.port.out.EventListItemResult;
+import com.tastyhouse.application.event.port.out.EventQueryPort;
 import com.tastyhouse.webapi.event.application.port.in.EventQueryUseCase;
 import com.tastyhouse.webapi.event.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.response.EventDetailResponse;
@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
 /**
  * 이벤트 조회 서비스(web).
  *
- * <p>infra read 어댑터({@link EventQueryDao})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 이벤트는
+ * <p>읽기 포트({@link EventQueryPort})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 이벤트는
  * 회원이 변경하는 리소스가 아니라 web 쪽은 command 없이 QueryService만 둔다.
  *
  * <p>이미지 URL은 DAO가 완성해 주므로 여기서는 파일을 알지 않고 값을 그대로 응답에 전달한다.
@@ -31,22 +31,22 @@ import com.tastyhouse.webapi.event.response.EventListItemResponse;
 @Transactional(readOnly = true)
 public class EventQueryService implements EventQueryUseCase {
 
-    private final EventQueryDao eventQueryDao;
+    private final EventQueryPort eventQueryPort;
 
-    public EventQueryService(EventQueryDao eventQueryDao) {
-        this.eventQueryDao = eventQueryDao;
+    public EventQueryService(EventQueryPort eventQueryPort) {
+        this.eventQueryPort = eventQueryPort;
     }
 
     @Override
     public PaginationResponse<EventListItemResponse> getEventList(String status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return PaginationResponse.from(eventQueryDao.findEventListItemsByStatus(EventStatus.from(status), pageQuery)
+        return PaginationResponse.from(eventQueryPort.findEventListItemsByStatus(EventStatus.from(status), pageQuery)
             .map(this::toEventListItemResponse));
     }
 
     @Override
     public EventDetailResponse getEventDetail(Long eventId) {
-        EventDetailResult detail = eventQueryDao.findEventBannerById(EventId.of(eventId))
+        EventDetailResult detail = eventQueryPort.findEventBannerById(EventId.of(eventId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
 
         return EventDetailResponse.from(detail.bannerUrl());
@@ -55,7 +55,7 @@ public class EventQueryService implements EventQueryUseCase {
     @Override
     public PaginationResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return PaginationResponse.from(eventQueryDao.findAnnouncements(pageQuery)
+        return PaginationResponse.from(eventQueryPort.findAnnouncements(pageQuery)
             .map(this::toEventAnnouncementListItemResponse));
     }
 

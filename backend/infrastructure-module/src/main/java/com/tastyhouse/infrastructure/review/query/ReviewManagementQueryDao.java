@@ -1,5 +1,11 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewManagementQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewManagementDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +45,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
  * 붙였는데, 여기서는 회원 테이블을 join해 한 번에 투영한다.
  */
 @Repository
-public class ReviewManagementQueryDao {
+public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
 
     /**
      * 답글의 "누구에게 단 답글인지"(replyTo) 회원을 조인하기 위한 별칭. 작성자 조인과 같은 회원 테이블이라
@@ -58,9 +64,10 @@ public class ReviewManagementQueryDao {
     /**
      * 리뷰 목록(숨김 포함) — 검색 조건으로 동적 필터링, 최신순.
      */
+    @Override
     public PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, PageQuery pageQuery) {
         JPAQuery<ReviewListItemResult> query = queryFactory
-            .select(new QReviewListItemResult(
+            .select(Projections.constructor(ReviewListItemResult.class,
                 reviewJpaEntity.id,
                 reviewJpaEntity.shopId,
                 reviewJpaEntity.productId,
@@ -98,9 +105,10 @@ public class ReviewManagementQueryDao {
     /**
      * 리뷰 상세(숨김 포함) — 이미지 URL을 함께 채운다. 없으면 비어 있다.
      */
+    @Override
     public Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId) {
         ReviewManagementDetailResult result = queryFactory
-            .select(new QReviewManagementDetailResult(
+            .select(Projections.constructor(ReviewManagementDetailResult.class,
                 reviewJpaEntity.id,
                 shopJpaEntity.id,
                 shopJpaEntity.name,
@@ -140,6 +148,7 @@ public class ReviewManagementQueryDao {
     /**
      * 리뷰의 댓글 목록(숨김 포함) — 최신순. 작성자 닉네임을 회원 테이블 join으로 함께 투영한다.
      */
+    @Override
     public List<ReviewCommentListItemResult> findCommentsIncludingHidden(ReviewId reviewId) {
         return queryFactory
             .select(Projections.constructor(ReviewCommentListItemResult.class,
@@ -162,6 +171,7 @@ public class ReviewManagementQueryDao {
      *
      * <p>답글 대상 회원(replyTo)은 없을 수 있어 leftJoin으로 붙인다.
      */
+    @Override
     public List<ReviewReplyListItemResult> findRepliesIncludingHidden(List<ReviewCommentId> commentIds) {
         if (commentIds.isEmpty()) {
             return List.of();
@@ -273,7 +283,7 @@ public class ReviewManagementQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}은 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}는 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private ReviewManagementDetailResult withResolvedImageUrl(ReviewManagementDetailResult row) {

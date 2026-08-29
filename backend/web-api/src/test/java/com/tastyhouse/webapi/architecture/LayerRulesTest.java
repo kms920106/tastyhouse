@@ -81,8 +81,10 @@ class LayerRulesTest {
     void controllersShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
-            .because("컨트롤러는 infra query DAO를 직접 주입하지 않는다(조회는 QueryService 경유)");
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
+            .because("컨트롤러는 조회 어댑터도 읽기 포트도 직접 주입하지 않는다(조회는 QueryService 경유)");
 
         rule.check(classes);
     }
@@ -127,9 +129,11 @@ class LayerRulesTest {
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
-            .because("CommandService는 ..query..를 주입하지 않는다(CQRS 교차 주입 금지)");
+            .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -148,17 +152,16 @@ class LayerRulesTest {
      * QueryService가 주입하는 <em>간접</em> 위반은 이 규칙으로 잡히지 않는다. 직접 주입만 규칙화하고,
      * 간접 건은 P5 이관 후 재평가한다.
      */
-    // TODO(P5): 아래 예외 클래스들의 write 포트 주입을 infra query DAO로 이관하고 예외 목록을 비운다.
     @Test
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            // P5 이관으로 ShopDetailRepository 주입은 사라졌고, 남은 것은 노출 가게 판정
-            // (ShopRepository#findVisibleById)·북마크 존재 검증(ShopBookmarkRepository)뿐이다.
-            .and().haveSimpleNameNotEndingWith("ShopQueryService")      // TODO(P7)
-            .and().haveSimpleNameNotEndingWith("ReviewQueryService")    // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("FollowQueryService")    // TODO(P5)
-            .and().haveSimpleNameNotEndingWith("MemberQueryService")    // TODO(P5)
+            // 챕터 04로 표현 목적 조회는 전부 읽기 포트로 이관됐다(북마크 존재·개인정보·팔로우 카운트·
+            // 리뷰 작성 화면 접근 판정 등). 남은 것은 ShopQueryService 하나뿐이며, 그 write 포트는
+            // 배달팁 계산 경로가 도메인 서비스(ShopDeliveryTipCalculator)에 넘길 애그리거트·도메인 모델을
+            // 로드하는 데 쓴다 — 표현용 투영이 아니라 도메인 계산 입력이므로 이관 대상이 아니다
+            // (스펙 §4의 "도메인 불변식 검증용 조회는 이관 대상이 아니다"에 해당).
+            .and().haveSimpleNameNotEndingWith("ShopQueryService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -357,4 +360,14 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void shouldNotDependOnInfrastructureQuery() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
+            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
+
+        rule.check(classes);
+    }
+
 }

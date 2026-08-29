@@ -81,8 +81,10 @@ class LayerRulesTest {
     void controllersShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
-            .because("컨트롤러는 infra query DAO를 직접 주입하지 않는다(조회는 QueryService 경유)");
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
+            .because("컨트롤러는 조회 어댑터도 읽기 포트도 직접 주입하지 않는다(조회는 QueryService 경유)");
 
         rule.check(classes);
     }
@@ -125,9 +127,11 @@ class LayerRulesTest {
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.infrastructure..query..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.infrastructure..query..",
+                "com.tastyhouse.application..port.out..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
-            .because("CommandService는 ..query..를 주입하지 않는다(CQRS 교차 주입 금지)");
+            .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -155,7 +159,10 @@ class LayerRulesTest {
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            .and().haveSimpleNameNotEndingWith("CeoQueryService")                // TODO(P5)
+            // CeoQueryService는 인증(UserDetails 로드·토큰 갱신 시 계정 상태 재검증)과 시드 멱등성
+            // 확인만 하며 표현 목적 read model이 없다 — 엔티티/원시값 반환 + 불변식 검증 경로라
+            // "write 포트 잔류 판정 기준"에 해당하므로 챕터 04의 이관 대상이 아니다.
+            .and().haveSimpleNameNotEndingWith("CeoQueryService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -337,4 +344,14 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void shouldNotDependOnInfrastructureQuery() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..query..")
+            .because("조회 계약은 application..port.out이 소유하고 infra DAO가 구현한다");
+
+        rule.check(classes);
+    }
+
 }

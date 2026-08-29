@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.search.query;
 
+import com.tastyhouse.application.search.port.out.SearchQueryPort;
+import com.tastyhouse.application.search.port.out.KeywordCountResult;
+import com.tastyhouse.application.search.port.out.PopularKeywordResult;
+import com.tastyhouse.application.search.port.out.RecommendedKeywordResult;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +27,7 @@ import static com.tastyhouse.infrastructure.search.persistence.QSearchKeywordLog
  * 키워드 조회는 web 노출 전용이라 admin 소비자가 없어 메서드가 각각 하나씩만 있다.
  */
 @Repository
-public class SearchQueryDao {
+public class SearchQueryDao implements SearchQueryPort {
 
     /**
      * 인기 검색어로 노출하는 상위 키워드 수.
@@ -38,9 +43,10 @@ public class SearchQueryDao {
     /**
      * 노출 인기 검색어 목록 조회 — 노출(visible=true) 항목만 순위 오름차순으로 조회한다.
      */
+    @Override
     public List<PopularKeywordResult> findVisiblePopularKeywords() {
         return queryFactory
-            .select(new QPopularKeywordResult(
+            .select(Projections.constructor(PopularKeywordResult.class,
                 popularKeywordJpaEntity.rank,
                 popularKeywordJpaEntity.keyword,
                 popularKeywordJpaEntity.newKeyword
@@ -54,9 +60,11 @@ public class SearchQueryDao {
     /**
      * 노출 추천 검색어 목록 조회 — 노출(visible=true) 항목만 정렬 순서 오름차순으로 조회한다.
      */
+    @Override
     public List<RecommendedKeywordResult> findVisibleRecommendedKeywords() {
         return queryFactory
-            .select(new QRecommendedKeywordResult(recommendedKeywordJpaEntity.keyword))
+            .select(Projections.constructor(RecommendedKeywordResult.class,
+                recommendedKeywordJpaEntity.keyword))
             .from(recommendedKeywordJpaEntity)
             .where(recommendedKeywordJpaEntity.visible.isTrue())
             .orderBy(recommendedKeywordJpaEntity.sortOrder.asc())
@@ -69,9 +77,10 @@ public class SearchQueryDao {
      * <p>인기 검색어 갱신(도메인 서비스)이 이 집계를 입력으로 순위를 매긴다 — 소비자가 도메인이라
      * 결과는 {@code SearchKeywordCountAdapter}가 도메인 값 타입으로 옮겨 담아 전달한다.
      */
+    @Override
     public List<KeywordCountResult> findTopKeywordsSince(LocalDateTime since) {
         return queryFactory
-            .select(new QKeywordCountResult(
+            .select(Projections.constructor(KeywordCountResult.class,
                 searchKeywordLogJpaEntity.keyword,
                 searchKeywordLogJpaEntity.count()
             ))

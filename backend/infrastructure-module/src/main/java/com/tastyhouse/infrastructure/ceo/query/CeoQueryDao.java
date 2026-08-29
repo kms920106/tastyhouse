@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.ceo.query;
 
+import com.tastyhouse.application.ceo.port.out.CeoQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoListItemResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,7 +21,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoJpaEntity.ceoJpa
  * 검증 경로이므로 이 DAO가 아니라 write 포트에 잔류한다(README "write 포트 잔류 판정 기준").
  */
 @Repository
-public class CeoQueryDao {
+public class CeoQueryDao implements CeoQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -30,9 +33,10 @@ public class CeoQueryDao {
      * 전체 점주 목록 조회 — 가게 배정용 Select 드롭다운을 채운다. 점주 조회는 관리자만 소비하므로
      * 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
      */
+    @Override
     public List<CeoListItemResult> findAllCeos() {
         return queryFactory
-            .select(new QCeoListItemResult(
+            .select(Projections.constructor(CeoListItemResult.class,
                 ceoJpaEntity.id,
                 ceoJpaEntity.name,
                 ceoJpaEntity.businessRegistrationNumber,

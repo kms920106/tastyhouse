@@ -8,25 +8,25 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.notification.query.NotificationListItemResult;
-import com.tastyhouse.infrastructure.notification.query.NotificationQueryDao;
+import com.tastyhouse.application.notification.port.out.NotificationListItemResult;
+import com.tastyhouse.application.notification.port.out.NotificationQueryPort;
 import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
 import com.tastyhouse.webapi.notification.application.port.in.NotificationQueryUseCase;
 
 /**
  * 알림함 조회 서비스(CQRS query 측).
  *
- * <p>infra read 어댑터({@link NotificationQueryDao})만 주입해 조회하고 Response를 조립한다(private 매퍼).
+ * <p>읽기 포트({@link NotificationQueryPort})만 주입해 조회하고 Response를 조립한다(private 매퍼).
  * 도메인 enum은 HTTP 경계로 내보내지 않으므로 이 계층에서 상수명 문자열로 낮춘다.
  */
 @Service
 @Transactional(readOnly = true)
 public class NotificationQueryService implements NotificationQueryUseCase {
 
-    private final NotificationQueryDao notificationQueryDao;
+    private final NotificationQueryPort notificationQueryPort;
 
-    public NotificationQueryService(NotificationQueryDao notificationQueryDao) {
-        this.notificationQueryDao = notificationQueryDao;
+    public NotificationQueryService(NotificationQueryPort notificationQueryPort) {
+        this.notificationQueryPort = notificationQueryPort;
     }
 
     /**
@@ -35,7 +35,7 @@ public class NotificationQueryService implements NotificationQueryUseCase {
     @Override
     public PaginationResponse<NotificationListItemResponse> findNotifications(Long memberId, int page, int size) {
         PageResult<NotificationListItemResult> pageResult =
-            notificationQueryDao.findNotificationsByMemberId(memberId, PageQuery.of(page, size));
+            notificationQueryPort.findNotificationsByMemberId(memberId, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toNotificationListItemResponse));
     }
@@ -45,7 +45,7 @@ public class NotificationQueryService implements NotificationQueryUseCase {
      */
     @Override
     public long countUnread(Long memberId) {
-        return notificationQueryDao.countUnreadByMemberId(memberId);
+        return notificationQueryPort.countUnreadByMemberId(memberId);
     }
 
     private NotificationListItemResponse toNotificationListItemResponse(NotificationListItemResult result) {

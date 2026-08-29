@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.product.query;
 
+import com.tastyhouse.application.product.port.out.ProductFeedbackQueryPort;
+import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,7 +31,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntit
  * 제보의 목적은 정보 수정이지 손님 응대가 아니다. {@code member_id}는 중복 방지 판정(write 포트)에만 쓴다.
  */
 @Repository
-public class ProductFeedbackQueryDao {
+public class ProductFeedbackQueryDao implements ProductFeedbackQueryPort {
 
     /**
      * 한 집계 줄에 실어 보내는 {@code ETC} 서술의 최대 건수. 무제한으로 실으면 제보가 많은 메뉴 하나가
@@ -52,6 +54,7 @@ public class ProductFeedbackQueryDao {
      * <p>페이징을 집계 단위(메뉴 × 유형)로 하는 이유는 그것이 화면의 한 줄이기 때문이다 — 제보 건 단위로
      * 페이징하면 한 집계 줄이 페이지 경계에서 쪼개져 건수가 잘못 보인다.
      */
+    @Override
     public PageResult<ProductFeedbackSummaryResult> findFeedbackSummaries(
         Long shopId,
         LocalDateTime since,

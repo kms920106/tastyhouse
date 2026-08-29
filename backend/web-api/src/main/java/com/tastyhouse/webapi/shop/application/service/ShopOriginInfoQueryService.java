@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.shop.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.infrastructure.shop.query.ShopOriginInfoResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
 import com.tastyhouse.webapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
 
@@ -22,15 +22,15 @@ import com.tastyhouse.webapi.shop.application.port.in.ShopOriginInfoQueryUseCase
 @Transactional(readOnly = true)
 public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
 
-    public ShopOriginInfoQueryService(ShopQueryDao shopQueryDao) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopOriginInfoQueryService(ShopQueryPort shopQueryPort) {
+        this.shopQueryPort = shopQueryPort;
     }
 
     @Override
     public ShopOriginInfoResponse getOriginInfo(Long shopId) {
-        return shopQueryDao.findOriginInfo(shopId)
+        return shopQueryPort.findOriginInfo(shopId)
             .map(this::toShopOriginInfoResponse)
             .orElse(null);
     }

@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.reservation.query;
 
+import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
+import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
+import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -38,11 +43,11 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 시그니처로 구분하며 점주/admin 마커는 붙이지 않는다.
  *
  * <p>가게 대표 이미지는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지 변환해
- * Result에 담는다 — {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수
+ * Result에 담는다 — {@code Projections.constructor}는 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수
  * 없어, fetch 직후 재조립한다.
  */
 @Repository
-public class ReservationQueryDao {
+public class ReservationQueryDao implements ReservationQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -55,6 +60,7 @@ public class ReservationQueryDao {
     /**
      * 내 예약 목록 — 최근 예약 일시 순.
      */
+    @Override
     public List<ReservationResult> findReservationsByMemberId(Long memberId) {
         return reservationQuery()
             .where(reservationJpaEntity.memberId.eq(memberId))
@@ -68,6 +74,7 @@ public class ReservationQueryDao {
     /**
      * 특정 가게의 예약 목록(점주 화면) — 최근 예약 일시 순.
      */
+    @Override
     public List<ReservationResult> findReservationsByShopId(Long shopId) {
         return reservationQuery()
             .where(reservationJpaEntity.shopId.eq(shopId))
@@ -81,6 +88,7 @@ public class ReservationQueryDao {
     /**
      * 예약 단건(가게 정보만) — 예약 완료 화면이 소비한다. 없으면 비어 있다.
      */
+    @Override
     public Optional<ReservationResult> findReservationById(ReservationId id) {
         return Optional.ofNullable(
                 reservationQuery()
@@ -93,9 +101,10 @@ public class ReservationQueryDao {
     /**
      * 예약 단건 상세(가게 정보 + 예약자 회원 정보) — 예약 상세 화면이 소비한다. 없으면 비어 있다.
      */
+    @Override
     public Optional<ReservationDetailResult> findReservationDetailById(ReservationId id) {
         ReservationDetailResult result = queryFactory
-            .select(new QReservationDetailResult(
+            .select(Projections.constructor(ReservationDetailResult.class,
                 reservationJpaEntity.id,
                 reservationJpaEntity.shopId,
                 shopJpaEntity.name,
@@ -127,9 +136,10 @@ public class ReservationQueryDao {
      * 특정 가게·날짜에 <b>행이 존재하는</b> 슬롯의 잔여 수. 행이 없는 시간대는 예약 0건이므로 결과에 없다
      * (소비 측이 전체 슬롯 목록과 병합해 기본 정원으로 채운다).
      */
+    @Override
     public List<SlotOccupancyResult> findSlotOccupancies(Long shopId, LocalDate date) {
         return queryFactory
-            .select(new QSlotOccupancyResult(
+            .select(Projections.constructor(SlotOccupancyResult.class,
                 reservationSlotJpaEntity.slotTime,
                 reservationSlotJpaEntity.capacity.subtract(reservationSlotJpaEntity.reservedCount)
             ))
@@ -146,6 +156,7 @@ public class ReservationQueryDao {
      * 비활성화할지 판정하는 데 쓴다. 차단 대상 상태는 도메인이 소유하므로
      * {@link ReservationStatus#blockingStatuses()}를 그대로 참조한다(실제 차단 로직과 단일 원천 공유).
      */
+    @Override
     public boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date) {
         return queryFactory.selectOne()
             .from(reservationJpaEntity)
@@ -170,8 +181,8 @@ public class ReservationQueryDao {
     }
 
     private ConstructorExpression<ReservationResult> reservationProjection() {
-        return new QReservationResult(
-            reservationJpaEntity.id,
+        return Projections.constructor(ReservationResult.class,
+                reservationJpaEntity.id,
             reservationJpaEntity.shopId,
             shopJpaEntity.name,
             uploadedFileJpaEntity.filePath,
@@ -188,7 +199,7 @@ public class ReservationQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 두 메서드는 {@code @QueryProjection}이
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 두 메서드는 {@code Projections.constructor}가
      * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private ReservationResult withResolvedShopImageUrl(ReservationResult row) {

@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.notification.query;
 
+import com.tastyhouse.application.notification.port.out.NotificationQueryPort;
+import com.tastyhouse.application.notification.port.out.NotificationListItemResult;
+import com.querydsl.core.types.Projections;
 import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,7 +20,7 @@ import static com.tastyhouse.infrastructure.notification.persistence.QNotificati
  * 포트({@code NotificationRepository})와 역할이 겹치지 않는다.
  */
 @Repository
-public class NotificationQueryDao {
+public class NotificationQueryDao implements NotificationQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -28,6 +31,7 @@ public class NotificationQueryDao {
     /**
      * 회원의 알림 목록 — 최신순.
      */
+    @Override
     public PageResult<NotificationListItemResult> findNotificationsByMemberId(Long memberId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(notificationJpaEntity.count())
@@ -40,7 +44,7 @@ public class NotificationQueryDao {
         }
 
         List<NotificationListItemResult> content = queryFactory
-            .select(new QNotificationListItemResult(
+            .select(Projections.constructor(NotificationListItemResult.class,
                 notificationJpaEntity.id,
                 notificationJpaEntity.type,
                 notificationJpaEntity.title,
@@ -63,6 +67,7 @@ public class NotificationQueryDao {
     /**
      * 회원의 미읽음 알림 개수 — 헤더 배지용.
      */
+    @Override
     public long countUnreadByMemberId(Long memberId) {
         Long count = queryFactory
             .select(notificationJpaEntity.count())

@@ -8,10 +8,10 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.banner.query.BannerDetailResult;
-import com.tastyhouse.infrastructure.banner.query.BannerManagementListItemResult;
-import com.tastyhouse.infrastructure.banner.query.BannerQueryDao;
-import com.tastyhouse.infrastructure.banner.query.BannerSearchCondition;
+import com.tastyhouse.application.banner.port.out.BannerDetailResult;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResponse;
@@ -21,7 +21,7 @@ import com.tastyhouse.adminapi.banner.application.port.in.BannerQueryUseCase;
 /**
  * 배너 관리 조회 서비스.
  *
- * <p>infra read 어댑터({@link BannerQueryDao})만 주입해 조회하고 Response를 조립한다. write 포트를
+ * <p>읽기 포트({@link BannerQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트를
  * 주입하지 않으며, 쓰기는 {@link BannerCommandService}가 담당한다.
  *
  * <p>HTTP 경계에서 {@code String}으로 받은 배너 유형은 여기서 {@code BannerType.from(String)}으로
@@ -32,10 +32,10 @@ import com.tastyhouse.adminapi.banner.application.port.in.BannerQueryUseCase;
 @Transactional(readOnly = true)
 public class BannerQueryService implements BannerQueryUseCase {
 
-    private final BannerQueryDao bannerQueryDao;
+    private final BannerQueryPort bannerQueryPort;
 
-    public BannerQueryService(BannerQueryDao bannerQueryDao) {
-        this.bannerQueryDao = bannerQueryDao;
+    public BannerQueryService(BannerQueryPort bannerQueryPort) {
+        this.bannerQueryPort = bannerQueryPort;
     }
 
     @Override
@@ -43,14 +43,14 @@ public class BannerQueryService implements BannerQueryUseCase {
         BannerType bannerType = type == null ? null : BannerType.from(type);
         BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<BannerListItemResponse> pageResult = bannerQueryDao.findAllBanners(condition, pageQuery)
+        PageResult<BannerListItemResponse> pageResult = bannerQueryPort.findAllBanners(condition, pageQuery)
             .map(this::toBannerListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public BannerDetailResponse getBanner(Long id) {
-        BannerDetailResult bannerDetail = bannerQueryDao.findDetailById(id)
+        BannerDetailResult bannerDetail = bannerQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));
         return toBannerDetailResponse(bannerDetail);
     }

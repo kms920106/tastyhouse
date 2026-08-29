@@ -15,10 +15,10 @@ import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
-import com.tastyhouse.infrastructure.product.query.ProductOptionGroupLinkedProductResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionGroupManagementResult;
-import com.tastyhouse.infrastructure.product.query.ProductOptionManagementResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 점주용 옵션그룹·옵션 조회 서비스(CQRS query 측).
@@ -31,16 +31,16 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 @Transactional(readOnly = true)
 public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupQueryService(
-        ProductQueryDao productQueryDao,
+        ProductQueryPort productQueryPort,
         CupDepositPolicy cupDepositPolicy,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryDao = productQueryDao;
+        this.productQueryPort = productQueryPort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -53,7 +53,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
     public List<ProductOptionGroupResponse> getProductOptionGroups(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productQueryDao.findProductOptionGroupsForManagement(shopId).stream()
+        return productQueryPort.findProductOptionGroupsForManagement(shopId).stream()
             .map(this::toProductOptionGroupResponse)
             .toList();
     }
@@ -74,7 +74,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupLinkedProductResult> linked =
-            productQueryDao.findLinkedProductsByOptionGroupId(optionGroupId);
+            productQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
         boolean ownedByRequestedShop = linked.stream().anyMatch(row -> shopId.equals(row.shopId()));
         if (!ownedByRequestedShop) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
@@ -98,7 +98,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productQueryDao.findLinkedProductsByShop(shopId);
+            productQueryPort.findLinkedProductsByShop(shopId);
 
         return linkedByGroupId.entrySet().stream()
             .map(entry -> toLinkedProductsResponse(entry.getKey(), entry.getValue()))

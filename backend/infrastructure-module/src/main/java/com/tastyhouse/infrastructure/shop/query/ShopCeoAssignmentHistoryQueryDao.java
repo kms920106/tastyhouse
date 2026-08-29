@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,7 +28,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * {@code DATE(created_at) BETWEEN ...}처럼 컬럼에 함수를 씌우면 인덱스를 타지 못한다.
  */
 @Repository
-public class ShopCeoAssignmentHistoryQueryDao {
+public class ShopCeoAssignmentHistoryQueryDao implements ShopCeoAssignmentHistoryQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -36,6 +39,7 @@ public class ShopCeoAssignmentHistoryQueryDao {
     /**
      * 내 시스템 접근권한 이력 목록 페이징 — 최신순({@code created_at DESC, id DESC}).
      */
+    @Override
     public PageResult<ShopCeoAssignmentHistoryResult> findShopAccessHistoryPage(
         ShopCeoAssignmentHistorySearchCondition condition,
         PageQuery pageQuery

@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResponse;
 import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.product.query.ProductCategoryManagementResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 점주용 메뉴그룹 목록 조회 서비스(CQRS query 측).
@@ -22,14 +22,14 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 @Transactional(readOnly = true)
 public class ProductCategoryQueryService implements ProductCategoryQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductCategoryQueryService(
-        ProductQueryDao productQueryDao,
+        ProductQueryPort productQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryDao = productQueryDao;
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -41,7 +41,7 @@ public class ProductCategoryQueryService implements ProductCategoryQueryUseCase 
     public List<ProductCategoryResponse> getProductCategories(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productQueryDao.findProductCategoriesForManagement(shopId).stream()
+        return productQueryPort.findProductCategoriesForManagement(shopId).stream()
             .map(this::toProductCategoryResponse)
             .toList();
     }

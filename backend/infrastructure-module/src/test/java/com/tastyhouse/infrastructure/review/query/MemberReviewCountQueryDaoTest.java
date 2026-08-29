@@ -1,12 +1,13 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.MemberReviewCountResult;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.infrastructure.menureview.query.MenuReviewMemberCountResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -3,7 +3,7 @@ package com.tastyhouse.adminapi.shop.application.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.infrastructure.shop.query.ShopOrderNoticeQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
 
@@ -19,10 +19,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeQueryUseC
 @Transactional(readOnly = true)
 public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
 
-    private final ShopOrderNoticeQueryDao shopOrderNoticeQueryDao;
+    private final ShopOrderNoticeQueryPort shopOrderNoticeQueryPort;
 
-    public ShopOrderNoticeQueryService(ShopOrderNoticeQueryDao shopOrderNoticeQueryDao) {
-        this.shopOrderNoticeQueryDao = shopOrderNoticeQueryDao;
+    public ShopOrderNoticeQueryService(ShopOrderNoticeQueryPort shopOrderNoticeQueryPort) {
+        this.shopOrderNoticeQueryPort = shopOrderNoticeQueryPort;
     }
 
     /**
@@ -30,7 +30,7 @@ public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase 
      */
     @Override
     public ShopOrderNoticeResponse getOrderNotice(Long shopId) {
-        return shopOrderNoticeQueryDao.findOrderNotice(shopId)
+        return shopOrderNoticeQueryPort.findOrderNotice(shopId)
             .map(result -> ShopOrderNoticeResponse.of(result.content(), result.hidden(), result.hiddenReason()))
             .orElseGet(ShopOrderNoticeResponse::empty);
     }

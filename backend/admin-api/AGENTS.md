@@ -6,9 +6,9 @@
 ## Purpose
 관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). `admin`(관리자 계정)·`auth`(로그인/JWT)·`banner`·`bug`(버그 제보)·`ceo`(점주 계정)·`coupon`·`event`·`faq`·`file`·`member`(회원 관리)·`notice`·`order`·`partnership`·`point`·`policy`·`product`·`rank`·`review`·`shop` 도메인 관리 API를 제공한다.
 
-**이 모듈이 관리자 측 application 계층이다.** 과거에는 `core-module`의 application 서비스를 web-api와 공유했으나, `core-module` → `domain-module` 전환으로 그 계층이 해체되면서 관리자 유스케이스는 이 모듈이 직접 소유한다. 따라서 **web-api와 application 서비스를 공유하지 않으며**, 한쪽 시그니처 변경이 다른 쪽을 깨뜨리는 결합이 사라졌다(공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `infrastructure-module`의 QueryDao이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
+**이 모듈이 관리자 측 application 계층이다.** 과거에는 `core-module`의 application 서비스를 web-api와 공유했으나, `core-module` → `domain-module` 전환으로 그 계층이 해체되면서 관리자 유스케이스는 이 모듈이 직접 소유한다. 따라서 **web-api와 application 서비스를 공유하지 않으며**, 한쪽 시그니처 변경이 다른 쪽을 깨뜨리는 결합이 사라졌다(공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort` 계약이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
 
-**도메인당 CQRS 분리 (전환 완료)**: 도메인마다 두 서비스를 둔다 — `{도메인}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `infrastructure-module`의 `{도메인}QueryDao`만 주입, 조회 + Response 조립 private 매퍼). 컨트롤러는 필요한 서비스를 각각 주입하며, 조회만 있는 도메인은 QueryService만(`ceo/CeoQueryService`), 명령만 있는 도메인은 CommandService만(`policy/PolicyCommandService`) 둔다. CommandService는 `..query..`를, QueryService는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. 대형 도메인(`shop`)은 관심사별로 서비스를 더 쪼갠다(`ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*`). **QueryDSL은 절대 쓰지 않는다** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`..infrastructure..persistence..` import가 **0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(infra 중 `..query..`만 허용). reference 구현: `notice/NoticeCommandService`·`notice/NoticeQueryService`.
+**도메인당 CQRS 분리 (전환 완료)**: 도메인마다 두 서비스를 둔다 — `{도메인}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입, 조회 + Response 조립 private 매퍼). 컨트롤러는 필요한 서비스를 각각 주입하며, 조회만 있는 도메인은 QueryService만(`ceo/CeoQueryService`), 명령만 있는 도메인은 CommandService만(`policy/PolicyCommandService`) 둔다. CommandService는 읽기 포트를, QueryService는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. 대형 도메인(`shop`)은 관심사별로 서비스를 더 쪼갠다(`ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*`). **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)의 `shouldNotDependOnInfrastructureQuery`가 봉인 목록 없이 이를 차단한다. reference 구현: `notice/NoticeCommandService`·`notice/NoticeQueryService`.
 
 ## Key Files
 | File | Description |
@@ -44,11 +44,11 @@
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨트롤러 검증.
-- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — `applicationServicesShouldNotDependOnWebLayer`(클래스명 `*CommandService`/`*QueryService`로 대상을 잡아 `org.springframework.web.bind..`/`web.servlet..`/`org.springframework.http..`/`jakarta.servlet..` 차단. `MultipartFile`은 업로드 경계 타입이라 제외), `controllersShouldNotDependOnRepositories`, `shouldNotDependOnQuerydsl`, `shouldNotDependOnInfrastructurePersistence` 4개. `allowEmptyShould(true)`를 쓰지 않으므로 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다(과거 `..application..` 패키지 매칭 규칙이 전환 후 대상 0건으로 공허 통과하던 문제를 이렇게 해소했다).
+- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — `applicationServicesShouldNotDependOnWebLayer`(클래스명 `*CommandService`/`*QueryService`로 대상을 잡아 `org.springframework.web.bind..`/`web.servlet..`/`org.springframework.http..`/`jakarta.servlet..` 차단. `MultipartFile`은 업로드 경계 타입이라 제외), `controllersShouldNotDependOnRepositories`, `controllersShouldNotDependOnQueryDaos`, `commandServicesShouldNotDependOnQueryDaos`, `shouldNotDependOnQuerydsl`, `shouldNotDependOnInfrastructurePersistence`, `shouldNotDependOnInfrastructureQuery`(챕터 04 신설 — `com.tastyhouse.infrastructure..query..` 전면 금지, 봉인 목록 없음). `allowEmptyShould(true)`를 쓰지 않으므로 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다(과거 `..application..` 패키지 매칭 규칙이 전환 후 대상 0건으로 공허 통과하던 문제를 이렇게 해소했다).
 
 ### Common Patterns
-- 컨트롤러 → 이 모듈의 application 서비스(`{도메인}CommandService`/`{도메인}QueryService`) → domain write 포트·도메인 서비스 또는 infra `{도메인}QueryDao`. 컨트롤러는 HTTP 매핑만, 서비스는 트랜잭션 경계·승격·위임·변환을 담당한다(과거 `{도메인}Service` → core application 서비스의 2-hop 구조는 전환으로 제거되어 1-hop이다).
-- application 서비스는 더 이상 web-api와 공유되지 않는다. 대신 `domain-module`의 write 포트·도메인 서비스 시그니처나 infra `{도메인}QueryDao`의 메서드를 바꿀 때는 web-api·ceo-api·batch-module의 소비 지점을 함께 확인한다.
+- 컨트롤러 → 이 모듈의 application 서비스(`{도메인}CommandService`/`{도메인}QueryService`) → domain write 포트·도메인 서비스 또는 `application-common-module`의 `{Ctx}QueryPort`. 컨트롤러는 HTTP 매핑만, 서비스는 트랜잭션 경계·승격·위임·변환을 담당한다(과거 `{도메인}Service` → core application 서비스의 2-hop 구조는 전환으로 제거되어 1-hop이다).
+- application 서비스는 더 이상 web-api와 공유되지 않는다. 대신 `domain-module`의 write 포트·도메인 서비스 시그니처나 `{Ctx}QueryPort`의 메서드를 바꿀 때는 web-api·ceo-api·batch-module의 소비 지점을 함께 확인한다.
 - **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. admin-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `adminId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 admin 전용 블랙리스트 저장소(`admin:bl:`)로 빈 등록한다. 정책은 admin-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`AdminUserDetailsService`, `config/jwt/TokenService`·`RedisRepositoryConfig`.
 - **인가 체인은 `.anyRequest().hasAnyRole("ADMIN", "SUPER_ADMIN")`**로 관리자 역할을 강제한다(심층 방어). `@PreAuthorize`는 더 세분화된 제어(예: `AdminApiController`의 `SUPER_ADMIN`)에만 추가로 쓴다.
 - **`jwt.secret`은 web-api와 반드시 달라야 한다**(admin=`JWT_SECRET_ADMIN`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과하는 권한 상승이 발생한다 — 상세는 `security-module/AGENTS.md`. 시크릿 교체 시 기존 admin 세션은 전면 무효화되므로 배포 시 관리자 재로그인 안내가 필요하다.
@@ -58,7 +58,8 @@
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`
-- `infrastructure-module` (implementation) — `<ctx>/query/`의 `{도메인}QueryDao`·Result DTO·SearchCondition 주입용(`..persistence..`는 ArchUnit이 차단)
+- `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition 주입용
+- `infrastructure-module` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단)
 - `external-api`, `logging-module`, `security-module`
 
 ### External

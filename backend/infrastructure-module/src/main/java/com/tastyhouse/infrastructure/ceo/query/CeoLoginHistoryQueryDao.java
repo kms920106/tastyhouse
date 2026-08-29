@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.ceo.query;
 
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,7 +24,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoLoginHistoryJpaE
  * {@code DATE(created_at) BETWEEN ...}처럼 컬럼에 함수를 씌우면 인덱스를 타지 못한다.
  */
 @Repository
-public class CeoLoginHistoryQueryDao {
+public class CeoLoginHistoryQueryDao implements CeoLoginHistoryQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
@@ -32,6 +35,7 @@ public class CeoLoginHistoryQueryDao {
     /**
      * 내 로그인 이력 목록 페이징 — 최신순({@code created_at DESC, id DESC}).
      */
+    @Override
     public PageResult<CeoLoginHistoryResult> findLoginHistoryPage(
         CeoLoginHistorySearchCondition condition,
         PageQuery pageQuery

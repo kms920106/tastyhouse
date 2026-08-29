@@ -16,10 +16,10 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.reservation.service.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
-import com.tastyhouse.infrastructure.reservation.query.ReservationDetailResult;
-import com.tastyhouse.infrastructure.reservation.query.ReservationQueryDao;
-import com.tastyhouse.infrastructure.reservation.query.ReservationResult;
-import com.tastyhouse.infrastructure.reservation.query.SlotOccupancyResult;
+import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
+import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
+import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
@@ -30,7 +30,7 @@ import com.tastyhouse.webapi.reservation.application.port.in.ReservationQueryUse
 /**
  * 예약 조회 서비스(web).
  *
- * <p>infra read 어댑터({@link ReservationQueryDao})만 주입해 조회하고 Response를 조립한다(private 매퍼).
+ * <p>읽기 포트({@link ReservationQueryPort})만 주입해 조회하고 Response를 조립한다(private 매퍼).
  * 가게 썸네일은 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 응답에 전달한다.
  *
  * <p>본인 예약 여부 검증은 조회 경로에서도 필요하다 — 도메인 모델을 거치지 않는 read 경로이므로
@@ -45,10 +45,10 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-    private final ReservationQueryDao reservationQueryDao;
+    private final ReservationQueryPort reservationQueryPort;
 
-    public ReservationQueryService(ReservationQueryDao reservationQueryDao) {
-        this.reservationQueryDao = reservationQueryDao;
+    public ReservationQueryService(ReservationQueryPort reservationQueryPort) {
+        this.reservationQueryPort = reservationQueryPort;
     }
 
     /**
@@ -56,11 +56,11 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public ReservationSlotAvailabilityResponse getAvailability(Long shopId, LocalDate date, Long memberId) {
-        Map<LocalTime, Integer> remainingByTime = reservationQueryDao.findSlotOccupancies(shopId, date).stream()
+        Map<LocalTime, Integer> remainingByTime = reservationQueryPort.findSlotOccupancies(shopId, date).stream()
             .collect(Collectors.toMap(SlotOccupancyResult::slotTime, SlotOccupancyResult::remaining));
 
         // 회원+가게+날짜당 차단 예약은 최대 1건. 존재 여부로 그 날짜 전체 슬롯 비활성화를 판단한다.
-        boolean hasMyReservation = reservationQueryDao.existsBlockingReservation(memberId, shopId, date);
+        boolean hasMyReservation = reservationQueryPort.existsBlockingReservation(memberId, shopId, date);
 
         LocalDateTime now = LocalDateTime.now(KST);
 
@@ -82,7 +82,7 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public List<ReservationResponse> getMyReservations(Long memberId) {
-        return reservationQueryDao.findReservationsByMemberId(memberId).stream()
+        return reservationQueryPort.findReservationsByMemberId(memberId).stream()
             .map(this::toReservationResponse)
             .toList();
     }
@@ -93,7 +93,7 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public List<ReservationResponse> getShopReservations(Long shopId) {
-        return reservationQueryDao.findReservationsByShopId(shopId).stream()
+        return reservationQueryPort.findReservationsByShopId(shopId).stream()
             .map(this::toReservationResponse)
             .toList();
     }
@@ -103,7 +103,7 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public ReservationResponse getReservation(Long id) {
-        ReservationResult result = reservationQueryDao.findReservationById(ReservationId.of(id))
+        ReservationResult result = reservationQueryPort.findReservationById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         return toReservationResponse(result);
     }
@@ -113,7 +113,7 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public ReservationCompleteDetailResponse getCompleteDetail(Long memberId, Long id) {
-        ReservationResult result = reservationQueryDao.findReservationById(ReservationId.of(id))
+        ReservationResult result = reservationQueryPort.findReservationById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         validateOwnership(result.memberId(), memberId);
 
@@ -131,7 +131,7 @@ public class ReservationQueryService implements ReservationQueryUseCase {
      */
     @Override
     public ReservationDetailResponse getReservationDetail(Long memberId, Long id) {
-        ReservationDetailResult result = reservationQueryDao.findReservationDetailById(ReservationId.of(id))
+        ReservationDetailResult result = reservationQueryPort.findReservationDetailById(ReservationId.of(id))
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         validateOwnership(result.memberId(), memberId);
 

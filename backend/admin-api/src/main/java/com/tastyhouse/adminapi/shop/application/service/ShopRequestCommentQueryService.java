@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestCommentResult;
-import com.tastyhouse.infrastructure.shop.query.ShopRequestQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentQueryUseCase;
 
@@ -24,10 +24,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentQueryU
 @Transactional(readOnly = true)
 public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUseCase {
 
-    private final ShopRequestQueryDao shopRequestQueryDao;
+    private final ShopRequestQueryPort shopRequestQueryPort;
 
-    public ShopRequestCommentQueryService(ShopRequestQueryDao shopRequestQueryDao) {
-        this.shopRequestQueryDao = shopRequestQueryDao;
+    public ShopRequestCommentQueryService(ShopRequestQueryPort shopRequestQueryPort) {
+        this.shopRequestQueryPort = shopRequestQueryPort;
     }
 
     /**
@@ -35,10 +35,10 @@ public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUs
      */
     @Override
     public List<ShopRequestCommentResponse> getComments(Long requestId) {
-        shopRequestQueryDao.findRequestDetail(requestId)
+        shopRequestQueryPort.findRequestDetail(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestQueryDao.findComments(requestId).stream()
+        return shopRequestQueryPort.findComments(requestId).stream()
             .map(this::toCommentResponse)
             .toList();
     }

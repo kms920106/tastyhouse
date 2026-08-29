@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopNoticeQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopNoticeResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
 
 /**
@@ -23,16 +23,16 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
 @Transactional(readOnly = true)
 public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
 
-    private final ShopNoticeQueryDao shopNoticeQueryDao;
+    private final ShopNoticeQueryPort shopNoticeQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProhibitedWordValidator prohibitedWordValidator;
 
     public ShopNoticeQueryService(
-        ShopNoticeQueryDao shopNoticeQueryDao,
+        ShopNoticeQueryPort shopNoticeQueryPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProhibitedWordValidator prohibitedWordValidator
     ) {
-        this.shopNoticeQueryDao = shopNoticeQueryDao;
+        this.shopNoticeQueryPort = shopNoticeQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.prohibitedWordValidator = prohibitedWordValidator;
     }
@@ -41,7 +41,7 @@ public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
     public List<ShopNoticeResponse> getNotices(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopNoticeQueryDao.findNotices(shopId).stream()
+        return shopNoticeQueryPort.findNotices(shopId).stream()
             .map(this::toShopNoticeResponse)
             .toList();
     }

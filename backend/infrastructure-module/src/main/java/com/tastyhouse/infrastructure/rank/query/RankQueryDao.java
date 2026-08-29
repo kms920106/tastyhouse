@@ -1,5 +1,13 @@
 package com.tastyhouse.infrastructure.rank.query;
 
+import com.tastyhouse.application.rank.port.out.RankQueryPort;
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankDurationResult;
+import com.tastyhouse.application.rank.port.out.RankPeriodResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeResult;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.ConstructorExpression;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -34,10 +42,10 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
  * 조회 경로에 {@code deleted.isFalse()} 필터를 유지한다.
  *
  * <p>조인으로 얻은 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에 담는다 —
- * {@code @QueryProjection}은 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
+ * {@code Projections.constructor}는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
-public class RankQueryDao {
+public class RankQueryDao implements RankQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -50,9 +58,10 @@ public class RankQueryDao {
     /**
      * 현재 노출 중인 랭킹의 기간 — 시작일이 가장 늦은 1건. 노출 중인 기간이 없으면 비어 있다.
      */
+    @Override
     public Optional<RankDurationResult> findActiveDuration() {
         RankDurationResult result = queryFactory
-            .select(new QRankDurationResult(
+            .select(Projections.constructor(RankDurationResult.class,
                 rankPeriodJpaEntity.startAt,
                 rankPeriodJpaEntity.endAt
             ))
@@ -68,9 +77,10 @@ public class RankQueryDao {
     /**
      * 노출 중인 랭킹 기간에 걸린 등수별 경품 목록(web) — 첨부 이미지 경로를 함께 가져온다.
      */
+    @Override
     public List<RankPrizeResult> findActivePrizes() {
         return queryFactory
-            .select(new QRankPrizeResult(
+            .select(Projections.constructor(RankPrizeResult.class,
                 rankPrizeJpaEntity.id,
                 rankPrizeJpaEntity.prizeRank,
                 rankPrizeJpaEntity.name,
@@ -96,6 +106,7 @@ public class RankQueryDao {
      * 기준일의 회원 랭킹 목록(순위 오름차순 상위 {@code limit}명) — web 랭킹 화면과 admin 관리 목록이
      * 같은 필드 셋을 소비한다.
      */
+    @Override
     public List<MemberRankResult> findMemberRanks(RankType rankType, LocalDate baseDate, int limit) {
         return queryFactory
             .select(memberRankProjection())
@@ -117,6 +128,7 @@ public class RankQueryDao {
     /**
      * 기준일의 특정 회원 랭킹 1건 — 랭킹에 들지 못한 회원이면 비어 있다(소비 측에서 0위 응답으로 대체).
      */
+    @Override
     public Optional<MemberRankResult> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
         MemberRankResult result = queryFactory
             .select(memberRankProjection())
@@ -136,6 +148,7 @@ public class RankQueryDao {
     /**
      * 랭킹 기간 관리 목록(시작일 내림차순) — admin 기간 관리 화면이 소비한다.
      */
+    @Override
     public List<RankPeriodResult> findAllPeriods() {
         return queryFactory
             .select(rankPeriodProjection())
@@ -148,6 +161,7 @@ public class RankQueryDao {
     /**
      * 랭킹 기간 상세 1건 — admin 기간 상세 화면이 소비한다.
      */
+    @Override
     public Optional<RankPeriodResult> findPeriodById(RankPeriodId id) {
         RankPeriodResult result = queryFactory
             .select(rankPeriodProjection())
@@ -161,6 +175,7 @@ public class RankQueryDao {
     /**
      * 특정 기간의 등수별 경품 관리 목록(등수 오름차순) — admin 경품 관리 화면이 소비한다.
      */
+    @Override
     public List<RankPrizeManagementResult> findPrizesByPeriodId(RankPeriodId periodId) {
         return queryFactory
             .select(rankPrizeManagementProjection())
@@ -177,6 +192,7 @@ public class RankQueryDao {
     /**
      * 랭킹 경품 상세 1건 — admin 경품 상세 화면이 소비한다.
      */
+    @Override
     public Optional<RankPrizeManagementResult> findPrizeById(RankPrizeId id) {
         RankPrizeManagementResult result = queryFactory
             .select(rankPrizeManagementProjection())
@@ -188,9 +204,9 @@ public class RankQueryDao {
         return Optional.ofNullable(result).map(this::withResolvedImageUrl);
     }
 
-    private QMemberRankResult memberRankProjection() {
-        return new QMemberRankResult(
-            memberReviewRankJpaEntity.memberId,
+    private ConstructorExpression<MemberRankResult> memberRankProjection() {
+        return Projections.constructor(MemberRankResult.class,
+                memberReviewRankJpaEntity.memberId,
             memberJpaEntity.nickname,
             uploadedFileJpaEntity.filePath,
             memberReviewRankJpaEntity.reviewCount,
@@ -199,9 +215,9 @@ public class RankQueryDao {
         );
     }
 
-    private QRankPeriodResult rankPeriodProjection() {
-        return new QRankPeriodResult(
-            rankPeriodJpaEntity.id,
+    private ConstructorExpression<RankPeriodResult> rankPeriodProjection() {
+        return Projections.constructor(RankPeriodResult.class,
+                rankPeriodJpaEntity.id,
             rankPeriodJpaEntity.startAt,
             rankPeriodJpaEntity.endAt,
             rankPeriodJpaEntity.visible,
@@ -210,9 +226,9 @@ public class RankQueryDao {
         );
     }
 
-    private QRankPrizeManagementResult rankPrizeManagementProjection() {
-        return new QRankPrizeManagementResult(
-            rankPrizeJpaEntity.id,
+    private ConstructorExpression<RankPrizeManagementResult> rankPrizeManagementProjection() {
+        return Projections.constructor(RankPrizeManagementResult.class,
+                rankPrizeJpaEntity.id,
             rankPrizeJpaEntity.rankId,
             rankPrizeJpaEntity.prizeRank,
             rankPrizeJpaEntity.name,
@@ -224,7 +240,7 @@ public class RankQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code @QueryProjection}이
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 세 메서드는 {@code Projections.constructor}가
      * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private MemberRankResult withResolvedImageUrl(MemberRankResult row) {

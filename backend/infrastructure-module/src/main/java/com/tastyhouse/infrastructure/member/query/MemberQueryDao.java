@@ -1,5 +1,13 @@
 package com.tastyhouse.infrastructure.member.query;
 
+import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
+import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
+import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberListItemResult;
+import com.tastyhouse.application.member.port.out.MemberSearchCondition;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.ConstructorExpression;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -36,11 +44,11 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * (회원 관리 목록은 {@link MemberListItemResult}, 프로필 요약은 {@link MemberWithProfileImageResult}).
  *
  * <p>프로필 이미지는 조인으로 얻은 저장 경로를 {@link FileUrlResolver}로 표시용 URL까지 변환해 Result에
- * 담는다 — {@code @QueryProjection}은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
+ * 담는다 — {@code Projections.constructor}는 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없어, fetch
  * 직후 재조립한다.
  */
 @Repository
-public class MemberQueryDao {
+public class MemberQueryDao implements MemberQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -53,9 +61,10 @@ public class MemberQueryDao {
     /**
      * 회원 관리 목록 조회(admin) — 닉네임/아이디/휴대폰 부분일치와 상태·등급 필터를 적용한다.
      */
+    @Override
     public PageResult<MemberListItemResult> findMembers(MemberSearchCondition condition, PageQuery pageQuery) {
         List<MemberListItemResult> content = queryFactory
-            .select(new QMemberListItemResult(
+            .select(Projections.constructor(MemberListItemResult.class,
                 memberJpaEntity.id,
                 memberJpaEntity.username,
                 memberJpaEntity.nickname,
@@ -102,6 +111,7 @@ public class MemberQueryDao {
     /**
      * 닉네임 부분일치 회원 검색(web) — 팔로우 대상 찾기 화면이 소비한다.
      */
+    @Override
     public PageResult<MemberWithProfileImageResult> findByNicknameContaining(String nickname, PageQuery pageQuery) {
         List<MemberWithProfileImageResult> content = queryFactory
             .select(memberWithProfileImageProjection())
@@ -128,6 +138,7 @@ public class MemberQueryDao {
     /**
      * 단건 프로필 요약 조회 — 내 프로필·타 회원 프로필 화면이 소비한다.
      */
+    @Override
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId) {
         return Optional.ofNullable(
                 queryFactory
@@ -144,6 +155,7 @@ public class MemberQueryDao {
      * 회원 상세 조립용 프로필 이미지 표시용 URL 단건 조회. 상세 응답은 도메인 모델({@code Member})을
      * 그대로 써서 조립하지만, 프로필 이미지만은 이 조회로 대체해 파일 단건 재조회를 없앤다.
      */
+    @Override
     public Optional<String> findProfileImageUrl(MemberId memberId) {
         String filePath = queryFactory
             .select(uploadedFileJpaEntity.filePath)
@@ -159,6 +171,7 @@ public class MemberQueryDao {
      * 여러 회원의 프로필 요약을 한 번의 쿼리로 조회해 식별자로 색인한다 — 목록 화면이 작성자 정보를
      * 합성할 때 N+1을 피하기 위한 경로다(과거 단건 조회를 회원 수만큼 반복하던 것을 in 절로 대체).
      */
+    @Override
     public Map<Long, MemberWithProfileImageResult> findMemberWithProfileImagesByIds(Collection<Long> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
             return Map.of();
@@ -181,9 +194,9 @@ public class MemberQueryDao {
             ));
     }
 
-    private QMemberWithProfileImageResult memberWithProfileImageProjection() {
-        return new QMemberWithProfileImageResult(
-            memberJpaEntity.id,
+    private ConstructorExpression<MemberWithProfileImageResult> memberWithProfileImageProjection() {
+        return Projections.constructor(MemberWithProfileImageResult.class,
+                memberJpaEntity.id,
             memberJpaEntity.nickname,
             memberJpaEntity.memberGrade,
             memberJpaEntity.statusMessage,
@@ -192,7 +205,7 @@ public class MemberQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}가 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private MemberListItemResult withResolvedProfileImageUrl(MemberListItemResult row) {
@@ -247,4 +260,91 @@ public class MemberQueryDao {
     private BooleanExpression gradeEq(MemberGrade grade) {
         return grade != null ? memberJpaEntity.memberGrade.eq(grade) : null;
     }
+
+    /**
+     * 마이페이지 개인정보 조회 — 표시 필드만 투영한다.
+     *
+     * <p>{@code gender}는 응답까지 그대로 전달되는 표현용이라 도메인 enum이 아니라 이름 문자열로
+     * 투영한다({@code stringValue()}). 애그리거트를 로드해 필드를 꺼내던 기존 형태를 대체한다.
+     */
+    @Override
+    public Optional<MemberPersonalInfoResult> findPersonalInfoById(MemberId memberId) {
+        MemberPersonalInfoResult result = queryFactory
+            .select(Projections.constructor(MemberPersonalInfoResult.class,
+                memberJpaEntity.username,
+                memberJpaEntity.fullName,
+                memberJpaEntity.phoneNumber.value,
+                memberJpaEntity.birthDate,
+                memberJpaEntity.gender.stringValue(),
+                memberJpaEntity.pushNotificationEnabled,
+                memberJpaEntity.marketingInfoEnabled,
+                memberJpaEntity.eventInfoEnabled
+            ))
+            .from(memberJpaEntity)
+            .where(memberJpaEntity.id.eq(memberId.value()))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * 닉네임 중복 여부. 표현용 단건 판정이라 write 포트가 아니라 이 어댑터가 답한다.
+     */
+    @Override
+    public boolean existsByNickname(String nickname) {
+        Integer found = queryFactory
+            .selectOne()
+            .from(memberJpaEntity)
+            .where(memberJpaEntity.nickname.eq(nickname))
+            .fetchFirst();
+
+        return found != null;
+    }
+
+    /**
+     * 탈퇴하지 않은 회원 중 해당 휴대폰번호 사용 여부. 탈퇴 회원의 번호는 재사용 가능하므로 제외한다.
+     */
+    @Override
+    public boolean existsByActivePhoneNumber(String phoneNumber) {
+        Integer found = queryFactory
+            .selectOne()
+            .from(memberJpaEntity)
+            .where(
+                memberJpaEntity.phoneNumber.value.eq(phoneNumber),
+                memberJpaEntity.memberStatus.ne(MemberStatus.DELETED)
+            )
+            .fetchFirst();
+
+        return found != null;
+    }
+
+    /**
+     * 회원 관리 상세 조회 — 등급·상태·성별은 응답까지 그대로 전달되는 표현용이라 이름 문자열로 투영한다.
+     */
+    @Override
+    public Optional<MemberManagementDetailResult> findManagementDetailById(MemberId memberId) {
+        MemberManagementDetailResult result = queryFactory
+            .select(Projections.constructor(MemberManagementDetailResult.class,
+                memberJpaEntity.id,
+                memberJpaEntity.username,
+                memberJpaEntity.nickname,
+                memberJpaEntity.fullName,
+                memberJpaEntity.phoneNumber.value,
+                memberJpaEntity.gender.stringValue(),
+                memberJpaEntity.birthDate,
+                memberJpaEntity.memberGrade.stringValue(),
+                memberJpaEntity.memberStatus.stringValue(),
+                memberJpaEntity.statusMessage,
+                memberJpaEntity.pushNotificationEnabled,
+                memberJpaEntity.marketingInfoEnabled,
+                memberJpaEntity.eventInfoEnabled,
+                memberJpaEntity.createdAt
+            ))
+            .from(memberJpaEntity)
+            .where(memberJpaEntity.id.eq(memberId.value()))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
 }

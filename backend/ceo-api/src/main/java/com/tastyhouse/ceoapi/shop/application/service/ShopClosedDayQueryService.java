@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopTemporaryClosureResult;
+import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopTemporaryClosureResult;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRegularClosedDayResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopTemporaryClosureResponse;
@@ -25,11 +25,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopTemporaryClosureRe
 @Transactional(readOnly = true)
 public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopClosedDayQueryService(ShopQueryDao shopQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryDao = shopQueryDao;
+    public ShopClosedDayQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopQueryPort = shopQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -37,10 +37,10 @@ public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
     public ShopClosedDaysResponse getClosedDays(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        List<ShopRegularClosedDayResponse> regularClosedDays = shopQueryDao.findClosedDays(shopId).stream()
+        List<ShopRegularClosedDayResponse> regularClosedDays = shopQueryPort.findClosedDays(shopId).stream()
             .map(this::toShopRegularClosedDayResponse)
             .toList();
-        List<ShopTemporaryClosureResponse> temporaryClosures = shopQueryDao.findTemporaryClosures(shopId).stream()
+        List<ShopTemporaryClosureResponse> temporaryClosures = shopQueryPort.findTemporaryClosures(shopId).stream()
             .map(this::toShopTemporaryClosureResponse)
             .toList();
 

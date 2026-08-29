@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +31,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 완성해 투영한다 — 소비 Service가 fileId로 재조회하지 않으며 응답에 {@code ~FileId}가 노출되지 않는다.
  */
 @Repository
-public class ShopDeliveryAreaAdjustmentQueryDao {
+public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjustmentQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -41,6 +44,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao {
     /**
      * 가게의 조정 신청 이력 — 최근 신청 순. 가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.
      */
+    @Override
     public List<ShopDeliveryAreaAdjustmentListItemResult> findAdjustmentRequests(Long shopId) {
         return listItemProjection()
             .where(shopDeliveryAreaAdjustmentRequestJpaEntity.shopId.eq(shopId))
@@ -54,6 +58,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao {
     /**
      * 조정 신청 목록 페이징(검수 화면) — 상태·가게로 필터하며, 최근 신청 순.
      */
+    @Override
     public PageResult<ShopDeliveryAreaAdjustmentListItemResult> findAdjustmentRequestPage(
         DeliveryAreaAdjustmentStatus status,
         Long shopId,
@@ -85,6 +90,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao {
     /**
      * 조정 신청 상세(검수 화면).
      */
+    @Override
     public Optional<ShopDeliveryAreaAdjustmentDetailResult> findAdjustmentRequestById(Long requestId) {
         ShopDeliveryAreaAdjustmentDetailResult detail = queryFactory
             .select(Projections.constructor(ShopDeliveryAreaAdjustmentDetailResult.class,

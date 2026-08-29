@@ -15,12 +15,12 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
-import com.tastyhouse.infrastructure.order.query.OrderListItemResult;
-import com.tastyhouse.infrastructure.order.query.OrderPaymentResult;
-import com.tastyhouse.infrastructure.order.query.OrderProductOptionResult;
-import com.tastyhouse.infrastructure.order.query.OrderProductResult;
-import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
+import com.tastyhouse.application.order.port.out.OrderDetailResult;
+import com.tastyhouse.application.order.port.out.OrderListItemResult;
+import com.tastyhouse.application.order.port.out.OrderPaymentResult;
+import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
+import com.tastyhouse.application.order.port.out.OrderProductResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
 import com.tastyhouse.webapi.member.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderProductOptionResponse;
@@ -32,7 +32,7 @@ import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 /**
  * 회원 주문 조회 서비스(web-api).
  *
- * <p>infra query DAO({@link OrderQueryDao})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
+ * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
  * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
  *
  * <p>주문 상세는 회원 스코프 조회이므로, DAO가 함께 투영한 {@code memberId}를 요청 회원과 대조해 남의
@@ -42,11 +42,11 @@ import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
 @Transactional(readOnly = true)
 public class OrderQueryService implements OrderQueryUseCase {
 
-    private final OrderQueryDao orderQueryDao;
+    private final OrderQueryPort orderQueryPort;
     private final ReviewQueryService reviewQueryService;
 
-    public OrderQueryService(OrderQueryDao orderQueryDao, ReviewQueryService reviewQueryService) {
-        this.orderQueryDao = orderQueryDao;
+    public OrderQueryService(OrderQueryPort orderQueryPort, ReviewQueryService reviewQueryService) {
+        this.orderQueryPort = orderQueryPort;
         this.reviewQueryService = reviewQueryService;
     }
 
@@ -56,7 +56,7 @@ public class OrderQueryService implements OrderQueryUseCase {
     @Override
     public PaginationResponse<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<OrderListItemResponse> pageResult = orderQueryDao
+        PageResult<OrderListItemResponse> pageResult = orderQueryPort
             .findOrders(MemberId.of(memberId), pageQuery)
             .map(this::toOrderListItemResponse);
         return PaginationResponse.from(pageResult);
@@ -67,7 +67,7 @@ public class OrderQueryService implements OrderQueryUseCase {
      */
     @Override
     public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
-        OrderDetailResult result = orderQueryDao.findOrderDetail(OrderId.of(orderId))
+        OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!memberId.equals(result.memberId())) {

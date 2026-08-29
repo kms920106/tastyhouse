@@ -34,7 +34,6 @@ import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
-import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotService;
@@ -46,40 +45,41 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.infrastructure.member.query.MemberDeliveryAddressQueryDao;
-import com.tastyhouse.infrastructure.product.query.PopularProductItemResult;
-import com.tastyhouse.infrastructure.product.query.ProductSimpleResult;
-import com.tastyhouse.infrastructure.product.query.ShopProductItemResult;
-import com.tastyhouse.infrastructure.review.query.LatestReviewListItemResult;
-import com.tastyhouse.infrastructure.review.query.ReviewsByRatingResult;
-import com.tastyhouse.infrastructure.review.query.ShopReviewStatisticsResult;
-import com.tastyhouse.infrastructure.shop.query.BestShopItemResult;
-import com.tastyhouse.infrastructure.shop.query.EditorChoiceResult;
-import com.tastyhouse.infrastructure.shop.query.LatestShopItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopAmenityCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopAmenityWithCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBannerImageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBreakTimeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopBusinessHourResult;
-import com.tastyhouse.infrastructure.shop.query.ShopChoiceQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopClosedDayResult;
-import com.tastyhouse.infrastructure.shop.query.ShopConvenienceInfoResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRangeResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipRegionResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipScheduleResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipSettingResult;
-import com.tastyhouse.infrastructure.shop.query.ShopDeliveryTipTierResult;
-import com.tastyhouse.infrastructure.shop.query.ShopFoodTypeCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopImageUrlsResult;
-import com.tastyhouse.infrastructure.shop.query.ShopMapMarkerResult;
-import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopOrderMethodResult;
-import com.tastyhouse.infrastructure.shop.query.ShopPhoneNumberResult;
-import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryImageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopPhotoCategoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopSearchQueryDao;
+import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
+import com.tastyhouse.application.product.port.out.PopularProductItemResult;
+import com.tastyhouse.application.product.port.out.ProductSimpleResult;
+import com.tastyhouse.application.product.port.out.ShopProductItemResult;
+import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
+import com.tastyhouse.application.shop.port.out.BestShopItemResult;
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
+import com.tastyhouse.application.shop.port.out.LatestShopItemResult;
+import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopAmenityWithCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
+import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
+import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
+import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
+import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
+import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
+import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
+import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageResult;
+import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.product.application.service.ProductQueryService;
 import com.tastyhouse.webapi.review.application.service.ReviewQueryService;
@@ -140,15 +140,14 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     private static final String UNCATEGORIZED_CATEGORY_NAME = "미분류";
 
     private final ShopRepository shopRepository;
-    private final ShopBookmarkRepository shopBookmarkRepository;
     private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
-    private final MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao;
+    private final MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort;
     private final ShopDeliveryTipRepository shopDeliveryTipRepository;
-    private final ShopQueryDao shopQueryDao;
-    private final ShopNoticeQueryDao shopNoticeQueryDao;
-    private final ShopSearchQueryDao shopSearchQueryDao;
-    private final ShopChoiceQueryDao shopChoiceQueryDao;
-    private final ShopDeliveryTipQueryDao shopDeliveryTipQueryDao;
+    private final ShopQueryPort shopQueryPort;
+    private final ShopNoticeQueryPort shopNoticeQueryPort;
+    private final ShopSearchQueryPort shopSearchQueryPort;
+    private final ShopChoiceQueryPort shopChoiceQueryPort;
+    private final ShopDeliveryTipQueryPort shopDeliveryTipQueryPort;
     private final ShopOperatingStatusService shopOperatingStatusService;
     private final ScheduledOrderSlotService scheduledOrderSlotService;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
@@ -158,15 +157,14 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     public ShopQueryService(
         ShopRepository shopRepository,
-        ShopBookmarkRepository shopBookmarkRepository,
         MemberDeliveryAddressRepository memberDeliveryAddressRepository,
-        MemberDeliveryAddressQueryDao memberDeliveryAddressQueryDao,
+        MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort,
         ShopDeliveryTipRepository shopDeliveryTipRepository,
-        ShopQueryDao shopQueryDao,
-        ShopNoticeQueryDao shopNoticeQueryDao,
-        ShopSearchQueryDao shopSearchQueryDao,
-        ShopChoiceQueryDao shopChoiceQueryDao,
-        ShopDeliveryTipQueryDao shopDeliveryTipQueryDao,
+        ShopQueryPort shopQueryPort,
+        ShopNoticeQueryPort shopNoticeQueryPort,
+        ShopSearchQueryPort shopSearchQueryPort,
+        ShopChoiceQueryPort shopChoiceQueryPort,
+        ShopDeliveryTipQueryPort shopDeliveryTipQueryPort,
         ShopOperatingStatusService shopOperatingStatusService,
         ScheduledOrderSlotService scheduledOrderSlotService,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
@@ -175,15 +173,14 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         ReviewQueryService reviewQueryService
     ) {
         this.shopRepository = shopRepository;
-        this.shopBookmarkRepository = shopBookmarkRepository;
         this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
-        this.memberDeliveryAddressQueryDao = memberDeliveryAddressQueryDao;
+        this.memberDeliveryAddressQueryPort = memberDeliveryAddressQueryPort;
         this.shopDeliveryTipRepository = shopDeliveryTipRepository;
-        this.shopQueryDao = shopQueryDao;
-        this.shopNoticeQueryDao = shopNoticeQueryDao;
-        this.shopSearchQueryDao = shopSearchQueryDao;
-        this.shopChoiceQueryDao = shopChoiceQueryDao;
-        this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
+        this.shopQueryPort = shopQueryPort;
+        this.shopNoticeQueryPort = shopNoticeQueryPort;
+        this.shopSearchQueryPort = shopSearchQueryPort;
+        this.shopChoiceQueryPort = shopChoiceQueryPort;
+        this.shopDeliveryTipQueryPort = shopDeliveryTipQueryPort;
         this.shopOperatingStatusService = shopOperatingStatusService;
         this.scheduledOrderSlotService = scheduledOrderSlotService;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
@@ -196,7 +193,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     public List<ShopMapMarkerResponse> searchMapMarkers(Double latitude, Double longitude) {
         BigDecimal lat = BigDecimal.valueOf(latitude);
         BigDecimal lon = BigDecimal.valueOf(longitude);
-        return shopSearchQueryDao.findNearbyShops(lat, lon).stream()
+        return shopSearchQueryPort.findNearbyShops(lat, lon).stream()
             .map(this::toShopMapMarkerResponse)
             .toList();
     }
@@ -222,13 +219,13 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         }
 
         // write 포트가 아니라 read 어댑터를 쓴다 — 표현 목적 조회이므로 CQRS read 측이 맞다.
-        return memberDeliveryAddressQueryDao.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
+        return memberDeliveryAddressQueryPort.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
     }
 
     @Override
     public PaginationResponse<ShopBestListItemResponse> searchBestShops(Long memberId, int page, int size) {
         PageResult<BestShopItemResult> result =
-            shopSearchQueryDao.findBestShops(resolveDeliveryAdminDongId(memberId), PageQuery.of(page, size));
+            shopSearchQueryPort.findBestShops(resolveDeliveryAdminDongId(memberId), PageQuery.of(page, size));
         Map<Long, ShopOperatingStatus> statusMap = resolveOperatingStatuses(
             result.content().stream().map(BestShopItemResult::id).toList()
         );
@@ -246,7 +243,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     ) {
         List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
         List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
-        PageResult<LatestShopItemResult> result = shopSearchQueryDao.findLatestShops(
+        PageResult<LatestShopItemResult> result = shopSearchQueryPort.findLatestShops(
             stationId,
             foodTypeFilters,
             amenityFilters,
@@ -270,7 +267,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopEditorChoiceResponse> searchEditorChoices(int page, int size) {
-        return shopChoiceQueryDao.findEditorChoices(PageQuery.of(page, size)).content().stream()
+        return shopChoiceQueryPort.findEditorChoices(PageQuery.of(page, size)).content().stream()
             .map(this::convertToEditorChoiceResponse)
             .toList();
     }
@@ -337,21 +334,21 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopStationListItemResponse> searchAllStations() {
-        return shopChoiceQueryDao.findAllStations().stream()
+        return shopChoiceQueryPort.findAllStations().stream()
             .map(station -> ShopStationListItemResponse.from(station.id(), station.stationName()))
             .toList();
     }
 
     @Override
     public List<ShopFoodTypeListItemResponse> searchAllFoodTypes() {
-        return shopQueryDao.findVisibleFoodTypeCategories().stream()
+        return shopQueryPort.findVisibleFoodTypeCategories().stream()
             .map(this::convertToFoodTypeListItemResponse)
             .toList();
     }
 
     @Override
     public List<ShopAmenityListItemResponse> searchAllAmenities() {
-        return shopQueryDao.findVisibleAmenityCategories().stream()
+        return shopQueryPort.findVisibleAmenityCategories().stream()
             .map(this::convertToAmenityListItemResponse)
             .toList();
     }
@@ -376,13 +373,13 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public ShopDetailResponse getShopDetail(Long shopId) {
-        Shop shop = findVisibleShop(shopId);
+        ShopVisibleDetailResult shop = findVisibleShop(shopId);
 
-        List<ShopPhoneNumberItem> phoneNumbers = shopQueryDao.findPhoneNumbers(shopId).stream()
+        List<ShopPhoneNumberItem> phoneNumbers = shopQueryPort.findPhoneNumbers(shopId).stream()
             .map(this::convertToShopPhoneNumberItem)
             .toList();
 
-        String trademarkImageUrl = shopQueryDao.findShopImageUrls(shopId)
+        String trademarkImageUrl = shopQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
 
@@ -393,26 +390,26 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         // 배달팁·공휴일은 시각 의존 값이라 이 응답에는 캐시를 두지 않는다(최소주문금액 최신화를 위해
         // 가게 상세 캐시를 제거한 선례와 같은 이유) — 범위 값 자체는 시각에 의존하지 않지만, 점주가
         // 설정을 바꾼 직후 상세 화면이 옛 금액을 보여주면 팝업의 확정 금액과 어긋난다.
-        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryDao.findTipRange(shopId);
+        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryPort.findTipRange(shopId);
 
         return ShopDetailResponse.of(
-            shop.getId(),
-            shop.getName(),
-            shop.getLatitude(),
-            shop.getLongitude(),
-            shop.getRating(),
-            shop.getRoadAddress(),
-            shop.getLotAddress(),
-            shop.getPhoneNumber(),
+            shop.id(),
+            shop.name(),
+            shop.latitude(),
+            shop.longitude(),
+            shop.rating(),
+            shop.roadAddress(),
+            shop.lotAddress(),
+            shop.phoneNumber(),
             phoneNumbers,
             trademarkImageUrl,
             operatingStatus.status().name(),
             unavailableReason == null ? null : unavailableReason.name(),
             unavailableReason == null ? null : unavailableReason.getDisplayName(),
-            shop.getMinOrderAmount(),
+            shop.minOrderAmount(),
             tipRange.minDeliveryTip(),
             tipRange.maxDeliveryTip(),
-            shop.isScheduledOrderEnabled()
+            shop.scheduledOrderEnabled()
         );
     }
 
@@ -499,20 +496,20 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         Integer orderAmount,
         String orderMethod
     ) {
-        Shop shop = findVisibleShop(shopId);
+        Shop shop = findVisibleShopAggregate(shopId);
 
-        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryDao.findTipRange(shopId);
-        ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryDao.findSetting(shopId).orElse(null);
+        ShopDeliveryTipRangeResult tipRange = shopDeliveryTipQueryPort.findTipRange(shopId);
+        ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryPort.findSetting(shopId).orElse(null);
 
         // 구간 Result는 응답 매핑과 breakdown 문구(적용 구간의 하한 금액) 양쪽이 쓰므로 지역 변수로 잡는다.
-        List<ShopDeliveryTipTierResult> tierResults = shopDeliveryTipQueryDao.findTiers(shopId);
+        List<ShopDeliveryTipTierResult> tierResults = shopDeliveryTipQueryPort.findTiers(shopId);
         List<ShopDeliveryTipTierItem> tiers = tierResults.stream()
             .map(this::toShopDeliveryTipTierItem)
             .toList();
-        List<ShopDeliveryTipRegionItem> regions = shopDeliveryTipQueryDao.findRegionTips(shopId).stream()
+        List<ShopDeliveryTipRegionItem> regions = shopDeliveryTipQueryPort.findRegionTips(shopId).stream()
             .map(this::toShopDeliveryTipRegionItem)
             .toList();
-        List<ShopDeliveryTipScheduleItem> schedules = shopDeliveryTipQueryDao.findScheduleTips(shopId).stream()
+        List<ShopDeliveryTipScheduleItem> schedules = shopDeliveryTipQueryPort.findScheduleTips(shopId).stream()
             .map(this::toShopDeliveryTipScheduleItem)
             .toList();
 
@@ -530,7 +527,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             toShopDeliveryTipDistanceItem(setting),
             regions,
             schedules,
-            shopDeliveryTipQueryDao.findHolidayTipAmount(shopId)
+            shopDeliveryTipQueryPort.findHolidayTipAmount(shopId)
         );
     }
 
@@ -727,10 +724,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     @Override
     public ShopInfoResponse getShopInfo(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopBusinessHourResult> businessHours = shopQueryDao.findBusinessHours(shopId);
-        List<ShopBreakTimeResult> breakTimes = shopQueryDao.findBreakTimes(shopId);
-        List<ShopClosedDayResult> closedDays = shopQueryDao.findClosedDays(shopId);
-        List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryDao.findAmenitiesWithCategory(shopId);
+        List<ShopBusinessHourResult> businessHours = shopQueryPort.findBusinessHours(shopId);
+        List<ShopBreakTimeResult> breakTimes = shopQueryPort.findBreakTimes(shopId);
+        List<ShopClosedDayResult> closedDays = shopQueryPort.findClosedDays(shopId);
+        List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryPort.findAmenitiesWithCategory(shopId);
 
         List<ShopBusinessHourItem> businessHourItems = businessHours.stream()
             .map(this::convertToBusinessHourItem)
@@ -750,7 +747,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
         String ownerMessage = null;
         LocalDateTime ownerMessageCreatedAt = null;
-        var ownerMessageHistory = shopQueryDao.findLatestOwnerMessage(shopId);
+        var ownerMessageHistory = shopQueryPort.findLatestOwnerMessage(shopId);
         if (ownerMessageHistory.isPresent()) {
             ownerMessage = ownerMessageHistory.get().message();
             ownerMessageCreatedAt = ownerMessageHistory.get().createdAt();
@@ -763,7 +760,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         String directionsGuide = null;
         BigDecimal displayLatitude = null;
         BigDecimal displayLongitude = null;
-        var convenienceInfo = shopQueryDao.findConvenienceInfo(shopId);
+        var convenienceInfo = shopQueryPort.findConvenienceInfo(shopId);
         if (convenienceInfo.isPresent()) {
             ShopConvenienceInfoResult info = convenienceInfo.get();
             parkingAvailable = info.parkingAvailable();
@@ -801,14 +798,14 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     @Override
     public ShopNoticeResponse getShopNotice(Long shopId) {
         findVisibleShop(shopId);
-        return shopNoticeQueryDao.findExposedNotice(shopId)
+        return shopNoticeQueryPort.findExposedNotice(shopId)
             .map(dto -> ShopNoticeResponse.of(dto.id(), dto.content(), dto.imageUrls(), dto.createdAt()))
             .orElse(null);
     }
 
     @Override
     public List<ShopBannerResponse> getShopBanners(Long shopId) {
-        return shopQueryDao.findBannerImages(shopId).stream()
+        return shopQueryPort.findBannerImages(shopId).stream()
             .map(this::convertToShopBannerResponse)
             .toList();
     }
@@ -859,8 +856,8 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {
-        List<ShopPhotoCategoryResult> categories = shopQueryDao.findPhotoCategories(shopId);
-        List<ShopPhotoCategoryImageResult> images = shopQueryDao.findAllPhotoCategoryImages();
+        List<ShopPhotoCategoryResult> categories = shopQueryPort.findPhotoCategories(shopId);
+        List<ShopPhotoCategoryImageResult> images = shopQueryPort.findAllPhotoCategoryImages();
 
         Map<Long, List<ShopPhotoCategoryImageResult>> imagesByCategory = images.stream()
             .filter(image -> image.shopPhotoCategoryId() != null)
@@ -932,10 +929,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     public ShopReviewStatisticsResponse getShopReviewStatistics(Long shopId) {
         ShopReviewStatisticsResult statistics = reviewQueryService.findShopReviewStatistics(shopId);
 
-        Shop shop = findVisibleShop(shopId);
+        ShopVisibleDetailResult shop = findVisibleShop(shopId);
 
         return ShopReviewStatisticsResponse.from(
-            shop.getRating(),
+            shop.rating(),
             statistics.totalReviewCount(),
             statistics.averageTasteRating(),
             statistics.averageAmountRating(),
@@ -1043,7 +1040,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public ShopBookmarkResponse isBookmarked(Long shopId, Long memberId) {
-        boolean isBookmarked = shopBookmarkRepository.existsByShopIdAndMemberId(shopId, MemberId.of(memberId));
+        boolean isBookmarked = shopQueryPort.existsBookmark(shopId, memberId);
         return ShopBookmarkResponse.from(isBookmarked);
     }
 
@@ -1056,7 +1053,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         Map<OrderMethod, ShopOperatingStatusResult> availabilities =
             shopOperatingStatusService.findOrderMethodAvailabilities(shopId, LocalDateTime.now());
 
-        List<ShopOrderMethodItemResponse> orderMethodItems = shopQueryDao.findOrderMethods(shopId).stream()
+        List<ShopOrderMethodItemResponse> orderMethodItems = shopQueryPort.findOrderMethods(shopId).stream()
             .map(dto -> toShopOrderMethodItemResponse(dto, availabilities.get(dto.orderMethod())))
             .toList();
 
@@ -1080,7 +1077,19 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     /**
      * 회원 노출용 가게 단건. 폐업·노출정지 가게는 조회되지 않아 딥링크 진입이 차단된다.
      */
-    private Shop findVisibleShop(Long shopId) {
+    private ShopVisibleDetailResult findVisibleShop(Long shopId) {
+        return shopQueryPort.findVisibleDetailById(shopId)
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+    }
+
+    /**
+     * 배달팁 계산용 가게 애그리거트 로드.
+     *
+     * <p>표현용 단건({@link #findVisibleShop})과 달리 도메인 서비스
+     * ({@code ShopDeliveryTipCalculator})에 넘길 도메인 모델이 필요해 write 포트를 쓴다 — 표현 목적
+     * 조회가 아니므로 읽기 포트로 이관하지 않는다(CQRS 규칙의 정당한 예외).
+     */
+    private Shop findVisibleShopAggregate(Long shopId) {
         return shopRepository.findVisibleById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }

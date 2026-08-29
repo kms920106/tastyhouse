@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopNoticeManagementListItemResult;
-import com.tastyhouse.infrastructure.shop.query.ShopNoticeQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
 import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeQueryUseCase;
@@ -20,10 +20,10 @@ import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
 
-    private final ShopNoticeQueryDao shopNoticeQueryDao;
+    private final ShopNoticeQueryPort shopNoticeQueryPort;
 
-    public ShopNoticeQueryService(ShopNoticeQueryDao shopNoticeQueryDao) {
-        this.shopNoticeQueryDao = shopNoticeQueryDao;
+    public ShopNoticeQueryService(ShopNoticeQueryPort shopNoticeQueryPort) {
+        this.shopNoticeQueryPort = shopNoticeQueryPort;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
         int page,
         int size
     ) {
-        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeQueryDao
+        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeQueryPort
             .findNoticePage(shopId, shopName, hidden, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopNoticeManagementListItemResponse));

@@ -12,11 +12,11 @@
 - **검수/승인**: 상표·대표이미지는 `domain-module`의 `shared/model/ApprovalStatus`(PENDING/APPROVED/REJECTED)를 쓰는 공용 `ShopImageChangeRequest` 애그리거트로 "점주 변경요청 → admin 승인/반려 → 승인 시 Shop 반영" 워크플로를 구현한다. 가게소개·찾아오는길은 `ProhibitedWordValidator`(금칙어) 통과 시 즉시 반영, 콘텐츠보드는 즉시 노출 + admin 사후 숨김/삭제. 노출정지는 PENDING 승인요청 존재 시 차단(`SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST`).
 - **이미지 규격 검증**: `shop/ShopImageSpecValidator`가 상표(JPG·≤900KB·560×560↑·1:1)/콘텐츠(IMAGE JPG·PNG ≤10MB 700×700↑, GIF ≤10MB 250×250↑) 규격을 업로드 전 검증하고, 통과분만 `FileService`로 업로드한다. 유튜브 영상 길이(5~30분)는 서버 검증 불가라 URL 형식만 검증한다.
 
-**도메인당 CQRS 분리 (전환 완료)**: 컨트롤러가 `domain-module`에 직접 결합되는 것을 막기 위해, admin-api와 동일하게 관심사별 CQRS 서비스 쌍을 이 모듈에 둔다 — `{관심사}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입)와 `{관심사}QueryService`(`@Transactional(readOnly = true)`, infra `{도메인}QueryDao`만 주입 + Response 조립 private 매퍼). `shop`은 점주 설정 관심사가 많아 서비스를 관심사 단위로 쪼갠다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopPhoneNumber*`/`ShopStatus*`/`ShopIntroduction*`/`ShopConvenienceInfo*`/`ShopTrademark*`/`ShopContentBoard*`/`ShopSuspension*`/`ShopHygieneBadgeQueryService`/`ShopDeliveryTip*`/`ShopDeliveryArea*`). 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않고 ceo-api 타입에만 의존한다.
+**도메인당 CQRS 분리 (전환 완료)**: 컨트롤러가 `domain-module`에 직접 결합되는 것을 막기 위해, admin-api와 동일하게 관심사별 CQRS 서비스 쌍을 이 모듈에 둔다 — `{관심사}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입)와 `{관심사}QueryService`(`@Transactional(readOnly = true)`, `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입 + Response 조립 private 매퍼). `shop`은 점주 설정 관심사가 많아 서비스를 관심사 단위로 쪼갠다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopPhoneNumber*`/`ShopStatus*`/`ShopIntroduction*`/`ShopConvenienceInfo*`/`ShopTrademark*`/`ShopContentBoard*`/`ShopSuspension*`/`ShopHygieneBadgeQueryService`/`ShopDeliveryTip*`/`ShopDeliveryArea*`). 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않고 ceo-api 타입에만 의존한다.
 
 **배달팁 관심사는 예외적으로 컨트롤러 하나가 파트 5종을 소유한다**: `ShopDeliveryTipApiController`가 구간별·거리별·지역별·시간별·공휴일 8개 엔드포인트를 함께 갖는다. 관심사별로 쪼개는 이 모듈의 관례를 따르지 않은 이유는 **거리별↔지역별 상호 배타가 두 리소스에 걸친 불변식**이라, 컨트롤러를 나누면 그 검증이 두 곳으로 흩어지기 때문이다. 또한 각 파트는 개별 행 CRUD가 아니라 **replace-all `PUT`**으로 교체하는데, 구간의 "3개 이하 + 금액 오름차순 + 팁 내림차순"이 집합 전체를 봐야 판정되는 규칙이어서 행 단위로 열면 중간 상태가 반드시 규칙을 위반하기 때문이다(상세 근거와 판정 기준은 `backend/CLAUDE.md`의 "집합 불변식 설정 컬렉션은 replace-all PUT으로 교체하는 규칙" 참고). 반면 `ShopDeliveryAreaApiController`는 행 하나가 스스로 유효하므로 기존 관례대로 행 단위 CRUD다.
 
-**QueryDSL은 절대 쓰지 않는다** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`..infrastructure..persistence..` import가 **0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(infra 중 `..query..`만 허용).
+**QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)의 `shouldNotDependOnInfrastructureQuery`가 봉인 목록 없이 이를 차단한다.
 
 **`scanBasePackages`에 domain 엔트리 없음**: `CeoApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.ceoapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외)는 그대로 유지된다.
 
@@ -37,11 +37,11 @@
 ### Working In This Directory
 - 새 기능 추가 시 admin-api와 동일한 도메인-폴더 + `request/`·`response/` 컨벤션, `{도메인}CommandService`/`{도메인}QueryService` CQRS 중개 계층, DTO 조립·`@ModelAttribute` 조회·`@PathVariable id` 통일·`@Schema` 문서화 규칙을 그대로 따른다. 상세·근거·예시는 루트 CLAUDE.md 및 `admin-api/AGENTS.md` 참고.
 - **import 순서 — presentation 내부 서브정렬**: 자사 import의 presentation 계층(`com.tastyhouse.ceoapi.*`) 안에서 공용 인프라(`common`·`config`)를 도메인 전용(`<도메인>.request`·`.response`)보다 위에 둔다. 상세는 루트 CLAUDE.md 참고.
-- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트를 다루는 오케스트레이션과 무상태 정책·검증기(`ProhibitedWordValidator` 등)는 `<ctx>/service/` POJO로 내리고, 이 모듈의 CommandService는 트랜잭션 경계·소유권 검증·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다. `domain-module`의 write 포트·도메인 서비스와 infra `{도메인}QueryDao`는 web-api/admin-api와 공유되므로, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
+- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트를 다루는 오케스트레이션과 무상태 정책·검증기(`ProhibitedWordValidator` 등)는 `<ctx>/service/` POJO로 내리고, 이 모듈의 CommandService는 트랜잭션 경계·소유권 검증·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. 도메인 모델은 POJO라 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다. `domain-module`의 write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort`는 web-api/admin-api와 공유되므로, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
 
 ### Testing Requirements
 - `@SpringBootTest` 기반 컨텍스트 로드/컨트롤러 검증.
-- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — CQRS 서비스의 web 플럼빙 의존 금지(단 `MultipartFile`은 업로드 경계 타입이라 제외 — 이미지 변경요청·콘텐츠보드 서비스가 정당하게 파라미터로 사용한다), 컨트롤러의 Repository 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지 4개. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다.
+- **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — CQRS 서비스의 web 플럼빙 의존 금지(단 `MultipartFile`은 업로드 경계 타입이라 제외 — 이미지 변경요청·콘텐츠보드 서비스가 정당하게 파라미터로 사용한다), 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, `com.tastyhouse.infrastructure..query..` 전면 금지(챕터 04 신설 `shouldNotDependOnInfrastructureQuery`, 봉인 목록 없음). `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다.
 
 ### Common Patterns
 - **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. ceo-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `ceoId` 클레임·`CustomUserDetails` 재구성만 주입한다(검증 토큰 없음). 공용 필터는 `config/jwt/JwtConfig`가 점주 전용 블랙리스트 저장소(`ceo:bl:`)로 빈 등록하고, refresh 저장소는 `RedisRepositoryConfig`가 `ceo:rt:` 접두사로 등록한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현, `Ceo` 도메인 모델 기반 생성자 포함)·`CeoUserDetailsService`.
@@ -56,7 +56,8 @@
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`·`shared/model/ApprovalStatus`
-- `infrastructure-module` (implementation) — `<ctx>/query/`의 `{도메인}QueryDao`·Result DTO·SearchCondition 주입용(`..persistence..`는 ArchUnit이 차단)
+- `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition 주입용
+- `infrastructure-module` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단)
 - `external-api`, `logging-module`, `security-module`
 
 ### External

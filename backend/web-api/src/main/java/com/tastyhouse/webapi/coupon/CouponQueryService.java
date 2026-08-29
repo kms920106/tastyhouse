@@ -6,15 +6,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.infrastructure.coupon.query.CouponQueryDao;
-import com.tastyhouse.infrastructure.coupon.query.MemberCouponResult;
+import com.tastyhouse.application.coupon.port.out.CouponQueryPort;
+import com.tastyhouse.application.coupon.port.out.MemberCouponResult;
 import com.tastyhouse.webapi.coupon.application.port.in.CouponQueryUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
 
 /**
  * 내 쿠폰 조회 서비스(web).
  *
- * <p>infra read 어댑터({@link CouponQueryDao})만 주입해 조회하고 Response를 조립한다. web-api에는 쿠폰
+ * <p>읽기 포트({@link CouponQueryPort})만 주입해 조회하고 Response를 조립한다. web-api에는 쿠폰
  * 쓰기 경로가 없으므로(주문 결제 사용은 order 도메인 트랜잭션 안에서 도메인 서비스가 처리, 관리자 발급은
  * admin-api 담당) CommandService를 두지 않는다 — point 도메인과 동일한 형태다.
  *
@@ -25,10 +25,10 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResp
 @Transactional(readOnly = true)
 public class CouponQueryService implements CouponQueryUseCase {
 
-    private final CouponQueryDao couponQueryDao;
+    private final CouponQueryPort couponQueryPort;
 
-    public CouponQueryService(CouponQueryDao couponQueryDao) {
-        this.couponQueryDao = couponQueryDao;
+    public CouponQueryService(CouponQueryPort couponQueryPort) {
+        this.couponQueryPort = couponQueryPort;
     }
 
     /**
@@ -36,7 +36,7 @@ public class CouponQueryService implements CouponQueryUseCase {
      */
     @Override
     public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
-        return couponQueryDao.findMemberCoupons(memberId)
+        return couponQueryPort.findMemberCoupons(memberId)
             .stream()
             .map(this::toMyCouponListItemResponse)
             .toList();
@@ -47,7 +47,7 @@ public class CouponQueryService implements CouponQueryUseCase {
      */
     @Override
     public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
-        return couponQueryDao.findAvailableMemberCoupons(memberId, LocalDateTime.now())
+        return couponQueryPort.findAvailableMemberCoupons(memberId, LocalDateTime.now())
             .stream()
             .map(this::toMyCouponListItemResponse)
             .toList();

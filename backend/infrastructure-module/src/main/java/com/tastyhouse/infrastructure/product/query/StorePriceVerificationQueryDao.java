@@ -1,5 +1,8 @@
 package com.tastyhouse.infrastructure.product.query;
 
+import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +37,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 조회만 갖고, 표현 목적 투영(가게명 조인·항목 수 집계·파일 URL 완성)은 전부 이 DAO가 담당한다.
  */
 @Repository
-public class StorePriceVerificationQueryDao {
+public class StorePriceVerificationQueryDao implements StorePriceVerificationQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -49,6 +52,7 @@ public class StorePriceVerificationQueryDao {
      *
      * <p>{@code status}가 {@code null}이면 전체를 조회한다(상태 미지정 = "전체").
      */
+    @Override
     public PageResult<StorePriceVerificationListItemResult> findVerificationPage(
         StorePriceVerificationStatus status,
         PageQuery pageQuery
@@ -80,6 +84,7 @@ public class StorePriceVerificationQueryDao {
      * 인증 요청 단건 — 상세 화면 헤더(가게·가격표 이미지·상태)용이다. 항목은
      * {@link #findVerificationItems(Long)}가 따로 조회한다.
      */
+    @Override
     public Optional<StorePriceVerificationListItemResult> findVerificationById(Long verificationId) {
         return Optional.ofNullable(
                 verificationProjection()
@@ -96,6 +101,7 @@ public class StorePriceVerificationQueryDao {
      * N건 달리므로 목록에 조인하면 행이 부풀어 페이징이 깨진다 — 목록은 {@code itemCount} 집계만 담고
      * 항목 자체는 상세에서 가져온다.
      */
+    @Override
     public List<StorePriceVerificationItemResult> findVerificationItems(Long verificationId) {
         return queryFactory
             .select(Projections.constructor(StorePriceVerificationItemResult.class,

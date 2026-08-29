@@ -8,8 +8,8 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductQueryUseCase;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.infrastructure.product.query.ProductManagementDetailResult;
-import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
+import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * 점주용 메뉴 상세 조회 서비스(CQRS query 측).
@@ -21,11 +21,11 @@ import com.tastyhouse.infrastructure.product.query.ProductQueryDao;
 @Transactional(readOnly = true)
 public class ProductQueryService implements ProductQueryUseCase {
 
-    private final ProductQueryDao productQueryDao;
+    private final ProductQueryPort productQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ProductQueryService(ProductQueryDao productQueryDao, ShopOwnershipValidator shopOwnershipValidator) {
-        this.productQueryDao = productQueryDao;
+    public ProductQueryService(ProductQueryPort productQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.productQueryPort = productQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -33,7 +33,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     public ProductDetailResponse getProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductManagementDetailResult dto = productQueryDao.findProductManagementDetailById(productId)
+        ProductManagementDetailResult dto = productQueryPort.findProductManagementDetailById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!dto.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

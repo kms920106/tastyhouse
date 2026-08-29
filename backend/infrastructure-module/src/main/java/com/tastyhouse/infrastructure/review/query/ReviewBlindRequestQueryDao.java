@@ -1,5 +1,10 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,7 +42,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 행이 불어나지 않는다.
  */
 @Repository
-public class ReviewBlindRequestQueryDao {
+public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -50,6 +55,7 @@ public class ReviewBlindRequestQueryDao {
     /**
      * 게시중단 요청 목록 — 최신순({@code created_at DESC, id DESC}).
      */
+    @Override
     public PageResult<ReviewBlindRequestListItemResult> findBlindRequestPage(
         ReviewBlindRequestSearchCondition condition,
         PageQuery pageQuery
@@ -100,6 +106,7 @@ public class ReviewBlindRequestQueryDao {
     /**
      * 게시중단 요청 심사 상세.
      */
+    @Override
     public Optional<ReviewBlindRequestDetailResult> findBlindRequestDetail(Long id) {
         ReviewBlindRequestDetailResult detail = queryFactory
             .select(Projections.constructor(ReviewBlindRequestDetailResult.class,
@@ -146,6 +153,7 @@ public class ReviewBlindRequestQueryDao {
      *
      * <p>{@code status = APPROVED}로 좁히므로 이미 만료·삭제된 건은 자동으로 제외된다(안내할 것이 없다).
      */
+    @Override
     public Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId) {
         ReviewBlindNoticeResult notice = queryFactory
             .select(Projections.constructor(ReviewBlindNoticeResult.class,

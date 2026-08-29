@@ -1,6 +1,7 @@
 dependencies {
     // 내부 모듈
     implementation project(':domain-module')
+    implementation project(':application-common-module')
     implementation project(':infrastructure-module')
     implementation project(':external-api')
     implementation project(':logging-module')

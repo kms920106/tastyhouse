@@ -1,5 +1,15 @@
 package com.tastyhouse.infrastructure.order.query;
 
+import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.order.port.out.OrderDetailResult;
+import com.tastyhouse.application.order.port.out.OrderListItemResult;
+import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
+import com.tastyhouse.application.order.port.out.OrderPaymentResult;
+import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
+import com.tastyhouse.application.order.port.out.OrderProductResult;
+import com.tastyhouse.application.order.port.out.OrderSearchCondition;
+import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +59,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 기본 별칭 하나로는 두 join이 충돌한다({@code EventQueryDao#findEventDetailById} 선례와 동일).
  */
 @Repository
-public class OrderQueryDao {
+public class OrderQueryDao implements OrderQueryPort {
 
     /** 주문 상품 이미지용 {@code UPLOADED_FILE} 별칭 — 가게 썸네일 join과 구분한다. */
     private static final QUploadedFileJpaEntity ORDER_PRODUCT_IMAGE_FILE =
@@ -68,13 +78,14 @@ public class OrderQueryDao {
      *
      * <p>상품 라인을 join해 첫 상품명과 상품 종류 수를 집계하므로 주문 단위로 {@code groupBy} 한다.
      */
+    @Override
     public PageResult<OrderListItemResult> findOrders(MemberId memberId, PageQuery pageQuery) {
         BooleanExpression paymentJoinCondition = paymentJpaEntity.orderId
             .eq(orderJpaEntity.id)
             .and(paymentJpaEntity.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
 
         List<OrderListItemResult> content = queryFactory
-            .select(new QOrderListItemResult(
+            .select(Projections.constructor(OrderListItemResult.class,
                 orderJpaEntity.id,
                 shopJpaEntity.name,
                 uploadedFileJpaEntity.filePath,
@@ -119,7 +130,7 @@ public class OrderQueryDao {
     }
 
     /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code @QueryProjection}이 생성자 직접 투영이라
+     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}가 생성자 직접 투영이라
      * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
      */
     private OrderListItemResult withResolvedShopThumbnailImageUrl(OrderListItemResult row) {
@@ -149,7 +160,7 @@ public class OrderQueryDao {
         }
 
         List<OrderManagementListItemResult> content = queryFactory
-            .select(new QOrderManagementListItemResult(
+            .select(Projections.constructor(OrderManagementListItemResult.class,
                 orderJpaEntity.id,
                 orderJpaEntity.orderNumber,
                 shopJpaEntity.name,
@@ -220,9 +231,10 @@ public class OrderQueryDao {
      * ({@code Order#validateOwnership})이 담당하고, web-api {@code OrderQueryService}가 이 결과의
      * {@code memberId}를 요청 회원과 대조한다.
      */
+    @Override
     public Optional<OrderDetailResult> findOrderDetail(OrderId orderId) {
         OrderDetailResult detail = queryFactory
-            .select(new QOrderDetailResult(
+            .select(Projections.constructor(OrderDetailResult.class,
                 orderJpaEntity.id,
                 orderJpaEntity.memberId,
                 orderJpaEntity.orderNumber,
@@ -267,7 +279,7 @@ public class OrderQueryDao {
      */
     private List<OrderProductResult> findOrderProducts(OrderId orderId) {
         List<OrderProductResult> orderProducts = queryFactory
-            .select(new QOrderProductResult(
+            .select(Projections.constructor(OrderProductResult.class,
                 orderProductJpaEntity.id,
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
@@ -295,7 +307,7 @@ public class OrderQueryDao {
             .toList();
 
         Map<Long, List<OrderProductOptionResult>> optionsByOrderProductId = queryFactory
-            .select(new QOrderProductOptionResult(
+            .select(Projections.constructor(OrderProductOptionResult.class,
                 orderProductOptionJpaEntity.orderProductId,
                 orderProductOptionJpaEntity.id,
                 orderProductOptionJpaEntity.optionGroupName,
@@ -329,7 +341,7 @@ public class OrderQueryDao {
      */
     private OrderPaymentResult findPayment(OrderId orderId) {
         return queryFactory
-            .select(new QOrderPaymentResult(
+            .select(Projections.constructor(OrderPaymentResult.class,
                 paymentJpaEntity.id,
                 paymentJpaEntity.paymentMethod,
                 paymentJpaEntity.paymentStatus,
@@ -371,4 +383,46 @@ public class OrderQueryDao {
     private BooleanExpression createdAtLoe(LocalDateTime endDate) {
         return endDate != null ? orderJpaEntity.createdAt.loe(endDate) : null;
     }
+
+    /**
+     * 주문 상품 한 건의 소유·상품 식별 정보 — 리뷰 작성 화면의 접근 판정용이다.
+     *
+     * <p>주문 상품에서 주문으로 조인해 주문자 회원 ID까지 한 번에 가져온다. 애그리거트 둘
+     * ({@code OrderProduct} → {@code Order})을 차례로 로드하던 기존 형태를 한 번의 투영으로 대체한다.
+     */
+    @Override
+    public Optional<OrderProductOwnershipResult> findOrderProductOwnership(Long orderProductId) {
+        OrderProductOwnershipResult result = queryFactory
+            .select(Projections.constructor(OrderProductOwnershipResult.class,
+                orderProductJpaEntity.orderId,
+                orderJpaEntity.memberId,
+                orderProductJpaEntity.productId,
+                orderJpaEntity.orderMethod.stringValue()
+            ))
+            .from(orderProductJpaEntity)
+            // left join이다 — inner join으로 묶으면 주문이 사라진 주문 상품(ORDER_PRODUCT.order_id에
+            // FK 제약이 없어 가능한 상태)이 "주문 상품 없음"으로 뭉뚱그려져, 소비 측이 원래 구분하던
+            // ORDER_NOT_FOUND를 낼 수 없다. 주문자 ID가 null인 것으로 그 상태를 구분해 넘긴다.
+            .leftJoin(orderJpaEntity).on(orderJpaEntity.id.eq(orderProductJpaEntity.orderId))
+            .where(orderProductJpaEntity.id.eq(orderProductId))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * 주문의 주문자 회원 ID — 조회 화면의 접근 판정용이다.
+     *
+     * <p>상태를 바꾸지 않고 식별자만 대조하므로 표현 목적 조회다. 주문 상태를 변경하는 경로의 소유권
+     * 검증은 그대로 write 포트가 담당한다.
+     */
+    @Override
+    public Optional<Long> findOrderMemberId(Long orderId) {
+        return Optional.ofNullable(queryFactory
+            .select(orderJpaEntity.memberId)
+            .from(orderJpaEntity)
+            .where(orderJpaEntity.id.eq(orderId))
+            .fetchOne());
+    }
+
 }

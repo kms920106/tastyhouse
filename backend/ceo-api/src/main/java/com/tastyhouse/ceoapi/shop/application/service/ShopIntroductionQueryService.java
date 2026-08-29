@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopOwnerMessageResult;
-import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
+import com.tastyhouse.application.shop.port.out.ShopOwnerMessageResult;
+import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValidationResponse;
 
@@ -23,16 +23,16 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
 @Transactional(readOnly = true)
 public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCase {
 
-    private final ShopQueryDao shopQueryDao;
+    private final ShopQueryPort shopQueryPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopIntroductionQueryService(
-        ShopQueryDao shopQueryDao,
+        ShopQueryPort shopQueryPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopQueryDao = shopQueryDao;
+        this.shopQueryPort = shopQueryPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -40,7 +40,7 @@ public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCas
     @Override
     public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String message = shopQueryDao.findLatestOwnerMessage(shopId)
+        String message = shopQueryPort.findLatestOwnerMessage(shopId)
             .map(ShopOwnerMessageResult::message)
             .orElse(null);
         return ShopIntroductionResponse.from(message);

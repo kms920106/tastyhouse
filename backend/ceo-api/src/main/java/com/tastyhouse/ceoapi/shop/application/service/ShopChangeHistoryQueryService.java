@@ -11,9 +11,9 @@ import com.tastyhouse.ceoapi.shop.application.port.in.ShopChangeHistoryQueryUseC
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.ceoapi.shop.ShopOwnershipValidator;
-import com.tastyhouse.infrastructure.shop.query.ShopChangeHistoryQueryDao;
-import com.tastyhouse.infrastructure.shop.query.ShopChangeHistoryResult;
-import com.tastyhouse.infrastructure.shop.query.ShopChangeHistorySearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
@@ -43,14 +43,14 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
     /** 변경이력 조회 가능 기간(개월). */
     private static final int RETENTION_MONTHS = 6;
 
-    private final ShopChangeHistoryQueryDao shopChangeHistoryQueryDao;
+    private final ShopChangeHistoryQueryPort shopChangeHistoryQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopChangeHistoryQueryService(
-        ShopChangeHistoryQueryDao shopChangeHistoryQueryDao,
+        ShopChangeHistoryQueryPort shopChangeHistoryQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopChangeHistoryQueryDao = shopChangeHistoryQueryDao;
+        this.shopChangeHistoryQueryPort = shopChangeHistoryQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -88,7 +88,7 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
         PageQuery pageQuery = PageQuery.of(page, size);
 
         PageResult<ShopChangeHistoryListItemResponse> pageResult =
-            shopChangeHistoryQueryDao.findChangeHistoryPage(condition, pageQuery)
+            shopChangeHistoryQueryPort.findChangeHistoryPage(condition, pageQuery)
                 .map(this::toListItemResponse);
         return PaginationResponse.from(pageResult);
     }
