@@ -12,14 +12,13 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
- * review 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 리뷰 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code ReviewQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
+ * <p>회원에게 노출되는 리뷰 목록·상세·댓글과 작성 권한 판정을 담당한다. 관리 화면 조회는
+ * {@link ReviewManagementQueryPort}가 소유한다.
  *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>회원 화면과 관리 화면이 같은 형태로 보는 태그 조회는 어느 쪽에도 두지 않고
+ * {@link ReviewTagQueryPort}로 떼어 두 앱이 함께 의존한다.
  */
 public interface ReviewQueryPort {
 
@@ -56,8 +55,4 @@ public interface ReviewQueryPort {
     List<ReviewCommentItemResult> findComments(ReviewId reviewId);
 
     List<ReviewReplyItemResult> findVisibleReplies(List<ReviewCommentId> commentIds);
-
-    List<Long> findTagIdsByReviewId(Long reviewId);
-
-    List<String> findTagNamesByIds(List<Long> tagIds);
 }

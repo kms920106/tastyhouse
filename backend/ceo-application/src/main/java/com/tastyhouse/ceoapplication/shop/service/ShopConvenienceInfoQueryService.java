@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.ceoapplication.shop.response.ShopAmenityResponse;
 import com.tastyhouse.ceoapplication.shop.response.ShopConvenienceInfoResponse;
 
@@ -21,18 +21,18 @@ import com.tastyhouse.ceoapplication.shop.response.ShopConvenienceInfoResponse;
 @Transactional(readOnly = true)
 public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopConvenienceInfoQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopConvenienceInfoQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public ShopConvenienceInfoResponse getConvenienceInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findConvenienceInfo(shopId)
+        return shopBasicInfoQueryPort.findConvenienceInfo(shopId)
             .map(this::toShopConvenienceInfoResponse)
             .orElseGet(() -> ShopConvenienceInfoResponse.from(null, shopId, false, false, false, false, null, null, null));
     }
@@ -40,7 +40,7 @@ public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQuery
     @Override
     public List<ShopAmenityResponse> getAmenities(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findAmenityAssignments(shopId).stream()
+        return shopBasicInfoQueryPort.findAmenityAssignments(shopId).stream()
             .map(this::toShopAmenityResponse)
             .toList();
     }

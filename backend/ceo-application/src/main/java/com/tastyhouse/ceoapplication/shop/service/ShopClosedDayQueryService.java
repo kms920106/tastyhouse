@@ -8,7 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopTemporaryClosureResult;
 import com.tastyhouse.ceoapplication.shop.response.ShopClosedDaysResponse;
 import com.tastyhouse.ceoapplication.shop.response.ShopRegularClosedDayResponse;
@@ -24,11 +25,13 @@ import com.tastyhouse.ceoapplication.shop.response.ShopTemporaryClosureResponse;
 @Transactional(readOnly = true)
 public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
+    private final ShopOwnerQueryPort shopOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopClosedDayQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopClosedDayQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnerQueryPort shopOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
+        this.shopOwnerQueryPort = shopOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -36,10 +39,10 @@ public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
     public ShopClosedDaysResponse getClosedDays(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        List<ShopRegularClosedDayResponse> regularClosedDays = shopQueryPort.findClosedDays(shopId).stream()
+        List<ShopRegularClosedDayResponse> regularClosedDays = shopBasicInfoQueryPort.findClosedDays(shopId).stream()
             .map(this::toShopRegularClosedDayResponse)
             .toList();
-        List<ShopTemporaryClosureResponse> temporaryClosures = shopQueryPort.findTemporaryClosures(shopId).stream()
+        List<ShopTemporaryClosureResponse> temporaryClosures = shopOwnerQueryPort.findTemporaryClosures(shopId).stream()
             .map(this::toShopTemporaryClosureResponse)
             .toList();
 

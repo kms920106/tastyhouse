@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.port.out.ShopOwnerMessageResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionResponse;
 import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationResponse;
 
@@ -22,16 +22,16 @@ import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationRes
 @Transactional(readOnly = true)
 public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopIntroductionQueryService(
-        ShopQueryPort shopQueryPort,
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopQueryPort = shopQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -39,7 +39,7 @@ public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCas
     @Override
     public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String message = shopQueryPort.findLatestOwnerMessage(shopId)
+        String message = shopBasicInfoQueryPort.findLatestOwnerMessage(shopId)
             .map(ShopOwnerMessageResult::message)
             .orElse(null);
         return ShopIntroductionResponse.from(message);

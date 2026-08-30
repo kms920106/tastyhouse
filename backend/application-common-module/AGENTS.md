@@ -12,7 +12,10 @@
 
 ## 소유 범위
 
-- **`{Ctx}QueryPort` 인터페이스** (DAO당 1개, 48개+): 해당 `{Ctx}QueryDao`의 public 메서드를 전사한다. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
+- **`{Ctx}QueryPort` 인터페이스** (73개): 조회 계약. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
+  - **DAO와 1:1이 아니다**(챕터 04). 한 DAO의 public 표면이 여러 앱의 조회를 담고 있으면 [소비자별 분할 규칙](../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 앱별 인터페이스로 쪼개고, **DAO 하나가 그 포트들을 전부 `implements`** 한다(예: `ShopQueryDao` → `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort`). 투영 본문은 복제되지 않으므로 늘어나는 것은 선언뿐이다.
+  - **포트명은 반환 `Result` 계열을 승계한다** — `Management`(관리 화면)·`Owner`(점주 관리 화면, 형제가 `Management`를 점유했을 때) 한정어 사용법은 위 규칙 문서를 따른다.
+  - **application 소비자가 없는 조회는 포트에 두지 않는다** — infra 내부 전용은 DAO의 평범한 public 메서드로 남긴다(`ShopQueryDao#findShopName`).
 - **`*Result` record** (184개+): 조회 결과 반환 타입. [결과 DTO 접미어 규칙](../CLAUDE.md#결과-dto-접미어-규칙-result로-통일-dto-금지)의 `Result` 접미어·`Management` 한정어 규칙을 그대로 따른다. **`public` 필수** — `Projections.constructor`가 리플렉션으로 생성자를 찾으므로 package-private이면 컴파일은 통과하고 호출 시점에만 500이 난다.
 - **`*SearchCondition` record** (20개+): 포트 메서드의 동적 검색 조건 파라미터. 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
 - **포트 2종** (도메인 전용이 아닌 것): `com.tastyhouse.application.shared.port.out.GeoRingsPort`(저장된 도형 문자열을 도메인 기하 타입으로 해독 — 인코딩 형식은 영속 계층 지식이라 `infrastructure-module`의 `GeoRingsResolver`가 구현한다. 조회가 아니라 변환만 있어 이름에 `Query`를 붙이지 않았다), `com.tastyhouse.application.product.port.out.ProductBatchItem`(배치 조회 포트 메서드의 입력 타입이라 이 모듈로 이동).
@@ -26,7 +29,7 @@ com.tastyhouse.application.<ctx>.port.out
 └── {도메인}SearchCondition.java  검색 조건 record
 ```
 
-컨텍스트 slug는 `domain-module`의 바운디드 컨텍스트명을 그대로 따른다(`notice`·`shop`·`order` 등). 대형 도메인은 용도별로 포트를 더 나눈다(예: `shop`의 `ShopQueryPort`/`ShopSearchQueryPort`/`ShopChoiceQueryPort` — 대응 `infrastructure-module`의 DAO 분리와 짝을 이룬다).
+컨텍스트 slug는 `domain-module`의 바운디드 컨텍스트명을 그대로 따른다(`notice`·`shop`·`order` 등). 대형 도메인은 용도별로 포트를 더 나눈다(예: `shop`의 `ShopQueryPort`/`ShopSearchQueryPort`/`ShopChoiceQueryPort` — 대응 DAO 분리와 짝을 이룬다). 여기에 더해 **같은 DAO의 계약도 소비 앱별로 갈린다**(`ShopQueryPort`/`ShopManagementQueryPort`/`ShopOwnerQueryPort`).
 
 ## 프레임워크-프리인 이유
 

@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideDetailResponse;
@@ -30,10 +30,10 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
-    private final ShopRiderGuideQueryPort shopRiderGuideQueryPort;
+    private final ShopRiderGuideManagementQueryPort shopRiderGuideManagementQueryPort;
 
-    public ShopRiderGuideQueryService(ShopRiderGuideQueryPort shopRiderGuideQueryPort) {
-        this.shopRiderGuideQueryPort = shopRiderGuideQueryPort;
+    public ShopRiderGuideQueryService(ShopRiderGuideManagementQueryPort shopRiderGuideManagementQueryPort) {
+        this.shopRiderGuideManagementQueryPort = shopRiderGuideManagementQueryPort;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
         int page,
         int size
     ) {
-        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideQueryPort
+        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideManagementQueryPort
             .findRiderGuidePage(shopName, hasVisitGuide, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopRiderGuideListItemResponse));
@@ -51,10 +51,10 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
 
     @Override
     public ShopRiderGuideDetailResponse getRiderGuide(Long shopId) {
-        ShopRiderGuideResult result = shopRiderGuideQueryPort.findRiderGuide(shopId)
+        ShopRiderGuideResult result = shopRiderGuideManagementQueryPort.findRiderGuide(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
-        List<ShopRiderGuideHistoryResponse> histories = shopRiderGuideQueryPort.findHistories(shopId).stream()
+        List<ShopRiderGuideHistoryResponse> histories = shopRiderGuideManagementQueryPort.findHistories(shopId).stream()
             .map(this::toShopRiderGuideHistoryResponse)
             .toList();
 

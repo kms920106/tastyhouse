@@ -8,31 +8,23 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
- * order 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 주문 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code OrderQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
+ * <p>회원이 자기 주문 목록·상세를 보는 조회와, 리뷰 작성 권한 판정에 쓰는 주문 소유 확인을 담당한다.
+ * 관리 화면 조회는 {@link OrderManagementQueryPort}가 소유한다.
  *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>{@link #findOrderDetail}은 두 포트가 함께 쓰는 <b>공유 메서드</b>라 양쪽에 선언만 중복한다.
+ * 반면 분할 전 한 인터페이스 안에서 오버로드였던 {@code findOrders}는 회원용({@code MemberId})과
+ * 관리용({@code OrderSearchCondition})의 시그니처가 서로 달라, 분할로 각자의 포트에 하나씩 남는다.
  */
 public interface OrderQueryPort {
 
     PageResult<OrderListItemResult> findOrders(MemberId memberId, PageQuery pageQuery);
 
-    PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery);
-
+    /** 공유 메서드 — {@link OrderManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
     Optional<OrderDetailResult> findOrderDetail(OrderId orderId);
 
-    /**
-     * 주문 상품 한 건의 소유·상품 식별 정보. 리뷰 작성 화면의 접근 판정용 표현 조회다.
-     */
     Optional<OrderProductOwnershipResult> findOrderProductOwnership(Long orderProductId);
 
-    /**
-     * 주문의 주문자 회원 ID. 조회 화면의 접근 판정용 표현 조회이므로 애그리거트를 로드하지 않는다.
-     */
     Optional<Long> findOrderMemberId(Long orderId);
-
 }

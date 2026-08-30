@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.rank.query;
 
+import com.tastyhouse.application.rank.port.out.RankManagementQueryPort;
 import com.tastyhouse.application.rank.port.out.RankQueryPort;
 import com.tastyhouse.application.rank.port.out.MemberRankResult;
 import com.tastyhouse.application.rank.port.out.RankDurationResult;
@@ -45,7 +46,7 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
  * {@code Projections.constructor}는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
-public class RankQueryDao implements RankQueryPort {
+public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

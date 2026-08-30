@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -25,10 +25,10 @@ import com.tastyhouse.adminapplication.product.port.in.ProductApprovalQueryUseCa
 @Transactional(readOnly = true)
 public class ProductApprovalQueryService implements ProductApprovalQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductManagementQueryPort productManagementQueryPort;
 
-    public ProductApprovalQueryService(ProductQueryPort productQueryPort) {
-        this.productQueryPort = productQueryPort;
+    public ProductApprovalQueryService(ProductManagementQueryPort productManagementQueryPort) {
+        this.productManagementQueryPort = productManagementQueryPort;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductImageChangeRequestResult> pageResult = productQueryPort
+        PageResult<ProductImageChangeRequestResult> pageResult = productManagementQueryPort
             .findImageChangeRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductImageChangeRequestItemResponse));
@@ -53,7 +53,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductVegetarianRequestResult> pageResult = productQueryPort
+        PageResult<ProductVegetarianRequestResult> pageResult = productManagementQueryPort
             .findVegetarianRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductVegetarianRequestItemResponse));
@@ -67,7 +67,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
     ) {
         ApprovalStatus approvalStatus = promoteStatus(status);
 
-        PageResult<ProductRepresentativeRequestResult> pageResult = productQueryPort
+        PageResult<ProductRepresentativeRequestResult> pageResult = productManagementQueryPort
             .findRepresentativeRequestPage(approvalStatus, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toProductRepresentativeRequestItemResponse));

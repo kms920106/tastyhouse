@@ -14,7 +14,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductImageManagementResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
  * 점주용 메뉴 이미지 현황 조회 서비스(CQRS query 측).
@@ -26,11 +26,11 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 public class ProductImageQueryService implements ProductImageQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ProductImageQueryService(ProductQueryPort productQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.productQueryPort = productQueryPort;
+    public ProductImageQueryService(ProductOwnerQueryPort productOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -38,10 +38,10 @@ public class ProductImageQueryService implements ProductImageQueryUseCase {
     public ProductImageStatusResponse getImageStatus(Long ceoId, Long shopId, Long productId) {
         requireOwnedProduct(ceoId, shopId, productId);
 
-        List<ProductImageResponse> images = productQueryPort.findProductImagesForManagement(productId).stream()
+        List<ProductImageResponse> images = productOwnerQueryPort.findProductImagesForManagement(productId).stream()
             .map(this::toProductImageResponse)
             .toList();
-        List<ProductImageChangeRequestResponse> requests = productQueryPort.findImageChangeRequests(productId).stream()
+        List<ProductImageChangeRequestResponse> requests = productOwnerQueryPort.findImageChangeRequests(productId).stream()
             .map(this::toProductImageChangeRequestResponse)
             .toList();
 
@@ -59,7 +59,7 @@ public class ProductImageQueryService implements ProductImageQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         // 메뉴-가게 연결(N:M) 도입으로 동등 비교가 아니라 포함 관계로 판정한다 — 한 메뉴가 여러 가게에
         // 걸리므로, 원본 가게만 인정하면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다.
-        boolean owned = productQueryPort.existsProductInShop(productId, shopId);
+        boolean owned = productOwnerQueryPort.existsProductInShop(productId, shopId);
         if (!owned) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }

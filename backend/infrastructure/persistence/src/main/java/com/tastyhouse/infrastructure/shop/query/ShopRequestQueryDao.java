@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
@@ -52,7 +53,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestIndexJp
  * {@code ~FileId}를 노출하지 않는 규칙). 목록에서는 join 없이 존재 여부만 담는다.
  */
 @Repository
-public class ShopRequestQueryDao implements ShopRequestQueryPort {
+public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

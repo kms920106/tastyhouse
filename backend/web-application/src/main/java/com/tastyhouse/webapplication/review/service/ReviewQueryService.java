@@ -34,6 +34,7 @@ import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewCommentItemResult;
 import com.tastyhouse.application.review.port.out.ReviewDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewTagQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewReplyItemResult;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
@@ -74,6 +75,7 @@ import com.tastyhouse.webapplication.review.port.in.ReviewQueryUseCase;
 public class ReviewQueryService implements ReviewQueryUseCase {
 
     private final ReviewQueryPort reviewQueryPort;
+    private final ReviewTagQueryPort reviewTagQueryPort;
     private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
     private final ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort;
     private final ProductQueryPort productQueryPort;
@@ -82,6 +84,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
 
     public ReviewQueryService(
         ReviewQueryPort reviewQueryPort,
+        ReviewTagQueryPort reviewTagQueryPort,
         ReviewStatisticsQueryPort reviewStatisticsQueryPort,
         ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort,
         ProductQueryPort productQueryPort,
@@ -89,6 +92,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         OrderQueryPort orderQueryPort
     ) {
         this.reviewQueryPort = reviewQueryPort;
+        this.reviewTagQueryPort = reviewTagQueryPort;
         this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
         this.shopReviewDisplaySettingQueryPort = shopReviewDisplaySettingQueryPort;
         this.productQueryPort = productQueryPort;
@@ -481,11 +485,11 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      */
     private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId, Long viewerMemberId) {
         return reviewQueryPort.findReviewDetail(reviewId, viewerMemberId).map(result -> {
-            List<Long> tagIds = reviewQueryPort.findTagIdsByReviewId(reviewId.value());
+            List<Long> tagIds = reviewTagQueryPort.findTagIdsByReviewId(reviewId.value());
             if (tagIds.isEmpty()) {
                 return result;
             }
-            return result.withTagNames(reviewQueryPort.findTagNamesByIds(tagIds));
+            return result.withTagNames(reviewTagQueryPort.findTagNamesByIds(tagIds));
         });
     }
 

@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import java.util.Optional;
@@ -23,7 +24,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderNoticeJpa
  * 노출되는 결함이 되고, 쿼리 자체가 걸러내면 그 실수가 물리적으로 불가능해진다.
  */
 @Repository
-public class ShopOrderNoticeQueryDao implements ShopOrderNoticeQueryPort {
+public class ShopOrderNoticeQueryDao implements ShopOrderNoticeQueryPort, ShopOrderNoticeManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

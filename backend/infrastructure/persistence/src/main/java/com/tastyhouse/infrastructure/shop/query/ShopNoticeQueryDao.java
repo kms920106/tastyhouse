@@ -1,5 +1,7 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopNoticeOwnerQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopNoticeManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
@@ -34,7 +36,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeJpaEntit
  * 조립 형태를 가지므로 {@code ShopQueryDao}에 섞지 않고 별도 DAO로 둔다.
  */
 @Repository
-public class ShopNoticeQueryDao implements ShopNoticeQueryPort {
+public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQueryPort, ShopNoticeManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

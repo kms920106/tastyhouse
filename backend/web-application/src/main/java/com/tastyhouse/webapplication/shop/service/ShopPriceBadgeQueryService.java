@@ -18,7 +18,7 @@ import com.tastyhouse.application.product.port.out.ProductPriceResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopPriceBadgeQueryUseCase;
 
@@ -65,20 +65,20 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
     private static final boolean PUBLIC_HOLIDAY = false;
 
     private final ProductQueryPort productQueryPort;
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final StorePriceVerificationReader storePriceVerificationReader;
     private final StorePriceBadgePolicy storePriceBadgePolicy;
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;
 
     public ShopPriceBadgeQueryService(
         ProductQueryPort productQueryPort,
-        ShopQueryPort shopQueryPort,
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort,
         StorePriceVerificationReader storePriceVerificationReader,
         StorePriceBadgePolicy storePriceBadgePolicy,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
         this.productQueryPort = productQueryPort;
-        this.shopQueryPort = shopQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.storePriceVerificationReader = storePriceVerificationReader;
         this.storePriceBadgePolicy = storePriceBadgePolicy;
         this.shopOperatingStatusCalculator = shopOperatingStatusCalculator;
@@ -124,14 +124,14 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
      * 추가할 때 한쪽만 고쳐진다({@code ShopNextOpenTimeCalculator}가 같은 이유로 같은 위임을 한다).
      */
     private List<LocalDate> findPassedBusinessDates(Long shopId, LocalDateTime now) {
-        List<ShopBusinessHour> businessHours = shopQueryPort.findBusinessHours(shopId).stream()
+        List<ShopBusinessHour> businessHours = shopBasicInfoQueryPort.findBusinessHours(shopId).stream()
             .map(businessHour -> toShopBusinessHour(shopId, businessHour))
             .toList();
         if (businessHours.isEmpty()) {
             return List.of();
         }
 
-        List<ShopClosedDayResult> closedDays = shopQueryPort.findClosedDays(shopId);
+        List<ShopClosedDayResult> closedDays = shopBasicInfoQueryPort.findClosedDays(shopId);
         LocalDate today = now.toLocalDate();
         List<LocalDate> businessDates = new ArrayList<>();
         for (int offset = BUSINESS_DAY_WINDOW_DAYS; offset >= 1; offset--) {

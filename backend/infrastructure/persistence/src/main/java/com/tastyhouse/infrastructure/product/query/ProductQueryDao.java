@@ -1,6 +1,8 @@
 package com.tastyhouse.infrastructure.product.query;
 
 import com.tastyhouse.application.product.port.out.ProductBatchItem;
+import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
 import com.tastyhouse.application.product.port.out.BatchOptionResult;
 import com.tastyhouse.application.product.port.out.OptionGroupResult;
@@ -119,7 +121,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * {@code Projections.constructor}는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어, fetch 직후 재조립한다.
  */
 @Repository
-public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPort {
+public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPort, ProductManagementQueryPort, ProductOwnerQueryPort {
 
     /**
      * 상품의 대표 이미지(노출 중 최소 sort)를 고르기 위한 서브쿼리 별칭.

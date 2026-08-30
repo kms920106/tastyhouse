@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 
@@ -24,18 +24,18 @@ import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 @Transactional(readOnly = true)
 public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopBusinessHourQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopBusinessHourQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findBusinessHours(shopId).stream()
+        return shopBasicInfoQueryPort.findBusinessHours(shopId).stream()
             .map(this::toShopBusinessHourResponse)
             .toList();
     }
@@ -43,7 +43,7 @@ public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCas
     @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findBreakTimes(shopId).stream()
+        return shopBasicInfoQueryPort.findBreakTimes(shopId).stream()
             .map(this::toShopBreakTimeResponse)
             .toList();
     }

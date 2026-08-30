@@ -9,14 +9,11 @@ import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.FoodType;
 
 /**
- * shop 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 가게 탐색 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code ShopSearchQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
- *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>지도·베스트·최신순·키워드검색·북마크처럼 회원이 가게를 찾는 조회를 담당한다. 전부 배달권역과
+ * 북마크 여부를 함께 투영한다는 점에서 관리 목록과 성격이 다르다. 관리 목록 조회는
+ * {@link ShopSearchManagementQueryPort}가 소유한다 — <b>공유 메서드는 0개다.</b>
  */
 public interface ShopSearchQueryPort {
 
@@ -29,6 +26,4 @@ public interface ShopSearchQueryPort {
     PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, Long memberId, Long deliveryAdminDongId, PageQuery pageQuery);
 
     PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(Long memberId, PageQuery pageQuery);
-
-    PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery);
 }

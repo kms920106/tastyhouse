@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopChoiceManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
@@ -47,7 +48,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * 담당한다.
  */
 @Repository
-public class ShopChoiceQueryDao implements ShopChoiceQueryPort {
+public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManagementQueryPort {
 
     /**
      * 상품의 대표 이미지(노출 중 최소 sort)를 고르기 위한 서브쿼리 별칭.

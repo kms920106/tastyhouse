@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import java.util.Optional;
@@ -20,7 +21,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QShopReviewDispla
  * write 포트를 주입하면 CQRS 교차 주입 금지 규칙을 어긴다. 그래서 값만 투영하는 이 DAO를 둔다.
  */
 @Repository
-public class ShopReviewDisplaySettingQueryDao implements ShopReviewDisplaySettingQueryPort {
+public class ShopReviewDisplaySettingQueryDao implements ShopReviewDisplaySettingQueryPort, ShopReviewDisplaySettingOwnerQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

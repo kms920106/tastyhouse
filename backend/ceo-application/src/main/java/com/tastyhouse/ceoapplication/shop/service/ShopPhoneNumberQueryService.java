@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
 
 /**
@@ -17,18 +17,18 @@ import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
 @Transactional(readOnly = true)
 public class ShopPhoneNumberQueryService implements ShopPhoneNumberQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopPhoneNumberQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopPhoneNumberQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopPhoneNumberResponse> getPhoneNumbers(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findPhoneNumbers(shopId).stream()
+        return shopBasicInfoQueryPort.findPhoneNumbers(shopId).stream()
             .map(this::toShopPhoneNumberResponse)
             .toList();
     }

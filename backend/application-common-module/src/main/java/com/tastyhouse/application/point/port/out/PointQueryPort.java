@@ -3,24 +3,18 @@ package com.tastyhouse.application.point.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
-
 /**
- * point 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 포인트 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code PointQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
+ * <p>회원이 자기 잔액과 적립·사용 내역을 보는 조회를 담당한다. 관리 화면 조회는
+ * {@link PointManagementQueryPort}가 소유한다.
  *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>{@link #findBalanceByMemberId}는 두 포트가 함께 쓰는 <b>공유 메서드</b>라 양쪽에 선언만 중복한다.
  */
 public interface PointQueryPort {
 
+    /** 공유 메서드 — {@link PointManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
     Optional<PointBalanceResult> findBalanceByMemberId(Long memberId);
 
     List<PointHistoryResult> findPointHistories(Long memberId);
-
-    PageResult<PointHistoryResult> findPointHistoryPage(PointSearchCondition condition, PageQuery pageQuery);
 }

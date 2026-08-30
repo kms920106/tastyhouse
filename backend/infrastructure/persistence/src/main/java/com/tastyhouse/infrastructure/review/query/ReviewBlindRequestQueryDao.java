@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewBlindRequestManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
@@ -42,7 +43,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 행이 불어나지 않는다.
  */
 @Repository
-public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort {
+public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, ReviewBlindRequestManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

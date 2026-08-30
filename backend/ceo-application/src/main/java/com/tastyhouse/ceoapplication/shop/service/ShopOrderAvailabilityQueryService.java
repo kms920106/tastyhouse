@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.ceoapplication.shop.response.ShopOrderAvailabilityResponse;
 import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodAvailabilityResponse;
@@ -34,16 +34,16 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
 
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopOperatingStatusService shopOperatingStatusService;
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
 
     public ShopOrderAvailabilityQueryService(
         ShopOwnershipValidator shopOwnershipValidator,
         ShopOperatingStatusService shopOperatingStatusService,
-        ShopQueryPort shopQueryPort
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort
     ) {
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopOperatingStatusService = shopOperatingStatusService;
-        this.shopQueryPort = shopQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
     }
 
     /**
@@ -79,7 +79,7 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
     @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findOrderMethods(shopId).stream()
+        return shopBasicInfoQueryPort.findOrderMethods(shopId).stream()
             .map(this::toShopOrderMethodItemResponse)
             .toList();
     }

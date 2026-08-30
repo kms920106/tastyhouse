@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.event.query;
 
+import com.tastyhouse.application.event.port.out.EventManagementQueryPort;
 import com.tastyhouse.application.event.port.out.EventQueryPort;
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventDetailResult;
@@ -52,7 +53,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 분을 제외하고, web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.
  */
 @Repository
-public class EventQueryDao implements EventQueryPort {
+public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

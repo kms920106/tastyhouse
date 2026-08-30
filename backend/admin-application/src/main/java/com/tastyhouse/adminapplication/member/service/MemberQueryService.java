@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
-import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.member.response.MemberDetailResponse;
@@ -22,7 +22,7 @@ import com.tastyhouse.adminapplication.member.port.in.MemberQueryUseCase;
 /**
  * 회원 관리 조회 서비스.
  *
- * <p>목록·검색도 상세도 모두 읽기 포트({@link MemberQueryPort})의 투영으로 답한다 — 상세 응답이
+ * <p>목록·검색도 상세도 모두 읽기 포트({@link MemberManagementQueryPort})의 투영으로 답한다 — 상세 응답이
  * 아이디·연락처·알림 수신 설정 등 많은 필드를 요구하지만 전부 화면에 그대로 실리는 표현용이라,
  * 애그리거트를 로드할 이유가 없다(write 포트 미주입).
  *
@@ -33,10 +33,10 @@ import com.tastyhouse.adminapplication.member.port.in.MemberQueryUseCase;
 @Transactional(readOnly = true)
 public class MemberQueryService implements MemberQueryUseCase {
 
-    private final MemberQueryPort memberQueryPort;
+    private final MemberManagementQueryPort memberManagementQueryPort;
 
-    public MemberQueryService(MemberQueryPort memberQueryPort) {
-        this.memberQueryPort = memberQueryPort;
+    public MemberQueryService(MemberManagementQueryPort memberManagementQueryPort) {
+        this.memberManagementQueryPort = memberManagementQueryPort;
     }
 
     @Override
@@ -57,21 +57,21 @@ public class MemberQueryService implements MemberQueryUseCase {
             grade == null ? null : MemberGrade.from(grade)
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<MemberListItemResponse> pageResult = memberQueryPort.findMembers(condition, pageQuery)
+        PageResult<MemberListItemResponse> pageResult = memberManagementQueryPort.findMembers(condition, pageQuery)
             .map(this::toMemberListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public MemberDetailResponse getMember(Long id) {
-        MemberManagementDetailResult member = memberQueryPort.findManagementDetailById(MemberId.of(id))
+        MemberManagementDetailResult member = memberManagementQueryPort.findManagementDetailById(MemberId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return toMemberDetailResponse(member);
     }
 
     private MemberDetailResponse toMemberDetailResponse(MemberManagementDetailResult member) {
-        String profileImageUrl = memberQueryPort.findProfileImageUrl(MemberId.of(member.id())).orElse(null);
+        String profileImageUrl = memberManagementQueryPort.findProfileImageUrl(MemberId.of(member.id())).orElse(null);
 
         return MemberDetailResponse.from(
             member.id(),

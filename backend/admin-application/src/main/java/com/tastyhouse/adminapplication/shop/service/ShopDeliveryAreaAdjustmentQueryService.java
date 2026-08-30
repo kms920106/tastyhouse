@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentDetailResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentListItemResponse;
@@ -26,10 +26,10 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQu
 @Transactional(readOnly = true)
 public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaAdjustmentQueryUseCase {
 
-    private final ShopDeliveryAreaAdjustmentQueryPort shopDeliveryAreaAdjustmentQueryPort;
+    private final ShopDeliveryAreaAdjustmentManagementQueryPort shopDeliveryAreaAdjustmentManagementQueryPort;
 
-    public ShopDeliveryAreaAdjustmentQueryService(ShopDeliveryAreaAdjustmentQueryPort shopDeliveryAreaAdjustmentQueryPort) {
-        this.shopDeliveryAreaAdjustmentQueryPort = shopDeliveryAreaAdjustmentQueryPort;
+    public ShopDeliveryAreaAdjustmentQueryService(ShopDeliveryAreaAdjustmentManagementQueryPort shopDeliveryAreaAdjustmentManagementQueryPort) {
+        this.shopDeliveryAreaAdjustmentManagementQueryPort = shopDeliveryAreaAdjustmentManagementQueryPort;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
     ) {
         DeliveryAreaAdjustmentStatus adjustmentStatus = status == null ? null : DeliveryAreaAdjustmentStatus.from(status);
 
-        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentQueryPort
+        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentManagementQueryPort
             .findAdjustmentRequestPage(adjustmentStatus, shopId, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopDeliveryAreaAdjustmentListItemResponse));
@@ -49,7 +49,7 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
 
     @Override
     public ShopDeliveryAreaAdjustmentDetailResponse getAdjustmentRequest(Long requestId) {
-        ShopDeliveryAreaAdjustmentDetailResult dto = shopDeliveryAreaAdjustmentQueryPort.findAdjustmentRequestById(requestId)
+        ShopDeliveryAreaAdjustmentDetailResult dto = shopDeliveryAreaAdjustmentManagementQueryPort.findAdjustmentRequestById(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));
 
         return toShopDeliveryAreaAdjustmentDetailResponse(dto);

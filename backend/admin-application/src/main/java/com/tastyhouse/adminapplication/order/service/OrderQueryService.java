@@ -19,7 +19,7 @@ import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
 import com.tastyhouse.application.order.port.out.OrderPaymentResult;
 import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
 import com.tastyhouse.application.order.port.out.OrderProductResult;
-import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
 import com.tastyhouse.application.order.port.out.OrderSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.order.response.OrderDetailResponse;
@@ -32,7 +32,7 @@ import com.tastyhouse.adminapplication.order.port.in.OrderQueryUseCase;
 /**
  * 주문 관리 조회 서비스(admin-api).
  *
- * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
+ * <p>infra query DAO({@link OrderManagementQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
  * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
  *
  * <p>enum 후보값은 HTTP 경계에서 {@code String}으로 받아 여기서 {@code Enum.from(...)}으로 승격한다
@@ -42,10 +42,10 @@ import com.tastyhouse.adminapplication.order.port.in.OrderQueryUseCase;
 @Transactional(readOnly = true)
 public class OrderQueryService implements OrderQueryUseCase {
 
-    private final OrderQueryPort orderQueryPort;
+    private final OrderManagementQueryPort orderManagementQueryPort;
 
-    public OrderQueryService(OrderQueryPort orderQueryPort) {
-        this.orderQueryPort = orderQueryPort;
+    public OrderQueryService(OrderManagementQueryPort orderManagementQueryPort) {
+        this.orderManagementQueryPort = orderManagementQueryPort;
     }
 
     /**
@@ -75,7 +75,7 @@ public class OrderQueryService implements OrderQueryUseCase {
             endDate
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<OrderListItemResponse> pageResult = orderQueryPort.findOrders(condition, pageQuery)
+        PageResult<OrderListItemResponse> pageResult = orderManagementQueryPort.findOrders(condition, pageQuery)
             .map(this::toOrderListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -85,7 +85,7 @@ public class OrderQueryService implements OrderQueryUseCase {
      */
     @Override
     public OrderDetailResponse getOrder(Long id) {
-        OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(id))
+        OrderDetailResult result = orderManagementQueryPort.findOrderDetail(OrderId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         return toOrderDetailResponse(result);
     }

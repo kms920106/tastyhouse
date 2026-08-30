@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopContentBoardListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardQueryUseCase;
@@ -21,10 +21,10 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardQueryUseCase
 @Transactional(readOnly = true)
 public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopManagementQueryPort shopManagementQueryPort;
 
-    public ShopContentBoardQueryService(ShopQueryPort shopQueryPort) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopContentBoardQueryService(ShopManagementQueryPort shopManagementQueryPort) {
+        this.shopManagementQueryPort = shopManagementQueryPort;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCas
     ) {
         ShopContentType type = contentType == null ? null : ShopContentType.from(contentType);
 
-        PageResult<ShopContentBoardResult> pageResult = shopQueryPort
+        PageResult<ShopContentBoardResult> pageResult = shopManagementQueryPort
             .findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopContentBoardListItemResponse));

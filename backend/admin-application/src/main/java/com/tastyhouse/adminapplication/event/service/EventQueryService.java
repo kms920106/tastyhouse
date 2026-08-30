@@ -14,7 +14,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
-import com.tastyhouse.application.event.port.out.EventQueryPort;
+import com.tastyhouse.application.event.port.out.EventManagementQueryPort;
 import com.tastyhouse.application.event.port.out.EventSearchCondition;
 import com.tastyhouse.application.event.port.out.EventWinnerResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -28,7 +28,7 @@ import com.tastyhouse.adminapplication.event.port.in.EventQueryUseCase;
 /**
  * 이벤트 관리 조회 서비스(admin).
  *
- * <p>읽기 포트({@link EventQueryPort})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
+ * <p>읽기 포트({@link EventManagementQueryPort})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
  * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
  *
  * <p>파일 URL 조립은 DAO가 join으로 함께 파일명·URL까지 완성해 주므로(목록·상세 모두) 이 서비스는
@@ -38,10 +38,10 @@ import com.tastyhouse.adminapplication.event.port.in.EventQueryUseCase;
 @Transactional(readOnly = true)
 public class EventQueryService implements EventQueryUseCase {
 
-    private final EventQueryPort eventQueryPort;
+    private final EventManagementQueryPort eventManagementQueryPort;
 
-    public EventQueryService(EventQueryPort eventQueryPort) {
-        this.eventQueryPort = eventQueryPort;
+    public EventQueryService(EventManagementQueryPort eventManagementQueryPort) {
+        this.eventManagementQueryPort = eventManagementQueryPort;
     }
 
     @Override
@@ -50,28 +50,28 @@ public class EventQueryService implements EventQueryUseCase {
         EventSearchCondition condition = EventSearchCondition.of(name, eventStatus);
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<EventListItemResponse> pageResult = eventQueryPort.findAllEvents(condition, pageQuery)
+        PageResult<EventListItemResponse> pageResult = eventManagementQueryPort.findAllEvents(condition, pageQuery)
             .map(this::toEventListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public EventDetailResponse getEvent(Long id) {
-        EventManagementDetailResult detail = eventQueryPort.findEventDetailById(EventId.of(id))
+        EventManagementDetailResult detail = eventManagementQueryPort.findEventDetailById(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
         return toEventDetailResponse(detail);
     }
 
     @Override
     public EventAnnouncementResponse getAnnouncement(Long id) {
-        EventAnnouncementResult announcement = eventQueryPort.findAnnouncementByEventId(EventId.of(id))
+        EventAnnouncementResult announcement = eventManagementQueryPort.findAnnouncementByEventId(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
         return toEventAnnouncementResponse(announcement);
     }
 
     @Override
     public List<EventWinnerResponse> getWinners(Long id) {
-        return eventQueryPort.findWinnersByEventId(EventId.of(id)).stream()
+        return eventManagementQueryPort.findWinnersByEventId(EventId.of(id)).stream()
             .map(this::toEventWinnerResponse)
             .toList();
     }

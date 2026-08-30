@@ -15,7 +15,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
 
@@ -29,18 +29,18 @@ import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResul
 @Transactional(readOnly = true)
 public class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopFoodTypeCategoryReader shopFoodTypeCategoryReader;
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
 
     public ProductVegetarianQueryService(
-        ProductQueryPort productQueryPort,
+        ProductOwnerQueryPort productOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopFoodTypeCategoryReader shopFoodTypeCategoryReader,
         ProductVegetarianApprovalService productVegetarianApprovalService
     ) {
-        this.productQueryPort = productQueryPort;
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopFoodTypeCategoryReader = shopFoodTypeCategoryReader;
         this.productVegetarianApprovalService = productVegetarianApprovalService;
@@ -50,13 +50,13 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
     public ProductVegetarianStatusResponse getVegetarianStatus(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductVegetarianSettingResult setting = productQueryPort.findVegetarianSetting(productId)
+        ProductVegetarianSettingResult setting = productOwnerQueryPort.findVegetarianSetting(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!setting.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        List<ProductVegetarianRequestResponse> requests = productQueryPort.findVegetarianRequests(productId).stream()
+        List<ProductVegetarianRequestResponse> requests = productOwnerQueryPort.findVegetarianRequests(productId).stream()
             .map(this::toProductVegetarianRequestResponse)
             .toList();
 

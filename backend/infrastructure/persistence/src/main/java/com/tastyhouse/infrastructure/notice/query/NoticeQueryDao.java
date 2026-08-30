@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.notice.query;
 
 import com.tastyhouse.application.notice.port.out.NoticeDetailResult;
+import com.tastyhouse.application.notice.port.out.NoticeManagementQueryPort;
 import com.tastyhouse.application.notice.port.out.NoticeQueryPort;
 import com.tastyhouse.application.notice.port.out.NoticeListItemResult;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
@@ -31,7 +32,7 @@ import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.
  * 노출분만).
  */
 @Repository
-public class NoticeQueryDao implements NoticeQueryPort {
+public class NoticeQueryDao implements NoticeQueryPort, NoticeManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

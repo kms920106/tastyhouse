@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.shop.query;
 
 import com.tastyhouse.application.shop.port.out.ShopManagementDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
@@ -87,7 +90,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopTemporaryClosu
  * 때만 시그니처·{@code ById} 한정어로 구별한다.
  */
 @Repository
-public class ShopQueryDao implements ShopQueryPort {
+public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort {
 
     /**
      * 카테고리의 활성/비활성 아이콘을 한 쿼리에서 함께 투영하기 위한 파일 테이블 별칭.
@@ -128,8 +131,11 @@ public class ShopQueryDao implements ShopQueryPort {
      *
      * <p>도메인 모델({@code Shop})을 통째로 로드하지 않는 이유는 소비처가 이름 한 필드만 필요하고, 그
      * 소비처가 애그리거트 경계 밖(알림 리스너)이라 도메인 모델을 넘기면 컨텍스트가 결합되기 때문이다.
+     *
+     * <p><b>포트에 선언되지 않은 infra 내부 조회다.</b> 유일한 소비처인 {@code ReviewOwnerReplyEventListener}가
+     * 같은 모듈에서 이 DAO를 구체 타입으로 주입하므로, application 계층이 소유할 계약이 아니다
+     * ({@code MemberReviewCountQueryPort} 선례와 같은 취급이며, 챕터 04의 포트 분할 대상에서 제외했다).
      */
-    @Override
     public Optional<String> findShopName(Long shopId) {
         return Optional.ofNullable(
             queryFactory

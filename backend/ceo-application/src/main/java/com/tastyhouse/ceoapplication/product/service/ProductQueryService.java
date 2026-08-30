@@ -9,7 +9,7 @@ import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
  * 점주용 메뉴 상세 조회 서비스(CQRS query 측).
@@ -21,11 +21,11 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 public class ProductQueryService implements ProductQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ProductQueryService(ProductQueryPort productQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.productQueryPort = productQueryPort;
+    public ProductQueryService(ProductOwnerQueryPort productOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -33,7 +33,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     public ProductDetailResponse getProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductManagementDetailResult dto = productQueryPort.findProductManagementDetailById(productId)
+        ProductManagementDetailResult dto = productOwnerQueryPort.findProductManagementDetailById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!dto.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

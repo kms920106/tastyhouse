@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.application.shop.port.out.BestShopItemResult;
 import com.tastyhouse.application.shop.port.out.LatestShopItemResult;
@@ -58,7 +59,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
  * 카티전 곱이 생기기 때문이다.
  */
 @Repository
-public class ShopSearchQueryDao implements ShopSearchQueryPort {
+public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManagementQueryPort {
 
     /**
      * 지도 마커 조회 반경(m). 위·경도 1도 ≈ 111km 근사로 사각 범위를 계산한다.

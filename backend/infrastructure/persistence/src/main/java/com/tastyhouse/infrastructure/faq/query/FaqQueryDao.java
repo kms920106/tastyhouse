@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.faq.query;
 
+import com.tastyhouse.application.faq.port.out.FaqManagementQueryPort;
 import com.tastyhouse.application.faq.port.out.FaqQueryPort;
 import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
 import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
@@ -35,7 +36,7 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
  * ({@code findAllCategories}는 비노출 포함 전체, {@code findVisibleCategories}는 노출분만).
  */
 @Repository
-public class FaqQueryDao implements FaqQueryPort {
+public class FaqQueryDao implements FaqQueryPort, FaqManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

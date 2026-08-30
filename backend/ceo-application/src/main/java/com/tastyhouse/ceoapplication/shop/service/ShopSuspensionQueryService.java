@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSuspensionResult;
 import com.tastyhouse.ceoapplication.shop.response.ShopSuspensionResponse;
 
@@ -17,18 +17,18 @@ import com.tastyhouse.ceoapplication.shop.response.ShopSuspensionResponse;
 @Transactional(readOnly = true)
 public class ShopSuspensionQueryService implements ShopSuspensionQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopOwnerQueryPort shopOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopSuspensionQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopSuspensionQueryService(ShopOwnerQueryPort shopOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopOwnerQueryPort = shopOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public List<ShopSuspensionResponse> getSuspensions(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopQueryPort.findSuspensions(shopId).stream()
+        return shopOwnerQueryPort.findSuspensions(shopId).stream()
             .map(this::toShopSuspensionResponse)
             .toList();
     }

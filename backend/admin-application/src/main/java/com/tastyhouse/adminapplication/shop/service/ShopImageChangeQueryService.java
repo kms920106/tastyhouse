@@ -8,7 +8,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopImageChangeRequestItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeQueryUseCase;
@@ -22,10 +22,10 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopManagementQueryPort shopManagementQueryPort;
 
-    public ShopImageChangeQueryService(ShopQueryPort shopQueryPort) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopImageChangeQueryService(ShopManagementQueryPort shopManagementQueryPort) {
+        this.shopManagementQueryPort = shopManagementQueryPort;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase 
         ApprovalStatus approvalStatus = status == null ? null : ApprovalStatus.valueOf(status);
         ShopImageType type = imageType == null ? null : ShopImageType.from(imageType);
 
-        PageResult<ShopImageChangeRequestResult> pageResult = shopQueryPort
+        PageResult<ShopImageChangeRequestResult> pageResult = shopManagementQueryPort
             .findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
 
         return PaginationResponse.from(pageResult.map(this::toShopImageChangeRequestItemResponse));

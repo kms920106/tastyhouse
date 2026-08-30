@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.webapplication.shop.response.ShopOriginInfoResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopOriginInfoQueryUseCase;
 
@@ -22,15 +22,15 @@ import com.tastyhouse.webapplication.shop.port.in.ShopOriginInfoQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
 
-    public ShopOriginInfoQueryService(ShopQueryPort shopQueryPort) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopOriginInfoQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
     }
 
     @Override
     public ShopOriginInfoResponse getOriginInfo(Long shopId) {
-        return shopQueryPort.findOriginInfo(shopId)
+        return shopBasicInfoQueryPort.findOriginInfo(shopId)
             .map(this::toShopOriginInfoResponse)
             .orElse(null);
     }

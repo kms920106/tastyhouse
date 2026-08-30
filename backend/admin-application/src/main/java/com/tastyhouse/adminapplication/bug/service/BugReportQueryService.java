@@ -15,7 +15,7 @@ import com.tastyhouse.application.bug.port.out.BugReportImageResult;
 import com.tastyhouse.application.bug.port.out.BugReportListItemResult;
 import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
 import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
-import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -46,11 +46,11 @@ import com.tastyhouse.adminapplication.bug.port.in.BugReportQueryUseCase;
 public class BugReportQueryService implements BugReportQueryUseCase {
 
     private final BugReportQueryPort bugReportQueryPort;
-    private final MemberQueryPort memberQueryPort;
+    private final MemberManagementQueryPort memberManagementQueryPort;
 
-    public BugReportQueryService(BugReportQueryPort bugReportQueryPort, MemberQueryPort memberQueryPort) {
+    public BugReportQueryService(BugReportQueryPort bugReportQueryPort, MemberManagementQueryPort memberManagementQueryPort) {
         this.bugReportQueryPort = bugReportQueryPort;
-        this.memberQueryPort = memberQueryPort;
+        this.memberManagementQueryPort = memberManagementQueryPort;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BugReportQueryService implements BugReportQueryUseCase {
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<BugReportListItemResult> pageResult = bugReportQueryPort.findBugReports(condition, pageQuery);
 
-        Map<Long, MemberWithProfileImageResult> membersById = memberQueryPort.findMemberWithProfileImagesByIds(
+        Map<Long, MemberWithProfileImageResult> membersById = memberManagementQueryPort.findMemberWithProfileImagesByIds(
             pageResult.content().stream().map(BugReportListItemResult::memberId).toList()
         );
 
@@ -90,7 +90,7 @@ public class BugReportQueryService implements BugReportQueryUseCase {
         BugReportDetailResult detail = bugReportQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
-        MemberSummaryResponse member = memberQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
+        MemberSummaryResponse member = memberManagementQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
             .map(this::toMemberSummaryResponse)
             .orElse(null);
 

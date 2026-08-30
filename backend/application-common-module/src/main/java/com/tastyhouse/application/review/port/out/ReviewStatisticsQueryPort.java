@@ -1,17 +1,16 @@
 package com.tastyhouse.application.review.port.out;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
- * review 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 리뷰 통계 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code ReviewStatisticsQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
+ * <p>가게·상품 상세와 마이페이지에 노출할 리뷰 수와 항목별 평점 평균을 조회한다. 점주 통계 화면
+ * 조회는 {@link ShopReviewStatisticsQueryPort}가 소유한다.
  *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>분할 전 한 인터페이스 안에서 {@code getRatingCounts}·{@code getMonthlyReviewCounts}는 오버로드였다.
+ * 회원 화면은 기간 인자가 없는(가게 전체 / 특정 연도) 형태를, 점주 화면은 조회 기간을 받는 형태를 쓰므로
+ * 시그니처가 서로 달라 분할로 각자의 포트에 하나씩 남는다 — <b>공유 메서드는 0개다.</b>
  */
 public interface ReviewStatisticsQueryPort {
 
@@ -34,22 +33,6 @@ public interface ReviewStatisticsQueryPort {
     Map<Integer, Long> getRatingCounts(Long shopId);
 
     Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year);
-
-    Double getAverageTotalRating(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    long countBetween(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    long countSince(Long shopId, LocalDateTime from);
-
-    ShopReviewCategoryAverageResult getCategoryAverages(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    long countWillRevisitBetween(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    Map<Integer, Long> getRatingCounts(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    Map<String, Long> getMonthlyReviewCounts(Long shopId, LocalDateTime from, LocalDateTime to);
-
-    Map<String, Double> getMonthlyAverageRatings(Long shopId, LocalDateTime from, LocalDateTime to);
 
     Long countVisibleByProductId(Long productId);
 

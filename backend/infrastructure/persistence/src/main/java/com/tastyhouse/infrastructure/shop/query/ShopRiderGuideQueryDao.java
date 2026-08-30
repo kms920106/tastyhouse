@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
@@ -30,7 +31,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopRiderGuideJpaE
  * 가게 상세·목록 조회는 {@code SHOP_RIDER_GUIDE}를 조인하지 않는다.
  */
 @Repository
-public class ShopRiderGuideQueryDao implements ShopRiderGuideQueryPort {
+public class ShopRiderGuideQueryDao implements ShopRiderGuideQueryPort, ShopRiderGuideManagementQueryPort {
 
     /**
      * 관리자 검수 화면의 이력 노출 상한. 그 이상은 별도 페이징 엔드포인트를 두지 않고 필요해지면 추가한다.

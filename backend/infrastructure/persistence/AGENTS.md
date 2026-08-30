@@ -29,12 +29,13 @@ com.tastyhouse.infrastructure/
     │   ├── XxxRepositoryImpl.java        @Repository — domain XxxRepository(write 포트) 구현
     │   └── XxxIdConverter.java           AttributeConverter<XxxId, Long> (@Convert FK VO 매핑)
     ├── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**
-    │   └── XxxQueryDao.java              @Repository — `{Ctx}QueryPort`(application-common-module) implements.
+    │   └── XxxQueryDao.java              @Repository — application-common-module의 읽기 포트를 implements.
+    │                                     (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
     │                                     JPAQueryFactory + QXxxJpaEntity로 `Projections.constructor(XxxResult.class, ...)` 투영
     └── listener/                         크로스커팅 도메인 이벤트 리스너(@TransactionalEventListener)
 ```
 
-**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `application-common-module`의 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐다. `<ctx>/query/`에는 이제 `{Ctx}QueryPort`를 구현하는 `XxxQueryDao` 하나만 남는다.
+**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `application-common-module`의 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐다. `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
 
 현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`를 가진 도메인: `coupon`·`file`·`mail`·`member`·`payment`·`point`·`policy`·`product`·`sms`.
 
@@ -64,7 +65,9 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `application-common-module`의 `com.tastyhouse.application.<ctx>.port.out`이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
 
-- **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다(대응 `{Ctx}QueryPort`도 함께 나뉜다).
+- **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
+- **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
+- **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다(`ShopQueryDao#findShopName` — 같은 모듈의 `ReviewOwnerReplyEventListener`가 구체 타입으로 주입). `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryDaosShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다.
 - **Result 접미어는 `Result`로 통일하고 `Dto`는 쓰지 않는다**. admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management` 한정어를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지). 타입명에 역할 마커 `Admin`은 붙이지 않는다.
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).

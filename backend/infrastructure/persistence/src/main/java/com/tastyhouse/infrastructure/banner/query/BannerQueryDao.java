@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.banner.query;
 
+import com.tastyhouse.application.banner.port.out.BannerManagementQueryPort;
 import com.tastyhouse.application.banner.port.out.BannerQueryPort;
 import com.tastyhouse.application.banner.port.out.BannerDetailResult;
 import com.tastyhouse.application.banner.port.out.BannerListItemResult;
@@ -40,7 +41,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
  * 포함한 관리 조회, {@code findVisibleBannersByType}은 현재 노출 중인 배너만).
  */
 @Repository
-public class BannerQueryDao implements BannerQueryPort {
+public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

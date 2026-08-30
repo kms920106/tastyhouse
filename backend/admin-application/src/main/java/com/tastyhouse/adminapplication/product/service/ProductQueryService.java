@@ -15,7 +15,7 @@ import com.tastyhouse.application.product.port.out.ProductCategoryResult;
 import com.tastyhouse.application.product.port.out.ProductDetailResult;
 import com.tastyhouse.application.product.port.out.ProductListItemResult;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.product.response.ProductCategoryResponse;
@@ -28,17 +28,17 @@ import com.tastyhouse.adminapplication.product.response.ProductOptionResponse;
 import com.tastyhouse.adminapplication.product.port.in.ProductQueryUseCase;
 
 /**
- * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryPort}만 주입하고, 조회 결과를
+ * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductManagementQueryPort}만 주입하고, 조회 결과를
  * Response로 조립한다(private 매퍼). 생성·수정은 {@link ProductCommandService}가 담당한다.
  */
 @Service
 @Transactional(readOnly = true)
 public class ProductQueryService implements ProductQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductManagementQueryPort productManagementQueryPort;
 
-    public ProductQueryService(ProductQueryPort productQueryPort) {
-        this.productQueryPort = productQueryPort;
+    public ProductQueryService(ProductManagementQueryPort productManagementQueryPort) {
+        this.productManagementQueryPort = productManagementQueryPort;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     ) {
         ProductSearchCondition condition = ProductSearchCondition.of(shopId, productCategoryId, name, visible, soldOut);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<ProductListItemResponse> pageResult = productQueryPort.findProducts(condition, pageQuery)
+        PageResult<ProductListItemResponse> pageResult = productManagementQueryPort.findProducts(condition, pageQuery)
             .map(this::toProductListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -75,7 +75,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductDetailResponse getProduct(Long id) {
-        ProductDetailResult dto = productQueryPort.findProductDetailById(id)
+        ProductDetailResult dto = productManagementQueryPort.findProductDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         return toProductDetailResponse(dto);
     }
@@ -104,7 +104,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductOptionGroupsResponse getProductOptions(Long id) {
-        ProductOptionsResult result = productQueryPort.findProductOptions(id);
+        ProductOptionsResult result = productManagementQueryPort.findProductOptions(id);
         List<ProductOptionGroupResponse> optionGroups = result.optionGroups().stream()
             .map(this::toOptionGroupResponse)
             .toList();
@@ -143,13 +143,13 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public ProductImagesResponse getProductImages(Long id) {
-        List<String> imageUrls = productQueryPort.findProductImageUrls(id);
+        List<String> imageUrls = productManagementQueryPort.findProductImageUrls(id);
         return ProductImagesResponse.from(imageUrls);
     }
 
     @Override
     public List<ProductCategoryResponse> getProductCategories(Long shopId) {
-        return productQueryPort.findProductCategories(shopId).stream()
+        return productManagementQueryPort.findProductCategories(shopId).stream()
             .map(this::toProductCategoryResponse)
             .toList();
     }

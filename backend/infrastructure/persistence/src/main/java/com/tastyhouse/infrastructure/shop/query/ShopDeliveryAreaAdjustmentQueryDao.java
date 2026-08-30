@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
@@ -31,7 +32,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 완성해 투영한다 — 소비 Service가 fileId로 재조회하지 않으며 응답에 {@code ~FileId}가 노출되지 않는다.
  */
 @Repository
-public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjustmentQueryPort {
+public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjustmentQueryPort, ShopDeliveryAreaAdjustmentManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

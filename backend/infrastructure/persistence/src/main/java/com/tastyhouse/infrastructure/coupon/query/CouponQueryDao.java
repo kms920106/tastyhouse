@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.coupon.query;
 
+import com.tastyhouse.application.coupon.port.out.CouponManagementQueryPort;
 import com.tastyhouse.application.coupon.port.out.CouponQueryPort;
 import com.tastyhouse.application.coupon.port.out.CouponDetailResult;
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
@@ -41,7 +42,7 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaE
  * 보존해 원본 쿠폰의 삭제 여부를 필터링하지 않는다(이미 발급된 보유분은 계속 보인다).
  */
 @Repository
-public class CouponQueryDao implements CouponQueryPort {
+public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

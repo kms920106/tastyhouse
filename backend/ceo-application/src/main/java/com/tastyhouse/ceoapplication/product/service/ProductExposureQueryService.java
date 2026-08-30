@@ -21,7 +21,7 @@ import com.tastyhouse.domain.product.service.ProductExposureResult;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
  * 점주용 메뉴 노출기간 조회 서비스(CQRS query 측).
@@ -37,23 +37,23 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 public class ProductExposureQueryService implements ProductExposureQueryUseCase {
 
-    /** 노출 판정 기준 타임존 — 목록 SQL 술어({@code ProductQueryPort})와 같은 값이어야 한다. */
+    /** 노출 판정 기준 타임존 — 목록 SQL 술어({@code ProductOwnerQueryPort})와 같은 값이어야 한다. */
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final ProductExposureService productExposureService;
     private final PublicHolidayCalendar publicHolidayCalendar;
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductExposureQueryService(
         ProductExposureService productExposureService,
         PublicHolidayCalendar publicHolidayCalendar,
-        ProductQueryPort productQueryPort,
+        ProductOwnerQueryPort productOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productExposureService = productExposureService;
         this.publicHolidayCalendar = publicHolidayCalendar;
-        this.productQueryPort = productQueryPort;
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -61,7 +61,7 @@ public class ProductExposureQueryService implements ProductExposureQueryUseCase 
     public ProductExposureResponse getExposure(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductExposurePeriodResult period = productQueryPort.findExposurePeriod(productId)
+        ProductExposurePeriodResult period = productOwnerQueryPort.findExposurePeriod(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!period.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

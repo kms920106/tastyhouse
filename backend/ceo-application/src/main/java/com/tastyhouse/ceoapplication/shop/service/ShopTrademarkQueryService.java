@@ -9,7 +9,8 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.ceoapplication.shop.response.ShopImageChangeRequestItemResponse;
 import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
 
@@ -23,18 +24,20 @@ import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
 @Transactional(readOnly = true)
 public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
+    private final ShopOwnerQueryPort shopOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopTrademarkQueryService(ShopQueryPort shopQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopTrademarkQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnerQueryPort shopOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
+        this.shopOwnerQueryPort = shopOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
     @Override
     public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String trademarkImageUrl = shopQueryPort.findShopImageUrls(shopId)
+        String trademarkImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
         return toShopImageStatusResponse(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
@@ -43,7 +46,7 @@ public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
     @Override
     public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String thumbnailImageUrl = shopQueryPort.findShopImageUrls(shopId)
+        String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
         return toShopImageStatusResponse(thumbnailImageUrl, shopId, ShopImageType.THUMBNAIL);
@@ -54,7 +57,7 @@ public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
         Long shopId,
         ShopImageType imageType
     ) {
-        List<ShopImageChangeRequestItemResponse> requests = shopQueryPort.findImageChangeRequests(shopId, imageType).stream()
+        List<ShopImageChangeRequestItemResponse> requests = shopOwnerQueryPort.findImageChangeRequests(shopId, imageType).stream()
             .map(this::toShopImageChangeRequestItemResponse)
             .toList();
         return ShopImageStatusResponse.of(currentImageUrl, requests);

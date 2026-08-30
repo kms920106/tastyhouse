@@ -9,7 +9,7 @@ import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
  * 점주용 메뉴그룹 목록 조회 서비스(CQRS query 측).
@@ -22,14 +22,14 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 public class ProductCategoryQueryService implements ProductCategoryQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductCategoryQueryService(
-        ProductQueryPort productQueryPort,
+        ProductOwnerQueryPort productOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryPort = productQueryPort;
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -41,7 +41,7 @@ public class ProductCategoryQueryService implements ProductCategoryQueryUseCase 
     public List<ProductCategoryResponse> getProductCategories(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productQueryPort.findProductCategoriesForManagement(shopId).stream()
+        return productOwnerQueryPort.findProductCategoriesForManagement(shopId).stream()
             .map(this::toProductCategoryResponse)
             .toList();
     }

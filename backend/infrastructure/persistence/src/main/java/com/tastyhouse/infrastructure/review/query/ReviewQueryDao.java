@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ReviewTagQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
 import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
@@ -65,7 +66,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
  * {@code ReviewStatisticsQueryDao}로 분리했다. 여기에는 web/공용 목록·상세 조회만 둔다.
  */
 @Repository
-public class ReviewQueryDao implements ReviewQueryPort {
+public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
 
     private static final QReviewImageJpaEntity subReviewImage = new QReviewImageJpaEntity("subReviewImage");
     private static final QReviewLikeJpaEntity subReviewLike = new QReviewLikeJpaEntity("subReviewLike");

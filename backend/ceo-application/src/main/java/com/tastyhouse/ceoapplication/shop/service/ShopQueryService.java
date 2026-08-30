@@ -9,9 +9,9 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
-import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -28,17 +28,17 @@ import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
 @Transactional(readOnly = true)
 public class ShopQueryService implements ShopQueryUseCase {
 
-    private final ShopSearchQueryPort shopSearchQueryPort;
-    private final ShopQueryPort shopQueryPort;
+    private final ShopSearchManagementQueryPort shopSearchManagementQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopQueryService(
-        ShopSearchQueryPort shopSearchQueryPort,
-        ShopQueryPort shopQueryPort,
+        ShopSearchManagementQueryPort shopSearchManagementQueryPort,
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopSearchQueryPort = shopSearchQueryPort;
-        this.shopQueryPort = shopQueryPort;
+        this.shopSearchManagementQueryPort = shopSearchManagementQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -53,7 +53,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed, ceoId);
         PageResult<ShopListItemResponse> pageResult =
-            shopSearchQueryPort.findShops(condition, PageQuery.of(page, size))
+            shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size))
                 .map(this::toShopListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -76,7 +76,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     }
 
     private ShopDetailResponse toShopDetailResponse(Shop shop) {
-        Optional<ShopImageUrlsResult> imageUrls = shopQueryPort.findShopImageUrls(shop.getId());
+        Optional<ShopImageUrlsResult> imageUrls = shopBasicInfoQueryPort.findShopImageUrls(shop.getId());
         String thumbnailImageUrl = imageUrls.map(ShopImageUrlsResult::thumbnailImageUrl).orElse(null);
         String trademarkImageUrl = imageUrls.map(ShopImageUrlsResult::trademarkImageUrl).orElse(null);
 

@@ -15,7 +15,7 @@ import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewManagementDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewManagementQueryPort;
-import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewTagQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -29,7 +29,7 @@ import com.tastyhouse.adminapplication.review.port.in.ReviewQueryUseCase;
  * 리뷰 관리 조회 서비스(admin).
  *
  * <p>관리 화면은 숨김 리뷰·댓글·답글까지 모두 봐야 하므로 관리 전용 read 어댑터
- * ({@link ReviewManagementQueryPort})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewQueryPort}를
+ * ({@link ReviewManagementQueryPort})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewTagQueryPort}를
  * 쓴다. 파일 경로 → 표시용 URL 변환은 DAO가 담당하므로 이 계층은 이미 URL이 된 필드를 그대로 조립한다.
  *
  * <p>명령 동작은 {@link ReviewCommandService}로 분리했다(CQRS).
@@ -39,11 +39,11 @@ import com.tastyhouse.adminapplication.review.port.in.ReviewQueryUseCase;
 public class ReviewQueryService implements ReviewQueryUseCase {
 
     private final ReviewManagementQueryPort reviewManagementQueryPort;
-    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewTagQueryPort reviewTagQueryPort;
 
-    public ReviewQueryService(ReviewManagementQueryPort reviewManagementQueryPort, ReviewQueryPort reviewQueryPort) {
+    public ReviewQueryService(ReviewManagementQueryPort reviewManagementQueryPort, ReviewTagQueryPort reviewTagQueryPort) {
         this.reviewManagementQueryPort = reviewManagementQueryPort;
-        this.reviewQueryPort = reviewQueryPort;
+        this.reviewTagQueryPort = reviewTagQueryPort;
     }
 
     /**
@@ -77,9 +77,9 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         ReviewManagementDetailResult detail = reviewManagementQueryPort.findReviewManagementDetail(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        List<Long> tagIds = reviewQueryPort.findTagIdsByReviewId(reviewId.value());
+        List<Long> tagIds = reviewTagQueryPort.findTagIdsByReviewId(reviewId.value());
         if (!tagIds.isEmpty()) {
-            detail = detail.withTagNames(reviewQueryPort.findTagNamesByIds(tagIds));
+            detail = detail.withTagNames(reviewTagQueryPort.findTagNamesByIds(tagIds));
         }
 
         return toReviewManagementDetailResponse(detail);

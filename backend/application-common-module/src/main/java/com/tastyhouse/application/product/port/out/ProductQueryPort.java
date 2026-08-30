@@ -1,23 +1,21 @@
 package com.tastyhouse.application.product.port.out;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
- * product 읽기 포트(CQRS query 측 아웃바운드 포트).
+ * 상품 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
- * <p>완전 매핑 전환으로 <b>응용 계층이 읽기 계약을 소유</b>하고 infrastructure-module의
- * {@code ProductQueryDao}가 이를 구현한다. 소비 모듈은 이 인터페이스와 같은 패키지의 반환 DTO
- * ({@code *Result})·검색 조건({@code *SearchCondition})만 알며, QueryDSL도 어댑터의 존재도 알지 않는다.
+ * <p>가게 상세의 메뉴판·상품 상세·검색·할인 목록처럼 회원에게 상품을 노출하는 조회를 담당한다.
+ * 관리 화면 조회는 {@link ProductManagementQueryPort}(관리자)·
+ * {@link ProductOwnerQueryPort}(점주)가 소유한다.
  *
- * <p>메서드명·시그니처는 DAO의 기존 공개 표면을 그대로 전사한 것이다(챕터 04는 순수 소유권 이동이라
- * 조회 동작·wire 계약을 바꾸지 않는다).
+ * <p>분할 전 이 포트는 35개 메서드에 세 앱의 조회가 모두 섞여 있었다. 실측 결과 앱마다 쓰는 메서드가
+ * 거의 겹치지 않았고(회원 12 · 관리자 5 · 점주 15), 겹치는 6개만 <b>공유 메서드</b>로 남아 각 포트에
+ * 선언만 중복한다. 구현은 {@code ProductQueryDao} 하나가 담당하므로 투영 코드는 복제되지 않는다.
  */
 public interface ProductQueryPort {
 
@@ -25,17 +23,9 @@ public interface ProductQueryPort {
 
     PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
 
-    ProductOptionsResult findProductOptions(Long productId);
-
     List<ProductBatchResult> findProductsBatch(List<ProductBatchItem> items);
 
-    List<String> findProductImageUrls(Long productId);
-
     List<ShopProductItemResult> findShopProducts(Long shopId);
-
-    PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery);
-
-    Optional<ProductDetailResult> findProductDetailById(Long productId);
 
     List<ProductPriceResult> findProductPrices(Long productId);
 
@@ -45,47 +35,23 @@ public interface ProductQueryPort {
 
     long countVisibleProducts(Long shopId);
 
-    Optional<ProductManagementDetailResult> findProductManagementDetailById(Long productId);
-
-    Optional<ProductNutritionResult> findNutrition(Long productId);
-
-    List<String> findAllergenTypes(Long productId);
-
-    List<ProductCategoryResult> findProductCategories(Long shopId);
-
-    List<ProductCategoryManagementResult> findProductCategoriesForManagement(Long shopId);
-
-    List<ProductOptionGroupManagementResult> findProductOptionGroupsForManagement(Long shopId);
-
-    List<ProductOptionGroupLinkedProductResult> findLinkedProductsByOptionGroupId(Long optionGroupId);
-
-    Map<Long, List<ProductOptionGroupLinkedProductResult>> findLinkedProductsByShop(Long shopId);
-
-    List<ProductOptionGroupMergeCandidateResult> findOptionGroupMergeCandidates(Long shopId);
-
-    Set<String> findOptionGroupMergeExcludedSignatures(Long shopId);
-
-    List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition);
-
-    List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(ProductAvailabilitySearchCondition condition);
-
-    List<ProductImageManagementResult> findProductImagesForManagement(Long productId);
-
-    boolean existsProductInShop(Long productId, Long shopId);
-
-    List<ProductImageChangeRequestResult> findImageChangeRequests(Long productId);
-
-    PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(ApprovalStatus status, PageQuery pageQuery);
-
-    List<ProductVegetarianRequestResult> findVegetarianRequests(Long productId);
-
-    PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(ApprovalStatus status, PageQuery pageQuery);
-
-    PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(ApprovalStatus status, PageQuery pageQuery);
-
     List<PopularProductItemResult> findPopularProducts(Long shopId);
 
-    Optional<ProductVegetarianSettingResult> findVegetarianSetting(Long productId);
+    /** 공유 메서드 — {@link ProductManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    ProductOptionsResult findProductOptions(Long productId);
 
-    Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId);
+    /** 공유 메서드 — {@link ProductManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    List<String> findProductImageUrls(Long productId);
+
+    /** 공유 메서드 — {@link ProductManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    Optional<ProductDetailResult> findProductDetailById(Long productId);
+
+    /** 공유 메서드 — {@link ProductManagementQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    List<ProductCategoryResult> findProductCategories(Long shopId);
+
+    /** 공유 메서드 — {@link ProductOwnerQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    Optional<ProductNutritionResult> findNutrition(Long productId);
+
+    /** 공유 메서드 — {@link ProductOwnerQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    List<String> findAllergenTypes(Long productId);
 }

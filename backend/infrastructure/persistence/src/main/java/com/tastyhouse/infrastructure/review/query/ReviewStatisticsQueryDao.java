@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.review.query;
 
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
 import java.time.LocalDateTime;
@@ -64,7 +65,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
  * 점주가 자기 가게 피드백의 일부를 볼 수 없게 된다(점주용에서 제외).
  */
 @Repository
-public class ReviewStatisticsQueryDao implements ReviewStatisticsQueryPort {
+public class ReviewStatisticsQueryDao implements ReviewStatisticsQueryPort, ShopReviewStatisticsQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

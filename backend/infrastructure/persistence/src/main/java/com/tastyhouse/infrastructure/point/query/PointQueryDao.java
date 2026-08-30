@@ -1,5 +1,6 @@
 package com.tastyhouse.infrastructure.point.query;
 
+import com.tastyhouse.application.point.port.out.PointManagementQueryPort;
 import com.tastyhouse.application.point.port.out.PointQueryPort;
 import com.tastyhouse.application.point.port.out.PointBalanceResult;
 import com.tastyhouse.application.point.port.out.PointHistoryResult;
@@ -32,7 +33,7 @@ import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.po
  * ({@code findPointHistoryPage})은 시그니처로 구분한다.
  */
 @Repository
-public class PointQueryDao implements PointQueryPort {
+public class PointQueryDao implements PointQueryPort, PointManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.order.query;
 
 import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
+import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderListItemResult;
@@ -59,7 +60,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
  * 기본 별칭 하나로는 두 join이 충돌한다({@code EventQueryDao#findEventDetailById} 선례와 동일).
  */
 @Repository
-public class OrderQueryDao implements OrderQueryPort {
+public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
 
     /** 주문 상품 이미지용 {@code UPLOADED_FILE} 별칭 — 가게 썸네일 join과 구분한다. */
     private static final QUploadedFileJpaEntity ORDER_PRODUCT_IMAGE_FILE =

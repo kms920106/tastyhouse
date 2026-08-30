@@ -976,6 +976,23 @@ reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `Not
 
 reference 구현: `application-common-module`의 `com.tastyhouse.application.faq.port.out`(`FaqCategoryManagementResult` vs web용 `FaqCategoryResult`, `FaqManagementListItemResult` — 같은 패키지 공존이 확정된 사례), `com.tastyhouse.application.event.port.out`(`EventManagementListItemResult`/`EventManagementDetailResult` vs `EventListItemResult`/`EventDetailResult`), `com.tastyhouse.application.order.port.out`(`OrderManagementListItemResult` vs `OrderListItemResult`), `com.tastyhouse.application.notice.port.out`(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 충돌 없어 순수명을 쓴 사례: `member`/`bug`/`coupon` 도메인의 `MemberListItemResult`/`BugReportListItemResult`/`CouponListItemResult`.
 
+## 조회 포트 소비자별 분할 규칙 (포트명은 반환 Result 계열을 승계 — 챕터 04)
+
+**한 조회 포트에 여러 앱의 조회가 섞여 있으면 앱별 인터페이스로 쪼개고, 각 앱이 자기 계약만 소유한다.** 챕터 04에서 공유 포트 22개를 48개로 분할했다(전체 47 → 73개). "포트를 공유한다"는 것은 대부분 **타입만 같을 뿐 서로 다른 메서드를 쓰고 있다는 뜻**이었다 — `EventQueryPort`·`FaqQueryPort`·`BannerQueryPort`·`NoticeQueryPort`는 공유 메서드가 0개였고, `ProductQueryPort`는 35개 중 회원 12·관리자 5·점주 15가 각자 다른 메서드를 쓰고 있었다.
+
+- **포트명은 그 포트가 반환하는 `Result` 계열의 이름을 승계한다.** Result는 이미 위 [`Management` 한정어 규칙](#adminweb-result-충돌-시-management-한정어-상시-적용-규칙)으로 앱별 충돌이 해소돼 있으므로, 포트가 그것을 따르면 **새 규칙 없이 충돌이 재발하지 않는다**. 예: `findAllBanners`가 `BannerManagementListItemResult`를 반환하므로 그 포트는 `BannerManagementQueryPort`다.
+- **`Management`는 여기서도 "무엇을 위한 것인가(관리 화면)"** 이지 "누가"가 아니다. 따라서 admin과 ceo 어느 쪽이든 관리 화면 계약이면 쓸 수 있다(선례: ceo의 `ShopReviewManagementQueryPort` vs admin의 `ReviewManagementQueryPort` — 도메인 접두로 구분).
+- **형제가 이미 `Management`를 점유했으면 `Owner`로 구별한다.** admin 계약이 `*ManagementResult`를 반환해 `Management`를 쓰고 있는데 ceo(점주 관리 화면) 계약도 필요하면, 소유 주체를 담은 `Owner`를 쓴다(예: `ShopNoticeManagementQueryPort`(admin) vs `ShopNoticeOwnerQueryPort`(ceo), `ProductManagementQueryPort`(admin) vs `ProductOwnerQueryPort`(ceo)). **`Admin`·`Ceo` 같은 역할 마커는 금지**가 그대로 유지된다.
+- **공유 메서드는 양쪽 인터페이스에 선언만 중복한다.** DAO 구현은 하나를 공유하므로 투영 코드가 복제되지 않으며, 유지비는 선언에 한정된다. 중복 선언에는 `/** 공유 메서드 — {@link 상대포트}에도 같은 시그니처로 선언돼 있다. */` 주석을 단다.
+- **겹침이 압도적이면 쪼개지 않는다.** 두 앱이 쓰는 메서드가 거의 같으면 쪼갠 인터페이스가 사실상 같아져 조회 하나를 고칠 때 두 파일을 고쳐야 한다. 이때는 **소유자를 앱이 아니게** 만든다 — 성격을 담은 이름의 공용 포트 하나로 두고 여러 앱이 함께 의존한다(예: `ShopBasicInfoQueryPort`, `ShopSearchManagementQueryPort`). 이런 공용 포트는 챕터 05에서 `domain-module`로 이동한다.
+- **구현이 서로 다른 DAO면 선언 중복 대신 공유분을 별도 포트로 뗀다.** 선언을 중복하면 그 계약을 구현하는 DAO마다 본문이 필요한데, 두 DAO가 서로 다른 빈이면 투영 코드가 복제된다(사례: `ReviewTagQueryPort` — admin이 태그 2건 때문에 회원 화면용 `ReviewQueryPort`를 통째로 주입하던 것을 해소).
+- **DAO는 분할된 포트를 전부 `implements`하며 본문은 바뀌지 않는다.** 분할 전후로 `@Override` 개수가 같아야 한다(`grep -c '@Override' {DAO}`로 대조). 메서드 누락은 `implements` 미구현으로 컴파일 에러가 나므로 기계적으로 드러난다.
+- **application 소비자가 없는 조회는 포트에 두지 않는다.** infra 내부에서만 쓰는 조회는 DAO의 평범한 public 메서드로 남긴다(사례: `ShopQueryDao#findShopName` — 유일한 소비처인 `ReviewOwnerReplyEventListener`가 같은 모듈에서 구체 타입으로 주입한다. `MemberReviewCountQueryPort` 선례와 같은 취급).
+
+**분할 후 남은 공유 포트는 의도적으로 남긴 것뿐이다** — `ShopBasicInfoQueryPort`(3앱)·`ShopDeliveryTipQueryPort`(web+ceo)·`ReviewTagQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`(각 2앱) 5개이며, 전부 위 "겹침이 압도적" 판정을 거쳤고 챕터 05에서 `domain-module`로 간다. **그 밖에 어떤 앱도 다른 앱의 계약을 주입하지 않는다.**
+
+reference 구현: `application-common-module`의 `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`ShopBasicInfoQueryPort`/`ShopManagementQueryPort`/`ShopOwnerQueryPort` — 35개 메서드를 4분할한 최대 사례), `com.tastyhouse.application.product.port.out`(`ProductQueryPort`/`ProductManagementQueryPort`/`ProductOwnerQueryPort`), `com.tastyhouse.application.review.port.out`(`ReviewTagQueryPort` — 구현 DAO가 달라 별도 포트로 뗀 사례).
+
 ## 모듈 경계 규칙 (계층 × 앱 2차원 + 기술별 infrastructure)
 
 **모듈 경계는 챕터 01~05를 거쳐 "계층 × 앱" 2차원이 됐고, `infrastructure`는 기술별로 나뉘었다.** 아래가 현재 배치 기준이다.

@@ -2,6 +2,7 @@ package com.tastyhouse.infrastructure.member.query;
 
 import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
 import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
+import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.member.port.out.MemberSearchCondition;
@@ -48,7 +49,7 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
  * 직후 재조립한다.
  */
 @Repository
-public class MemberQueryDao implements MemberQueryPort {
+public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

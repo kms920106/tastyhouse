@@ -3,7 +3,7 @@ package com.tastyhouse.adminapplication.shop.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
 import com.tastyhouse.adminapplication.shop.response.ShopOrderNoticeResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 
@@ -19,10 +19,10 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
 
-    private final ShopOrderNoticeQueryPort shopOrderNoticeQueryPort;
+    private final ShopOrderNoticeManagementQueryPort shopOrderNoticeManagementQueryPort;
 
-    public ShopOrderNoticeQueryService(ShopOrderNoticeQueryPort shopOrderNoticeQueryPort) {
-        this.shopOrderNoticeQueryPort = shopOrderNoticeQueryPort;
+    public ShopOrderNoticeQueryService(ShopOrderNoticeManagementQueryPort shopOrderNoticeManagementQueryPort) {
+        this.shopOrderNoticeManagementQueryPort = shopOrderNoticeManagementQueryPort;
     }
 
     /**
@@ -30,7 +30,7 @@ public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase 
      */
     @Override
     public ShopOrderNoticeResponse getOrderNotice(Long shopId) {
-        return shopOrderNoticeQueryPort.findOrderNotice(shopId)
+        return shopOrderNoticeManagementQueryPort.findOrderNotice(shopId)
             .map(result -> ShopOrderNoticeResponse.of(result.content(), result.hidden(), result.hiddenReason()))
             .orElseGet(ShopOrderNoticeResponse::empty);
     }

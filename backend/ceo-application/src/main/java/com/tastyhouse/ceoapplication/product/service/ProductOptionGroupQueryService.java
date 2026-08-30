@@ -18,7 +18,7 @@ import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
  * 점주용 옵션그룹·옵션 조회 서비스(CQRS query 측).
@@ -31,16 +31,16 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupQueryService(
-        ProductQueryPort productQueryPort,
+        ProductOwnerQueryPort productOwnerQueryPort,
         CupDepositPolicy cupDepositPolicy,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productQueryPort = productQueryPort;
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -53,7 +53,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
     public List<ProductOptionGroupResponse> getProductOptionGroups(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productQueryPort.findProductOptionGroupsForManagement(shopId).stream()
+        return productOwnerQueryPort.findProductOptionGroupsForManagement(shopId).stream()
             .map(this::toProductOptionGroupResponse)
             .toList();
     }
@@ -74,7 +74,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupLinkedProductResult> linked =
-            productQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
+            productOwnerQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
         boolean ownedByRequestedShop = linked.stream().anyMatch(row -> shopId.equals(row.shopId()));
         if (!ownedByRequestedShop) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
@@ -98,7 +98,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productQueryPort.findLinkedProductsByShop(shopId);
+            productOwnerQueryPort.findLinkedProductsByShop(shopId);
 
         return linkedByGroupId.entrySet().stream()
             .map(entry -> toLinkedProductsResponse(entry.getKey(), entry.getValue()))

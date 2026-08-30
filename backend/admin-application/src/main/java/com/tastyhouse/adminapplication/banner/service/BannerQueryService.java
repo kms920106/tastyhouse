@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.banner.port.out.BannerDetailResult;
 import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
-import com.tastyhouse.application.banner.port.out.BannerQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerManagementQueryPort;
 import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.banner.response.BannerDetailResponse;
@@ -21,7 +21,7 @@ import com.tastyhouse.adminapplication.banner.port.in.BannerQueryUseCase;
 /**
  * 배너 관리 조회 서비스.
  *
- * <p>읽기 포트({@link BannerQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트를
+ * <p>읽기 포트({@link BannerManagementQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트를
  * 주입하지 않으며, 쓰기는 {@link BannerCommandService}가 담당한다.
  *
  * <p>HTTP 경계에서 {@code String}으로 받은 배너 유형은 여기서 {@code BannerType.from(String)}으로
@@ -32,10 +32,10 @@ import com.tastyhouse.adminapplication.banner.port.in.BannerQueryUseCase;
 @Transactional(readOnly = true)
 public class BannerQueryService implements BannerQueryUseCase {
 
-    private final BannerQueryPort bannerQueryPort;
+    private final BannerManagementQueryPort bannerManagementQueryPort;
 
-    public BannerQueryService(BannerQueryPort bannerQueryPort) {
-        this.bannerQueryPort = bannerQueryPort;
+    public BannerQueryService(BannerManagementQueryPort bannerManagementQueryPort) {
+        this.bannerManagementQueryPort = bannerManagementQueryPort;
     }
 
     @Override
@@ -43,14 +43,14 @@ public class BannerQueryService implements BannerQueryUseCase {
         BannerType bannerType = type == null ? null : BannerType.from(type);
         BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<BannerListItemResponse> pageResult = bannerQueryPort.findAllBanners(condition, pageQuery)
+        PageResult<BannerListItemResponse> pageResult = bannerManagementQueryPort.findAllBanners(condition, pageQuery)
             .map(this::toBannerListItemResponse);
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public BannerDetailResponse getBanner(Long id) {
-        BannerDetailResult bannerDetail = bannerQueryPort.findDetailById(id)
+        BannerDetailResult bannerDetail = bannerManagementQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));
         return toBannerDetailResponse(bannerDetail);
     }

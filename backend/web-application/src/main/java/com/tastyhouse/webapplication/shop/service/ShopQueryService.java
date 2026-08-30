@@ -78,6 +78,7 @@ import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.webapplication.product.response.ProductSummaryResponse;
@@ -144,6 +145,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     private final MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort;
     private final ShopDeliveryTipRepository shopDeliveryTipRepository;
     private final ShopQueryPort shopQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopNoticeQueryPort shopNoticeQueryPort;
     private final ShopSearchQueryPort shopSearchQueryPort;
     private final ShopChoiceQueryPort shopChoiceQueryPort;
@@ -161,6 +163,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort,
         ShopDeliveryTipRepository shopDeliveryTipRepository,
         ShopQueryPort shopQueryPort,
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort,
         ShopNoticeQueryPort shopNoticeQueryPort,
         ShopSearchQueryPort shopSearchQueryPort,
         ShopChoiceQueryPort shopChoiceQueryPort,
@@ -177,6 +180,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         this.memberDeliveryAddressQueryPort = memberDeliveryAddressQueryPort;
         this.shopDeliveryTipRepository = shopDeliveryTipRepository;
         this.shopQueryPort = shopQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopNoticeQueryPort = shopNoticeQueryPort;
         this.shopSearchQueryPort = shopSearchQueryPort;
         this.shopChoiceQueryPort = shopChoiceQueryPort;
@@ -375,11 +379,11 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     public ShopDetailResponse getShopDetail(Long shopId) {
         ShopVisibleDetailResult shop = findVisibleShop(shopId);
 
-        List<ShopPhoneNumberItem> phoneNumbers = shopQueryPort.findPhoneNumbers(shopId).stream()
+        List<ShopPhoneNumberItem> phoneNumbers = shopBasicInfoQueryPort.findPhoneNumbers(shopId).stream()
             .map(this::convertToShopPhoneNumberItem)
             .toList();
 
-        String trademarkImageUrl = shopQueryPort.findShopImageUrls(shopId)
+        String trademarkImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
 
@@ -724,9 +728,9 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     @Override
     public ShopInfoResponse getShopInfo(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopBusinessHourResult> businessHours = shopQueryPort.findBusinessHours(shopId);
-        List<ShopBreakTimeResult> breakTimes = shopQueryPort.findBreakTimes(shopId);
-        List<ShopClosedDayResult> closedDays = shopQueryPort.findClosedDays(shopId);
+        List<ShopBusinessHourResult> businessHours = shopBasicInfoQueryPort.findBusinessHours(shopId);
+        List<ShopBreakTimeResult> breakTimes = shopBasicInfoQueryPort.findBreakTimes(shopId);
+        List<ShopClosedDayResult> closedDays = shopBasicInfoQueryPort.findClosedDays(shopId);
         List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryPort.findAmenitiesWithCategory(shopId);
 
         List<ShopBusinessHourItem> businessHourItems = businessHours.stream()
@@ -747,7 +751,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
         String ownerMessage = null;
         LocalDateTime ownerMessageCreatedAt = null;
-        var ownerMessageHistory = shopQueryPort.findLatestOwnerMessage(shopId);
+        var ownerMessageHistory = shopBasicInfoQueryPort.findLatestOwnerMessage(shopId);
         if (ownerMessageHistory.isPresent()) {
             ownerMessage = ownerMessageHistory.get().message();
             ownerMessageCreatedAt = ownerMessageHistory.get().createdAt();
@@ -760,7 +764,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         String directionsGuide = null;
         BigDecimal displayLatitude = null;
         BigDecimal displayLongitude = null;
-        var convenienceInfo = shopQueryPort.findConvenienceInfo(shopId);
+        var convenienceInfo = shopBasicInfoQueryPort.findConvenienceInfo(shopId);
         if (convenienceInfo.isPresent()) {
             ShopConvenienceInfoResult info = convenienceInfo.get();
             parkingAvailable = info.parkingAvailable();
@@ -805,7 +809,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopBannerResponse> getShopBanners(Long shopId) {
-        return shopQueryPort.findBannerImages(shopId).stream()
+        return shopBasicInfoQueryPort.findBannerImages(shopId).stream()
             .map(this::convertToShopBannerResponse)
             .toList();
     }
@@ -856,7 +860,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopPhotoCategoryResponse> getShopPhotos(Long shopId) {
-        List<ShopPhotoCategoryResult> categories = shopQueryPort.findPhotoCategories(shopId);
+        List<ShopPhotoCategoryResult> categories = shopBasicInfoQueryPort.findPhotoCategories(shopId);
         List<ShopPhotoCategoryImageResult> images = shopQueryPort.findAllPhotoCategoryImages();
 
         Map<Long, List<ShopPhotoCategoryImageResult>> imagesByCategory = images.stream()
@@ -1053,7 +1057,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         Map<OrderMethod, ShopOperatingStatusResult> availabilities =
             shopOperatingStatusService.findOrderMethodAvailabilities(shopId, LocalDateTime.now());
 
-        List<ShopOrderMethodItemResponse> orderMethodItems = shopQueryPort.findOrderMethods(shopId).stream()
+        List<ShopOrderMethodItemResponse> orderMethodItems = shopBasicInfoQueryPort.findOrderMethods(shopId).stream()
             .map(dto -> toShopOrderMethodItemResponse(dto, availabilities.get(dto.orderMethod())))
             .toList();
 

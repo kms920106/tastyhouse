@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
-import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopChoiceManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
@@ -23,9 +23,10 @@ import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagementResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopManagementDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
-import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopAmenityCategoryResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopAmenityResponse;
@@ -56,23 +57,26 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopQueryUseCase;
 @Transactional(readOnly = true)
 public class ShopQueryService implements ShopQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
-    private final ShopSearchQueryPort shopSearchQueryPort;
-    private final ShopChoiceQueryPort shopChoiceQueryPort;
+    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
+    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopSearchManagementQueryPort shopSearchManagementQueryPort;
+    private final ShopChoiceManagementQueryPort shopChoiceManagementQueryPort;
 
     public ShopQueryService(
-        ShopQueryPort shopQueryPort,
-        ShopSearchQueryPort shopSearchQueryPort,
-        ShopChoiceQueryPort shopChoiceQueryPort
+        ShopBasicInfoQueryPort shopBasicInfoQueryPort,
+        ShopManagementQueryPort shopManagementQueryPort,
+        ShopSearchManagementQueryPort shopSearchManagementQueryPort,
+        ShopChoiceManagementQueryPort shopChoiceManagementQueryPort
     ) {
-        this.shopQueryPort = shopQueryPort;
-        this.shopSearchQueryPort = shopSearchQueryPort;
-        this.shopChoiceQueryPort = shopChoiceQueryPort;
+        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
+        this.shopManagementQueryPort = shopManagementQueryPort;
+        this.shopSearchManagementQueryPort = shopSearchManagementQueryPort;
+        this.shopChoiceManagementQueryPort = shopChoiceManagementQueryPort;
     }
 
     @Override
     public List<StationResponse> getStations() {
-        return shopChoiceQueryPort.findAllStations().stream()
+        return shopChoiceManagementQueryPort.findAllStations().stream()
             .map(station -> StationResponse.from(station.id(), station.stationName()))
             .toList();
     }
@@ -87,7 +91,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed);
         PageResult<ShopListItemResponse> pageResult =
-            shopSearchQueryPort.findShops(condition, PageQuery.of(page, size))
+            shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size))
                 .map(this::toShopListItemResponse);
         return PaginationResponse.from(pageResult);
     }
@@ -105,13 +109,13 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public ShopDetailResponse getShop(Long id) {
-        ShopManagementDetailResult shop = shopQueryPort.findManagementDetailById(id)
+        ShopManagementDetailResult shop = shopManagementQueryPort.findManagementDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         return toShopDetailResponse(shop);
     }
 
     private ShopDetailResponse toShopDetailResponse(ShopManagementDetailResult shop) {
-        String thumbnailImageUrl = shopQueryPort.findShopImageUrls(shop.id())
+        String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shop.id())
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
 
@@ -135,7 +139,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopBusinessHourResponse> getBusinessHours(Long id) {
-        return shopQueryPort.findBusinessHours(id).stream()
+        return shopBasicInfoQueryPort.findBusinessHours(id).stream()
             .map(this::toShopBusinessHourResponse)
             .toList();
     }
@@ -154,7 +158,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long id) {
-        return shopQueryPort.findBreakTimes(id).stream()
+        return shopBasicInfoQueryPort.findBreakTimes(id).stream()
             .map(this::toShopBreakTimeResponse)
             .toList();
     }
@@ -171,7 +175,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopClosedDayResponse> getClosedDays(Long id) {
-        return shopQueryPort.findClosedDays(id).stream()
+        return shopBasicInfoQueryPort.findClosedDays(id).stream()
             .map(this::toShopClosedDayResponse)
             .toList();
     }
@@ -186,7 +190,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopAmenityCategoryResponse> getAmenityCategories() {
-        return shopQueryPort.findAllAmenityCategories().stream()
+        return shopManagementQueryPort.findAllAmenityCategories().stream()
             .map(this::toShopAmenityCategoryResponse)
             .toList();
     }
@@ -205,7 +209,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopFoodTypeCategoryResponse> getFoodTypeCategories() {
-        return shopQueryPort.findAllFoodTypeCategories().stream()
+        return shopManagementQueryPort.findAllFoodTypeCategories().stream()
             .map(this::toShopFoodTypeCategoryResponse)
             .toList();
     }
@@ -224,7 +228,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopAmenityResponse> getShopAmenities(Long id) {
-        return shopQueryPort.findAmenityAssignments(id).stream()
+        return shopBasicInfoQueryPort.findAmenityAssignments(id).stream()
             .map(this::toShopAmenityResponse)
             .toList();
     }
@@ -241,7 +245,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopFoodTypeResponse> getShopFoodTypes(Long id) {
-        return shopQueryPort.findFoodTypeAssignments(id).stream()
+        return shopManagementQueryPort.findFoodTypeAssignments(id).stream()
             .map(this::toShopFoodTypeResponse)
             .toList();
     }
@@ -258,14 +262,14 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<TagResponse> getTags() {
-        return shopChoiceQueryPort.findAllTags().stream()
+        return shopChoiceManagementQueryPort.findAllTags().stream()
             .map(tag -> TagResponse.from(tag.id(), tag.tagName()))
             .toList();
     }
 
     @Override
     public List<ShopOrderMethodItemResponse> getOrderMethods(Long id) {
-        return shopQueryPort.findOrderMethods(id).stream()
+        return shopBasicInfoQueryPort.findOrderMethods(id).stream()
             .map(this::toShopOrderMethodItemResponse)
             .toList();
     }
@@ -280,7 +284,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopBannerImageItemResponse> getBannerImages(Long id) {
-        return shopQueryPort.findBannerImages(id).stream()
+        return shopBasicInfoQueryPort.findBannerImages(id).stream()
             .map(image -> ShopBannerImageItemResponse.from(
                 image.id(),
                 image.imageUrl(),
@@ -291,7 +295,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopPhotoCategoryResponse> getPhotoCategories(Long id) {
-        return shopQueryPort.findPhotoCategories(id).stream()
+        return shopBasicInfoQueryPort.findPhotoCategories(id).stream()
             .map(this::toShopPhotoCategoryResponse)
             .toList();
     }
@@ -302,7 +306,7 @@ public class ShopQueryService implements ShopQueryUseCase {
 
     @Override
     public List<ShopPhotoCategoryImageItemResponse> getPhotoCategoryImages(Long categoryId) {
-        return shopQueryPort.findPhotoCategoryImages(categoryId).stream()
+        return shopManagementQueryPort.findPhotoCategoryImages(categoryId).stream()
             .map(this::toShopPhotoCategoryImageItemResponse)
             .toList();
     }
@@ -320,14 +324,14 @@ public class ShopQueryService implements ShopQueryUseCase {
     @Override
     public PaginationResponse<ShopChoiceListItemResponse> getShopChoices(int page, int size) {
         PageResult<ShopChoiceListItemResponse> pageResult =
-            shopChoiceQueryPort.findEditorChoices(PageQuery.of(page, size))
+            shopChoiceManagementQueryPort.findEditorChoices(PageQuery.of(page, size))
                 .map(dto -> ShopChoiceListItemResponse.from(dto.id(), dto.shopId(), dto.name(), dto.title()));
         return PaginationResponse.from(pageResult);
     }
 
     @Override
     public ShopChoiceDetailResponse getShopChoice(Long id) {
-        return shopChoiceQueryPort.findShopChoiceById(id)
+        return shopChoiceManagementQueryPort.findShopChoiceById(id)
             .map(dto -> ShopChoiceDetailResponse.from(dto.id(), dto.shopId(), dto.title(), dto.content()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
