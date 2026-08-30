@@ -2,7 +2,13 @@
 
 읽기 경로(CQRS query 측)의 **계약**만 소유하는 프레임워크-프리 `java-library` 모듈. 인터페이스(`{Ctx}QueryPort`)와 그 입출력 타입(`*Result`/`*SearchCondition`)을 여기 두고, 구현(QueryDSL DAO)은 `infrastructure-module`의 `<ctx>/query/`가 담당한다. 읽기 경로 포트화(챕터 04)로 신설됐다.
 
-> **챕터 05 이후 — 이 모듈이 읽기 계약 전부를 소유하지는 않는다.** 2개 이상의 앱이 함께 쓰는 공유 계약 50개는 `domain-module`이 소유한다(패키지는 `com.tastyhouse.application.<ctx>.port.out` 그대로). 아래 [공유 계약은 domain-module 소유](#공유-계약은-domain-module-소유-챕터-05) 절을 참조한다.
+> **챕터 06 이후 — 이 모듈이 읽기 계약 전부를 소유하지는 않는다.** 소유가 세 갈래로 나뉜다.
+>
+> - **2개 이상의 앱이 함께 쓰는 공유 계약 52개** — `domain-module`. 아래 [공유 계약은 domain-module 소유](#공유-계약은-domain-module-소유-챕터-0506) 절을 참조한다.
+> - **한 앱만 쓰는 단독 계약** — 그 앱의 `{앱}-application`. 챕터 06에서 ceo 단독 61개가 `ceo-application`으로 옮겨졌고, admin·web은 챕터 07~08이 담당한다.
+> - **나머지(아직 옮기지 않은 admin·web 단독분)** — 이 모듈. 챕터 09에서 이 모듈 자체가 사라진다.
+>
+> 세 경우 모두 패키지는 `com.tastyhouse.application.<ctx>.port.out` 그대로다(split package). 그래서 계약이 어느 모듈로 가든 **소비 측 import는 바뀌지 않는다.**
 
 ## 신설 배경
 
@@ -14,17 +20,19 @@
 
 ## 소유 범위
 
-- **`{Ctx}QueryPort` 인터페이스** (68개, 앱 전용분): 조회 계약. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
+- **`{Ctx}QueryPort` 인터페이스** (51개, 아직 옮기지 않은 admin·web 단독분): 조회 계약. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
   - **DAO와 1:1이 아니다**(챕터 04). 한 DAO의 public 표면이 여러 앱의 조회를 담고 있으면 [소비자별 분할 규칙](../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 앱별 인터페이스로 쪼개고, **DAO 하나가 그 포트들을 전부 `implements`** 한다(예: `ShopQueryDao` → `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort`). 투영 본문은 복제되지 않으므로 늘어나는 것은 선언뿐이다.
   - **포트명은 반환 `Result` 계열을 승계한다** — `Management`(관리 화면)·`Owner`(점주 관리 화면, 형제가 `Management`를 점유했을 때) 한정어 사용법은 위 규칙 문서를 따른다.
   - **application 소비자가 없는 조회는 포트에 두지 않는다** — infra 내부 전용은 DAO의 평범한 public 메서드로 남긴다(`ShopQueryDao#findShopName`).
-- **`*Result` record** (141개, 앱 전용 표현 투영): 조회 결과 반환 타입. [결과 DTO 접미어 규칙](../CLAUDE.md#결과-dto-접미어-규칙-result로-통일-dto-금지)의 `Result` 접미어·`Management` 한정어 규칙을 그대로 따른다. **`public` 필수** — `Projections.constructor`가 리플렉션으로 생성자를 찾으므로 package-private이면 컴파일은 통과하고 호출 시점에만 500이 난다.
-- **`*SearchCondition` record** (19개): 포트 메서드의 동적 검색 조건 파라미터. 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
-- **포트 2종** (도메인 전용이 아닌 것): `com.tastyhouse.application.shared.port.out.GeoRingsPort`(저장된 도형 문자열을 도메인 기하 타입으로 해독 — 인코딩 형식은 영속 계층 지식이라 `infrastructure-module`의 `GeoRingsResolver`가 구현한다. 조회가 아니라 변환만 있어 이름에 `Query`를 붙이지 않았다), `com.tastyhouse.application.product.port.out.ProductBatchItem`(배치 조회 포트 메서드의 입력 타입이라 이 모듈로 이동).
+- **`*Result` record** (102개, 아직 옮기지 않은 admin·web 단독 표현 투영): 조회 결과 반환 타입. [결과 DTO 접미어 규칙](../CLAUDE.md#결과-dto-접미어-규칙-result로-통일-dto-금지)의 `Result` 접미어·`Management` 한정어 규칙을 그대로 따른다. **`public` 필수** — `Projections.constructor`가 리플렉션으로 생성자를 찾으므로 package-private이면 컴파일은 통과하고 호출 시점에만 500이 난다.
+- **`*SearchCondition` record** (13개): 포트 메서드의 동적 검색 조건 파라미터. 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
+- **포트 1종** (도메인 전용이 아닌 것): `com.tastyhouse.application.product.port.out.ProductBatchItem`(배치 조회 포트 메서드의 입력 타입이라 이 모듈로 이동). `GeoRingsPort`는 **챕터 06에서 `ceo-application`으로 이동했다** — ceo 단독 소비로 실측됐기 때문이다.
 
-## 공유 계약은 domain-module 소유 (챕터 05)
+## 공유 계약은 domain-module 소유 (챕터 05~06)
 
-**2개 이상의 앱(web/admin/ceo/batch)이 함께 쓰는 읽기 계약 50개는 이 모듈이 아니라 `domain-module`에 있다.**
+**2개 이상의 앱(web/admin/ceo/batch)이 함께 쓰는 읽기 계약 52개는 이 모듈이 아니라 `domain-module`에 있다.**
+
+> 챕터 05가 50개를 옮겼고, 챕터 06이 `ShopNoticeResult`·`ShopRequestDetailResult` 2개를 더했다. 이 둘은 ceo 단독으로 실측됐다가 **admin도 쓰는 것으로 드러나** 뒤늦게 합류한 경우다 — admin 포트가 같은 패키지에서 `import` 없이 참조해 FQN grep에 잡히지 않았다. 챕터 07~08에서 같은 오판이 반복되지 않도록 [ceo-application AGENTS.md](../ceo-application/AGENTS.md#읽기-계약도-이-모듈이-소유한다-챕터-06)에 검출 절차를 적어 뒀다.
 
 ### 왜 옮겼나
 

@@ -6,7 +6,7 @@ import java.util.Map;
  * 리뷰 통계 조회 포트(CQRS query 측 아웃바운드 포트) — 회원 화면용.
  *
  * <p>가게·상품 상세와 마이페이지에 노출할 리뷰 수와 항목별 평점 평균을 조회한다. 점주 통계 화면
- * 조회는 {@link ShopReviewStatisticsQueryPort}가 소유한다.
+ * 조회는 {@code ShopReviewStatisticsQueryPort}가 소유한다.
  *
  * <p>분할 전 한 인터페이스 안에서 {@code getRatingCounts}·{@code getMonthlyReviewCounts}는 오버로드였다.
  * 회원 화면은 기간 인자가 없는(가게 전체 / 특정 연도) 형태를, 점주 화면은 조회 기간을 받는 형태를 쓰므로

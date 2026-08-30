@@ -14,7 +14,7 @@ import com.tastyhouse.domain.shop.model.ShopImageType;
  *
  * <p>가게 관리 상세와, 점주가 올린 변경 요청(콘텐츠보드·이미지·메뉴판 이미지)의 검수 목록,
  * 그리고 편의시설·음식종류 분류의 전체 목록을 조회한다. 회원 화면 조회는 {@link ShopQueryPort},
- * 점주 관리 화면 조회는 {@link ShopOwnerQueryPort}, 여러 앱이 함께 보는 기본 정보는
+ * 점주 관리 화면 조회는 {@code ShopOwnerQueryPort}, 여러 앱이 함께 보는 기본 정보는
  * {@link ShopBasicInfoQueryPort}가 소유한다.
  *
  * <p>{@code find*Page}가 승인 상태({@link ApprovalStatus})를 받는 데서 보이듯, 관리자는 개별 가게를

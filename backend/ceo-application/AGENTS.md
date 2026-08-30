@@ -18,9 +18,22 @@ com.tastyhouse.ceoapplication/
 ├── <ctx>/port/in/                UseCase 인터페이스 + Command record
 ├── <ctx>/service/                *CommandService/*QueryService implements {Ctx}UseCase
 └── <ctx>/response/               QueryService가 조립하는 표현 계약 record
+
+com.tastyhouse.application/            ← split package (챕터 06)
+└── <ctx>/port/out/                ceo 단독 읽기 계약 61개 — {Ctx}QueryPort·Result·SearchCondition
 ```
 
 컨텍스트 6종: `auth` · `ceo` · `product` · `region` · `review` · `shop`.
+
+### 읽기 계약도 이 모듈이 소유한다 (챕터 06)
+
+**ceo만 소비하는 읽기 계약 61개가 `com.tastyhouse.application.<ctx>.port.out`에 있다.** 자바 패키지는 `com.tastyhouse.ceoapplication..`이 아니라 `com.tastyhouse.application..` 그대로인 **split package** 형태이며, 이는 의도된 공통 결정이다 — 패키지를 유지했기 때문에 챕터 06의 이동이 **소비 측 import 무변경**으로 끝났고, ArchUnit 규칙의 패키지 패턴도 손대지 않았다.
+
+컨텍스트는 `ceo` · `product` · `region` · `review` · `shared` · `shop` 6종이다(`port/in`의 6종과 목록이 다르다 — `auth`는 읽기 계약이 없고, 컨텍스트 중립인 `GeoRingsPort`가 `shared`에 있다).
+
+- 구현은 여전히 `infrastructure:persistence`의 `<ctx>/query/` DAO다. 그 모듈이 `implementation project(':ceo-application')`을 선언해 이 계약들을 본다.
+- **2개 이상의 앱이 함께 쓰는 계약은 여기 두지 않는다** — `domain-module` 소유다. 예를 들어 `ShopNoticeResult`·`ShopRequestDetailResult`는 ceo와 admin이 함께 쓰므로 챕터 06에서 `domain-module`로 갔다.
+- 새 조회를 추가할 때는 **다른 앱도 쓰는지 먼저 확인한다.** 단독이면 이 모듈, 공유면 `domain-module`이다. 판정은 FQN grep만으로는 부족하다 — 같은 패키지 안의 형제 포트가 `import` 없이 참조하면 grep에 잡히지 않기 때문이다(챕터 06에서 실제로 두 건을 오판했고 컴파일 에러로 드러났다).
 
 **컨텍스트 수는 가장 적은데 서비스 수는 가장 많다**(`*CommandService` 44 · `*QueryService` 43 — admin의 30/28보다 많다). 점주 셀프서비스가 `shop` 하나에 설정 관심사를 대량으로 갖기 때문이다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopPhoneNumber*`/`ShopStatus*`/`ShopIntroduction*`/`ShopConvenienceInfo*`/`ShopTrademark*`/`ShopContentBoard*`/`ShopSuspension*`/`ShopHygieneBadge*`/`ShopDeliveryTip*`/`ShopDeliveryArea*`). 관심사 단위로 쪼개는 이 관례는 분리 전과 동일하다.
 
@@ -48,7 +61,7 @@ com.tastyhouse.ceoapplication/
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `application-common-module` (implementation) — `{Ctx}QueryPort`·Result DTO·SearchCondition
+- `application-common-module` (implementation) — 아직 이 모듈로 옮기지 않은 `{Ctx}QueryPort`·Result DTO·SearchCondition. **챕터 06으로 ceo 단독분 61개가 이 모듈로 왔지만 의존 선언은 남긴다** — admin·web 단독분이 아직 그 모듈에 있고, 모듈 제거는 챕터 09가 담당한다
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
 - `api-common-module` (implementation) — `PaginationResponse<T>`·공용 shop 응답 3종 등 표현 계약
 
@@ -94,4 +107,4 @@ ceo-api에 함께 있을 때는 컨트롤러가 정당하게 서블릿 타입을
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 점주 앱을 띄우는 것은 `ceo-api`의 fat jar다.
 - **배달팁 파트 5종의 집합 불변식**은 이 모듈의 서비스가 replace-all로 검증한다(구간 "3개 이하 + 금액 오름차순 + 팁 내림차순", 거리별↔지역별 상호 배타). 컨트롤러가 하나로 묶여 있는 이유와 판정 기준은 `ceo-api/AGENTS.md`와 루트 `backend/CLAUDE.md`의 "집합 불변식 설정 컬렉션은 replace-all PUT으로 교체하는 규칙" 참고.
-- **web/admin-application과 서비스를 공유하지 않는다** — 같은 이름이 여러 모듈에 공존하는 것은 정상이다. 공유되는 것은 `domain-module`의 write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort` 계약이며, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
+- **web/admin-application과 서비스를 공유하지 않는다** — 같은 이름이 여러 모듈에 공존하는 것은 정상이다. 공유되는 것은 `domain-module`의 write 포트·도메인 서비스와 **여러 앱이 함께 쓰는 읽기 계약**(`domain-module` 소유, 챕터 05~06)이며, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
