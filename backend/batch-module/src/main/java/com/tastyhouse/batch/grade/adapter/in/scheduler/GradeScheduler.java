@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.grade.adapter.in.scheduler;
 
-import com.tastyhouse.batch.grade.application.port.in.SettleMemberGradesUseCase;
+import com.tastyhouse.batchapplication.grade.port.in.SettleMemberGradesUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

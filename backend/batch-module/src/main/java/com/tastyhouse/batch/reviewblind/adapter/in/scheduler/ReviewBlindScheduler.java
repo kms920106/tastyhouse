@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.reviewblind.adapter.in.scheduler;
 
-import com.tastyhouse.batch.reviewblind.application.port.in.ExpireBlindedReviewsUseCase;
+import com.tastyhouse.batchapplication.reviewblind.port.in.ExpireBlindedReviewsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

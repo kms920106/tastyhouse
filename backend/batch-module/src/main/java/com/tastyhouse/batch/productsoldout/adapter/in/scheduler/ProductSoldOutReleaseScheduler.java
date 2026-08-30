@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.productsoldout.adapter.in.scheduler;
 
-import com.tastyhouse.batch.productsoldout.application.port.in.ReleaseExpiredSoldOutUseCase;
+import com.tastyhouse.batchapplication.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

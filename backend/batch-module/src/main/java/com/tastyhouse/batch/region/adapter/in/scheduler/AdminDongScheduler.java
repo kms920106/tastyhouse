@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.region.adapter.in.scheduler;
 
-import com.tastyhouse.batch.region.application.port.in.SynchronizeAdminDongsUseCase;
+import com.tastyhouse.batchapplication.region.port.in.SynchronizeAdminDongsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

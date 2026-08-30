@@ -6,19 +6,23 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
  * batch-module 레이어 경계 규칙(ArchUnit).
  *
- * <p>core-module → domain-module 전환으로 확정된 구조를 컴파일 게이트로 강제한다. batch는 HTTP
- * 컨트롤러가 없어 web/admin/ceo의 {@code controllersShouldNotDependOnRepositories} 규칙은 두지 않고,
- * api 모듈 공통의 QueryDSL·persistence 차단 규칙을 적용한다.
+ * <p>챕터 01로 application 계층이 batch-application으로 물리 분리된 뒤, 이 모듈에 남은 것은
+ * <b>driving adapter</b>({@code <job>/adapter/in/scheduler}의 {@code @Scheduled} 트리거 7종)와
+ * 부트스트랩({@code BatchApplication})뿐이다. 그래서 규칙도 "어댑터가 지켜야 할 것"만 남는다.
  *
- * <p>전환이 끝나 모든 규칙이 실제 대상 클래스를 갖게 되었으므로 {@code allowEmptyShould(true)}를
- * 제거했다 — 규칙이 대상 0건으로 공허하게 통과하면 그 자체가 실패로 드러나야 한다.
+ * <p>이동한 규칙은 batch-application의 같은 이름 테스트에 있다 —
+ * {@code applicationServicesShouldNotDependOnWebLayer} · {@code shouldNotDependOnQuerydsl} ·
+ * {@code requestResponseRecordsShouldBeDomainAndInfraFree}(→ {@code responseRecordsShouldBe...}) ·
+ * {@code schedulerServicesShouldImplementUseCase}. 이들은 대상 클래스가 전부 이 모듈을 떠났으므로
+ * 여기 남겨 두면 공허하게 통과한다.
+ *
+ * <p>{@code allowEmptyShould(true)}는 쓰지 않는다. 규칙이 대상을 잃으면 공허 통과를 열지 말고
+ * 규칙을 지우거나(위 이동 사례) anchor를 고친다.
  */
 class LayerRulesTest {
 
@@ -27,56 +31,11 @@ class LayerRulesTest {
         .importPackages("com.tastyhouse.batch");
 
     /**
-     * application 서비스(도메인당 {@code {도메인}CommandService}/{@code {도메인}QueryService} CQRS 분리)는
-     * HTTP 계층을 알지 않는다. 컨트롤러가 Request를 원시 필드로 언패킹해 넘기고, Response 조립은
-     * 서비스의 private 매퍼가 담당하므로 서비스가 {@code org.springframework.web}·{@code jakarta.servlet}에
-     * 의존할 일이 없다.
+     * 어댑터는 infra persistence 어댑터에 직접 의존하지 않는다.
      *
-     * <p>전환 완료로 이 서비스들은 {@code ..application..}이 아니라 도메인 패키지에 직접 놓이므로,
-     * 클래스 이름(={@code *CommandService}/{@code *QueryService})으로 대상을 잡는다 — 과거
-     * {@code ..application..} 패키지 매칭은 대상 0건으로 공허하게 통과하고 있었다.
-     *
-     * <p>차단 대상은 요청 바인딩·서블릿·{@code HttpStatus} 등 web <em>플럼빙</em>이다.
-     * {@code org.springframework.web.multipart.MultipartFile}은 제외한다 — 파일 업로드 서비스가
-     * 업로드 자체를 받는 경계 타입이라 {@code ceo-api}의 이미지 변경/콘텐츠보드 서비스가 정당하게
-     * 파라미터로 사용하며, 이를 금지하려면 업로드 흐름 재설계가 필요해 이번 전환 범위를 벗어난다.
-     */
-    @Test
-    void applicationServicesShouldNotDependOnWebLayer() {
-        ArchRule rule = noClasses()
-            .that().haveSimpleNameEndingWith("CommandService")
-            .or().haveSimpleNameEndingWith("QueryService")
-            // batch는 CQRS 분리를 쓰지 않아 *CommandService/*QueryService가 0개이고 잡 본문을
-            // *SchedulerService에 담는다. 그래서 이 규칙은 그동안 대상 0건으로 공허하게 통과하고 있었다 —
-            // 규칙이 있는데 아무것도 검사하지 않는 상태였다. 실재하는 잡 서비스(Grade/Rank/Product/
-            // AdminDong/SearchKeyword)를 매칭 대상에 포함시키고, 공허하지 않게 되었으므로 아래
-            // allowEmptyShould(true)를 제거했다. 잡 서비스가 HTTP 플럼빙을 알 이유가 없다는 취지는 동일하다.
-            .or().haveSimpleNameEndingWith("SchedulerService")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "org.springframework.web.bind..",
-                "org.springframework.web.servlet..",
-                "org.springframework.http..",
-                "jakarta.servlet.."
-            );
-
-        rule.check(classes);
-    }
-
-    /**
-     * api 모듈은 QueryDSL을 알지 않는다. 조회는 infrastructure-module의 {@code <ctx>/query/} DAO가
-     * 캡슐화하며, 이 모듈은 그 DAO와 Result DTO만 주입·import한다.
-     */
-    @Test
-    void shouldNotDependOnQuerydsl() {
-        ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("com.querydsl..");
-
-        rule.check(classes);
-    }
-
-    /**
-     * api 모듈은 infra 중 {@code ..query..}(직접)·{@code ..listener..}(간접)만 허용하며,
-     * persistence 어댑터(JpaEntity/Mapper/JpaRepository/RepositoryImpl)에 직접 의존하지 않는다.
+     * <p>스케줄러가 잡 UseCase만 주입하므로 현재 위반이 없고, 트리거가 JpaRepository를 직접
+     * 주입해 "잡 로직 한 줄"을 어댑터에 적는 회귀를 막는다. 대상은 이 모듈의 전 클래스라
+     * 공허하지 않다.
      */
     @Test
     void shouldNotDependOnInfrastructurePersistence() {
@@ -87,77 +46,23 @@ class LayerRulesTest {
     }
 
     /**
-     * Request/Response record는 domain-free·infra-free 순수 데이터 홀더다. 이 모듈에는 HTTP 경계가
-     * 없지만 BBQ 크롤링 응답 매핑용 {@code crawling/bbq/response/} record들이 있어 규칙 대상이 되며,
-     * 외부 API 응답 DTO가 도메인·infra 타입을 알 이유가 없다는 점은 동일하게 적용된다.
-     *
-     * <p>web/admin/ceo에 추가한 나머지 CQRS 게이트 3개
-     * ({@code commandServicesShouldNotDependOnQueryDaos},
-     * {@code queryServicesShouldNotDependOnWritePorts}, {@code controllersShouldBeDomainFree})는
-     * 이 모듈에 <strong>두지 않는다</strong> — batch는 CQRS application 서비스도 HTTP 컨트롤러도 두지
-     * 않아(스케줄러가 도메인 서비스를 직접 호출) 대상이 구조적으로 0건이고, 그런 규칙을 추가하면
-     * {@code allowEmptyShould(true)}로 공허 통과를 열어야 한다. 규칙을 두지 않는 것이 공허하게
-     * 통과시키는 것보다 정직하다. batch에 CQRS 서비스나 컨트롤러가 생기면 그 시점에 추가한다.
-     *
-     * <p><b>이 규칙 자체는 공허하지 않다</b>: 위 {@code crawling/bbq/response/}에 record 4종
-     * ({@code BbqProductResponse}·{@code BbqProductCategoryResponse}·{@code BbqProductSubOptionResponse}·
-     * {@code SubOptionItemDetailResponse})이 실재해 대상이 있고, {@code allowEmptyShould(true)}도 붙어
-     * 있지 않다. 따라서 이 모듈에 남은 공허 통과 규칙은 <b>0건</b>이다.
-     *
-     * <p>TODO(step 5 이후): {@code GradeSchedulerService}의 {@code MemberReviewCountQueryDao} 직접 주입은
-     * step 5에서 해소됐다(등급 정책이 도메인 서비스 {@code GradeSettlementService}로 내려가고 데이터는
-     * {@code MemberReviewCountPort}를 경유). 다만 "batch의 {@code *SchedulerService}는 도메인 서비스 또는
-     * port를 경유한다" 규칙은 <b>아직 신설하지 않는다</b> — {@code ProductSchedulerService}가 infra
-     * {@code ..query..}의 Result 타입({@code ProductBbqSyncTargetResult})을 시그니처에 노출하고
-     * {@code BbqProductSyncService}가 {@code ProductQueryDao}를 주입하고 있어, 지금 규칙을 넣으면 실패하거나
-     * 예외 목록을 달아야 한다. product 크롤링 동기화 경로가 정리되는 시점에 함께 추가한다.
-     */
-    @Test
-    void requestResponseRecordsShouldBeDomainAndInfraFree() {
-        ArchRule rule = noClasses()
-            .that().resideInAnyPackage("..request..", "..response..")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.domain..",
-                "com.tastyhouse.infrastructure.."
-            )
-            .because("Request/Response record는 domain-free·infra-free 순수 데이터 홀더다");
-
-        rule.check(classes);
-    }
-
-    /**
-     * {@code *SchedulerService}는 인바운드 포트를 최소 1개 구현한다.
-     *
-     * <p>api 모듈의 {@code commandServicesShouldImplementUseCase}에 대응하는 batch 규칙이다. 챕터 04
-     * §5로 batch도 {@code <job>/adapter/in/scheduler}(트리거) · {@code application/port/in}(잡 UseCase) ·
-     * {@code application/service}(구현) 구조를 갖췄다. 이 규칙이 없으면 트리거가 구체 서비스를 직접
-     * 주입하는 이전 형태로 되돌아가도 아무것도 걸리지 않는다.
-     *
-     * <p>배치 잡은 스케줄이 유일한 입력이라 Command record를 두지 않으므로, api 모듈의
-     * {@code commandRecordsShouldBeBoundaryTyped}에 대응하는 규칙은 두지 않는다.
-     */
-    @Test
-    void schedulerServicesShouldImplementUseCase() {
-        ArchRule rule = classes()
-            .that().haveSimpleNameEndingWith("SchedulerService")
-            .should().implement(resideInAPackage("..application.port.in.."))
-            .because("SchedulerService는 대응 잡 UseCase를 구현한다");
-
-        rule.check(classes);
-    }
-
-    /**
      * {@code @Scheduled} 트리거는 인바운드 포트만 주입한다(구체 서비스 금지).
      *
-     * <p>위 {@code schedulerServicesShouldImplementUseCase}의 짝이다 — 서비스가 인터페이스를 구현하기만
-     * 하고 트리거가 여전히 구체 클래스를 주입하면 포트를 도입한 목적이 사라진다.
+     * <p>챕터 01로 잡 서비스가 batch-application으로 떠나면서, 이 규칙은 "모듈 안의 구체 클래스"가
+     * 아니라 <b>모듈 경계를 넘는 구체 클래스</b>를 막는 규칙이 됐다. 그래서 클래스 이름
+     * ({@code *SchedulerService}) 대신 <b>패키지</b>({@code com.tastyhouse.batchapplication..service..})로
+     * 대상을 잡는다 — 이렇게 해야 {@code *Executor}(예: {@code ProductSoldOutReleaseExecutor} 등)처럼
+     * {@code SchedulerService}로 끝나지 않는 내부 구현까지 함께 막힌다.
+     *
+     * <p>정방향은 {@code ..port.in..}의 UseCase 인터페이스 주입이며, 이는 이 규칙에 걸리지 않는다.
+     * 실존 스케줄러 7종에 anchor 하므로 공허하지 않다.
      */
     @Test
     void schedulersShouldDependOnUseCasesOnly() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("Scheduler")
-            .should().dependOnClassesThat().haveSimpleNameEndingWith("SchedulerService")
-            .because("트리거는 잡 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.batchapplication..service..")
+            .because("트리거는 잡 UseCase 인터페이스만 주입한다(application 구체 서비스 금지)");
 
         rule.check(classes);
     }
