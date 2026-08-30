@@ -19,15 +19,15 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 /**
  * BBQ 크롤링 동기화 use case의 batch 전용 application 서비스.
  *
  * <p>트랜잭션 경계를 소유하고, 상품·카테고리·옵션·이미지 저장 불변식은 도메인 서비스
  * {@link ProductRegistrationService}에 위임한다. 동기화 대상 탐색은 infrastructure read 어댑터
- * {@link ProductQueryPort}가 담당한다(batch도 이 읽기 포트를 소비한다).
+ * {@link ProductBbqSyncQueryPort}가 담당한다(batch 전용으로 분리한 읽기 포트다).
  *
  * <p>같은 이름의 카테고리 재사용 판정은 화면 표시가 아니라 <b>중복 등록 방지 불변식</b>이므로 write 포트
  * {@link ProductCategoryRepository#findCategoriesByNameAndShopId}를 쓴다.
@@ -38,16 +38,16 @@ public class BbqProductSyncService {
 
     private final ProductRegistrationService productRegistrationService;
     private final ProductCategoryRepository productCategoryRepository;
-    private final ProductQueryPort productQueryPort;
+    private final ProductBbqSyncQueryPort productBbqSyncQueryPort;
 
     public BbqProductSyncService(
         ProductRegistrationService productRegistrationService,
         ProductCategoryRepository productCategoryRepository,
-        ProductQueryPort productQueryPort
+        ProductBbqSyncQueryPort productBbqSyncQueryPort
     ) {
         this.productRegistrationService = productRegistrationService;
         this.productCategoryRepository = productCategoryRepository;
-        this.productQueryPort = productQueryPort;
+        this.productBbqSyncQueryPort = productBbqSyncQueryPort;
     }
 
     /**
@@ -108,7 +108,7 @@ public class BbqProductSyncService {
      */
     @Transactional(readOnly = true)
     public Optional<ProductBbqSyncTargetResult> findFirstOptionSyncTarget() {
-        return productQueryPort.findFirstBbqSyncTarget();
+        return productBbqSyncQueryPort.findFirstBbqSyncTarget();
     }
 
     /**

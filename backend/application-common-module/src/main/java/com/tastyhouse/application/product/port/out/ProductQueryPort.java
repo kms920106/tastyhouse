@@ -88,6 +88,4 @@ public interface ProductQueryPort {
     Optional<ProductVegetarianSettingResult> findVegetarianSetting(Long productId);
 
     Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId);
-
-    Optional<ProductBbqSyncTargetResult> findFirstBbqSyncTarget();
 }
