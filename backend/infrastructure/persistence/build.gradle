@@ -6,10 +6,22 @@ plugins {
 dependencies {
     // 내부 모듈
     api project(':domain-module')
-    // 읽기 포트(application-common-module)의 구현체가 이 모듈의 QueryDao다.
-    // implementation으로 둔다 — 포트를 주입하는 쪽(api 모듈)은 자기 build.gradle에서
-    // 직접 선언하므로 이 모듈이 전이 노출할 이유가 없다.
+    // 읽기 포트의 구현체가 이 모듈의 QueryDao다. 계약이 앱별 application 모듈로 분산되어
+    // 4개를 모두 참조한다(공유 계약은 domain-module 소유 — 위 api 선언으로 이미 보인다).
+    // implementation으로 둔다 — 포트를 주입하는 쪽은 자기 build.gradle에서 직접 선언하므로
+    // 이 모듈이 전이 노출할 이유가 없다.
+    // 앱 내부(com.tastyhouse.{app}application..) 침범은 의존 스코프가 아니라
+    // LayerRulesTest#shouldNotDependOnApiModules가 막는다.
+    //
+    // application-common-module 의존은 아직 함께 남겨둔다 — 계약 파일이 실제로 옮겨가는 것은
+    // 챕터 05~08이므로, 지금 지우면 QueryDao가 참조하는 Result/QueryPort 259개가 전부 사라져
+    // 이 모듈이 컴파일되지 않는다. 이 챕터의 목표는 "계약이 어디로 가든 infra가 계속 컴파일되도록"
+    // 배선을 미리 까는 것이므로 두 벌을 병존시키고, 모듈 삭제는 챕터 09가 담당한다.
     implementation project(':application-common-module')
+    implementation project(':web-application')
+    implementation project(':admin-application')
+    implementation project(':ceo-application')
+    implementation project(':batch-application')
 
     // Spring Boot Starter
     api 'org.springframework.boot:spring-boot-starter-data-jpa'

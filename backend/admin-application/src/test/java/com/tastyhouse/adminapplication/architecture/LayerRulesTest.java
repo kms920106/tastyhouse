@@ -256,4 +256,26 @@ class LayerRulesTest {
         rule.check(classes);
     }
 
+    /**
+     * 앱 간 수평 의존을 금지한다.
+     *
+     * <p>application-common-module 해체로 읽기 계약이 앱별 모듈로 분산되면서, 한 앱이 다른 앱의
+     * 계약을 참조하려는 유혹이 생긴다. 공유 계약은 domain-module이 소유하므로(챕터 05) 앱 패키지를
+     * 참조할 정당한 이유가 없다 — 읽기 계약은 com.tastyhouse.application.. 에 있고 이 규칙의
+     * 대상이 아니다.
+     */
+    @Test
+    void shouldNotDependOnOtherApplicationModules() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat()
+            .resideInAnyPackage(
+                "com.tastyhouse.webapplication..",
+                "com.tastyhouse.ceoapplication..",
+                "com.tastyhouse.batchapplication.."
+            )
+            .because("앱 간 수평 의존을 두지 않는다 — 공유 읽기 계약은 domain-module이 소유한다");
+
+        rule.check(classes);
+    }
+
 }

@@ -1,7 +1,6 @@
 dependencies {
     // 내부 모듈
     implementation project(':domain-module')
-    implementation project(':application-common-module')
     // 챕터 01: application 계층이 batch-application으로 분리됐다. 스케줄러(driving adapter)가
     // 잡 UseCase 인바운드 포트를 주입받고, BatchApplication이 BatchApplicationConfig를 @Import 한다.
     implementation project(':batch-application')
