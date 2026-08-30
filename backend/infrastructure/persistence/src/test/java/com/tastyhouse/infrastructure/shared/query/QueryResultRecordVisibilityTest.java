@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <pre>
  * com.querydsl.core.types.ExpressionException: No constructor found for class
- * com.tastyhouse.application.shop.port.out.ShopRiderGuidePickupPresenceResult
+ * com.tastyhouse.infrastructure.shop.query.ShopRiderGuidePickupPresenceResult
  * with parameters: [class java.lang.Long, class java.lang.String, ...]
  * </pre>
  *

@@ -138,14 +138,71 @@ class LayerRulesTest {
         }
     }
 
+    /**
+     * infra가 자체 소유하는 읽기 계약(<b>봉인 목록</b>).
+     *
+     * <p>읽기 계약은 원칙적으로 응용 계층이 소유하지만, <em>application 소비자가 하나도 없고</em> infra
+     * 어댑터·DAO만 소비하는 내부 투영 계약은 계약 모듈을 부풀릴 뿐이므로 infra가 자체 소유한다
+     * ({@code ShopNoticeRow} 선례).
+     *
+     * <p><b>패키지 술어가 아니라 클래스명으로 봉인하는 이유</b>: 모든 QueryDao가 이미
+     * {@code com.tastyhouse.infrastructure.<ctx>.query} 패키지에 살기 때문에, 예외를
+     * {@code resideInAPackage("com.tastyhouse.infrastructure..query..")}로 표현하면 DAO가 자기 패키지에
+     * 인터페이스를 하나 선언하기만 해도 통과한다 — 이 규칙이 원래 잡아야 할 위반("application이 소유해야 할
+     * 계약을 infra가 몰래 자기 패키지에 만드는 것")이 그대로 허용 범위가 되어 규칙이 무력해진다. 그래서
+     * {@code SEALED_PERSISTENCE_TO_QUERY} 선례대로 FQN으로 명시 제외하며, <b>목록은 줄어들기만 해야 한다</b>.
+     */
+    private static final Set<String> INFRA_OWNED_QUERY_PORTS = Set.of(
+        "com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryPort"
+    );
+
     @Test
     void queryDaosShouldImplementQueryPorts() {
         ArchRule rule = classes()
             .that().haveSimpleNameEndingWith("QueryDao")
-            .should().implement(resideInAPackage("com.tastyhouse.application..port.out.."))
-            .because("조회 계약은 응용 계층이 소유하고 DAO가 구현한다");
+            .should().implement(
+                resideInAPackage("com.tastyhouse.application..port.out..")
+                    .or(infraOwnedQueryPort()))
+            .because("조회 계약은 응용 계층이 소유하고 DAO가 구현한다. "
+                + "단 application 소비자가 없는 내부 투영 계약은 infra가 자체 소유한다(봉인 목록)");
 
         rule.check(classes);
+    }
+
+    /**
+     * infra 자체 소유 봉인 목록이 낡지 않았음을 보장한다({@code sealedPersistenceToQueryShouldNotBeStale} 선례).
+     *
+     * <p>목록의 계약이 사라졌거나(삭제) application 계층으로 되돌아갔으면 실패시킨다. 04장에서 포트 소유자가
+     * 확정돼 이 포트가 application으로 올라가면 이 테스트가 자동으로 정리 신호를 띄운다.
+     */
+    @Test
+    void infraOwnedQueryPortListShouldNotBeStale() {
+        for (String portName : INFRA_OWNED_QUERY_PORTS) {
+            if (!classes.contain(portName)) {
+                throw new AssertionError(
+                    "봉인 목록이 낡았습니다 — infra에 더 이상 존재하지 않으므로 INFRA_OWNED_QUERY_PORTS에서 제거하세요: "
+                        + portName);
+            }
+        }
+    }
+
+    /**
+     * 봉인이 전부 해소되면 봉인 장치 자체를 제거하고 순수 강제로 전환하라고 알린다
+     * ({@code sealedPersistenceToQueryListShouldNotBeEmpty} 선례).
+     */
+    @Test
+    void infraOwnedQueryPortListShouldNotBeEmpty() {
+        if (INFRA_OWNED_QUERY_PORTS.isEmpty()) {
+            throw new AssertionError(
+                "봉인 목록이 비었습니다 — INFRA_OWNED_QUERY_PORTS와 짝 테스트를 제거하고 "
+                    + "queryDaosShouldImplementQueryPorts를 순수 강제로 되돌리세요.");
+        }
+    }
+
+    private static DescribedPredicate<JavaClass> infraOwnedQueryPort() {
+        return DescribedPredicate.describe(
+            "infra 자체 소유 읽기 계약",
+            javaClass -> INFRA_OWNED_QUERY_PORTS.contains(javaClass.getName()));
     }
 
     private static DescribedPredicate<JavaClass> sealed() {

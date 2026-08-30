@@ -9,7 +9,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.port.MemberReviewCount;
 import com.tastyhouse.domain.rank.port.MemberReviewCountPort;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
-import com.tastyhouse.application.review.port.out.MemberReviewCountResult;
+import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
 /**
  * 랭킹 집계용 리뷰 수 조회 포트({@link MemberReviewCountPort}) 어댑터.

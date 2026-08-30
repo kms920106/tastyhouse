@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.shop.query;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuidePickupPresenceResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import java.util.List;
 import java.util.Optional;

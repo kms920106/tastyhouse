@@ -1,4 +1,4 @@
-package com.tastyhouse.application.shop.port.out;
+package com.tastyhouse.infrastructure.shop.query;
 
 /**
  * 점주 공지 첨부 이미지 조회 결과.

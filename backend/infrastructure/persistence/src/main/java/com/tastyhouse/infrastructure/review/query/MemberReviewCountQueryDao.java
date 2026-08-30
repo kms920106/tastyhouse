@@ -1,7 +1,5 @@
 package com.tastyhouse.infrastructure.review.query;
 
-import com.tastyhouse.application.review.port.out.MemberReviewCountQueryPort;
-import com.tastyhouse.application.review.port.out.MemberReviewCountResult;
 import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.Comparator;

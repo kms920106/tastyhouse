@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.review.query;
 
-import com.tastyhouse.application.review.port.out.MemberReviewCountResult;
 import java.time.LocalDateTime;
 import java.util.List;
 

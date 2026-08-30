@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.shop.query;
 
 import com.tastyhouse.application.shop.port.out.ShopNoticeQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopNoticeImageResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import java.util.List;
