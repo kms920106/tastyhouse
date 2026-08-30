@@ -2,6 +2,8 @@
 
 읽기 경로(CQRS query 측)의 **계약**만 소유하는 프레임워크-프리 `java-library` 모듈. 인터페이스(`{Ctx}QueryPort`)와 그 입출력 타입(`*Result`/`*SearchCondition`)을 여기 두고, 구현(QueryDSL DAO)은 `infrastructure-module`의 `<ctx>/query/`가 담당한다. 읽기 경로 포트화(챕터 04)로 신설됐다.
 
+> **챕터 05 이후 — 이 모듈이 읽기 계약 전부를 소유하지는 않는다.** 2개 이상의 앱이 함께 쓰는 공유 계약 50개는 `domain-module`이 소유한다(패키지는 `com.tastyhouse.application.<ctx>.port.out` 그대로). 아래 [공유 계약은 domain-module 소유](#공유-계약은-domain-module-소유-챕터-05) 절을 참조한다.
+
 ## 신설 배경
 
 챕터 03까지 api 모듈(web/admin/ceo/batch)의 `{도메인}QueryService`는 `infrastructure-module`의 `{도메인}QueryDao`(구현 클래스)를 컴파일 타임에 직접 주입했다. api 모듈이 `implementation project(':infrastructure-module')`로 의존해야 했던 이유가 이것이었고, 은닉은 `..persistence..`(write 어댑터)·`com.querydsl..` 금지 ArchUnit 규칙이 대신했다 — 그래도 `..query..`(DAO·Result·SearchCondition) import는 허용돼 있었다.
@@ -12,13 +14,41 @@
 
 ## 소유 범위
 
-- **`{Ctx}QueryPort` 인터페이스** (73개): 조회 계약. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
+- **`{Ctx}QueryPort` 인터페이스** (68개, 앱 전용분): 조회 계약. 메서드명은 [query DAO 소유 규칙](../CLAUDE.md#query-daoqueryport결과-dtosearchcondition-소유-규칙-개정--읽기-계약은-application-common-module-구현은-infrastructure-module)의 관례(admin 마커 없는 순수 동작명)를 그대로 승계한다.
   - **DAO와 1:1이 아니다**(챕터 04). 한 DAO의 public 표면이 여러 앱의 조회를 담고 있으면 [소비자별 분할 규칙](../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 앱별 인터페이스로 쪼개고, **DAO 하나가 그 포트들을 전부 `implements`** 한다(예: `ShopQueryDao` → `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort`). 투영 본문은 복제되지 않으므로 늘어나는 것은 선언뿐이다.
   - **포트명은 반환 `Result` 계열을 승계한다** — `Management`(관리 화면)·`Owner`(점주 관리 화면, 형제가 `Management`를 점유했을 때) 한정어 사용법은 위 규칙 문서를 따른다.
   - **application 소비자가 없는 조회는 포트에 두지 않는다** — infra 내부 전용은 DAO의 평범한 public 메서드로 남긴다(`ShopQueryDao#findShopName`).
-- **`*Result` record** (184개+): 조회 결과 반환 타입. [결과 DTO 접미어 규칙](../CLAUDE.md#결과-dto-접미어-규칙-result로-통일-dto-금지)의 `Result` 접미어·`Management` 한정어 규칙을 그대로 따른다. **`public` 필수** — `Projections.constructor`가 리플렉션으로 생성자를 찾으므로 package-private이면 컴파일은 통과하고 호출 시점에만 500이 난다.
-- **`*SearchCondition` record** (20개+): 포트 메서드의 동적 검색 조건 파라미터. 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
+- **`*Result` record** (141개, 앱 전용 표현 투영): 조회 결과 반환 타입. [결과 DTO 접미어 규칙](../CLAUDE.md#결과-dto-접미어-규칙-result로-통일-dto-금지)의 `Result` 접미어·`Management` 한정어 규칙을 그대로 따른다. **`public` 필수** — `Projections.constructor`가 리플렉션으로 생성자를 찾으므로 package-private이면 컴파일은 통과하고 호출 시점에만 500이 난다.
+- **`*SearchCondition` record** (19개): 포트 메서드의 동적 검색 조건 파라미터. 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
 - **포트 2종** (도메인 전용이 아닌 것): `com.tastyhouse.application.shared.port.out.GeoRingsPort`(저장된 도형 문자열을 도메인 기하 타입으로 해독 — 인코딩 형식은 영속 계층 지식이라 `infrastructure-module`의 `GeoRingsResolver`가 구현한다. 조회가 아니라 변환만 있어 이름에 `Query`를 붙이지 않았다), `com.tastyhouse.application.product.port.out.ProductBatchItem`(배치 조회 포트 메서드의 입력 타입이라 이 모듈로 이동).
+
+## 공유 계약은 domain-module 소유 (챕터 05)
+
+**2개 이상의 앱(web/admin/ceo/batch)이 함께 쓰는 읽기 계약 50개는 이 모듈이 아니라 `domain-module`에 있다.**
+
+### 왜 옮겼나
+
+포트를 소비자별로 쪼개도(챕터 04) 여러 앱이 함께 쓰는 메서드와 `*Result`가 남는다. 그것을 어느 한 앱의 모듈에 주면 나머지 앱이 그 모듈을 의존해야 한다 — **앱 간 수평 의존**이다. 소유자가 앱이 아니게 되면 그 문제가 사라지고, `domain-module`은 이미 4개 앱이 전부 의존하므로 **새 간선이 하나도 생기지 않는다.**
+
+### 무엇이 옮겨갔나
+
+`event`·`member`·`order`·`point`·`product`·`rank`·`review`·`shop` 8개 컨텍스트의 50개 파일이다. shop이 32개로 가장 많고, `ShopBasicInfoQueryPort`·`ShopDeliveryTipQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`·`ReviewTagQueryPort` 5개 포트가 포함된다.
+
+전수 검사 결과 이 50개는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..` 밖 import가 **0건**이고, 참조하는 도메인 타입은 enum과 `Amount` VO뿐이다(애그리거트·리포지토리·서비스 참조 0건). 그래서 신설 배경 절이 domain-module 배치를 기각했던 근거("표현 목적 투영 184개가 순수 도메인에 섞인다")에 해당하지 않는다 — 옮긴 것은 184개 전부가 아니라 도메인 개념에 해당하는 공유분뿐이고, **앱 전용 표현 투영은 이 모듈에 그대로 남는다.**
+
+### 패키지를 바꾸지 않는다
+
+이동 후에도 패키지는 `com.tastyhouse.application.<ctx>.port.out` 그대로다. 모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례이며, 세 가지 효과가 있다.
+
+1. **소비 측 import 수정이 0건이 된다.** 개명하면 50개 타입의 소비 파일을 전부 고쳐야 하고, 그 과정에서 `Projections.constructor` 인자 회귀(런타임에만 터지는)가 생긴다.
+2. **ArchUnit 규칙이 무변경으로 통과한다.** `queryDaosShouldImplementQueryPorts`·`controllersShouldNotDependOnQueryDaos`·`commandServicesShouldNotDependOnQueryDaos`가 모두 `com.tastyhouse.application..port.out..` 패키지로 대상을 잡는다.
+3. **`DomainPurityTest`·`ContextBoundaryTest`의 스캔 범위 밖에 남는다.** 두 테스트는 `importPackages("com.tastyhouse.domain")`으로 대상을 모은다. 읽기 계약은 도메인 모델이 아니라 표현용 투영이므로 컨텍스트 경계 규칙(`model`/`repository`/`service` 상호 참조 금지)의 대상이어서는 안 된다 — **회피가 아니라 정확한 구분이다.**
+
+### 새 계약을 어디에 둘지 판정하는 법
+
+**소비하는 앱이 하나면 이 모듈**(또는 챕터 06~08 이후 그 앱의 application 모듈), **둘 이상이면 `domain-module`**이다. 다중 앱이 쓰더라도 애매하면 각 앱이 선언 중복으로 갖고 `domain-module`로 보내지 않는다 — **`domain-module`이 표현 투영의 쓰레기통이 되면 위 기각 사유가 되살아난다.** 판정 기준은 "점주가 설정하고 회원이 보는 가게/상품의 속성인가"이다.
+
+`domain-module`은 루트 `build.gradle`의 spring 주입 제외 대상이라 `import org.springframework...` 한 줄이 **실제 컴파일 에러**다. 옮길 계약에 프레임워크 import가 섞여 있으면 빌드가 즉시 실패시킨다.
 
 ## 패키지 규칙
 
