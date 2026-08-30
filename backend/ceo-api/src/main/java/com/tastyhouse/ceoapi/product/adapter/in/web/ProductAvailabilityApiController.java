@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductAvailabilitySearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductHiddenRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionHiddenRequest;
@@ -25,26 +25,26 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOut
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductReleaseRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutUntilRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityGroupResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityGroupResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductHideCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductHideUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionHideCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionHideUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionReleaseCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionReleaseUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionSoldOutCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionSoldOutUntilChangeCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionSoldOutUntilChangeUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionSoldOutUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductReleaseCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductReleaseUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUntilChangeCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUntilChangeUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductSoldOutUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductAvailabilityQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityGroupResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityGroupResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductHideCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductHideUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionHideCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionHideUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionReleaseCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionReleaseUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUntilChangeCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUntilChangeUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductAvailabilityQueryUseCase;
 
 /**
  * 점주 메뉴·옵션 품절·숨김 관리 API.

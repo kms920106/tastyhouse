@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyCreateCommand;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyUpdateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyCreateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyUpdateCommand;
 
 /**
  * 사장님 답변 등록·수정 요청. 등록과 수정이 같은 필드 셋이라 한 record를 공용한다.

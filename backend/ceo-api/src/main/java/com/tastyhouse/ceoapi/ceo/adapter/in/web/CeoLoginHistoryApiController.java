@@ -16,9 +16,9 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoLoginHistorySearchRequest;
-import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItemResponse;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoLoginHistoryQueryUseCase;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.ceo.response.CeoLoginHistoryListItemResponse;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryQueryUseCase;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 
 @Tag(name = "Ceo Login History", description = "점주 개인정보 접속기록(로그인 이력) 조회 API")
 @RestController

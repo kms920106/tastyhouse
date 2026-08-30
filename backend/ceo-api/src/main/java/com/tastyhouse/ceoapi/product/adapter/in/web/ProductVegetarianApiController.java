@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductVegetarianRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianStatusResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianClearCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianRequestCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductVegetarianStatusResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianClearCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianRequestCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianQueryUseCase;
 
 /**
  * 점주 메뉴 채식 설정 API.

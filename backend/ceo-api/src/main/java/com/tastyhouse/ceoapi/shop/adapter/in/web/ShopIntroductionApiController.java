@@ -13,15 +13,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopIntroductionUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopIntroductionValidateRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValidationResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopIntroductionUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionUpdateCommand;
 
 @Tag(name = "Ceo Shop Introduction", description = "점주 가게소개(사장님 한마디) 관리 API")
 @RestController

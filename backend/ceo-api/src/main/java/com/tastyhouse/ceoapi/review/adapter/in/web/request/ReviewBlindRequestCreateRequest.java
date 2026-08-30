@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewBlindRequestCreateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCreateCommand;
 
 /**
  * 리뷰 게시중단 요청 등록 요청.

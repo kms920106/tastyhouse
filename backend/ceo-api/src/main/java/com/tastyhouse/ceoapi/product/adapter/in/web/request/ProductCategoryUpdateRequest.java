@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryUpdateCommand;
 
 @Schema(description = "메뉴그룹명·설명 변경 요청")
 public record ProductCategoryUpdateRequest(

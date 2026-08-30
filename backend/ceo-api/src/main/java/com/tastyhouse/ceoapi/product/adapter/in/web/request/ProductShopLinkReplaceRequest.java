@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkReplaceCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkReplaceCommand;
 
 /**
  * 메뉴-가게 연결 전체 교체 요청.

@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoCommandUseCase;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoCreateCommand;
-import com.tastyhouse.ceoapi.ceo.application.service.CeoQueryService;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoCommandUseCase;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoCreateCommand;
+import com.tastyhouse.ceoapplication.ceo.service.CeoQueryService;
 
 /**
  * 최초 점주 계정 시드.

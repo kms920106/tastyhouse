@@ -18,17 +18,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategorySearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryUpdateRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryCreateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCategoryQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryQueryUseCase;
 
 /**
  * 점주 메뉴그룹(카테고리) 관리 API.

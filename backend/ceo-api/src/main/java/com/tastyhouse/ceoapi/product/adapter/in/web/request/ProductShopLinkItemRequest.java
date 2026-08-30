@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.product.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductShopLinkItemCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkItemCommand;
 
 /**
  * 메뉴를 연결할 가게 한 건(가게 + 그 가게에서의 메뉴그룹).

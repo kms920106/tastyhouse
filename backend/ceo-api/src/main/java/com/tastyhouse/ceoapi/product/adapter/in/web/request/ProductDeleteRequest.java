@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteCommand;
 
 @Schema(description = "메뉴 일괄 삭제 요청")
 public record ProductDeleteRequest(

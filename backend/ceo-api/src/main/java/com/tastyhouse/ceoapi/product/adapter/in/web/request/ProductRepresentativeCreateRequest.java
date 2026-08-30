@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductRepresentativeRequestCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeRequestCommand;
 
 /**
  * 사장님 추천(대표 메뉴) 지정 요청.

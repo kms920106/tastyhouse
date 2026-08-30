@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaBulkCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaBulkDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 
 /**
  * 배달가능지역 행정동 일괄 추가·삭제 요청.

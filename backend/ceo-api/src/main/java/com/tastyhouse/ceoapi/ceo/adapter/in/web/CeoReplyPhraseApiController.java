@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoReplyPhraseCreateRequest;
-import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseCommandUseCase;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseCreateCommand;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseDeleteCommand;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseUpdateCommand;
-import com.tastyhouse.ceoapi.ceo.application.port.in.CeoReplyPhraseQueryUseCase;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.ceo.response.CeoReplyPhraseResponse;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCommandUseCase;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCreateCommand;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseDeleteCommand;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseUpdateCommand;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseQueryUseCase;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 
 /**
  * 자주 쓰는 문구 API.

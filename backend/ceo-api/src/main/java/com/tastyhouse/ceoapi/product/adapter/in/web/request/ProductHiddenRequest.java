@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductHideCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductHideCommand;
 
 @Schema(description = "메뉴 일괄 숨김 요청")
 public record ProductHiddenRequest(

@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreateRequest;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyCommandUseCase;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyCreateCommand;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyDeleteCommand;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewOwnerReplyUpdateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyCommandUseCase;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyCreateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyDeleteCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyUpdateCommand;
 
 @Tag(name = "Ceo Review Owner Reply", description = "점주 사장님 답변 API")
 @RestController

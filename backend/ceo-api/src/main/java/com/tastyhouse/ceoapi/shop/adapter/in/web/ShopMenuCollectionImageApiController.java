@@ -20,15 +20,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMenuCollectionImageReorderCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageReorderCommand;
 
 /**
  * 점주 메뉴모음컷 관리 API — 손님이 가게를 열었을 때 가장 먼저, 가장 상단에서 보는 이미지.

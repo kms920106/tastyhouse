@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopHolidayClosureUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopHolidayClosureUpdateCommand;
 
 @Schema(description = "가게 공휴일 휴무 설정 변경 요청")
 public record ShopHolidayClosureUpdateRequest(

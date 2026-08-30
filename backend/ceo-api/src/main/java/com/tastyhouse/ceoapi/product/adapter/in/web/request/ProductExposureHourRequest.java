@@ -5,7 +5,7 @@ import java.time.LocalTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductExposureHourCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductExposureHourCommand;
 
 /**
  * 메뉴 노출 요일·시간대 한 줄.

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
 
 /**
  * 라이더 픽업 위치 등록·수정 요청.

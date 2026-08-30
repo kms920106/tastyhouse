@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductPriceReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceReplaceCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductPriceQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductPriceResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductPriceCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductPriceReplaceCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductPriceQueryUseCase;
 
 /**
  * 점주 메뉴 가격(배달가·매장가·픽업가) 관리 API.

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateCommand;
 
 @Schema(description = "메뉴 정보 변경 요청")
 public record ProductUpdateRequest(

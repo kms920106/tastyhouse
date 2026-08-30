@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCreateCommand;
 
 @Schema(description = "가게 전화번호 등록 요청")
 public record ShopPhoneNumberCreateRequest(

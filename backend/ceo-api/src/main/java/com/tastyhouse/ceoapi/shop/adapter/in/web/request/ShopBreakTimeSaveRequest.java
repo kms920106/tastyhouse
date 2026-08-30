@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeUpdateCommand;
 
 @Schema(description = "가게 브레이크타임 등록/수정 요청")
 public record ShopBreakTimeSaveRequest(

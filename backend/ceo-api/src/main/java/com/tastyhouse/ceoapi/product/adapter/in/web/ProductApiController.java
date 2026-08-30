@@ -16,20 +16,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductUpdateRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCreateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCreateUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductDeleteUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductUpdateUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductDetailResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCreateUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductQueryUseCase;
 
 /**
  * 점주 메뉴 CRUD API.

@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipScheduleCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipSchedulesUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipScheduleCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipSchedulesUpdateCommand;
 
 /**
  * 시간별 추가 배달팁 일괄 교체 요청.

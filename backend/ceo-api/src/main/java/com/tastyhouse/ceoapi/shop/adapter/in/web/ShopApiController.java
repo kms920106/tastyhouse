@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSearchRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDetailResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDetailResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
 
 @Tag(name = "Ceo Shop", description = "점주 가게 관리 API")
 @RestController

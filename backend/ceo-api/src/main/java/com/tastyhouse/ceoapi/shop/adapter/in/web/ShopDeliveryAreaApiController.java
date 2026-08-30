@@ -19,29 +19,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonQueryUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaQueryUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaPolygonSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaRadiusRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaBulkDeleteResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaBulkResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonPreviewResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadiusPreviewResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaBulkCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaBulkDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonSaveCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaRadiusApplyCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkDeleteResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaItemResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonPreviewResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaRadiusPreviewResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 
 @Tag(name = "Ceo Shop Delivery Area", description = "점주 가게 배달가능지역 관리 API")
 @RestController
@@ -205,7 +205,7 @@ public class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
         ShopDeliveryAreaPolygonPreviewResponse response = shopDeliveryAreaPolygonQueryService.previewPolygon(
-            userDetails.getCeoId(), id, request.rings()
+            userDetails.getCeoId(), id, request.toRingCommands()
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

@@ -2,6 +2,7 @@ dependencies {
     // 내부 모듈
     implementation project(':domain-module')
     implementation project(':application-common-module')
+    implementation project(':ceo-application')
     // infrastructure-module은 runtimeOnly로 강등하지 않고 implementation을 유지한다(챕터 05 §2 검토 결과).
     // 챕터 04로 이 모듈 소스에 infra query/persistence import는 0건이 됐지만, 앱 부트스트랩이
     // @Import(InfrastructureModuleConfig.class)로 infra 진입점 설정을 컴파일 타임에 참조한다.

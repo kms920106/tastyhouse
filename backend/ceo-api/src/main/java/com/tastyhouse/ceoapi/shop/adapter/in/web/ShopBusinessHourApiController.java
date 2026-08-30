@@ -16,20 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
 import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBreakTimeDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBreakTimeUpdateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourUpdateCommand;
 
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController

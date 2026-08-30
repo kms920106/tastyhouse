@@ -7,8 +7,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.GeoPointCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaPolygonSaveCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.GeoPointCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
 
 /**
  * 배달지역 도형 저장 요청(전체 교체).
@@ -31,9 +31,16 @@ public record ShopDeliveryAreaPolygonSaveRequest(
 ) {
 
     public ShopDeliveryAreaPolygonSaveCommand toCommand(Long ceoId, Long shopId) {
-        List<List<GeoPointCommand>> ringCommands = rings().stream()
+        return new ShopDeliveryAreaPolygonSaveCommand(ceoId, shopId, toRingCommands());
+    }
+
+    /**
+     * 링 배열만 경계 타입으로 승격한다 — 도형 미리보기는 저장이 아니라 조회라 ceoId·shopId를 실은
+     * 저장 command가 아니라 링만 넘긴다.
+     */
+    public List<List<GeoPointCommand>> toRingCommands() {
+        return rings().stream()
             .map(ring -> ring.stream().map(GeoPointRequest::toCommand).toList())
             .toList();
-        return new ShopDeliveryAreaPolygonSaveCommand(ceoId, shopId, ringCommands);
     }
 }

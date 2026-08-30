@@ -18,18 +18,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
-import com.tastyhouse.ceoapi.product.ProductOptionGroupOwnershipValidator;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupUpdateRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupCreateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupQueryUseCase;
 
 /**
  * 점주 옵션그룹 관리 API.
@@ -43,7 +42,7 @@ import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQuery
  * {@code ApiClient#delete}가 DELETE 요청 본문에 JSON으로 {@code shopId}를 담아 보낸다.
  *
  * <p>경로 식별자가 옵션그룹인 엔드포인트는 가게 소유권만으로는 부족하다 — 그룹의 소유 가게를
- * 역조회해 대조한다({@link ProductOptionGroupOwnershipValidator}).
+ * 역조회해 대조한다({@code ProductOptionGroupOwnershipValidator}).
  */
 @Tag(name = "Ceo Product Option Group", description = "점주 옵션그룹 관리 API")
 @RestController

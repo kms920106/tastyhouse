@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductReleaseCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseCommand;
 
 @Schema(description = "메뉴 일괄 품절·숨김 해제 요청")
 public record ProductReleaseRequest(

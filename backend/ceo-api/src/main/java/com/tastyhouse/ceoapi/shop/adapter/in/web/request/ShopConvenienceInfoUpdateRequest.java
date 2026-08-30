@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopConvenienceInfoUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoUpdateCommand;
 
 @Schema(description = "내 가게 편의정보 등록/수정 요청")
 public record ShopConvenienceInfoUpdateRequest(

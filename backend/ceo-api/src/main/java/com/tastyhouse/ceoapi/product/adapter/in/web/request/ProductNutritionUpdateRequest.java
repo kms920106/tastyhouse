@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionUpdateCommand;
 
 /**
  * 메뉴 영양성분·알레르기 등록/수정 요청.

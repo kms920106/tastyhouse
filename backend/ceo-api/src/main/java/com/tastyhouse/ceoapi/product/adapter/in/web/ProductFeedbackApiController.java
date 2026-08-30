@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductFeedbackSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackReadCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductFeedbackQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductFeedbackResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductFeedbackUnreadResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackReadCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase;
 
 /**
  * 점주 메뉴 정보 고객 의견 확인 API.

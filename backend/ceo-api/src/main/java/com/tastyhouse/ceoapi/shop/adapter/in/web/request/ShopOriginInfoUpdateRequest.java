@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopOriginInfoUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoUpdateCommand;
 
 /**
  * 내 가게 원산지 표시 등록/수정 요청.

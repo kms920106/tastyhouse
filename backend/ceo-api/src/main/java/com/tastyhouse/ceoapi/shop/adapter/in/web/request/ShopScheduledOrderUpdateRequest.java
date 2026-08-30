@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopScheduledOrderUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopScheduledOrderUpdateCommand;
 
 @Schema(description = "가게 예약주문 운영 여부 변경 요청")
 public record ShopScheduledOrderUpdateRequest(

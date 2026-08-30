@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipDistanceUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipDistanceUpdateCommand;
 
 @Schema(description = "거리별 추가 배달팁 설정 요청")
 public record ShopDeliveryTipDistanceUpdateRequest(

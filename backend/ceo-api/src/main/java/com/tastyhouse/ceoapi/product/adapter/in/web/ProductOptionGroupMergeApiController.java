@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeExclusionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergePreviewSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeSuggestionSearchRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupMergePreviewResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupMergeSuggestionResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupMergeQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergePreviewResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSuggestionResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeQueryUseCase;
 
 /**
  * 점주 옵션그룹 <b>합치기</b> API.

@@ -20,15 +20,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductImageSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductImageChangeRequestCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductImageCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductImageDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductImageReorderCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductImageQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductImageStatusResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductImageChangeRequestCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductImageCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductImageDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductImageReorderCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductImageQueryUseCase;
 
 /**
  * 점주 메뉴 이미지 관리 API.

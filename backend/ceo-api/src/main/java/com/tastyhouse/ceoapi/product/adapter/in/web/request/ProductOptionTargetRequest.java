@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionTargetCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionTargetCommand;
 
 /**
  * 옵션 일괄 처리의 대상 지정 요소.

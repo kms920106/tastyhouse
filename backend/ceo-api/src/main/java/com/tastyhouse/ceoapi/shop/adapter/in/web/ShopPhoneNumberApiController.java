@@ -16,15 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopPhoneNumberCreateRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberCreateCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberDeleteCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopPhoneNumberPrimaryDesignateCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberPrimaryDesignateCommand;
 
 @Tag(name = "Ceo Shop Phone Number", description = "점주 가게 전화번호 관리 API")
 @RestController

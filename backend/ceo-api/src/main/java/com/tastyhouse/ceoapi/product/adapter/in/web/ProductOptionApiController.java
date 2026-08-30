@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionUpdateRequest;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionCreateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionOrderChangeCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOrderChangeCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionUpdateCommand;
 
 /**
  * 점주 옵션 관리 API.

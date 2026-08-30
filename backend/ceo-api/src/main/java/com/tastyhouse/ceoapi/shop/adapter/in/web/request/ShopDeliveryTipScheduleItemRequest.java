@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipScheduleCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipScheduleCommand;
 
 @Schema(description = "시간별 추가 배달팁 한 건")
 public record ShopDeliveryTipScheduleItemRequest(

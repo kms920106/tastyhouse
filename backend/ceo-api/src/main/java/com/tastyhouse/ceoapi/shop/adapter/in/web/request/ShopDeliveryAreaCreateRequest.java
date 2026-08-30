@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryAreaCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCreateCommand;
 
 @Schema(description = "가게 배달가능지역 등록 요청")
 public record ShopDeliveryAreaCreateRequest(

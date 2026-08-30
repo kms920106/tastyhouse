@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopChangeHistoryQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopChangeHistoryQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopChangeHistorySearchRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeCategoryResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListItemResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopChangeCategoryResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopChangeHistoryListItemResponse;
 
 @Tag(name = "Ceo Shop Change History", description = "점주 가게 변경이력 조회 API")
 @RestController

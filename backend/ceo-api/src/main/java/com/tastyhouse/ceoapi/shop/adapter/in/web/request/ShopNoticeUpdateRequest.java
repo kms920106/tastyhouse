@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopNoticeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeUpdateCommand;
 
 @Schema(description = "점주 공지 수정 요청 (이미지는 replace-all로 교체)")
 public record ShopNoticeUpdateRequest(

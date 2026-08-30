@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductNutritionUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAllergenTypeResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionDeleteCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionUpdateCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductAllergenTypeResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionDeleteCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionQueryUseCase;
 
 /**
  * 점주 메뉴 영양성분·알레르기 관리 API.

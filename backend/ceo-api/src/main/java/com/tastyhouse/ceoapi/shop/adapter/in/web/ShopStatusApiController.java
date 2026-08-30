@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopStatusUpdateRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStatusUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopStatusResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusUpdateCommand;
 
 @Tag(name = "Ceo Shop Status", description = "점주 가게 노출 상태 관리 API")
 @RestController

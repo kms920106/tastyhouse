@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStorePriceVerificationQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStorePriceVerificationCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopStorePriceVerificationRequestCommand;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceVerificationResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationRequestCommand;
 
 /**
  * 점주 매장 가격 인증 관리 API — 손님에게 '매장과 같은 가격' 뱃지를 보여줄 자격을 얻는 절차다.

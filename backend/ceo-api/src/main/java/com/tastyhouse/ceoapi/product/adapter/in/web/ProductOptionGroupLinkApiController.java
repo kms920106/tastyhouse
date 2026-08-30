@@ -18,16 +18,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupLinkRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSortRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductsResponse;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupLinkCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupLinkCommandUseCase;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupOrderChangeCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupUnlinkCommand;
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupQueryUseCase;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductResponse;
+import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductsResponse;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupLinkCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupLinkCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOrderChangeCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUnlinkCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupQueryUseCase;
 
 /**
  * 점주 메뉴-옵션그룹 연결 API.

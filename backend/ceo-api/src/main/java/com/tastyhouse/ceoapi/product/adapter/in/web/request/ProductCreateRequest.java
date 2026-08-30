@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
 
 @Schema(description = "메뉴 등록 요청")
 public record ProductCreateRequest(

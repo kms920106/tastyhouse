@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMinOrderAmountUpdateRequest;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMinOrderAmountCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopMinOrderAmountUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMinOrderAmountCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMinOrderAmountUpdateCommand;
 
 /**
  * 점주 가게 최소주문금액 관리 API.

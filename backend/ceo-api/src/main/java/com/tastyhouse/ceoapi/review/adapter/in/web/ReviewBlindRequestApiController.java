@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewBlindRequestCreateRequest;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewBlindRequestCancelCommand;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewBlindRequestCommandUseCase;
-import com.tastyhouse.ceoapi.review.application.port.in.ReviewBlindRequestCreateCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCancelCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCommandUseCase;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCreateCommand;
 
 @Tag(name = "Ceo Review Blind Request", description = "점주 리뷰 게시중단 요청 API")
 @RestController

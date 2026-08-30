@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopDeliveryTipTierCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipTierCommand;
 
 @Schema(description = "구간별 기본 배달팁 한 구간")
 public record ShopDeliveryTipTierItemRequest(

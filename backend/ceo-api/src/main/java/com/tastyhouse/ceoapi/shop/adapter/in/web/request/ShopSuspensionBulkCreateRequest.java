@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopSuspensionBulkCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionBulkCreateCommand;
 
 @Schema(description = "가게 영업 임시중지 일괄 등록 요청")
 public record ShopSuspensionBulkCreateRequest(

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
 
 /**
  * 요청건 문의 작성 요청(점주).

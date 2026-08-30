@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.review.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapi.review.application.port.in.ShopReviewSortTypeChangeCommand;
+import com.tastyhouse.ceoapplication.review.port.in.ShopReviewSortTypeChangeCommand;
 
 /**
  * 리뷰 정렬 설정 저장 요청.

@@ -16,20 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestSearchRequest;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestDetailResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestListItemResponse;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalogResponse;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestCancelCommand;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.ceoapplication.shop.response.ShopRequestCommentResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopRequestDetailResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopRequestListItemResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeCatalogResponse;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCancelCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
 
 @Tag(name = "Ceo Shop Request", description = "점주 요청처리 현황 조회 API")
 @RestController

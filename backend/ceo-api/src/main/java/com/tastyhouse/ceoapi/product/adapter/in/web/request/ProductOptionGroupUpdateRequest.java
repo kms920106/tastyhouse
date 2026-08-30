@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductOptionGroupUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUpdateCommand;
 
 /**
  * 옵션그룹 변경 요청.

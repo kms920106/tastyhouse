@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.config.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdateRequest;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopScheduledOrderCommandUseCase;
-import com.tastyhouse.ceoapi.shop.application.port.in.ShopScheduledOrderUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopScheduledOrderCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopScheduledOrderUpdateCommand;
 
 /**
  * 점주 가게 예약주문 설정 API.

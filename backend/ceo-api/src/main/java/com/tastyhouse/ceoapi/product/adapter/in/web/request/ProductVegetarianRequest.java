@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductVegetarianRequestCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianRequestCommand;
 
 /**
  * 메뉴 채식 설정 요청.

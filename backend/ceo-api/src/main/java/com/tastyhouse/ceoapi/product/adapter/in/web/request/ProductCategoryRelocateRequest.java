@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapi.product.application.port.in.ProductRelocateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductRelocateCommand;
 
 /**
  * 메뉴 그룹 이동 요청.
