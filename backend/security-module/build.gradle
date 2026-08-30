@@ -6,11 +6,15 @@ plugins {
 dependencies {
     // 내부 모듈
     implementation project(':domain-module')
+    // 토큰 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)이 StringRedisTemplate을 쓴다.
+    // 연결 설정과 템플릿 빈 자체는 이 모듈이 소유하지 않고 infrastructure:redis에 위임한다
+    // (챕터 05 §5b). 저장소는 보안 관심사라 여기 잔류하며 Redis key prefix도 불변이다.
+    // 이 모듈이 data-redis 타입을 직접 선언하지 않는 이유는 infrastructure:redis가 그것을
+    // api로 노출하기 때문이다.
+    implementation project(':infrastructure:redis')
 
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     // 공용 JWT 인증 메커니즘(JwtTokenProvider·필터·EntryPoint·AccessDeniedHandler)이 Spring Security 타입에
     // 의존하므로 api로 노출한다. web-api/admin-api도 자체적으로 이 starter를 선언하지만 중복은 무해하다.
     api 'org.springframework.boot:spring-boot-starter-security'

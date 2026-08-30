@@ -5,13 +5,13 @@ plugins {
 
 dependencies {
     // 프레임워크-프리 도메인 모듈.
-    // - QueryDSL 의존 없음: @QueryProjection Result DTO와 query DAO는 전부 infrastructure-module
+    // - QueryDSL 의존 없음: @QueryProjection Result DTO와 query DAO는 전부 infrastructure:persistence
     //   <ctx>/query/ 소유이므로 이 모듈은 com.querydsl.* 를 컴파일하지 않는다.
     //   (api 모듈로의 QueryDSL 전이 노출을 원천 차단하는 지점)
     // - spring-tx/spring-orm 의존 없음: 도메인 서비스는 전부 순수 POJO(@Transactional 미사용)이고,
-    //   빈 등록은 infrastructure-module의 DomainServiceConfig 소관이다. 낙관적 락 충돌은
+    //   빈 등록은 infrastructure:persistence의 DomainServiceConfig 소관이다. 낙관적 락 충돌은
     //   프레임워크-프리 OptimisticLockConflictException으로 표현하고, 스프링 예외 번역은
-    //   infrastructure-module의 RepositoryImpl이 담당한다.
+    //   infrastructure:persistence의 RepositoryImpl이 담당한다.
 
     // - spring 의존 없음: 루트 build.gradle의 subprojects 블록이 이 모듈을 제외하므로
     //   spring-boot-starter가 주입되지 않는다. 그 결과 `import org.springframework...` 한 줄이

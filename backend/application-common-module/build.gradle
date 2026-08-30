@@ -8,7 +8,7 @@ dependencies {
     // - 의존은 domain-module 하나뿐: 읽기 포트 시그니처가 참조하는 PageQuery/PageResult 때문이다.
     //   api로 노출해야 포트를 주입하는 api 모듈이 그 타입을 함께 볼 수 있다.
     // - QueryDSL 의존 없음: 이 모듈의 Result record는 @QueryProjection을 달지 않고
-    //   infrastructure-module의 DAO가 Projections.constructor로 투영한다. querydsl-apt를 붙이면
+    //   infrastructure:persistence의 DAO가 Projections.constructor로 투영한다. querydsl-apt를 붙이면
     //   QueryDSL이 infra 밖으로 새므로 금지된 배선이다.
     // - spring 의존 없음: 루트 build.gradle의 subprojects 블록이 이 모듈을 제외하므로
     //   spring-boot-starter가 주입되지 않는다. 그 결과 `import org.springframework...` 한 줄이

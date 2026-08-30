@@ -26,6 +26,9 @@ public class NaverOAuthClient implements SocialOAuthClient {
     @Value("${naver.client-secret}")
     private String clientSecret;
 
+    @Value("${naver.redirect-uri}")
+    private String redirectUri;
+
     private final WebClient webClient;
 
     public NaverOAuthClient(WebClient webClient) {
@@ -70,6 +73,7 @@ public class NaverOAuthClient implements SocialOAuthClient {
         formData.add("client_secret", clientSecret);
         formData.add("code", authorizationCode);
         formData.add("state", state);
+        formData.add("redirect_uri", redirectUri);
 
         return webClient.post()
             .uri(NAUTH_BASE_URL + "/oauth2.0/token")

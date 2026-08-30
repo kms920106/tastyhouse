@@ -12,7 +12,9 @@ spring:
       - classpath:application-logging.yml
       - classpath:application-infrastructure.yml
       - classpath:application-external.yml
-      - classpath:application-security.yml
+      # Redis 연결 설정은 챕터 05 §5b에서 infrastructure:redis 모듈이 소유하게 됐다.
+      # (기존 application-security.yml은 이 블록만 담고 있어 파일째 이관)
+      - classpath:application-redis.yml
       # .env는 작업 디렉터리 기준 상대경로로 해석되므로, 모노레포 루트에서 실행하는 경우와
       # backend에서 실행하는 경우를 모두 지원하도록 두 경로를 함께 선언한다.
       - optional:file:.env[.properties]

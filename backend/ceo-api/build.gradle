@@ -3,7 +3,7 @@ dependencies {
     implementation project(':domain-module')
     implementation project(':application-common-module')
     implementation project(':ceo-application')
-    // infrastructure-module은 runtimeOnly로 강등하지 않고 implementation을 유지한다(챕터 05 §2 검토 결과).
+    // infrastructure:persistence은 runtimeOnly로 강등하지 않고 implementation을 유지한다(챕터 05 §2 검토 결과).
     // 챕터 04로 이 모듈 소스에 infra query/persistence import는 0건이 됐지만, 앱 부트스트랩이
     // @Import(InfrastructureModuleConfig.class)로 infra 진입점 설정을 컴파일 타임에 참조한다.
     // 강등하면 이 한 줄 때문에 컴파일이 깨지고(실측: 4개 모듈 전부 "package does not exist"),
@@ -11,17 +11,19 @@ dependencies {
     // InfrastructureModuleConfig의 설계 의도(패키지 문자열 나열 대신 타입 세이프 조합 —
     // Spring Boot 레퍼런스 표준 구성)를 정면으로 뒤집는 것이라 비용이 이득보다 크다.
     // 은닉은 의존 스코프가 아니라 ArchUnit(LayerRulesTest)이 담당한다.
-    implementation project(':infrastructure-module')
+    implementation project(':infrastructure:persistence')
     implementation project(':external-api')
     implementation project(':logging-module')
     implementation project(':security-module')
+    // @RateLimit(ratelimit AOP)과 StringRedisTemplate 빈을 제공한다(챕터 05 §5b).
+    // 부트스트랩이 @Import(RedisModuleConfig.class)로 이 모듈의 진입점 설정을 참조한다.
+    implementation project(':infrastructure:redis')
     implementation project(':api-common-module')
 
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // 외부 라이브러리
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'

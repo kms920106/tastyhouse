@@ -10,7 +10,7 @@ dependencies {
     implementation project(':external-api')
 
     // 트랜잭션 경계 선언(@Transactional)만을 위한 최소 의존.
-    // 이전에는 infrastructure-module의 spring-boot-starter-data-jpa를 타고 전이로 들어오던 것이라
+    // 이전에는 infrastructure:persistence의 spring-boot-starter-data-jpa를 타고 전이로 들어오던 것이라
     // 소스 어디에도 선언이 없었다. infra를 클래스패스에서 뺀 결과 이 숨은 의존이 드러났으므로
     // starter 통째가 아니라 실제로 쓰는 spring-tx만 명시한다(버전은 Boot BOM이 고정).
     implementation 'org.springframework:spring-tx'

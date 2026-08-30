@@ -10,11 +10,12 @@ import com.tastyhouse.ceoapi.config.CeoSeedProperties;
 import com.tastyhouse.ceoapplication.CeoApplicationConfig;
 import com.tastyhouse.external.config.ExternalApiConfig;
 import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
+import com.tastyhouse.infrastructure.redis.RedisModuleConfig;
 import com.tastyhouse.logging.LoggingModuleConfig;
 import com.tastyhouse.security.SecurityModuleConfig;
 
 @SpringBootApplication
-@Import({InfrastructureModuleConfig.class, ExternalApiConfig.class,
+@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, ExternalApiConfig.class,
          SecurityModuleConfig.class, LoggingModuleConfig.class, ApiCommonConfig.class,
          CeoApplicationConfig.class})
 @EnableConfigurationProperties(CeoSeedProperties.class)

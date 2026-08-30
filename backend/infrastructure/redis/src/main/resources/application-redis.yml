@@ -1,0 +1,12 @@
+# Redis 연결 설정 — infrastructure:redis 모듈이 소유한다.
+#
+# RedisConfig(StringRedisTemplate)가 이 설정으로 만들어지는 RedisConnectionFactory를 주입받으므로,
+# "모듈이 소비하는 설정은 모듈이 소유한다"는 기존 패턴(application-infrastructure.yml·
+# application-external.yml)에 맞춰 security-module의 application-security.yml에서 옮겨왔다.
+# 챕터 05 §5b 결정 사항.
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}

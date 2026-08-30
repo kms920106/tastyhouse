@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
-import com.tastyhouse.security.ratelimit.RateLimit;
-import com.tastyhouse.security.ratelimit.RateLimitKeyType;
+import com.tastyhouse.infrastructure.redis.ratelimit.RateLimit;
+import com.tastyhouse.infrastructure.redis.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapplication.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapplication.search.port.in.SearchQueryUseCase;
