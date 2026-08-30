@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse;
-import com.tastyhouse.webapi.shop.application.port.in.ShopPriceBadgeQueryUseCase;
+import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
+import com.tastyhouse.webapplication.shop.port.in.ShopPriceBadgeQueryUseCase;
 
 /**
  * 손님용 가게 매장가격 뱃지 조회 API.

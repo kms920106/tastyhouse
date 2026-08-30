@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.product.application.port.in.ProductFeedbackCommandUseCase;
-import com.tastyhouse.webapi.product.application.port.in.ProductFeedbackCreateCommand;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.product.port.in.ProductFeedbackCommandUseCase;
+import com.tastyhouse.webapplication.product.port.in.ProductFeedbackCreateCommand;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreateRequest;
 import com.tastyhouse.webapi.security.CurrentUser;
 

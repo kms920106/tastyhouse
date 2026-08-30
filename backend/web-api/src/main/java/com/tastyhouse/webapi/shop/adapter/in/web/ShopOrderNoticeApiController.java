@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
-import com.tastyhouse.webapi.shop.application.port.in.ShopOrderNoticeQueryUseCase;
+import com.tastyhouse.webapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.webapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
  * 손님용 주문안내 조회 API.

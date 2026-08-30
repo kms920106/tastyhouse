@@ -36,4 +36,14 @@ public record ProductBatchRequest(
             orderMethod = DEFAULT_ORDER_METHOD;
         }
     }
+
+    public com.tastyhouse.webapplication.product.port.in.ProductBatchQuery toQuery() {
+        return new com.tastyhouse.webapplication.product.port.in.ProductBatchQuery(
+            items.stream()
+                .map(item -> new com.tastyhouse.webapplication.product.port.in.ProductBatchQuery.Item(
+                    item.productId(), item.optionId()))
+                .toList(),
+            orderMethod
+        );
+    }
 }

@@ -18,26 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.member.application.port.in.MemberPasswordUpdateCommand;
-import com.tastyhouse.webapi.member.application.port.in.MemberPersonalInfoUpdateCommand;
-import com.tastyhouse.webapi.member.application.port.in.MemberProfileUpdateCommand;
-import com.tastyhouse.webapi.member.application.port.in.MemberWithdrawCommand;
-import com.tastyhouse.webapi.member.MemberService;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberPersonalInfoUpdateCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberProfileUpdateCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberWithdrawCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberScreenUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePasswordRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.WithdrawMemberRequest;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberVerifyPasswordResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MyGradeResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewCountResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewListItemResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapplication.member.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
+import com.tastyhouse.webapplication.member.response.MemberVerifyPasswordResponse;
+import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
+import com.tastyhouse.webapplication.member.response.MyGradeResponse;
+import com.tastyhouse.webapplication.member.response.MyProfileResponse;
+import com.tastyhouse.webapplication.member.response.MyReviewCountResponse;
+import com.tastyhouse.webapplication.member.response.MyReviewListItemResponse;
+import com.tastyhouse.webapplication.member.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -45,9 +45,9 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 public class MemberMeApiController {
 
-    private final MemberService memberService;
+    private final MemberScreenUseCase memberService;
 
-    public MemberMeApiController(MemberService memberService) {
+    public MemberMeApiController(MemberScreenUseCase memberService) {
         this.memberService = memberService;
     }
 

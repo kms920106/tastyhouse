@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.webapi.payment.application.port.in.PaymentConfirmCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentConfirmCommand;
 
 @Schema(description = "결제 승인 요청 (PG 콜백)")
 public record PaymentConfirmRequest(

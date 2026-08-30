@@ -14,7 +14,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `ceo-api`, `domain-module`, `infrastructure-module`, `external-api`, `security-module`, `api-common-module`, `application-common-module`, `batch-application`, `logging-module`, `batch-module`) |
+| `settings.gradle` | 멀티모듈 정의 (`web-api`, `admin-api`, `ceo-api`, `domain-module`, `infrastructure-module`, `external-api`, `security-module`, `api-common-module`, `application-common-module`, `batch-application`, `web-application`, `logging-module`, `batch-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
@@ -27,7 +27,7 @@
 | `domain-module/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain-module/AGENTS.md`) |
 | `application-common-module/` | 읽기 경로 포트(`{Ctx}QueryPort` 인터페이스 + `*Result`/`*SearchCondition`) 전용 프레임워크-프리 모듈. 의존은 `domain-module` 하나뿐(`PageQuery`/`PageResult` 참조용) (see `application-common-module/AGENTS.md`) |
 | `infrastructure-module/` | domain 포트의 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `application-common-module`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`) (see `infrastructure-module/AGENTS.md`) |
-| `web-api/` | 사용자용 REST API — 컨트롤러, 도메인당 CQRS 서비스, 인증(JWT/OAuth), 보안 (see `web-api/AGENTS.md`) |
+| `web-api/` | 사용자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `web-application`이 소유한다 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
 | `security-module/` | web-api·admin-api·ceo-api 공유 보안/인증 지원 라이브러리 — Redis 기반 JWT 세션(RefreshToken/Blacklist/소셜 임시토큰), Rate Limiting (see `security-module/AGENTS.md`) |
 | `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
@@ -35,6 +35,7 @@
 | `ceo-api/` | 점주(매장 오너)용 REST API — JWT 인증 인프라 + 점주 가게 설정 API(`shop`: 영업시간·휴무일·전화번호·소개·이미지 변경요청 등) (see `ceo-api/AGENTS.md`) |
 | `batch-module/` | 배치 앱의 **부트스트랩 + driving adapter**(`@Scheduled` 트리거 7종) 전담 독립 실행 모듈 (see `batch-module/AGENTS.md`) |
 | `batch-application/` | 배치 잡의 **application 계층**(잡 UseCase 인바운드 포트 + 서비스 + BBQ 크롤링 동기화). infra를 컴파일 클래스패스에 두지 않는다 (see `batch-application/AGENTS.md`) |
+| `web-application/` | web-api의 **application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + `response/` 표현 계약 + auth 토큰·principal). infra를 컴파일 클래스패스에 두지 않는다 (see `web-application/AGENTS.md`) |
 | `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드 |
 | `md/` | 아키텍처 전환 기록 — `CLEAN-ARCHITECTURE.md`(Strangler Fig 도메인 분리 → `core-module` → `domain-module` 전환의 근거·검증 결과·강제 지점) |
 | `tasks/` | `core-module` → `domain-module` 전환 작업지시서(공통 지침 `README.md` + 도메인별 `NN-*.md`) |
@@ -74,6 +75,15 @@ admin-api ─(동일 패턴)
 ceo-api ─(동일 패턴)
 batch-module ─(동일 패턴 — security-module 없음, logging-module은 p6spy exclude)
              └→ batch-application (implementation) ← 스케줄러가 잡 UseCase 포트를 주입
+web-api ─→ web-application (implementation)  ← 컨트롤러가 컨텍스트 UseCase 포트를 주입
+web-application ─┬→ domain-module (implementation)
+                 ├→ application-common-module (implementation)
+                 ├→ security-module (implementation)      ← auth/token의 JwtProperties·Redis 토큰 저장소
+                 ├→ external-api (implementation)         ← 소셜 로그인 SPI
+                 ├→ api-common-module (implementation)    ← PaginationResponse 등 표현 계약
+                 ├→ spring-boot-starter-web (implementation) ← MultipartFile 업로드 경계 타입 전용
+                 └→ spring-tx (implementation)            ← @Transactional 전용
+                 ※ infrastructure-module 의존 없음 — 계층 분리를 빌드 그래프가 강제한다
 batch-application ─┬→ domain-module (implementation)
                    ├→ application-common-module (implementation)
                    ├→ external-api (implementation)        ← BbqApiClient·RemoteImageDownloader
@@ -93,8 +103,8 @@ domain-module → 의존 없음 (production 의존 0개)
 - **api 모듈이 `application-common-module`을 의존하는 이유 (개정 — 과거 "infra를 컴파일 타임에 본다"는 서술의 번복)**: `{도메인}QueryService`는 이제 infra DAO 구현체가 아니라 `application-common-module`이 선언한 `{Ctx}QueryPort` 인터페이스를 주입한다. api 모듈은 `com.tastyhouse.infrastructure..`를 **전혀 import하지 않는다** — 각 모듈 `LayerRulesTest`가 이를 강제한다. `infrastructure-module`은 여전히 빈 스캔 대상(`scanBasePackages`)이라 실행 모듈의 의존 그래프에는 남아 있지만, **소스 코드 레벨의 import 대상은 아니다.**
 - **`@QueryProjection` → `Projections.constructor` 전환**: Result record가 `application-common-module`(QueryDSL 미의존)로 이동하며 그 record에 `@QueryProjection`을 달 수 없게 됐다. `infrastructure-module`의 QueryDao는 `Projections.constructor(XxxResult.class, ...)`로 리플렉션 기반 조립을 한다 — Result record가 `public`이 아니거나 생성자 시그니처가 select 절과 불일치하면 컴파일은 통과하고 **호출 시점에 500**이 나므로, 전환한 쿼리는 반드시 한 번 호출해 확인한다. 이 리플렉션 대상 일치는 `infrastructure-module`의 `ProjectionConstructorMatchingTest`가 소스 스캔으로 검증한다.
 - `querydsl-jpa`는 infrastructure-module에서 `implementation`으로 강등되어 api 모듈 클래스패스로 전이되지 않는다. 전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 `infrastructure-module` 하나뿐이다.
-- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이다. 나머지(`domain-module`/`application-common-module`/`batch-application`/`infrastructure-module`/`external-api`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
-- **`batch-application`은 infrastructure를 컴파일 클래스패스에 두지 않는다 (신설)**: application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다 — `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다(`domain-module`·`application-common-module`의 프레임워크-프리 게이트와 같은 방식). 그 결과 이전에 infra의 `spring-boot-starter-data-jpa`를 타고 전이로 들어오던 `spring-tx`가 드러나, `@Transactional`만을 위해 명시 선언한다. ArchUnit 규칙(`shouldNotDependOnInfrastructure`)은 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선으로 유지한다.
+- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이다. 나머지(`domain-module`/`application-common-module`/`batch-application`/`web-application`/`infrastructure-module`/`external-api`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- **`batch-application`·`web-application`은 infrastructure를 컴파일 클래스패스에 두지 않는다**: application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다 — `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다(`domain-module`·`application-common-module`의 프레임워크-프리 게이트와 같은 방식). 그 결과 이전에 infra의 `spring-boot-starter-data-jpa`를 타고 전이로 들어오던 `spring-tx`가 드러나, `@Transactional`만을 위해 명시 선언한다. ArchUnit 규칙(`shouldNotDependOnInfrastructure`)은 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선으로 유지한다.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
 - **모듈 경계 원칙**: `infrastructure-module`은 domain 포트의 **DB 어댑터 전용**이다(write `persistence` + read `query` + 이벤트 `listener`). domain에 포트가 없는 기술(Redis 등 presentation 공유 관심사)은 infrastructure-module에 두지 않고, 그 관심사를 위한 별도 공유 모듈(`security-module`·`api-common-module`)을 둔다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 **web-api는 `com.tastyhouse.apicommon.file`만 스캔**한다(자체 핸들러 유지).

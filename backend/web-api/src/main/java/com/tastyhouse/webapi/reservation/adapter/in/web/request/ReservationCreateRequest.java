@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCreateCommand;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationCreateCommand;
 
 @Schema(description = "예약 생성 요청")
 public record ReservationCreateRequest(

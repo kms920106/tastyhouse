@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.webapi.payment.application.port.in.PaymentCreateCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentCreateCommand;
 
 @Schema(description = "결제 생성 요청")
 public record PaymentCreateRequest(

@@ -15,18 +15,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.follow.application.port.in.FollowCancelCommand;
-import com.tastyhouse.webapi.follow.application.port.in.FollowCommandUseCase;
-import com.tastyhouse.webapi.follow.application.port.in.FollowCreateCommand;
-import com.tastyhouse.webapi.follow.application.port.in.FollowQueryUseCase;
-import com.tastyhouse.webapi.follow.application.port.in.FollowerRemoveCommand;
+import com.tastyhouse.webapplication.follow.port.in.FollowCancelCommand;
+import com.tastyhouse.webapplication.follow.port.in.FollowCommandUseCase;
+import com.tastyhouse.webapplication.follow.port.in.FollowCreateCommand;
+import com.tastyhouse.webapplication.follow.port.in.FollowQueryUseCase;
+import com.tastyhouse.webapplication.follow.port.in.FollowerRemoveCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.follow.adapter.in.web.request.FollowSearchRequest;
-import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowIsFollowingResponse;
-import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchListItemResponse;
+import com.tastyhouse.webapplication.follow.response.FollowIsFollowingResponse;
+import com.tastyhouse.webapplication.follow.response.FollowMemberListItemResponse;
+import com.tastyhouse.webapplication.follow.response.FollowMemberSearchListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController

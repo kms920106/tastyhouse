@@ -9,16 +9,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.mail.application.port.in.MailVerificationCommandUseCase;
-import com.tastyhouse.webapi.mail.application.port.in.MailVerificationConfirmCommand;
-import com.tastyhouse.webapi.mail.application.port.in.MailVerificationSendCommand;
+import com.tastyhouse.webapplication.mail.port.in.MailVerificationCommandUseCase;
+import com.tastyhouse.webapplication.mail.port.in.MailVerificationConfirmCommand;
+import com.tastyhouse.webapplication.mail.port.in.MailVerificationSendCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.security.ratelimit.RateLimit;
 import com.tastyhouse.security.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapi.config.jwt.JwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationConfirmRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationSendRequest;
-import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenResponse;
+import com.tastyhouse.webapplication.mail.response.MailVerificationTokenResponse;
 
 @RestController
 @RequestMapping("/api/mail-verifications")

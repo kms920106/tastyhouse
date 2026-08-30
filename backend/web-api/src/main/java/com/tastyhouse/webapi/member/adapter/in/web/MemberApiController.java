@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.member.MemberService;
+import com.tastyhouse.webapplication.member.port.in.MemberScreenUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.request.NicknameAvailabilityRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.PhoneAvailabilityRequest;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberNicknameAvailabilityResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberProfileResponse;
-import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
+import com.tastyhouse.webapplication.member.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapplication.member.response.MemberPhoneAvailabilityResponse;
+import com.tastyhouse.webapplication.member.response.MemberProfileResponse;
+import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
 
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Member", description = "회원 공개 조회 API")
 public class MemberApiController {
 
-    private final MemberService memberService;
+    private final MemberScreenUseCase memberService;
 
-    public MemberApiController(MemberService memberService) {
+    public MemberApiController(MemberScreenUseCase memberService) {
         this.memberService = memberService;
     }
 

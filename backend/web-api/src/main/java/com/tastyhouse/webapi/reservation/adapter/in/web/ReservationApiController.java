@@ -17,20 +17,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationSearchRequest;
-import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
-import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDetailResponse;
-import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
-import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlotAvailabilityResponse;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCancelCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCommandUseCase;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCompleteCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationConfirmCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationCreateCommand;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationQueryUseCase;
-import com.tastyhouse.webapi.reservation.application.port.in.ReservationRejectCommand;
+import com.tastyhouse.webapplication.reservation.response.ReservationCompleteDetailResponse;
+import com.tastyhouse.webapplication.reservation.response.ReservationDetailResponse;
+import com.tastyhouse.webapplication.reservation.response.ReservationResponse;
+import com.tastyhouse.webapplication.reservation.response.ReservationSlotAvailabilityResponse;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationCancelCommand;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationCommandUseCase;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationCompleteCommand;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationConfirmCommand;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationCreateCommand;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationQueryUseCase;
+import com.tastyhouse.webapplication.reservation.port.in.ReservationRejectCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController

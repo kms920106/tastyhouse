@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapi.member.application.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
 
 @Schema(description = "비밀번호 변경 요청")
 public record UpdatePasswordRequest(

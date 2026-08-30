@@ -12,23 +12,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCancelRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCreateRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.RefundRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.TossPaymentConfirmApiRequest;
-import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentCancelResponse;
-import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentRefundResponse;
-import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentCancelCommand;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentCommandUseCase;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentConfirmCommand;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentCreateCommand;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentOnSiteCompleteCommand;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentQueryUseCase;
-import com.tastyhouse.webapi.payment.application.port.in.PaymentRefundRequestCommand;
-import com.tastyhouse.webapi.payment.application.port.in.TossPaymentConfirmCommand;
+import com.tastyhouse.webapplication.payment.response.PaymentCancelResponse;
+import com.tastyhouse.webapplication.payment.response.PaymentRefundResponse;
+import com.tastyhouse.webapplication.payment.response.PaymentResponse;
+import com.tastyhouse.webapplication.payment.port.in.PaymentCancelCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentCommandUseCase;
+import com.tastyhouse.webapplication.payment.port.in.PaymentConfirmCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentCreateCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentOnSiteCompleteCommand;
+import com.tastyhouse.webapplication.payment.port.in.PaymentQueryUseCase;
+import com.tastyhouse.webapplication.payment.port.in.PaymentRefundRequestCommand;
+import com.tastyhouse.webapplication.payment.port.in.TossPaymentConfirmCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**

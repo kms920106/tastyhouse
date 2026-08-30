@@ -20,16 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewCreateRequest;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewUpdateRequest;
-import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
-import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritableItemResponse;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCommandUseCase;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewCreateCommand;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewDeleteCommand;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewQueryUseCase;
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewUpdateCommand;
+import com.tastyhouse.webapplication.menureview.response.MenuReviewListItemResponse;
+import com.tastyhouse.webapplication.menureview.response.MenuReviewWritableItemResponse;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewCommandUseCase;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewCreateCommand;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewDeleteCommand;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewQueryUseCase;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewUpdateCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**

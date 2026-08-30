@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapi.member.application.port.in.MemberDeliveryAddressCreateCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberDeliveryAddressCreateCommand;
 
 /**
  * 배달 주소 등록 요청.

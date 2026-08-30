@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapi.member.application.port.in.MemberWithdrawCommand;
+import com.tastyhouse.webapplication.member.port.in.MemberWithdrawCommand;
 
 @Schema(description = "회원 탈퇴 요청")
 public record WithdrawMemberRequest(

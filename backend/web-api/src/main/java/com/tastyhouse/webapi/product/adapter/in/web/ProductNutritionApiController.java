@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
-import com.tastyhouse.webapi.product.application.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.webapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.webapplication.product.port.in.ProductNutritionQueryUseCase;
 
 /**
  * 손님용 메뉴 영양성분·알레르기 조회 API.

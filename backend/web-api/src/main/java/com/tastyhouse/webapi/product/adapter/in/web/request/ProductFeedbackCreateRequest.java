@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapi.product.application.port.in.ProductFeedbackCreateCommand;
+import com.tastyhouse.webapplication.product.port.in.ProductFeedbackCreateCommand;
 
 /**
  * 메뉴 정보에 대한 고객 의견 제보 요청.

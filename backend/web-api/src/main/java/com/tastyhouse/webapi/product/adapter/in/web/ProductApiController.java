@@ -20,16 +20,16 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductBatchRequest;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductDetailSearchRequest;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductSearchRequest;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductBatchResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductDetailResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductImagesResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewCountResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewStatisticsResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingPageResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingResponse;
-import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscountListItemResponse;
-import com.tastyhouse.webapi.product.application.port.in.ProductQueryUseCase;
+import com.tastyhouse.webapplication.product.response.ProductBatchResponse;
+import com.tastyhouse.webapplication.product.response.ProductDetailResponse;
+import com.tastyhouse.webapplication.product.response.ProductImagesResponse;
+import com.tastyhouse.webapplication.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.webapplication.product.response.ProductReviewCountResponse;
+import com.tastyhouse.webapplication.product.response.ProductReviewStatisticsResponse;
+import com.tastyhouse.webapplication.product.response.ProductReviewsByRatingPageResponse;
+import com.tastyhouse.webapplication.product.response.ProductReviewsByRatingResponse;
+import com.tastyhouse.webapplication.product.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapplication.product.port.in.ProductQueryUseCase;
 
 @RestController
 @RequestMapping("/api/products")
@@ -67,7 +67,7 @@ public class ProductApiController {
     @Operation(summary = "상품 배치 조회 (옵션 포함)", description = "여러 (상품ID, 옵션ID) 조합을 한 번에 조회합니다. 상품별로 그룹핑하여 기본 정보(이름/정가/할인가)와 요청한 옵션 정보만 반환하므로, 상품마다 상세·옵션 API를 따로 호출하는 N+1 호출을 단일 호출로 대체합니다. 장바구니·주문서 등 여러 상품을 동시에 표시하는 화면에서 사용합니다. 판매 종료되었거나 존재하지 않는 상품은 결과에서 제외하지 않고 available=false 로 남깁니다(요청 순서 유지). 요청한 옵션 중 조회에 실패하거나 해당 상품에 속하지 않는 옵션은 options 에서 제외됩니다.")
     @PostMapping("/v1/batch")
     public ResponseEntity<ApiResponse<ProductBatchResponse>> getProductsBatch(@Valid @RequestBody ProductBatchRequest request) {
-        ProductBatchResponse response = productQueryService.findProductsBatch(request);
+        ProductBatchResponse response = productQueryService.findProductsBatch(request.toQuery());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

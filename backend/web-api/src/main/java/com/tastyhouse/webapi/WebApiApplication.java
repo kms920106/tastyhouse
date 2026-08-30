@@ -10,10 +10,12 @@ import com.tastyhouse.external.oauth.ExternalOAuthConfig;
 import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
 import com.tastyhouse.logging.LoggingModuleConfig;
 import com.tastyhouse.security.SecurityModuleConfig;
+import com.tastyhouse.webapplication.WebApplicationConfig;
 
 @SpringBootApplication
 @Import({InfrastructureModuleConfig.class, ExternalApiConfig.class, ExternalOAuthConfig.class,
-         SecurityModuleConfig.class, LoggingModuleConfig.class, ApiCommonFileConfig.class})
+         SecurityModuleConfig.class, LoggingModuleConfig.class, ApiCommonFileConfig.class,
+         WebApplicationConfig.class})
 public class WebApiApplication {
 
     public static void main(String[] args) {

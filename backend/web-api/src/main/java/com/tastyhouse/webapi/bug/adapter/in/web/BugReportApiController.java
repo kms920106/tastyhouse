@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapi.bug.application.port.in.BugReportCommandUseCase;
-import com.tastyhouse.webapi.bug.application.port.in.BugReportCreateCommand;
+import com.tastyhouse.webapplication.bug.port.in.BugReportCommandUseCase;
+import com.tastyhouse.webapplication.bug.port.in.BugReportCreateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.bug.adapter.in.web.request.BugReportCreateRequest;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController

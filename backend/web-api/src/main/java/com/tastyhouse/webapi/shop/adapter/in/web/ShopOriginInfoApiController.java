@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
-import com.tastyhouse.webapi.shop.application.port.in.ShopOriginInfoQueryUseCase;
+import com.tastyhouse.webapplication.shop.response.ShopOriginInfoResponse;
+import com.tastyhouse.webapplication.shop.port.in.ShopOriginInfoQueryUseCase;
 
 /**
  * 손님용 가게 원산지 표시 조회 API.

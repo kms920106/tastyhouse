@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapi.config.security.CustomUserDetails;
-import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationCommandUseCase;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAllAsReadCommand;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationMarkAsReadCommand;
-import com.tastyhouse.webapi.notification.application.port.in.NotificationQueryUseCase;
+import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.notification.response.NotificationListItemResponse;
+import com.tastyhouse.webapplication.notification.port.in.NotificationCommandUseCase;
+import com.tastyhouse.webapplication.notification.port.in.NotificationMarkAllAsReadCommand;
+import com.tastyhouse.webapplication.notification.port.in.NotificationMarkAsReadCommand;
+import com.tastyhouse.webapplication.notification.port.in.NotificationQueryUseCase;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**

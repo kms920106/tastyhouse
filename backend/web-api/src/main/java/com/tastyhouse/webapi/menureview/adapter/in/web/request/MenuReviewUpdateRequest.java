@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapi.menureview.application.port.in.MenuReviewUpdateCommand;
+import com.tastyhouse.webapplication.menureview.port.in.MenuReviewUpdateCommand;
 
 @Schema(description = "메뉴 평가 수정 요청")
 public record MenuReviewUpdateRequest(

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
-import com.tastyhouse.webapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.webapplication.shop.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.webapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 손님용 메뉴모음컷 조회 API — 가게를 열었을 때 가장 먼저, 가장 상단에서 보이는 이미지.
