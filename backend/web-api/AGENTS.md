@@ -11,7 +11,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `domain-module`·`web-application`·`infrastructure-module`·`external-api`·`security-module`·`logging-module`을 모두 `implementation`으로 의존 + web, webflux, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). QueryDSL 의존은 없다 |
+| `build.gradle` | `domain-module`·`web-application`·`infrastructure:persistence`·`external-api`·`security-module`·`logging-module`을 모두 `implementation`으로 의존 + web, webflux, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). QueryDSL 의존은 없다 |
 | `src/main/resources/` | `application.yml` 등 환경 설정 (로깅 설정은 logging-module의 `application-logging.yml`을 import) |
 
 ## Subdirectories
@@ -29,7 +29,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
   - 아래 CQRS 서술은 **`web-application` 모듈의 규칙**이며, 컨트롤러가 어느 포트를 주입할지 판단할 때 참고한다.
   - **도메인당 CQRS 분리**가 이 모듈의 표준 구조다. 과거 `core-module`의 `application/` 계층이 하던 역할이 전환으로 이 모듈의 도메인 패키지로 내려왔고, 도메인당 두 서비스로 분해된다.
     - `{도메인}CommandService`(`@Transactional`): domain write 포트(`XxxRepository`)·도메인 서비스만 주입. 생성/수정/삭제/상태전이를 수행하고 **식별자만 반환**한다. POJO 도메인은 더티 체킹이 없으므로 변경 후 반드시 `repository.save(domain)`을 호출한다.
-    - `{도메인}QueryService`(`@Transactional(readOnly = true)`): `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입(`infrastructure-module`의 DAO 구현체는 알지 않는다). 조회와 Response 조립(private 매퍼)을 담당한다.
+    - `{도메인}QueryService`(`@Transactional(readOnly = true)`): `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입(`infrastructure:persistence`의 DAO 구현체는 알지 않는다). 조회와 Response 조립(private 매퍼)을 담당한다.
     - 조회만 있는 도메인은 QueryService만 둔다(reference: `notice/NoticeQueryService`, `banner/BannerQueryService`, `policy/PolicyQueryService`). 명령만 있는 도메인은 CommandService만 둔다(reference: `bug/BugReportCommandService`, `partnership/PartnershipCommandService`). 둘 다 있는 도메인은 컨트롤러가 필요한 쪽을 각각 주입한다(reference: `order/OrderCommandService`+`OrderQueryService`, `payment/`, `reservation/`, `review/`, `shop/`).
     - CommandService가 `..query..`를, QueryService가 write 포트를 서로 주입하지 않는다. command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다.
     - 흐름 지향 서비스도 챕터 02에서 전부 인바운드 포트를 갖게 됐다 — `auth/AuthCommandService`(구 `AuthService`) implements `AuthCommandUseCase`, `member/MemberService` implements `MemberScreenUseCase`(화면 단위 흐름을 가진 파사드라 삭제 대신 포트를 씌웠다), `grade/GradeQueryService`·`referral/ReferralQueryService`(구 `GradeService`/`ReferralService`)가 각각 `{도메인}QueryUseCase`를 구현한다. `file/FileService`는 `api-common-module` 소유라 대상이 아니다.
@@ -65,7 +65,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`
 - `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition 주입용
-- `infrastructure-module` (implementation) — 빈 스캔 대상(`{도메인}QueryDao`가 실제로 뜨는 곳)이지만 `com.tastyhouse.infrastructure..`는 소스 레벨에서 import하지 않는다(ArchUnit이 차단)
+- `infrastructure:persistence` (implementation) — 빈 스캔 대상(`{도메인}QueryDao`가 실제로 뜨는 곳)이지만 `com.tastyhouse.infrastructure..`는 소스 레벨에서 import하지 않는다(ArchUnit이 차단)
 - `external-api` — OAuth/결제/메시징/파일 어댑터
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit
 - `logging-module` — 요청/응답 로깅(p6spy 전이)

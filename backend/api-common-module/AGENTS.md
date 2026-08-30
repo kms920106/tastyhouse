@@ -34,4 +34,4 @@
 ## 여기에 두면 안 되는 것
 - **모듈마다 내용이 다른 정책 파일** — `SecurityConfig`(필터체인·인가 정책), `PublicPaths`(공개 경로 목록: web 18줄 vs admin/ceo 3줄), `TokenService`/`AuthService`(인증 주체 `Admin`/`Ceo`와 JWT 시크릿이 분리되어야 함).
 - **필드 셋이나 `@Schema` 문구가 다른 응답 record** — 예: `ShopDetailResponse`(admin은 감사 시각, ceo는 `trademarkImageUrl`/`hidden`), `ShopAmenityResponse`("가게" vs "내 가게").
-- **도메인 포트가 있는 기술 어댑터** — 그것은 `external-api`(도메인 포트 구현)나 `infrastructure-module`(DB 어댑터) 소관이다.
+- **도메인 포트가 있는 기술 어댑터** — 그것은 `external-api`(도메인 포트 구현)나 `infrastructure:persistence`(DB 어댑터) 소관이다.

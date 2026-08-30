@@ -4,34 +4,40 @@
 # admin-api
 
 ## Purpose
-관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). `admin`(관리자 계정)·`auth`(로그인/JWT)·`banner`·`bug`(버그 제보)·`ceo`(점주 계정)·`coupon`·`event`·`faq`·`file`·`member`(회원 관리)·`notice`·`order`·`partnership`·`point`·`policy`·`product`·`rank`·`review`·`shop` 도메인 관리 API를 제공한다.
+관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). **챕터 03으로 application 계층이 `admin-application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·부트스트랩만 담당한다.** 컨트롤러는 `com.tastyhouse.adminapplication.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
 
-**이 모듈이 관리자 측 application 계층이다.** 과거에는 `core-module`의 application 서비스를 web-api와 공유했으나, `core-module` → `domain-module` 전환으로 그 계층이 해체되면서 관리자 유스케이스는 이 모듈이 직접 소유한다. 따라서 **web-api와 application 서비스를 공유하지 않으며**, 한쪽 시그니처 변경이 다른 쪽을 깨뜨리는 결합이 사라졌다(공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort` 계약이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
+`admin`(관리자 계정)·`auth`(로그인/JWT)·`banner`·`bug`(버그 제보)·`ceo`(점주 계정)·`coupon`·`event`·`faq`·`file`·`member`(회원 관리)·`notice`·`order`·`partnership`·`point`·`policy`·`product`·`rank`·`review`·`shop` 도메인 관리 API를 제공한다.
 
-**도메인당 CQRS 분리 (전환 완료)**: 도메인마다 두 서비스를 둔다 — `{도메인}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입, 조회 + Response 조립 private 매퍼). 컨트롤러는 필요한 서비스를 각각 주입하며, 조회만 있는 도메인은 QueryService만(`ceo/CeoQueryService`), 명령만 있는 도메인은 CommandService만(`policy/PolicyCommandService`) 둔다. CommandService는 읽기 포트를, QueryService는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. 대형 도메인(`shop`)은 관심사별로 서비스를 더 쪼갠다(`ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*`). **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다. reference 구현: `notice/NoticeCommandService`·`notice/NoticeQueryService`.
+**관리자 측 application 계층은 `admin-application`이 소유한다 (챕터 03 개정 — 과거 "이 모듈이 관리자 측 application 계층이다"의 번복).** 유스케이스가 관리자 전용이라는 사실은 그대로이고, 그것을 담는 **모듈만 바뀌었다**. web-api와 application 서비스를 공유하지 않는다는 성질도 그대로다(공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort` 계약이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
+
+**도메인당 CQRS 분리 (서비스는 `admin-application` 소유)**: 도메인마다 두 서비스를 둔다 — `{도메인}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입, 조회 + Response 조립 private 매퍼). **컨트롤러는 서비스 구현이 아니라 그 짝인 UseCase 인터페이스(`..port.in..`)를 주입한다** — 구체 서비스 클래스는 이 모듈의 컴파일 클래스패스에 보이지 않는다(`webAdaptersShouldNotDependOnApplicationServices`). 조회만 있는 도메인은 QueryService만(`ceo/CeoQueryService`), 명령만 있는 도메인은 CommandService만(`policy/PolicyCommandService`) 둔다. CommandService는 읽기 포트를, QueryService는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. 대형 도메인(`shop`)은 관심사별로 서비스를 더 쪼갠다(`ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*`). **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다. reference 구현: `notice/NoticeCommandService`·`notice/NoticeQueryService`.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | web + springdoc 의존. `domain-module`·`infrastructure-module`·`external-api`·`logging-module`·`security-module`을 모두 `implementation`으로 참조. QueryDSL 의존은 없다 |
+| `build.gradle` | web + springdoc 의존. `domain-module`·**`admin-application`**·`infrastructure:persistence`·`external-api`·`logging-module`·`security-module`·`api-common-module`을 `implementation`으로 참조. QueryDSL 의존은 없다 |
 | `src/main/resources/` | 관리자 앱 환경 설정 |
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/adminapi/` | 관리자 컨트롤러 루트 — `config/`(JWT·Security), `admin/`·`auth/`·`banner/`·`bug/`·`coupon/`·`event/`·`faq/`·`file/`·`member/`·`notice/`·`policy/`(각 도메인 폴더는 컨트롤러 + `{도메인}CommandService`/`{도메인}QueryService` + `request/`·`response/`). **공용 플럼빙(`ApiResponse`·`PageRequest`·`PaginationResponse`·`FileService`·`GlobalExceptionHandler`)은 이 모듈이 아니라 `api-common-module`(`com.tastyhouse.apicommon`) 소유**이며, `AdminApiApplication`이 그 패키지를 스캔한다 |
+| `src/main/java/com/tastyhouse/adminapi/` | 관리자 인바운드 어댑터 루트 — `config/`(JWT·Security), 각 도메인 폴더는 **`<ctx>/adapter/in/web/`(컨트롤러) + `request/`**. 서비스와 `response/`는 `admin-application`이 소유한다. **공용 플럼빙(`ApiResponse`·`PageRequest`·`PaginationResponse`·`FileService`·`GlobalExceptionHandler`)은 이 모듈이 아니라 `api-common-module`(`com.tastyhouse.apicommon`) 소유**이며, `AdminApiApplication`이 그 패키지를 스캔한다 |
 | `src/test/` | 관리자 API 테스트 |
 
 ## For AI Agents
 
 ### Working In This Directory
-- 새 관리 기능 추가 시 web-api와 동일한 도메인-폴더 + `request/`·`response/` 컨벤션을 따른다.
+- **presentation(인바운드 어댑터) 레이어만 담당한다 (챕터 03 개정)**: 컨트롤러는 도메인을 직접 호출하지 않고 `admin-application`의 UseCase 포트를 통해서만 호출한다. JPA Repository·`EntityManager`를 직접 주입하지 않는다.
+  - **이 모듈에 `@Service` 빈을 두지 않는다**: application 계층은 `admin-application`이 소유하며, `architecture/LayerRulesTest#apiModuleMustNotContainApplicationLayer`가 이를 강제한다. `@RestController`는 `..adapter.in.web..`에만 둔다(짝 규칙 `restControllersShouldResideInWebAdapterPackage`).
+  - **컨텍스트 패키지는 2층 구조다**: `<ctx>/adapter/in/web/`(컨트롤러) + `<ctx>/adapter/in/web/request/`(Request record). `response/`와 `service/`·`port/in/`은 이 모듈에 없다(`admin-application` 소유).
+  - 아래 CQRS 서술은 **`admin-application` 모듈의 규칙**이며, 컨트롤러가 어느 포트를 주입할지 판단할 때 참고한다.
+- 새 관리 기능 추가 시 web-api와 동일한 도메인-폴더 + `request/` 컨벤션을 따르고, 서비스·`response/`는 `admin-application`의 같은 컨텍스트 아래에 만든다.
 - **import 순서 — presentation 내부 서브정렬**: 자사 import의 presentation 계층(`com.tastyhouse.adminapi.*`) 안에서는 공용 인프라(`common`·`config`)를 도메인 전용(`<도메인>.request`·`.response`)보다 **위**에 둔다. 각 서브그룹 내부는 알파벳순, 사이 빈 줄 없음. 상세·근거·예시는 루트 CLAUDE.md 참고.
-- 도메인별로 admin-api 소속 CQRS 서비스 쌍을 두고, 컨트롤러는 필요한 쪽만 주입한다 — 컨트롤러에서 `com.tastyhouse.domain.*`(도메인 모델·VO·enum·`PageResult`)를 직접 import하지 않는다. 도메인 호출과 Result↔Request/Response 변환은 이 서비스가 전담한다.
-- **`scanBasePackages`에 domain 엔트리 없음**: `AdminApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.adminapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외 — admin은 소셜 로그인이 없다)는 그대로 유지된다.
+- 도메인별 CQRS 서비스 쌍은 `admin-application`에 두고, **컨트롤러는 그 짝인 UseCase 인터페이스(`..port.in..`)만 주입한다**(구체 서비스 클래스는 주입하지 않는다 — `webAdaptersShouldNotDependOnApplicationServices`). 컨트롤러에서 `com.tastyhouse.domain.*`(도메인 모델·VO·enum·`PageResult`)를 직접 import하지 않는다. 도메인 호출과 Result → Response 변환은 `admin-application`의 서비스가 전담하고, **Request → Command 매핑만 이 모듈(컨트롤러)의 책임**이다.
+- **`scanBasePackages`에 domain 엔트리 없음**: `AdminApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.adminapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개이며, **`admin-application`은 스캔 문자열이 아니라 `AdminApplicationConfig`를 `@Import`해 배선한다**(타입 세이프 조합이 이 저장소의 표준). `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외 — admin은 소셜 로그인이 없다)는 그대로 유지된다.
 - **도메인 enum도 컨트롤러/Request에 domain 타입으로 노출하지 않는다** — HTTP 경계는 `String`(다중값 `List<String>`)으로 받고, 서비스에서 domain enum의 `Enum.from(String)` 정적 팩토리로 승격한다(ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭). String 파라미터에는 `@Schema(allowableValues={...})`/`@Parameter(...)`로 Swagger 후보값을 명시하고, 변환 실패는 domain enum `from()` 내부에서 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`으로 처리한다(reference: `banner/BannerCommandService`, `BannerType.from`). 상세는 루트 CLAUDE.md 참고.
-- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 오케스트레이션과 무상태 정책·검증기는 `<ctx>/service/` POJO로 내리고, 이 모듈의 CommandService는 트랜잭션 경계·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. admin 전용 로직이라도 불변식이면 domain에 두어, web/ceo가 같은 유스케이스를 실행할 때 우회되지 않게 한다.
-- **명시적 save 필수**: 도메인 모델은 순수 POJO라 JPA 더티 체킹으로 자동 flush되지 않는다. CommandService에서 도메인을 변경한 뒤 반드시 `repository.save(domain)`을 호출한다(누락 시 변경이 조용히 유실된다).
+- **불변식은 `domain-module`에 둔다** — 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 오케스트레이션과 무상태 정책·검증기는 `<ctx>/service/` POJO로 내리고, `admin-application`의 CommandService는 트랜잭션 경계·VO 승격·명시적 `save` 호출·응답 조립만 담당한다. admin 전용 로직이라도 불변식이면 domain에 두어, web/ceo가 같은 유스케이스를 실행할 때 우회되지 않게 한다.
+- **명시적 save 필수** (`admin-application` 규칙): 도메인 모델은 순수 POJO라 JPA 더티 체킹으로 자동 flush되지 않는다. CommandService에서 도메인을 변경한 뒤 반드시 `repository.save(domain)`을 호출한다(누락 시 변경이 조용히 유실된다).
 - `domain-module`의 `PageResult`(`shared/page`)도 컨트롤러에 노출하지 않는다 — QueryService가 공용 제네릭 `common/PaginationResponse<T>`(예: `PaginationResponse<NoticeListItemResponse>`)로 변환해 반환한다. 도메인별 `XxxPageResponse` 래퍼는 만들지 않는다 — 상세는 루트 CLAUDE.md의 "페이징 응답 공용 제네릭 래퍼 규칙" 참고.
 - **DTO 조립 시 `new` 직접 호출 지양**: Service에서도 command/condition/response를 `new`로 조립하지 않는다. 이 Service는 Request 타입이 아니라 개별 원시 파라미터(예: `String title, String content, boolean visible`)를 받고, 내부에서 대상 record의 정적 팩토리 `of(...)`/`from(...)`로 위임한다(reference: `NoticeCommandService#createNotice(String, String, boolean)`, `NoticeQueryService#getNotices` → `NoticeSearchCondition.of(...)`·`PaginationResponse.from(...)`). **Request record가 `toCommand(...)`를 소유**하고 컨트롤러가 그 결과를 지역 변수로 추출해 UseCase에 넘긴다(완전 매핑 — 매핑은 인바운드 어댑터의 책임). 상세는 루트 CLAUDE.md 참고.
 - **command/DTO와 식별자(`XxxId.of(id)`)는 지역 변수로 추출 후 넘긴다(command 서비스 호출 인자 인라인 조립 지양)**: `Xxx.of(...)` 팩토리 결과를 core command 서비스 호출 인자에 인라인으로 바로 넘기지 않고, 먼저 `Xxx command = Xxx.of(...);`로 추출한 뒤 전달한다. **command 서비스에 넘기는 식별자 승격 `XxxId.of(id)`도 지역 변수로 추출한다** — command와 함께 넘길 때(`XxxId xxxId = XxxId.of(id); service.method(xxxId, command);`)든 식별자만 단독으로 넘길 때(`delete`·상태전이)든 인자 자리에 인라인하지 않는다(이전 "짧은 식별자 승격은 인자 자리 허용" 예외 폐지). 조립과 호출을 문장 단위로 분리해 가독성·디버깅·도메인 간 형태 일관성을 높이기 위함이다. 예외(인라인 유지): 이미 지역 변수인 `SearchCondition`, **query(조회) 서비스 호출**에 넘기는 `XxxId.of(id)`, **`Command.of(XxxId.of(id), ...)`처럼 command 팩토리 내부에 중첩된 `Id.of`**(이때는 command만 추출), 응답 변환 `XxxResponse.from(...)`. 대체된 인라인 한 줄을 `//` 주석으로 남기지 않는다. CQRS 전환으로 core command 서비스 호출과 command DTO 자체는 사라졌지만, CommandService가 HTTP 경계의 `Long`을 domain VO로 승격하는 지점에서 이 관례가 유지된다(reference: `NoticeCommandService#updateNotice`·`#deleteNotice`, 동일 적용 `banner`·`coupon`·`policy`의 CommandService). 상세는 루트 CLAUDE.md 참고.
@@ -59,7 +65,8 @@
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`
 - `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition 주입용
-- `infrastructure-module` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단)
+- `admin-application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `AdminApplicationConfig`
+- `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단)
 - `external-api`, `logging-module`, `security-module`
 
 ### External

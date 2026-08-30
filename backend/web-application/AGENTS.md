@@ -54,7 +54,7 @@ com.tastyhouse.webapplication/
 - `spring-boot-starter-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다. 서블릿 결합은 `applicationMustBeServletFree`가 막으므로 이 의존이 계층을 무너뜨리지 않는다
 - `spring-tx` (implementation) — `@Transactional`만을 위한 최소 의존 (batch-application 선례)
 
-### infrastructure-module 의존 없음 — 이 모듈의 핵심
+### infrastructure 의존 없음 — 이 모듈의 핵심
 
 application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다. `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다. ArchUnit `shouldNotDependOnInfrastructure`는 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선이다.
 

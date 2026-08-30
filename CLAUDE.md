@@ -192,7 +192,12 @@ frontend/   Next.js 앱 3개 — web(사용자 모바일 웹) · admin(관리자
 docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 ```
 
-- **backend 모듈** (`backend/settings.gradle`): 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`)와 공유 모듈(`domain-module`, `application-common-module`, `infrastructure-module`, `external-api`, `security-module`, `logging-module`, `api-common-module`)로 구성됩니다.
+- **backend 모듈** (`backend/settings.gradle`): 총 18개이며 세 갈래입니다.
+  - **실행 앱 4개**(bootJar): `web-api`, `admin-api`, `ceo-api`, `batch-module` — 컨트롤러/스케줄러 트리거와 부트스트랩만 갖는 thin adapter입니다.
+  - **앱별 application 계층 4개**: `web-application`, `admin-application`, `ceo-application`, `batch-application` — 유스케이스(인바운드 포트 + CQRS 서비스)를 소유하며 infrastructure를 컴파일 클래스패스에 두지 않습니다.
+  - **공유 모듈**: `domain-module`, `application-common-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-module`, `logging-module`, `api-common-module`.
+
+  `infrastructure`는 기술별로 나뉜 **중첩 프로젝트**입니다(디렉터리 `backend/infrastructure/{persistence,redis}/`, Gradle 좌표 `:infrastructure:persistence`·`:infrastructure:redis`). 자바 패키지는 `com.tastyhouse.infrastructure..`로 불변입니다. 모듈 지도와 배치 기준은 `backend/CLAUDE.md`의 "모듈 지도" 절을 참조합니다.
 - **작업 전 해당 영역 문서를 먼저 읽습니다.** backend 각 모듈과 frontend 각 앱의 `src/` 하위 디렉터리에는 그 영역의 최신 상세 가이드가 담긴 `AGENTS.md`가 있으므로, 이 파일의 요약에 의존하지 말고 해당 문서를 직접 확인합니다.
 - **도메인 로직 작업 전에는 `docs/domain/{도메인}.md`를 참조합니다.** 주문·쿠폰·포인트·등급 등 도메인별 비즈니스 규칙이 정리돼 있어, 코드만 읽고 추측하는 것보다 정확합니다.
 
@@ -208,6 +213,8 @@ docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 | web-api | `backend` — `java -jar web-api/build/libs/web-api-0.0.1-SNAPSHOT.jar` | 8080 |
 | admin-api | `backend` — `java -jar admin-api/build/libs/admin-api-0.0.1-SNAPSHOT.jar` | 8090 |
 | ceo-api | `backend` — `java -jar ceo-api/build/libs/ceo-api-0.0.1-SNAPSHOT.jar` | 8100 |
+
+**위 표의 backend jar 4개 이름·경로는 모듈 재편(챕터 01~06) 후에도 불변입니다** — 재편으로 늘어난 것은 라이브러리 모듈(`{앱}-application` 4개·`infrastructure:{persistence,redis}`)뿐이고 실행 단위는 그대로 4개이기 때문입니다. 배포 스크립트는 영향받지 않습니다.
 
 backend는 실행 파일(jar)이 있어야 위 명령이 동작합니다. jar가 없으면(클론 직후·`clean` 후) `backend`에서 `./gradlew :{모듈}:build`로 먼저 만듭니다. **코드 변경 시마다 재빌드가 필요합니다** — 자세한 내용은 아래를 참조합니다.
 

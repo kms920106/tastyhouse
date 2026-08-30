@@ -59,7 +59,7 @@ com.tastyhouse.batchapplication/       ← batch-application 모듈 (application
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`
 - `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result DTO를 컴파일 타임에 주입
 - `batch-application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
-- `infrastructure-module` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단
+- `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단
 - `external-api` (implementation) — `BbqApiClient`(크롤링 HTTP 클라이언트), `RemoteImageDownloader`. **소스 참조는 `batch-application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-external.yml`) 때문에 유지한다
 - `logging-module` (implementation)
 
@@ -81,6 +81,6 @@ com.tastyhouse.batchapplication/       ← batch-application 모듈 (application
 
 ## 설정 파일
 
-`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, infrastructure-module 소유)과 `application-external.yml`(크롤링/S3, external-api 소유)을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 `application-external.yml`(크롤링/S3, external-api 소유)을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
 
 <!-- MANUAL: -->

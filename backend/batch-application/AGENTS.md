@@ -44,10 +44,10 @@ com.tastyhouse.batchapplication/
 - `external-api` (implementation) — `BbqApiClient`·`RemoteImageDownloader` (위 crawling 판단의 귀결)
 
 ### External
-- `spring-tx` (implementation) — **`@Transactional`만을 위한 최소 의존**. 이전에는 infrastructure-module의 `spring-boot-starter-data-jpa`를 타고 전이로 들어와 소스 어디에도 선언이 없었다. infra를 클래스패스에서 뺀 결과 이 숨은 의존이 드러났으므로 starter 통째가 아니라 실제로 쓰는 것만 명시한다(버전은 Boot BOM이 고정).
+- `spring-tx` (implementation) — **`@Transactional`만을 위한 최소 의존**. 이전에는 `infrastructure:persistence`의 `spring-boot-starter-data-jpa`를 타고 전이로 들어와 소스 어디에도 선언이 없었다. infra를 클래스패스에서 뺀 결과 이 숨은 의존이 드러났으므로 starter 통째가 아니라 실제로 쓰는 것만 명시한다(버전은 Boot BOM이 고정).
 - Spring Boot Starter(루트 `subprojects`가 부여)
 
-### infrastructure-module 의존 없음 — 이 모듈의 핵심
+### infrastructure 의존 없음 — 이 모듈의 핵심
 
 **`import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다.** `domain-module`·`application-common-module`의 프레임워크-프리 컴파일 게이트와 같은 방식으로, 계층 규칙이 리뷰 규율이 아니라 빌드 게이트가 된다. ArchUnit `shouldNotDependOnInfrastructure`는 누군가 build.gradle에 의존 한 줄을 되돌리는 회귀를 막는 2차 방어선이다(컴파일은 통과하고 계층만 조용히 무너지는 경우).
 
