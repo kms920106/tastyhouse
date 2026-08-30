@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationRejectCommand;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationRejectCommand;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

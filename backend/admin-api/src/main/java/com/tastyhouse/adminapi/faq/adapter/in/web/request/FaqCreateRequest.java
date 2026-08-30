@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.faq.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCreateCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeHideCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeUnhideCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeHideCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeUnhideCommand;
 
 import java.util.List;
 
@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapi.config.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopNoticeQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopNoticeManagementListItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeQueryUseCase;
 
 /**
  * 점주 공지 검수 관리자 API.

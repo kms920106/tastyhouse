@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardDeleteCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardHiddenChangeCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardHiddenChangeCommand;
 
 import java.util.List;
 
@@ -24,8 +24,8 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopContentBoardQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopContentBoardListItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardQueryUseCase;
 
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController

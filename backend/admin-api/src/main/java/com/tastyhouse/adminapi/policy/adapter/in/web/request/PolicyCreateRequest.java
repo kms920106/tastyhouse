@@ -2,7 +2,7 @@ package com.tastyhouse.adminapi.policy.adapter.in.web.request;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.adminapi.policy.application.port.in.PolicyCreateCommand;
+import com.tastyhouse.adminapplication.policy.port.in.PolicyCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

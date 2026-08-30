@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageApproveCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageRejectCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageApproveCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageRejectCommand;
 
 import java.util.List;
 
@@ -23,8 +23,8 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageSearchRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopMenuCollectionImageRequestItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
  * 메뉴모음컷 검수 관리자 API.

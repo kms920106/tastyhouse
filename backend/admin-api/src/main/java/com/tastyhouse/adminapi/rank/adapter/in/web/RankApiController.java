@@ -23,20 +23,20 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPeriodUpdateReque
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeCreateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeUpdateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankSearchRequest;
-import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankMemberListItemResponse;
-import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodDetailResponse;
-import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodListItemResponse;
-import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeDetailResponse;
-import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemResponse;
-import com.tastyhouse.adminapi.rank.application.port.in.RankAggregateCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankCommandUseCase;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPeriodCreateCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPeriodDeleteCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPeriodUpdateCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeCreateCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeDeleteCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.adminapi.rank.application.port.in.RankQueryUseCase;
+import com.tastyhouse.adminapplication.rank.response.RankMemberListItemResponse;
+import com.tastyhouse.adminapplication.rank.response.RankPeriodDetailResponse;
+import com.tastyhouse.adminapplication.rank.response.RankPeriodListItemResponse;
+import com.tastyhouse.adminapplication.rank.response.RankPrizeDetailResponse;
+import com.tastyhouse.adminapplication.rank.response.RankPrizeListItemResponse;
+import com.tastyhouse.adminapplication.rank.port.in.RankAggregateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankCommandUseCase;
+import com.tastyhouse.adminapplication.rank.port.in.RankPeriodCreateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPeriodDeleteCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPeriodUpdateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPrizeCreateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPrizeDeleteCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPrizeUpdateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankQueryUseCase;
 
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController

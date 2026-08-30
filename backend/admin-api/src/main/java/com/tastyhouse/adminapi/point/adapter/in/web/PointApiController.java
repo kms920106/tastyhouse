@@ -20,12 +20,12 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.request.PointDeductRequest;
 import com.tastyhouse.adminapi.point.adapter.in.web.request.PointEarnRequest;
 import com.tastyhouse.adminapi.point.adapter.in.web.request.PointSearchRequest;
-import com.tastyhouse.adminapi.point.adapter.in.web.response.PointBalanceResponse;
-import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryResponse;
-import com.tastyhouse.adminapi.point.application.port.in.PointCommandUseCase;
-import com.tastyhouse.adminapi.point.application.port.in.PointDeductCommand;
-import com.tastyhouse.adminapi.point.application.port.in.PointEarnCommand;
-import com.tastyhouse.adminapi.point.application.port.in.PointQueryUseCase;
+import com.tastyhouse.adminapplication.point.response.PointBalanceResponse;
+import com.tastyhouse.adminapplication.point.response.PointHistoryResponse;
+import com.tastyhouse.adminapplication.point.port.in.PointCommandUseCase;
+import com.tastyhouse.adminapplication.point.port.in.PointDeductCommand;
+import com.tastyhouse.adminapplication.point.port.in.PointEarnCommand;
+import com.tastyhouse.adminapplication.point.port.in.PointQueryUseCase;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
 @RestController

@@ -22,13 +22,13 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerCreateRequest;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerSearchRequest;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerUpdateRequest;
-import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
-import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResponse;
-import com.tastyhouse.adminapi.banner.application.port.in.BannerCommandUseCase;
-import com.tastyhouse.adminapi.banner.application.port.in.BannerCreateCommand;
-import com.tastyhouse.adminapi.banner.application.port.in.BannerDeleteCommand;
-import com.tastyhouse.adminapi.banner.application.port.in.BannerUpdateCommand;
-import com.tastyhouse.adminapi.banner.application.port.in.BannerQueryUseCase;
+import com.tastyhouse.adminapplication.banner.response.BannerDetailResponse;
+import com.tastyhouse.adminapplication.banner.response.BannerListItemResponse;
+import com.tastyhouse.adminapplication.banner.port.in.BannerCommandUseCase;
+import com.tastyhouse.adminapplication.banner.port.in.BannerCreateCommand;
+import com.tastyhouse.adminapplication.banner.port.in.BannerDeleteCommand;
+import com.tastyhouse.adminapplication.banner.port.in.BannerUpdateCommand;
+import com.tastyhouse.adminapplication.banner.port.in.BannerQueryUseCase;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController

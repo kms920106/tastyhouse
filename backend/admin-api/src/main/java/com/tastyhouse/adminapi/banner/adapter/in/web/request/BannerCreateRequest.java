@@ -2,7 +2,7 @@ package com.tastyhouse.adminapi.banner.adapter.in.web.request;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.adminapi.banner.application.port.in.BannerCreateCommand;
+import com.tastyhouse.adminapplication.banner.port.in.BannerCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

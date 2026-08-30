@@ -19,17 +19,17 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductApprovalRejectRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductApprovalSearchRequest;
-import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImageChangeRequestItemResponse;
-import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductRepresentativeRequestItemResponse;
-import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarianRequestItemResponse;
-import com.tastyhouse.adminapi.product.application.port.in.ProductApprovalCommandUseCase;
-import com.tastyhouse.adminapi.product.application.port.in.ProductImageChangeApproveCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductImageChangeRejectCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductRepresentativeApproveCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductRepresentativeRejectCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductVegetarianApproveCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductVegetarianRejectCommand;
-import com.tastyhouse.adminapi.product.application.port.in.ProductApprovalQueryUseCase;
+import com.tastyhouse.adminapplication.product.response.ProductImageChangeRequestItemResponse;
+import com.tastyhouse.adminapplication.product.response.ProductRepresentativeRequestItemResponse;
+import com.tastyhouse.adminapplication.product.response.ProductVegetarianRequestItemResponse;
+import com.tastyhouse.adminapplication.product.port.in.ProductApprovalCommandUseCase;
+import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeApproveCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeRejectCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductRepresentativeApproveCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductRepresentativeRejectCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductVegetarianApproveCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductVegetarianRejectCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductApprovalQueryUseCase;
 
 /**
  * 메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API.

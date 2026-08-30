@@ -23,15 +23,15 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponCreateRequest
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponIssueRequest;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponSearchRequest;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponUpdateRequest;
-import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponDetailResponse;
-import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponListItemResponse;
-import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemResponse;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponCommandUseCase;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponCreateCommand;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponDeleteCommand;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponIssueCommand;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponUpdateCommand;
-import com.tastyhouse.adminapi.coupon.application.port.in.CouponQueryUseCase;
+import com.tastyhouse.adminapplication.coupon.response.CouponDetailResponse;
+import com.tastyhouse.adminapplication.coupon.response.CouponListItemResponse;
+import com.tastyhouse.adminapplication.coupon.response.MemberCouponItemResponse;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponCommandUseCase;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponCreateCommand;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponDeleteCommand;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponIssueCommand;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponUpdateCommand;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponQueryUseCase;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController

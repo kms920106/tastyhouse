@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopDeliveryAreaAdjustmentCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
 
 import java.util.List;
 
@@ -24,9 +24,9 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentStatusChangeRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentDetailResponse;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentDetailResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentListItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
 
 @Tag(name = "Shop Delivery Area Adjustment Admin", description = "프랜차이즈 배달지역 조정 신청 검수 관리자 API")
 @RestController

@@ -1,12 +1,12 @@
 package com.tastyhouse.adminapi.review.adapter.in.web;
 
-import com.tastyhouse.adminapi.review.application.port.in.ReviewCommandUseCase;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewCommentDeleteCommand;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewCommentHiddenChangeCommand;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewDeleteCommand;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewHiddenChangeCommand;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewReplyDeleteCommand;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewReplyHiddenChangeCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewCommandUseCase;
+import com.tastyhouse.adminapplication.review.port.in.ReviewCommentDeleteCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewCommentHiddenChangeCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewDeleteCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewHiddenChangeCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewReplyDeleteCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewReplyHiddenChangeCommand;
 
 import java.util.List;
 
@@ -28,10 +28,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewHiddenUpdateRequest;
 import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewSearchRequest;
-import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewCommentListItemResponse;
-import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewListItemResponse;
-import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDetailResponse;
-import com.tastyhouse.adminapi.review.application.port.in.ReviewQueryUseCase;
+import com.tastyhouse.adminapplication.review.response.ReviewCommentListItemResponse;
+import com.tastyhouse.adminapplication.review.response.ReviewListItemResponse;
+import com.tastyhouse.adminapplication.review.response.ReviewManagementDetailResponse;
+import com.tastyhouse.adminapplication.review.port.in.ReviewQueryUseCase;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
 @RestController

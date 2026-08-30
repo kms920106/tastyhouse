@@ -20,12 +20,12 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.request.OrderSearchRequest;
 import com.tastyhouse.adminapi.order.adapter.in.web.request.OrderStatusUpdateRequest;
-import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderDetailResponse;
-import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemResponse;
-import com.tastyhouse.adminapi.order.application.port.in.OrderCommandUseCase;
-import com.tastyhouse.adminapi.order.application.port.in.OrderDeleteCommand;
-import com.tastyhouse.adminapi.order.application.port.in.OrderStatusChangeCommand;
-import com.tastyhouse.adminapi.order.application.port.in.OrderQueryUseCase;
+import com.tastyhouse.adminapplication.order.response.OrderDetailResponse;
+import com.tastyhouse.adminapplication.order.response.OrderListItemResponse;
+import com.tastyhouse.adminapplication.order.port.in.OrderCommandUseCase;
+import com.tastyhouse.adminapplication.order.port.in.OrderDeleteCommand;
+import com.tastyhouse.adminapplication.order.port.in.OrderStatusChangeCommand;
+import com.tastyhouse.adminapplication.order.port.in.OrderQueryUseCase;
 
 @Tag(name = "Order Admin", description = "주문 관리자 API")
 @RestController

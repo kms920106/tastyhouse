@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.bug.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.bug.application.port.in.BugReportStatusChangeCommand;
+import com.tastyhouse.adminapplication.bug.port.in.BugReportStatusChangeCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

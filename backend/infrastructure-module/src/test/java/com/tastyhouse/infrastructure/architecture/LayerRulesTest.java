@@ -53,13 +53,14 @@ class LayerRulesTest {
                 "com.tastyhouse.adminapi..",
                 "com.tastyhouse.ceoapi..",
                 "com.tastyhouse.batch..",
-                // 챕터 01~02로 신설된 application 계층 모듈. 03~04에서 adminapplication/
-                // ceoapplication이 같은 자리에 추가된다.
+                // 챕터 01~03으로 신설된 application 계층 모듈. 04에서 ceoapplication이
+                // 같은 자리에 추가된다.
                 // 주의: "com.tastyhouse.*application.."처럼 뭉뚱그리면 application-common-module의
                 // com.tastyhouse.application..(읽기 계약 — infra가 이 포트를 정당하게 구현한다)까지
                 // 걸린다. 그래서 모듈별 패키지를 정확히 나열한다.
                 "com.tastyhouse.batchapplication..",
-                "com.tastyhouse.webapplication.."
+                "com.tastyhouse.webapplication..",
+                "com.tastyhouse.adminapplication.."
             )
             .because("의존 방향은 api → infrastructure → domain 한 방향이다");
 

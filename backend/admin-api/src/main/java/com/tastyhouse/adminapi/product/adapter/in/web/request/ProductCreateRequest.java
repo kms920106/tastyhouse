@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.product.application.port.in.ProductCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductCreateCommand;
 
 import java.math.BigDecimal;
 

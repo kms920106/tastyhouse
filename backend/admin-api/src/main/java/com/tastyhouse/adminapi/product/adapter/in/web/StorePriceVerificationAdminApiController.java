@@ -19,13 +19,13 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.StorePriceVerificationRejectRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.StorePriceVerificationSearchRequest;
-import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationDetailResponse;
-import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationListItemResponse;
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationApproveCommand;
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationCommandUseCase;
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationRejectCommand;
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationStartReviewCommand;
-import com.tastyhouse.adminapi.product.application.port.in.StorePriceVerificationQueryUseCase;
+import com.tastyhouse.adminapplication.product.response.StorePriceVerificationDetailResponse;
+import com.tastyhouse.adminapplication.product.response.StorePriceVerificationListItemResponse;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationApproveCommand;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationCommandUseCase;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationRejectCommand;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationStartReviewCommand;
+import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationQueryUseCase;
 
 /**
  * 매장 가격 인증 요청 검수 관리자 API.

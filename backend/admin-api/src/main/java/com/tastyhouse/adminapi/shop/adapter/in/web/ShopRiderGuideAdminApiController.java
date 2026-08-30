@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderPickupLocationUpdateCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderVisitGuideDeleteCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderVisitGuideRevisionCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideRevisionCommand;
 
 import java.util.List;
 
@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapi.config.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderGuideSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideDeleteRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideRevisionRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRiderGuideQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideDetailResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideListItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideQueryUseCase;
 
 @Tag(name = "Shop Rider Guide Admin", description = "라이더 가게방문 안내 검수 관리자 API")
 @RestController

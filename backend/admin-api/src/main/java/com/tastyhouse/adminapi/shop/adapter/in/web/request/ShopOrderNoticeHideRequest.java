@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopOrderNoticeHideCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeHideCommand;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

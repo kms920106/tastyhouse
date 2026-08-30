@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeApproveCommand;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeCommandUseCase;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeRejectCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeApproveCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeRejectCommand;
 
 import java.util.List;
 
@@ -23,8 +23,8 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRequestSearchRequest;
-import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
-import com.tastyhouse.adminapi.shop.application.port.in.ShopImageChangeQueryUseCase;
+import com.tastyhouse.adminapplication.shop.response.ShopImageChangeRequestItemResponse;
+import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeQueryUseCase;
 
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController

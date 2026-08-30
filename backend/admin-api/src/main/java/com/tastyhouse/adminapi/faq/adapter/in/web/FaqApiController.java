@@ -24,18 +24,18 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqCategoryUpdateReque
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqCreateRequest;
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqSearchRequest;
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqUpdateRequest;
-import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqCategoryResponse;
-import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqDetailResponse;
-import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCategoryCommandUseCase;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCategoryCreateCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCategoryDeleteCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCategoryUpdateCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCommandUseCase;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqCreateCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqDeleteCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqUpdateCommand;
-import com.tastyhouse.adminapi.faq.application.port.in.FaqQueryUseCase;
+import com.tastyhouse.adminapplication.faq.response.FaqCategoryResponse;
+import com.tastyhouse.adminapplication.faq.response.FaqDetailResponse;
+import com.tastyhouse.adminapplication.faq.response.FaqListItemResponse;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryCommandUseCase;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryCreateCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryDeleteCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryUpdateCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCommandUseCase;
+import com.tastyhouse.adminapplication.faq.port.in.FaqCreateCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqDeleteCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqUpdateCommand;
+import com.tastyhouse.adminapplication.faq.port.in.FaqQueryUseCase;
 
 @Tag(name = "FAQ Admin", description = "FAQ 관리자 API")
 @RestController

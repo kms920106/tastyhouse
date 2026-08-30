@@ -20,13 +20,13 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.member.adapter.in.web.request.MemberSearchRequest;
 import com.tastyhouse.adminapi.member.adapter.in.web.request.MemberWithdrawRequest;
-import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberDetailResponse;
-import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResponse;
-import com.tastyhouse.adminapi.member.application.port.in.MemberActivateCommand;
-import com.tastyhouse.adminapi.member.application.port.in.MemberCommandUseCase;
-import com.tastyhouse.adminapi.member.application.port.in.MemberSuspendCommand;
-import com.tastyhouse.adminapi.member.application.port.in.MemberWithdrawCommand;
-import com.tastyhouse.adminapi.member.application.port.in.MemberQueryUseCase;
+import com.tastyhouse.adminapplication.member.response.MemberDetailResponse;
+import com.tastyhouse.adminapplication.member.response.MemberListItemResponse;
+import com.tastyhouse.adminapplication.member.port.in.MemberActivateCommand;
+import com.tastyhouse.adminapplication.member.port.in.MemberCommandUseCase;
+import com.tastyhouse.adminapplication.member.port.in.MemberSuspendCommand;
+import com.tastyhouse.adminapplication.member.port.in.MemberWithdrawCommand;
+import com.tastyhouse.adminapplication.member.port.in.MemberQueryUseCase;
 
 @Tag(name = "Member Admin", description = "회원 관리자 API")
 @RestController

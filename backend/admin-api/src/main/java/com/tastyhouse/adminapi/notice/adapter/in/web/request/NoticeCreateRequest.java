@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.notice.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.notice.application.port.in.NoticeCreateCommand;
+import com.tastyhouse.adminapplication.notice.port.in.NoticeCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

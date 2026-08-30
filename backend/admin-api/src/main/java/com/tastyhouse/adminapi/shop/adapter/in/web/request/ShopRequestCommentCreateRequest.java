@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.shop.application.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

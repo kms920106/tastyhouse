@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.event.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.event.application.port.in.EventUpdateCommand;
+import com.tastyhouse.adminapplication.event.port.in.EventUpdateCommand;
 
 import java.time.LocalDateTime;
 

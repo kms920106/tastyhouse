@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.partnership.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.partnership.application.port.in.PartnershipStatusChangeCommand;
+import com.tastyhouse.adminapplication.partnership.port.in.PartnershipStatusChangeCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

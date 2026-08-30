@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.rank.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.rank.application.port.in.RankPrizeUpdateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPrizeUpdateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

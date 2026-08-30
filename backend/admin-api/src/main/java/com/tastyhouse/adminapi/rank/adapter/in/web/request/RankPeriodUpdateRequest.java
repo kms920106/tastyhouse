@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.rank.adapter.in.web.request;
 
-import com.tastyhouse.adminapi.rank.application.port.in.RankPeriodUpdateCommand;
+import com.tastyhouse.adminapplication.rank.port.in.RankPeriodUpdateCommand;
 
 import java.time.LocalDateTime;
 
