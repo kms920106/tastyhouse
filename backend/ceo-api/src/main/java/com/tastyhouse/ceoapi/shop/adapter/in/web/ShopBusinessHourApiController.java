@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;

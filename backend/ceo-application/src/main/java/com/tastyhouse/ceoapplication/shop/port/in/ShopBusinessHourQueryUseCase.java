@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
 
 /**
  * 가게 영업시간 조회 인바운드 포트.

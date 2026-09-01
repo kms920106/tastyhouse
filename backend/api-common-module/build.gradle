@@ -4,14 +4,15 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈 — PaginationResponse가 PageResult<T>를, FileService가 FileUploadService를 사용한다.
+    // 내부 모듈 — PaginationResponse가 PageResult<T>를 사용한다.
     // 이 모듈의 공개 시그니처(PaginationResponse.from)에 domain 타입이 노출되므로 api로 둔다.
+    // domain.exception(BusinessException·ErrorCode)도 이 노출을 타고 api 3모듈의 공용 에러 계약이 된다.
     api project(':domain-module')
     // infrastructure:redis에 의존하지 않는다 — 챕터 02에서 rate limit의 표현 관심사
     // (@RateLimit·RateLimitAspect·RateLimitException·RateLimitCounterPort)를 이 모듈로 올리고
     // Redis 카운터만 인프라에 남겨 포트로 역전했다. 이제 방향은 redis → api-common이다.
 
-    // Spring Boot Starter — @RestControllerAdvice·MultipartFile 사용.
+    // Spring Boot Starter — @RestControllerAdvice 사용.
     // 소비 모듈(admin-api/ceo-api/web-api)도 각자 선언하지만 중복은 무해하다.
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-validation'
@@ -26,12 +27,6 @@ dependencies {
     // 그 노출이 implementation으로 좁아지면 이 선언을 api로 승격해야 한다 — 그때 앱은 계속
     // 컴파일되지만 aspect가 프록시되지 않아 @RateLimit이 조용히 무시되므로, 이 결합을 여기 남긴다.
     implementation 'org.springframework.boot:spring-boot-starter-aop'
-
-    // FileService의 @Transactional 때문에 필요하다. 다른 api 모듈은 infrastructure:persistence이
-    // api로 노출하는 spring-boot-starter-data-jpa를 통해 spring-tx를 전이로 받지만, 이 모듈은
-    // infrastructure:persistence에 의존하지 않으므로(DB 어댑터가 필요 없다) spring-tx만 직접 선언한다.
-    // data-jpa 전체를 끌어오면 쓰지도 않는 JPA·HikariCP가 클래스패스에 올라온다.
-    implementation 'org.springframework:spring-tx'
 
     // Swagger — 공용 응답 record가 @Schema를 갖는다.
     api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"

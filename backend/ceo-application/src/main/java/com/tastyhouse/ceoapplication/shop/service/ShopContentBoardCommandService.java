@@ -17,7 +17,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardDeleteCommand;
@@ -50,20 +50,20 @@ public class ShopContentBoardCommandService implements ShopContentBoardCommandUs
     private final ShopContentBoardRepository shopContentBoardRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardCommandService(
         ShopContentBoardRepository shopContentBoardRepository,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
-        FileService fileService,
+        FileUploadCommandService fileUploadCommandService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopContentBoardRepository = shopContentBoardRepository;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -193,6 +193,6 @@ public class ShopContentBoardCommandService implements ShopContentBoardCommandUs
             return null;
         }
         shopImageSpecValidator.validateContentImage(file, contentType == ShopContentType.GIF);
-        return UploadedFileId.of(fileService.upload(file));
+        return UploadedFileId.of(fileUploadCommandService.upload(file));
     }
 }

@@ -22,7 +22,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeDeleteCommand;
@@ -59,7 +59,7 @@ public class ShopNoticeCommandService implements ShopNoticeCommandUseCase {
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final ProhibitedWordValidator prohibitedWordValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeCommandService(
@@ -69,7 +69,7 @@ public class ShopNoticeCommandService implements ShopNoticeCommandUseCase {
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
         ProhibitedWordValidator prohibitedWordValidator,
-        FileService fileService,
+        FileUploadCommandService fileUploadCommandService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopNoticeRepository = shopNoticeRepository;
@@ -78,7 +78,7 @@ public class ShopNoticeCommandService implements ShopNoticeCommandUseCase {
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
         this.prohibitedWordValidator = prohibitedWordValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -247,7 +247,7 @@ public class ShopNoticeCommandService implements ShopNoticeCommandUseCase {
         List<ShopNoticeImage> noticeImages = new ArrayList<>(images.size());
         for (int sortOrder = 0; sortOrder < images.size(); sortOrder++) {
             MultipartFile file = images.get(sortOrder);
-            noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileService.upload(file)), sortOrder));
+            noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileUploadCommandService.upload(file)), sortOrder));
         }
         shopNoticeImageRepository.saveAll(noticeImages);
     }

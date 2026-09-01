@@ -11,7 +11,7 @@ import org.springframework.http.ProblemDetail;
  * 조립 자체에는 없으므로 이 유틸 하나로 통합한다.
  *
  * <p>{@code @Component}가 아닌 static 유틸이므로 컴포넌트 스캔 범위와 무관하다
- * (web-api는 {@code com.tastyhouse.apicommon.file}만 스캔해 이 패키지의 핸들러 빈을 등록하지 않는다).
+ * (web-api는 이 패키지를 스캔하지 않아 여기의 핸들러 빈을 등록하지 않는다).
  */
 public final class ProblemDetails {
 

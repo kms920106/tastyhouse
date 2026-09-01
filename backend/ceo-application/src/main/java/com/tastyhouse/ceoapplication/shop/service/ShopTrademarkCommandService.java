@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopThumbnailChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkCommandUseCase;
@@ -27,18 +27,18 @@ public class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase 
     private final ShopImageApprovalService shopImageApprovalService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
 
     public ShopTrademarkCommandService(
         ShopImageApprovalService shopImageApprovalService,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
-        FileService fileService
+        FileUploadCommandService fileUploadCommandService
     ) {
         this.shopImageApprovalService = shopImageApprovalService;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopImageSpecValidator.validateTrademark(file);
 
-        Long imageFileId = fileService.upload(file);
+        Long imageFileId = fileUploadCommandService.upload(file);
         return shopImageApprovalService.requestImageChange(
             shopId, ShopImageType.TRADEMARK, imageFileId, ShopChangeActor.ceo(ceoId)
         );
@@ -63,7 +63,7 @@ public class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopImageSpecValidator.validateContentImage(file, false);
 
-        Long imageFileId = fileService.upload(file);
+        Long imageFileId = fileUploadCommandService.upload(file);
         return shopImageApprovalService.requestImageChange(
             shopId, ShopImageType.THUMBNAIL, imageFileId, ShopChangeActor.ceo(ceoId)
         );

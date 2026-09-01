@@ -2,7 +2,7 @@ package com.tastyhouse.adminapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopHygieneBadgeResponse;
 
 /**
  * 가게 위생 배지 조회 인바운드 포트.

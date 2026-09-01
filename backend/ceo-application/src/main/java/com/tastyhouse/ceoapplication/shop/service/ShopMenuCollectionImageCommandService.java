@@ -10,7 +10,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.service.ShopMenuCollectionImageService;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageDeleteCommand;
@@ -39,18 +39,18 @@ public class ShopMenuCollectionImageCommandService implements ShopMenuCollection
     private final ShopMenuCollectionImageService shopMenuCollectionImageService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopMenuCollectionImageSpecValidator shopMenuCollectionImageSpecValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
 
     public ShopMenuCollectionImageCommandService(
         ShopMenuCollectionImageService shopMenuCollectionImageService,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopMenuCollectionImageSpecValidator shopMenuCollectionImageSpecValidator,
-        FileService fileService
+        FileUploadCommandService fileUploadCommandService
     ) {
         this.shopMenuCollectionImageService = shopMenuCollectionImageService;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopMenuCollectionImageSpecValidator = shopMenuCollectionImageSpecValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
     }
 
     /**
@@ -66,7 +66,7 @@ public class ShopMenuCollectionImageCommandService implements ShopMenuCollection
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopMenuCollectionImageSpecValidator.validate(file);
 
-        Long imageFileId = fileService.upload(file);
+        Long imageFileId = fileUploadCommandService.upload(file);
         ShopId id = ShopId.of(shopId);
         return shopMenuCollectionImageService.register(id, UploadedFileId.of(imageFileId));
     }

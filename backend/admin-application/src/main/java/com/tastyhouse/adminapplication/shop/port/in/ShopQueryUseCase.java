@@ -18,8 +18,8 @@ import com.tastyhouse.adminapplication.shop.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.adminapplication.shop.response.StationResponse;
 import com.tastyhouse.adminapplication.shop.response.TagResponse;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopBusinessHourResponse;
 
 /**
  * 가게 조회 인바운드 포트.

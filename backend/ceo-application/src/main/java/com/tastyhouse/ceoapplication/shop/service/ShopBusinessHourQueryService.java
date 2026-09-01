@@ -9,8 +9,8 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
 
 /**
  * 점주용 영업시간·휴게시간 조회 서비스(CQRS query 측).
@@ -69,4 +69,5 @@ public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCas
             breakTime.endTime()
         );
     }
+
 }

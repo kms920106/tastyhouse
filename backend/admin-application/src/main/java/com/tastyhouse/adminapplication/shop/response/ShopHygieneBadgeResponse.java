@@ -1,9 +1,14 @@
-package com.tastyhouse.apicommon.shop.response;
+package com.tastyhouse.adminapplication.shop.response;
 
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * 가게 위생 인증 뱃지 응답.
+ *
+ * <p>{@link ShopBusinessHourResponse}와 같은 이유로 이 모듈이 소유한다.
+ */
 @Schema(description = "가게 위생 인증 뱃지 응답")
 public record ShopHygieneBadgeResponse(
     @Schema(description = "위생 인증 뱃지 ID", example = "1")

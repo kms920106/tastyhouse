@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.adminapplication.file.port.in.FileUploadCommandUseCase;
 
 @Tag(name = "File Admin", description = "파일 업로드 관리자 API")
 @RestController
 @RequestMapping("/api/files")
 public class FileApiController {
 
-    private final FileService fileService;
+    private final FileUploadCommandUseCase fileUploadCommandUseCase;
 
-    public FileApiController(FileService fileService) {
-        this.fileService = fileService;
+    public FileApiController(FileUploadCommandUseCase fileUploadCommandUseCase) {
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
     }
 
     @Operation(summary = "이미지 파일 업로드", description = "이미지 파일을 업로드합니다. (jpg, png, gif, webp / 최대 10MB)")
@@ -31,7 +31,7 @@ public class FileApiController {
         @Parameter(description = "업로드할 이미지 파일", required = true)
         @RequestParam("file") MultipartFile file
     ) {
-        Long fileId = fileService.upload(file);
+        Long fileId = fileUploadCommandUseCase.upload(file);
         return ResponseEntity.ok(ApiResponse.success(fileId));
     }
 }

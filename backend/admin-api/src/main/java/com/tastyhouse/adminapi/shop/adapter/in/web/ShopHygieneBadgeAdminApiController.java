@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopHygieneBadgeCreateRequest;
-import com.tastyhouse.apicommon.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopHygieneBadgeResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeQueryUseCase;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")

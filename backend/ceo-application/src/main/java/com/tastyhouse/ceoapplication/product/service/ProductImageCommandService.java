@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageChangeRequestCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageDeleteCommand;
@@ -43,7 +43,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
     private final ProductImageRepository productImageRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductImageSpecValidator productImageSpecValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
 
     public ProductImageCommandService(
         ProductImageApprovalService productImageApprovalService,
@@ -51,14 +51,14 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
         ProductImageRepository productImageRepository,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductImageSpecValidator productImageSpecValidator,
-        FileService fileService
+        FileUploadCommandService fileUploadCommandService
     ) {
         this.productImageApprovalService = productImageApprovalService;
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productImageSpecValidator = productImageSpecValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
     }
 
     /**
@@ -75,7 +75,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
         requireOwnedProduct(ceoId, shopId, productId);
         productImageSpecValidator.validate(file);
 
-        Long imageFileId = fileService.upload(file);
+        Long imageFileId = fileUploadCommandService.upload(file);
         return productImageApprovalService.requestImageChange(
             ProductId.of(productId), UploadedFileId.of(imageFileId)
         );

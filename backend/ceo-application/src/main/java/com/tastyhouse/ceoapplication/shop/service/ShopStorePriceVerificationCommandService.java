@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.apicommon.file.FileService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,7 +59,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
     private final ObjectMapper objectMapper;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final StorePriceListImageSpecValidator storePriceListImageSpecValidator;
-    private final FileService fileService;
+    private final FileUploadCommandService fileUploadCommandService;
 
     public ShopStorePriceVerificationCommandService(
         ObjectMapper objectMapper,
@@ -67,14 +67,14 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
         ShopRequestIndexRecorder shopRequestIndexRecorder,
         ShopOwnershipValidator shopOwnershipValidator,
         StorePriceListImageSpecValidator storePriceListImageSpecValidator,
-        FileService fileService
+        FileUploadCommandService fileUploadCommandService
     ) {
         this.objectMapper = objectMapper;
         this.storePriceVerificationService = storePriceVerificationService;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.storePriceListImageSpecValidator = storePriceListImageSpecValidator;
-        this.fileService = fileService;
+        this.fileUploadCommandService = fileUploadCommandService;
     }
 
     /**
@@ -95,7 +95,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
         List<StorePriceVerificationItemSpec> specs = toItemSpecs(command.items());
         storePriceListImageSpecValidator.validate(file);
 
-        Long priceListFileId = fileService.upload(file);
+        Long priceListFileId = fileUploadCommandService.upload(file);
 
         ShopId targetShopId = ShopId.of(shopId);
         UploadedFileId targetPriceListFileId = UploadedFileId.of(priceListFileId);

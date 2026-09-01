@@ -28,11 +28,11 @@ import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopBreakTimeResponse;
+import com.tastyhouse.adminapplication.shop.response.ShopBusinessHourResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopAmenityCategoryResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopAmenityResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopBannerImageItemResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.apicommon.shop.response.ShopBusinessHourResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopChoiceDetailResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopChoiceListItemResponse;
 import com.tastyhouse.adminapplication.shop.response.ShopClosedDayResponse;
@@ -156,6 +156,7 @@ public class ShopQueryService implements ShopQueryUseCase {
         );
     }
 
+
     @Override
     public List<ShopBreakTimeResponse> getBreakTimes(Long id) {
         return shopBasicInfoQueryPort.findBreakTimes(id).stream()
@@ -172,6 +173,7 @@ public class ShopQueryService implements ShopQueryUseCase {
             breakTime.endTime()
         );
     }
+
 
     @Override
     public List<ShopClosedDayResponse> getClosedDays(Long id) {
