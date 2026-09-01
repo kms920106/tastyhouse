@@ -7,7 +7,10 @@ dependencies {
     // 공유 모듈이 web/aop/security/jackson을 api로 노출 → 소비 모듈(admin-api)이 aop를 별도 추가할 필요가 없다.
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-aop'
-    api 'org.springframework.boot:spring-boot-starter-security'
+    // 실사용은 ApiLoggingAspect의 private 메서드가 쓰는 SecurityContextHolder·Authentication(core)뿐이고
+    // 공개 시그니처에 security 타입 노출이 없으므로 api가 아닌 implementation으로, starter 전체가 아닌
+    // core만 선언한다. 소비 모듈에 필요한 starter-security는 security-module이 api로 노출한다.
+    implementation 'org.springframework.security:spring-security-core'
 
     // p6spy SQL 로깅 — 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 api로 노출.
     // SQL 로그 포맷은 application-logging.yml의 decorator.datasource.p6spy.log-format이 소유.

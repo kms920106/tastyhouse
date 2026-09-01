@@ -1,6 +1,8 @@
 dependencies {
     // 내부 모듈
-    implementation project(':domain-module')
+    // domain-module은 선언하지 않는다 — 이 모듈 소스에 com.tastyhouse.domain.. 참조가 0건이다.
+    // 도메인 타입이 다시 필요해지면 batch-application이 api가 아닌 implementation으로 물고 있으므로
+    // 전이되지 않는다. 그때 여기에 다시 선언한다.
     // 챕터 01: application 계층이 batch-application으로 분리됐다. 스케줄러(driving adapter)가
     // 잡 UseCase 인바운드 포트를 주입받고, BatchApplication이 BatchApplicationConfig를 @Import 한다.
     implementation project(':batch-application')

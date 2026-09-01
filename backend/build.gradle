@@ -6,8 +6,11 @@ plugins {
 
 // domain-module은 org.springframework.boot 플러그인을 적용하지 않으므로 BOM이 자동 적용되지 않는다.
 // 아래 project(':domain-module') 블록이 이 버전으로 BOM을 직접 import 한다(위 플러그인 버전과 일치시킬 것).
+// springdoc 좌표는 Spring Boot BOM이 관리하지 않으므로 버전을 여기서 단일 관리한다.
+// (web/admin/ceo-api·api-common-module 4곳이 같은 버전을 참조)
 ext {
     springBootVersion = '3.2.4'
+    springdocVersion = '2.3.0'
 }
 
 allprojects {

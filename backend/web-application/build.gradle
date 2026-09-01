@@ -12,10 +12,11 @@ dependencies {
     // Response record·PaginationResponse 등 표현 계약(QueryService가 조립).
     implementation project(':api-common-module')
 
-    // Spring Boot Starter
-    // MultipartFile(업로드 경계 파라미터)·@Transactional 등 최소 의존.
-    // starter-web은 MultipartFile 타입 때문에 필요하며, 서블릿 결합은 ArchUnit이 막는다.
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot Starter — @Transactional 하나뿐이라 spring-tx만 선언한다.
+    // starter-web은 선언하지 않는다: org.springframework.web..·MultipartFile·jakarta.servlet 참조가
+    // 모두 0건이다(이전 주석의 "MultipartFile 때문에 필요"는 스테일이었다).
+    // Response record가 쓰는 Jackson 어노테이션은 api-common-module이 api로 노출하는
+    // starter-web에서 전이로 충족된다.
     implementation 'org.springframework:spring-tx'
 
     // Test

@@ -23,17 +23,17 @@ dependencies {
     implementation project(':infrastructure:redis')
     implementation project(':api-common-module')
 
-    // Spring Boot Starter
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
-
-    // 외부 라이브러리
-    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    // Spring Boot Starter는 직접 선언하지 않는다 — 공유 모듈이 api로 전이 노출한다.
+    //   starter-web · starter-validation · springdoc → api-common-module
+    //   starter-security                            → security-module
+    //   starter-aop                                 → logging-module
+    // "직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 주석으로 문서화된
+    // 의도된 계약이므로 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을
+    // 걷어내면 여기서 즉시 컴파일 에러로 드러나므로 침묵 파손은 없다.
+    //
+    // jjwt 3종(api/impl/jackson)도 선언하지 않는다 — 이 모듈에 io.jsonwebtoken 참조가 0건이고,
+    // security-module이 jjwt-api를 api로 노출하며 impl/jackson은 그 모듈의 runtimeOnly가
+    // 앱 runtimeClasspath로 전이되어 런타임 서명/파싱이 그대로 동작한다.
 
 
     // Test

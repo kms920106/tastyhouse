@@ -15,7 +15,9 @@ dependencies {
     // 소비 모듈(admin-api/ceo-api/web-api)도 각자 선언하지만 중복은 무해하다.
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // GlobalExceptionHandler가 다루는 것은 core 예외 5종(AccessDenied/BadCredentials/
+    // Disabled/Locked/Authentication)뿐이라 starter-security 전체 대신 core만 선언한다.
+    implementation 'org.springframework.security:spring-security-core'
 
     // FileService의 @Transactional 때문에 필요하다. 다른 api 모듈은 infrastructure:persistence이
     // api로 노출하는 spring-boot-starter-data-jpa를 통해 spring-tx를 전이로 받지만, 이 모듈은
@@ -24,7 +26,7 @@ dependencies {
     implementation 'org.springframework:spring-tx'
 
     // Swagger — 공용 응답 record가 @Schema를 갖는다.
-    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
 
     // Test

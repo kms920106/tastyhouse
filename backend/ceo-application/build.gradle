@@ -15,7 +15,9 @@ dependencies {
     // CeoUserDetailsService가 UserDetails 계약을 쓴다. 서블릿 결합은 ArchUnit이 막는다.
     implementation 'org.springframework.boot:spring-boot-starter-security'
     // 이미지 규격 검증기·콘텐츠보드 서비스가 MultipartFile을 업로드 경계 파라미터로 받는다.
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // 실사용이 MultipartFile 1종뿐이라 starter-web 전체 대신 spring-web만 선언한다.
+    // Jackson(ObjectMapper)은 api-common-module이 api로 노출하는 starter-web에서 전이된다.
+    implementation 'org.springframework:spring-web'
     implementation 'org.springframework:spring-tx'
 
     // Test
