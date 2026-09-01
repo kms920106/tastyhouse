@@ -6,6 +6,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -186,6 +188,66 @@ class LayerRulesTest {
             .that().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
             .should().resideInAPackage("..adapter.in.web..")
             .because("컨트롤러는 인바운드 어댑터 패키지에만 둔다(3층 구조)");
+
+        rule.check(classes);
+    }
+
+
+    /**
+     * <b>신설</b> — api 모듈은 도메인 모델을 알지 않는다(모듈 전역).
+     *
+     * <p>기존 {@code controllersShouldBeDomainFree}는 {@code *ApiController} 접미어,
+     * {@code requestRecordsShouldBeDomainAndInfraFree}는 {@code ..request..} 패키지로 대상을
+     * 좁히므로 {@code config..}·{@code security..}·{@code exception..}이 <b>무검사 사각지대</b>였다.
+     * 실제로 {@code AdminSeeder}가 부트스트랩에서 {@code domain.admin.model.AdminRole}을
+     * import하고 있었고 어느 규칙에도 걸리지 않았다 — 이 규칙이 그 지점을 봉인한다.
+     *
+     * <p><b>{@code domain.exception..}만 carve-out</b>한다. 근거는 새로 만드는 것이 아니라 Command
+     * record에 대해 이미 확립된 것과 동일하다(backend/CLAUDE.md) — 예외는 계층 칸이 없는 <b>횡단
+     * 관심사</b>이고, {@code api-common-module}이 {@code api project(':domain-module')}로 도메인
+     * 예외를 전 모듈의 공용 에러 계약으로 노출한다. carve-out이 없으면 web-api의
+     * {@code GlobalExceptionHandler}({@code BusinessException}·{@code ErrorCode} 사용)가 걸린다.
+     *
+     * <p>{@code domain.shared..}는 <b>일부러 carve-out에 넣지 않는다</b> — 현재 위반 0건이고,
+     * 미리 넓히면 규칙이 무뎌진다. 이 규칙이 {@code domain.shared.page.PageResult}에도 <b>실제로
+     * 걸리는 것을 실측 확인</b>했으나, 정당한 {@code PageResult} 소비자는 이 규칙의 대상이 아닌
+     * {@code api-common-module}의 {@code PaginationResponse}이고, 페이징 응답 조립은 api 모듈이
+     * 아니라 application 서비스의 책임이다(backend/CLAUDE.md). 즉 api 모듈 클래스가
+     * {@code PageResult}를 만지는 것은 이미 그 조립 규칙 위반이므로, 여기서 걸리는 것이 옳다.
+     *
+     * <p>anchor가 모듈 전체({@code noClasses()})라 클래스가 존재하는 한 <b>대상 0건이 될 수 없다</b>
+     * ({@code apiModuleMustNotContainApplicationLayer}·{@code shouldNotDependOnQuerydsl}과 같은 형태).
+     */
+    @Test
+    void apiModuleShouldBeDomainModelFree() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat(
+                resideInAPackage("com.tastyhouse.domain..")
+                    .and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+            )
+            .because("api 모듈은 도메인 모델을 알지 않는다(승격은 application 서비스 담당). "
+                + "공용 에러 계약 domain.exception..만 carve-out");
+
+        rule.check(classes);
+    }
+
+    /**
+     * <b>신설</b> — 부트스트랩({@code ..config..})도 UseCase 인터페이스만 주입한다.
+     *
+     * <p>{@code webAdaptersShouldNotDependOnApplicationServices}가 {@code ..adapter.in.web..}로
+     * 대상을 좁히므로 {@code config..}의 구체 서비스 주입은 무검사였다. 실제로 {@code AdminSeeder}가
+     * 인바운드 포트가 아니라 구체 클래스 {@code AdminQueryService}를 주입하고 있었고, 호출하던 연산
+     * ({@code existsByUsername})은 이미 포트에 선언돼 있어 신규 코드 없이 교체됐다.
+     *
+     * <p>시더가 없는 web-api와 {@code config..}가 없는 batch-module에는 대상 0건이라 두지 않는다
+     * (공허 통과 회피).
+     */
+    @Test
+    void seedersShouldDependOnUseCasesOnly() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("..config..")
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.adminapplication..service..")
+            .because("부트스트랩 시더도 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
 
         rule.check(classes);
     }

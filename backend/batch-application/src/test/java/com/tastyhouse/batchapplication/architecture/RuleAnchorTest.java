@@ -1,5 +1,6 @@
 package com.tastyhouse.batchapplication.architecture;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -81,9 +82,30 @@ class RuleAnchorTest {
     void readContractsExist() {
         assertThat(readContracts.stream()
             .filter(c -> resideInAPackage("..port.out..").test(c))
+            .filter(RuleAnchorTest::isOwnedByThisModule)
             .count())
             .as("batch 단독 읽기 계약이 0건이면 프레임워크-프리 규칙이 공허하게 통과한다")
             .isGreaterThanOrEqualTo(2);
+    }
+
+    /**
+     * 이 모듈이 <b>직접 소유</b>한 계약인지 판별한다.
+     *
+     * <p>이 필터가 없으면 anchor가 공허 통과를 못 막는다. {@code importPackages("com.tastyhouse.application")}은
+     * 테스트 런타임 클래스패스 전체를 훑으므로 <b>{@code domain-module}의 공유 계약 55개까지 함께 세어진다</b>
+     * — split package라 패키지만으로는 소유 모듈을 가릴 수 없기 때문이다. 그 55개가 하한을 떠받쳐 주면
+     * 정작 이 모듈의 계약이 전부 사라져도 anchor가 통과한다(batch는 하한 2 vs 실측 모집단 57로 특히 심했다).
+     *
+     * <p>판별 근거는 소스 위치다 — Gradle은 프로젝트 의존을 <b>jar</b>로 올리고 자기 모듈 산출물만
+     * {@code build/classes/java/main} <b>디렉터리</b>로 올리므로, jar에서 온 것을 걸러내면 자기 소유분만 남는다.
+     * 하한을 "자기 몫 + 55"로 올리는 방법도 있으나, 계약 하나가 {@code domain-module}로 승격될 때마다
+     * 숫자가 조용히 어긋나므로 택하지 않는다.
+     */
+    private static boolean isOwnedByThisModule(JavaClass contract) {
+        return contract.getSource()
+            .map(source -> source.getUri().toString())
+            .filter(uri -> !uri.contains(".jar"))
+            .isPresent();
     }
 
 }

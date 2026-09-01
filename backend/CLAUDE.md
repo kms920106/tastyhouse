@@ -917,7 +917,7 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 |---|---|---|
 | `{web,admin,ceo}-application/.../architecture/LayerRulesTest` | 각 12 | CQRS 서비스·Command record·`port/in` (api 모듈에서 **이동한 10종** + 신설 2종) |
 | `batch-application/.../architecture/LayerRulesTest` | 8 | `*SchedulerService`·잡 UseCase·response record |
-| `{web,admin,ceo}-api/.../architecture/LayerRulesTest` | web 11 / admin·ceo 각 10 | 컨트롤러·Request record (어댑터가 지킬 것만 **잔류**) |
+| `{web,admin,ceo}-api/.../architecture/LayerRulesTest` | web 12 / admin·ceo 각 12 | 컨트롤러·Request record + **모듈 전역 domain-free·부트스트랩 포트 주입** (어댑터가 지킬 것만 **잔류**) |
 | `batch-module/.../architecture/LayerRulesTest` | 2 | `@Scheduled` 트리거 |
 | `infrastructure/persistence/.../architecture/LayerRulesTest` | 5 | infra 계층 방향(아래 절) |
 | `domain-module/.../architecture/{DomainPurityTest,ContextBoundaryTest}` | — | 프레임워크 순수성 · 컨텍스트 수평 경계 |
@@ -930,6 +930,8 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 | `applicationMustBeServletFree` | `{앱}-application` 4곳 | 모듈 전체 ✗ `jakarta.servlet..`·`org.springframework.web..`. **batch만 `MultipartFile` carve-out 없이 완전 servlet-free**(HTTP 경계·업로드가 없어서) |
 | `applicationMustNotDependOnAdapters` | `{앱}-application` 4곳 | ✗ `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` (역참조 금지) |
 | `apiModuleMustNotContainApplicationLayer` | `{web,admin,ceo}-api` 3곳 | api 모듈에 `@Service` 빈 재등장 금지. 짝 규칙 `restControllersShouldResideInWebAdapterPackage`가 `@RestController` 위치를 `..adapter.in.web..`으로 고정 |
+| `apiModuleShouldBeDomainModelFree` | `{web,admin,ceo}-api` 3곳 | 모듈 전역 ✗ `com.tastyhouse.domain..` — **`domain.exception..`만 carve-out**(횡단 관심사이며 `api-common-module`이 `api` 스코프로 공용 노출). 기존 규칙들이 `*ApiController` 접미어·`..request..`로 좁혀 무검사였던 `config..`·`security..`·`exception..` 사각지대를 봉인한다. **batch-module에는 두지 않는다** — 컨트롤러·`config..`가 없고 클래스가 `@Scheduled` 트리거 7개 + 부트스트랩뿐이라 기존 `schedulersShouldDependOnUseCasesOnly`가 이미 포트 주입을 강제하며, 그 모듈은 "대상을 잃은 규칙은 공허 통과를 열지 말고 삭제한다"는 방침으로 규칙 4개를 이미 지운 곳이다 |
+| `seedersShouldDependOnUseCasesOnly` | `{admin,ceo}-api` 2곳 | `..config..`는 `{앱}application..service..` 구체 클래스 의존 금지. `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` 한정)의 사각지대 보완. 시더가 없는 web-api·`config..`가 없는 batch-module에는 두지 않는다(공허 통과 회피) |
 
 **`allowEmptyShould(true)`는 리포 전체에서 0건이며, 새로 도입하지 않는다.** `noClasses().that()...`은 대상이 0건이어도 조용히 통과하므로, 규칙이 대상을 잃으면 공허 통과를 여는 대신 **규칙을 지우거나 anchor를 고친다** — 이번 재편에서 batch-module 쪽 규칙 4개를 삭제한 것이 그 선례다(대상 클래스가 전부 `batch-application`으로 떠났다).
 
