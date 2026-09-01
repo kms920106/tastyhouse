@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBreakTimeResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
@@ -50,7 +50,9 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBusinessHourResponse> response = shopBusinessHourQueryService.getBusinessHours(userDetails.getCeoId(), id);
+        List<ShopBusinessHourResponse> response = shopBusinessHourQueryService.getBusinessHours(userDetails.getCeoId(), id).stream()
+            .map(ShopBusinessHourResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -95,7 +97,9 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBreakTimeResponse> response = shopBusinessHourQueryService.getBreakTimes(userDetails.getCeoId(), id);
+        List<ShopBreakTimeResponse> response = shopBusinessHourQueryService.getBreakTimes(userDetails.getCeoId(), id).stream()
+            .map(ShopBreakTimeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

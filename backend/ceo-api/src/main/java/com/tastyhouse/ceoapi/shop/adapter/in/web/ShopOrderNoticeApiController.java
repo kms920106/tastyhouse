@@ -16,7 +16,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOrderNoticeUpsertRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeUpsertCommand;
 
@@ -52,7 +52,9 @@ public class ShopOrderNoticeApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(userDetails.getCeoId(), id);
+        ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(userDetails.getCeoId(), id)
+            .map(ShopOrderNoticeResponse::from)
+            .orElseGet(ShopOrderNoticeResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

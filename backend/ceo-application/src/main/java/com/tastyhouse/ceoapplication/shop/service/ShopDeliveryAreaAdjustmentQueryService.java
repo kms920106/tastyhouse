@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaAdjustmentItemResponse;
 
 /**
  * 점주용 배달지역 조정 신청 이력 조회 서비스(CQRS query 측).
@@ -32,25 +31,10 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
     }
 
     @Override
-    public List<ShopDeliveryAreaAdjustmentItemResponse> getAdjustmentRequests(Long ceoId, Long shopId) {
+    public List<ShopDeliveryAreaAdjustmentListItemResult> getAdjustmentRequests(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopDeliveryAreaAdjustmentQueryPort.findAdjustmentRequests(shopId).stream()
-            .map(this::toShopDeliveryAreaAdjustmentItemResponse)
-            .toList();
+        return shopDeliveryAreaAdjustmentQueryPort.findAdjustmentRequests(shopId);
     }
 
-    private ShopDeliveryAreaAdjustmentItemResponse toShopDeliveryAreaAdjustmentItemResponse(ShopDeliveryAreaAdjustmentListItemResult dto) {
-        return ShopDeliveryAreaAdjustmentItemResponse.from(
-            dto.id(),
-            dto.counterpartShopName(),
-            dto.counterpartBusinessNumber(),
-            dto.franchiseName(),
-            dto.reason(),
-            dto.consentFileUrl(),
-            dto.status().name(),
-            dto.rejectReason(),
-            dto.createdAt()
-        );
-    }
 }

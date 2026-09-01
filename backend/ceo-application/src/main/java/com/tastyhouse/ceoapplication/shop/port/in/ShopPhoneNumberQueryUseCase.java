@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
+import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
+
 
 /**
  * 가게 전화번호 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
  */
 public interface ShopPhoneNumberQueryUseCase {
 
-    List<ShopPhoneNumberResponse> getPhoneNumbers(Long ceoId, Long shopId);
+    List<ShopPhoneNumberResult> getPhoneNumbers(Long ceoId, Long shopId);
 }

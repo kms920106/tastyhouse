@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductExposureRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductExposureResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductExposureClearCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductExposureReplaceCommand;
@@ -60,9 +60,7 @@ public class ProductExposureApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductExposureResponse response = productExposureQueryService.getExposure(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        ProductExposureResponse response = ProductExposureResponse.from(productExposureQueryService.getExposure( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

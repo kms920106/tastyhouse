@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductImageStatusResponse;
+import com.tastyhouse.application.product.port.out.ProductImageStatusResult;
 
 /**
  * 메뉴 이미지 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductImageStatusResponse
  */
 public interface ProductImageQueryUseCase {
 
-    ProductImageStatusResponse getImageStatus(Long ceoId, Long shopId, Long productId);
+    ProductImageStatusResult getImageStatus(Long ceoId, Long shopId, Long productId);
 }

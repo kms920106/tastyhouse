@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSearchRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDetailResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 
 @Tag(name = "Ceo Shop", description = "점주 가게 관리 API")
 @RestController
@@ -40,7 +42,7 @@ public class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopListItemResponse> response = shopQueryService.getMyShops(
+        PageResult<ShopListItemResult> pageResult = shopQueryService.getMyShops(
             userDetails.getCeoId(),
             request.name(),
             request.stationId(),
@@ -48,6 +50,8 @@ public class ShopApiController {
             pageRequest.page(),
             pageRequest.size()
         );
+        PaginationResponse<ShopListItemResponse> response =
+            PaginationResponse.from(pageResult.map(ShopListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             response.content(),
             response.page(),
@@ -62,7 +66,7 @@ public class ShopApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDetailResponse response = shopQueryService.getMyShop(userDetails.getCeoId(), id);
+        ShopDetailResponse response = ShopDetailResponse.from(shopQueryService.getMyShop(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

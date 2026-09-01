@@ -22,7 +22,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardUpdateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopContentBoardResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardDeleteCommand;
@@ -47,7 +47,9 @@ public class ShopContentBoardApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopContentBoardResponse> response = shopContentBoardQueryService.getContentBoards(userDetails.getCeoId(), id);
+        List<ShopContentBoardResponse> response = shopContentBoardQueryService.getContentBoards(userDetails.getCeoId(), id).stream()
+            .map(ShopContentBoardResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -25,9 +25,9 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOut
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductReleaseRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutUntilRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityGroupResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityGroupResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityGroupResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductHideCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductHideUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionHideCommand;
@@ -101,10 +101,9 @@ public class ProductAvailabilityApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
-        List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductAvailability(
-            userDetails.getCeoId(), request.shopId(), request.keyword(),
-            request.soldOutOnly(), request.hiddenOnly()
-        );
+        List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
+            .map(ProductAvailabilityGroupResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -116,11 +115,9 @@ public class ProductAvailabilityApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
-        List<ProductOptionAvailabilityGroupResponse> response =
-            productAvailabilityQueryService.getProductOptionAvailability(
-                userDetails.getCeoId(), request.shopId(), request.keyword(),
-                request.soldOutOnly(), request.hiddenOnly()
-            );
+        List<ProductOptionAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductOptionAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
+            .map(ProductOptionAvailabilityGroupResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -135,7 +132,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductSoldOutRequest request
     ) {
         ProductSoldOutCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productSoldOutUseCase.markProductsSoldOut(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productSoldOutUseCase.markProductsSoldOut(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -148,7 +145,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductHiddenRequest request
     ) {
         ProductHideCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productHideUseCase.hideProducts(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productHideUseCase.hideProducts(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -160,7 +157,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductReleaseRequest request
     ) {
         ProductReleaseCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productReleaseUseCase.releaseProducts(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productReleaseUseCase.releaseProducts(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -172,7 +169,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductSoldOutUntilRequest request
     ) {
         ProductSoldOutUntilChangeCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productSoldOutUntilChangeUseCase.changeProductsSoldOutUntil(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productSoldOutUntilChangeUseCase.changeProductsSoldOutUntil(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -186,7 +183,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductOptionSoldOutRequest request
     ) {
         ProductOptionSoldOutCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productOptionSoldOutUseCase.markOptionsSoldOut(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productOptionSoldOutUseCase.markOptionsSoldOut(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -198,7 +195,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductOptionHiddenRequest request
     ) {
         ProductOptionHideCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productOptionHideUseCase.hideOptions(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productOptionHideUseCase.hideOptions(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -209,7 +206,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductOptionReleaseRequest request
     ) {
         ProductOptionReleaseCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productOptionReleaseUseCase.releaseOptions(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productOptionReleaseUseCase.releaseOptions(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -220,7 +217,7 @@ public class ProductAvailabilityApiController {
         @Valid @RequestBody ProductOptionSoldOutUntilRequest request
     ) {
         ProductOptionSoldOutUntilChangeCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productOptionSoldOutUntilChangeUseCase.changeOptionsSoldOutUntil(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productOptionSoldOutUntilChangeUseCase.changeOptionsSoldOutUntil(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

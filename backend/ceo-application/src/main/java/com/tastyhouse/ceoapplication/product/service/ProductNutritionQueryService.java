@@ -6,14 +6,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAllergenTypeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.application.product.port.out.ProductAllergenTypeView;
+import com.tastyhouse.application.product.port.out.ProductNutritionViewResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.AllergenType;
-import com.tastyhouse.application.product.port.out.ProductNutritionResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
@@ -36,12 +35,12 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
     }
 
     @Override
-    public ProductNutritionResponse getNutrition(Long ceoId, Long shopId, Long productId) {
+    public ProductNutritionViewResult getNutrition(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateProductOwnedByShop(shopId, productId);
 
         return productOwnerQueryPort.findNutrition(productId)
-            .map(dto -> toProductNutritionResponse(dto, productOwnerQueryPort.findAllergenTypes(productId)))
+            .map(dto -> new ProductNutritionViewResult(dto, productOwnerQueryPort.findAllergenTypes(productId)))
             .orElse(null);
     }
 
@@ -49,9 +48,9 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
      * 알레르기 유발성분 코드 목록을 법령 열거 순서(enum 선언 순서)대로 돌려준다.
      */
     @Override
-    public List<ProductAllergenTypeResponse> getAllergenTypes() {
+    public List<ProductAllergenTypeView> getAllergenTypes() {
         return Arrays.stream(AllergenType.values())
-            .map(allergenType -> ProductAllergenTypeResponse.from(allergenType.name(), allergenType.getDescription()))
+            .map(allergenType -> new ProductAllergenTypeView(allergenType.name(), allergenType.getDescription()))
             .toList();
     }
 
@@ -69,24 +68,4 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
         }
     }
 
-    private ProductNutritionResponse toProductNutritionResponse(ProductNutritionResult dto, List<String> allergens) {
-        return ProductNutritionResponse.from(
-            dto.servingSize(),
-            dto.totalAmount(),
-            dto.flavor(),
-            dto.size(),
-            dto.calorie(),
-            dto.sugars(),
-            dto.protein(),
-            dto.saturatedFat(),
-            dto.natrium(),
-            dto.carbohydrate(),
-            dto.cholesterol(),
-            dto.fat(),
-            dto.transFat(),
-            dto.caffeine(),
-            dto.setMenu(),
-            allergens
-        );
-    }
 }

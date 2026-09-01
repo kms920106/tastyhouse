@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaItemResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaItemResponse;
 
 /**
  * 점주용 가게 배달가능지역 조회 서비스(CQRS query 측).
@@ -29,20 +28,10 @@ public class ShopDeliveryAreaQueryService implements ShopDeliveryAreaQueryUseCas
     }
 
     @Override
-    public List<ShopDeliveryAreaItemResponse> getDeliveryAreas(Long ceoId, Long shopId) {
+    public List<ShopDeliveryAreaItemResult> getDeliveryAreas(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopDeliveryAreaQueryPort.findDeliveryAreas(shopId).stream()
-            .map(this::toShopDeliveryAreaItemResponse)
-            .toList();
+        return shopDeliveryAreaQueryPort.findDeliveryAreas(shopId);
     }
 
-    private ShopDeliveryAreaItemResponse toShopDeliveryAreaItemResponse(ShopDeliveryAreaItemResult dto) {
-        return ShopDeliveryAreaItemResponse.from(
-            dto.id(),
-            dto.adminDongId(),
-            dto.regionName(),
-            dto.source()
-        );
-    }
 }

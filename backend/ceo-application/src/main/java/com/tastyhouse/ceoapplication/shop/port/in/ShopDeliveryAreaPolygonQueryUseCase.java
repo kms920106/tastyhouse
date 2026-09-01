@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonPreviewResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonViewResult;
 
 /**
  * 가게 배달지역 도형 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonRespon
  */
 public interface ShopDeliveryAreaPolygonQueryUseCase {
 
-    ShopDeliveryAreaPolygonResponse getPolygon(Long ceoId, Long shopId);
+    ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId);
 
-    ShopDeliveryAreaPolygonPreviewResponse previewPolygon(Long ceoId, Long shopId, List<List<GeoPointCommand>> rings);
+    ShopDeliveryAreaPolygonPreviewResult previewPolygon(Long ceoId, Long shopId, List<List<GeoPointCommand>> rings);
 }

@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductShopLinkResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkDeleteCommand;
@@ -71,9 +71,9 @@ public class ProductShopLinkApiController {
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        List<ProductShopLinkResponse> response = productShopLinkQueryService.getShopLinks(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        List<ProductShopLinkResponse> response = productShopLinkQueryService.getShopLinks( userDetails.getCeoId(), request.shopId(), id ).stream()
+            .map(ProductShopLinkResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

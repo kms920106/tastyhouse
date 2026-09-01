@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopClosedDaysResponse;
+import com.tastyhouse.application.shop.port.out.ShopClosedDaysResult;
 
 /**
  * 가게 휴무일 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopClosedDaysResponse;
  */
 public interface ShopClosedDayQueryUseCase {
 
-    ShopClosedDaysResponse getClosedDays(Long ceoId, Long shopId);
+    ShopClosedDaysResult getClosedDays(Long ceoId, Long shopId);
 }

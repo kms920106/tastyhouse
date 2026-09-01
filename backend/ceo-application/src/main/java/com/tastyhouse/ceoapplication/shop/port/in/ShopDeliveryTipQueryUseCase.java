@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipSettingResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
 
 /**
  * 가게 배달팁 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipSettingRespons
  */
 public interface ShopDeliveryTipQueryUseCase {
 
-    ShopDeliveryTipSettingResponse getDeliveryTips(Long ceoId, Long shopId);
+    ShopDeliveryTipViewResult getDeliveryTips(Long ceoId, Long shopId);
 }

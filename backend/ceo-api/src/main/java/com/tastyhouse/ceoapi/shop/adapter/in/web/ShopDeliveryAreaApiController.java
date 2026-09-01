@@ -28,12 +28,12 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkReq
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaPolygonSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaRadiusRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkDeleteResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonPreviewResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaRadiusPreviewResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaBulkDeleteResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaBulkResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonPreviewResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadiusPreviewResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCommandUseCase;
@@ -71,7 +71,9 @@ public class ShopDeliveryAreaApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopDeliveryAreaItemResponse> response = shopDeliveryAreaQueryService.getDeliveryAreas(userDetails.getCeoId(), id);
+        List<ShopDeliveryAreaItemResponse> response = shopDeliveryAreaQueryService.getDeliveryAreas(userDetails.getCeoId(), id).stream()
+            .map(ShopDeliveryAreaItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -109,7 +111,8 @@ public class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaBulkRequest request
     ) {
         ShopDeliveryAreaBulkCreateCommand command = request.toCreateCommand(userDetails.getCeoId(), id);
-        ShopDeliveryAreaBulkResponse response = shopDeliveryAreaCommandUseCase.addDeliveryAreas(command);
+        ShopDeliveryAreaBulkResponse response =
+            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaCommandUseCase.addDeliveryAreas(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -124,7 +127,8 @@ public class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaBulkRequest request
     ) {
         ShopDeliveryAreaBulkDeleteCommand command = request.toDeleteCommand(userDetails.getCeoId(), id);
-        ShopDeliveryAreaBulkDeleteResponse response = shopDeliveryAreaCommandUseCase.removeDeliveryAreas(command);
+        ShopDeliveryAreaBulkDeleteResponse response =
+            ShopDeliveryAreaBulkDeleteResponse.from(shopDeliveryAreaCommandUseCase.removeDeliveryAreas(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -139,9 +143,8 @@ public class ShopDeliveryAreaApiController {
         @RequestParam @Min(value = 500, message = "반경은 500m 이상이어야 합니다.")
         @Max(value = 7000, message = "반경은 7000m를 넘을 수 없습니다.") int radiusMeters
     ) {
-        ShopDeliveryAreaRadiusPreviewResponse response = shopDeliveryAreaRadiusQueryService.previewRadius(
-            userDetails.getCeoId(), id, radiusMeters
-        );
+        ShopDeliveryAreaRadiusPreviewResponse response =
+            ShopDeliveryAreaRadiusPreviewResponse.from(shopDeliveryAreaRadiusQueryService.previewRadius(userDetails.getCeoId(), id, radiusMeters));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -156,7 +159,8 @@ public class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaRadiusRequest request
     ) {
         ShopDeliveryAreaRadiusApplyCommand command = request.toCommand(userDetails.getCeoId(), id);
-        ShopDeliveryAreaBulkResponse response = shopDeliveryAreaCommandUseCase.applyRadius(command);
+        ShopDeliveryAreaBulkResponse response =
+            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaCommandUseCase.applyRadius(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -169,9 +173,8 @@ public class ShopDeliveryAreaApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDeliveryAreaPolygonResponse response = shopDeliveryAreaPolygonQueryService.getPolygon(
-            userDetails.getCeoId(), id
-        );
+        ShopDeliveryAreaPolygonResponse response =
+            ShopDeliveryAreaPolygonResponse.from(shopDeliveryAreaPolygonQueryService.getPolygon(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -204,9 +207,8 @@ public class ShopDeliveryAreaApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
-        ShopDeliveryAreaPolygonPreviewResponse response = shopDeliveryAreaPolygonQueryService.previewPolygon(
-            userDetails.getCeoId(), id, request.toRingCommands()
-        );
+        ShopDeliveryAreaPolygonPreviewResponse response =
+            ShopDeliveryAreaPolygonPreviewResponse.from(shopDeliveryAreaPolygonQueryService.previewPolygon(userDetails.getCeoId(), id, request.toRingCommands()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

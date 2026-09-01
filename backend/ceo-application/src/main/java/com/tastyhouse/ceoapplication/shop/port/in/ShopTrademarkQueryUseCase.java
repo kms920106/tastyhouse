@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
+import com.tastyhouse.application.shop.port.out.ShopImageStatusResult;
 
 /**
  * 가게 상표·썸네일 이미지 조회 인바운드 포트.
@@ -10,7 +10,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
  */
 public interface ShopTrademarkQueryUseCase {
 
-    ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId);
+    ShopImageStatusResult getTrademarkStatus(Long ceoId, Long shopId);
 
-    ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId);
+    ShopImageStatusResult getThumbnailStatus(Long ceoId, Long shopId);
 }

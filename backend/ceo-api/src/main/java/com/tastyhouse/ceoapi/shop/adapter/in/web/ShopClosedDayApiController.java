@@ -20,7 +20,7 @@ import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopHolidayClosureUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopTemporaryClosureCreateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopClosedDaysResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayDeleteCommand;
@@ -47,7 +47,8 @@ public class ShopClosedDayApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopClosedDaysResponse response = shopClosedDayQueryService.getClosedDays(userDetails.getCeoId(), id);
+        ShopClosedDaysResponse response =
+            ShopClosedDaysResponse.from(shopClosedDayQueryService.getClosedDays(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

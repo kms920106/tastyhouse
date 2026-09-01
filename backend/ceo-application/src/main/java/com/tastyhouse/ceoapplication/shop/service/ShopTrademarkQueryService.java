@@ -11,8 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopImageChangeRequestItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
+import com.tastyhouse.application.shop.port.out.ShopImageStatusResult;
 
 /**
  * 점주용 가게 상표/대표이미지 상태 조회 서비스(CQRS query 측).
@@ -35,42 +34,30 @@ public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
     }
 
     @Override
-    public ShopImageStatusResponse getTrademarkStatus(Long ceoId, Long shopId) {
+    public ShopImageStatusResult getTrademarkStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         String trademarkImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
-        return toShopImageStatusResponse(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
+        return toShopImageStatusResult(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
     }
 
     @Override
-    public ShopImageStatusResponse getThumbnailStatus(Long ceoId, Long shopId) {
+    public ShopImageStatusResult getThumbnailStatus(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
-        return toShopImageStatusResponse(thumbnailImageUrl, shopId, ShopImageType.THUMBNAIL);
+        return toShopImageStatusResult(thumbnailImageUrl, shopId, ShopImageType.THUMBNAIL);
     }
 
-    private ShopImageStatusResponse toShopImageStatusResponse(
+    private ShopImageStatusResult toShopImageStatusResult(
         String currentImageUrl,
         Long shopId,
         ShopImageType imageType
     ) {
-        List<ShopImageChangeRequestItemResponse> requests = shopOwnerQueryPort.findImageChangeRequests(shopId, imageType).stream()
-            .map(this::toShopImageChangeRequestItemResponse)
-            .toList();
-        return ShopImageStatusResponse.of(currentImageUrl, requests);
+        List<ShopImageChangeRequestResult> requests =
+            shopOwnerQueryPort.findImageChangeRequests(shopId, imageType);
+        return new ShopImageStatusResult(currentImageUrl, requests);
     }
-
-    private ShopImageChangeRequestItemResponse toShopImageChangeRequestItemResponse(ShopImageChangeRequestResult dto) {
-        return ShopImageChangeRequestItemResponse.of(
-            dto.id(),
-            dto.imageType().name(),
-            dto.imageUrl(),
-            dto.status().name(),
-            dto.rejectReason()
-        );
-    }
-
 }

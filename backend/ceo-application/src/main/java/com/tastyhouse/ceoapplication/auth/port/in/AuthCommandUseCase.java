@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.auth.port.in;
 
-import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
+import com.tastyhouse.ceoapplication.auth.port.out.JwtResult;
 
 /**
  * 점주 인증 인바운드 포트.
@@ -15,12 +15,15 @@ import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
  * <p>{@code refresh}·{@code logout}은 단일 문자열 인자뿐이라 Command로 묶지 않는다(web-api·admin-api의
  * {@code AuthCommandUseCase} 선례와 동일). 이름 있는 record로 묶어 얻는 이득 — 같은 타입 인자의 순서
  * 착각 방지 — 이 인자 1개에는 존재하지 않는다.
+ *
+ * <p><b>챕터 09</b> — 인증은 Command 경로지만 토큰을 응답으로 되돌려주므로, 반환 타입은 Swagger를 아는
+ * {@code JwtResponse}가 아니라 프레임워크-프리 {@link JwtResult}다. Response 조립은 컨트롤러가 담당한다.
  */
 public interface AuthCommandUseCase {
 
-    JwtResponse login(AuthLoginCommand command);
+    JwtResult login(AuthLoginCommand command);
 
-    JwtResponse refresh(String refreshToken);
+    JwtResult refresh(String refreshToken);
 
     void logout(String bearerToken);
 }

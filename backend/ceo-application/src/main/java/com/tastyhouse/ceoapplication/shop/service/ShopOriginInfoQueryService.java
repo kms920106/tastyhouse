@@ -1,13 +1,13 @@
 package com.tastyhouse.ceoapplication.shop.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoQueryUseCase;
-import com.tastyhouse.domain.shop.model.OriginSourceType;
 import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopOriginInfoResponse;
 
 /**
  * 점주용 가게 원산지 표시 조회 서비스(CQRS query 측).
@@ -29,19 +29,9 @@ public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
     }
 
     @Override
-    public ShopOriginInfoResponse getOriginInfo(Long ceoId, Long shopId) {
+    public Optional<ShopOriginInfoResult> getOriginInfo(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findOriginInfo(shopId)
-            .map(this::toShopOriginInfoResponse)
-            .orElseGet(() -> ShopOriginInfoResponse.from(OriginSourceType.DIRECT.name(), null, null, null));
+        return shopBasicInfoQueryPort.findOriginInfo(shopId);
     }
 
-    private ShopOriginInfoResponse toShopOriginInfoResponse(ShopOriginInfoResult dto) {
-        return ShopOriginInfoResponse.from(
-            dto.sourceType(),
-            dto.content(),
-            dto.url(),
-            dto.updatedAt()
-        );
-    }
 }

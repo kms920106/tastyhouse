@@ -9,8 +9,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityFailureResponse;
+import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.ceoapplication.product.port.in.ProductHideCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductHideUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionHideCommand;
@@ -35,7 +34,6 @@ import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.domain.product.model.ProductOptionType;
 import com.tastyhouse.domain.product.model.ReleaseTarget;
 import com.tastyhouse.domain.product.service.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.service.ProductAvailabilityService;
 import com.tastyhouse.domain.product.vo.ProductCommonOptionId;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -100,7 +98,7 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
      * 기본값을 계산하지 않는다(영업시간·휴무일·공휴일을 알아야 하고, 그 규칙은 서버가 소유한다).
      */
     @Override
-    public ProductAvailabilityChangeResponse markProductsSoldOut(ProductSoldOutCommand command) {
+    public ProductAvailabilityChangeView markProductsSoldOut(ProductSoldOutCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();
@@ -110,41 +108,41 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime resolved = resolveSoldOutUntil(shopId, soldOutUntil, now);
 
-        return toChangeResponse(productAvailabilityService.markProductsSoldOut(
+        return toChangeView(productAvailabilityService.markProductsSoldOut(
             ShopId.of(shopId), toProductIds(productIds), resolved, now));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse hideProducts(ProductHideCommand command) {
+    public ProductAvailabilityChangeView hideProducts(ProductHideCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.hideProducts(ShopId.of(shopId), toProductIds(productIds)));
+        return toChangeView(productAvailabilityService.hideProducts(ShopId.of(shopId), toProductIds(productIds)));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse releaseProducts(ProductReleaseCommand command) {
+    public ProductAvailabilityChangeView releaseProducts(ProductReleaseCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();
         String target = command.target();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.releaseProducts(
+        return toChangeView(productAvailabilityService.releaseProducts(
             ShopId.of(shopId), toProductIds(productIds), ReleaseTarget.from(target)));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse changeProductsSoldOutUntil(ProductSoldOutUntilChangeCommand command) {
+    public ProductAvailabilityChangeView changeProductsSoldOutUntil(ProductSoldOutUntilChangeCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();
         LocalDateTime soldOutUntil = command.soldOutUntil();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.changeProductsSoldOutUntil(
+        return toChangeView(productAvailabilityService.changeProductsSoldOutUntil(
             ShopId.of(shopId), toProductIds(productIds), soldOutUntil, LocalDateTime.now()));
     }
 
@@ -154,7 +152,7 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
      * 옵션을 일괄 품절 처리한다. {@code soldOutUntil}이 {@code null}이면 메뉴와 동일하게 서버가 채운다.
      */
     @Override
-    public ProductAvailabilityChangeResponse markOptionsSoldOut(ProductOptionSoldOutCommand command) {
+    public ProductAvailabilityChangeView markOptionsSoldOut(ProductOptionSoldOutCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> optionIds = command.options().stream().map(ProductOptionTargetCommand::optionId).toList();
@@ -165,25 +163,25 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime resolved = resolveSoldOutUntil(shopId, soldOutUntil, now);
 
-        return toChangeResponse(productAvailabilityService.markOptionsSoldOut(
+        return toChangeView(productAvailabilityService.markOptionsSoldOut(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             resolved, now));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse hideOptions(ProductOptionHideCommand command) {
+    public ProductAvailabilityChangeView hideOptions(ProductOptionHideCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> optionIds = command.options().stream().map(ProductOptionTargetCommand::optionId).toList();
         List<String> optionTypes = command.options().stream().map(ProductOptionTargetCommand::optionType).toList();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.hideOptions(
+        return toChangeView(productAvailabilityService.hideOptions(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes)));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse releaseOptions(ProductOptionReleaseCommand command) {
+    public ProductAvailabilityChangeView releaseOptions(ProductOptionReleaseCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> optionIds = command.options().stream().map(ProductOptionTargetCommand::optionId).toList();
@@ -191,13 +189,13 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
         String target = command.target();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.releaseOptions(
+        return toChangeView(productAvailabilityService.releaseOptions(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             ReleaseTarget.from(target)));
     }
 
     @Override
-    public ProductAvailabilityChangeResponse changeOptionsSoldOutUntil(ProductOptionSoldOutUntilChangeCommand command) {
+    public ProductAvailabilityChangeView changeOptionsSoldOutUntil(ProductOptionSoldOutUntilChangeCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> optionIds = command.options().stream().map(ProductOptionTargetCommand::optionId).toList();
@@ -205,7 +203,7 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
         LocalDateTime soldOutUntil = command.soldOutUntil();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productAvailabilityService.changeOptionsSoldOutUntil(
+        return toChangeView(productAvailabilityService.changeOptionsSoldOutUntil(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             soldOutUntil, LocalDateTime.now()));
     }
@@ -242,25 +240,19 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
      * <p>이 변환이 컨트롤러가 아니라 여기 있는 이유: 컨트롤러는 {@code com.tastyhouse.domain..}를
      * import하지 않는다(ArchUnit {@code LayerRulesTest}가 강제). 도메인 타입은 이 서비스 경계에서 멈춘다.
      */
-    private ProductAvailabilityChangeResponse toChangeResponse(ProductAvailabilityChangeResult result) {
-        List<ProductAvailabilityFailureResponse> failed = result.failed().stream()
-            .map(this::toFailureResponse)
-            .toList();
-
-        return ProductAvailabilityChangeResponse.from(
+    private ProductAvailabilityChangeView toChangeView(ProductAvailabilityChangeResult result) {
+        return new ProductAvailabilityChangeView(
             result.succeeded(),
-            failed
+            result.failed().stream()
+                .map(failure -> new ProductAvailabilityChangeView.Failure(
+                    failure.id(),
+                    failure.name(),
+                    failure.errorCode()
+                ))
+                .toList()
         );
     }
 
-    private ProductAvailabilityFailureResponse toFailureResponse(ProductAvailabilityFailure failure) {
-        return ProductAvailabilityFailureResponse.from(
-            failure.id(),
-            failure.name(),
-            failure.errorCode().getCode(),
-            failure.errorCode().getDefaultMessage()
-        );
-    }
 
     /**
      * 메뉴 id를 VO로 승격한다.

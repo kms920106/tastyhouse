@@ -19,7 +19,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductPriceReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductPriceResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductPriceCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductPriceReplaceCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductPriceQueryUseCase;
@@ -66,9 +66,9 @@ public class ProductPriceApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        List<ProductPriceResponse> response = productPriceQueryService.getPrices(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        List<ProductPriceResponse> response = productPriceQueryService.getPrices( userDetails.getCeoId(), request.shopId(), id ).stream()
+            .map(ProductPriceResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

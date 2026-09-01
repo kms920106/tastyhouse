@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageQueryUs
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageDeleteCommand;
@@ -68,8 +68,9 @@ public class ShopMenuCollectionImageApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopMenuCollectionImageResponse> response =
-            shopMenuCollectionImageQueryService.getMenuCollectionImages(userDetails.getCeoId(), id);
+        List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageQueryService.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
+            .map(ShopMenuCollectionImageResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

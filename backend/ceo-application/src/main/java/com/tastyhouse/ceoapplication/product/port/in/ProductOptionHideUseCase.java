@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
 
 /**
  * 옵션 숨김 처리 인바운드 포트.
@@ -9,5 +9,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeR
  */
 public interface ProductOptionHideUseCase {
 
-    ProductAvailabilityChangeResponse hideOptions(ProductOptionHideCommand command);
+    ProductAvailabilityChangeView hideOptions(ProductOptionHideCommand command);
 }

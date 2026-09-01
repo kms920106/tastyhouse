@@ -5,9 +5,6 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackUnreadResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.product.service.ProductFeedbackService;
@@ -49,34 +46,23 @@ public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase 
      * 가게의 지난 한 주 고객 의견을 메뉴 × 유형 집계로 조회한다.
      */
     @Override
-    public PaginationResponse<ProductFeedbackResponse> getFeedbacks(Long ceoId, Long shopId, int page, int size) {
+    public PageResult<ProductFeedbackSummaryResult> getFeedbacks(Long ceoId, Long shopId, int page, int size) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         LocalDateTime since = LocalDateTime.now().minusDays(ProductFeedbackService.FEEDBACK_WINDOW_DAYS);
-        PageResult<ProductFeedbackSummaryResult> result = productFeedbackQueryPort.findFeedbackSummaries(
+        return productFeedbackQueryPort.findFeedbackSummaries(
             shopId, since, PageQuery.of(page, size)
         );
-        return PaginationResponse.from(result.map(this::toProductFeedbackResponse));
     }
 
     /**
      * 확인하지 않은 의견이 있는지 — 화면 아이콘의 빨간 점 판정.
      */
     @Override
-    public ProductFeedbackUnreadResponse getUnread(Long ceoId, Long shopId) {
+    public boolean getUnread(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        boolean hasUnread = productFeedbackService.hasUnread(ShopId.of(shopId), LocalDateTime.now());
-        return ProductFeedbackUnreadResponse.from(hasUnread);
+        return productFeedbackService.hasUnread(ShopId.of(shopId), LocalDateTime.now());
     }
 
-    private ProductFeedbackResponse toProductFeedbackResponse(ProductFeedbackSummaryResult result) {
-        return ProductFeedbackResponse.from(
-            result.productId(),
-            result.productName(),
-            result.feedbackType().name(),
-            result.count(),
-            result.contents()
-        );
-    }
 }

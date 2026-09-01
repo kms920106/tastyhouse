@@ -1,6 +1,9 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopOriginInfoResponse;
+import java.util.Optional;
+
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
+
 
 /**
  * 가게 원산지 정보 조회 인바운드 포트.
@@ -10,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopOriginInfoResponse;
  */
 public interface ShopOriginInfoQueryUseCase {
 
-    ShopOriginInfoResponse getOriginInfo(Long ceoId, Long shopId);
+    Optional<ShopOriginInfoResult> getOriginInfo(Long ceoId, Long shopId);
 }

@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
+import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
+import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 
 /**
  * 가게 영업시간 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
  */
 public interface ShopBusinessHourQueryUseCase {
 
-    List<ShopBusinessHourResponse> getBusinessHours(Long ceoId, Long shopId);
+    List<ShopBusinessHourResult> getBusinessHours(Long ceoId, Long shopId);
 
-    List<ShopBreakTimeResponse> getBreakTimes(Long ceoId, Long shopId);
+    List<ShopBreakTimeResult> getBreakTimes(Long ceoId, Long shopId);
 }

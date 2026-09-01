@@ -21,8 +21,8 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupLinkRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSortRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductsResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductsResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupLinkCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupLinkCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOrderChangeCommand;
@@ -111,9 +111,9 @@ public class ProductOptionGroupLinkApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
-        List<ProductOptionGroupLinkedProductsResponse> response = productOptionGroupQueryService.getLinkedProductsByShop(
-            userDetails.getCeoId(), request.shopId()
-        );
+        List<ProductOptionGroupLinkedProductsResponse> response = productOptionGroupQueryService.getLinkedProductsByShop( userDetails.getCeoId(), request.shopId() ).stream()
+            .map(ProductOptionGroupLinkedProductsResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -125,9 +125,9 @@ public class ProductOptionGroupLinkApiController {
         @PathVariable Long optionGroupId,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
-        List<ProductOptionGroupLinkedProductResponse> response = productOptionGroupQueryService.getLinkedProducts(
-            userDetails.getCeoId(), request.shopId(), optionGroupId
-        );
+        List<ProductOptionGroupLinkedProductResponse> response = productOptionGroupQueryService.getLinkedProducts( userDetails.getCeoId(), request.shopId(), optionGroupId ).stream()
+            .map(ProductOptionGroupLinkedProductResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoLoginHistorySearchRequest;
-import com.tastyhouse.ceoapplication.ceo.response.CeoLoginHistoryListItemResponse;
+import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItemResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryQueryUseCase;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 
@@ -45,7 +47,7 @@ public class CeoLoginHistoryApiController {
         @Valid @ModelAttribute CeoLoginHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<CeoLoginHistoryListItemResponse> response =
+        PageResult<CeoLoginHistoryResult> pageResult =
             ceoLoginHistoryQueryService.getLoginHistories(
                 userDetails.getCeoId(),
                 request.result(),
@@ -54,6 +56,8 @@ public class CeoLoginHistoryApiController {
                 pageRequest.page(),
                 pageRequest.size()
             );
+        PaginationResponse<CeoLoginHistoryListItemResponse> response =
+            PaginationResponse.from(pageResult.map(CeoLoginHistoryListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             response.content(),
             response.page(),

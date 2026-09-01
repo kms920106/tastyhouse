@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -23,10 +25,10 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestSearchRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestCommentResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestListItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeCatalogResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestDetailResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestListItemResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalogResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCancelCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
@@ -58,7 +60,7 @@ public class ShopRequestApiController {
         @Valid @ModelAttribute ShopRequestSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopRequestListItemResponse> response = shopRequestQueryService.getRequests(
+        PageResult<ShopRequestListItemViewResult> pageResult = shopRequestQueryService.getRequests(
             userDetails.getCeoId(),
             id,
             request.requestType(),
@@ -68,6 +70,8 @@ public class ShopRequestApiController {
             pageRequest.page(),
             pageRequest.size()
         );
+        PaginationResponse<ShopRequestListItemResponse> response =
+            PaginationResponse.from(pageResult.map(ShopRequestListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             response.content(),
             response.page(),
@@ -87,7 +91,7 @@ public class ShopRequestApiController {
         @PathVariable Long requestId
     ) {
         ShopRequestDetailResponse response =
-            shopRequestQueryService.getRequestDetail(userDetails.getCeoId(), id, requestId);
+            ShopRequestDetailResponse.from(shopRequestQueryService.getRequestDetail(userDetails.getCeoId(), id, requestId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -116,8 +120,9 @@ public class ShopRequestApiController {
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
-        List<ShopRequestCommentResponse> response =
-            shopRequestQueryService.getComments(userDetails.getCeoId(), id, requestId);
+        List<ShopRequestCommentResponse> response = shopRequestQueryService.getComments(userDetails.getCeoId(), id, requestId).stream()
+            .map(ShopRequestCommentResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -143,7 +148,8 @@ public class ShopRequestApiController {
     )
     @GetMapping("/v1/request-types")
     public ResponseEntity<ApiResponse<ShopRequestTypeCatalogResponse>> getRequestTypes() {
-        ShopRequestTypeCatalogResponse response = shopRequestQueryService.getRequestTypes();
+        ShopRequestTypeCatalogResponse response =
+            ShopRequestTypeCatalogResponse.from(shopRequestQueryService.getRequestTypes());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

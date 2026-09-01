@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaRadiusPreviewResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaRadiusPreviewResult;
 
 /**
  * 가게 배달 반경 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaRadiusPreview
  */
 public interface ShopDeliveryAreaRadiusQueryUseCase {
 
-    ShopDeliveryAreaRadiusPreviewResponse previewRadius(Long ceoId, Long shopId, int radiusMeters);
+    ShopDeliveryAreaRadiusPreviewResult previewRadius(Long ceoId, Long shopId, int radiusMeters);
 }

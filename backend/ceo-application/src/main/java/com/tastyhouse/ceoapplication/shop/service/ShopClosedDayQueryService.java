@@ -11,9 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopTemporaryClosureResult;
-import com.tastyhouse.ceoapplication.shop.response.ShopClosedDaysResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRegularClosedDayResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopTemporaryClosureResponse;
+import com.tastyhouse.application.shop.port.out.ShopClosedDaysResult;
 
 /**
  * 점주용 휴무(공휴일 토글·정기 휴무·임시 휴무) 조회 서비스(CQRS query 측).
@@ -36,32 +34,12 @@ public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
     }
 
     @Override
-    public ShopClosedDaysResponse getClosedDays(Long ceoId, Long shopId) {
+    public ShopClosedDaysResult getClosedDays(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        List<ShopRegularClosedDayResponse> regularClosedDays = shopBasicInfoQueryPort.findClosedDays(shopId).stream()
-            .map(this::toShopRegularClosedDayResponse)
-            .toList();
-        List<ShopTemporaryClosureResponse> temporaryClosures = shopOwnerQueryPort.findTemporaryClosures(shopId).stream()
-            .map(this::toShopTemporaryClosureResponse)
-            .toList();
+        List<ShopClosedDayResult> regularClosedDays = shopBasicInfoQueryPort.findClosedDays(shopId);
+        List<ShopTemporaryClosureResult> temporaryClosures = shopOwnerQueryPort.findTemporaryClosures(shopId);
 
-        return ShopClosedDaysResponse.from(shop.isClosedOnPublicHolidays(), regularClosedDays, temporaryClosures);
-    }
-
-    private ShopRegularClosedDayResponse toShopRegularClosedDayResponse(ShopClosedDayResult closedDay) {
-        return ShopRegularClosedDayResponse.from(
-            closedDay.id(),
-            closedDay.closedDayType().name(),
-            closedDay.closedDayType().getDescription()
-        );
-    }
-
-    private ShopTemporaryClosureResponse toShopTemporaryClosureResponse(ShopTemporaryClosureResult dto) {
-        return ShopTemporaryClosureResponse.from(
-            dto.id(),
-            dto.startDate(),
-            dto.endDate()
-        );
+        return new ShopClosedDaysResult(shop.isClosedOnPublicHolidays(), regularClosedDays, temporaryClosures);
     }
 }

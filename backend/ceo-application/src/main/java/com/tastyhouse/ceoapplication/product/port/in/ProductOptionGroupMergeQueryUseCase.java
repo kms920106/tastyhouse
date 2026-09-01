@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergePreviewResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSuggestionResponse;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePreviewResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
 
 /**
  * 메뉴 옵션그룹 병합 조회 인바운드 포트.
@@ -13,9 +13,9 @@ import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSug
  */
 public interface ProductOptionGroupMergeQueryUseCase {
 
-    List<ProductOptionGroupMergeSuggestionResponse> getMergeSuggestions(Long ceoId, Long shopId);
+    List<ProductOptionGroupMergeSuggestionResult> getMergeSuggestions(Long ceoId, Long shopId);
 
-    ProductOptionGroupMergePreviewResponse getMergePreview(
+    ProductOptionGroupMergePreviewResult getMergePreview(
         Long ceoId,
         Long shopId,
         Long baseOptionGroupId,

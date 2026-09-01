@@ -1,8 +1,8 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDetailViewResult;
 
 /**
  * 가게 조회 인바운드 포트.
@@ -12,7 +12,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
  */
 public interface ShopQueryUseCase {
 
-    PaginationResponse<ShopListItemResponse> getMyShops(
+    PageResult<ShopListItemResult> getMyShops(
         Long ceoId,
         String name,
         Long stationId,
@@ -21,5 +21,5 @@ public interface ShopQueryUseCase {
         int size
     );
 
-    ShopDetailResponse getMyShop(Long ceoId, Long shopId);
+    ShopDetailViewResult getMyShop(Long ceoId, Long shopId);
 }

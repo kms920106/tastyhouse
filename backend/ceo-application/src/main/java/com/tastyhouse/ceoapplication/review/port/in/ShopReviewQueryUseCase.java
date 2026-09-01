@@ -3,12 +3,12 @@ package com.tastyhouse.ceoapplication.review.port.in;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.review.response.ReviewBlindReasonCatalogResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewDetailResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewListItemResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewSortTypeResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewStatisticsResponse;
+import com.tastyhouse.application.review.port.out.ShopReviewDetailViewResult;
+import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
+import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindReasonView;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 가게 리뷰 조회 인바운드 포트.
@@ -18,7 +18,7 @@ import com.tastyhouse.ceoapplication.review.response.ShopReviewStatisticsRespons
  */
 public interface ShopReviewQueryUseCase {
 
-    PaginationResponse<ShopReviewListItemResponse> getReviews(
+    PageResult<ShopReviewListItemViewResult> getReviews(
         Long ceoId,
         Long shopId,
         String tab,
@@ -32,11 +32,11 @@ public interface ShopReviewQueryUseCase {
         int size
     );
 
-    ShopReviewDetailResponse getReviewDetail(Long ceoId, Long shopId, Long reviewId);
+    ShopReviewDetailViewResult getReviewDetail(Long ceoId, Long shopId, Long reviewId);
 
-    ShopReviewStatisticsResponse getStatistics(Long ceoId, Long shopId);
+    ShopReviewStatisticsOwnerResult getStatistics(Long ceoId, Long shopId);
 
-    ShopReviewSortTypeResponse getSortType(Long ceoId, Long shopId);
+    ShopReviewSortTypeView getSortType(Long ceoId, Long shopId);
 
-    List<ReviewBlindReasonCatalogResponse> getBlindReasons();
+    List<ReviewBlindReasonView> getBlindReasons();
 }

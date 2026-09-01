@@ -17,9 +17,9 @@ import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.RefreshTokenRequest;
+import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
 import com.tastyhouse.ceoapplication.auth.port.in.AuthCommandUseCase;
 import com.tastyhouse.ceoapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
 
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController
@@ -50,13 +50,13 @@ public class AuthApiController {
             ClientIpResolver.resolve(httpRequest),
             httpRequest.getHeader("User-Agent")
         );
-        return ResponseEntity.ok(ApiResponse.success(authCommandUseCase.login(command)));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.login(command))));
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새로운 Access/Refresh Token을 발급합니다.")
     @PostMapping("/v1/refresh")
     public ResponseEntity<ApiResponse<JwtResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(authCommandUseCase.refresh(request.refreshToken())));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.refresh(request.refreshToken()))));
     }
 
     @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제합니다.")

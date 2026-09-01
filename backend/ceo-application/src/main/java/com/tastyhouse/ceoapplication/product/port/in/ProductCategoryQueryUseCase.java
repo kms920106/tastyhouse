@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
+import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
+
 
 /**
  * 메뉴 카테고리 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
  */
 public interface ProductCategoryQueryUseCase {
 
-    List<ProductCategoryResponse> getProductCategories(Long ceoId, Long shopId);
+    List<ProductCategoryManagementResult> getProductCategories(Long ceoId, Long shopId);
 }

@@ -16,7 +16,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOriginInfoUpdateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopOriginInfoResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoUpdateCommand;
 
@@ -53,7 +53,10 @@ public class ShopOriginInfoApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopOriginInfoResponse response = shopOriginInfoQueryService.getOriginInfo(userDetails.getCeoId(), id);
+        ShopOriginInfoResponse response =
+            shopOriginInfoQueryService.getOriginInfo(userDetails.getCeoId(), id)
+                .map(ShopOriginInfoResponse::from)
+                .orElseGet(ShopOriginInfoResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

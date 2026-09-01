@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAllergenTypeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.application.product.port.out.ProductAllergenTypeView;
+import com.tastyhouse.application.product.port.out.ProductNutritionViewResult;
 
 /**
  * 메뉴 영양·알레르기 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.product.response.ProductNutritionResponse;
  */
 public interface ProductNutritionQueryUseCase {
 
-    ProductNutritionResponse getNutrition(Long ceoId, Long shopId, Long productId);
+    ProductNutritionViewResult getNutrition(Long ceoId, Long shopId, Long productId);
 
-    List<ProductAllergenTypeResponse> getAllergenTypes();
+    List<ProductAllergenTypeView> getAllergenTypes();
 }

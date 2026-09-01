@@ -5,9 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductImageChangeRequestResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductImageResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductImageStatusResponse;
+import com.tastyhouse.application.product.port.out.ProductImageStatusResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -35,17 +33,13 @@ public class ProductImageQueryService implements ProductImageQueryUseCase {
     }
 
     @Override
-    public ProductImageStatusResponse getImageStatus(Long ceoId, Long shopId, Long productId) {
+    public ProductImageStatusResult getImageStatus(Long ceoId, Long shopId, Long productId) {
         requireOwnedProduct(ceoId, shopId, productId);
 
-        List<ProductImageResponse> images = productOwnerQueryPort.findProductImagesForManagement(productId).stream()
-            .map(this::toProductImageResponse)
-            .toList();
-        List<ProductImageChangeRequestResponse> requests = productOwnerQueryPort.findImageChangeRequests(productId).stream()
-            .map(this::toProductImageChangeRequestResponse)
-            .toList();
+        List<ProductImageManagementResult> images = productOwnerQueryPort.findProductImagesForManagement(productId);
+        List<ProductImageChangeRequestResult> requests = productOwnerQueryPort.findImageChangeRequests(productId);
 
-        return ProductImageStatusResponse.from(images, requests);
+        return new ProductImageStatusResult(images, requests);
     }
 
     /**
@@ -63,23 +57,5 @@ public class ProductImageQueryService implements ProductImageQueryUseCase {
         if (!owned) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
-    }
-
-    private ProductImageResponse toProductImageResponse(ProductImageManagementResult dto) {
-        return ProductImageResponse.from(
-            dto.id(),
-            dto.imageUrl(),
-            dto.sort(),
-            dto.visible()
-        );
-    }
-
-    private ProductImageChangeRequestResponse toProductImageChangeRequestResponse(ProductImageChangeRequestResult dto) {
-        return ProductImageChangeRequestResponse.from(
-            dto.id(),
-            dto.imageUrl(),
-            dto.status().name(),
-            dto.rejectReason()
-        );
     }
 }

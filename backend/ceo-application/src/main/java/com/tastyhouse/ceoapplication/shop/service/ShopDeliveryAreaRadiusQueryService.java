@@ -11,11 +11,11 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaRadiusPreviewResult;
 import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoCircle;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaCandidateResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaRadiusPreviewResponse;
 
 /**
  * 반경 배달지역 미리보기 서비스(CQRS query 측).
@@ -48,7 +48,7 @@ public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiu
     }
 
     @Override
-    public ShopDeliveryAreaRadiusPreviewResponse previewRadius(Long ceoId, Long shopId, int radiusMeters) {
+    public ShopDeliveryAreaRadiusPreviewResult previewRadius(Long ceoId, Long shopId, int radiusMeters) {
         ShopDeliveryAreaPolicy.validateRadius(radiusMeters);
 
         ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
@@ -67,20 +67,20 @@ public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiu
 
         Set<Long> registered = shopDeliveryAreaQueryPort.findAdminDongIds(shopId);
 
-        List<ShopDeliveryAreaCandidateResponse> withinRadius = candidates.stream()
+        List<ShopDeliveryAreaCandidateView> withinRadius = candidates.stream()
             .filter(candidate -> hasCenter(candidate) && isWithinRadius(center, candidate, radiusMeters))
-            .map(candidate -> toCandidateResponse(candidate, registered))
+            .map(candidate -> toCandidateView(candidate, registered))
             .toList();
 
         int unresolvedCount = (int) candidates.stream().filter(candidate -> !hasCenter(candidate)).count();
 
-        return ShopDeliveryAreaRadiusPreviewResponse.from(
+        return new ShopDeliveryAreaRadiusPreviewResult(
             shopLocation.latitude(),
             shopLocation.longitude(),
             radiusMeters,
             ShopDeliveryAreaPolicy.MAX_DELIVERY_RADIUS_METERS,
             ShopDeliveryAreaPolicy.DEFAULT_EXPOSURE_RADIUS_METERS,
-            ShopDeliveryAreaGeoMapper.toPointResponses(circle),
+            ShopDeliveryAreaGeoMapper.toPointViews(circle),
             withinRadius,
             withinRadius.size(),
             unresolvedCount
@@ -96,8 +96,8 @@ public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiu
         return center.distanceMetersTo(candidateCenter) <= radiusMeters;
     }
 
-    private ShopDeliveryAreaCandidateResponse toCandidateResponse(AdminDongCandidateResult dto, Set<Long> registered) {
-        return ShopDeliveryAreaCandidateResponse.from(
+    private ShopDeliveryAreaCandidateView toCandidateView(AdminDongCandidateResult dto, Set<Long> registered) {
+        return new ShopDeliveryAreaCandidateView(
             dto.adminDongId(),
             dto.regionName(),
             dto.centerLatitude(),

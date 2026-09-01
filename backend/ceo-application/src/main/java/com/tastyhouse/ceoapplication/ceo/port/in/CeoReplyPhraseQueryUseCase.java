@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapplication.ceo.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.ceo.response.CeoReplyPhraseResponse;
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 
 /**
  * 점주 답변 문구 조회 인바운드 포트.
@@ -12,5 +12,5 @@ import com.tastyhouse.ceoapplication.ceo.response.CeoReplyPhraseResponse;
  */
 public interface CeoReplyPhraseQueryUseCase {
 
-    List<CeoReplyPhraseResponse> getReplyPhrases(Long ceoId);
+    List<CeoReplyPhraseResult> getReplyPhrases(Long ceoId);
 }

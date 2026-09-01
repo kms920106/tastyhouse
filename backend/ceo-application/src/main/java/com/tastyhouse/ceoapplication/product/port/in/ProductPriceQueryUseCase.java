@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductPriceResponse;
+import com.tastyhouse.application.product.port.out.ProductPriceView;
+
 
 /**
  * 메뉴 가격 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductPriceResponse;
  */
 public interface ProductPriceQueryUseCase {
 
-    List<ProductPriceResponse> getPrices(Long ceoId, Long shopId, Long productId);
+    List<ProductPriceView> getPrices(Long ceoId, Long shopId, Long productId);
 }

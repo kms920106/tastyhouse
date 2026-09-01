@@ -2,9 +2,9 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductsResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupResponse;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductsResult;
 
 /**
  * 메뉴 옵션그룹 조회 인바운드 포트.
@@ -14,9 +14,9 @@ import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupResponse
  */
 public interface ProductOptionGroupQueryUseCase {
 
-    List<ProductOptionGroupResponse> getProductOptionGroups(Long ceoId, Long shopId);
+    List<ProductOptionGroupViewResult> getProductOptionGroups(Long ceoId, Long shopId);
 
-    List<ProductOptionGroupLinkedProductResponse> getLinkedProducts(Long ceoId, Long shopId, Long optionGroupId);
+    List<ProductOptionGroupLinkedProductResult> getLinkedProducts(Long ceoId, Long shopId, Long optionGroupId);
 
-    List<ProductOptionGroupLinkedProductsResponse> getLinkedProductsByShop(Long ceoId, Long shopId);
+    List<ProductOptionGroupLinkedProductsResult> getLinkedProductsByShop(Long ceoId, Long shopId);
 }

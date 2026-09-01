@@ -8,15 +8,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderAvailabilityQueryUseCase;
-import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderAvailabilityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodAvailabilityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
 
 /**
  * 점주용 주문가능 상태 조회 서비스(CQRS query 측).
@@ -53,7 +50,7 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
      * 유형을 불가로 만든다 — 두 경우 모두 도메인 계산기의 판정 결과를 그대로 옮긴다.
      */
     @Override
-    public ShopOrderAvailabilityResponse getOrderAvailability(Long ceoId, Long shopId) {
+    public ShopOrderAvailabilityViewResult getOrderAvailability(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         LocalDateTime now = LocalDateTime.now();
@@ -61,14 +58,18 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
         Map<OrderMethod, ShopOperatingStatusResult> methodStatuses =
             shopOperatingStatusService.findOrderMethodAvailabilities(shopId, now);
 
-        List<ShopOrderMethodAvailabilityResponse> orderMethods = methodStatuses.entrySet().stream()
-            .map(entry -> toShopOrderMethodAvailabilityResponse(entry.getKey(), entry.getValue()))
-            .toList();
+        List<ShopOrderAvailabilityViewResult.OrderMethodAvailability> orderMethods =
+            methodStatuses.entrySet().stream()
+                .map(entry -> new ShopOrderAvailabilityViewResult.OrderMethodAvailability(
+                    entry.getKey(),
+                    entry.getValue().isOpen(),
+                    entry.getValue().unavailableReason()
+                ))
+                .toList();
 
-        return ShopOrderAvailabilityResponse.from(
+        return new ShopOrderAvailabilityViewResult(
             shopStatus.isOpen(),
-            reasonCode(shopStatus.unavailableReason()),
-            reasonName(shopStatus.unavailableReason()),
+            shopStatus.unavailableReason(),
             orderMethods
         );
     }
@@ -77,39 +78,8 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
      * 가게에 배정된 주문유형 목록을 조회한다. 배정 변경(등록·삭제)은 이 모듈의 범위가 아니다.
      */
     @Override
-    public List<ShopOrderMethodItemResponse> getOrderMethods(Long ceoId, Long shopId) {
+    public List<ShopOrderMethodResult> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findOrderMethods(shopId).stream()
-            .map(this::toShopOrderMethodItemResponse)
-            .toList();
-    }
-
-    private ShopOrderMethodAvailabilityResponse toShopOrderMethodAvailabilityResponse(
-        OrderMethod orderMethod,
-        ShopOperatingStatusResult result
-    ) {
-        return ShopOrderMethodAvailabilityResponse.from(
-            orderMethod.name(),
-            orderMethod.getDisplayName(),
-            result.isOpen(),
-            reasonCode(result.unavailableReason()),
-            reasonName(result.unavailableReason())
-        );
-    }
-
-    private ShopOrderMethodItemResponse toShopOrderMethodItemResponse(ShopOrderMethodResult result) {
-        return ShopOrderMethodItemResponse.from(
-            result.id(),
-            result.orderMethod().name(),
-            result.orderMethod().getDisplayName()
-        );
-    }
-
-    private String reasonCode(OrderUnavailableReason reason) {
-        return reason == null ? null : reason.name();
-    }
-
-    private String reasonName(OrderUnavailableReason reason) {
-        return reason == null ? null : reason.getDisplayName();
+        return shopBasicInfoQueryPort.findOrderMethods(shopId);
     }
 }

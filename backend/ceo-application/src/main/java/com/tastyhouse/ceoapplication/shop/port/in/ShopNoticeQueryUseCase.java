@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
+
 
 /**
  * 가게 공지 조회 인바운드 포트.
@@ -12,7 +13,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopNoticeResponse;
  */
 public interface ShopNoticeQueryUseCase {
 
-    List<ShopNoticeResponse> getNotices(Long ceoId, Long shopId);
+    List<ShopNoticeResult> getNotices(Long ceoId, Long shopId);
 
     List<String> validateNotice(Long ceoId, Long shopId, String content);
 }

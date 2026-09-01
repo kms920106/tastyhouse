@@ -1,8 +1,8 @@
 # ceo-application
 
-점주 웹(ceo-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`), 그 구현인 `*CommandService`/`*QueryService`, 그리고 QueryService가 조립하는 표현 계약(`<ctx>/response/`)이 여기 있다.
+점주 웹(ceo-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`가 여기 있다. **표현 계약(`<ctx>/response/`)은 챕터 09로 `ceo-api`로 승격됐다** — 이 모듈에는 더 이상 없다.
 
-컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·config·security 정책·부트스트랩(`CeoApiApplication`)은 `ceo-api`에 남아 있다(`ceo-api/AGENTS.md`).
+컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·`response/`·config·security 정책·부트스트랩(`CeoApiApplication`)은 `ceo-api`에 있다(`ceo-api/AGENTS.md`).
 
 ## 신설 배경 (챕터 04)
 
@@ -17,7 +17,7 @@ com.tastyhouse.ceoapplication/
 ├── CeoApplicationConfig.java     @ComponentScan 진입점 — 쓰는 앱이 @Import 한다
 ├── <ctx>/port/in/                UseCase 인터페이스 + Command record
 ├── <ctx>/service/                *CommandService/*QueryService implements {Ctx}UseCase
-└── <ctx>/response/               QueryService가 조립하는 표현 계약 record
+└── <ctx>/port/out/               Command 경로 반환 Result (챕터 09 — 읽기 계약 패키지와 구분)
 
 com.tastyhouse.application/            ← split package (챕터 06)
 └── <ctx>/port/out/                ceo 단독 읽기 계약 61개 — {Ctx}QueryPort·Result·SearchCondition
@@ -37,13 +37,32 @@ com.tastyhouse.application/            ← split package (챕터 06)
 
 **컨텍스트 수는 가장 적은데 서비스 수는 가장 많다**(`*CommandService` 44 · `*QueryService` 43 — admin의 30/28보다 많다). 점주 셀프서비스가 `shop` 하나에 설정 관심사를 대량으로 갖기 때문이다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopPhoneNumber*`/`ShopStatus*`/`ShopIntroduction*`/`ShopConvenienceInfo*`/`ShopTrademark*`/`ShopContentBoard*`/`ShopSuspension*`/`ShopHygieneBadge*`/`ShopDeliveryTip*`/`ShopDeliveryArea*`). 관심사 단위로 쪼개는 이 관례는 분리 전과 동일하다.
 
-## 왜 `response/`가 함께 왔나
+## `response/`는 챕터 09로 ceo-api로 갔다
 
-이 저장소의 확정 규칙상 **`{도메인}QueryService`가 Result → Response 변환을 담당**한다(루트 `backend/CLAUDE.md`의 DTO 조립 규칙). 따라서 `response/`를 ceo-api에 남기면 서비스가 `com.tastyhouse.ceoapi..`를 역참조하게 되어 `applicationMustNotDependOnAdapters`가 곧바로 위반되고, 모듈 분리 자체가 성립하지 않는다. `web-application`·`admin-application`과 같은 판단이다.
+**챕터 04 당시에는 `response/`가 이 모듈에 함께 왔다.** 그때의 확정 규칙은 "`{도메인}QueryService`가 Result → Response 변환을 담당"이었으므로, `response/`를 ceo-api에 남기면 서비스가 `com.tastyhouse.ceoapi..`를 역참조해 `applicationMustNotDependOnAdapters`가 곧바로 위반됐기 때문이다.
 
-**`request/`는 반대로 ceo-api에 남는다** — Request → Command 매핑은 인바운드 어댑터의 책임이고(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 그 방향(ceo-api → ceo-application)은 정상 의존이다.
+**챕터 09가 그 전제를 바꿨다** — 조립 주체를 QueryService에서 **Response record 자신**(`from(XxxResult)`)으로 옮기고 Response를 ceo-api로 승격했다(105개). 유스케이스는 이제 프레임워크-프리 `*Result`·`PageResult`를 반환하므로 역참조가 생기지 않는다. 그 결과 이 모듈의 `io.swagger` import는 **0건**이고 `com.tastyhouse.apicommon` 참조도 **0건**이며, 두 상태를 `LayerRulesTest`의 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다(챕터 09 신설, admin이 챕터 06에서 심은 규칙과 동일).
 
-**admin과 바이트 동일하던 shop 응답 3종**(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`)은 이 모듈이 아니라 `api-common-module` 소유이며, 그 관계는 분리 후에도 그대로다.
+**`request/`는 원래부터 ceo-api에 있었고 그대로다** — Request → Command 매핑은 인바운드 어댑터의 책임이며(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 이제 양방향 매핑이 모두 ceo-api의 책임이다.
+
+### 표현 계약이 만들 수 없는 값은 이 모듈이 `*View`/`*ViewResult`로 넘긴다
+
+승격 후에도 **application에 남아야 하는 조립**이 있다. 표현 계약(api 모듈)은 도메인 모델·도메인 서비스·아웃바운드 포트를 알 수 없고 시계도 읽지 않아야 하므로, 아래는 이 모듈이 계산해 결과만 넘긴다.
+
+| 남는 이유 | 예 |
+|---|---|
+| 도메인 애그리거트·도메인 서비스에서 나오는 값 | `ShopStatusResult`·`ShopDetailViewResult`·`ProductPriceView`·`ShopVisitGuideValidationResult` |
+| 여러 읽기 포트를 합친 결과 | `ShopImageStatusResult`·`ShopClosedDaysResult`·`ShopDeliveryTipViewResult`·`ProductNutritionViewResult` |
+| 도메인 enum의 **비-accessor 호출**이 필요한 값 | `ShopRequestListItemViewResult`(`isContractAmending`)·`ShopChangeCategoryResult`·`ShopRequestTypeCatalogResult`·`ProductAllergenTypeView`(`values()`) |
+| carve-out이 아닌 도메인 타입 | `GeoPointView`(`domain.shared.geo..`는 carve-out이 아니다) |
+| 시계·도메인 상수가 필요한 파생 | `ShopReviewReplyWindow`(답변 마감일 = 작성일 + `ReviewOwnerReply.REPLY_PERIOD_DAYS`) |
+| 도메인 enum `switch` | `ShopReviewSortTypeView` — api 모듈에서 enum을 `switch`하면 바이트코드가 `ordinal()`·`values()`를 호출해 `apiModuleShouldOnlyReadDomainEnums`에 걸린다 |
+
+**반대로 순수 표현 파생은 Response로 내렸다** — 16자리 리뷰번호 0-pad, 문구 표시명 truncate(`CeoReplyPhraseResponse`), 거리별 배달팁 비움 판정, 픽업 위치 null 판정, enum → 문자열 강등(accessor 3종).
+
+### Command 경로의 반환 Result는 `ceoapplication.<ctx>.port.out`에 둔다
+
+`ShopDeliveryAreaBulkResult`·`ShopDeliveryAreaBulkDeleteResult`·`ProductAvailabilityChangeView`는 **읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니라** 이 모듈의 앱 네임스페이스에 있다. 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryDaos`(CQRS 교차 주입 금지)가 CommandService의 **반환 타입**을 위반으로 잡는다. admin의 `JwtResult`가 `adminapplication.auth.port.out`에 있는 것과 같은 배치다.
 
 ## 소유권 검증이 이 모듈에 있다
 
@@ -62,7 +81,7 @@ com.tastyhouse.application/            ← split package (챕터 06)
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
-- `api-common-module` (implementation) — `PaginationResponse<T>`·공용 shop 응답 3종 등 표현 계약
+- `api-common-module` (implementation) — **소스 레벨 참조는 챕터 09로 0건이 됐다**(`applicationShouldNotDependOnApiCommon`이 강제). `build.gradle`에서 이 의존 자체를 제거하는 것은 챕터 11의 몫이라 선언만 남아 있다
 
 ### External
 - `spring-boot-starter-security` (implementation) — `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`

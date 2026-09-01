@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.ceoapplication.shop.response.ShopImageStatusResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopThumbnailChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkCommandUseCase;
@@ -41,7 +41,8 @@ public class ShopTrademarkApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopImageStatusResponse response = shopTrademarkQueryService.getTrademarkStatus(userDetails.getCeoId(), id);
+        ShopImageStatusResponse response =
+            ShopImageStatusResponse.from(shopTrademarkQueryService.getTrademarkStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -64,7 +65,8 @@ public class ShopTrademarkApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopImageStatusResponse response = shopTrademarkQueryService.getThumbnailStatus(userDetails.getCeoId(), id);
+        ShopImageStatusResponse response =
+            ShopImageStatusResponse.from(shopTrademarkQueryService.getThumbnailStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

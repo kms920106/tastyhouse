@@ -23,7 +23,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductImageSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductImageStatusResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageChangeRequestCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageDeleteCommand;
@@ -66,9 +66,7 @@ public class ProductImageApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductImageStatusResponse response = productImageQueryService.getImageStatus(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        ProductImageStatusResponse response = ProductImageStatusResponse.from(productImageQueryService.getImageStatus( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderAvailabilityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
+import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
 
 /**
  * 가게 주문 가능 상태 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodItemResponse;
  */
 public interface ShopOrderAvailabilityQueryUseCase {
 
-    ShopOrderAvailabilityResponse getOrderAvailability(Long ceoId, Long shopId);
+    ShopOrderAvailabilityViewResult getOrderAvailability(Long ceoId, Long shopId);
 
-    List<ShopOrderMethodItemResponse> getOrderMethods(Long ceoId, Long shopId);
+    List<ShopOrderMethodResult> getOrderMethods(Long ceoId, Long shopId);
 }

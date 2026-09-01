@@ -8,16 +8,12 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityItemResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityItemResponse;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductAvailabilityQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult;
 import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
 import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
-import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityItemResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
 /**
@@ -51,7 +47,7 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
      * 조립은 등장 순서를 유지하는 {@link LinkedHashMap} 그룹핑으로 충분하다.
      */
     @Override
-    public List<ProductAvailabilityGroupResponse> getProductAvailability(
+    public List<ProductAvailabilityGroupResult> getProductAvailability(
         Long ceoId,
         Long shopId,
         String keyword,
@@ -65,14 +61,14 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
         List<ProductAvailabilityItemResult> rows = productOwnerQueryPort.findProductAvailability(condition);
 
         // 카테고리 미지정 메뉴(categoryId == null)도 한 묶음으로 모은다 — 화면에서 "분류 없음"으로 표시한다.
-        Map<CategoryKey, List<ProductAvailabilityItemResponse>> grouped = new LinkedHashMap<>();
+        Map<CategoryKey, List<ProductAvailabilityItemResult>> grouped = new LinkedHashMap<>();
         for (ProductAvailabilityItemResult row : rows) {
             CategoryKey key = new CategoryKey(row.categoryId(), row.categoryName(), row.categorySort());
-            grouped.computeIfAbsent(key, ignored -> new ArrayList<>()).add(toProductAvailabilityItemResponse(row));
+            grouped.computeIfAbsent(key, ignored -> new ArrayList<>()).add(row);
         }
 
-        List<ProductAvailabilityGroupResponse> response = new ArrayList<>();
-        grouped.forEach((key, products) -> response.add(ProductAvailabilityGroupResponse.from(
+        List<ProductAvailabilityGroupResult> response = new ArrayList<>();
+        grouped.forEach((key, products) -> response.add(new ProductAvailabilityGroupResult(
             key.categoryId(),
             key.categoryName(),
             key.categorySort(),
@@ -85,7 +81,7 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
      * 옵션 탭 목록을 옵션그룹 단위로 반환한다. 일반 옵션그룹과 공통 옵션그룹이 하나의 목록으로 합쳐진다.
      */
     @Override
-    public List<ProductOptionAvailabilityGroupResponse> getProductOptionAvailability(
+    public List<ProductOptionAvailabilityGroupResult> getProductOptionAvailability(
         Long ceoId,
         Long shopId,
         String keyword,
@@ -97,60 +93,11 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
 
-        return productOwnerQueryPort.findProductOptionAvailability(condition).stream()
-            .map(this::toProductOptionAvailabilityGroupResponse)
-            .toList();
+        return productOwnerQueryPort.findProductOptionAvailability(condition);
     }
 
-    private ProductAvailabilityItemResponse toProductAvailabilityItemResponse(ProductAvailabilityItemResult row) {
-        return ProductAvailabilityItemResponse.from(
-            row.id(),
-            row.name(),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.imageUrl(),
-            row.soldOut(),
-            row.soldOutUntil(),
-            row.visible(),
-            row.representative(),
-            row.sort()
-        );
-    }
 
-    private ProductOptionAvailabilityGroupResponse toProductOptionAvailabilityGroupResponse(
-        ProductOptionAvailabilityGroupResult group
-    ) {
-        List<ProductOptionAvailabilityItemResponse> options = group.options().stream()
-            .map(this::toProductOptionAvailabilityItemResponse)
-            .toList();
 
-        return ProductOptionAvailabilityGroupResponse.from(
-            group.optionGroupId(),
-            group.optionType(),
-            group.name(),
-            group.required(),
-            group.minSelect(),
-            group.maxSelect(),
-            group.linkedProductNames(),
-            group.sort(),
-            options
-        );
-    }
-
-    private ProductOptionAvailabilityItemResponse toProductOptionAvailabilityItemResponse(
-        ProductOptionAvailabilityItemResult option
-    ) {
-        return ProductOptionAvailabilityItemResponse.from(
-            option.id(),
-            option.optionType(),
-            option.name(),
-            option.additionalPrice(),
-            option.soldOut(),
-            option.soldOutUntil(),
-            option.visible(),
-            option.sort()
-        );
-    }
 
     /**
      * 카테고리 그룹핑 키 — {@code categoryId}가 null인 경우(카테고리 미지정)도 하나의 키로 다뤄야 하므로

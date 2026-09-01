@@ -22,15 +22,15 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.shared.port.out.GeoRingsPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBlockedView;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonViewResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBlockedResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaCandidateResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonPreviewResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaPolygonResponse;
 
 /**
  * 배달지역 도형 조회·미리보기 서비스(CQRS query 측).
@@ -73,12 +73,12 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
      * 행정동만 직접 등록한 가게가 정상적으로 존재한다.
      */
     @Override
-    public ShopDeliveryAreaPolygonResponse getPolygon(Long ceoId, Long shopId) {
+    public ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId) {
         ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
         ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryPort.findPolygon(shopId).orElse(null);
 
         if (stored == null) {
-            return ShopDeliveryAreaPolygonResponse.from(
+            return new ShopDeliveryAreaPolygonViewResult(
                 false, null, null, null,
                 shopLocation.latitude(), shopLocation.longitude(),
                 0, null,
@@ -92,9 +92,9 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         GeoPoint storedCenter = GeoPoint.of(stored.centerLatitude(), stored.centerLongitude());
         GeoPoint currentLocation = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
-        return ShopDeliveryAreaPolygonResponse.from(
+        return new ShopDeliveryAreaPolygonViewResult(
             true,
-            ShopDeliveryAreaGeoMapper.toRingResponses(polygon),
+            ShopDeliveryAreaGeoMapper.toRingViews(polygon),
             stored.centerLatitude(),
             stored.centerLongitude(),
             shopLocation.latitude(),
@@ -117,7 +117,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
      * 있다 — 저장이 실패한 뒤에야 원인을 알려주면 도형을 다시 그려야 한다고 오해하기 쉽다.
      */
     @Override
-    public ShopDeliveryAreaPolygonPreviewResponse previewPolygon(
+    public ShopDeliveryAreaPolygonPreviewResult previewPolygon(
         Long ceoId,
         Long shopId,
         List<List<GeoPointCommand>> rings
@@ -142,13 +142,13 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         Set<Long> currentPolygonDongs = shopDeliveryAreaQueryPort.findAdminDongIdsBySource(shopId, "POLYGON");
         Set<Long> regionTipDongs = shopDeliveryAreaQueryPort.findRegionTipAdminDongIds(shopId);
 
-        List<ShopDeliveryAreaCandidateResponse> projectedResponses = projected.stream()
+        List<ShopDeliveryAreaCandidateView> projectedViews = projected.stream()
             .map(candidateById::get)
             .filter(Objects::nonNull)
-            .map(candidate -> toCandidateResponse(candidate, registered))
+            .map(candidate -> toCandidateView(candidate, registered))
             .toList();
 
-        List<ShopDeliveryAreaCandidateResponse> added = projectedResponses.stream()
+        List<ShopDeliveryAreaCandidateView> added = projectedViews.stream()
             .filter(candidate -> !registered.contains(candidate.adminDongId()))
             .toList();
 
@@ -157,13 +157,13 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             .filter(adminDongId -> !projected.contains(adminDongId))
             .toList();
 
-        return ShopDeliveryAreaPolygonPreviewResponse.from(
+        return new ShopDeliveryAreaPolygonPreviewResult(
             maxRadiusMeters,
             !ShopDeliveryAreaPolicy.exceedsMaxRadius(maxRadiusMeters),
-            projectedResponses,
+            projectedViews,
             added,
-            toRemovedResponses(closing),
-            toBlockedResponses(closing, regionTipDongs),
+            toRemovedViews(closing),
+            toBlockedViews(closing, regionTipDongs),
             projection.unresolvedCount()
         );
     }
@@ -203,13 +203,13 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         return domainCandidates;
     }
 
-    private List<ShopDeliveryAreaCandidateResponse> toRemovedResponses(List<Long> closing) {
+    private List<ShopDeliveryAreaCandidateView> toRemovedViews(List<Long> closing) {
         if (closing.isEmpty()) {
             return List.of();
         }
 
         return adminDongQueryPort.findBoundariesByIds(closing).stream()
-            .map(dto -> ShopDeliveryAreaCandidateResponse.from(
+            .map(dto -> new ShopDeliveryAreaCandidateView(
                 dto.adminDongId(),
                 dto.regionName(),
                 dto.centerLatitude(),
@@ -219,14 +219,14 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             .toList();
     }
 
-    private List<ShopDeliveryAreaBlockedResponse> toBlockedResponses(List<Long> closing, Set<Long> regionTipDongs) {
+    private List<ShopDeliveryAreaBlockedView> toBlockedViews(List<Long> closing, Set<Long> regionTipDongs) {
         List<Long> blocked = closing.stream().filter(regionTipDongs::contains).toList();
         if (blocked.isEmpty()) {
             return List.of();
         }
 
         return adminDongQueryPort.findBoundariesByIds(blocked).stream()
-            .map(dto -> ShopDeliveryAreaBlockedResponse.from(
+            .map(dto -> new ShopDeliveryAreaBlockedView(
                 dto.adminDongId(),
                 dto.regionName(),
                 BLOCKED_REASON_REGION_TIP
@@ -234,8 +234,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             .toList();
     }
 
-    private ShopDeliveryAreaCandidateResponse toCandidateResponse(AdminDongCandidateResult dto, Set<Long> registered) {
-        return ShopDeliveryAreaCandidateResponse.from(
+    private ShopDeliveryAreaCandidateView toCandidateView(AdminDongCandidateResult dto, Set<Long> registered) {
+        return new ShopDeliveryAreaCandidateView(
             dto.adminDongId(),
             dto.regionName(),
             dto.centerLatitude(),

@@ -1,7 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationResponse;
+import com.tastyhouse.application.shop.port.out.ShopIntroductionValidationResult;
 
 /**
  * 가게 소개 조회 인바운드 포트.
@@ -11,7 +10,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationRes
  */
 public interface ShopIntroductionQueryUseCase {
 
-    ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId);
+    String getIntroduction(Long ceoId, Long shopId);
 
-    ShopIntroductionValidationResponse validateIntroduction(Long ceoId, Long shopId, String message);
+    ShopIntroductionValidationResult validateIntroduction(Long ceoId, Long shopId, String message);
 }

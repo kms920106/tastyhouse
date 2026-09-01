@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductExposureResponse;
+import com.tastyhouse.application.product.port.out.ProductExposureViewResult;
 
 /**
  * 메뉴 노출 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductExposureResponse;
  */
 public interface ProductExposureQueryUseCase {
 
-    ProductExposureResponse getExposure(Long ceoId, Long shopId, Long productId);
+    ProductExposureViewResult getExposure(Long ceoId, Long shopId, Long productId);
 }

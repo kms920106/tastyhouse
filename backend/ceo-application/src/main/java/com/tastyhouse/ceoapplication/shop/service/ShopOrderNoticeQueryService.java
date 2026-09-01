@@ -1,11 +1,13 @@
 package com.tastyhouse.ceoapplication.shop.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 /**
  * 점주용 주문안내 조회 서비스(CQRS query 측).
@@ -33,15 +35,13 @@ public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase 
     }
 
     /**
-     * 가게의 주문안내를 조회한다. 미설정이면 {@code content}가 null인 빈 응답을 돌려준다
-     * (사유는 {@code ShopOrderNoticeResponse#empty} 참조).
+     * 가게의 주문안내를 조회한다. 미설정이면 빈 {@code Optional}을 돌려주고, 컨트롤러가 이를
+     * {@code content}가 null인 빈 응답으로 옮긴다(사유는 {@code ShopOrderNoticeResponse#empty} 참조).
      */
     @Override
-    public ShopOrderNoticeResponse getOrderNotice(Long ceoId, Long shopId) {
+    public Optional<ShopOrderNoticeResult> getOrderNotice(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopOrderNoticeManagementQueryPort.findOrderNotice(shopId)
-            .map(result -> ShopOrderNoticeResponse.of(result.content(), result.hidden(), result.hiddenReason()))
-            .orElseGet(ShopOrderNoticeResponse::empty);
+        return shopOrderNoticeManagementQueryPort.findOrderNotice(shopId);
     }
 }

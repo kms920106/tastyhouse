@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopHygieneBadgeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopHygieneBadgeResponse;
 
 /**
  * 점주용 가게 위생 인증 뱃지 조회 서비스(CQRS query 측).
@@ -29,21 +28,8 @@ public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCas
     }
 
     @Override
-    public List<ShopHygieneBadgeResponse> getHygieneBadges(Long ceoId, Long shopId) {
+    public List<ShopHygieneBadgeResult> getHygieneBadges(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findHygieneBadges(shopId).stream()
-            .map(this::toShopHygieneBadgeResponse)
-            .toList();
+        return shopBasicInfoQueryPort.findHygieneBadges(shopId);
     }
-
-    private ShopHygieneBadgeResponse toShopHygieneBadgeResponse(ShopHygieneBadgeResult dto) {
-        return ShopHygieneBadgeResponse.of(
-            dto.id(),
-            dto.shopId(),
-            dto.badgeType().name(),
-            dto.certifiedDate(),
-            dto.lastInspectionMonth()
-        );
-    }
-
 }

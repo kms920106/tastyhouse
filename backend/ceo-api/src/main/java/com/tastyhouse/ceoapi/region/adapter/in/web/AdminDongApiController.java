@@ -14,13 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.application.region.port.out.AdminDongItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapplication.region.port.in.AdminDongQueryUseCase;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongBoundarySearchRequest;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongSearchRequest;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongTreeRequest;
-import com.tastyhouse.ceoapplication.region.response.AdminDongBoundaryResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongItemResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongTreeResponse;
+import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongBoundaryResponse;
+import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongItemResponse;
+import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongTreeResponse;
 
 @Tag(name = "Ceo Admin Dong", description = "점주 행정동 검색 API")
 @RestController
@@ -39,9 +41,11 @@ public class AdminDongApiController {
         @Valid @ModelAttribute AdminDongSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<AdminDongItemResponse> pageResponse = adminDongQueryService.getAdminDongs(
+        PageResult<AdminDongItemResult> pageResult = adminDongQueryService.getAdminDongs(
             search.keyword(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<AdminDongItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(AdminDongItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -55,8 +59,8 @@ public class AdminDongApiController {
     public ResponseEntity<ApiResponse<AdminDongTreeResponse>> getAdminDongTree(
         @Valid @ModelAttribute AdminDongTreeRequest search
     ) {
-        AdminDongTreeResponse response = adminDongQueryService.getAdminDongTree(
-            search.sidoName(), search.sigunguName()
+        AdminDongTreeResponse response = AdminDongTreeResponse.from(
+            adminDongQueryService.getAdminDongTree(search.sidoName(), search.sigunguName())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -69,13 +73,15 @@ public class AdminDongApiController {
     public ResponseEntity<ApiResponse<AdminDongBoundaryResponse>> getAdminDongBoundaries(
         @Valid @ModelAttribute AdminDongBoundarySearchRequest search
     ) {
-        AdminDongBoundaryResponse response = adminDongQueryService.getAdminDongBoundaries(
-            search.swLat(),
-            search.swLng(),
-            search.neLat(),
-            search.neLng(),
-            search.level(),
-            search.adminDongIds()
+        AdminDongBoundaryResponse response = AdminDongBoundaryResponse.from(
+            adminDongQueryService.getAdminDongBoundaries(
+                search.swLat(),
+                search.swLng(),
+                search.neLat(),
+                search.neLng(),
+                search.level(),
+                search.adminDongIds()
+            )
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

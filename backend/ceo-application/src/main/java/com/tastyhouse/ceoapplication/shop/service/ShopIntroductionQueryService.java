@@ -9,8 +9,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.port.out.ShopOwnerMessageResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopIntroductionValidationResponse;
+import com.tastyhouse.application.shop.port.out.ShopIntroductionValidationResult;
 
 /**
  * 점주용 가게소개(사장님 한마디) 조회·사전검증 서비스(CQRS query 측).
@@ -37,18 +36,17 @@ public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCas
     }
 
     @Override
-    public ShopIntroductionResponse getIntroduction(Long ceoId, Long shopId) {
+    public String getIntroduction(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        String message = shopBasicInfoQueryPort.findLatestOwnerMessage(shopId)
+        return shopBasicInfoQueryPort.findLatestOwnerMessage(shopId)
             .map(ShopOwnerMessageResult::message)
             .orElse(null);
-        return ShopIntroductionResponse.from(message);
     }
 
     @Override
-    public ShopIntroductionValidationResponse validateIntroduction(Long ceoId, Long shopId, String message) {
+    public ShopIntroductionValidationResult validateIntroduction(Long ceoId, Long shopId, String message) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         List<String> violations = prohibitedWordValidator.findViolations(message);
-        return ShopIntroductionValidationResponse.from(violations.isEmpty(), violations);
+        return new ShopIntroductionValidationResult(violations.isEmpty(), violations);
     }
 }

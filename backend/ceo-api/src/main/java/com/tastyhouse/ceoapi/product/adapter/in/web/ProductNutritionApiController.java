@@ -20,8 +20,8 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductNutritionUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductAllergenTypeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAllergenTypeResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionUpdateCommand;
@@ -57,7 +57,9 @@ public class ProductNutritionApiController {
             + "목록이 바뀌어도 화면 배포가 필요하지 않습니다.")
     @GetMapping("/v1/allergens")
     public ResponseEntity<ApiResponse<List<ProductAllergenTypeResponse>>> getAllergenTypes() {
-        List<ProductAllergenTypeResponse> response = productNutritionQueryService.getAllergenTypes();
+        List<ProductAllergenTypeResponse> response = productNutritionQueryService.getAllergenTypes().stream()
+            .map(ProductAllergenTypeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -70,9 +72,7 @@ public class ProductNutritionApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductNutritionResponse response = productNutritionQueryService.getNutrition(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        ProductNutritionResponse response = ProductNutritionResponse.from(productNutritionQueryService.getNutrition( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

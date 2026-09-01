@@ -5,10 +5,7 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.ceo.response.CeoLoginHistoryListItemResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryQueryUseCase;
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -54,7 +51,7 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
      * 내 로그인 이력 목록을 최신순으로 페이징 조회한다.
      */
     @Override
-    public PaginationResponse<CeoLoginHistoryListItemResponse> getLoginHistories(
+    public PageResult<CeoLoginHistoryResult> getLoginHistories(
         Long ceoId,
         String result,
         LocalDate startDate,
@@ -79,10 +76,7 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<CeoLoginHistoryListItemResponse> pageResult =
-            ceoLoginHistoryQueryPort.findLoginHistoryPage(condition, pageQuery)
-                .map(this::toListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return ceoLoginHistoryQueryPort.findLoginHistoryPage(condition, pageQuery);
     }
 
     /**
@@ -99,19 +93,5 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
         if (endDate.isAfter(today) || startDate.isBefore(today.minusDays(RETENTION_DAYS))) {
             throw new BusinessException(ErrorCode.CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE);
         }
-    }
-
-    private CeoLoginHistoryListItemResponse toListItemResponse(CeoLoginHistoryResult result) {
-        CeoLoginFailureReason failureReason = result.failureReason();
-        return CeoLoginHistoryListItemResponse.from(
-            result.id(),
-            result.result().name(),
-            result.result().getDescription(),
-            failureReason == null ? null : failureReason.name(),
-            failureReason == null ? null : failureReason.getDescription(),
-            result.ipAddress(),
-            result.userAgent(),
-            result.loggedInAt()
-        );
     }
 }

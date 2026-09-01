@@ -1,9 +1,10 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopAmenityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopConvenienceInfoResponse;
+import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
+import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
 
 /**
  * 가게 편의 정보 조회 인바운드 포트.
@@ -13,7 +14,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopConvenienceInfoResponse;
  */
 public interface ShopConvenienceInfoQueryUseCase {
 
-    ShopConvenienceInfoResponse getConvenienceInfo(Long ceoId, Long shopId);
+    Optional<ShopConvenienceInfoResult> getConvenienceInfo(Long ceoId, Long shopId);
 
-    List<ShopAmenityResponse> getAmenities(Long ceoId, Long shopId);
+    List<ShopAmenityAssignmentResult> getAmenities(Long ceoId, Long shopId);
 }

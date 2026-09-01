@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentQuer
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentCreateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaAdjustmentItemResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentItemResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 
@@ -48,8 +48,9 @@ public class ShopDeliveryAreaAdjustmentApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopDeliveryAreaAdjustmentItemResponse> response =
-            shopDeliveryAreaAdjustmentQueryService.getAdjustmentRequests(userDetails.getCeoId(), id);
+        List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentQueryService.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
+            .map(ShopDeliveryAreaAdjustmentItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

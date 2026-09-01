@@ -11,21 +11,12 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.review.response.ReviewBlindReasonCatalogResponse;
-import com.tastyhouse.ceoapplication.review.response.ReviewBlindRequestHistoryResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewDetailResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewListItemResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewMonthlyStatResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewSortTypeResponse;
-import com.tastyhouse.ceoapplication.review.response.ShopReviewStatisticsResponse;
 import com.tastyhouse.ceoapplication.review.port.in.ShopReviewQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.model.ReviewSortType;
@@ -33,7 +24,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.application.review.port.out.ReviewBlindRequestHistoryResult;
+import com.tastyhouse.application.review.port.out.ReviewBlindReasonView;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
@@ -41,7 +32,13 @@ import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResu
 import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementSearchCondition;
+import com.tastyhouse.application.review.port.out.ShopReviewDetailViewResult;
+import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
+import com.tastyhouse.application.review.port.out.ShopReviewMonthlyStatResult;
+import com.tastyhouse.application.review.port.out.ShopReviewReplyWindow;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
+import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
 
 /**
  * 점주 리뷰 관리 조회 서비스(CQRS query 측).
@@ -57,8 +54,10 @@ import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 @Transactional(readOnly = true)
 public class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
-    /** 원문 ②의 "리뷰 고유 번호 16자리" 표시 폭. */
-    private static final int REVIEW_NUMBER_LENGTH = 16;
+    /** 최근 180일 리뷰가 0건인 가게의 빈 대시보드(원문 규격). */
+    private static final ShopReviewStatisticsOwnerResult EMPTY_STATISTICS = new ShopReviewStatisticsOwnerResult(
+        false, null, null, null, Map.of(), null, null, null, null, null, null, null, List.of()
+    );
 
     /** 통계 집계 기간(최근 6개월). */
     private static final int STATISTICS_MONTHS = 6;
@@ -92,7 +91,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * <p>{@code sortType}이 생략되면 저장된 기본 정렬을, 그것도 없으면 최신순을 적용한다.
      */
     @Override
-    public PaginationResponse<ShopReviewListItemResponse> getReviews(
+    public PageResult<ShopReviewListItemViewResult> getReviews(
         Long ceoId,
         Long shopId,
         String tab,
@@ -123,10 +122,9 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<ShopReviewListItemResponse> pageResult =
-            shopReviewManagementQueryPort.findShopReviews(condition, pageQuery)
-                .map(this::toListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopReviewManagementQueryPort.findShopReviews(condition, pageQuery)
+
+            .map(this::toListItemViewResult);
     }
 
     /**
@@ -136,7 +134,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * 존재 자체가 비밀이 아니므로 404로 숨기지 않는다.
      */
     @Override
-    public ShopReviewDetailResponse getReviewDetail(Long ceoId, Long shopId, Long reviewId) {
+    public ShopReviewDetailViewResult getReviewDetail(Long ceoId, Long shopId, Long reviewId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopReviewManagementDetailResult detail =
@@ -146,7 +144,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
             throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
         }
 
-        return toDetailResponse(detail);
+        return toDetailViewResult(detail);
     }
 
     /**
@@ -156,13 +154,13 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * 게이트를 먼저 판정해 통과하지 못하면 나머지 집계 쿼리를 아예 실행하지 않는다.
      */
     @Override
-    public ShopReviewStatisticsResponse getStatistics(Long ceoId, Long shopId) {
+    public ShopReviewStatisticsOwnerResult getStatistics(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime gateFrom = now.minusDays(DASHBOARD_GATE_DAYS);
         if (shopReviewStatisticsQueryPort.countSince(shopId, gateFrom) == 0) {
-            return ShopReviewStatisticsResponse.empty();
+            return EMPTY_STATISTICS;
         }
 
         YearMonth currentMonth = YearMonth.from(now);
@@ -176,7 +174,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         ShopReviewCategoryAverageResult averages =
             shopReviewStatisticsQueryPort.getCategoryAverages(shopId, periodFrom, periodTo);
 
-        return ShopReviewStatisticsResponse.from(
+        return new ShopReviewStatisticsOwnerResult(
             true,
             roundToTenth(shopReviewStatisticsQueryPort.getAverageTotalRating(shopId, periodFrom, periodTo)),
             totalReviewCount,
@@ -197,21 +195,21 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * 저장된 리뷰 정렬 설정을 조회한다. 미설정 가게는 기본값 {@code LATEST}에 {@code updatedAt = null}이다.
      */
     @Override
-    public ShopReviewSortTypeResponse getSortType(Long ceoId, Long shopId) {
+    public ShopReviewSortTypeView getSortType(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         return shopReviewDisplaySettingOwnerQueryPort.findSortTypeSettingByShopId(shopId)
-            .map(this::toSortTypeResponse)
-            .orElseGet(() -> toSortTypeResponse(new ShopReviewSortTypeResult(ReviewSortType.LATEST, null)));
+            .map(this::toSortTypeView)
+            .orElseGet(() -> toSortTypeView(new ShopReviewSortTypeResult(ReviewSortType.LATEST, null)));
     }
 
     /**
      * 게시중단 요청 사유 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
     @Override
-    public List<ReviewBlindReasonCatalogResponse> getBlindReasons() {
+    public List<ReviewBlindReasonView> getBlindReasons() {
         return Arrays.stream(ReviewBlindReason.values())
-            .map(reason -> ReviewBlindReasonCatalogResponse.from(reason.name(), reason.getDescription()))
+            .map(reason -> new ReviewBlindReasonView(reason.name(), reason.getDescription()))
             .toList();
     }
 
@@ -221,7 +219,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * <p>DAO는 리뷰가 있는 달만 돌려주므로 빈 달을 여기서 채운다 — 그래프가 6칸 고정이어야 화면이 축을
      * 다시 계산하지 않는다. 리뷰 0건인 달의 평점은 {@code null}이다(0.0으로 채우면 별점 0점으로 읽힌다).
      */
-    private List<ShopReviewMonthlyStatResponse> toMonthlyStats(
+    private List<ShopReviewMonthlyStatResult> toMonthlyStats(
         Long shopId,
         YearMonth firstMonth,
         LocalDateTime periodFrom,
@@ -231,11 +229,11 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         Map<String, Double> averages =
             shopReviewStatisticsQueryPort.getMonthlyAverageRatings(shopId, periodFrom, periodTo);
 
-        List<ShopReviewMonthlyStatResponse> monthlyStats = new java.util.ArrayList<>(STATISTICS_MONTHS);
+        List<ShopReviewMonthlyStatResult> monthlyStats = new java.util.ArrayList<>(STATISTICS_MONTHS);
         for (int offset = 0; offset < STATISTICS_MONTHS; offset++) {
             YearMonth month = firstMonth.plusMonths(offset);
             String key = month.toString();
-            monthlyStats.add(ShopReviewMonthlyStatResponse.from(
+            monthlyStats.add(new ShopReviewMonthlyStatResult(
                 key,
                 roundToTenth(averages.get(key)),
                 counts.getOrDefault(key, 0L)
@@ -289,137 +287,37 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         }
     }
 
-    /**
-     * 리뷰 ID를 16자리 0-pad 표시용 번호로 만든다(원문 ②).
-     */
-    private String toReviewNumber(Long reviewId) {
-        return String.format("%0" + REVIEW_NUMBER_LENGTH + "d", reviewId);
+
+    private ShopReviewListItemViewResult toListItemViewResult(ShopReviewManagementListItemResult result) {
+        return new ShopReviewListItemViewResult(result, toReplyWindow(result.createdAt()));
     }
 
-    private ShopReviewListItemResponse toListItemResponse(ShopReviewManagementListItemResult result) {
-        OrderMethod orderMethod = result.orderMethod();
-        ReviewBlindStatus blindRequestStatus = result.blindRequestStatus();
-        return ShopReviewListItemResponse.from(
-            result.id(),
-            toReviewNumber(result.id()),
-            result.memberNickname(),
-            result.totalRating(),
-            result.content(),
-            result.imageUrls(),
-            result.productNames(),
-            orderMethod == null ? null : orderMethod.name(),
-            orderMethod == null ? null : orderMethod.getDisplayName(),
-            result.hidden(),
-            result.ownerOnly(),
-            result.ownerReplyContent(),
-            result.ownerReplyCreatedAt(),
-            blindRequestStatus == null ? null : blindRequestStatus.name(),
-            blindRequestStatus == null ? null : blindRequestStatus.getDescription(),
-            result.createdAt(),
-            toReplyDeadline(result.createdAt()),
-            isReplyable(result.createdAt())
-        );
-    }
-
-    private ShopReviewDetailResponse toDetailResponse(ShopReviewManagementDetailResult result) {
-        OrderMethod orderMethod = result.orderMethod();
-        List<ReviewBlindRequestHistoryResponse> blindRequests = result.blindRequests().stream()
-            .map(this::toBlindRequestHistoryResponse)
-            .toList();
-        return ShopReviewDetailResponse.from(
-            result.id(),
-            toReviewNumber(result.id()),
-            result.memberNickname(),
-            result.totalRating(),
-            result.content(),
-            result.imageUrls(),
-            result.productNames(),
-            orderMethod == null ? null : orderMethod.name(),
-            orderMethod == null ? null : orderMethod.getDisplayName(),
-            result.hidden(),
-            result.ownerOnly(),
-            result.tasteRating(),
-            result.amountRating(),
-            result.priceRating(),
-            result.atmosphereRating(),
-            result.kindnessRating(),
-            result.hygieneRating(),
-            result.willRevisit(),
-            result.tagNames(),
-            result.ownerReplyId(),
-            result.ownerReplyContent(),
-            result.ownerReplyCreatedAt(),
-            result.ownerReplyUpdatedAt(),
-            latestBlindRequestStatus(blindRequests),
-            latestBlindRequestStatusDescription(blindRequests),
-            blindRequests,
-            result.createdAt(),
-            toReplyDeadline(result.createdAt()),
-            isReplyable(result.createdAt()),
-            result.deliveryRating(),
-            result.deliveryComment()
-        );
+    private ShopReviewDetailViewResult toDetailViewResult(ShopReviewManagementDetailResult result) {
+        return new ShopReviewDetailViewResult(result, toReplyWindow(result.createdAt()));
     }
 
     /**
-     * 답변 마감일 = 리뷰 작성일 + {@link ReviewOwnerReply#REPLY_PERIOD_DAYS}일.
+     * 답변 마감일 = 리뷰 작성일 + {@link ReviewOwnerReply#REPLY_PERIOD_DAYS}일, 그리고 지금 답변할 수
+     * 있는지 여부.
      *
-     * <p><b>DB 컬럼으로 두지 않는다</b> — {@code REVIEW.created_at}에서 매번 파생되는 값이라 저장하면
-     * 정책(일수)이 바뀌는 순간 기존 행이 전부 틀린 값을 갖게 된다.
+     * <p><b>챕터 09</b> — 표현 계약으로 내리지 않고 여기 남긴다. 마감일 상수는 도메인 모델이 소유하고
+     * ({@code apiModuleShouldBeDomainModelFree}) 가능 여부 판정은 "오늘"을 읽어야 하므로, 표현 계약이
+     * 하면 응답 조립이 시점에 의존하는 순수하지 않은 함수가 된다.
      */
-    private LocalDate toReplyDeadline(LocalDateTime reviewCreatedAt) {
-        return reviewCreatedAt.toLocalDate().plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
+    private ShopReviewReplyWindow toReplyWindow(LocalDateTime reviewCreatedAt) {
+        LocalDate replyDeadline = reviewCreatedAt.toLocalDate().plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
+        return new ShopReviewReplyWindow(replyDeadline, !LocalDate.now().isAfter(replyDeadline));
     }
 
-    /**
-     * 오늘 기준 <b>신규 등록</b> 가능 여부 — 점주가 400을 받고 나서야 마감을 아는 것을 막기 위한 파생값이다.
-     *
-     * <p>판정 기준은 도메인 서비스({@code ReviewOwnerReplyService})의 기한 검증과 동일한 날짜 경계다.
-     * 이미 답변이 있는 리뷰는 이 값과 무관하게 수정·삭제할 수 있다(수정·삭제에는 기한 제한이 없다).
-     */
-    private boolean isReplyable(LocalDateTime reviewCreatedAt) {
-        return !LocalDate.now().isAfter(toReplyDeadline(reviewCreatedAt));
-    }
 
-    /**
-     * 이력이 최신순으로 정렬돼 있으므로 첫 항목이 최근 상태다. 목록 응답의 {@code blindRequestStatus}와
-     * 같은 값을 상세에서도 내려주기 위한 것이다(같은 화면이 두 응답을 번갈아 쓴다).
-     */
-    private String latestBlindRequestStatus(List<ReviewBlindRequestHistoryResponse> blindRequests) {
-        return blindRequests.isEmpty() ? null : blindRequests.getFirst().status();
-    }
 
-    /**
-     * 상태 코드와 함께 내려주는 한글 라벨. 화면이 상태 코드를 자체 매핑하지 않고 이 값을 그대로 뱃지에 쓴다
-     * (`frontend/ceo/src/components/AGENTS.md` — 라벨의 한글화는 서버 카탈로그의 몫이다).
-     */
-    private String latestBlindRequestStatusDescription(List<ReviewBlindRequestHistoryResponse> blindRequests) {
-        return blindRequests.isEmpty() ? null : blindRequests.getFirst().statusDescription();
-    }
 
-    private ReviewBlindRequestHistoryResponse toBlindRequestHistoryResponse(ReviewBlindRequestHistoryResult result) {
-        ReviewBlindReason reason = result.reason();
-        ReviewBlindStatus status = result.status();
-        return ReviewBlindRequestHistoryResponse.from(
-            result.id(),
-            reason.name(),
-            reason.getDescription(),
-            result.detailReason(),
-            status.name(),
-            status.getDescription(),
-            result.rejectReason(),
-            result.blindUntil(),
-            result.createdAt()
-        );
-    }
 
-    private ShopReviewSortTypeResponse toSortTypeResponse(ShopReviewSortTypeResult result) {
+
+
+    private ShopReviewSortTypeView toSortTypeView(ShopReviewSortTypeResult result) {
         ReviewSortType sortType = result.sortType();
-        return ShopReviewSortTypeResponse.from(
-            sortType.name(),
-            describeSortType(sortType),
-            result.updatedAt()
-        );
+        return new ShopReviewSortTypeView(sortType.name(), describeSortType(sortType), result.updatedAt());
     }
 
     /**
@@ -428,6 +326,10 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
      * <p>{@link ReviewSortType}에 {@code description}을 넣지 않고 여기서 붙이는 이유는, 그 enum이 web·ceo
      * 공용인데 표시 문구는 화면 소관이기 때문이다. {@code valueOf}가 아니라 switch로 써서 상수가 추가되면
      * 컴파일이 깨져 문구 누락이 드러나게 한다.
+     *
+     * <p><b>챕터 09</b> — 이 매핑을 표현 계약으로 내리지 않고 여기 남긴다. 도메인 enum에 대한
+     * {@code switch}는 바이트코드에서 {@code ordinal()}·{@code values()} 호출이 되어 api 모듈에서는
+     * {@code apiModuleShouldOnlyReadDomainEnums}에 걸린다.
      */
     private String describeSortType(ReviewSortType sortType) {
         return switch (sortType) {

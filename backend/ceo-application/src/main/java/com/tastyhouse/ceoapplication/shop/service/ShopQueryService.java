@@ -14,9 +14,7 @@ import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopListItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopDetailViewResult;
 
 /**
  * 점주용 가게 조회 서비스(CQRS query 측).
@@ -43,7 +41,7 @@ public class ShopQueryService implements ShopQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<ShopListItemResponse> getMyShops(
+    public PageResult<ShopListItemResult> getMyShops(
         Long ceoId,
         String name,
         Long stationId,
@@ -52,35 +50,22 @@ public class ShopQueryService implements ShopQueryUseCase {
         int size
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed, ceoId);
-        PageResult<ShopListItemResponse> pageResult =
-            shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size))
-                .map(this::toShopListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size));
     }
 
     @Override
-    public ShopDetailResponse getMyShop(Long ceoId, Long shopId) {
+    public ShopDetailViewResult getMyShop(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toShopDetailResponse(shop);
+        return toShopDetailViewResult(shop);
     }
 
-    private ShopListItemResponse toShopListItemResponse(ShopListItemResult dto) {
-        return ShopListItemResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.stationName(),
-            dto.roadAddress(),
-            dto.rating(),
-            dto.permanentlyClosed()
-        );
-    }
 
-    private ShopDetailResponse toShopDetailResponse(Shop shop) {
+    private ShopDetailViewResult toShopDetailViewResult(Shop shop) {
         Optional<ShopImageUrlsResult> imageUrls = shopBasicInfoQueryPort.findShopImageUrls(shop.getId());
         String thumbnailImageUrl = imageUrls.map(ShopImageUrlsResult::thumbnailImageUrl).orElse(null);
         String trademarkImageUrl = imageUrls.map(ShopImageUrlsResult::trademarkImageUrl).orElse(null);
 
-        return ShopDetailResponse.from(
+        return new ShopDetailViewResult(
             shop.getId(),
             shop.getStationId() == null ? null : shop.getStationId().value(),
             shop.getName(),

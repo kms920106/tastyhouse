@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoReplyPhraseCreateRequest;
-import com.tastyhouse.ceoapplication.ceo.response.CeoReplyPhraseResponse;
+import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCommandUseCase;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseDeleteCommand;
@@ -58,7 +58,9 @@ public class CeoReplyPhraseApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         List<CeoReplyPhraseResponse> response =
-            ceoReplyPhraseQueryService.getReplyPhrases(userDetails.getCeoId());
+            ceoReplyPhraseQueryService.getReplyPhrases(userDetails.getCeoId()).stream()
+                .map(CeoReplyPhraseResponse::from)
+                .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -22,8 +22,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkDeleteResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaBulkResponse;
+import com.tastyhouse.ceoapplication.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
+import com.tastyhouse.ceoapplication.shop.port.out.ShopDeliveryAreaBulkResult;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCommandUseCase;
@@ -113,7 +113,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
      * 행정동을 일괄 추가한다. 이미 등록된 동은 건너뛰고, 없는 동이 섞이면 전체를 404로 막는다.
      */
     @Override
-    public ShopDeliveryAreaBulkResponse addDeliveryAreas(ShopDeliveryAreaBulkCreateCommand command) {
+    public ShopDeliveryAreaBulkResult addDeliveryAreas(ShopDeliveryAreaBulkCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> adminDongIds = command.adminDongIds();
@@ -122,14 +122,14 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
 
         ShopId targetShopId = ShopId.of(shopId);
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
-        return toBulkResponse(shopDeliveryAreaService.addAreas(targetShopId, toAdminDongIds(adminDongIds), actor));
+        return toBulkResult(shopDeliveryAreaService.addAreas(targetShopId, toAdminDongIds(adminDongIds), actor));
     }
 
     /**
      * 행정동을 일괄 삭제한다. 지역별 배달팁이 참조하는 동이 하나라도 섞이면 한 건도 지우지 않고 409다.
      */
     @Override
-    public ShopDeliveryAreaBulkDeleteResponse removeDeliveryAreas(ShopDeliveryAreaBulkDeleteCommand command) {
+    public ShopDeliveryAreaBulkDeleteResult removeDeliveryAreas(ShopDeliveryAreaBulkDeleteCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> adminDongIds = command.adminDongIds();
@@ -141,7 +141,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
         ShopDeliveryAreaService.BulkResult result = shopDeliveryAreaService.removeAreas(
             targetShopId, toAdminDongIds(adminDongIds), this::resolveRegionNames, actor
         );
-        return ShopDeliveryAreaBulkDeleteResponse.from(
+        return new ShopDeliveryAreaBulkDeleteResult(
             result.requestedCount() - result.skippedCount(),
             result.totalCount()
         );
@@ -153,7 +153,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
      * <p>기준점은 <b>가게의 현재 좌표</b>다 — 소유권 검증이 반환한 도메인에서 얻으므로 추가 조회가 없다.
      */
     @Override
-    public ShopDeliveryAreaBulkResponse applyRadius(ShopDeliveryAreaRadiusApplyCommand command) {
+    public ShopDeliveryAreaBulkResult applyRadius(ShopDeliveryAreaRadiusApplyCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         int radiusMeters = command.radiusMeters();
@@ -163,7 +163,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
 
         ShopId targetShopId = ShopId.of(shopId);
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
-        return toBulkResponse(shopDeliveryAreaRadiusService.applyRadius(
+        return toBulkResult(shopDeliveryAreaRadiusService.applyRadius(
             targetShopId,
             shopLocationOf(shop),
             radiusMeters,
@@ -236,8 +236,8 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
             .toList();
     }
 
-    private ShopDeliveryAreaBulkResponse toBulkResponse(ShopDeliveryAreaService.BulkResult result) {
-        return ShopDeliveryAreaBulkResponse.from(
+    private ShopDeliveryAreaBulkResult toBulkResult(ShopDeliveryAreaService.BulkResult result) {
+        return new ShopDeliveryAreaBulkResult(
             result.requestedCount(),
             result.addedCount(),
             result.skippedCount(),

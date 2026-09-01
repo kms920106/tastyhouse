@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductShopLinkResponse;
+import com.tastyhouse.application.product.port.out.ProductShopLinkResult;
+
 
 /**
  * 메뉴-가게 연결 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductShopLinkResponse;
  */
 public interface ProductShopLinkQueryUseCase {
 
-    List<ProductShopLinkResponse> getShopLinks(Long ceoId, Long shopId, Long productId);
+    List<ProductShopLinkResult> getShopLinks(Long ceoId, Long shopId, Long productId);
 }

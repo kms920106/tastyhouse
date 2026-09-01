@@ -6,14 +6,12 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductVegetarianRequestResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductVegetarianStatusResponse;
+import com.tastyhouse.application.product.port.out.ProductVegetarianStatusResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
@@ -47,7 +45,7 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
     }
 
     @Override
-    public ProductVegetarianStatusResponse getVegetarianStatus(Long ceoId, Long shopId, Long productId) {
+    public ProductVegetarianStatusResult getVegetarianStatus(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductVegetarianSettingResult setting = productOwnerQueryPort.findVegetarianSetting(productId)
@@ -56,29 +54,13 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        List<ProductVegetarianRequestResponse> requests = productOwnerQueryPort.findVegetarianRequests(productId).stream()
-            .map(this::toProductVegetarianRequestResponse)
-            .toList();
+        List<ProductVegetarianRequestResult> requests = productOwnerQueryPort.findVegetarianRequests(productId);
 
         Set<String> shopCategoryNames = shopFoodTypeCategoryReader.readCategoryNames(shopId);
         boolean changeable = productVegetarianApprovalService.isShopCategoryAllowed(shopCategoryNames);
 
-        return ProductVegetarianStatusResponse.from(vegetarianTypeName(setting.vegetarianType()), requests, changeable);
+        return new ProductVegetarianStatusResult(setting.vegetarianType(), requests, changeable);
     }
 
-    private ProductVegetarianRequestResponse toProductVegetarianRequestResponse(ProductVegetarianRequestResult dto) {
-        return ProductVegetarianRequestResponse.from(
-            dto.id(),
-            dto.vegetarianType().name(),
-            dto.ingredients(),
-            dto.description(),
-            dto.status().name(),
-            dto.rejectReason()
-        );
-    }
 
-    /** 채식 메뉴가 아니면 {@code null}이다 — 해제 상태를 빈 문자열로 뭉개지 않는다. */
-    private String vegetarianTypeName(VegetarianType vegetarianType) {
-        return vegetarianType == null ? null : vegetarianType.name();
-    }
 }

@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderAvailabilityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderMethodItemResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderAvailabilityResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemResponse;
 
 @Tag(name = "Ceo Shop Order Availability", description = "점주 가게 주문가능 상태 조회 API")
 @RestController
@@ -40,7 +40,7 @@ public class ShopOrderAvailabilityApiController {
         @PathVariable Long id
     ) {
         ShopOrderAvailabilityResponse response =
-            shopOrderAvailabilityQueryService.getOrderAvailability(userDetails.getCeoId(), id);
+            ShopOrderAvailabilityResponse.from(shopOrderAvailabilityQueryService.getOrderAvailability(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -53,8 +53,9 @@ public class ShopOrderAvailabilityApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopOrderMethodItemResponse> response =
-            shopOrderAvailabilityQueryService.getOrderMethods(userDetails.getCeoId(), id);
+        List<ShopOrderMethodItemResponse> response = shopOrderAvailabilityQueryService.getOrderMethods(userDetails.getCeoId(), id).stream()
+            .map(ShopOrderMethodItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

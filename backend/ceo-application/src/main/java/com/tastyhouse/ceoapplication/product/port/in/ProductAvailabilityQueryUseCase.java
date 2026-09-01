@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityGroupResponse;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
+import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
 
 /**
  * 메뉴 품절/숨김 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.product.response.ProductOptionAvailabilityG
  */
 public interface ProductAvailabilityQueryUseCase {
 
-    List<ProductAvailabilityGroupResponse> getProductAvailability(
+    List<ProductAvailabilityGroupResult> getProductAvailability(
         Long ceoId,
         Long shopId,
         String keyword,
@@ -21,7 +21,7 @@ public interface ProductAvailabilityQueryUseCase {
         Boolean hiddenOnly
     );
 
-    List<ProductOptionAvailabilityGroupResponse> getProductOptionAvailability(
+    List<ProductOptionAvailabilityGroupResult> getProductOptionAvailability(
         Long ceoId,
         Long shopId,
         String keyword,

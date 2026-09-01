@@ -12,12 +12,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergePreviewGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergePreviewOptionResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergePreviewResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSuggestionGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSuggestionOptionResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupMergeSuggestionResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -26,6 +20,8 @@ import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePreviewResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
@@ -69,7 +65,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
      * 제외 기능이 조용히 깨진다). 계산한 서명으로 점주가 [X]로 제외한 묶음을 걸러낸다.
      */
     @Override
-    public List<ProductOptionGroupMergeSuggestionResponse> getMergeSuggestions(Long ceoId, Long shopId) {
+    public List<ProductOptionGroupMergeSuggestionResult> getMergeSuggestions(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupMergeCandidateResult> candidates =
@@ -94,13 +90,13 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
                 Collectors.toList()
             ));
 
-        List<ProductOptionGroupMergeSuggestionResponse> suggestions = new ArrayList<>();
+        List<ProductOptionGroupMergeSuggestionResult> suggestions = new ArrayList<>();
         for (Map.Entry<String, List<ProductOptionGroupMergeCandidateResult>> entry : byPayload.entrySet()) {
             String signature = ProductOptionGroupSignature.hash(entry.getKey());
             if (excluded.contains(signature)) {
                 continue;
             }
-            suggestions.add(toSuggestionResponse(signature, entry.getValue(), groupById, linkedByGroupId));
+            suggestions.add(toSuggestionResult(signature, entry.getValue(), groupById, linkedByGroupId));
         }
         return suggestions;
     }
@@ -113,7 +109,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
      * 되돌릴 수 없는 버튼을 누르기 전에 명백한 불가 사유를 먼저 보여주는 것이다.
      */
     @Override
-    public ProductOptionGroupMergePreviewResponse getMergePreview(
+    public ProductOptionGroupMergePreviewResult getMergePreview(
         Long ceoId,
         Long shopId,
         Long baseOptionGroupId,
@@ -149,10 +145,10 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
             productOwnerQueryPort.findLinkedProductsByShop(shopId);
 
         String blockedReason = findBlockedReason(base, candidates, linkedByGroupId);
-        return ProductOptionGroupMergePreviewResponse.from(
-            toPreviewGroupResponse(base, base, linkedByGroupId, true),
+        return new ProductOptionGroupMergePreviewResult(
+            toPreviewGroupResult(base, base, linkedByGroupId, true),
             candidates.stream()
-                .map(candidate -> toPreviewGroupResponse(candidate, base, linkedByGroupId, false))
+                .map(candidate -> toPreviewGroupResult(candidate, base, linkedByGroupId, false))
                 .toList(),
             blockedReason == null,
             blockedReason
@@ -200,7 +196,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
         return null;
     }
 
-    private ProductOptionGroupMergeSuggestionResponse toSuggestionResponse(
+    private ProductOptionGroupMergeSuggestionResult toSuggestionResult(
         String signature,
         List<ProductOptionGroupMergeCandidateResult> members,
         Map<Long, ProductOptionGroupManagementResult> groupById,
@@ -210,21 +206,21 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
 
         // 묶음 안의 그룹은 정의상 옵션 집합이 같으므로 대표 1세트만 내려보낸다(화면도 하나만 그린다).
         // 숨은 옵션은 서명에 참여하지 않았으므로 표시에서도 제외해 화면과 판정 기준을 일치시킨다.
-        List<ProductOptionGroupMergeSuggestionOptionResponse> options =
+        List<ProductOptionGroupMergeSuggestionResult.Option> options =
             optionsOf(groupById.get(representative.optionGroupId())).stream()
                 .filter(ProductOptionManagementResult::visible)
-                .map(option -> ProductOptionGroupMergeSuggestionOptionResponse.from(
+                .map(option -> new ProductOptionGroupMergeSuggestionResult.Option(
                     option.id(),
                     option.name(),
                     option.additionalPrice()
                 ))
                 .toList();
 
-        List<ProductOptionGroupMergeSuggestionGroupResponse> groups = members.stream()
+        List<ProductOptionGroupMergeSuggestionResult.Group> groups = members.stream()
             .map(member -> {
                 List<String> linkedProductNames =
                     linkedProductNamesOf(member.optionGroupId(), linkedByGroupId);
-                return ProductOptionGroupMergeSuggestionGroupResponse.from(
+                return new ProductOptionGroupMergeSuggestionResult.Group(
                     member.optionGroupId(),
                     linkedProductNames.size(),
                     linkedProductNames
@@ -233,10 +229,10 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
             .toList();
 
         int linkedProductCount = groups.stream()
-            .mapToInt(ProductOptionGroupMergeSuggestionGroupResponse::linkedProductCount)
+            .mapToInt(ProductOptionGroupMergeSuggestionResult.Group::linkedProductCount)
             .sum();
 
-        return ProductOptionGroupMergeSuggestionResponse.from(
+        return new ProductOptionGroupMergeSuggestionResult(
             signature,
             representative.name(),
             representative.minSelect(),
@@ -248,13 +244,13 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
         );
     }
 
-    private ProductOptionGroupMergePreviewGroupResponse toPreviewGroupResponse(
+    private ProductOptionGroupMergePreviewResult.Group toPreviewGroupResult(
         ProductOptionGroupManagementResult group,
         ProductOptionGroupManagementResult base,
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId,
         boolean isBase
     ) {
-        return ProductOptionGroupMergePreviewGroupResponse.from(
+        return new ProductOptionGroupMergePreviewResult.Group(
             group.id(),
             group.name(),
             group.description(),
@@ -266,7 +262,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
             !isBase && !Objects.equals(group.name(), base.name()),
             !isBase && !Objects.equals(group.minSelect(), base.minSelect()),
             !isBase && !Objects.equals(group.maxSelect(), base.maxSelect()),
-            toPreviewOptionResponses(group, base, isBase)
+            toPreviewOptionResults(group, base, isBase)
         );
     }
 
@@ -278,7 +274,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
      * "기준에만 있음"이라는 경고가 의미가 없다. 그 표시는 후보 쪽에서 사라질 옵션
      * ({@code ONLY_IN_CANDIDATE})을 드러내는 데 쓴다.
      */
-    private List<ProductOptionGroupMergePreviewOptionResponse> toPreviewOptionResponses(
+    private List<ProductOptionGroupMergePreviewResult.Option> toPreviewOptionResults(
         ProductOptionGroupManagementResult group,
         ProductOptionGroupManagementResult base,
         boolean isBase
@@ -288,7 +284,7 @@ public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMe
                 (first, second) -> first, LinkedHashMap::new));
 
         return optionsOf(group).stream()
-            .map(option -> ProductOptionGroupMergePreviewOptionResponse.from(
+            .map(option -> new ProductOptionGroupMergePreviewResult.Option(
                 option.id(),
                 option.name(),
                 option.additionalPrice(),

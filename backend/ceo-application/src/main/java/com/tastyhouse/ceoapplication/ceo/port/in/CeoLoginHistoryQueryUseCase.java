@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.ceo.port.in;
 
 import java.time.LocalDate;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.ceo.response.CeoLoginHistoryListItemResponse;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 점주 로그인 이력 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.ceo.response.CeoLoginHistoryListItemRespons
  */
 public interface CeoLoginHistoryQueryUseCase {
 
-    PaginationResponse<CeoLoginHistoryListItemResponse> getLoginHistories(
+    PageResult<CeoLoginHistoryResult> getLoginHistories(
         Long ceoId,
         String result,
         LocalDate startDate,

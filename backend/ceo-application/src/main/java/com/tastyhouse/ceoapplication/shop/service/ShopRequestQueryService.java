@@ -14,6 +14,10 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestDetailViewResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestTypeCatalogResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestTypeView;
 import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
@@ -25,16 +29,6 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestAdjustmentResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestCommentResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestImageChangeResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestListItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestReviewBlindResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestStatusResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeCatalogResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeResponse;
 
 /**
  * 점주용 요청처리 현황 조회 서비스(CQRS query 측).
@@ -72,7 +66,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      * <p>소유권 검증을 가장 먼저 수행한다 — 생략하면 남의 가게 요청 이력이 통째로 새는 IDOR가 된다.
      */
     @Override
-    public PaginationResponse<ShopRequestListItemResponse> getRequests(
+    public PageResult<ShopRequestListItemViewResult> getRequests(
         Long ceoId,
         Long shopId,
         String requestType,
@@ -97,10 +91,8 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<ShopRequestListItemResponse> pageResult =
-            shopRequestQueryPort.findRequestPage(condition, pageQuery)
-                .map(this::toListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopRequestQueryPort.findRequestPage(condition, pageQuery)
+            .map(this::toListItemViewResult);
     }
 
     /**
@@ -108,7 +100,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      * 존재 자체가 드러난다.
      */
     @Override
-    public ShopRequestDetailResponse getRequestDetail(Long ceoId, Long shopId, Long requestId) {
+    public ShopRequestDetailViewResult getRequestDetail(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
@@ -116,10 +108,10 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return switch (detail.requestType()) {
-            case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResponse(detail);
-            case DELIVERY_AREA_ADJUSTMENT -> toAdjustmentDetailResponse(detail);
-            case REVIEW_BLIND -> toReviewBlindDetailResponse(detail);
-            case STORE_PRICE_VERIFICATION -> toStorePriceVerificationDetailResponse(detail);
+            case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResult(detail);
+            case DELIVERY_AREA_ADJUSTMENT -> toAdjustmentDetailResult(detail);
+            case REVIEW_BLIND -> toReviewBlindDetailResult(detail);
+            case STORE_PRICE_VERIFICATION -> toStorePriceVerificationDetailResult(detail);
         };
     }
 
@@ -127,30 +119,27 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      * 요청건 문의 스레드를 작성순으로 조회한다.
      */
     @Override
-    public List<ShopRequestCommentResponse> getComments(Long ceoId, Long shopId, Long requestId) {
+    public List<ShopRequestCommentResult> getComments(Long ceoId, Long shopId, Long requestId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
             .filter(row -> shopId.equals(row.shopId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestQueryPort.findComments(detail.requestId()).stream()
-            .map(this::toCommentResponse)
-            .toList();
+        return shopRequestQueryPort.findComments(detail.requestId());
     }
 
     /**
      * 필터 드롭다운용 요청 유형·상태 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
     @Override
-    public ShopRequestTypeCatalogResponse getRequestTypes() {
-        List<ShopRequestTypeResponse> requestTypes = Arrays.stream(ShopRequestType.values())
-            .map(this::toRequestTypeResponse)
-            .toList();
-        List<ShopRequestStatusResponse> statuses = Arrays.stream(ShopRequestStatus.values())
-            .map(this::toStatusResponse)
-            .toList();
-        return ShopRequestTypeCatalogResponse.from(requestTypes, statuses);
+    public ShopRequestTypeCatalogResult getRequestTypes() {
+        return new ShopRequestTypeCatalogResult(
+            Arrays.stream(ShopRequestType.values())
+                .map(requestType -> new ShopRequestTypeView(requestType, requestType.isContractAmending()))
+                .toList(),
+            Arrays.stream(ShopRequestStatus.values()).toList()
+        );
     }
 
     /**
@@ -162,23 +151,16 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         }
     }
 
-    private ShopRequestDetailResponse toImageChangeDetailResponse(ShopRequestDetailResult detail) {
+    private ShopRequestDetailViewResult toImageChangeDetailResult(ShopRequestDetailResult detail) {
         ShopRequestImageChangeDetailResult source =
             shopRequestQueryPort.findImageChangeDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        ShopRequestImageChangeResponse imageChange = ShopRequestImageChangeResponse.from(
-            source.imageType().name(),
-            source.imageType().getDescription(),
-            source.imageUrl()
-        );
-        ShopRequestStatus status = toRequestStatus(source.status());
-        return toDetailResponse(
+        return toDetailViewResult(
             detail,
-            status.name(),
-            status.getDescription(),
+            toRequestStatus(source.status()),
             source.rejectReason(),
-            imageChange,
+            source,
             null,
             null
         );
@@ -201,28 +183,18 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      * 리뷰 게시중단 요청 상세를 조립한다. 첨부 파일이 없는 유형이라 {@code attachmentUrl}은 항상 null이며,
      * 대신 대상 리뷰의 내용·평점을 서브 객체에 담는다.
      */
-    private ShopRequestDetailResponse toReviewBlindDetailResponse(ShopRequestDetailResult detail) {
+    private ShopRequestDetailViewResult toReviewBlindDetailResult(ShopRequestDetailResult detail) {
         ShopRequestReviewBlindDetailResult source =
             shopRequestQueryPort.findReviewBlindDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        ShopRequestReviewBlindResponse reviewBlind = ShopRequestReviewBlindResponse.from(
-            source.reviewId(),
-            source.reason().name(),
-            source.reason().getDescription(),
-            source.detailReason(),
-            source.reviewContent(),
-            source.reviewTotalRating()
-        );
-        ShopRequestStatus status = toRequestStatus(source.status());
-        return toDetailResponse(
+        return toDetailViewResult(
             detail,
-            status.name(),
-            status.getDescription(),
+            toRequestStatus(source.status()),
             source.rejectReason(),
             null,
             null,
-            reviewBlind
+            source
         );
     }
 
@@ -240,11 +212,10 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
      * ({@code GET /api/shops/v1/&#123;id&#125;/store-price-verifications/latest})이 담당하고, 이 상세는
      * 통합 요청처리 현황 목록의 공통 축(상태·첨부·문의 스레드)만 보여준다.
      */
-    private ShopRequestDetailResponse toStorePriceVerificationDetailResponse(ShopRequestDetailResult detail) {
-        return toDetailResponse(
+    private ShopRequestDetailViewResult toStorePriceVerificationDetailResult(ShopRequestDetailResult detail) {
+        return toDetailViewResult(
             detail,
-            detail.status().name(),
-            detail.status().getDescription(),
+            detail.status(),
             detail.rejectReason(),
             null,
             null,
@@ -252,26 +223,17 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         );
     }
 
-    private ShopRequestDetailResponse toAdjustmentDetailResponse(ShopRequestDetailResult detail) {
+    private ShopRequestDetailViewResult toAdjustmentDetailResult(ShopRequestDetailResult detail) {
         ShopRequestAdjustmentDetailResult source =
             shopRequestQueryPort.findAdjustmentDetail(detail.sourceRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        ShopRequestAdjustmentResponse adjustment = ShopRequestAdjustmentResponse.from(
-            source.counterpartShopName(),
-            source.counterpartBusinessNumber(),
-            source.franchiseName(),
-            source.reason(),
-            source.consentFileUrl()
-        );
-        ShopRequestStatus status = toRequestStatus(source.status());
-        return toDetailResponse(
+        return toDetailViewResult(
             detail,
-            status.name(),
-            status.getDescription(),
+            toRequestStatus(source.status()),
             source.rejectReason(),
             null,
-            adjustment,
+            source,
             null
         );
     }
@@ -290,23 +252,20 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         };
     }
 
-    private ShopRequestDetailResponse toDetailResponse(
+    private ShopRequestDetailViewResult toDetailViewResult(
         ShopRequestDetailResult detail,
-        String status,
-        String statusDescription,
+        ShopRequestStatus status,
         String rejectReason,
-        ShopRequestImageChangeResponse imageChange,
-        ShopRequestAdjustmentResponse deliveryAreaAdjustment,
-        ShopRequestReviewBlindResponse reviewBlind
+        ShopRequestImageChangeDetailResult imageChange,
+        ShopRequestAdjustmentDetailResult deliveryAreaAdjustment,
+        ShopRequestReviewBlindDetailResult reviewBlind
     ) {
         ShopRequestType requestType = detail.requestType();
-        return ShopRequestDetailResponse.from(
+        return new ShopRequestDetailViewResult(
             detail.requestId(),
-            requestType.name(),
-            requestType.getDescription(),
+            requestType,
             detail.summary(),
             status,
-            statusDescription,
             rejectReason,
             requestType.isContractAmending(),
             detail.attachmentUrl() != null,
@@ -321,45 +280,22 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         );
     }
 
-    private ShopRequestListItemResponse toListItemResponse(ShopRequestListItemResult result) {
-        return ShopRequestListItemResponse.from(
-            result.requestId(),
-            result.requestType().name(),
-            result.requestType().getDescription(),
-            result.summary(),
-            result.status().name(),
-            result.status().getDescription(),
-            result.rejectReason(),
-            result.requestType().isContractAmending(),
-            result.hasAttachment(),
-            result.commentCount(),
-            result.requestedAt(),
-            result.processedAt()
-        );
-    }
-
-    private ShopRequestCommentResponse toCommentResponse(ShopRequestCommentResult result) {
-        return ShopRequestCommentResponse.from(
-            result.commentId(),
-            result.authorType().name(),
-            result.authorType().getDescription(),
-            result.content(),
-            result.createdAt()
-        );
-    }
-
-    private ShopRequestTypeResponse toRequestTypeResponse(ShopRequestType requestType) {
-        return ShopRequestTypeResponse.from(
-            requestType.name(),
-            requestType.getDescription(),
-            requestType.isContractAmending()
-        );
-    }
-
-    private ShopRequestStatusResponse toStatusResponse(ShopRequestStatus status) {
-        return ShopRequestStatusResponse.from(
-            status.name(),
-            status.getDescription()
+    /**
+     * 목록 항목에 계약 변경 여부를 채워 넘긴다 — {@code isContractAmending}은 읽기 accessor가 아닌
+     * 도메인 로직이라 표현 계약이 호출할 수 없다(챕터 09).
+     */
+    private ShopRequestListItemViewResult toListItemViewResult(ShopRequestListItemResult row) {
+        return new ShopRequestListItemViewResult(
+            row.requestId(),
+            row.requestType(),
+            row.summary(),
+            row.status(),
+            row.rejectReason(),
+            row.requestType().isContractAmending(),
+            row.hasAttachment(),
+            row.commentCount(),
+            row.requestedAt(),
+            row.processedAt()
         );
     }
 }

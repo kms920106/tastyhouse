@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductVegetarianRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductVegetarianStatusResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianStatusResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianRequestCommand;
@@ -58,9 +58,7 @@ public class ProductVegetarianApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductVegetarianStatusResponse response = productVegetarianQueryService.getVegetarianStatus(
-            userDetails.getCeoId(), request.shopId(), id
-        );
+        ProductVegetarianStatusResponse response = ProductVegetarianStatusResponse.from(productVegetarianQueryService.getVegetarianStatus( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

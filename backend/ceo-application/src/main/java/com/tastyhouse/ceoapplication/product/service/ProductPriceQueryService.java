@@ -5,10 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductPriceResponse;
+import com.tastyhouse.application.product.port.out.ProductPriceView;
 import com.tastyhouse.ceoapplication.product.port.in.ProductPriceQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
-import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.service.ProductPriceService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -40,22 +39,19 @@ public class ProductPriceQueryService implements ProductPriceQueryUseCase {
     }
 
     @Override
-    public List<ProductPriceResponse> getPrices(Long ceoId, Long shopId, Long productId) {
+    public List<ProductPriceView> getPrices(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         return productPriceService.findPrices(ShopId.of(shopId), ProductId.of(productId)).stream()
-            .map(this::toProductPriceResponse)
+            .map(price -> new ProductPriceView(
+                price.getId(),
+                price.getPriceName(),
+                price.getDeliveryPrice(),
+                price.getStorePrice(),
+                price.getPickupPrice(),
+                price.getSort()
+            ))
             .toList();
     }
 
-    private ProductPriceResponse toProductPriceResponse(ProductPrice price) {
-        return ProductPriceResponse.from(
-            price.getId(),
-            price.getPriceName(),
-            price.getDeliveryPrice(),
-            price.getStorePrice(),
-            price.getPickupPrice(),
-            price.getSort()
-        );
-    }
 }

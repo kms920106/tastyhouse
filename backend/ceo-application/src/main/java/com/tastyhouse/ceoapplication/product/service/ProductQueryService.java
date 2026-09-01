@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapplication.product.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductDetailResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -30,7 +29,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     }
 
     @Override
-    public ProductDetailResponse getProduct(Long ceoId, Long shopId, Long productId) {
+    public ProductManagementDetailResult getProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductManagementDetailResult dto = productOwnerQueryPort.findProductManagementDetailById(productId)
@@ -38,30 +37,7 @@ public class ProductQueryService implements ProductQueryUseCase {
         if (!dto.shopId().equals(shopId)) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }
-        return toProductDetailResponse(dto);
+        return dto;
     }
 
-    private ProductDetailResponse toProductDetailResponse(ProductManagementDetailResult dto) {
-        return ProductDetailResponse.from(
-            dto.id(),
-            dto.shopId(),
-            dto.productCategoryId(),
-            dto.productCategoryName(),
-            dto.name(),
-            dto.composition(),
-            dto.description(),
-            dto.originalPrice(),
-            dto.discountPrice(),
-            dto.singleServing(),
-            dto.spiciness(),
-            dto.representative(),
-            dto.ratingExcluded(),
-            dto.soldOut(),
-            dto.visible(),
-            dto.imageUrl(),
-            dto.vegetarianType() == null ? null : dto.vegetarianType().name(),
-            dto.weightText(),
-            dto.exposureScheduled()
-        );
-    }
 }

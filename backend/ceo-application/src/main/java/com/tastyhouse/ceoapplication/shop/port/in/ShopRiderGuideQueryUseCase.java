@@ -1,7 +1,7 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopRiderGuideResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRiderVisitGuideValidationResponse;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
+import com.tastyhouse.application.shop.port.out.ShopVisitGuideValidationResult;
 
 /**
  * 가게 라이더 안내 조회 인바운드 포트.
@@ -11,7 +11,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopRiderVisitGuideValidation
  */
 public interface ShopRiderGuideQueryUseCase {
 
-    ShopRiderGuideResponse getRiderGuide(Long ceoId, Long shopId);
+    ShopRiderGuideResult getRiderGuide(Long ceoId, Long shopId);
 
-    ShopRiderVisitGuideValidationResponse validateVisitGuide(Long ceoId, Long shopId, String visitGuide);
+    ShopVisitGuideValidationResult validateVisitGuide(Long ceoId, Long shopId, String visitGuide);
 }

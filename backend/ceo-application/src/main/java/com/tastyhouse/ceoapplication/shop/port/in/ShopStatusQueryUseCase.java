@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopStatusResponse;
+import com.tastyhouse.application.shop.port.out.ShopStatusResult;
 
 /**
  * 가게 상태 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopStatusResponse;
  */
 public interface ShopStatusQueryUseCase {
 
-    ShopStatusResponse getStatus(Long ceoId, Long shopId);
+    ShopStatusResult getStatus(Long ceoId, Long shopId);
 }

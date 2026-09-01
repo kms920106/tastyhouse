@@ -6,10 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupLinkedProductsResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionResponse;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductsResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -17,6 +14,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
@@ -50,11 +48,11 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
      * 담는다(마지막 연결이라 해제가 거부될지 화면이 미리 안내할 수 있게).
      */
     @Override
-    public List<ProductOptionGroupResponse> getProductOptionGroups(Long ceoId, Long shopId) {
+    public List<ProductOptionGroupViewResult> getProductOptionGroups(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         return productOwnerQueryPort.findProductOptionGroupsForManagement(shopId).stream()
-            .map(this::toProductOptionGroupResponse)
+            .map(this::toOptionGroupViewResult)
             .toList();
     }
 
@@ -66,7 +64,7 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
      * 옵션그룹의 존재 여부를 확인해 주는 통로가 된다.
      */
     @Override
-    public List<ProductOptionGroupLinkedProductResponse> getLinkedProducts(
+    public List<ProductOptionGroupLinkedProductResult> getLinkedProducts(
         Long ceoId,
         Long shopId,
         Long optionGroupId
@@ -84,7 +82,6 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
         // 깨진 데이터가 있어도 남의 가게 메뉴명이 응답으로 새지 않게 한다.
         return linked.stream()
             .filter(row -> shopId.equals(row.shopId()))
-            .map(this::toLinkedProductResponse)
             .toList();
     }
 
@@ -94,19 +91,19 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
      * 이슈 5).
      */
     @Override
-    public List<ProductOptionGroupLinkedProductsResponse> getLinkedProductsByShop(Long ceoId, Long shopId) {
+    public List<ProductOptionGroupLinkedProductsResult> getLinkedProductsByShop(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
             productOwnerQueryPort.findLinkedProductsByShop(shopId);
 
         return linkedByGroupId.entrySet().stream()
-            .map(entry -> toLinkedProductsResponse(entry.getKey(), entry.getValue()))
+            .map(entry -> new ProductOptionGroupLinkedProductsResult(entry.getKey(), entry.getValue()))
             .toList();
     }
 
-    private ProductOptionGroupResponse toProductOptionGroupResponse(ProductOptionGroupManagementResult row) {
-        return ProductOptionGroupResponse.from(
+    private ProductOptionGroupViewResult toOptionGroupViewResult(ProductOptionGroupManagementResult row) {
+        return new ProductOptionGroupViewResult(
             row.id(),
             row.name(),
             row.description(),
@@ -118,12 +115,12 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
             row.visible(),
             row.groupType(),
             row.linkedProductCount(),
-            row.options().stream().map(this::toProductOptionResponse).toList()
+            row.options().stream().map(this::toOptionView).toList()
         );
     }
 
-    private ProductOptionResponse toProductOptionResponse(ProductOptionManagementResult row) {
-        return ProductOptionResponse.from(
+    private ProductOptionGroupViewResult.Option toOptionView(ProductOptionManagementResult row) {
+        return new ProductOptionGroupViewResult.Option(
             row.id(),
             row.name(),
             row.additionalPrice(),
@@ -131,25 +128,10 @@ public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUs
             row.visible(),
             row.cupCount(),
             // 보증금액은 저장하지 않고 조회 시점에 요율로 계산한다 — 옵션 행에는 개수만 남기기로 한
-            // 결정(CupDepositPolicy 주석)의 표시 측 대응이다.
+            // 결정(CupDepositPolicy 주석)의 표시 측 대응이다. 도메인 서비스 호출이라 표현 계약으로
+            // 내리지 않고 여기 남긴다(챕터 09).
             cupDepositPolicy.depositAmountOf(row.cupCount()),
             row.personalCupDiscountAmount()
-        );
-    }
-
-    private ProductOptionGroupLinkedProductResponse toLinkedProductResponse(
-        ProductOptionGroupLinkedProductResult row
-    ) {
-        return ProductOptionGroupLinkedProductResponse.from(row.id(), row.name());
-    }
-
-    private ProductOptionGroupLinkedProductsResponse toLinkedProductsResponse(
-        Long optionGroupId,
-        List<ProductOptionGroupLinkedProductResult> rows
-    ) {
-        return ProductOptionGroupLinkedProductsResponse.from(
-            optionGroupId,
-            rows.stream().map(this::toLinkedProductResponse).toList()
         );
     }
 }

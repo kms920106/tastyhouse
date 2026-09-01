@@ -20,7 +20,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionBulkCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionCreateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopSuspensionResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionBulkCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionCreateCommand;
@@ -45,7 +45,9 @@ public class ShopSuspensionApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopSuspensionResponse> response = shopSuspensionQueryService.getSuspensions(userDetails.getCeoId(), id);
+        List<ShopSuspensionResponse> response = shopSuspensionQueryService.getSuspensions(userDetails.getCeoId(), id).stream()
+            .map(ShopSuspensionResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

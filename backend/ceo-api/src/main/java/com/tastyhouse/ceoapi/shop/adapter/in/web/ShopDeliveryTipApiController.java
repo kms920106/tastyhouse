@@ -21,7 +21,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipHolidayU
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipRegionsUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipSchedulesUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipTiersUpdateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipSettingResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipSettingResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipDistanceRemoveCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipDistanceUpdateCommand;
@@ -67,7 +67,8 @@ public class ShopDeliveryTipApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDeliveryTipSettingResponse response = shopDeliveryTipQueryService.getDeliveryTips(userDetails.getCeoId(), id);
+        ShopDeliveryTipSettingResponse response =
+            ShopDeliveryTipSettingResponse.from(shopDeliveryTipQueryService.getDeliveryTips(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

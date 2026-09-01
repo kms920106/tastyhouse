@@ -20,8 +20,8 @@ import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderVisitGuideUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderVisitGuideValidateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopRiderGuideResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRiderVisitGuideValidationResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderGuideResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideValidationResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderGuideCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationClearCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
@@ -47,7 +47,8 @@ public class ShopRiderGuideApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopRiderGuideResponse response = shopRiderGuideQueryService.getRiderGuide(userDetails.getCeoId(), id);
+        ShopRiderGuideResponse response =
+            ShopRiderGuideResponse.from(shopRiderGuideQueryService.getRiderGuide(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -72,9 +73,8 @@ public class ShopRiderGuideApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderVisitGuideValidateRequest request
     ) {
-        ShopRiderVisitGuideValidationResponse response = shopRiderGuideQueryService.validateVisitGuide(
-            userDetails.getCeoId(), id, request.visitGuide()
-        );
+        ShopRiderVisitGuideValidationResponse response =
+            ShopRiderVisitGuideValidationResponse.from(shopRiderGuideQueryService.validateVisitGuide(userDetails.getCeoId(), id, request.visitGuide()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

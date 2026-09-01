@@ -14,13 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductFeedbackSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackUnreadResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackReadCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase;
@@ -65,9 +67,11 @@ public class ProductFeedbackApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductFeedbackSearchRequest request
     ) {
-        PaginationResponse<ProductFeedbackResponse> result = productFeedbackQueryService.getFeedbacks(
+        PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackQueryService.getFeedbacks(
             userDetails.getCeoId(), request.shopId(), request.page(), request.size()
         );
+        PaginationResponse<ProductFeedbackResponse> result =
+            PaginationResponse.from(pageResult.map(ProductFeedbackResponse::from));
         ApiResponse<List<ProductFeedbackResponse>> response = ApiResponse.success(
             result.content(), result.page(), result.size(), result.totalElements()
         );
@@ -83,9 +87,7 @@ public class ProductFeedbackApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductFeedbackUnreadResponse response = productFeedbackQueryService.getUnread(
-            userDetails.getCeoId(), request.shopId()
-        );
+        ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackQueryService.getUnread( userDetails.getCeoId(), request.shopId() ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

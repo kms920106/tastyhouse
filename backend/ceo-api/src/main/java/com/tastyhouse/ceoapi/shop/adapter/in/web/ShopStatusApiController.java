@@ -16,7 +16,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopStatusUpdateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopStatusResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusUpdateCommand;
 
@@ -39,7 +39,8 @@ public class ShopStatusApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopStatusResponse response = shopStatusQueryService.getStatus(userDetails.getCeoId(), id);
+        ShopStatusResponse response =
+            ShopStatusResponse.from(shopStatusQueryService.getStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

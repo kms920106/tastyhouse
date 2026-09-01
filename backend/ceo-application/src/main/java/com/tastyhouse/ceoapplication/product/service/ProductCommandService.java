@@ -5,8 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityFailureResponse;
+import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCreateUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteCommand;
@@ -22,7 +21,6 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.service.ProductDeletionService;
 import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.service.ProductShopLinkService;
@@ -203,13 +201,13 @@ public class ProductCommandService implements ProductCreateUseCase, ProductUpdat
      * 메뉴를 일괄 소프트 삭제한다. 부분 실패는 예외가 아니라 {@code failed}로 반환된다.
      */
     @Override
-    public ProductAvailabilityChangeResponse deleteProducts(ProductDeleteCommand command) {
+    public ProductAvailabilityChangeView deleteProducts(ProductDeleteCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeResponse(productDeletionService.deleteProducts(ShopId.of(shopId), toProductIds(productIds)));
+        return toChangeView(productDeletionService.deleteProducts(ShopId.of(shopId), toProductIds(productIds)));
     }
 
     // ── 검수 ────────────────────────────────────────────────────────────────────────
@@ -266,23 +264,17 @@ public class ProductCommandService implements ProductCreateUseCase, ProductUpdat
      * 도메인 결과를 응답으로 옮긴다 — 컨트롤러는 {@code com.tastyhouse.domain..}를 import하지 않으므로
      * (ArchUnit {@code LayerRulesTest}) 도메인 타입은 이 서비스 경계에서 멈춘다.
      */
-    private ProductAvailabilityChangeResponse toChangeResponse(ProductAvailabilityChangeResult result) {
-        List<ProductAvailabilityFailureResponse> failed = result.failed().stream()
-            .map(this::toFailureResponse)
-            .toList();
-
-        return ProductAvailabilityChangeResponse.from(
+    private ProductAvailabilityChangeView toChangeView(ProductAvailabilityChangeResult result) {
+        return new ProductAvailabilityChangeView(
             result.succeeded(),
-            failed
+            result.failed().stream()
+                .map(failure -> new ProductAvailabilityChangeView.Failure(
+                    failure.id(),
+                    failure.name(),
+                    failure.errorCode()
+                ))
+                .toList()
         );
     }
 
-    private ProductAvailabilityFailureResponse toFailureResponse(ProductAvailabilityFailure failure) {
-        return ProductAvailabilityFailureResponse.from(
-            failure.id(),
-            failure.name(),
-            failure.errorCode().getCode(),
-            failure.errorCode().getDefaultMessage()
-        );
-    }
 }

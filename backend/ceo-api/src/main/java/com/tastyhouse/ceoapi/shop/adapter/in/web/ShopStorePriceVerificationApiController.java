@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceVerificationResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationRequestCommand;
 
@@ -90,7 +90,7 @@ public class ShopStorePriceVerificationApiController {
         @PathVariable Long id
     ) {
         ShopStorePriceVerificationResponse response =
-            shopStorePriceVerificationQueryService.getLatestVerification(userDetails.getCeoId(), id);
+            ShopStorePriceVerificationResponse.from(shopStorePriceVerificationQueryService.getLatestVerification(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -1,8 +1,7 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductFeedbackUnreadResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 
 /**
  * 메뉴 고객 의견 조회 인바운드 포트.
@@ -12,7 +11,7 @@ import com.tastyhouse.ceoapplication.product.response.ProductFeedbackUnreadRespo
  */
 public interface ProductFeedbackQueryUseCase {
 
-    PaginationResponse<ProductFeedbackResponse> getFeedbacks(Long ceoId, Long shopId, int page, int size);
+    PageResult<ProductFeedbackSummaryResult> getFeedbacks(Long ceoId, Long shopId, int page, int size);
 
-    ProductFeedbackUnreadResponse getUnread(Long ceoId, Long shopId);
+    boolean getUnread(Long ceoId, Long shopId);
 }

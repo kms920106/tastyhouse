@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeCreateRequest
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeExposureRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeValidateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopNoticeResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeDeleteCommand;
@@ -51,7 +51,9 @@ public class ShopNoticeApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopNoticeResponse> response = shopNoticeQueryService.getNotices(userDetails.getCeoId(), id);
+        List<ShopNoticeResponse> response = shopNoticeQueryService.getNotices(userDetails.getCeoId(), id).stream()
+            .map(ShopNoticeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

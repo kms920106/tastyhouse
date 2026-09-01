@@ -20,7 +20,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopPhoneNumberCreateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberDeleteCommand;
@@ -45,7 +45,9 @@ public class ShopPhoneNumberApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryService.getPhoneNumbers(userDetails.getCeoId(), id);
+        List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryService.getPhoneNumbers(userDetails.getCeoId(), id).stream()
+            .map(ShopPhoneNumberResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

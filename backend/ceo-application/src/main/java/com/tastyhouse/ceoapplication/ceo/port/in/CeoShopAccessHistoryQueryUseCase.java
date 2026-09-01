@@ -2,8 +2,8 @@ package com.tastyhouse.ceoapplication.ceo.port.in;
 
 import java.time.LocalDate;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.ceo.response.CeoShopAccessHistoryListItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 점주 가게 접속 이력 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.ceoapplication.ceo.response.CeoShopAccessHistoryListItemRe
  */
 public interface CeoShopAccessHistoryQueryUseCase {
 
-    PaginationResponse<CeoShopAccessHistoryListItemResponse> getShopAccessHistories(
+    PageResult<ShopCeoAssignmentHistoryResult> getShopAccessHistories(
         Long ceoId,
         String actionType,
         Long shopId,

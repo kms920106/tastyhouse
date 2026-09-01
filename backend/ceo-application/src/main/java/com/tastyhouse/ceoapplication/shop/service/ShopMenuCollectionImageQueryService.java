@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageResult;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopMenuCollectionImageResponse;
 
 /**
  * 점주용 메뉴모음컷 조회 서비스(CQRS query 측).
@@ -31,21 +30,10 @@ public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionIm
     }
 
     @Override
-    public List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long ceoId, Long shopId) {
+    public List<ShopMenuCollectionImageResult> getMenuCollectionImages(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopOwnerQueryPort.findMenuCollectionImages(shopId).stream()
-            .map(this::toShopMenuCollectionImageResponse)
-            .toList();
+        return shopOwnerQueryPort.findMenuCollectionImages(shopId);
     }
 
-    private ShopMenuCollectionImageResponse toShopMenuCollectionImageResponse(ShopMenuCollectionImageResult dto) {
-        return ShopMenuCollectionImageResponse.from(
-            dto.id(),
-            dto.imageUrl(),
-            dto.sort(),
-            dto.status().name(),
-            dto.rejectReason()
-        );
-    }
 }

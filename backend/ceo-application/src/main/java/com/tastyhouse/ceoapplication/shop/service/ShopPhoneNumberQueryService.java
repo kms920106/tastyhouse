@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopPhoneNumberResponse;
 
 /**
  * 점주용 가게 전화번호 조회 서비스(CQRS query 측).
@@ -26,19 +25,9 @@ public class ShopPhoneNumberQueryService implements ShopPhoneNumberQueryUseCase 
     }
 
     @Override
-    public List<ShopPhoneNumberResponse> getPhoneNumbers(Long ceoId, Long shopId) {
+    public List<ShopPhoneNumberResult> getPhoneNumbers(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findPhoneNumbers(shopId).stream()
-            .map(this::toShopPhoneNumberResponse)
-            .toList();
+        return shopBasicInfoQueryPort.findPhoneNumbers(shopId);
     }
 
-    private ShopPhoneNumberResponse toShopPhoneNumberResponse(ShopPhoneNumberResult dto) {
-        return ShopPhoneNumberResponse.from(
-            dto.id(),
-            dto.phoneNumber(),
-            dto.primary(),
-            dto.virtual()
-        );
-    }
 }

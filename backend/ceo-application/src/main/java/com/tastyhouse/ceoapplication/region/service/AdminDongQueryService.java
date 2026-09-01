@@ -13,18 +13,14 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.region.port.out.AdminDongBoundariesResult;
 import com.tastyhouse.application.region.port.out.AdminDongBoundaryResult;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryViewResult;
 import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
+import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
 import com.tastyhouse.application.shared.port.out.GeoRingsPort;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongBoundaryItemResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongBoundaryResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongItemResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongPointResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongTreeItemResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongTreeResponse;
 
 /**
  * 행정동 검색 서비스(CQRS query 측).
@@ -58,10 +54,8 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<AdminDongItemResponse> getAdminDongs(String keyword, int page, int size) {
-        PageResult<AdminDongItemResult> pageResult = adminDongQueryPort.findAdminDongPage(keyword, PageQuery.of(page, size));
-
-        return PaginationResponse.from(pageResult.map(this::toAdminDongItemResponse));
+    public PageResult<AdminDongItemResult> getAdminDongs(String keyword, int page, int size) {
+        return adminDongQueryPort.findAdminDongPage(keyword, PageQuery.of(page, size));
     }
 
     /**
@@ -74,7 +68,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
      * ("중구"는 서울·부산·대구 등에 있다) 상위 계층 없이는 대상을 특정할 수 없다.
      */
     @Override
-    public AdminDongTreeResponse getAdminDongTree(String sidoName, String sigunguName) {
+    public AdminDongTreeResult getAdminDongTree(String sidoName, String sigunguName) {
         boolean hasSido = StringUtils.hasText(sidoName);
         boolean hasSigungu = StringUtils.hasText(sigunguName);
 
@@ -86,12 +80,12 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
         }
 
         if (!hasSido) {
-            return toAdminDongTreeResponse(LEVEL_SIDO, adminDongQueryPort.findSidoNames());
+            return toAdminDongTreeResult(LEVEL_SIDO, adminDongQueryPort.findSidoNames());
         }
         if (!hasSigungu) {
-            return toAdminDongTreeResponse(LEVEL_SIGUNGU, adminDongQueryPort.findSigunguNames(sidoName.trim()));
+            return toAdminDongTreeResult(LEVEL_SIGUNGU, adminDongQueryPort.findSigunguNames(sidoName.trim()));
         }
-        return toAdminDongTreeResponse(
+        return toAdminDongTreeResult(
             LEVEL_DONG,
             adminDongQueryPort.findDongs(sidoName.trim(), sigunguName.trim())
         );
@@ -104,7 +98,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
      * 지도를 축소하는 것은 정상 조작이고, 그때마다 오류를 띄우면 화면이 쓸 수 없게 된다.
      */
     @Override
-    public AdminDongBoundaryResponse getAdminDongBoundaries(
+    public AdminDongBoundariesResult getAdminDongBoundaries(
         BigDecimal swLat,
         BigDecimal swLng,
         BigDecimal neLat,
@@ -129,17 +123,17 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
         }
 
         if (hasIds) {
-            return toAdminDongBoundaryResponse(adminDongQueryPort.findBoundariesByIds(adminDongIds));
+            return toAdminDongBoundariesResult(adminDongQueryPort.findBoundariesByIds(adminDongIds));
         }
 
         if (level == null) {
             throw new BusinessException(ErrorCode.ADMIN_DONG_QUERY_INVALID, "조회 영역(bbox)에는 줌 레벨이 필요합니다.");
         }
         if (exceedsBoundingBoxLimit(swLat, swLng, neLat, neLng)) {
-            return AdminDongBoundaryResponse.from(true, List.of());
+            return new AdminDongBoundariesResult(true, List.of());
         }
 
-        return toAdminDongBoundaryResponse(adminDongQueryPort.findBoundariesWithinBoundingBox(
+        return toAdminDongBoundariesResult(adminDongQueryPort.findBoundariesWithinBoundingBox(
             swLat, neLat, swLng, neLng, MAX_BOUNDARY_ITEMS
         ));
     }
@@ -156,36 +150,24 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
         return latitudeSpan.multiply(longitudeSpan).compareTo(MAX_BOUNDARY_BOX_AREA_DEGREES) > 0;
     }
 
-    private AdminDongTreeResponse toAdminDongTreeResponse(String level, List<AdminDongTreeItemResult> items) {
-        return AdminDongTreeResponse.from(
-            level,
-            items.stream().map(this::toAdminDongTreeItemResponse).toList()
-        );
-    }
-
-    private AdminDongTreeItemResponse toAdminDongTreeItemResponse(AdminDongTreeItemResult dto) {
-        return AdminDongTreeItemResponse.from(
-            dto.name(),
-            dto.adminDongId(),
-            dto.code(),
-            dto.dongCount()
-        );
+    private AdminDongTreeResult toAdminDongTreeResult(String level, List<AdminDongTreeItemResult> items) {
+        return new AdminDongTreeResult(level, items);
     }
 
     /**
-     * 조회된 경계를 응답으로 옮긴다. 여기로 오는 경로는 전부 잘리지 않은 결과이므로
+     * 조회된 경계를 디코딩해 조회 결과로 옮긴다. 여기로 오는 경로는 전부 잘리지 않은 결과이므로
      * {@code truncated}는 항상 {@code false}다 — 임계 면적을 넘긴 경우는 이 메서드를 타지 않고
      * 위에서 빈 배열 + {@code true}로 곧장 응답한다.
      */
-    private AdminDongBoundaryResponse toAdminDongBoundaryResponse(List<AdminDongBoundaryResult> items) {
-        return AdminDongBoundaryResponse.from(
+    private AdminDongBoundariesResult toAdminDongBoundariesResult(List<AdminDongBoundaryResult> items) {
+        return new AdminDongBoundariesResult(
             false,
-            items.stream().map(this::toAdminDongBoundaryItemResponse).toList()
+            items.stream().map(this::toBoundaryViewResult).toList()
         );
     }
 
-    private AdminDongBoundaryItemResponse toAdminDongBoundaryItemResponse(AdminDongBoundaryResult dto) {
-        return AdminDongBoundaryItemResponse.from(
+    private AdminDongBoundaryViewResult toBoundaryViewResult(AdminDongBoundaryResult dto) {
+        return new AdminDongBoundaryViewResult(
             dto.adminDongId(),
             dto.regionName(),
             dto.centerLatitude(),
@@ -198,7 +180,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
      * 인코딩된 경계 문자열을 좌표 객체 배열로 푼다. 경계 미보유는 {@code null}로 남겨 "데이터가 없다"와
      * "경계가 빈 도형이다"를 구분한다.
      */
-    private List<List<AdminDongPointResponse>> toRings(String boundary) {
+    private List<List<AdminDongBoundaryViewResult.Point>> toRings(String boundary) {
         List<GeoRing> rings = geoRingsPort.resolveRings(boundary);
         if (rings.isEmpty()) {
             return null;
@@ -206,16 +188,8 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
 
         return rings.stream()
             .map(ring -> ring.points().stream()
-                .map(point -> AdminDongPointResponse.from(point.latitude(), point.longitude()))
+                .map(point -> new AdminDongBoundaryViewResult.Point(point.latitude(), point.longitude()))
                 .toList())
             .toList();
-    }
-
-    private AdminDongItemResponse toAdminDongItemResponse(AdminDongItemResult dto) {
-        return AdminDongItemResponse.from(
-            dto.id(),
-            dto.code(),
-            dto.regionName()
-        );
     }
 }

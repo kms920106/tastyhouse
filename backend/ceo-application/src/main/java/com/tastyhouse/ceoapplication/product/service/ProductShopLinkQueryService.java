@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductShopLinkResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductShopLinkQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
@@ -36,21 +35,10 @@ public class ProductShopLinkQueryService implements ProductShopLinkQueryUseCase 
      * 이 메뉴를 연결할 수 있는 가게 목록(= 점주 소유 전체 가게)과 각각의 연결 여부를 조회한다.
      */
     @Override
-    public List<ProductShopLinkResponse> getShopLinks(Long ceoId, Long shopId, Long productId) {
+    public List<ProductShopLinkResult> getShopLinks(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productShopLinkQueryPort.findOwnedShopLinks(ceoId, productId).stream()
-            .map(this::toProductShopLinkResponse)
-            .toList();
+        return productShopLinkQueryPort.findOwnedShopLinks(ceoId, productId);
     }
 
-    private ProductShopLinkResponse toProductShopLinkResponse(ProductShopLinkResult result) {
-        return ProductShopLinkResponse.from(
-            result.shopId(),
-            result.shopName(),
-            result.productCategoryId(),
-            result.productCategoryName(),
-            result.linked()
-        );
-    }
 }

@@ -1,6 +1,8 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopOrderNoticeResponse;
+import java.util.Optional;
+
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 /**
  * 가게 주문 안내 조회 인바운드 포트.
@@ -10,5 +12,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopOrderNoticeResponse;
  */
 public interface ShopOrderNoticeQueryUseCase {
 
-    ShopOrderNoticeResponse getOrderNotice(Long ceoId, Long shopId);
+    Optional<ShopOrderNoticeResult> getOrderNotice(Long ceoId, Long shopId);
 }

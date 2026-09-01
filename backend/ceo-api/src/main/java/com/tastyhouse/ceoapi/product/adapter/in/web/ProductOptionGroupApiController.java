@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupCr
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupUpdateRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductOptionGroupResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
@@ -68,9 +68,9 @@ public class ProductOptionGroupApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupSearchRequest request
     ) {
-        List<ProductOptionGroupResponse> response = productOptionGroupQueryService.getProductOptionGroups(
-            userDetails.getCeoId(), request.shopId()
-        );
+        List<ProductOptionGroupResponse> response = productOptionGroupQueryService.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
+            .map(ProductOptionGroupResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

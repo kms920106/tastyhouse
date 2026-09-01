@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
+
 
 /**
  * 가게 위생 배지 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopHygieneBadgeResponse;
  */
 public interface ShopHygieneBadgeQueryUseCase {
 
-    List<ShopHygieneBadgeResponse> getHygieneBadges(Long ceoId, Long shopId);
+    List<ShopHygieneBadgeResult> getHygieneBadges(Long ceoId, Long shopId);
 }

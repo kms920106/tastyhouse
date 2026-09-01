@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopContentBoardResponse;
+import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
+
 
 /**
  * 가게 콘텐츠 보드 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopContentBoardResponse;
  */
 public interface ShopContentBoardQueryUseCase {
 
-    List<ShopContentBoardResponse> getContentBoards(Long ceoId, Long shopId);
+    List<ShopContentBoardResult> getContentBoards(Long ceoId, Long shopId);
 }

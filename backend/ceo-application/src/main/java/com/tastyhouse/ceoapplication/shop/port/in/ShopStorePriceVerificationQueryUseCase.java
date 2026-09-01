@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.shop.port.in;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceVerificationResponse;
+import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewResult;
 
 /**
  * 가게 매장가 검증 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceVerificationRes
  */
 public interface ShopStorePriceVerificationQueryUseCase {
 
-    ShopStorePriceVerificationResponse getLatestVerification(Long ceoId, Long shopId);
+    ShopStorePriceVerificationViewResult getLatestVerification(Long ceoId, Long shopId);
 }

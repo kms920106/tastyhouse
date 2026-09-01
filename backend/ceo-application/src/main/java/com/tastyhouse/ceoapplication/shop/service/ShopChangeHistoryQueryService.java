@@ -17,10 +17,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopChangeCategoryResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopChangeHistoryListItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopChangeTypeResponse;
+import com.tastyhouse.application.shop.port.out.ShopChangeCategoryResult;
 
 /**
  * 점주용 가게 변경이력 조회 서비스(CQRS query 측).
@@ -59,7 +56,7 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
      * <p>소유권 검증을 가장 먼저 수행한다 — 생략하면 남의 가게 변경이력이 통째로 새는 IDOR가 된다.
      */
     @Override
-    public PaginationResponse<ShopChangeHistoryListItemResponse> getChangeHistories(
+    public PageResult<ShopChangeHistoryResult> getChangeHistories(
         Long ceoId,
         Long shopId,
         String category,
@@ -86,19 +83,16 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<ShopChangeHistoryListItemResponse> pageResult =
-            shopChangeHistoryQueryPort.findChangeHistoryPage(condition, pageQuery)
-                .map(this::toListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopChangeHistoryQueryPort.findChangeHistoryPage(condition, pageQuery);
     }
 
     /**
      * 필터 드롭다운용 대분류·중분류 카탈로그. 가게에 종속되지 않는 정적 목록이라 소유권 검증이 없다.
      */
     @Override
-    public List<ShopChangeCategoryResponse> getChangeHistoryTypes() {
+    public List<ShopChangeCategoryResult> getChangeHistoryTypes() {
         return Arrays.stream(ShopChangeCategory.values())
-            .map(this::toCategoryResponse)
+            .map(this::toCategoryResult)
             .toList();
     }
 
@@ -115,37 +109,10 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
         return changedDate;
     }
 
-    private ShopChangeCategoryResponse toCategoryResponse(ShopChangeCategory category) {
-        List<ShopChangeTypeResponse> changeTypes = Arrays.stream(ShopChangeType.values())
+    private ShopChangeCategoryResult toCategoryResult(ShopChangeCategory category) {
+        List<ShopChangeType> changeTypes = Arrays.stream(ShopChangeType.values())
             .filter(changeType -> changeType.getCategory() == category)
-            .map(this::toChangeTypeResponse)
             .toList();
-        return ShopChangeCategoryResponse.from(
-            category.name(),
-            category.getDescription(),
-            changeTypes
-        );
-    }
-
-    private ShopChangeTypeResponse toChangeTypeResponse(ShopChangeType changeType) {
-        return ShopChangeTypeResponse.from(
-            changeType.name(),
-            changeType.getDescription()
-        );
-    }
-
-    private ShopChangeHistoryListItemResponse toListItemResponse(ShopChangeHistoryResult result) {
-        return ShopChangeHistoryListItemResponse.from(
-            result.id(),
-            result.category().name(),
-            result.category().getDescription(),
-            result.changeType().name(),
-            result.changeType().getDescription(),
-            result.actionType().name(),
-            result.actionType().getDescription(),
-            result.previousValue(),
-            result.newValue(),
-            result.changedAt()
-        );
+        return new ShopChangeCategoryResult(category, changeTypes);
     }
 }

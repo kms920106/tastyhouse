@@ -21,8 +21,8 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopConvenienceInfoUpdateRequest;
-import com.tastyhouse.ceoapplication.shop.response.ShopAmenityResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopConvenienceInfoResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopAmenityResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityAssignCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityUnassignCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoCommandUseCase;
@@ -47,7 +47,10 @@ public class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopConvenienceInfoResponse response = shopConvenienceInfoQueryService.getConvenienceInfo(userDetails.getCeoId(), id);
+        ShopConvenienceInfoResponse response =
+            shopConvenienceInfoQueryService.getConvenienceInfo(userDetails.getCeoId(), id)
+                .map(ShopConvenienceInfoResponse::from)
+                .orElseGet(() -> ShopConvenienceInfoResponse.empty(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -69,7 +72,9 @@ public class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopAmenityResponse> response = shopConvenienceInfoQueryService.getAmenities(userDetails.getCeoId(), id);
+        List<ShopAmenityResponse> response = shopConvenienceInfoQueryService.getAmenities(userDetails.getCeoId(), id).stream()
+            .map(ShopAmenityResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

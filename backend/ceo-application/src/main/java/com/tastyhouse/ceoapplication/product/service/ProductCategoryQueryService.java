@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
@@ -38,22 +37,10 @@ public class ProductCategoryQueryService implements ProductCategoryQueryUseCase 
      * 소속 메뉴 수를 함께 담는다(그룹 삭제 가능 여부를 화면이 미리 안내할 수 있게).
      */
     @Override
-    public List<ProductCategoryResponse> getProductCategories(Long ceoId, Long shopId) {
+    public List<ProductCategoryManagementResult> getProductCategories(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productOwnerQueryPort.findProductCategoriesForManagement(shopId).stream()
-            .map(this::toProductCategoryResponse)
-            .toList();
+        return productOwnerQueryPort.findProductCategoriesForManagement(shopId);
     }
 
-    private ProductCategoryResponse toProductCategoryResponse(ProductCategoryManagementResult row) {
-        return ProductCategoryResponse.from(
-            row.id(),
-            row.name(),
-            row.description(),
-            row.sort(),
-            row.visible(),
-            row.productCount()
-        );
-    }
 }

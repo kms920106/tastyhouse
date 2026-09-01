@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
 
 /**
  * 메뉴 품절·숨김 해제 인바운드 포트.
@@ -9,5 +9,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeR
  */
 public interface ProductReleaseUseCase {
 
-    ProductAvailabilityChangeResponse releaseProducts(ProductReleaseCommand command);
+    ProductAvailabilityChangeView releaseProducts(ProductReleaseCommand command);
 }

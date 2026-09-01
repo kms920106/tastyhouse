@@ -9,8 +9,6 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopBusinessHourResponse;
 
 /**
  * 점주용 영업시간·휴게시간 조회 서비스(CQRS query 측).
@@ -33,41 +31,14 @@ public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCas
     }
 
     @Override
-    public List<ShopBusinessHourResponse> getBusinessHours(Long ceoId, Long shopId) {
+    public List<ShopBusinessHourResult> getBusinessHours(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findBusinessHours(shopId).stream()
-            .map(this::toShopBusinessHourResponse)
-            .toList();
+        return shopBasicInfoQueryPort.findBusinessHours(shopId);
     }
 
     @Override
-    public List<ShopBreakTimeResponse> getBreakTimes(Long ceoId, Long shopId) {
+    public List<ShopBreakTimeResult> getBreakTimes(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findBreakTimes(shopId).stream()
-            .map(this::toShopBreakTimeResponse)
-            .toList();
+        return shopBasicInfoQueryPort.findBreakTimes(shopId);
     }
-
-    private ShopBusinessHourResponse toShopBusinessHourResponse(ShopBusinessHourResult businessHour) {
-        return ShopBusinessHourResponse.from(
-            businessHour.id(),
-            businessHour.dayType().name(),
-            businessHour.dayType().getDescription(),
-            businessHour.openTime(),
-            businessHour.closeTime(),
-            businessHour.closed(),
-            businessHour.allDay()
-        );
-    }
-
-    private ShopBreakTimeResponse toShopBreakTimeResponse(ShopBreakTimeResult breakTime) {
-        return ShopBreakTimeResponse.from(
-            breakTime.id(),
-            breakTime.dayType().name(),
-            breakTime.dayType().getDescription(),
-            breakTime.startTime(),
-            breakTime.endTime()
-        );
-    }
-
 }

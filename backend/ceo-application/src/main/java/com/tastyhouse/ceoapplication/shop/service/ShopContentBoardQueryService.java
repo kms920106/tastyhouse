@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
-import com.tastyhouse.ceoapplication.shop.response.ShopContentBoardResponse;
 
 /**
  * 점주용 가게 콘텐츠보드 조회 서비스(CQRS query 측).
@@ -26,24 +25,10 @@ public class ShopContentBoardQueryService implements ShopContentBoardQueryUseCas
     }
 
     @Override
-    public List<ShopContentBoardResponse> getContentBoards(Long ceoId, Long shopId) {
+    public List<ShopContentBoardResult> getContentBoards(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopOwnerQueryPort.findContentBoards(shopId).stream()
-            .map(this::toShopContentBoardResponse)
-            .toList();
+        return shopOwnerQueryPort.findContentBoards(shopId);
     }
 
-    private ShopContentBoardResponse toShopContentBoardResponse(ShopContentBoardResult dto) {
-        return ShopContentBoardResponse.of(
-            dto.id(),
-            dto.shopId(),
-            dto.contentType().name(),
-            dto.topic().name(),
-            dto.imageUrl(),
-            dto.youtubeUrl(),
-            dto.description(),
-            dto.hidden()
-        );
-    }
 }

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.ceoapplication.auth.port.in.AuthCommandUseCase;
 import com.tastyhouse.ceoapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
+import com.tastyhouse.ceoapplication.auth.port.out.JwtResult;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistorySuccessCommand;
@@ -85,7 +85,7 @@ public class AuthCommandService implements AuthCommandUseCase {
      * {@code userAgent}는 요청의 User-Agent다(미전송 시 null).
      */
     @Override
-    public JwtResponse login(AuthLoginCommand command) {
+    public JwtResult login(AuthLoginCommand command) {
         String username = command.username();
         String ipAddress = command.ipAddress();
         String userAgent = command.userAgent();
@@ -115,7 +115,7 @@ public class AuthCommandService implements AuthCommandUseCase {
      * <p>접속기록을 남기지 않는다 — 토큰 갱신은 새로운 개인정보 접속이 아니라 기존 세션의 연장이다.
      */
     @Override
-    public JwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         return tokenService.refresh(refreshToken);
     }
 

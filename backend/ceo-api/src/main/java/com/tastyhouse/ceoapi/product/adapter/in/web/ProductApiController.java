@@ -21,8 +21,8 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCreateRequest
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductUpdateRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductDetailResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCreateUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteCommand;
@@ -70,7 +70,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductDetailResponse response = productQueryService.getProduct(userDetails.getCeoId(), request.shopId(), id);
+        ProductDetailResponse response = ProductDetailResponse.from(productQueryService.getProduct(userDetails.getCeoId(), request.shopId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -111,7 +111,7 @@ public class ProductApiController {
         @Valid @RequestBody ProductDeleteRequest request
     ) {
         ProductDeleteCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = productDeleteUseCase.deleteProducts(command);
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productDeleteUseCase.deleteProducts(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

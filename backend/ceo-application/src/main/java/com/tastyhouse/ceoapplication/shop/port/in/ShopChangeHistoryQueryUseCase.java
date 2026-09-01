@@ -3,9 +3,9 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopChangeCategoryResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopChangeHistoryListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeCategoryResult;
 
 /**
  * 가게 변경 이력 조회 인바운드 포트.
@@ -15,7 +15,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopChangeHistoryListItemResp
  */
 public interface ShopChangeHistoryQueryUseCase {
 
-    PaginationResponse<ShopChangeHistoryListItemResponse> getChangeHistories(
+    PageResult<ShopChangeHistoryResult> getChangeHistories(
         Long ceoId,
         Long shopId,
         String category,
@@ -25,5 +25,5 @@ public interface ShopChangeHistoryQueryUseCase {
         int size
     );
 
-    List<ShopChangeCategoryResponse> getChangeHistoryTypes();
+    List<ShopChangeCategoryResult> getChangeHistoryTypes();
 }

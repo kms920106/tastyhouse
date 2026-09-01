@@ -4,7 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
+import com.tastyhouse.ceoapplication.auth.port.out.JwtResult;
 import com.tastyhouse.ceoapplication.ceo.service.CeoQueryService;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -42,7 +42,7 @@ public class TokenService {
     /**
      * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장
      */
-    public JwtResponse issue(Authentication authentication, boolean rememberMe) {
+    public JwtResult issue(Authentication authentication, boolean rememberMe) {
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication, rememberMe);
 
@@ -52,13 +52,13 @@ public class TokenService {
                 jwtTokenProvider.getRefreshTokenTtl(rememberMe)
         );
 
-        return JwtResponse.of(accessToken, refreshToken, "Bearer");
+        return JwtResult.of(accessToken, refreshToken, "Bearer");
     }
 
     /**
      * Refresh Token으로 새 Access Token + Refresh Token 재발급 (Refresh Token Rotation)
      */
-    public JwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
         }
@@ -84,7 +84,7 @@ public class TokenService {
 
         refreshTokenRepository.save(username, newRefreshToken, jwtTokenProvider.getRefreshTokenTtl(false));
 
-        return JwtResponse.of(newAccessToken, newRefreshToken, "Bearer");
+        return JwtResult.of(newAccessToken, newRefreshToken, "Bearer");
     }
 
     /**

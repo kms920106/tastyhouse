@@ -8,15 +8,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.ceoapplication.product.response.ProductExposureHourResponse;
-import com.tastyhouse.ceoapplication.product.response.ProductExposureResponse;
+import com.tastyhouse.application.product.port.out.ProductExposureViewResult;
 import com.tastyhouse.ceoapplication.product.port.in.ProductExposureQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
-import com.tastyhouse.domain.product.model.ProductHiddenReason;
 import com.tastyhouse.domain.product.service.ProductExposureResult;
 import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -58,7 +56,7 @@ public class ProductExposureQueryService implements ProductExposureQueryUseCase 
     }
 
     @Override
-    public ProductExposureResponse getExposure(Long ceoId, Long shopId, Long productId) {
+    public ProductExposureViewResult getExposure(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductExposurePeriodResult period = productOwnerQueryPort.findExposurePeriod(productId)
@@ -77,29 +75,22 @@ public class ProductExposureQueryService implements ProductExposureQueryUseCase 
             publicHolidayCalendar.isPublicHoliday(today.minusDays(1))
         );
 
-        List<ProductExposureHourResponse> hours = productExposureService.findHours(targetProductId).stream()
-            .map(this::toProductExposureHourResponse)
-            .toList();
+        List<ProductExposureHour> hours = productExposureService.findHours(targetProductId);
 
-        return ProductExposureResponse.from(
+        return new ProductExposureViewResult(
             period.startDate(),
             period.endDate(),
-            hours,
+            hours.stream()
+                .map(hour -> new ProductExposureViewResult.Hour(
+                    hour.getDayType().name(),
+                    hour.getStartTime(),
+                    hour.getEndTime()
+                ))
+                .toList(),
             result.exposed(),
-            hiddenReasonName(result.hiddenReason())
+            result.hiddenReason()
         );
     }
 
-    private ProductExposureHourResponse toProductExposureHourResponse(ProductExposureHour hour) {
-        return ProductExposureHourResponse.from(
-            hour.getDayType().name(),
-            hour.getStartTime(),
-            hour.getEndTime()
-        );
-    }
 
-    /** 노출 중이면 사유가 없다 — 빈 문자열로 뭉개지 않고 {@code null}로 내려 프론트 분기를 단순히 둔다. */
-    private String hiddenReasonName(ProductHiddenReason hiddenReason) {
-        return hiddenReason == null ? null : hiddenReason.name();
-    }
 }

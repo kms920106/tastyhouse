@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.ceoapplication.shop.response.ShopStatusResponse;
+import com.tastyhouse.application.shop.port.out.ShopStatusResult;
 
 /**
  * 점주용 가게 노출 상태 조회 서비스(CQRS query 측).
@@ -21,8 +21,8 @@ public class ShopStatusQueryService implements ShopStatusQueryUseCase {
     }
 
     @Override
-    public ShopStatusResponse getStatus(Long ceoId, Long shopId) {
+    public ShopStatusResult getStatus(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return ShopStatusResponse.from(shop.isHidden(), shop.isPermanentlyClosed());
+        return new ShopStatusResult(shop.isHidden(), shop.isPermanentlyClosed());
     }
 }

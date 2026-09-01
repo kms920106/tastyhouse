@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.ceo.response.CeoShopAccessHistoryListItemResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -49,7 +47,7 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
      * 내 시스템 접근권한 이력 목록을 최신순으로 페이징 조회한다.
      */
     @Override
-    public PaginationResponse<CeoShopAccessHistoryListItemResponse> getShopAccessHistories(
+    public PageResult<ShopCeoAssignmentHistoryResult> getShopAccessHistories(
         Long ceoId,
         String actionType,
         Long shopId,
@@ -78,10 +76,7 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<CeoShopAccessHistoryListItemResponse> pageResult =
-            shopCeoAssignmentHistoryQueryPort.findShopAccessHistoryPage(condition, pageQuery)
-                .map(this::toListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopCeoAssignmentHistoryQueryPort.findShopAccessHistoryPage(condition, pageQuery);
     }
 
     /**
@@ -95,18 +90,5 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
         if (endDate.isAfter(today) || startDate.isBefore(today.minusYears(RETENTION_YEARS))) {
             throw new BusinessException(ErrorCode.CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE);
         }
-    }
-
-    private CeoShopAccessHistoryListItemResponse toListItemResponse(
-        ShopCeoAssignmentHistoryResult result
-    ) {
-        return CeoShopAccessHistoryListItemResponse.from(
-            result.id(),
-            result.shopId(),
-            result.shopName(),
-            result.actionType().name(),
-            result.actionType().getDescription(),
-            result.occurredAt()
-        );
     }
 }

@@ -7,11 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
-import com.tastyhouse.domain.product.service.StorePriceUnverifiedItem;
 import com.tastyhouse.domain.product.service.StorePriceVerificationService;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceUnverifiedItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopStorePriceVerificationResponse;
+import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewResult;
 
 /**
  * 점주용 매장 가격 인증 현황 조회 서비스(CQRS query 측).
@@ -43,16 +41,20 @@ public class ShopStorePriceVerificationQueryService implements ShopStorePriceVer
     }
 
     @Override
-    public ShopStorePriceVerificationResponse getLatestVerification(Long ceoId, Long shopId) {
+    public ShopStorePriceVerificationViewResult getLatestVerification(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         StorePriceVerification latest = storePriceVerificationReader.readLatest(shopId).orElse(null);
-        List<ShopStorePriceUnverifiedItemResponse> unverifiedItems =
+        List<ShopStorePriceVerificationViewResult.UnverifiedItem> unverifiedItems =
             storePriceVerificationService.findUnverifiedItems(ShopId.of(shopId)).stream()
-                .map(this::toShopStorePriceUnverifiedItemResponse)
+                .map(item -> new ShopStorePriceVerificationViewResult.UnverifiedItem(
+                    item.productId(),
+                    item.productName(),
+                    item.reason()
+                ))
                 .toList();
 
-        return ShopStorePriceVerificationResponse.from(
+        return new ShopStorePriceVerificationViewResult(
             latest == null ? null : latest.getId(),
             latest == null ? null : latest.getStatus().name(),
             storePriceVerificationReader.readVerified(shopId),
@@ -61,11 +63,4 @@ public class ShopStorePriceVerificationQueryService implements ShopStorePriceVer
         );
     }
 
-    private ShopStorePriceUnverifiedItemResponse toShopStorePriceUnverifiedItemResponse(StorePriceUnverifiedItem item) {
-        return ShopStorePriceUnverifiedItemResponse.from(
-            item.productId(),
-            item.productName(),
-            item.reason().name()
-        );
-    }
 }

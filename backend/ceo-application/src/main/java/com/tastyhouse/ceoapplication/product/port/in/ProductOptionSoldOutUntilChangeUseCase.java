@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
 
 /**
  * 옵션 품절 기간 변경 인바운드 포트.
@@ -9,5 +9,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductAvailabilityChangeR
  */
 public interface ProductOptionSoldOutUntilChangeUseCase {
 
-    ProductAvailabilityChangeResponse changeOptionsSoldOutUntil(ProductOptionSoldOutUntilChangeCommand command);
+    ProductAvailabilityChangeView changeOptionsSoldOutUntil(ProductOptionSoldOutUntilChangeCommand command);
 }

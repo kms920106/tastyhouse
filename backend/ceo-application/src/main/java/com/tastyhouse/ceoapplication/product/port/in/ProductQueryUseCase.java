@@ -1,6 +1,7 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductDetailResponse;
+import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
+
 
 /**
  * 메뉴 조회 인바운드 포트.
@@ -10,5 +11,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductDetailResponse;
  */
 public interface ProductQueryUseCase {
 
-    ProductDetailResponse getProduct(Long ceoId, Long shopId, Long productId);
+    ProductManagementDetailResult getProduct(Long ceoId, Long shopId, Long productId);
 }

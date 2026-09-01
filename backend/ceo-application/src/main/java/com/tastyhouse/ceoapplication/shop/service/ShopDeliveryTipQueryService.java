@@ -11,11 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipDistanceResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipRegionItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipScheduleItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipSettingResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipTierItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
 
 /**
  * 점주용 가게 배달팁 조회 서비스(CQRS query 측).
@@ -32,9 +28,6 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryTipTierItemRespon
 @Transactional(readOnly = true)
 public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase {
 
-    private static final String EXTRA_TIP_TYPE_NONE = "NONE";
-    private static final String EXTRA_TIP_TYPE_DISTANCE = "DISTANCE";
-
     private final ShopDeliveryTipQueryPort shopDeliveryTipQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
@@ -44,71 +37,21 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
     }
 
     @Override
-    public ShopDeliveryTipSettingResponse getDeliveryTips(Long ceoId, Long shopId) {
+    public ShopDeliveryTipViewResult getDeliveryTips(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryPort.findSetting(shopId).orElse(null);
 
-        List<ShopDeliveryTipTierItemResponse> tiers = shopDeliveryTipQueryPort.findTiers(shopId).stream()
-            .map(this::toShopDeliveryTipTierItemResponse)
-            .toList();
-        List<ShopDeliveryTipRegionItemResponse> regions = shopDeliveryTipQueryPort.findRegionTips(shopId).stream()
-            .map(this::toShopDeliveryTipRegionItemResponse)
-            .toList();
-        List<ShopDeliveryTipScheduleItemResponse> schedules = shopDeliveryTipQueryPort.findScheduleTips(shopId).stream()
-            .map(this::toShopDeliveryTipScheduleItemResponse)
-            .toList();
+        List<ShopDeliveryTipTierResult> tiers = shopDeliveryTipQueryPort.findTiers(shopId);
+        List<ShopDeliveryTipRegionResult> regions = shopDeliveryTipQueryPort.findRegionTips(shopId);
+        List<ShopDeliveryTipScheduleResult> schedules = shopDeliveryTipQueryPort.findScheduleTips(shopId);
 
-        return ShopDeliveryTipSettingResponse.from(
+        return new ShopDeliveryTipViewResult(
+            setting,
             tiers,
-            setting == null ? EXTRA_TIP_TYPE_NONE : setting.extraTipType(),
-            toShopDeliveryTipDistanceResponse(setting),
             regions,
             schedules,
             shopDeliveryTipQueryPort.findHolidayTipAmount(shopId)
-        );
-    }
-
-    private ShopDeliveryTipTierItemResponse toShopDeliveryTipTierItemResponse(ShopDeliveryTipTierResult dto) {
-        return ShopDeliveryTipTierItemResponse.from(
-            dto.id(),
-            dto.tierOrder(),
-            dto.minOrderAmount(),
-            dto.tipAmount()
-        );
-    }
-
-    private ShopDeliveryTipRegionItemResponse toShopDeliveryTipRegionItemResponse(ShopDeliveryTipRegionResult dto) {
-        return ShopDeliveryTipRegionItemResponse.from(
-            dto.id(),
-            dto.adminDongId(),
-            dto.regionName(),
-            dto.tipAmount()
-        );
-    }
-
-    private ShopDeliveryTipScheduleItemResponse toShopDeliveryTipScheduleItemResponse(ShopDeliveryTipScheduleResult dto) {
-        return ShopDeliveryTipScheduleItemResponse.from(
-            dto.id(),
-            dto.dayType(),
-            dto.startTime(),
-            dto.endTime(),
-            dto.tipAmount()
-        );
-    }
-
-    /**
-     * 거리별 설정 3필드를 응답으로 조립한다 — 거리별을 쓰지 않는 가게는 세 값이 모두 비어 있으므로
-     * {@code null}을 반환해 응답의 {@code distance} 필드를 비운다.
-     */
-    private ShopDeliveryTipDistanceResponse toShopDeliveryTipDistanceResponse(ShopDeliveryTipSettingResult dto) {
-        if (dto == null || !EXTRA_TIP_TYPE_DISTANCE.equals(dto.extraTipType())) {
-            return null;
-        }
-        return ShopDeliveryTipDistanceResponse.from(
-            dto.baseDistanceMeters(),
-            dto.surchargeUnit(),
-            dto.surchargeAmount()
         );
     }
 }

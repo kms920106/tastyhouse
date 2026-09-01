@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaItemResult;
+
 
 /**
  * 가게 배달지역 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaItemResponse;
  */
 public interface ShopDeliveryAreaQueryUseCase {
 
-    List<ShopDeliveryAreaItemResponse> getDeliveryAreas(Long ceoId, Long shopId);
+    List<ShopDeliveryAreaItemResult> getDeliveryAreas(Long ceoId, Long shopId);
 }

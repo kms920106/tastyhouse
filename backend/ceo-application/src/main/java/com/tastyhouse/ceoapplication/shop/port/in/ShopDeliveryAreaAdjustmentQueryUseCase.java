@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaAdjustmentItemResponse;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
+
 
 /**
  * 가게 배달지역 조정 요청 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopDeliveryAreaAdjustmentIte
  */
 public interface ShopDeliveryAreaAdjustmentQueryUseCase {
 
-    List<ShopDeliveryAreaAdjustmentItemResponse> getAdjustmentRequests(Long ceoId, Long shopId);
+    List<ShopDeliveryAreaAdjustmentListItemResult> getAdjustmentRequests(Long ceoId, Long shopId);
 }

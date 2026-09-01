@@ -3,11 +3,11 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestCommentResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestDetailResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestListItemResponse;
-import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeCatalogResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestDetailViewResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestTypeCatalogResult;
 
 /**
  * 가게 요청 조회 인바운드 포트.
@@ -17,7 +17,7 @@ import com.tastyhouse.ceoapplication.shop.response.ShopRequestTypeCatalogRespons
  */
 public interface ShopRequestQueryUseCase {
 
-    PaginationResponse<ShopRequestListItemResponse> getRequests(
+    PageResult<ShopRequestListItemViewResult> getRequests(
         Long ceoId,
         Long shopId,
         String requestType,
@@ -28,9 +28,9 @@ public interface ShopRequestQueryUseCase {
         int size
     );
 
-    ShopRequestDetailResponse getRequestDetail(Long ceoId, Long shopId, Long requestId);
+    ShopRequestDetailViewResult getRequestDetail(Long ceoId, Long shopId, Long requestId);
 
-    List<ShopRequestCommentResponse> getComments(Long ceoId, Long shopId, Long requestId);
+    List<ShopRequestCommentResult> getComments(Long ceoId, Long shopId, Long requestId);
 
-    ShopRequestTypeCatalogResponse getRequestTypes();
+    ShopRequestTypeCatalogResult getRequestTypes();
 }

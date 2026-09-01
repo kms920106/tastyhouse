@@ -3,10 +3,10 @@ package com.tastyhouse.ceoapplication.region.port.in;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongBoundaryResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongItemResponse;
-import com.tastyhouse.ceoapplication.region.response.AdminDongTreeResponse;
+import com.tastyhouse.application.region.port.out.AdminDongBoundariesResult;
+import com.tastyhouse.application.region.port.out.AdminDongItemResult;
+import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 행정동 조회 인바운드 포트.
@@ -16,11 +16,11 @@ import com.tastyhouse.ceoapplication.region.response.AdminDongTreeResponse;
  */
 public interface AdminDongQueryUseCase {
 
-    PaginationResponse<AdminDongItemResponse> getAdminDongs(String keyword, int page, int size);
+    PageResult<AdminDongItemResult> getAdminDongs(String keyword, int page, int size);
 
-    AdminDongTreeResponse getAdminDongTree(String sidoName, String sigunguName);
+    AdminDongTreeResult getAdminDongTree(String sidoName, String sigunguName);
 
-    AdminDongBoundaryResponse getAdminDongBoundaries(
+    AdminDongBoundariesResult getAdminDongBoundaries(
         BigDecimal swLat,
         BigDecimal swLng,
         BigDecimal neLat,

@@ -2,7 +2,8 @@ package com.tastyhouse.ceoapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.ceoapplication.shop.response.ShopSuspensionResponse;
+import com.tastyhouse.application.shop.port.out.ShopSuspensionResult;
+
 
 /**
  * 가게 영업정지 조회 인바운드 포트.
@@ -12,5 +13,5 @@ import com.tastyhouse.ceoapplication.shop.response.ShopSuspensionResponse;
  */
 public interface ShopSuspensionQueryUseCase {
 
-    List<ShopSuspensionResponse> getSuspensions(Long ceoId, Long shopId);
+    List<ShopSuspensionResult> getSuspensions(Long ceoId, Long shopId);
 }

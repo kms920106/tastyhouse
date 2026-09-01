@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryCreat
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategorySearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryUpdateRequest;
-import com.tastyhouse.ceoapplication.product.response.ProductCategoryResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryDeleteCommand;
@@ -62,9 +62,9 @@ public class ProductCategoryApiController {
         @AuthenticationPrincipal CustomUserDetails userDetails,
         @Valid @ModelAttribute ProductCategorySearchRequest request
     ) {
-        List<ProductCategoryResponse> response = productCategoryQueryService.getProductCategories(
-            userDetails.getCeoId(), request.shopId()
-        );
+        List<ProductCategoryResponse> response = productCategoryQueryService.getProductCategories( userDetails.getCeoId(), request.shopId() ).stream()
+            .map(ProductCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -9,7 +9,6 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeQueryUseCase;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.port.out.ShopNoticeOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
-import com.tastyhouse.ceoapplication.shop.response.ShopNoticeResponse;
 
 /**
  * 점주용 가게 공지 조회 서비스(CQRS query 측).
@@ -37,12 +36,10 @@ public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
     }
 
     @Override
-    public List<ShopNoticeResponse> getNotices(Long ceoId, Long shopId) {
+    public List<ShopNoticeResult> getNotices(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopNoticeOwnerQueryPort.findNotices(shopId).stream()
-            .map(this::toShopNoticeResponse)
-            .toList();
+        return shopNoticeOwnerQueryPort.findNotices(shopId);
     }
 
     /**
@@ -54,15 +51,4 @@ public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
         return prohibitedWordValidator.findViolations(content);
     }
 
-    private ShopNoticeResponse toShopNoticeResponse(ShopNoticeResult dto) {
-        return ShopNoticeResponse.of(
-            dto.id(),
-            dto.content(),
-            dto.imageUrls(),
-            dto.exposed(),
-            dto.hidden(),
-            dto.createdAt(),
-            dto.updatedAt()
-        );
-    }
 }

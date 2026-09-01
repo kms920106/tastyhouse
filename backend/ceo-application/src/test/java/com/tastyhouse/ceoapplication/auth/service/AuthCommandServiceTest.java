@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.ceoapplication.auth.token.TokenService;
 import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.ceoapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.ceoapplication.auth.response.JwtResponse;
+import com.tastyhouse.ceoapplication.auth.port.out.JwtResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -82,10 +82,10 @@ class AuthCommandServiceTest {
     @DisplayName("로그인 성공 시 SUCCESS 이력을 남기고 토큰을 발급한다")
     void login_success_recordsSuccessHistory() {
         givenAuthenticationSucceeds();
-        JwtResponse expected = JwtResponse.of("access", "refresh", "Bearer");
+        JwtResult expected = JwtResult.of("access", "refresh", "Bearer");
         when(tokenService.issue(any(Authentication.class), anyBoolean())).thenReturn(expected);
 
-        JwtResponse actual = authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT));
+        JwtResult actual = authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT));
 
         assertThat(actual).isEqualTo(expected);
         verify(ceoLoginHistoryCommandService).recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
@@ -184,7 +184,7 @@ class AuthCommandServiceTest {
     @DisplayName("refresh는 접속기록을 남기지 않는다 — 토큰 갱신은 새로운 접속이 아니다")
     void refresh_recordsNothing() {
         when(tokenService.refresh("refresh-token"))
-            .thenReturn(JwtResponse.of("access", "refresh", "Bearer"));
+            .thenReturn(JwtResult.of("access", "refresh", "Bearer"));
 
         authCommandService.refresh("refresh-token");
 

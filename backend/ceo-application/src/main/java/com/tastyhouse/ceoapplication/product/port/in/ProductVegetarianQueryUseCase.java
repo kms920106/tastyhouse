@@ -1,6 +1,6 @@
 package com.tastyhouse.ceoapplication.product.port.in;
 
-import com.tastyhouse.ceoapplication.product.response.ProductVegetarianStatusResponse;
+import com.tastyhouse.application.product.port.out.ProductVegetarianStatusResult;
 
 /**
  * 메뉴 채식 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.ceoapplication.product.response.ProductVegetarianStatusRes
  */
 public interface ProductVegetarianQueryUseCase {
 
-    ProductVegetarianStatusResponse getVegetarianStatus(Long ceoId, Long shopId, Long productId);
+    ProductVegetarianStatusResult getVegetarianStatus(Long ceoId, Long shopId, Long productId);
 }
