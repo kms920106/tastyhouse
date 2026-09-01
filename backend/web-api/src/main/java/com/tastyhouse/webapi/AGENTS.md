@@ -13,7 +13,6 @@
 | `config/` | Spring 설정 — SecurityConfig(필터체인, CORS), AsyncConfig(비동기), RedisConfig, WebClientConfig, OpenApiConfig(Swagger). jwt/ 하위에 JwtTokenProvider(발급/검증), JwtAuthenticationFilter, JwtProperties, TokenType. security/ 하위에 JwtAuthenticationEntryPoint, JwtAccessDeniedHandler, CustomUserDetailsService(UserDetailsService 구현), CustomUserDetails(UserDetails 래퍼). PublicPaths 에서 인증 불필요 경로 관리. |
 | `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (domain-module `com.tastyhouse.domain.exception`, `ExternalApiException`도 이를 상속하므로 같은 핸들러가 처리), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 RFC7807 `ProblemDetail` + `errorCode` property로 응답(조립은 공용 `apicommon.exception.ProblemDetails`). 레거시 `UnauthorizedException`은 제거되고 `ErrorCode.AUTH_*`(401)로 흡수됨. |
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
-| `ratelimit/` | 분산 Rate Limiting. RateLimit 애노테이션, RateLimitAspect(AOP), RateLimiterService(Redis 기반), RateLimitKeyType(사용자/IP/전역). |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
 | `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PaginationResponse<T> (표준 4필드 페이징 응답 공용 제네릭 — 도메인별 `XxxPageResponse`를 만들지 않는다). 서비스가 `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)로부터 받는 `PageResult<T>`(domain-module `shared/page`)를 `PaginationResponse.from(...)`으로 변환한다. |
 
@@ -60,7 +59,7 @@
 - **외부 API 호출은 external-api 모듈 어댑터로 위임** — OAuth, 결제, 파일 업로드, 크롤링 등.
 - **Spring Security + JWT 인증 흐름**: JwtAuthenticationFilter → JwtTokenProvider.validateToken() → CustomUserDetailsService → SecurityContext 설정.
 - **GlobalExceptionHandler로 모든 예외 통합 처리** — BusinessException이 담은 `ErrorCodeSpec`의 httpStatusCode로 HTTP 상태 결정. 인증 실패는 `ErrorCode.AUTH_*`(401)를 담은 BusinessException으로 던진다(전용 예외 타입을 새로 만들지 않는다).
-- **Rate Limiting은 @RateLimit(keyType=USER/IP, limit=N, duration=...)로 메서드 레벨 선언** — RateLimitAspect가 인터셉트.
+- **Rate Limiting은 `@RateLimit(keyType=IP|FIELD, limit=N, windowSeconds=...)`로 메서드 레벨 선언** — 이 모듈에는 `ratelimit/` 패키지가 없다. 애노테이션·aspect·예외는 `api-common-module`(`com.tastyhouse.apicommon.ratelimit`), Redis 카운터는 `infrastructure:redis`가 소유한다(챕터 02). 부트스트랩이 `ApiCommonRateLimitConfig`를 `@Import` 해야 aspect가 등록된다 — 빠지면 `@RateLimit`이 조용히 무시된다.
 - **API 로깅은 ApiLoggingFilter + ApiLoggingAspect로 자동 수행** — 민감정보는 SensitiveFieldMasker로 마스킹.
 
 ### Testing Requirements

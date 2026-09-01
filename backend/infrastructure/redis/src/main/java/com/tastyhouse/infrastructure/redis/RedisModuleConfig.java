@@ -7,7 +7,12 @@ import org.springframework.context.annotation.Configuration;
  * infrastructure:redis 모듈의 진입점 설정 — Redis 연결 템플릿과 레이트 리밋.
  *
  * <p>{@link RedisConfig}(StringRedisTemplate)와 {@code ratelimit} 패키지의
- * {@code RateLimiterService}·{@code RateLimitAspect}를 등록한다.
+ * {@code RedisRateLimitCounter}를 등록한다.
+ *
+ * <p><b>챕터 02</b> — rate limit의 표현 관심사(@RateLimit·{@code RateLimitAspect}·
+ * {@code RateLimitException})는 api-common-module로 이동했고, 이 모듈에는 카운터 구현체만 남았다.
+ * aspect 빈 등록은 {@code ApiCommonConfig}(admin·ceo)와
+ * {@code ApiCommonRateLimitConfig}(web)가 담당한다.
  *
  * <p>Redis를 쓰는 앱(web-api·admin-api·ceo-api)만 {@code @Import} 한다. batch-module은
  * Redis를 사용하지 않으므로 import 하지 않는다.

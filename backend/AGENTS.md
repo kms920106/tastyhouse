@@ -26,7 +26,7 @@
 |-----------|---------|
 | `domain-module/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain-module/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
-| `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + Rate Limiting(`ratelimit/`). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
+| `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `web-application`이 소유한다 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
 | `security-module/` | 공유 보안/인증 지원 라이브러리 — 공용 JWT 인증 메커니즘 + Redis 기반 JWT 세션 저장소(RefreshToken/Blacklist/소셜 임시토큰). **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |

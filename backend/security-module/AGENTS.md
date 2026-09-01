@@ -52,7 +52,7 @@
 |---|---|
 | `RedisConfig` — `StringRedisTemplate` 빈 | 토큰 저장소 6종(`RefreshToken`·`Blacklist`·소셜 임시토큰 4종) |
 | `application-redis.yml` — `spring.data.redis`(host/port/password) | `jwt/` 공용 JWT 인증 메커니즘 |
-| `ratelimit/` 전체(`RateLimiterService`·`RateLimitAspect`·`@RateLimit`·`RateLimitKeyType`·`RateLimitException`) | |
+| `ratelimit/` 전체 — 이후 챕터 02에서 다시 갈렸다: 카운터(`RateLimiterService` → `RedisRateLimitCounter`)만 `infrastructure:redis`에 남고, `RateLimitAspect`·`@RateLimit`·`RateLimitKeyType`·`RateLimitException`은 `api-common-module`로 올라갔다 | |
 
 **나눈 기준은 "Redis를 쓰는가"가 아니라 "보안 관심사인가"다.** 토큰 저장소는 Redis를 쓰지만 보안 관심사라 남았고, rate limiting은 Redis를 쓰지만 도메인에 대응 개념이 없는 순수 인프라 관심사라 나갔다. Redis 자체(연결·템플릿)는 애초에 보안이 아니라 기술이므로, 그것을 보안 모듈이 들고 있으면 Redis를 쓰려는 다른 관심사가 전부 이 모듈을 의존해야 했다.
 

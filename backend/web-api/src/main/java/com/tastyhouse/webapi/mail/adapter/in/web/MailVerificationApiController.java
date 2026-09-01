@@ -13,8 +13,8 @@ import com.tastyhouse.webapplication.mail.port.in.MailVerificationCommandUseCase
 import com.tastyhouse.webapplication.mail.port.in.MailVerificationConfirmCommand;
 import com.tastyhouse.webapplication.mail.port.in.MailVerificationSendCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimit;
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimitKeyType;
+import com.tastyhouse.apicommon.ratelimit.RateLimit;
+import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationConfirmRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationSendRequest;

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimit;
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimitKeyType;
 import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.ratelimit.RateLimit;
+import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.RefreshTokenRequest;
 import com.tastyhouse.adminapplication.auth.port.in.AuthCommandUseCase;

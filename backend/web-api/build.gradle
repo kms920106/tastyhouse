@@ -18,7 +18,8 @@ dependencies {
     implementation project(':external-api')
     implementation project(':logging-module')
     implementation project(':security-module')
-    // @RateLimit(ratelimit AOP)과 StringRedisTemplate 빈을 제공한다(챕터 05 §5b).
+    // rate limit 카운터(RedisRateLimitCounter)와 StringRedisTemplate 빈을 제공한다.
+    // 챕터 02에서 @RateLimit·aspect는 api-common-module로 올라갔고 이 모듈에는 카운터만 남았다.
     // 부트스트랩이 @Import(RedisModuleConfig.class)로 이 모듈의 진입점 설정을 참조한다.
     implementation project(':infrastructure:redis')
     implementation project(':api-common-module')

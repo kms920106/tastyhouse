@@ -1,4 +1,4 @@
-package com.tastyhouse.infrastructure.redis.ratelimit;
+package com.tastyhouse.apicommon.ratelimit;
 
 /**
  * 요청 횟수 제한 초과 예외.

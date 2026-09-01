@@ -22,7 +22,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimitException;
+import com.tastyhouse.apicommon.ratelimit.RateLimitException;
 
 /**
  * admin-api·ceo-api 공용 전역 예외 핸들러.

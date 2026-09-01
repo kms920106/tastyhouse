@@ -13,13 +13,14 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + web/validation starter, springdoc. `domain-module`은 `api`(공개 시그니처에 `PageResult`·`FileUploadService` 노출), `security-module`은 `implementation`(`RateLimitException` 처리). `bootJar` 비활성 |
+| `build.gradle` | `java-library` + web/validation/aop starter, springdoc. `domain-module`만 내부 의존이며 `api`(공개 시그니처에 `PageResult`·`FileUploadService` 노출). **`infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 방향이 역전돼 이제 redis가 이 모듈을 의존한다. `bootJar` 비활성 |
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
 | `src/main/java/com/tastyhouse/apicommon/common/` | `ApiResponse<T>`(성공 응답 + `Pagination`), `PaginationResponse<T>`(표준 4필드 페이징), `PageRequest`(`@ModelAttribute` 페이징 요청) |
 | `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler` — **admin-api·ceo-api 전용**. web-api는 자체 핸들러를 쓴다(아래 스캔 주의) |
+| `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`·계약 `RateLimitCounterPort`·부분 진입점 `ApiCommonRateLimitConfig`. 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
 | `src/main/java/com/tastyhouse/apicommon/file/` | `FileService` — `MultipartFile`을 도메인 `FileUploadCommand`로 바꾸는 얇은 업로드 어댑터(조회·URL 변환 책임 없음) |
 | `src/main/java/com/tastyhouse/apicommon/shop/response/` | admin↔ceo 바이트 동일이던 shop 응답 record 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`) |
 
@@ -28,10 +29,13 @@
 
 | 앱 | 스캔 범위 | 이유 |
 |---|---|---|
-| `AdminApiApplication` / `CeoApiApplication` | `com.tastyhouse.apicommon` 전체 | 공용 핸들러와 `FileService`를 모두 사용 |
-| `WebApiApplication` | `com.tastyhouse.apicommon.file` **만** | web 전용 핸들러 4종(`ExternalApiException` 등)과 다른 검증 메시지 형식을 가진 자체 `GlobalExceptionHandler`를 쓴다. `exception` 패키지까지 스캔하면 핸들러가 2개가 되어 어느 쪽이 이기는지가 불확정해진다 |
+| `AdminApiApplication` / `CeoApiApplication` | `com.tastyhouse.apicommon` 전체(`ApiCommonConfig`) | 공용 핸들러·`FileService`·`RateLimitAspect`를 모두 사용 |
+| `WebApiApplication` | `.file` + `.ratelimit` **만**(`ApiCommonFileConfig` + `ApiCommonRateLimitConfig`) | web 전용 핸들러 4종(`ExternalApiException` 등)과 다른 검증 메시지 형식을 가진 자체 `GlobalExceptionHandler`를 쓴다. `exception` 패키지까지 스캔하면 핸들러가 2개가 되어 어느 쪽이 이기는지가 불확정해진다 |
+
+**부분 진입점을 쓰는 앱에 패키지를 추가할 때는 그 앱의 `@Import`도 함께 늘린다.** 챕터 02에서 `ratelimit`을 이 모듈로 들여올 때 실제로 걸린 함정이다 — 이전에는 aspect가 `infrastructure:redis`(= 3개 앱이 모두 `@Import` 하는 `RedisModuleConfig`의 스캔 범위)에 있어 자동으로 등록됐는데, 이 모듈로 올라오면서 `ApiCommonConfig` 전체 스캔을 쓰지 않는 web-api에서만 aspect가 사라진다. 컴파일·기동 모두 통과하고 `@RateLimit`만 조용히 무시되므로 `ApiCommonRateLimitConfig`를 신설해 명시적으로 import 했다. `ApiCommonConfig`는 이 두 부분 진입점을 `excludeFilters`로 제외한다(중복 설정 빈 방지).
 
 ## 여기에 두면 안 되는 것
 - **모듈마다 내용이 다른 정책 파일** — `SecurityConfig`(필터체인·인가 정책), `PublicPaths`(공개 경로 목록: web 18줄 vs admin/ceo 3줄), `TokenService`/`AuthService`(인증 주체 `Admin`/`Ceo`와 JWT 시크릿이 분리되어야 함).
 - **필드 셋이나 `@Schema` 문구가 다른 응답 record** — 예: `ShopDetailResponse`(admin은 감사 시각, ceo는 `trademarkImageUrl`/`hidden`), `ShopAmenityResponse`("가게" vs "내 가게").
 - **도메인 포트가 있는 기술 어댑터** — 그것은 `external-api`(도메인 포트 구현)나 `infrastructure:persistence`(DB 어댑터) 소관이다.
+- **기술 구현체** — 이 모듈은 계약(`RateLimitCounterPort`)만 두고 구현은 인프라 모듈에 맡긴다. 표현 계층이 인프라 모듈을 `implementation`으로 끌어오는 순간 챕터 02가 교정한 역방향 의존이 되살아난다.

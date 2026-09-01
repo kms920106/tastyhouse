@@ -20,7 +20,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.apicommon.exception.ProblemDetails;
-import com.tastyhouse.infrastructure.redis.ratelimit.RateLimitException;
+import com.tastyhouse.apicommon.ratelimit.RateLimitException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

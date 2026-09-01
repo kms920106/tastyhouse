@@ -1,4 +1,4 @@
-package com.tastyhouse.infrastructure.redis.ratelimit;
+package com.tastyhouse.apicommon.ratelimit;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -15,17 +15,25 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.tastyhouse.apicommon.common.ClientIpResolver;
+
+/**
+ * {@link RateLimit}이 붙은 메서드의 호출 횟수를 검증하는 AOP.
+ *
+ * <p>키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사이므로 이 표현 모듈이 소유하고,
+ * 실제 카운팅만 {@link RateLimitCounterPort} 구현체(인프라)에 위임한다.
+ */
 @Aspect
 @Component
 public class RateLimitAspect {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitAspect.class);
-    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
+    private static final String UNKNOWN_IDENTIFIER = "unknown";
 
-    private final RateLimiterService rateLimiterService;
+    private final RateLimitCounterPort rateLimitCounter;
 
-    public RateLimitAspect(RateLimiterService rateLimiterService) {
-        this.rateLimiterService = rateLimiterService;
+    public RateLimitAspect(RateLimitCounterPort rateLimitCounter) {
+        this.rateLimitCounter = rateLimitCounter;
     }
 
     @Before("@annotation(rateLimit)")
@@ -33,7 +41,7 @@ public class RateLimitAspect {
         String key = buildKey(joinPoint, rateLimit);
         Duration window = Duration.ofSeconds(rateLimit.windowSeconds());
 
-        if (rateLimiterService.isLimitExceeded(key, rateLimit.limit(), window)) {
+        if (rateLimitCounter.isLimitExceeded(key, rateLimit.limit(), window)) {
             log.warn("Rate limit exceeded - key: {}, limit: {}/{}", key, rateLimit.limit(), rateLimit.windowSeconds() + "s");
             throw new RateLimitException();
         }
@@ -50,14 +58,10 @@ public class RateLimitAspect {
     private String resolveClientIp() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            return "unknown";
+            return UNKNOWN_IDENTIFIER;
         }
         HttpServletRequest request = attributes.getRequest();
-        String xForwardedFor = request.getHeader(X_FORWARDED_FOR);
-        if (StringUtils.hasText(xForwardedFor)) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
+        return ClientIpResolver.resolve(request);
     }
 
     /**
@@ -67,7 +71,7 @@ public class RateLimitAspect {
     private String resolveFieldValue(Object[] args, String fieldName) {
         if (!StringUtils.hasText(fieldName)) {
             log.warn("keyType=FIELD 사용 시 keyField를 지정해야 합니다.");
-            return "unknown";
+            return UNKNOWN_IDENTIFIER;
         }
 
         String getterName = "get" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
@@ -89,6 +93,6 @@ public class RateLimitAspect {
                 }
             }
         }
-        return "unknown";
+        return UNKNOWN_IDENTIFIER;
     }
 }
