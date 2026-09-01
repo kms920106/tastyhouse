@@ -8,11 +8,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.tastyhouse.external.oauth.spi.SocialAuthorization;
-import com.tastyhouse.external.oauth.spi.SocialCredential;
-import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
-import com.tastyhouse.external.oauth.spi.SocialProfile;
-import com.tastyhouse.external.oauth.spi.SocialProvider;
+import com.tastyhouse.webapplication.auth.port.out.SocialAuthorization;
+import com.tastyhouse.webapplication.auth.port.out.SocialCredential;
+import com.tastyhouse.webapplication.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.webapplication.auth.port.out.SocialProfile;
+import com.tastyhouse.webapplication.auth.port.out.SocialProvider;
 
 @Component
 public class NaverOAuthClient implements SocialOAuthClient {

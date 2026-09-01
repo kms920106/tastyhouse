@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.batchapplication.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.domain.file.service.FileUploadCommand;
 import com.tastyhouse.domain.file.service.FileUploadService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -17,7 +18,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 @Component
-public class RemoteImageDownloader {
+public class RemoteImageDownloader implements RemoteImagePort {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteImageDownloader.class);
 
@@ -28,9 +29,9 @@ public class RemoteImageDownloader {
     }
 
     // 외부 URL에서 이미지를 다운로드하여 업로드하고 파일 ID를 반환한다.
+    @Override
     public Long uploadFromUrl(String imageUrl) {
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(imageUrl))
                 .GET()

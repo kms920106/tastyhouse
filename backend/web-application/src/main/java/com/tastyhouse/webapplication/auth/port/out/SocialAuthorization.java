@@ -1,4 +1,4 @@
-package com.tastyhouse.external.oauth.spi;
+package com.tastyhouse.webapplication.auth.port.out;
 
 /**
  * 소셜 로그인 진입 자격증명(클라이언트가 넘겨준 원본 값).

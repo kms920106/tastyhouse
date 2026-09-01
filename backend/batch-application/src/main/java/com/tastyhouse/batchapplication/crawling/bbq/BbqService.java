@@ -1,49 +1,41 @@
 package com.tastyhouse.batchapplication.crawling.bbq;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.external.crawling.bbq.BbqApiClient;
-import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
-import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
-import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
-import com.tastyhouse.external.file.RemoteImageDownloader;
-import com.tastyhouse.batchapplication.exception.BatchJobException;
+import com.tastyhouse.batchapplication.crawling.bbq.port.out.BbqMenuPort;
+import com.tastyhouse.batchapplication.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductCategoryResponse;
 import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductResponse;
 import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductSubOptionResponse;
-import com.tastyhouse.batchapplication.crawling.bbq.response.SubOptionItemDetailResponse;
+import com.tastyhouse.batchapplication.exception.BatchJobException;
 
 @Service
 public class BbqService {
 
     private static final Logger log = LoggerFactory.getLogger(BbqService.class);
 
-    private final BbqApiClient bbqApiClient;
+    private final BbqMenuPort bbqMenuPort;
     private final BbqProductSyncService bbqProductSyncService;
-    private final RemoteImageDownloader remoteImageDownloader;
+    private final RemoteImagePort remoteImagePort;
 
     public BbqService(
-        BbqApiClient bbqApiClient,
+        BbqMenuPort bbqMenuPort,
         BbqProductSyncService bbqProductSyncService,
-        RemoteImageDownloader remoteImageDownloader
+        RemoteImagePort remoteImagePort
     ) {
-        this.bbqApiClient = bbqApiClient;
+        this.bbqMenuPort = bbqMenuPort;
         this.bbqProductSyncService = bbqProductSyncService;
-        this.remoteImageDownloader = remoteImageDownloader;
+        this.remoteImagePort = remoteImagePort;
     }
 
     public List<BbqProductCategoryResponse> getMenuCategories() {
         try {
-            List<BbqMenuCategoryResponse> externalCategories = bbqApiClient.getMenuCategoriesSync();
-            return externalCategories.stream()
-                    .map(this::convertToProductCategoryResponse)
-                    .collect(Collectors.toList());
+            return bbqMenuPort.fetchMenuCategories();
         } catch (Exception e) {
             log.error("BBQ 메뉴 카테고리 조회 중 오류 발생", e);
             throw new BatchJobException("BBQ 메뉴 카테고리 조회 실패", e);
@@ -52,83 +44,29 @@ public class BbqService {
 
     public List<BbqProductResponse> getMenusByCategoryId(Long categoryId) {
         try {
-            List<BbqMenuResponse> externalMenus = bbqApiClient.getMenusByCategoryIdSync(categoryId);
-            return externalMenus.stream()
-                    .map(this::convertToProductResponse)
-                    .collect(Collectors.toList());
+            return bbqMenuPort.fetchMenusByCategoryId(categoryId);
         } catch (Exception e) {
             log.error("BBQ 카테고리별 메뉴 조회 중 오류 발생: categoryId={}", categoryId, e);
             throw new BatchJobException("BBQ 카테고리별 메뉴 조회 실패", e);
         }
     }
 
-    private BbqProductCategoryResponse convertToProductCategoryResponse(BbqMenuCategoryResponse externalResponse) {
-        return BbqProductCategoryResponse.from(
-                externalResponse.getId(),
-                null,
-                externalResponse.getCategoryName(),
-                externalResponse.getPriority(),
-                true
-        );
-    }
-
     public BbqProductResponse getMenuDetail(Long menuId) {
         try {
-            BbqMenuResponse externalMenu = bbqApiClient.getMenuDetailSync(menuId);
-            return convertToProductResponse(externalMenu);
+            return bbqMenuPort.fetchMenuDetail(menuId);
         } catch (Exception e) {
             log.error("BBQ 메뉴 상세 조회 중 오류 발생: menuId={}", menuId, e);
             throw new BatchJobException("BBQ 메뉴 상세 조회 실패", e);
         }
     }
 
-    private BbqProductResponse convertToProductResponse(BbqMenuResponse externalResponse) {
-        return BbqProductResponse.from(
-                externalResponse.getId(),
-                externalResponse.getMenuName(),
-                externalResponse.getDescription(),
-                externalResponse.getMenuImageUrl(),
-                externalResponse.getMenuPrice(),
-                externalResponse.getAddPrice(),
-                externalResponse.getSoldOut() != null && externalResponse.getSoldOut(),
-                externalResponse.getAdultOnly() != null && externalResponse.getAdultOnly(),
-                externalResponse.getCanDeliver() != null && externalResponse.getCanDeliver(),
-                externalResponse.getCanTakeout() != null && externalResponse.getCanTakeout()
-        );
-    }
-
     public List<BbqProductSubOptionResponse> getMenuSubOptions(Long menuId) {
         try {
-            List<BbqMenuSubOptionResponse> externalSubOptions = bbqApiClient.getMenuSubOptionsSync(menuId);
-            return externalSubOptions.stream()
-                    .map(this::convertToProductSubOptionResponse)
-                    .collect(Collectors.toList());
+            return bbqMenuPort.fetchMenuSubOptions(menuId);
         } catch (Exception e) {
             log.error("BBQ 메뉴 서브 옵션 조회 중 오류 발생: menuId={}", menuId, e);
             throw new BatchJobException("BBQ 메뉴 서브 옵션 조회 실패", e);
         }
-    }
-
-    private BbqProductSubOptionResponse convertToProductSubOptionResponse(BbqMenuSubOptionResponse externalResponse) {
-        List<SubOptionItemDetailResponse> itemDetails = null;
-        if (externalResponse.getSubOptionItemDetailResponseList() != null) {
-            itemDetails = externalResponse.getSubOptionItemDetailResponseList().stream()
-                    .map(item -> SubOptionItemDetailResponse.from(
-                            item.getId(),
-                            item.getItemTitle(),
-                            item.getAddPrice(),
-                            item.getSoldOut() != null && item.getSoldOut(),
-                            item.getHidden() != null && item.getHidden()
-                    ))
-                    .collect(Collectors.toList());
-        }
-        return BbqProductSubOptionResponse.from(
-                externalResponse.getId(),
-                externalResponse.getSubOptionTitle(),
-                externalResponse.getRequiredSelectCount(),
-                externalResponse.getMaxSelectCount(),
-                itemDetails
-        );
     }
 
     @SuppressWarnings("unused")
@@ -177,7 +115,7 @@ public class BbqService {
 
         Long uploadedFileId = null;
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
-            uploadedFileId = remoteImageDownloader.uploadFromUrl(menuDetail.imageUrl());
+            uploadedFileId = remoteImagePort.uploadFromUrl(menuDetail.imageUrl());
         }
 
         BbqProductRegistration registration = BbqProductRegistration.of(

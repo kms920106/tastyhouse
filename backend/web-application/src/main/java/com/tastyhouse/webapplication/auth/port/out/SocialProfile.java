@@ -1,4 +1,4 @@
-package com.tastyhouse.external.oauth.spi;
+package com.tastyhouse.webapplication.auth.port.out;
 
 /**
  * 제공자 중립 소셜 프로필.

@@ -1,4 +1,4 @@
-package com.tastyhouse.external.oauth.spi;
+package com.tastyhouse.webapplication.auth.port.out;
 
 /**
  * 프로필 재조회에 쓰는 재사용 가능한 자격증명.

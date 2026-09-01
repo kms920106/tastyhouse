@@ -107,7 +107,7 @@ class LayerRulesTest {
                 "com.tastyhouse.external.oauth.facebook..",
                 "com.tastyhouse.external.oauth.apple.."
             )
-            .because("소셜 로그인은 com.tastyhouse.external.oauth.spi를 통해서만 사용한다");
+            .because("소셜 로그인은 com.tastyhouse.webapplication.auth.port.out을 통해서만 사용한다");
 
         rule.check(classes);
     }

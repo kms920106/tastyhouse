@@ -22,11 +22,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.oauth.spi.SocialAuthorization;
-import com.tastyhouse.external.oauth.spi.SocialCredential;
-import com.tastyhouse.external.oauth.spi.SocialOAuthClient;
-import com.tastyhouse.external.oauth.spi.SocialProfile;
-import com.tastyhouse.external.oauth.spi.SocialProvider;
+import com.tastyhouse.webapplication.auth.port.out.SocialAuthorization;
+import com.tastyhouse.webapplication.auth.port.out.SocialCredential;
+import com.tastyhouse.webapplication.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.webapplication.auth.port.out.SocialProfile;
+import com.tastyhouse.webapplication.auth.port.out.SocialProvider;
 
 /**
  * Apple OAuth 클라이언트

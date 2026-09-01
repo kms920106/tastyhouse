@@ -7,10 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundaryPort;
+import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundarySource;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
-import com.tastyhouse.external.region.AdminDongBoundaryClient;
-import com.tastyhouse.external.region.AdminDongBoundaryResult;
 
 /**
  * 행정동 마스터 동기화 배치 application 서비스.
@@ -27,14 +27,14 @@ public class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongSchedulerService.class);
 
-    private final AdminDongBoundaryClient adminDongBoundaryClient;
+    private final AdminDongBoundaryPort adminDongBoundaryPort;
     private final AdminDongSyncExecutor adminDongSyncExecutor;
 
     public AdminDongSchedulerService(
-        AdminDongBoundaryClient adminDongBoundaryClient,
+        AdminDongBoundaryPort adminDongBoundaryPort,
         AdminDongSyncExecutor adminDongSyncExecutor
     ) {
-        this.adminDongBoundaryClient = adminDongBoundaryClient;
+        this.adminDongBoundaryPort = adminDongBoundaryPort;
         this.adminDongSyncExecutor = adminDongSyncExecutor;
     }
 
@@ -47,7 +47,7 @@ public class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
     @Override
     public void synchronizeAdminDongs() {
         // 네트워크 구간 — 트랜잭션 밖이다.
-        List<AdminDongBoundaryResult> sourceRows = adminDongBoundaryClient.fetchAll();
+        List<AdminDongBoundarySource> sourceRows = adminDongBoundaryPort.fetchAll();
 
         List<AdminDong> adminDongs = sourceRows.stream()
             .map(AdminDongSchedulerService::toAdminDong)
@@ -60,7 +60,7 @@ public class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
     }
 
     /** 원천 행을 도메인 모델로 승격한다. 원천에 있는 동은 전부 사용 중({@code active})으로 본다. */
-    private static AdminDong toAdminDong(AdminDongBoundaryResult source) {
+    private static AdminDong toAdminDong(AdminDongBoundarySource source) {
         return AdminDong.of(
             source.code(),
             source.sidoName(),

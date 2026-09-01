@@ -2,11 +2,10 @@ dependencies {
     // 내부 모듈 — application 계층은 domain과 읽기 계약만 안다.
     // infrastructure를 컴파일 클래스패스에 두지 않는 것이 이 모듈 신설의 핵심이다(빌드 그래프가 계층을 강제).
     implementation project(':domain-module')
-    // 챕터 01 §2 판단: crawling/bbq를 이 모듈로 이동하면서 함께 필요해진 의존이다.
-    // BbqService가 driven 클라이언트 BbqApiClient·RemoteImageDownloader를 주입받는데, 이들은
-    // 이미 external-api 모듈에 있어 방향(application → external 포트)이 맞다. infrastructure와 달리
-    // external-api는 도메인 밖 외부 시스템 접근 계약이므로 계층 규칙을 깨지 않는다.
-    implementation project(':external-api')
+    // external-api 의존은 챕터 04에서 제거됐다. BbqService·AdminDongSchedulerService가
+    // 구체 클라이언트를 직접 주입받던 것을 이 모듈 소유의 아웃바운드 포트
+    // (crawling/bbq/port/out, region/port/out)로 바꾸고 어댑터가 그 계약을 구현한다 — 의존 역전.
+    // 이 줄을 되살리면 external-api ↔ batch-application 순환이 되어 빌드가 깨진다.
 
     // 트랜잭션 경계 선언(@Transactional)만을 위한 최소 의존.
     // 이전에는 infrastructure:persistence의 spring-boot-starter-data-jpa를 타고 전이로 들어오던 것이라

@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundaryPort;
+import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundarySource;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.geo.InteriorPoint;
@@ -42,7 +44,7 @@ import com.tastyhouse.external.exception.ExternalApiException;
  * {@code sido_name}을 직접 비교하므로(회원 배달주소의 행정동 채우기) 저장 시점에 짧은 형태로 맞춘다.
  */
 @Component
-public class AdminDongBoundaryClient {
+public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongBoundaryClient.class);
 
@@ -65,7 +67,8 @@ public class AdminDongBoundaryClient {
      * 한 동 때문에 전국 동기화를 실패시키는 것보다 그 동만 빠지는 편이 낫고, 빠진 동은 다음 동기화에서
      * 원천이 고쳐지면 자연히 복구된다.
      */
-    public List<AdminDongBoundaryResult> fetchAll() {
+    @Override
+    public List<AdminDongBoundarySource> fetchAll() {
         HttpRequest request = HttpRequest.newBuilder(sourceUri())
             .timeout(Duration.ofSeconds(properties.timeoutSeconds()))
             .GET()
@@ -104,8 +107,8 @@ public class AdminDongBoundaryClient {
     }
 
     /** {@code features} 배열만 스트리밍으로 훑어 하나씩 변환한다. */
-    private List<AdminDongBoundaryResult> parseFeatures(InputStream body) throws IOException {
-        List<AdminDongBoundaryResult> results = new ArrayList<>();
+    private List<AdminDongBoundarySource> parseFeatures(InputStream body) throws IOException {
+        List<AdminDongBoundarySource> results = new ArrayList<>();
         int skipped = 0;
 
         try (JsonParser parser = objectMapper.getFactory().createParser(body)) {
@@ -115,7 +118,7 @@ public class AdminDongBoundaryClient {
             }
 
             while (parser.nextToken() == JsonToken.START_OBJECT) {
-                AdminDongBoundaryResult result = toResult(objectMapper.readTree(parser));
+                AdminDongBoundarySource result = toResult(objectMapper.readTree(parser));
                 if (result == null) {
                     skipped++;
                     continue;
@@ -144,7 +147,7 @@ public class AdminDongBoundaryClient {
     }
 
     /** GeoJSON feature 하나를 결과로 변환한다. 대표점을 만들지 못하면 {@code null}. */
-    private AdminDongBoundaryResult toResult(JsonNode feature) {
+    private AdminDongBoundarySource toResult(JsonNode feature) {
         JsonNode properties = feature.path("properties");
         String code = properties.path("adm_cd2").asText(null);
         String sidoName = properties.path("sidonm").asText(null);
@@ -162,7 +165,7 @@ public class AdminDongBoundaryClient {
             return null;
         }
 
-        return new AdminDongBoundaryResult(
+        return new AdminDongBoundarySource(
             code,
             shortSidoName(sidoName),
             sigunguName,
