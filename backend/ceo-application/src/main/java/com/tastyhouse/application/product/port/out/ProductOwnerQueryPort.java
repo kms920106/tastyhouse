@@ -10,7 +10,7 @@ import java.util.Set;
  *
  * <p>점주가 자기 가게의 메뉴를 편집할 때 쓰는 조회를 담당한다 — 관리용 상세·분류·옵션그룹,
  * 옵션그룹 병합 후보, 품절 관리, 이미지·베지테리언 변경 요청 현황이다. 회원 화면 조회는
- * {@link ProductQueryPort}, 관리자 검수 화면 조회는 {@link ProductManagementQueryPort}가 소유한다.
+ * {@code ProductQueryPort}, 관리자 검수 화면 조회는 {@code ProductManagementQueryPort}가 소유한다.
  *
  * <p>관리자 계약이 {@code Management} 한정어를 이미 쓰고 있으므로(반환 타입도
  * {@code ProductListItemResult} 계열), 점주 관리 계약은 소유 주체를 담은 {@code Owner}로 구별한다.
@@ -49,9 +49,9 @@ public interface ProductOwnerQueryPort {
 
     Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId);
 
-    /** 공유 메서드 — {@link ProductQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    /** 공유 메서드 — {@code ProductQueryPort}에도 같은 시그니처로 선언돼 있다. */
     Optional<ProductNutritionResult> findNutrition(Long productId);
 
-    /** 공유 메서드 — {@link ProductQueryPort}에도 같은 시그니처로 선언돼 있다. */
+    /** 공유 메서드 — {@code ProductQueryPort}에도 같은 시그니처로 선언돼 있다. */
     List<String> findAllergenTypes(Long productId);
 }

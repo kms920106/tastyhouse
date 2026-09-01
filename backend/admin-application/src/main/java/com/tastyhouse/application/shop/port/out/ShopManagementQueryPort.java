@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.model.ShopImageType;
  * 가게 관리 화면 조회 포트(CQRS query 측 아웃바운드 포트) — 관리자용.
  *
  * <p>가게 관리 상세와, 점주가 올린 변경 요청(콘텐츠보드·이미지·메뉴판 이미지)의 검수 목록,
- * 그리고 편의시설·음식종류 분류의 전체 목록을 조회한다. 회원 화면 조회는 {@link ShopQueryPort},
+ * 그리고 편의시설·음식종류 분류의 전체 목록을 조회한다. 회원 화면 조회는 {@code ShopQueryPort},
  * 점주 관리 화면 조회는 {@code ShopOwnerQueryPort}, 여러 앱이 함께 보는 기본 정보는
  * {@link ShopBasicInfoQueryPort}가 소유한다.
  *

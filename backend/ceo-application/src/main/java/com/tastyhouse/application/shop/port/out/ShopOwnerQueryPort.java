@@ -8,8 +8,8 @@ import com.tastyhouse.domain.shop.model.ShopImageType;
  * 가게 관리 조회 포트(CQRS query 측 아웃바운드 포트) — 점주 관리 화면용.
  *
  * <p>점주가 자기 가게를 운영하며 보는 조회를 담당한다 — 콘텐츠보드, 자기가 올린 이미지 변경 요청의
- * 현황, 영업중지·임시휴업 이력, 메뉴판 이미지다. 회원 화면 조회는 {@link ShopQueryPort}, 관리자 검수
- * 화면 조회는 {@link ShopManagementQueryPort}, 여러 앱이 함께 보는 기본 정보는
+ * 현황, 영업중지·임시휴업 이력, 메뉴판 이미지다. 회원 화면 조회는 {@code ShopQueryPort}, 관리자 검수
+ * 화면 조회는 {@code ShopManagementQueryPort}, 여러 앱이 함께 보는 기본 정보는
  * {@link ShopBasicInfoQueryPort}가 소유한다.
  *
  * <p>관리자 계약이 {@code Management} 한정어를 이미 쓰고 있으므로(반환 타입도

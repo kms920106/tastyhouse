@@ -15,7 +15,7 @@ import com.tastyhouse.domain.event.model.EventStatus;
  * 함께 투영한다(추가 조회 없이 3-arg {@code FileResponse}를 조립할 수 있도록). left join이므로 파일이
  * 없거나 존재하지 않으면 이름·URL이 {@code null}일 수 있다.
  *
- * <p>web 상세용 형제({@link EventDetailResult})와 같은 패키지에 공존하므로 {@code Management} 한정어를
+ * <p>web 상세용 형제({@code EventDetailResult})는 다른 모듈에 있어 {@code Management} 한정어를
  * 유지한다.
  */
 public record EventManagementDetailResult(

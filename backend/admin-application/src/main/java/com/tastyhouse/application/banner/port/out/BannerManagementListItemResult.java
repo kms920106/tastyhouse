@@ -8,7 +8,7 @@ import com.tastyhouse.domain.banner.model.BannerType;
  * 배너 관리 목록 항목 조회 결과.
  *
  * <p>비노출·노출기간 만료 배너를 포함해 조회하므로 노출 여부(visible)와 노출 기간을 갖는다.
- * 회원 노출용 형제인 {@link BannerListItemResult}와 같은 패키지에 공존해 이름이 충돌하므로
+ * 회원 노출용 형제인 {@code BannerListItemResult}와 패키지 경로는 같으나 다른 모듈에 있으며, 역할을 구분하기 위해
  * 관리 화면 용도를 나타내는 {@code Management} 한정어를 붙였다.
  *
  * <p>이미지 경로는 DAO가 표시용 URL까지 변환해 담는다({@code imageUrl}). 식별자·파일명은 관리 화면

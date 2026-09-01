@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
  * 주문 관리 목록 항목 조회 결과(admin-api용) — 주문번호·가게명·주문자명·주문방식·주문상태·결제상태와
  * 최종 금액·상품 종류 수를 함께 투영한다.
  *
- * <p>회원 화면 목록({@link OrderListItemResult})과 같은 패키지에 공존하므로 {@code Management} 한정어를
+ * <p>회원 화면 목록({@code OrderListItemResult})은 다른 모듈에 있어 {@code Management} 한정어를
  * 유지한다(공통 지침 패턴 3 — 모듈 분리로 충돌이 사라지지 않는다).
  */
 public record OrderManagementListItemResult(

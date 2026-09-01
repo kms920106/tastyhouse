@@ -8,7 +8,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 /**
  * 공지사항 관리 화면 조회 포트(CQRS query 측 아웃바운드 포트).
  *
- * <p>비노출 공지를 포함한 관리 조회를 담당한다. 회원 노출 조회는 {@link NoticeQueryPort}가 소유한다.
+ * <p>비노출 공지를 포함한 관리 조회를 담당한다. 회원 노출 조회는 {@code NoticeQueryPort}가 소유한다.
  */
 public interface NoticeManagementQueryPort {
 
