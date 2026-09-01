@@ -1,9 +1,9 @@
 > AI 규칙(한국어 답변·빌드 미실행·체크리스트 질문), GIT 규칙(`NO_COMMIT_OR_ROLLBACK`·추천 커밋 메시지), 플랜 작성 규칙, 일반 네이밍 규칙 등 리포 전체 공통 규칙은 **리포지토리 루트의 `CLAUDE.md`** 를 참조합니다. 이 파일은 backend 고유 컨벤션만 다룹니다.
 
 
-## 모듈 지도 (모듈 재편 프로그램 완료 — 챕터 01~06)
+## 모듈 지도 (모듈 재편 프로그램 완료 — 챕터 01~06 + 챕터 03 security-core 분리)
 
-**모듈은 17개이고, 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
+**모듈은 18개이고, 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
 
 ```
 실행 앱 4 (bootJar)      web-api      admin-api      ceo-api      batch-module
@@ -21,12 +21,13 @@ application 4            web-         admin-         ceo-         batch-
 아웃바운드 어댑터        infrastructure:persistence  JPA 어댑터 + QueryPort 구현 DAO + listener
                          infrastructure:redis        Redis 연결·템플릿 + rate limiting
                          external-api                OAuth·PG·메일·SMS·파일·크롤링
-공유                     security-module  api-common-module  logging-module
+공유                     security-core  security-module  api-common-module  logging-module
 ```
 
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것은 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
-- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). application 모듈은 `com.tastyhouse.{web|admin|ceo|batch}application..`이다.
-- **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `{앱}-application/AGENTS.md`, 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain-module/AGENTS.md`.
+- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). application 모듈은 `com.tastyhouse.{web|admin|ceo|batch}application..`이다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
+- **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `{앱}-application/AGENTS.md`, 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain-module/AGENTS.md`, JWT 토큰 발급/검증·Redis 토큰 저장소는 `security-core/AGENTS.md`, 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
+- **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·Redis 토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleConfig`·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)·빈 배선(`SecurityModuleConfig`의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕에 이동한 `@Repository` 빈을 그대로 스캔)은 전부 불변이다. API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
 ## 패키지 최상위 지도
 
@@ -45,7 +46,7 @@ application 4            web-         admin-         ceo-         batch-
 | `com.tastyhouse.infrastructure..` | `infrastructure:persistence` | 아웃바운드 어댑터(DB) |
 | `com.tastyhouse.infrastructure.redis..` | `infrastructure:redis` | 아웃바운드 어댑터(Redis) |
 | `com.tastyhouse.external..` | `external-api` | 아웃바운드 어댑터(외부) |
-| `com.tastyhouse.security..` | `security-module` | 공유(보안) |
+| `com.tastyhouse.security..` | **2개 모듈이 나눠 소유** — `security-core`(서블릿-프리: `JwtTokenProvider`·Redis 토큰 저장소) / `security-module`(서블릿 결합: 인증 필터·EntryPoint·AccessDeniedHandler) | 공유(보안) — 챕터 03으로 split package(모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례) |
 | `com.tastyhouse.apicommon..` | `api-common-module` | 공유(HTTP 플럼빙) |
 | `com.tastyhouse.logging..` | `logging-module` | 공유(횡단) |
 
@@ -1037,7 +1038,8 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 | `infrastructure:persistence` | domain write 포트의 JPA 어댑터 + `{Ctx}QueryPort` 구현 DAO + `<ctx>/listener` + 도메인 서비스 빈 등록 |
 | `infrastructure:redis` | Redis 연결·`StringRedisTemplate` + rate limiting. **domain조차 모른다**(포트가 없는 순수 기술) |
 | `external-api` | domain `<ctx>/port/` 구현(OAuth·PG·메일·SMS·파일·크롤링) |
-| `security-module` | 여러 앱이 공유하는 **보안** 관심사 — 공용 JWT 메커니즘 + 토큰 저장소 |
+| `security-core` | (챕터 03) 여러 앱이 공유하는 **서블릿-프리 보안 코어** — `JwtTokenProvider`(서명/파싱) + Redis 토큰 저장소 6종. `{web,admin,ceo,batch}-application`이 서블릿 스택 없이 의존할 수 있는 대상 |
+| `security-module` | 여러 앱이 공유하는 **서블릿 결합 보안** 관심사 — JWT 인증 필터·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`. `security-core`를 `api`로 재노출 |
 | `api-common-module` | 여러 앱이 공유하는 **HTTP 플럼빙** — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService` |
 
 - **infrastructure를 기술별로 나눈 이유 (챕터 05)**: `infrastructure:persistence` 하나가 "infrastructure = DB"라는 암묵 전제를 만들고 있었다. Redis는 보안 관심사가 아니라 인프라 기술인데 `security-module`이 연결·템플릿까지 들고 있어서, Redis를 쓰려는 다른 관심사가 전부 보안 모듈을 의존해야 했다. 이제 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, `security-module`에 남는 기준은 "Redis를 쓰는가"가 아니라 **"보안 관심사인가"**다(토큰 저장소는 잔류, rate limiting은 이관).

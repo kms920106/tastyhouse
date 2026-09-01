@@ -6,24 +6,20 @@ plugins {
 dependencies {
     // 내부 모듈
     implementation project(':domain-module')
-    // 토큰 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)이 StringRedisTemplate을 쓴다.
-    // 연결 설정과 템플릿 빈 자체는 이 모듈이 소유하지 않고 infrastructure:redis에 위임한다
-    // (챕터 05 §5b). 저장소는 보안 관심사라 여기 잔류하며 Redis key prefix도 불변이다.
-    // 이 모듈이 data-redis 타입을 직접 선언하지 않는 이유는 infrastructure:redis가 그것을
-    // api로 노출하기 때문이다.
-    implementation project(':infrastructure:redis')
+    // 서블릿-프리 보안 코어(JwtTokenProvider·Redis 토큰 저장소·JwtProperties). 이 모듈에 남은
+    // 서블릿 결합 타입(JwtAuthenticationFilter 등)이 그 타입들을 쓰고, api 3모듈도 이 좌표를
+    // 통해 전이로 수신하므로 api로 노출한다(챕터 03).
+    api project(':security-core')
 
     // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    // 공용 JWT 인증 메커니즘(JwtTokenProvider·필터·EntryPoint·AccessDeniedHandler)이 Spring Security 타입에
-    // 의존하므로 api로 노출한다. web-api/admin-api도 자체적으로 이 starter를 선언하지만 중복은 무해하다.
+    // 남은 서블릿 결합 타입(필터·EntryPoint·AccessDeniedHandler)이 spring-security-web을
+    // 필요로 하므로 starter 전체를 api로 노출한다. web-api/admin-api도 자체적으로 이 starter를
+    // 선언하지만 중복은 무해하다. spring-security-core는 security-core가 api로 노출한다.
     api 'org.springframework.boot:spring-boot-starter-security'
 
-    // JWT (공용 JwtTokenProvider가 서명/파싱에 사용)
-    api 'io.jsonwebtoken:jjwt-api:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-
+    // jjwt는 security-core로 이관됐다 — JwtTokenProvider가 그 모듈로 이동했고,
+    // security-core가 jjwt-api를 api로 노출하므로 여기서는 전이로 수신한다.
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

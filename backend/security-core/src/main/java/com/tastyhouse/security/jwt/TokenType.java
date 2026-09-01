@@ -10,5 +10,5 @@ public enum TokenType {
     PHONE_VERIFY,
     EMAIL_VERIFY,
     PERSONAL_INFO_VERIFY,
-    PASSWORD_RESET;
+    PASSWORD_RESET
 }

@@ -3,9 +3,9 @@ dependencies {
     // infrastructure를 컴파일 클래스패스에 두지 않는 것이 이 모듈 신설의 핵심이다(빌드 그래프가 계층을 강제).
     implementation project(':domain-module')
     // auth 서비스가 쓰는 서블릿-프리 타입(JwtTokenProvider·Redis 토큰 저장소) 한정.
-    // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 ceo-api에 남는다 —
+    // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 security-module/ceo-api에 남는다 —
     // applicationMustBeServletFree가 강제한다.
-    implementation project(':security-module')
+    implementation project(':security-core')
     // Response record·PaginationResponse 등 표현 계약(QueryService가 조립).
     // 이 모듈이 api로 노출하는 spring-boot-starter-web·springdoc(@Schema)을 전이로 받는다.
     implementation project(':api-common-module')
@@ -13,7 +13,7 @@ dependencies {
     // Spring Boot Starter
     // AuthCommandService가 AuthenticationManager·SecurityContextHolder를,
     // CeoUserDetailsService가 UserDetails 계약을 쓴다. 서블릿 결합은 ArchUnit이 막는다.
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-core'
     // 이미지 규격 검증기·콘텐츠보드 서비스가 MultipartFile을 업로드 경계 파라미터로 받는다.
     // 실사용이 MultipartFile 1종뿐이라 starter-web 전체 대신 spring-web만 선언한다.
     // Jackson(ObjectMapper)은 api-common-module이 api로 노출하는 starter-web에서 전이된다.

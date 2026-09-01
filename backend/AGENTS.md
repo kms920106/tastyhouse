@@ -14,7 +14,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + 앱별 application 4개(`web-application`, `admin-application`, `ceo-application`, `batch-application`) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-module`, `api-common-module`, `logging-module`) |
+| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + 앱별 application 4개(`web-application`, `admin-application`, `ceo-application`, `batch-application`) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
@@ -29,7 +29,8 @@
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `web-application`이 소유한다 (see `web-api/AGENTS.md`) |
 | `external-api/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링 (see `external-api/AGENTS.md`) |
-| `security-module/` | 공유 보안/인증 지원 라이브러리 — 공용 JWT 인증 메커니즘 + Redis 기반 JWT 세션 저장소(RefreshToken/Blacklist/소셜 임시토큰). **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
+| `security-core/` | **(챕터 03 신설)** `security-module`에서 분리된 서블릿-프리 보안 코어 — `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종). `{web,admin,ceo,batch}-application`이 이 모듈만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제한다 (see `security-core/AGENTS.md`) |
+| `security-module/` | 공유 보안/인증 지원 라이브러리 — `security-core`를 `api`로 재노출하고, 서블릿 결합 타입(JWT 인증 필터·EntryPoint·AccessDeniedHandler)만 잔류한다. **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
 | `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `admin-application`이 소유한다 (see `admin-api/AGENTS.md`) |
 | `admin-application/` | admin-api의 **application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + `response/` 표현 계약). infra를 컴파일 클래스패스에 두지 않는다 (see `admin-application/AGENTS.md`) |
@@ -70,7 +71,7 @@
 web-api ──┬─→ web-application (implementation)          ← 컨트롤러가 컨텍스트 UseCase 포트를 주입
           ├─→ domain-module (implementation)
           ├─→ infrastructure:persistence (implementation) ← DAO 구현체는 주입하지 않지만 빈 스캔 대상이라 필요
-          ├─→ external-api / security-module / api-common-module / logging-module (implementation)
+          ├─→ external-api / security-module(→security-core 전이) / api-common-module / logging-module (implementation)
 admin-api  ─(동일 패턴) ─→ admin-application
 ceo-api    ─(동일 패턴) ─→ ceo-application
 batch-module ─(동일 패턴 — security-module·api-common-module 없음, logging-module은 p6spy exclude)
@@ -78,17 +79,19 @@ batch-module ─(동일 패턴 — security-module·api-common-module 없음, lo
 
 ── 앱별 application 계층 4개 (infra 의존 없음이 핵심) ──
 web-application ─┬→ domain-module (implementation)   ← 공유 읽기 계약도 여기 있다(앱 단독 계약은 자기 모듈 소유)
-                 ├→ security-module (implementation)      ← auth/token의 JwtProperties·Redis 토큰 저장소
+                 ├→ security-core (implementation)        ← (챕터 03) auth/token의 JwtTokenProvider·Redis 토큰 저장소. security-module 대신 이 모듈만 의존해 서블릿 스택을 배제
                  ├→ external-api (implementation)         ← 소셜 로그인 SPI
                  ├→ api-common-module (implementation)    ← PaginationResponse 등 표현 계약
                  ├→ spring-boot-starter-web (implementation) ← MultipartFile 업로드 경계 타입 전용
                  └→ spring-tx (implementation)            ← @Transactional 전용
 admin-application ─(동일 — external-api 없음(소셜 로그인 부재), starter-web 직접 선언 없음,
-                            starter-security 추가(AuthenticationManager·PasswordEncoder))
-ceo-application   ─(동일 — external-api 없음, starter-web 있음(MultipartFile), starter-security 추가)
+                            security-core (implementation) 사용, spring-security-core 추가(AuthenticationManager·PasswordEncoder))
+ceo-application   ─(동일 — external-api 없음, starter-web 있음(MultipartFile), security-core (implementation) 사용,
+                            spring-security-core 추가)
 batch-application ─┬→ domain-module (implementation)
                    ├→ external-api (implementation)        ← BbqApiClient·RemoteImageDownloader
                    └→ spring-tx (implementation)           ← @Transactional 전용, infra 제외로 드러난 의존
+   ※ batch-application은 원래 security 의존이 없어 챕터 03 교체 대상이 아니다(security-core도 미의존)
    ※ 4개 모두 infrastructure 의존 없음 — 계층 분리를 빌드 그래프가 강제한다
      (`import com.tastyhouse.infrastructure...` 한 줄이 컴파일 에러)
 
@@ -97,8 +100,12 @@ infrastructure:persistence ─┬→ domain-module (api)
                             └→ {web,admin,ceo,batch}-application (implementation) ← QueryDao가 각 앱 소유 {Ctx}QueryPort를 구현
 infrastructure:redis ─→ (내부 모듈 의존 없음)   ← domain에 포트가 없는 순수 기술이라 domain조차 모른다
 external-api ─→ domain-module (implementation)   ← domain <ctx>/port 구현
-security-module ─┬→ domain-module (implementation) ← ErrorCode만(JwtEntryPoint·AccessDeniedHandler)
-                 └→ infrastructure:redis (implementation) ← 토큰 저장소가 StringRedisTemplate 사용
+security-core ─┬→ domain-module (implementation)   ← ErrorCode(토큰 검증 실패 표현)
+               ├→ infrastructure:redis (implementation) ← 토큰 저장소 6종이 StringRedisTemplate 사용
+               └→ spring-security-core (api) + jjwt-api (api)/jjwt-impl·jjwt-jackson (runtimeOnly)
+   ← (챕터 03 신설) security-module에서 서블릿-프리 타입(JwtTokenProvider·토큰 저장소 6종)만 분리. 서블릿 스택(starter-web·jakarta.servlet) 의존 없음
+security-module ─┬→ domain-module (implementation) ← ErrorCode만(JwtAuthenticationEntryPoint·JwtAccessDeniedHandler)
+                 └→ security-core (api)             ← (챕터 03) 잔류한 서블릿 결합 타입(필터·EntryPoint·AccessDeniedHandler)이 JwtTokenProvider·토큰 저장소를 쓰고, api 3모듈에도 전이로 노출. jjwt 3줄은 security-core로 이관되어 제거(전이 수신)
 api-common-module ─┬→ domain-module (api)            ← PageResult·FileUploadService가 공개 시그니처에 노출
                    └→ security-module (implementation)
 domain-module → 의존 없음 (production 의존 0개)
@@ -110,7 +117,7 @@ domain-module → 의존 없음 (production 의존 0개)
 - **application 모듈이 읽기 계약을 보는 경로 (개정 — 과거 "infra를 컴파일 타임에 본다"는 서술의 번복)**: `{도메인}QueryService`는 이제 infra DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입한다. 앱 단독 계약은 자기 모듈에 있고 공유 계약은 이미 선언된 `implementation project(':domain-module')`로 보이므로, 이를 위한 추가 의존 선언은 없다. api 모듈은 `com.tastyhouse.infrastructure..`를 **전혀 import하지 않는다** — 각 모듈 `LayerRulesTest`가 이를 강제한다. `infrastructure:persistence`는 여전히 빈 스캔 대상(`scanBasePackages`)이라 실행 모듈의 의존 그래프에는 남아 있지만, **소스 코드 레벨의 import 대상은 아니다.**
 - **`@QueryProjection` → `Projections.constructor` 전환**: Result record가 QueryDSL을 모르는 계약 모듈로 이동하며 그 record에 `@QueryProjection`을 달 수 없게 됐다. `infrastructure:persistence`의 QueryDao는 `Projections.constructor(XxxResult.class, ...)`로 리플렉션 기반 조립을 한다 — Result record가 `public`이 아니거나 생성자 시그니처가 select 절과 불일치하면 컴파일은 통과하고 **호출 시점에 500**이 나므로, 전환한 쿼리는 반드시 한 번 호출해 확인한다. 이 리플렉션 대상 일치는 `infrastructure:persistence`의 `ProjectionConstructorMatchingTest`가 소스 스캔으로 검증한다.
 - `querydsl-jpa`는 `infrastructure:persistence`에서 `implementation`으로 강등되어 소비 모듈 클래스패스로 전이되지 않는다. 전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 `infrastructure:persistence` 하나뿐이다.
-- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이며, **모듈 재편으로도 이 넷과 산출물 이름은 바뀌지 않았다**(라이브러리 모듈만 추가됐다). 나머지(`domain-module`/`{web,admin,ceo,batch}-application`/`infrastructure:persistence`/`infrastructure:redis`/`external-api`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이며, **모듈 재편으로도 이 넷과 산출물 이름은 바뀌지 않았다**(라이브러리 모듈만 추가됐다). 나머지(`domain-module`/`{web,admin,ceo,batch}-application`/`infrastructure:persistence`/`infrastructure:redis`/`external-api`/`security-core`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
   - **중첩 프로젝트 컨테이너 주의**: `include 'infrastructure:persistence'`는 소스가 없는 빈 프로젝트 `:infrastructure`를 함께 만든다. 루트 `build.gradle`의 `subprojects` 일괄 설정이 이 컨테이너에까지 `bootJar`를 걸면 빌드가 깨지므로, 일괄 설정 대상에서 제외되는지 확인한다.
 - **`batch-application`·`web-application`은 infrastructure를 컴파일 클래스패스에 두지 않는다**: application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다 — `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다(`domain-module`의 프레임워크-프리 게이트와 같은 방식). 그 결과 이전에 infra의 `spring-boot-starter-data-jpa`를 타고 전이로 들어오던 `spring-tx`가 드러나, `@Transactional`만을 위해 명시 선언한다. ArchUnit 규칙(`shouldNotDependOnInfrastructure`)은 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선으로 유지한다.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
