@@ -6,9 +6,6 @@ dependencies {
     // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 security-module/ceo-api에 남는다 —
     // applicationMustBeServletFree가 강제한다.
     implementation project(':security-core')
-    // Response record·PaginationResponse 등 표현 계약(QueryService가 조립).
-    // 이 모듈이 api로 노출하는 spring-boot-starter-web·springdoc(@Schema)을 전이로 받는다.
-    implementation project(':api-common-module')
 
     // Spring Boot Starter
     // AuthCommandService가 AuthenticationManager·SecurityContextHolder를,
@@ -16,8 +13,10 @@ dependencies {
     implementation 'org.springframework.security:spring-security-core'
     // 이미지 규격 검증기·콘텐츠보드 서비스가 MultipartFile을 업로드 경계 파라미터로 받는다.
     // 실사용이 MultipartFile 1종뿐이라 starter-web 전체 대신 spring-web만 선언한다.
-    // Jackson(ObjectMapper)은 api-common-module이 api로 노출하는 starter-web에서 전이된다.
     implementation 'org.springframework:spring-web'
+    // ShopStorePriceVerificationCommandService의 ObjectMapper. 챕터 11 이전에는
+    // api-common-module이 api로 노출하던 starter-web에서 전이로 충족되던 것이다.
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.springframework:spring-tx'
 
     // Test

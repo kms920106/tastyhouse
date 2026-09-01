@@ -81,13 +81,15 @@ batch-module ─(동일 패턴 — security-module·api-common-module 없음, lo
 web-application ─┬→ domain-module (implementation)   ← 공유 읽기 계약도 여기 있다(앱 단독 계약은 자기 모듈 소유)
                  ├→ security-core (implementation)        ← (챕터 03) auth/token의 JwtTokenProvider·Redis 토큰 저장소. security-module 대신 이 모듈만 의존해 서블릿 스택을 배제
                  ├→ external-api (implementation)         ← 소셜 로그인 SPI
-                 ├→ api-common-module (implementation)    ← PaginationResponse 등 표현 계약
-                 ├→ spring-boot-starter-web (implementation) ← MultipartFile 업로드 경계 타입 전용
+                 ├→ spring-web (implementation)           ← MultipartFile 업로드 경계 타입 전용(starter-web 아님)
                  └→ spring-tx (implementation)            ← @Transactional 전용
-admin-application ─(동일 — external-api 없음(소셜 로그인 부재), starter-web 직접 선언 없음,
+admin-application ─(동일 — external-api 없음(소셜 로그인 부재), spring-web 있음(MultipartFile),
                             security-core (implementation) 사용, spring-security-core 추가(AuthenticationManager·PasswordEncoder))
-ceo-application   ─(동일 — external-api 없음, starter-web 있음(MultipartFile), security-core (implementation) 사용,
-                            spring-security-core 추가)
+ceo-application   ─(동일 — external-api 없음, spring-web 있음(MultipartFile), security-core (implementation) 사용,
+                            spring-security-core + jackson-databind(ObjectMapper) 추가)
+   ※ 4개 모두 api-common-module 의존 없음 — 챕터 11로 절단됐다(표현 계약 조립이 api 모듈로 승격 완료).
+     application → api-common 간선이 사라져 빌드 그래프가 1차 방어선이고,
+     applicationShouldNotDependOnApiCommon이 2차 방어선으로 휴면 상태로 남는다
 batch-application ─┬→ domain-module (implementation)
                    ├→ external-api (implementation)        ← BbqApiClient·RemoteImageDownloader
                    └→ spring-tx (implementation)           ← @Transactional 전용, infra 제외로 드러난 의존

@@ -68,10 +68,10 @@ com.tastyhouse.webapplication/
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **auth/token이 쓰는 서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
 - `external-api` (implementation) — 소셜 로그인 SPI(`external.oauth.spi`)
-- `api-common-module` (implementation) — `PaginationResponse<T>` 등 표현 계약
+- ~~`api-common-module`~~ — **챕터 11로 절단됐다.** 챕터 10으로 Response record가 web-api로 승격되며 소스 참조가 0건이 됐고, `build.gradle`의 선언도 제거했다. `applicationShouldNotDependOnApiCommon`이 2차 방어선으로 남는다(휴면 상태가 정상)
 
 ### External
-- `spring-boot-starter-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다. 서블릿 결합은 `applicationMustBeServletFree`가 막으므로 이 의존이 계층을 무너뜨리지 않는다
+- `spring-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다(`FileUploadCommandService/UseCase`). 실사용이 `MultipartFile` 1종뿐이라 starter-web 전체 대신 `spring-web` 한 좌표만 선언한다. 챕터 11 이전에는 `api-common-module`의 전이로 충족되던 것이다. 서블릿 결합은 `applicationMustBeServletFree`가 막으므로 이 의존이 계층을 무너뜨리지 않는다
 - `spring-tx` (implementation) — `@Transactional`만을 위한 최소 의존 (batch-application 선례)
 
 ### infrastructure 의존 없음 — 이 모듈의 핵심

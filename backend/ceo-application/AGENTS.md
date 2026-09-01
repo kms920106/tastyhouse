@@ -81,11 +81,12 @@ com.tastyhouse.application/            ← split package (챕터 06)
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
-- `api-common-module` (implementation) — **소스 레벨 참조는 챕터 09로 0건이 됐다**(`applicationShouldNotDependOnApiCommon`이 강제). `build.gradle`에서 이 의존 자체를 제거하는 것은 챕터 11의 몫이라 선언만 남아 있다
+- ~~`api-common-module`~~ — **챕터 11로 절단됐다.** 소스 참조는 챕터 09로 0건이 됐고(`applicationShouldNotDependOnApiCommon`이 강제), `build.gradle`의 선언도 제거했다. 이 규칙은 2차 방어선으로 남는다(휴면 상태가 정상)
 
 ### External
-- `spring-boot-starter-security` (implementation) — `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`
-- `spring-boot-starter-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다. 서블릿 결합은 `applicationMustBeServletFree`가 막으므로 이 의존이 계층을 무너뜨리지 않는다(web-application과 같은 판단)
+- `spring-security-core` (implementation) — `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`
+- `spring-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다(이미지 규격 검증기·콘텐츠보드 서비스). 실사용이 `MultipartFile` 1종뿐이라 starter-web 전체 대신 `spring-web` 한 좌표만 선언한다. 서블릿 결합은 `applicationMustBeServletFree`가 막으므로 이 의존이 계층을 무너뜨리지 않는다(web-application과 같은 판단)
+- `jackson-databind` (implementation) — `ShopStorePriceVerificationCommandService`의 `ObjectMapper`. 챕터 11 이전에는 `api-common-module`이 `api`로 노출하던 starter-web에서 전이로 충족되던 것이다
 - `spring-tx` (implementation) — `@Transactional`만을 위한 최소 의존 (batch-application 선례)
 
 ### infrastructure 의존 없음 — 이 모듈의 핵심

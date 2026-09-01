@@ -38,7 +38,7 @@ Response record는 `@Schema`(Swagger)를 달고 `PaginationResponse`(HTTP 래퍼
 
 ## auth 처리 (web-application 선례와 동일)
 
-`AuthService`는 `AuthenticationManager`·`SecurityContextHolder`만 쓰는 **서블릿-프리** 타입이라 이 모듈로 함께 왔고, `AdminCommandService`가 쓰는 `PasswordEncoder`도 같은 이유로 문제되지 않는다. 필요한 것은 `spring-boot-starter-security` 한 줄이며 서블릿 결합은 `applicationMustBeServletFree`가 막는다.
+`AuthService`는 `AuthenticationManager`·`SecurityContextHolder`만 쓰는 **서블릿-프리** 타입이라 이 모듈로 함께 왔고, `AdminCommandService`가 쓰는 `PasswordEncoder`도 같은 이유로 문제되지 않는다. 필요한 것은 `spring-security-core` 한 줄이며(챕터 03으로 starter에서 축소) 서블릿 결합은 `applicationMustBeServletFree`가 막는다.
 
 **서블릿 결합 타입은 admin-api에 남았다** — `JwtConfig`(필터 빈 등록)·`SecurityConfig`(필터체인)·`PublicPaths`.
 
@@ -49,13 +49,12 @@ Response record는 `@Schema`(Swagger)를 달고 `PaginationResponse`(HTTP 래퍼
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소(접두사 `admin:rt:`/`admin:bl:`). **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
-- `api-common-module` (implementation) — `PaginationResponse<T>` 등 표현 계약. 이 모듈이 `api`로 노출하는 `spring-boot-starter-web`·springdoc(`@Schema`)을 전이로 받는다
+- ~~`api-common-module`~~ — **챕터 11로 절단됐다.** 챕터 06으로 Response·`PaginationResponse` 조립이 admin-api로 올라가며 소스 참조가 0건이 됐고, `build.gradle`의 선언(과 이 챕터를 가리키던 TODO 주석)도 제거했다. `applicationShouldNotDependOnApiCommon`이 2차 방어선으로 남는다(휴면 상태가 정상)
 
 ### External
-- `spring-boot-starter-security` (implementation) — `AuthenticationManager`·`SecurityContextHolder`·`PasswordEncoder`
+- `spring-security-core` (implementation) — `AuthenticationManager`·`SecurityContextHolder`·`PasswordEncoder`
+- `spring-web` (implementation) — **`MultipartFile`(업로드 경계 파라미터) 때문에 필요**하다(`FileUploadCommandService/UseCase`). 실사용이 `MultipartFile` 1종뿐이라 starter-web 전체 대신 `spring-web` 한 좌표만 선언한다. 챕터 11 이전에는 `api-common-module`의 전이로 충족되던 것이다
 - `spring-tx` (implementation) — `@Transactional`만을 위한 최소 의존 (batch-application 선례)
-
-**`spring-boot-starter-web`을 직접 선언하지 않는다** — ceo-application은 `MultipartFile`을 서비스 파라미터로 받아 직접 선언하지만, admin은 그런 업로드 경계 파라미터가 없어 `api-common-module`을 통한 전이로 충분하다.
 
 ### infrastructure 의존 없음 — 이 모듈의 핵심
 
