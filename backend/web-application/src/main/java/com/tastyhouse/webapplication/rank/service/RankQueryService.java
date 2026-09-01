@@ -14,23 +14,22 @@ import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankDurationResult;
 import com.tastyhouse.application.rank.port.out.RankPrizeResult;
 import com.tastyhouse.application.rank.port.out.RankQueryPort;
 import com.tastyhouse.webapplication.rank.port.in.RankQueryUseCase;
-import com.tastyhouse.webapplication.rank.response.RankDurationResponse;
-import com.tastyhouse.webapplication.rank.response.RankMemberListItemResponse;
-import com.tastyhouse.webapplication.rank.response.RankPrizeListItemResponse;
 
 /**
  * 랭킹 조회 서비스(web).
  *
  * <p>랭킹은 web에서 조회 전용이므로(집계·기간·경품 관리는 admin/batch 몫) CommandService 없이
- * QueryService만 둔다. 읽기 포트({@link RankQueryPort})만 주입해 조회하고 Response를 조립한다
- * (패턴 2/3). 랭킹 경품·회원 랭킹의 이미지 URL은 DAO가 완성해 주므로 여기서는 값을 그대로 응답에 전달한다.
+ * QueryService만 둔다. 읽기 포트({@link RankQueryPort})만 주입해 조회 결과를 그대로 반환한다(패턴 2/3).
+ * 표현 계약(Response) 조립은 web-api 컨트롤러의 책임이다. 랭킹 경품·회원 랭킹의 이미지 URL은 DAO가
+ * 완성해 주므로 여기서는 값을 그대로 전달한다.
  *
  * <p>내 랭킹 조회는 랭킹에 들지 못한 회원도 자기 정보를 볼 수 있어야 하므로, 랭킹 행이 없으면
- * {@link MemberQueryPort}로 회원 프로필만 읽어 리뷰 0건·순위 없음으로 응답한다. 프로필 이미지는 그 DAO가
- * 표시용 URL까지 변환해 담으므로 여기서는 값을 그대로 응답에 전달한다.
+ * {@link MemberQueryPort}로 회원 프로필만 읽어 리뷰 0건·순위 없음인 {@link MemberRankResult}를 만들어
+ * 돌려준다. 프로필 이미지는 그 DAO가 표시용 URL까지 변환해 담으므로 여기서는 값을 그대로 전달한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -45,74 +44,47 @@ public class RankQueryService implements RankQueryUseCase {
     }
 
     @Override
-    public Optional<RankDurationResponse> getDuration() {
-        return rankQueryPort.findActiveDuration()
-            .map(dto -> RankDurationResponse.from(dto.startAt(), dto.endAt()));
+    public Optional<RankDurationResult> getDuration() {
+        return rankQueryPort.findActiveDuration();
     }
 
     @Override
-    public List<RankPrizeListItemResponse> getPrizes() {
-        return rankQueryPort.findActivePrizes().stream()
-            .map(this::toPrizeListItemResponse)
-            .toList();
+    public List<RankPrizeResult> getPrizes() {
+        return rankQueryPort.findActivePrizes();
     }
 
     @Override
-    public List<RankMemberListItemResponse> getMemberRankList(String rankType, int limit) {
+    public List<MemberRankResult> getMemberRankList(String rankType, int limit) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        return rankQueryPort.findMemberRanks(type, baseDate, limit).stream()
-            .map(this::toMemberListItemResponse)
-            .toList();
+        return rankQueryPort.findMemberRanks(type, baseDate, limit);
     }
 
     @Override
-    public RankMemberListItemResponse getMyMemberRank(Long memberId, String rankType) {
+    public MemberRankResult getMyMemberRank(Long memberId, String rankType) {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
         MemberId id = MemberId.of(memberId);
 
         return rankQueryPort.findMemberRank(memberId, type, baseDate)
-            .map(this::toMemberListItemResponse)
-            .orElseGet(() -> toUnrankedMemberResponse(id));
+            .orElseGet(() -> unrankedMemberResult(id));
     }
 
     /**
-     * 아직 랭킹에 들지 못한 회원의 응답 — 프로필만 채우고 리뷰 수 0·순위 없음으로 내려준다.
+     * 아직 랭킹에 들지 못한 회원의 결과 — 프로필만 채우고 리뷰 수 0·순위 없음으로 내려준다.
      */
-    private RankMemberListItemResponse toUnrankedMemberResponse(MemberId memberId) {
+    private MemberRankResult unrankedMemberResult(MemberId memberId) {
         MemberWithProfileImageResult member = memberQueryPort.findMemberWithProfileImageById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return RankMemberListItemResponse.of(
+        return new MemberRankResult(
             memberId.value(),
             member.nickname(),
             member.profileImageUrl(),
             0,
             null,
-            member.memberGrade().name()
-        );
-    }
-
-    private RankMemberListItemResponse toMemberListItemResponse(MemberRankResult dto) {
-        return RankMemberListItemResponse.of(
-            dto.memberId(),
-            dto.nickname(),
-            dto.profileImageUrl(),
-            dto.reviewCount(),
-            dto.rankNo(),
-            dto.grade().name()
-        );
-    }
-
-    private RankPrizeListItemResponse toPrizeListItemResponse(RankPrizeResult dto) {
-        return RankPrizeListItemResponse.from(
-            dto.id(),
-            dto.prizeRank(),
-            dto.name(),
-            dto.brand(),
-            dto.imageUrl()
+            member.memberGrade()
         );
     }
 

@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.referral.port.out.MemberReferralQueryPort;
 import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
-import com.tastyhouse.webapplication.referral.response.ReferralMemberListItemResponse;
 import com.tastyhouse.webapplication.referral.port.in.ReferralQueryUseCase;
 
 /**
@@ -29,20 +28,8 @@ public class ReferralQueryService implements ReferralQueryUseCase {
     }
 
     @Override
-    public List<ReferralMemberListItemResponse> getMyReferrals(Long referrerId) {
+    public List<MemberReferralResult> getMyReferrals(Long referrerId) {
         MemberId memberId = MemberId.of(referrerId);
-        return memberReferralQueryPort.findByReferrerId(memberId)
-            .stream()
-            .map(this::toReferralMemberListItemResponse)
-            .toList();
-    }
-
-    private ReferralMemberListItemResponse toReferralMemberListItemResponse(MemberReferralResult result) {
-        return ReferralMemberListItemResponse.from(
-            result.id(),
-            result.refereeId(),
-            result.status().name(),
-            result.createdAt()
-        );
+        return memberReferralQueryPort.findByReferrerId(memberId);
     }
 }

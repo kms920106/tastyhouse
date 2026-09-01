@@ -7,7 +7,6 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -18,22 +17,20 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderListItemResult;
 import com.tastyhouse.application.order.port.out.OrderPaymentResult;
-import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
 import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
-import com.tastyhouse.webapplication.member.response.OrderListItemResponse;
-import com.tastyhouse.webapplication.order.response.OrderDetailResponse;
-import com.tastyhouse.webapplication.order.response.OrderProductOptionResponse;
-import com.tastyhouse.webapplication.order.response.OrderProductResponse;
-import com.tastyhouse.webapplication.order.response.PaymentSummaryResponse;
 import com.tastyhouse.webapplication.order.port.in.OrderQueryUseCase;
+import com.tastyhouse.webapplication.order.port.out.OrderDetailViewResult;
+import com.tastyhouse.webapplication.order.port.out.OrderPaymentSummaryResult;
+import com.tastyhouse.webapplication.order.port.out.OrderProductViewResult;
 import com.tastyhouse.webapplication.review.service.ReviewQueryService;
 
 /**
  * 회원 주문 조회 서비스(web-api).
  *
- * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
- * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
+ * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 읽기 계약 조립(private 매퍼)을
+ * 담당한다(공통 지침 패턴 2·3). write 포트는 주입하지 않는다. 표현 계약({@code Order*Response})
+ * 조립은 web-api가 담당한다(챕터 10).
  *
  * <p>주문 상세는 회원 스코프 조회이므로, DAO가 함께 투영한 {@code memberId}를 요청 회원과 대조해 남의
  * 주문 열람을 막는다(도메인 모델 {@code Order#validateOwnership}과 동일한 {@code ORDER_ACCESS_DENIED}).
@@ -54,19 +51,15 @@ public class OrderQueryService implements OrderQueryUseCase {
      * 내 주문 목록.
      */
     @Override
-    public PaginationResponse<OrderListItemResponse> getOrderList(Long memberId, int page, int size) {
-        PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<OrderListItemResponse> pageResult = orderQueryPort
-            .findOrders(MemberId.of(memberId), pageQuery)
-            .map(this::toOrderListItemResponse);
-        return PaginationResponse.from(pageResult);
+    public PageResult<OrderListItemResult> getOrderList(Long memberId, int page, int size) {
+        return orderQueryPort.findOrders(MemberId.of(memberId), PageQuery.of(page, size));
     }
 
     /**
      * 내 주문 상세 — 요청 회원의 주문이 아니면 {@code ORDER_ACCESS_DENIED}.
      */
     @Override
-    public OrderDetailResponse getOrderDetail(Long memberId, Long orderId) {
+    public OrderDetailViewResult getOrderDetail(Long memberId, Long orderId) {
         OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
@@ -74,24 +67,10 @@ public class OrderQueryService implements OrderQueryUseCase {
             throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        return toOrderDetailResponse(result, memberId);
+        return toOrderDetailViewResult(result, memberId);
     }
 
-    private OrderListItemResponse toOrderListItemResponse(OrderListItemResult result) {
-        return OrderListItemResponse.from(
-            result.id(),
-            result.shopName(),
-            result.shopThumbnailImageUrl(),
-            result.firstProductName(),
-            result.totalItemCount(),
-            result.amount(),
-            result.paymentStatus().name(),
-            result.paymentDate(),
-            result.scheduledAt()
-        );
-    }
-
-    private OrderDetailResponse toOrderDetailResponse(OrderDetailResult result, Long memberId) {
+    private OrderDetailViewResult toOrderDetailViewResult(OrderDetailResult result, Long memberId) {
         // 주문상품마다 리뷰 여부를 개별 조회하면 상품 수만큼 쿼리가 나가므로(N+1), 상품 식별자를 모아
         // 한 번에 조회하고 아래 매핑 루프는 메모리에서 판정한다.
         List<Long> productIds = result.orderProducts().stream()
@@ -101,18 +80,18 @@ public class OrderQueryService implements OrderQueryUseCase {
             .toList();
         Set<Long> reviewedProductIds = reviewQueryService.findReviewedProductIds(result.id(), memberId, productIds);
 
-        List<OrderProductResponse> orderProducts = result.orderProducts().stream()
-            .map(orderProduct -> toOrderProductResponse(orderProduct, reviewedProductIds))
+        List<OrderProductViewResult> orderProducts = result.orderProducts().stream()
+            .map(orderProduct -> toOrderProductViewResult(orderProduct, reviewedProductIds))
             .toList();
 
         // 보증금은 결제(PAYMENT) 테이블이 아니라 주문에 저장된다 — PAYMENT.amount는 손님이 실제로 내는
         // 돈(보증금 포함 final_amount)이고, 그중 얼마가 보증금인지는 주문이 안다. 그래서 결제 요약에
         // 넣을 값도 주문에서 가져온다(PAYMENT 스키마·모델은 변경하지 않는다).
-        PaymentSummaryResponse payment = result.payment() != null
-            ? toPaymentSummaryResponse(result.payment(), result.cupDepositAmount())
+        OrderPaymentSummaryResult payment = result.payment() != null
+            ? toOrderPaymentSummaryResult(result.payment(), result.cupDepositAmount())
             : null;
 
-        return OrderDetailResponse.from(
+        return new OrderDetailViewResult(
             result.id(),
             result.orderNumber(),
             result.orderMethod().name(),
@@ -150,12 +129,9 @@ public class OrderQueryService implements OrderQueryUseCase {
         return payment.paymentStatus().name();
     }
 
-    private OrderProductResponse toOrderProductResponse(OrderProductResult result, Set<Long> reviewedProductIds) {
+    private OrderProductViewResult toOrderProductViewResult(OrderProductResult result, Set<Long> reviewedProductIds) {
         boolean reviewed = reviewedProductIds.contains(result.productId());
-        List<OrderProductOptionResponse> options = result.options().stream()
-            .map(this::toOrderProductOptionResponse)
-            .toList();
-        return OrderProductResponse.from(
+        return new OrderProductViewResult(
             result.orderProductId(),
             result.productId(),
             result.name(),
@@ -166,28 +142,16 @@ public class OrderQueryService implements OrderQueryUseCase {
             result.discountPrice(),
             result.totalOptionPrice(),
             result.totalPrice(),
-            options,
+            result.options(),
             reviewed
         );
     }
 
-    private OrderProductOptionResponse toOrderProductOptionResponse(OrderProductOptionResult result) {
-        return OrderProductOptionResponse.from(
-            result.orderProductOptionId(),
-            result.optionGroupName(),
-            result.optionName(),
-            result.additionalPrice(),
-            result.optionGroupType(),
-            result.cupCount(),
-            result.depositAmount()
-        );
-    }
-
-    private PaymentSummaryResponse toPaymentSummaryResponse(
+    private OrderPaymentSummaryResult toOrderPaymentSummaryResult(
         OrderPaymentResult result,
         Integer cupDepositAmount
     ) {
-        return PaymentSummaryResponse.from(
+        return new OrderPaymentSummaryResult(
             result.id(),
             result.paymentMethod() != null ? result.paymentMethod().name() : null,
             result.paymentStatus() != null ? result.paymentStatus().name() : null,

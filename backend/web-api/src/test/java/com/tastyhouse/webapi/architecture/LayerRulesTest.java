@@ -101,13 +101,30 @@ class LayerRulesTest {
     /**
      * 컨트롤러는 domain-free다. HTTP 경계는 식별자를 {@code Long}, 도메인 enum을 {@code String}으로
      * 받고 승격은 Service가 담당하므로, 컨트롤러가 {@code com.tastyhouse.domain..}를 알 이유가 없다.
+     *
+     * <p><b>챕터 06 — {@code domain.shared.page..} carve-out</b>: application이 {@code PageResult}를
+     * 반환하고 컨트롤러가 {@code PaginationResponse.from(...)}으로 조립하는 것이 06의 설계이므로,
+     * 페이징 계약 참조는 위반이 아니라 정상 경로다.
+     *
+     * <p><b>챕터 07 — 도메인 enum carve-out</b>: 근거와 범위는
+     * {@link #apiModuleShouldBeDomainModelFree}와 동일하고, 짝 규칙
+     * {@link #apiModuleShouldOnlyReadDomainEnums}가 호출 가능 메서드를 accessor로 제한한다.
+     * 도메인 <b>모델</b>(애그리거트 루트·리포지토리·도메인 서비스)은 여전히 금지다.
+     *
+     * <p><b>챕터 10</b> — web-api는 admin(챕터 06)·ceo(챕터 09)보다 늦게 Response 승격을 받으므로
+     * 이 carve-out도 이 챕터에서 뒤늦게 동기화됐다. 세 앱의 규칙 본문은 이제 동일하다.
      */
     @Test
     void controllersShouldBeDomainFree() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..")
-            .because("컨트롤러는 com.tastyhouse.domain..를 import하지 않는다(HTTP 경계는 Long·String)");
+            .should().dependOnClassesThat(
+                resideInAPackage("com.tastyhouse.domain..")
+                    .and(not(resideInAPackage("com.tastyhouse.domain.shared.page..")))
+                    .and(not(domainEnum()))
+            )
+            .because("컨트롤러는 도메인 모델을 import하지 않는다(HTTP 경계는 Long·String). "
+                + "페이징 계약과 도메인 enum만 carve-out");
 
         rule.check(classes);
     }

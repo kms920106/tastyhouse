@@ -1,7 +1,7 @@
 package com.tastyhouse.webapplication.notice.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.notice.response.NoticeListItemResponse;
+import com.tastyhouse.application.notice.port.out.NoticeListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 공지사항 조회 인바운드 포트.
@@ -11,5 +11,5 @@ import com.tastyhouse.webapplication.notice.response.NoticeListItemResponse;
  */
 public interface NoticeQueryUseCase {
 
-    PaginationResponse<NoticeListItemResponse> getNoticeList(int page, int size);
+    PageResult<NoticeListItemResult> getNoticeList(int page, int size);
 }

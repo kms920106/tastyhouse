@@ -1,0 +1,31 @@
+package com.tastyhouse.webapi.shop.adapter.in.web.response;
+
+import java.math.BigDecimal;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
+
+@Schema(description = "지도 마커 응답")
+public record ShopMapMarkerResponse(
+    @Schema(description = "가게 ID", example = "1")
+    Long id,
+
+    @Schema(description = "위도", example = "37.5013")
+    BigDecimal latitude,
+
+    @Schema(description = "경도", example = "127.0396")
+    BigDecimal longitude,
+
+    @Schema(description = "상호명", example = "맛있는 집")
+    String name
+) {
+    public static ShopMapMarkerResponse from(ShopMapMarkerResult result) {
+        return new ShopMapMarkerResponse(
+            result.id(),
+            result.latitude(),
+            result.longitude(),
+            result.name()
+        );
+    }
+}

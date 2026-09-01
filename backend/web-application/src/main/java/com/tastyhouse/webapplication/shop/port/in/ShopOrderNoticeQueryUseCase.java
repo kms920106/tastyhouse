@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.shop.port.in;
 
-import com.tastyhouse.webapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 /**
  * 가게 주문 안내 조회 인바운드 포트.
@@ -10,5 +10,6 @@ import com.tastyhouse.webapplication.shop.response.ShopOrderNoticeResponse;
  */
 public interface ShopOrderNoticeQueryUseCase {
 
-    ShopOrderNoticeResponse getOrderNotice(Long shopId);
+    /** 미설정이거나 관리자 게시중단 상태면 {@code null}({@code ApiResponse.data}가 null이 된다). */
+    ShopOrderNoticeResult getOrderNotice(Long shopId);
 }

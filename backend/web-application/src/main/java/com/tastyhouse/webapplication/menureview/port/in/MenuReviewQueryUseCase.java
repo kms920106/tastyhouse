@@ -2,9 +2,10 @@ package com.tastyhouse.webapplication.menureview.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.menureview.response.MenuReviewListItemResponse;
-import com.tastyhouse.webapplication.menureview.response.MenuReviewWritableItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.application.menureview.port.out.MenuReviewListItemResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewWritableItemResult;
 
 /**
  * 메뉴 리뷰 조회 인바운드 포트.
@@ -14,7 +15,7 @@ import com.tastyhouse.webapplication.menureview.response.MenuReviewWritableItemR
  */
 public interface MenuReviewQueryUseCase {
 
-    List<MenuReviewWritableItemResponse> findWritableItems(Long orderId, Long memberId);
+    List<MenuReviewWritableItemResult> findWritableItems(Long orderId, Long memberId);
 
-    PaginationResponse<MenuReviewListItemResponse> findByProductId(Long productId, int page, int size);
+    PageResult<MenuReviewListItemResult> findByProductId(Long productId, int page, int size);
 }

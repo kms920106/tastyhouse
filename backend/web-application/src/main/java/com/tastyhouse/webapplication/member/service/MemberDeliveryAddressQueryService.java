@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressItemResult;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
-import com.tastyhouse.webapplication.member.response.MemberDeliveryAddressItemResponse;
 import com.tastyhouse.webapplication.member.port.in.MemberDeliveryAddressQueryUseCase;
 
 /**
@@ -30,26 +29,7 @@ public class MemberDeliveryAddressQueryService implements MemberDeliveryAddressQ
     }
 
     @Override
-    public List<MemberDeliveryAddressItemResponse> getMyDeliveryAddresses(Long memberId) {
-        return memberDeliveryAddressQueryPort.findByMemberId(MemberId.of(memberId))
-            .stream()
-            .map(this::toMemberDeliveryAddressItemResponse)
-            .toList();
-    }
-
-    /** Result를 원시타입 낱개로 언패킹해 Response에 넘긴다(Response는 domain-free·infra-free). */
-    private MemberDeliveryAddressItemResponse toMemberDeliveryAddressItemResponse(MemberDeliveryAddressItemResult result) {
-        return MemberDeliveryAddressItemResponse.from(
-            result.id(),
-            result.alias(),
-            result.roadAddress(),
-            result.lotAddress(),
-            result.detailAddress(),
-            result.adminDongId(),
-            result.regionName(),
-            result.latitude(),
-            result.longitude(),
-            result.defaultAddress()
-        );
+    public List<MemberDeliveryAddressItemResult> getMyDeliveryAddresses(Long memberId) {
+        return memberDeliveryAddressQueryPort.findByMemberId(MemberId.of(memberId));
     }
 }

@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.faq.port.in.FaqQueryUseCase;
 import com.tastyhouse.webapi.faq.adapter.in.web.request.FaqSearchRequest;
-import com.tastyhouse.webapplication.faq.response.FaqCategoryListItemResponse;
-import com.tastyhouse.webapplication.faq.response.FaqListItemResponse;
+import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqCategoryListItemResponse;
+import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqListItemResponse;
 
 @RestController
 @RequestMapping("/api/faqs")
@@ -31,14 +31,18 @@ public class FaqApiController {
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "활성화된 FAQ 카테고리 목록을 정렬 순서대로 조회합니다.")
     @GetMapping("/v1/categories")
     public ResponseEntity<ApiResponse<List<FaqCategoryListItemResponse>>> getFaqCategories() {
-        List<FaqCategoryListItemResponse> categories = faqQueryService.getFaqCategories();
+        List<FaqCategoryListItemResponse> categories = faqQueryService.getFaqCategories().stream()
+            .map(FaqCategoryListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
     @Operation(summary = "FAQ 목록 조회", description = "카테고리 ID로 필터링하거나 전체 FAQ 목록을 조회합니다. categoryId 미입력 시 전체 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<FaqListItemResponse>>> getFaqList(@Valid @ModelAttribute FaqSearchRequest search) {
-        List<FaqListItemResponse> faqs = faqQueryService.getFaqList(search.categoryId());
+        List<FaqListItemResponse> faqs = faqQueryService.getFaqList(search.categoryId()).stream()
+            .map(FaqListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(faqs));
     }
 }

@@ -7,7 +7,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
-import com.tastyhouse.webapplication.review.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentQueryUseCase;
 
 /**
@@ -42,7 +41,7 @@ public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUs
      * @throws ResourceNotFoundException 리뷰가 없거나, 게시중단 상태가 아니거나, 타인의 리뷰인 경우
      */
     @Override
-    public ReviewBlindNoticeResponse getBlindNotice(Long reviewId, Long memberId) {
+    public ReviewBlindNoticeResult getBlindNotice(Long reviewId, Long memberId) {
         ReviewBlindNoticeResult notice = reviewBlindRequestQueryPort.findBlindNotice(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
@@ -50,20 +49,6 @@ public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUs
             throw new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
         }
 
-        return toBlindNoticeResponse(notice);
-    }
-
-    private ReviewBlindNoticeResponse toBlindNoticeResponse(ReviewBlindNoticeResult result) {
-        return ReviewBlindNoticeResponse.from(
-            result.reviewId(),
-            result.content(),
-            result.imageUrls(),
-            result.createdAt(),
-            result.shopName(),
-            result.reason().name(),
-            result.reason().getDescription(),
-            result.detailReason(),
-            result.blindUntil()
-        );
+        return notice;
     }
 }

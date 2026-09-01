@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.webapplication.member.port.in.MemberPersonalInfoUpdateCommand;
@@ -29,15 +30,15 @@ import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePersonalInfoReq
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdateProfileRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.VerifyPasswordRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.WithdrawMemberRequest;
-import com.tastyhouse.webapplication.member.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
-import com.tastyhouse.webapplication.member.response.MemberVerifyPasswordResponse;
-import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
-import com.tastyhouse.webapplication.member.response.MyGradeResponse;
-import com.tastyhouse.webapplication.member.response.MyProfileResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapplication.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPersonalInfoResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberVerifyPasswordResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyCouponListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyGradeResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewCountResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -56,7 +57,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMyProfile(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberService.getMyProfile(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
@@ -75,7 +76,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMemberStats(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberService.getMemberStats(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
@@ -84,7 +85,8 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
-        MemberVerifyPasswordResponse response = memberService.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password());
+        MemberVerifyPasswordResponse response =
+            MemberVerifyPasswordResponse.from(memberService.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -93,7 +95,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getPersonalInfo(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberService.getPersonalInfo(userDetails.getMemberId()))));
     }
 
     @Operation(
@@ -119,7 +121,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyGradeResponse>> getMyGrade(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMyGrade(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberService.getMyGrade(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
@@ -127,7 +129,12 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMyCoupons(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(
+            memberService.getMyCoupons(userDetails.getMemberId())
+                .stream()
+                .map(MyCouponListItemResponse::from)
+                .toList()
+        ));
     }
 
     @Operation(summary = "사용 가능한 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 사용 가능한 쿠폰을 조회합니다. (미사용 + 유효기간 내)")
@@ -135,7 +142,12 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyAvailableCoupons(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMyAvailableCoupons(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(
+            memberService.getMyAvailableCoupons(userDetails.getMemberId())
+                .stream()
+                .map(MyCouponListItemResponse::from)
+                .toList()
+        ));
     }
 
     @Operation(summary = "내가 작성한 리뷰 개수 조회", description = "로그인한 회원이 작성한 리뷰 개수를 조회합니다.")
@@ -143,7 +155,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyReviewCountResponse>> getMyReviewCount(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMyReviewCount(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberService.getMyReviewCount(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
@@ -152,7 +164,10 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = memberService.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<MyReviewListItemResponse> pageResult = PaginationResponse.from(
+            memberService.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(MyReviewListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -167,7 +182,10 @@ public class MemberMeApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = memberService.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<ShopBookmarkListItemResponse> pageResult = PaginationResponse.from(
+            memberService.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(ShopBookmarkListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),

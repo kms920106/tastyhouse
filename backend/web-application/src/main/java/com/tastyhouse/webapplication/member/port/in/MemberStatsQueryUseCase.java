@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.member.port.in;
 
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
+import com.tastyhouse.webapplication.member.port.out.MemberStatsResult;
 
 /**
  * 회원 활동 통계 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
  */
 public interface MemberStatsQueryUseCase {
 
-    MemberStatsResponse getMemberStats(Long memberId);
+    MemberStatsResult getMemberStats(Long memberId);
 }

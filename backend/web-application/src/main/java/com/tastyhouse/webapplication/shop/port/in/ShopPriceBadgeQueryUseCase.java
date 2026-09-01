@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.shop.port.in;
 
-import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
+import com.tastyhouse.webapplication.shop.port.out.ShopPriceBadgeViewResult;
 
 /**
  * 가게 가격 배지 조회 인바운드 포트.
@@ -10,5 +10,5 @@ import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
  */
 public interface ShopPriceBadgeQueryUseCase {
 
-    ShopPriceBadgeResponse getPriceBadges(Long shopId);
+    ShopPriceBadgeViewResult getPriceBadges(Long shopId);
 }

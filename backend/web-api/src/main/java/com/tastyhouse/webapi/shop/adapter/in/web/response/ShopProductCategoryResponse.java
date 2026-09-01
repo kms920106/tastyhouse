@@ -1,0 +1,24 @@
+package com.tastyhouse.webapi.shop.adapter.in.web.response;
+
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.webapplication.shop.port.out.ShopProductCategoryViewResult;
+import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
+
+@Schema(description = "가게 상품 카테고리 응답")
+public record ShopProductCategoryResponse(
+    @Schema(description = "카테고리명", example = "대표 상품")
+    String categoryName,
+
+    @Schema(description = "상품 목록")
+    List<ProductSummaryResponse> products
+) {
+    public static ShopProductCategoryResponse from(ShopProductCategoryViewResult result) {
+        return new ShopProductCategoryResponse(
+            result.categoryName(),
+            result.products().stream().map(ProductSummaryResponse::from).toList()
+        );
+    }
+}

@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.policy.port.in;
 
-import com.tastyhouse.webapplication.policy.response.PolicyDetailResponse;
+import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
 
 /**
  * 약관 본문 조회 인바운드 포트.
@@ -10,19 +10,19 @@ import com.tastyhouse.webapplication.policy.response.PolicyDetailResponse;
  */
 public interface PolicyDetailQueryUseCase {
 
-    PolicyDetailResponse getLatestTermsOfService();
+    PolicyDocumentResult getLatestTermsOfService();
 
-    PolicyDetailResponse getLatestPrivacyPolicy();
+    PolicyDocumentResult getLatestPrivacyPolicy();
 
-    PolicyDetailResponse getLatestElectronicFinancialTransactions();
+    PolicyDocumentResult getLatestElectronicFinancialTransactions();
 
-    PolicyDetailResponse getLatestAgeVerification();
+    PolicyDocumentResult getLatestAgeVerification();
 
-    PolicyDetailResponse getTermsOfServiceByVersion(String version);
+    PolicyDocumentResult getTermsOfServiceByVersion(String version);
 
-    PolicyDetailResponse getPrivacyPolicyByVersion(String version);
+    PolicyDocumentResult getPrivacyPolicyByVersion(String version);
 
-    PolicyDetailResponse getElectronicFinancialTransactionsByVersion(String version);
+    PolicyDocumentResult getElectronicFinancialTransactionsByVersion(String version);
 
-    PolicyDetailResponse getAgeVerificationByVersion(String version);
+    PolicyDocumentResult getAgeVerificationByVersion(String version);
 }

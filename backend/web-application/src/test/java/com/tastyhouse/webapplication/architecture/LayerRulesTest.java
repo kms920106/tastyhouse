@@ -124,6 +124,18 @@ class LayerRulesTest {
      * 연산은 {@code method(XxxCommand, MultipartFile)}처럼 별도 파라미터로 두는 것이 규정된 형태이고,
      * ArchUnit 의존 그래프는 같은 패키지 UseCase 인터페이스의 메서드 파라미터까지 함께 잡는다.
      * Command 필드로 실리는 것은 아래 {@code commandRecordsShouldNotHoldMultipartFile}이 따로 막는다.
+     *
+     * <p><b>챕터 10 개정 — {@code com.tastyhouse.domain.shared.page..}를 세 번째 carve-out으로 추가했다</b>
+     * (챕터 06이 admin-application에 세우고 챕터 09가 ceo에 확대한 선례를 web에 마저 적용). 근거는 위
+     * {@code MultipartFile} carve-out과 <b>동일한 구조</b>다: 이 규칙이 겨냥하는 것은 Command record가
+     * <b>필드로</b> 도메인 모델을 싣는 것인데, ArchUnit은 같은 {@code ..port.in..} 패키지에 사는
+     * <b>QueryUseCase의 메서드 시그니처</b>까지 함께 잡는다. 챕터 10으로 QueryUseCase의 목록 반환 타입이
+     * {@code PaginationResponse}(표현 계약)에서 {@code PageResult}(도메인 페이징 계약)로 바뀌면서
+     * 걸린 건들은 <b>전부 반환 타입이며 Command 필드는 한 건도 없다</b>(실측 확인).
+     *
+     * <p>즉 이것은 규칙을 무르게 하는 것이 아니라, 규칙이 애초에 겨냥하지 않던 대상을 제외하는 것이다.
+     * 도메인 <b>모델</b>({@code domain.{shop,order,member}.model..} 등)은 그대로 금지이며, Command가
+     * 실제로 도메인 타입을 필드로 실으면 여전히 걸린다.
      */
     @Test
     void commandRecordsShouldBeBoundaryTyped() {
@@ -135,9 +147,11 @@ class LayerRulesTest {
                     "com.tastyhouse.infrastructure..",
                     "org.springframework.web.."
                 ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+                 .and(not(resideInAPackage("com.tastyhouse.domain.shared.page..")))
                  .and(not(resideInAPackage("org.springframework.web.multipart..")))
             )
-            .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다(에러 계약은 횡단 관심사라 예외)");
+            .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다"
+                + "(에러 계약·페이징 계약은 횡단 관심사라 예외)");
 
         rule.check(classes);
     }
@@ -308,6 +322,50 @@ class LayerRulesTest {
                 + "빌드 게이트로 강제되던 프레임워크-프리를 규칙으로 승계한다");
 
         rule.check(readContracts);
+    }
+
+
+    /**
+     * <b>챕터 10 신설</b> — application 계층은 Swagger를 알지 않는다(챕터 06이 admin, 챕터 09가 ceo에
+     * 심은 규칙의 web 확대이자 <b>3개 앱 완결</b>).
+     *
+     * <p>챕터 10 이전에는 {@code *QueryService}가 {@code @Schema}가 붙은 {@code *Response}를 직접
+     * 조립했고, 이 모듈에서만 {@code io.swagger} import가 <b>131개 파일</b>(응답 record 131개와 정확히
+     * 일치 — 서비스 오염은 없었다)이었다. 유스케이스 계층이 <b>HTTP 표현 포맷과 API 문서화 도구를 아는
+     * 상태</b>였다는 뜻이다. 챕터 10이 Response를 web-api로 승격하고 유스케이스는 프레임워크-프리
+     * {@code *Result}·{@code PageResult}를 반환하도록 바꿨다.
+     *
+     * <p>이 규칙이 그 상태를 고정한다. 규칙이 없으면 다음에 컨텍스트를 추가하는 사람이 예전 모양대로
+     * QueryService에서 Response를 조립해도 빌드가 통과한다 — 승격이 조용히 되돌아간다.
+     */
+    @Test
+    void applicationShouldNotDependOnSwagger() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("io.swagger..")
+            .because("유스케이스 계층은 API 문서화 도구를 알지 않는다(Response 조립은 web-api 담당)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * <b>챕터 10 신설</b> — application 계층은 표현 모듈(api-common-module)을 알지 않는다.
+     *
+     * <p>{@code PaginationResponse}·{@code ApiResponse} 같은 HTTP 래퍼는 표현 계약이다. 이 모듈이
+     * 그것을 조립하던 것이 챕터 10이 걷어낸 두 번째 위반이며(페이징은 이제 {@code PageResult}로
+     * 반환하고 컨트롤러가 {@code PaginationResponse.from(...)}으로 감싼다), 이 규칙이 재발을 막는다.
+     * 승격 전 이 모듈의 {@code PaginationResponse} 사용은 28개 파일이었다.
+     *
+     * <p><b>{@code build.gradle}의 api-common 의존 제거는 챕터 11의 몫이다</b> — 이 챕터는 소스 레벨
+     * 참조만 0으로 만들었으므로, 지금은 이 규칙이 <b>유일한</b> 방어선이다(ceo와 같은 상태이며, admin은
+     * 의존 제거가 1차 방어선이고 규칙이 회귀 방어인 이중화 상태라는 점이 다르다).
+     */
+    @Test
+    void applicationShouldNotDependOnApiCommon() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.apicommon..")
+            .because("유스케이스 계층은 표현 모듈(api-common-module)을 알지 않는다");
+
+        rule.check(classes);
     }
 
 }

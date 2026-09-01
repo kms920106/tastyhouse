@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.application.product.port.out.ProductNutritionResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
-import com.tastyhouse.webapplication.product.response.ProductNutritionResponse;
+import com.tastyhouse.webapplication.product.port.out.ProductNutritionView;
 import com.tastyhouse.webapplication.product.port.in.ProductNutritionQueryUseCase;
 
 /**
@@ -33,9 +33,9 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
     }
 
     @Override
-    public ProductNutritionResponse getNutrition(Long productId) {
+    public ProductNutritionView getNutrition(Long productId) {
         return productQueryPort.findNutrition(productId)
-            .map(dto -> toProductNutritionResponse(dto, toAllergenLabels(productQueryPort.findAllergenTypes(productId))))
+            .map(dto -> toProductNutritionView(dto, toAllergenLabels(productQueryPort.findAllergenTypes(productId))))
             .orElse(null);
     }
 
@@ -45,8 +45,8 @@ public class ProductNutritionQueryService implements ProductNutritionQueryUseCas
             .toList();
     }
 
-    private ProductNutritionResponse toProductNutritionResponse(ProductNutritionResult dto, List<String> allergens) {
-        return ProductNutritionResponse.from(
+    private ProductNutritionView toProductNutritionView(ProductNutritionResult dto, List<String> allergens) {
+        return new ProductNutritionView(
             dto.servingSize(),
             dto.totalAmount(),
             dto.flavor(),

@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.webapplication.shop.response.ShopOriginInfoResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopOriginInfoQueryUseCase;
 
 /**
@@ -29,17 +28,7 @@ public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
     }
 
     @Override
-    public ShopOriginInfoResponse getOriginInfo(Long shopId) {
-        return shopBasicInfoQueryPort.findOriginInfo(shopId)
-            .map(this::toShopOriginInfoResponse)
-            .orElse(null);
-    }
-
-    private ShopOriginInfoResponse toShopOriginInfoResponse(ShopOriginInfoResult dto) {
-        return ShopOriginInfoResponse.from(
-            dto.sourceType(),
-            dto.content(),
-            dto.url()
-        );
+    public ShopOriginInfoResult getOriginInfo(Long shopId) {
+        return shopBasicInfoQueryPort.findOriginInfo(shopId).orElse(null);
     }
 }

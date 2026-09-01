@@ -20,10 +20,10 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationSearchRequest;
-import com.tastyhouse.webapplication.reservation.response.ReservationCompleteDetailResponse;
-import com.tastyhouse.webapplication.reservation.response.ReservationDetailResponse;
-import com.tastyhouse.webapplication.reservation.response.ReservationResponse;
-import com.tastyhouse.webapplication.reservation.response.ReservationSlotAvailabilityResponse;
+import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
+import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDetailResponse;
+import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
+import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlotAvailabilityResponse;
 import com.tastyhouse.webapplication.reservation.port.in.ReservationCancelCommand;
 import com.tastyhouse.webapplication.reservation.port.in.ReservationCommandUseCase;
 import com.tastyhouse.webapplication.reservation.port.in.ReservationCompleteCommand;
@@ -55,7 +55,9 @@ public class ReservationApiController {
         @Valid @ModelAttribute ReservationSearchRequest search,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationSlotAvailabilityResponse response = reservationQueryService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId());
+        ReservationSlotAvailabilityResponse response = ReservationSlotAvailabilityResponse.from(
+            reservationQueryService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
+        );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -76,7 +78,9 @@ public class ReservationApiController {
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        List<ReservationResponse> responses = reservationQueryService.getMyReservations(userDetails.getMemberId());
+        List<ReservationResponse> responses = reservationQueryService.getMyReservations(userDetails.getMemberId()).stream()
+            .map(ReservationResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
@@ -86,7 +90,9 @@ public class ReservationApiController {
         @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationCompleteDetailResponse response = reservationQueryService.getCompleteDetail(userDetails.getMemberId(), id);
+        ReservationCompleteDetailResponse response = ReservationCompleteDetailResponse.from(
+            reservationQueryService.getCompleteDetail(userDetails.getMemberId(), id)
+        );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -96,7 +102,9 @@ public class ReservationApiController {
         @PathVariable Long id,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        ReservationDetailResponse response = reservationQueryService.getReservationDetail(userDetails.getMemberId(), id);
+        ReservationDetailResponse response = ReservationDetailResponse.from(
+            reservationQueryService.getReservationDetail(userDetails.getMemberId(), id)
+        );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -117,7 +125,7 @@ public class ReservationApiController {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationConfirmCommand command = ReservationConfirmCommand.of(id);
         reservationCommandUseCase.confirmReservation(command);
-        ReservationResponse response = reservationQueryService.getReservation(id);
+        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -127,7 +135,7 @@ public class ReservationApiController {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationRejectCommand command = ReservationRejectCommand.of(id);
         reservationCommandUseCase.rejectReservation(command);
-        ReservationResponse response = reservationQueryService.getReservation(id);
+        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -137,7 +145,7 @@ public class ReservationApiController {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationCompleteCommand command = ReservationCompleteCommand.of(id);
         reservationCommandUseCase.completeReservation(command);
-        ReservationResponse response = reservationQueryService.getReservation(id);
+        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -145,7 +153,9 @@ public class ReservationApiController {
     @GetMapping("/v1/shops/{shopId}")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getShopReservations(@PathVariable Long shopId) {
         // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
-        List<ReservationResponse> responses = reservationQueryService.getShopReservations(shopId);
+        List<ReservationResponse> responses = reservationQueryService.getShopReservations(shopId).stream()
+            .map(ReservationResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 }

@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopPriceBadgeQueryUseCase;
+import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse;
 
 /**
  * 손님용 가게 매장가격 뱃지 조회 API.
@@ -42,7 +42,8 @@ public class ShopPriceBadgeApiController {
             + "달라 한쪽만 켜질 수 있습니다. 판정 근거(매장가 등)는 표시 전용 값이라 응답에 담지 않습니다.")
     @GetMapping("/v1/{id}/price-badges")
     public ResponseEntity<ApiResponse<ShopPriceBadgeResponse>> getPriceBadges(@PathVariable Long id) {
-        ShopPriceBadgeResponse response = shopPriceBadgeQueryService.getPriceBadges(id);
+        ShopPriceBadgeResponse response =
+            ShopPriceBadgeResponse.from(shopPriceBadgeQueryService.getPriceBadges(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

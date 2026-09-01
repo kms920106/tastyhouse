@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.webapplication.notification.response.NotificationListItemResponse;
+import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
 import com.tastyhouse.webapplication.notification.port.in.NotificationCommandUseCase;
 import com.tastyhouse.webapplication.notification.port.in.NotificationMarkAllAsReadCommand;
 import com.tastyhouse.webapplication.notification.port.in.NotificationMarkAsReadCommand;
@@ -53,10 +53,12 @@ public class NotificationApiController {
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaginationResponse<NotificationListItemResponse> pageResponse = notificationQueryService.findNotifications(
-            userDetails.getMemberId(),
-            pageRequest.page(),
-            pageRequest.size()
+        PaginationResponse<NotificationListItemResponse> pageResponse = PaginationResponse.from(
+            notificationQueryService.findNotifications(
+                userDetails.getMemberId(),
+                pageRequest.page(),
+                pageRequest.size()
+            ).map(NotificationListItemResponse::from)
         );
 
         return ResponseEntity.ok(ApiResponse.success(

@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductPrice;
@@ -19,7 +18,6 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
-import com.tastyhouse.application.product.port.out.OptionGroupResult;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ProductBatchItem;
 import com.tastyhouse.application.product.port.out.ProductBatchResult;
@@ -36,27 +34,21 @@ import com.tastyhouse.application.review.port.out.ProductReviewStatisticsResult;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
-import com.tastyhouse.webapplication.product.response.ProductBatchOptionResponse;
-import com.tastyhouse.webapplication.product.response.ProductBatchResponse;
-import com.tastyhouse.webapplication.product.response.ProductDetailResponse;
-import com.tastyhouse.webapplication.product.response.ProductImagesResponse;
-import com.tastyhouse.webapplication.product.response.ProductOptionGroupResponse;
-import com.tastyhouse.webapplication.product.response.ProductOptionGroupsResponse;
-import com.tastyhouse.webapplication.product.response.ProductOptionResponse;
-import com.tastyhouse.webapplication.product.response.ProductPriceResponse;
-import com.tastyhouse.webapplication.product.response.ProductResponse;
-import com.tastyhouse.webapplication.product.response.ProductReviewCountResponse;
-import com.tastyhouse.webapplication.product.response.ProductReviewListItemResponse;
-import com.tastyhouse.webapplication.product.response.ProductReviewStatisticsResponse;
-import com.tastyhouse.webapplication.product.response.ProductReviewsByRatingPageResponse;
-import com.tastyhouse.webapplication.product.response.ProductReviewsByRatingResponse;
-import com.tastyhouse.webapplication.product.response.ProductTodayDiscountListItemResponse;
+import com.tastyhouse.webapplication.product.port.out.ProductBatchItemView;
+import com.tastyhouse.webapplication.product.port.out.ProductDetailView;
+import com.tastyhouse.webapplication.product.port.out.ProductPriceView;
+import com.tastyhouse.webapplication.product.port.out.ProductReviewStatisticsView;
 import com.tastyhouse.webapplication.product.port.in.ProductBatchQuery;
 import com.tastyhouse.webapplication.product.port.in.ProductQueryUseCase;
 
 /**
  * 회원용 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductQueryPort}만 주입하고, 조회 결과를
- * Response로 조립한다(private 매퍼). web-api에는 상품 command 경로가 없어 QueryService만 둔다.
+ * 읽기 계약으로 반환한다. web-api에는 상품 command 경로가 없어 QueryService만 둔다.
+ *
+ * <p><b>챕터 10 이후 Response를 조립하지 않는다</b> — Response record가 web-api로 승격됐으므로 표현
+ * 조립은 컨트롤러의 몫이다. 대신 <b>계산은 전부 이 계층에 남는다</b>: 주문유형별 가격 해석
+ * ({@code ProductPrice#resolvePrice}), 메뉴 평가 수의 null 기본값, 리뷰 통계의 두 출처 병합. 그래서
+ * 공용 읽기 계약으로 표현되지 않는 값은 앱 네임스페이스의 {@code port.out} View로 나른다.
  *
  * <p>상품 화면이 곁들여 보여주는 리뷰 통계·평점대별 목록은 review 도메인의
  * {@link ReviewQueryPort}·{@link ReviewStatisticsQueryPort}를 직접 주입해 조회한다 — 이 조회들은 상품 화면
@@ -85,24 +77,8 @@ public class ProductQueryService implements ProductQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<ProductTodayDiscountListItemResponse> searchTodayDiscountProducts(int page, int size) {
-        PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<ProductTodayDiscountListItemResponse> pageResult =
-            productQueryPort.findTodayDiscountProducts(pageQuery)
-                .map(this::toTodayDiscountProductListItemResponse);
-        return PaginationResponse.from(pageResult);
-    }
-
-    private ProductTodayDiscountListItemResponse toTodayDiscountProductListItemResponse(TodayDiscountProductResult dto) {
-        return ProductTodayDiscountListItemResponse.from(
-            dto.id(),
-            dto.shopName(),
-            dto.name(),
-            dto.imageUrl(),
-            dto.originalPrice(),
-            dto.discountPrice(),
-            dto.discountRate()
-        );
+    public PageResult<TodayDiscountProductResult> searchTodayDiscountProducts(int page, int size) {
+        return productQueryPort.findTodayDiscountProducts(PageQuery.of(page, size));
     }
 
     /**
@@ -116,14 +92,14 @@ public class ProductQueryService implements ProductQueryUseCase {
      * 등록된 메뉴의 상세가 500으로 막히면 그 메뉴는 아예 팔 수 없게 된다.
      */
     @Override
-    public ProductDetailResponse findProductById(Long productId, String orderMethod) {
+    public ProductDetailView findProductById(Long productId, String orderMethod) {
         ProductDetailResult dto = loadProductDetail(productId);
         Long menuReviewCount = menuReviewStatisticsQueryPort.countVisibleByProductId(productId);
         OrderMethod resolvedOrderMethod = OrderMethod.from(orderMethod);
-        List<ProductPriceResponse> prices = productQueryPort.findProductPrices(productId).stream()
-            .map(price -> toProductPriceResponse(price, resolvedOrderMethod))
+        List<ProductPriceView> prices = productQueryPort.findProductPrices(productId).stream()
+            .map(price -> toProductPriceView(price, resolvedOrderMethod))
             .toList();
-        return ProductDetailResponse.from(
+        return new ProductDetailView(
             dto.id(),
             dto.name(),
             dto.description(),
@@ -146,7 +122,7 @@ public class ProductQueryService implements ProductQueryUseCase {
      *
      * <p>매장가는 응답에 담지 않는다 — 표시 전용 값이라 손님 계약에 없다.
      */
-    private ProductPriceResponse toProductPriceResponse(ProductPriceResult dto, OrderMethod orderMethod) {
+    private ProductPriceView toProductPriceView(ProductPriceResult dto, OrderMethod orderMethod) {
         ProductPrice price = ProductPrice.reconstitute(
             dto.id(),
             ProductId.of(dto.productId()),
@@ -159,22 +135,21 @@ public class ProductQueryService implements ProductQueryUseCase {
             null,
             null
         );
-        return ProductPriceResponse.from(dto.id(), price.getPriceName(), price.resolvePrice(orderMethod));
+        return new ProductPriceView(dto.id(), price.getPriceName(), price.resolvePrice(orderMethod));
     }
 
     @Override
-    public ProductReviewCountResponse findProductReviewCount(Long productId) {
+    public int findProductReviewCount(Long productId) {
         loadProductDetail(productId);
         ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
         Long total = statistics.totalReviewCount();
-        return ProductReviewCountResponse.from(total != null ? total.intValue() : 0);
+        return total != null ? total.intValue() : 0;
     }
 
     @Override
-    public ProductOptionGroupsResponse findProductOptions(Long productId) {
+    public ProductOptionsResult findProductOptions(Long productId) {
         loadProductDetail(productId);
-        ProductOptionsResult result = productQueryPort.findProductOptions(productId);
-        return ProductOptionGroupsResponse.from(toOptionGroupResponses(result));
+        return productQueryPort.findProductOptions(productId);
     }
 
     /**
@@ -190,24 +165,22 @@ public class ProductQueryService implements ProductQueryUseCase {
      * 항목 수만큼 쿼리가 나가는 N+1을 피한다.
      */
     @Override
-    public ProductBatchResponse findProductsBatch(ProductBatchQuery query) {
+    public List<ProductBatchItemView> findProductsBatch(ProductBatchQuery query) {
         List<ProductBatchItem> items = query.items().stream()
             .map(item -> ProductBatchItem.of(item.productId(), item.optionId()))
             .toList();
 
         OrderMethod orderMethod = OrderMethod.from(query.orderMethod());
         List<ProductBatchResult> results = productQueryPort.findProductsBatch(items);
-        Map<Long, List<ProductPriceResponse>> pricesByProductId =
+        Map<Long, List<ProductPriceView>> pricesByProductId =
             findBatchPricesByProductId(results, orderMethod);
 
-        List<ProductResponse> products = results.stream()
-            .map(result -> toProductBatchResponse(
+        return results.stream()
+            .map(result -> toProductBatchItemView(
                 result,
                 pricesByProductId.getOrDefault(result.id(), List.of())
             ))
             .toList();
-
-        return ProductBatchResponse.from(products);
     }
 
     /**
@@ -216,7 +189,7 @@ public class ProductQueryService implements ProductQueryUseCase {
      * <p>{@code available=false}(판매 종료·미존재) 상품은 조회 대상에서 빼 불필요한 조회를 줄인다 —
      * 그 상품은 응답의 다른 필드도 비어 있어 화면이 "판매 종료"로만 다룬다.
      */
-    private Map<Long, List<ProductPriceResponse>> findBatchPricesByProductId(
+    private Map<Long, List<ProductPriceView>> findBatchPricesByProductId(
         List<ProductBatchResult> results,
         OrderMethod orderMethod
     ) {
@@ -230,128 +203,54 @@ public class ProductQueryService implements ProductQueryUseCase {
             .collect(Collectors.groupingBy(
                 ProductPriceResult::productId,
                 LinkedHashMap::new,
-                Collectors.mapping(price -> toProductPriceResponse(price, orderMethod), Collectors.toList())
+                Collectors.mapping(price -> toProductPriceView(price, orderMethod), Collectors.toList())
             ));
     }
 
-    private ProductResponse toProductBatchResponse(
+    private ProductBatchItemView toProductBatchItemView(
         ProductBatchResult result,
-        List<ProductPriceResponse> prices
+        List<ProductPriceView> prices
     ) {
-        List<ProductBatchOptionResponse> options = result.options().stream()
-            .map(option -> ProductBatchOptionResponse.from(
-                option.id(),
-                option.name(),
-                option.price(),
-                option.cupCount(),
-                option.depositAmount(),
-                option.personalCupDiscountAmount()
-            ))
-            .toList();
-        return ProductResponse.from(
+        return new ProductBatchItemView(
             result.id(),
             result.available(),
             result.name(),
             result.imageUrl(),
             result.originalPrice(),
             result.discountPrice(),
-            options,
+            result.options(),
             prices
         );
     }
 
-    private List<ProductOptionGroupResponse> toOptionGroupResponses(ProductOptionsResult result) {
-        return result.optionGroups().stream()
-            .map(this::toOptionGroupResponse)
-            .toList();
-    }
-
-    private ProductOptionGroupResponse toOptionGroupResponse(OptionGroupResult group) {
-        List<ProductOptionResponse> options = group.options().stream()
-            .map(option -> ProductOptionResponse.from(
-                option.id(),
-                option.name(),
-                option.additionalPrice(),
-                option.soldOut(),
-                option.cupCount(),
-                option.depositAmount(),
-                option.personalCupDiscountAmount()
-            ))
-            .toList();
-        return ProductOptionGroupResponse.from(
-            group.id(),
-            group.name(),
-            group.description(),
-            group.required(),
-            group.multipleSelect(),
-            group.minSelect(),
-            group.maxSelect(),
-            group.common(),
-            group.groupType(),
-            options
-        );
-    }
-
     @Override
-    public ProductImagesResponse findProductImages(Long productId) {
+    public List<String> findProductImages(Long productId) {
         loadProductDetail(productId);
-        List<String> imageUrls = productQueryPort.findProductImageUrls(productId);
-        return ProductImagesResponse.from(imageUrls);
+        return productQueryPort.findProductImageUrls(productId);
     }
 
     @Override
-    public ProductReviewsByRatingPageResponse getProductReviewsByRatingWithPagination(
+    public ReviewsByRatingResult getProductReviewsByRatingWithPagination(
         Long productId,
         int page,
         int size,
         Boolean hasImage
     ) {
-        ReviewsByRatingResult result = findProductReviewsByRating(productId, page, size, hasImage);
-
-        Map<Integer, List<ProductReviewListItemResponse>> reviewsByRating = result.reviewsByRating().entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().stream()
-                    .map(this::toProductReviewListItemResponse)
-                    .toList()
-            ));
-
-        List<ProductReviewListItemResponse> allReviews = result.allReviews().stream()
-            .map(this::toProductReviewListItemResponse)
-            .toList();
-
-        ProductReviewsByRatingResponse response = ProductReviewsByRatingResponse.from(
-            reviewsByRating,
-            allReviews,
-            result.totalReviewCount()
-        );
-
-        return new ProductReviewsByRatingPageResponse(response, result.totalElements());
+        return findProductReviewsByRating(productId, page, size, hasImage);
     }
 
-    private ProductReviewListItemResponse toProductReviewListItemResponse(LatestReviewListItemResult dto) {
-        return ProductReviewListItemResponse.from(
-            dto.id(),
-            dto.imageUrls(),
-            dto.totalRating(),
-            dto.content(),
-            dto.memberId(),
-            dto.memberNickname(),
-            dto.memberProfileImageUrl(),
-            dto.createdAt(),
-            dto.productId(),
-            dto.productName(),
-            dto.ownerReplyContent(),
-            dto.ownerReplyCreatedAt()
-        );
-    }
-
+    /**
+     * 상품 리뷰 통계 — {@code totalRating}만 <b>상품 투영</b>에서 오고 나머지는 리뷰 통계에서 온다.
+     *
+     * <p>두 출처를 합치는 판단이므로 표현 계층에 맡기지 않고 여기서 끝낸다
+     * ({@link ProductReviewStatisticsView}의 Javadoc 참조).
+     */
     @Override
-    public ProductReviewStatisticsResponse getProductReviewStatistics(Long productId) {
+    public ProductReviewStatisticsView getProductReviewStatistics(Long productId) {
         ProductReviewStatisticsResult statistics = findProductReviewStatistics(productId);
         ProductDetailResult product = loadProductDetail(productId);
 
-        return ProductReviewStatisticsResponse.from(
+        return new ProductReviewStatisticsView(
             product.rating(),
             statistics.totalReviewCount(),
             statistics.averageTasteRating(),

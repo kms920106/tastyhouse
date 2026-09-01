@@ -3,21 +3,17 @@ package com.tastyhouse.webapplication.notification.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.domain.notification.model.NotificationTargetType;
-import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.notification.port.out.NotificationListItemResult;
 import com.tastyhouse.application.notification.port.out.NotificationQueryPort;
-import com.tastyhouse.webapplication.notification.response.NotificationListItemResponse;
 import com.tastyhouse.webapplication.notification.port.in.NotificationQueryUseCase;
 
 /**
  * 알림함 조회 서비스(CQRS query 측).
  *
- * <p>읽기 포트({@link NotificationQueryPort})만 주입해 조회하고 Response를 조립한다(private 매퍼).
- * 도메인 enum은 HTTP 경계로 내보내지 않으므로 이 계층에서 상수명 문자열로 낮춘다.
+ * <p>읽기 포트({@link NotificationQueryPort})만 주입해 조회하고 그 결과를 그대로 내보낸다 — 응답 조립과
+ * 도메인 enum의 문자열 강등은 web-api의 Response가 맡는다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -33,11 +29,8 @@ public class NotificationQueryService implements NotificationQueryUseCase {
      * 내 알림 목록 — 최신순.
      */
     @Override
-    public PaginationResponse<NotificationListItemResponse> findNotifications(Long memberId, int page, int size) {
-        PageResult<NotificationListItemResult> pageResult =
-            notificationQueryPort.findNotificationsByMemberId(memberId, PageQuery.of(page, size));
-
-        return PaginationResponse.from(pageResult.map(this::toNotificationListItemResponse));
+    public PageResult<NotificationListItemResult> findNotifications(Long memberId, int page, int size) {
+        return notificationQueryPort.findNotificationsByMemberId(memberId, PageQuery.of(page, size));
     }
 
     /**
@@ -46,20 +39,5 @@ public class NotificationQueryService implements NotificationQueryUseCase {
     @Override
     public long countUnread(Long memberId) {
         return notificationQueryPort.countUnreadByMemberId(memberId);
-    }
-
-    private NotificationListItemResponse toNotificationListItemResponse(NotificationListItemResult result) {
-        NotificationType type = result.type();
-        NotificationTargetType targetType = result.targetType();
-        return NotificationListItemResponse.from(
-            result.id(),
-            type == null ? null : type.name(),
-            result.title(),
-            result.body(),
-            targetType == null ? null : targetType.name(),
-            result.targetId(),
-            result.read(),
-            result.createdAt()
-        );
     }
 }

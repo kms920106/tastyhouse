@@ -18,9 +18,9 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.webapplication.member.response.OrderListItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.request.OrderCreateRequest;
-import com.tastyhouse.webapplication.order.response.OrderDetailResponse;
+import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.webapplication.order.port.in.OrderCommandUseCase;
 import com.tastyhouse.webapplication.order.port.in.OrderCreateCommand;
 import com.tastyhouse.webapplication.order.port.in.OrderQueryUseCase;
@@ -57,7 +57,10 @@ public class OrderApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
-        PaginationResponse<OrderListItemResponse> page = orderQueryService.getOrderList(memberId, pageRequest.page(), pageRequest.size());
+        PaginationResponse<OrderListItemResponse> page = PaginationResponse.from(
+            orderQueryService.getOrderList(memberId, pageRequest.page(), pageRequest.size())
+                .map(OrderListItemResponse::from)
+        );
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
             page.content(),
             page.page(),
@@ -74,7 +77,7 @@ public class OrderApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderDetailResponse response = orderQueryService.getOrderDetail(memberId, id);
+        OrderDetailResponse response = OrderDetailResponse.from(orderQueryService.getOrderDetail(memberId, id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

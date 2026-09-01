@@ -12,7 +12,6 @@ import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
-import com.tastyhouse.webapplication.auth.response.AuthPasswordResetTokenResponse;
 import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
 
@@ -85,14 +84,14 @@ public class AuthPasswordResetService {
 
     /**
      * 인증코드를 확인하고 비밀번호 재설정 토큰을 발급한다.
+     *
+     * @return 발급된 비밀번호 재설정 토큰(표현 계약 조립은 web-api가 담당한다 — 챕터 10)
      */
     @Transactional
-    public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
+    public String verifyPasswordResetCode(String username, String verificationCode) {
         mailVerificationService.confirm(username, verificationCode);
 
-        String passwordResetToken = jwtTokenProvider.createPasswordResetToken(username);
-
-        return AuthPasswordResetTokenResponse.from(passwordResetToken);
+        return jwtTokenProvider.createPasswordResetToken(username);
     }
 
     /**

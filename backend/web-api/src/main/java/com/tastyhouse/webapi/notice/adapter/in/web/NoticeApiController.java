@@ -15,7 +15,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.notice.port.in.NoticeQueryUseCase;
-import com.tastyhouse.webapplication.notice.response.NoticeListItemResponse;
+import com.tastyhouse.webapi.notice.adapter.in.web.response.NoticeListItemResponse;
 
 @RestController
 @RequestMapping("/api/notices")
@@ -32,7 +32,10 @@ public class NoticeApiController {
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
 
-        PaginationResponse<NoticeListItemResponse> pageResult = noticeQueryService.getNoticeList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResult = PaginationResponse.from(
+            noticeQueryService.getNoticeList(pageRequest.page(), pageRequest.size())
+                .map(NoticeListItemResponse::from)
+        );
 
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),

@@ -13,11 +13,10 @@ import com.tastyhouse.webapplication.auth.service.naver.NaverSocialLoginService;
 import com.tastyhouse.webapplication.auth.port.in.AuthCommandUseCase;
 import com.tastyhouse.webapplication.auth.port.in.AuthSignUpCommand;
 import com.tastyhouse.webapplication.auth.port.in.AuthSocialSignUpCommand;
-import com.tastyhouse.webapplication.auth.response.AuthJwtResponse;
-import com.tastyhouse.webapplication.auth.response.AuthPasswordResetTokenResponse;
-import com.tastyhouse.webapplication.auth.response.AuthPhoneLoginResponse;
-import com.tastyhouse.webapplication.auth.response.AuthSocialLinkResponse;
-import com.tastyhouse.webapplication.auth.response.AuthSocialLoginResponse;
+import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.PhoneLoginResult;
+import com.tastyhouse.webapplication.auth.port.out.SocialLinkResult;
+import com.tastyhouse.webapplication.auth.port.out.SocialLoginResult;
 
 /**
  * 인증 컨트롤러 파사드.
@@ -77,13 +76,13 @@ public class AuthCommandService implements AuthCommandUseCase {
 
     // 로그인
     @Override
-    public AuthJwtResponse login(String username, String password, boolean rememberMe) {
+    public JwtResult login(String username, String password, boolean rememberMe) {
         return credentialLoginService.login(username, password, rememberMe);
     }
 
     // 토큰 갱신
     @Override
-    public AuthJwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         return credentialLoginService.refresh(refreshToken);
     }
 
@@ -101,7 +100,7 @@ public class AuthCommandService implements AuthCommandUseCase {
 
     // 비밀번호 찾기 - 인증코드 확인
     @Override
-    public AuthPasswordResetTokenResponse verifyPasswordResetCode(String username, String verificationCode) {
+    public String verifyPasswordResetCode(String username, String verificationCode) {
         return authPasswordResetService.verifyPasswordResetCode(username, verificationCode);
     }
 
@@ -113,19 +112,19 @@ public class AuthCommandService implements AuthCommandUseCase {
 
     // 카카오 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
     @Override
-    public AuthSocialLoginResponse kakaoLogin(String authorizationCode) {
+    public SocialLoginResult kakaoLogin(String authorizationCode) {
         return kakaoSocialLoginService.login(authorizationCode);
     }
 
     // 휴대폰 인증 토큰으로 로그인 (기존 회원이면 JWT 발급, 신규이면 needsSignUp=true)
     @Override
-    public AuthPhoneLoginResponse phoneLogin(String smsVerifyToken) {
+    public PhoneLoginResult phoneLogin(String smsVerifyToken) {
         return phoneLoginService.login(smsVerifyToken);
     }
 
     // 소셜 계정을 기존 일반가입 계정에 연동 후 JWT 발급. 가입된 계정이 없으면 NEEDS_SIGN_UP 반환
     @Override
-    public AuthSocialLinkResponse linkAccount(String provider, String tempToken, String smsVerifyToken) {
+    public SocialLinkResult linkAccount(String provider, String tempToken, String smsVerifyToken) {
         return switch (MemberSocialProvider.from(provider)) {
             case KAKAO -> kakaoSocialLoginService.linkAccount(tempToken, smsVerifyToken);
             case NAVER -> naverSocialLoginService.linkAccount(tempToken, smsVerifyToken);
@@ -138,25 +137,25 @@ public class AuthCommandService implements AuthCommandUseCase {
 
     // 네이버 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
     @Override
-    public AuthSocialLoginResponse naverLogin(String authorizationCode, String state) {
+    public SocialLoginResult naverLogin(String authorizationCode, String state) {
         return naverSocialLoginService.login(authorizationCode, state);
     }
 
     // 페이스북 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
     @Override
-    public AuthSocialLoginResponse facebookLogin(String accessToken) {
+    public SocialLoginResult facebookLogin(String accessToken) {
         return facebookSocialLoginService.login(accessToken);
     }
 
     // 애플 로그인 (기존 회원이면 JWT 발급, 신규이면 회원가입 필요 응답)
     @Override
-    public AuthSocialLoginResponse appleLogin(String authorizationCode) {
+    public SocialLoginResult appleLogin(String authorizationCode) {
         return appleSocialLoginService.login(authorizationCode);
     }
 
     // 소셜 소셜 회원가입 후 JWT 발급
     @Override
-    public AuthJwtResponse socialSignUp(AuthSocialSignUpCommand command) {
+    public JwtResult socialSignUp(AuthSocialSignUpCommand command) {
         MemberGender genderType = MemberGender.from(command.gender());
         return switch (MemberSocialProvider.from(command.provider())) {
             case KAKAO -> kakaoSocialLoginService.signUp(

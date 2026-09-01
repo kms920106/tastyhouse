@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import com.tastyhouse.webapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
+import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 
 /**
  * 손님용 주문안내 조회 API.
@@ -37,7 +38,8 @@ public class ShopOrderNoticeApiController {
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내를 조회합니다. 미설정이거나 관리자 게시중단 상태면 data가 null입니다.")
     @GetMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<ShopOrderNoticeResponse>> getOrderNotice(@PathVariable Long id) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(id);
+        ShopOrderNoticeResult result = shopOrderNoticeQueryService.getOrderNotice(id);
+        ShopOrderNoticeResponse response = result == null ? null : ShopOrderNoticeResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

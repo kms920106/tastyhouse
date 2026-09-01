@@ -21,7 +21,7 @@ import com.tastyhouse.domain.payment.service.TossConfirmationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.webapplication.payment.response.PaymentCancelResponse;
+import com.tastyhouse.webapplication.payment.port.out.PaymentCancelResult;
 import com.tastyhouse.webapplication.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.webapplication.payment.port.in.PaymentCommandUseCase;
 import com.tastyhouse.webapplication.payment.port.in.PaymentConfirmCommand;
@@ -220,9 +220,9 @@ public class PaymentCommandService implements PaymentCommandUseCase {
      * @return 취소 결과 코드·메시지를 담은 응답
      */
     @Override
-    public PaymentCancelResponse cancelPayment(PaymentCancelCommand command) {
+    public PaymentCancelResult cancelPayment(PaymentCancelCommand command) {
         PaymentCancelCode cancelCode = doCancelPayment(command.memberId(), command.paymentId(), command.cancelReason());
-        return PaymentCancelResponse.of(cancelCode.name(), cancelCode.getMessage());
+        return new PaymentCancelResult(cancelCode.name(), cancelCode.getMessage());
     }
 
     /**

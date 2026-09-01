@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.webapplication.follow.service.FollowQueryService;
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
 import com.tastyhouse.webapplication.member.port.in.MemberStatsQueryUseCase;
+import com.tastyhouse.webapplication.member.port.out.MemberStatsResult;
 import com.tastyhouse.webapplication.review.service.ReviewQueryService;
 
 /**
@@ -29,12 +29,12 @@ public class MemberStatsQueryService implements MemberStatsQueryUseCase {
     // 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회
     @Transactional(readOnly = true)
     @Override
-    public MemberStatsResponse getMemberStats(Long memberId) {
+    public MemberStatsResult getMemberStats(Long memberId) {
         long reviewCount = reviewQueryService.countVisibleReviewsByMemberId(memberId);
         long followingCount = followQueryService.countFollowing(memberId);
         long followerCount = followQueryService.countFollower(memberId);
 
-        return MemberStatsResponse.from(
+        return new MemberStatsResult(
             reviewCount,
             followingCount,
             followerCount

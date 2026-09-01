@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
-import com.tastyhouse.webapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import com.tastyhouse.webapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
@@ -35,9 +35,7 @@ public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase 
      * ({@code ApiResponse.data}가 null이 된다).
      */
     @Override
-    public ShopOrderNoticeResponse getOrderNotice(Long shopId) {
-        return shopOrderNoticeQueryPort.findVisibleOrderNotice(shopId)
-            .map(result -> ShopOrderNoticeResponse.of(result.content()))
-            .orElse(null);
+    public ShopOrderNoticeResult getOrderNotice(Long shopId) {
+        return shopOrderNoticeQueryPort.findVisibleOrderNotice(shopId).orElse(null);
     }
 }

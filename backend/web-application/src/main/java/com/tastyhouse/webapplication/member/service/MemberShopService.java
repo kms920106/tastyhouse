@@ -4,10 +4,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
-import com.tastyhouse.webapplication.member.response.ShopBookmarkListItemResponse;
 
 /**
  * 회원의 즐겨찾기 가게 목록 조회 서비스.
@@ -24,16 +24,7 @@ public class MemberShopService {
     }
 
     @Transactional(readOnly = true)
-    public PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
-        return PaginationResponse.from(shopSearchQueryPort.findMyBookmarkedShops(memberId, PageQuery.of(page, size))
-            .map(dto -> ShopBookmarkListItemResponse.from(
-                dto.shopId(),
-                dto.bookmarkId(),
-                dto.shopName(),
-                dto.stationName(),
-                dto.rating(),
-                dto.imageUrl(),
-                dto.bookmarked()
-            )));
+    public PageResult<ShopBookmarkedItemResult> getMyBookmarkedShops(Long memberId, int page, int size) {
+        return shopSearchQueryPort.findMyBookmarkedShops(memberId, PageQuery.of(page, size));
     }
 }

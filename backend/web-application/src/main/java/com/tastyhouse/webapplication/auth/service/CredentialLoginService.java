@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.webapplication.auth.token.TokenService;
-import com.tastyhouse.webapplication.auth.response.AuthJwtResponse;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
 import com.tastyhouse.webapplication.member.service.MemberAuthService;
+import com.tastyhouse.webapplication.auth.port.out.JwtResult;
 
 @Service
 public class CredentialLoginService {
@@ -49,7 +49,7 @@ public class CredentialLoginService {
     }
 
     // 아이디/비밀번호 인증 후 JWT 토큰을 발급
-    public AuthJwtResponse login(String username, String password, boolean rememberMe) {
+    public JwtResult login(String username, String password, boolean rememberMe) {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -59,7 +59,7 @@ public class CredentialLoginService {
     }
 
     // 리프레시 토큰으로 새 JWT 토큰을 재발급
-    public AuthJwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         return tokenService.refresh(refreshToken);
     }
 

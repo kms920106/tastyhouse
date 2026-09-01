@@ -12,8 +12,8 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapplication.auth.token.TokenService;
-import com.tastyhouse.webapplication.auth.response.AuthJwtResponse;
-import com.tastyhouse.webapplication.auth.response.AuthPhoneLoginResponse;
+import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.PhoneLoginResult;
 
 @Service
 public class PhoneLoginService {
@@ -35,7 +35,7 @@ public class PhoneLoginService {
     // smsVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
     // 없으면 needsSignUp=true 반환
     @Transactional(readOnly = true)
-    public AuthPhoneLoginResponse login(String smsVerifyToken) {
+    public PhoneLoginResult login(String smsVerifyToken) {
         if (jwtTokenProvider.isInvalidSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -45,10 +45,10 @@ public class PhoneLoginService {
         Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
-            AuthJwtResponse jwt = tokenService.issue(memberOpt.get(), false);
-            return AuthPhoneLoginResponse.ofLogin(jwt);
+            JwtResult jwt = tokenService.issue(memberOpt.get(), false);
+            return PhoneLoginResult.ofLogin(jwt);
         }
 
-        return AuthPhoneLoginResponse.ofSignUpRequired();
+        return PhoneLoginResult.ofSignUpRequired();
     }
 }

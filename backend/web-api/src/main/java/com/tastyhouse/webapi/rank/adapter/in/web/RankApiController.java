@@ -15,9 +15,9 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapplication.rank.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.adapter.in.web.request.RankSearchRequest;
-import com.tastyhouse.webapplication.rank.response.RankDurationResponse;
-import com.tastyhouse.webapplication.rank.response.RankMemberListItemResponse;
-import com.tastyhouse.webapplication.rank.response.RankPrizeListItemResponse;
+import com.tastyhouse.webapi.rank.adapter.in.web.response.RankDurationResponse;
+import com.tastyhouse.webapi.rank.adapter.in.web.response.RankMemberListItemResponse;
+import com.tastyhouse.webapi.rank.adapter.in.web.response.RankPrizeListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -35,14 +35,16 @@ public class RankApiController {
     @GetMapping("/v1/duration")
     public ResponseEntity<ApiResponse<RankDurationResponse>> getDuration() {
         return rankQueryService.getDuration()
-            .map(duration -> ResponseEntity.ok(ApiResponse.success(duration)))
+            .map(duration -> ResponseEntity.ok(ApiResponse.success(RankDurationResponse.from(duration))))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "랭킹 경품 목록 조회", description = "현재 진행중인 랭킹의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes() {
-        List<RankPrizeListItemResponse> prizes = rankQueryService.getPrizes();
+        List<RankPrizeListItemResponse> prizes = rankQueryService.getPrizes().stream()
+            .map(RankPrizeListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(prizes));
     }
 
@@ -51,7 +53,9 @@ public class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankQueryService.getMemberRankList(search.type(), search.limit());
+        List<RankMemberListItemResponse> ranks = rankQueryService.getMemberRankList(search.type(), search.limit()).stream()
+            .map(RankMemberListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
@@ -61,7 +65,9 @@ public class RankApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        RankMemberListItemResponse myRank = rankQueryService.getMyMemberRank(userDetails.getMemberId(), search.type());
+        RankMemberListItemResponse myRank = RankMemberListItemResponse.from(
+            rankQueryService.getMyMemberRank(userDetails.getMemberId(), search.type())
+        );
         return ResponseEntity.ok(ApiResponse.success(myRank));
     }
 }

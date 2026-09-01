@@ -14,7 +14,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.webapplication.auth.response.AuthJwtResponse;
+import com.tastyhouse.webapplication.auth.port.out.JwtResult;
 
 /**
  * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스
@@ -42,7 +42,7 @@ public class TokenService {
     /**
      * 소셜/휴대폰 로그인 등 Member 객체를 직접 사용하는 모든 로그인 경로의 단일 토큰 발급 진입점
      */
-    public AuthJwtResponse issue(Member member, boolean rememberMe) {
+    public JwtResult issue(Member member, boolean rememberMe) {
         CustomUserDetails userDetails = new CustomUserDetails(
             member.getId(),
             member.getUsername(),
@@ -54,7 +54,7 @@ public class TokenService {
     /**
      * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장
      */
-    public AuthJwtResponse issue(Authentication authentication, boolean rememberMe) {
+    public JwtResult issue(Authentication authentication, boolean rememberMe) {
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication, rememberMe);
 
@@ -64,7 +64,7 @@ public class TokenService {
                 jwtTokenProvider.getRefreshTokenTtl(rememberMe)
         );
 
-        return AuthJwtResponse.of(
+        return JwtResult.of(
             accessToken,
             refreshToken,
             "Bearer"
@@ -74,7 +74,7 @@ public class TokenService {
     /**
      * Refresh Token으로 새 Access Token + Refresh Token 재발급 (Refresh Token Rotation)
      */
-    public AuthJwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_INVALID);
         }
@@ -91,7 +91,7 @@ public class TokenService {
 
         refreshTokenRepository.save(username, newRefreshToken, jwtTokenProvider.getRefreshTokenTtl(false));
 
-        return AuthJwtResponse.of(
+        return JwtResult.of(
             newAccessToken,
             newRefreshToken,
             "Bearer"

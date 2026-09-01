@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.policy.port.in.PolicyDetailQueryUseCase;
 import com.tastyhouse.webapplication.policy.port.in.PolicyVersionListQueryUseCase;
-import com.tastyhouse.webapplication.policy.response.PolicyDetailResponse;
-import com.tastyhouse.webapplication.policy.response.PolicyListItemResponse;
+import com.tastyhouse.webapi.policy.adapter.in.web.response.PolicyDetailResponse;
+import com.tastyhouse.webapi.policy.adapter.in.web.response.PolicyListItemResponse;
 
 @RestController
 @RequestMapping("/api/policies")
@@ -34,76 +35,88 @@ public class PolicyApiController {
     @Operation(summary = "최신 이용약관 조회", description = "현재 유효한 최신 이용약관을 조회합니다.")
     @GetMapping("/v1/terms-of-service/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestTermsOfService() {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getLatestTermsOfService()));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getLatestTermsOfService())));
     }
 
     @Operation(summary = "최신 개인정보처리방침 조회", description = "현재 유효한 최신 개인정보처리방침을 조회합니다.")
     @GetMapping("/v1/privacy-policy/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestPrivacyPolicy() {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getLatestPrivacyPolicy()));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getLatestPrivacyPolicy())));
     }
 
     @Operation(summary = "최신 전자금융거래 약관 조회", description = "현재 유효한 최신 전자금융거래 약관을 조회합니다.")
     @GetMapping("/v1/electronic-financial-transactions/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestElectronicFinancialTransactions() {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getLatestElectronicFinancialTransactions()));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getLatestElectronicFinancialTransactions())));
     }
 
     @Operation(summary = "최신 만 14세 이상 동의 약관 조회", description = "현재 유효한 최신 만 14세 이상 동의 약관을 조회합니다.")
     @GetMapping("/v1/age-verification/latest")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getLatestAgeVerification() {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getLatestAgeVerification()));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getLatestAgeVerification())));
     }
 
     @Operation(summary = "특정 버전 이용약관 조회", description = "지정된 버전의 이용약관을 조회합니다.")
     @GetMapping("/v1/terms-of-service/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getTermsOfServiceByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getTermsOfServiceByVersion(version)));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getTermsOfServiceByVersion(version))));
     }
 
     @Operation(summary = "특정 버전 개인정보처리방침 조회", description = "지정된 버전의 개인정보처리방침을 조회합니다.")
     @GetMapping("/v1/privacy-policy/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getPrivacyPolicyByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getPrivacyPolicyByVersion(version)));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getPrivacyPolicyByVersion(version))));
     }
 
     @Operation(summary = "특정 버전 전자금융거래 약관 조회", description = "지정된 버전의 전자금융거래 약관을 조회합니다.")
     @GetMapping("/v1/electronic-financial-transactions/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getElectronicFinancialTransactionsByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getElectronicFinancialTransactionsByVersion(version)));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getElectronicFinancialTransactionsByVersion(version))));
     }
 
     @Operation(summary = "특정 버전 만 14세 이상 동의 약관 조회", description = "지정된 버전의 만 14세 이상 동의 약관을 조회합니다.")
     @GetMapping("/v1/age-verification/version/{version}")
     public ResponseEntity<ApiResponse<PolicyDetailResponse>> getAgeVerificationByVersion(@PathVariable String version) {
-        return ResponseEntity.ok(ApiResponse.success(policyDetailQueryUseCase.getAgeVerificationByVersion(version)));
+        return ResponseEntity.ok(ApiResponse.success(PolicyDetailResponse.from(policyDetailQueryUseCase.getAgeVerificationByVersion(version))));
     }
 
     @Operation(summary = "이용약관 목록 조회", description = "모든 버전의 이용약관 목록을 조회합니다. (관리자용)")
     @GetMapping("/v1/terms-of-service")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getTermsOfServiceList(@Valid @ModelAttribute PageRequest pageRequest) {
-        var pageResult = policyVersionListQueryUseCase.getTermsOfServiceList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<PolicyListItemResponse> pageResult = PaginationResponse.from(
+            policyVersionListQueryUseCase.getTermsOfServiceList(pageRequest.page(), pageRequest.size())
+                .map(PolicyListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "개인정보처리방침 목록 조회", description = "모든 버전의 개인정보처리방침 목록을 조회합니다. (관리자용)")
     @GetMapping("/v1/privacy-policy")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getPrivacyPolicyList(@Valid @ModelAttribute PageRequest pageRequest) {
-        var pageResult = policyVersionListQueryUseCase.getPrivacyPolicyList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<PolicyListItemResponse> pageResult = PaginationResponse.from(
+            policyVersionListQueryUseCase.getPrivacyPolicyList(pageRequest.page(), pageRequest.size())
+                .map(PolicyListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "전자금융거래 약관 목록 조회", description = "모든 버전의 전자금융거래 약관 목록을 조회합니다. (관리자용)")
     @GetMapping("/v1/electronic-financial-transactions")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getElectronicFinancialTransactionsList(@Valid @ModelAttribute PageRequest pageRequest) {
-        var pageResult = policyVersionListQueryUseCase.getElectronicFinancialTransactionsList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<PolicyListItemResponse> pageResult = PaginationResponse.from(
+            policyVersionListQueryUseCase.getElectronicFinancialTransactionsList(pageRequest.page(), pageRequest.size())
+                .map(PolicyListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 
     @Operation(summary = "만 14세 이상 동의 약관 목록 조회", description = "모든 버전의 만 14세 이상 동의 약관 목록을 조회합니다. (관리자용)")
     @GetMapping("/v1/age-verification")
     public ResponseEntity<ApiResponse<List<PolicyListItemResponse>>> getAgeVerificationList(@Valid @ModelAttribute PageRequest pageRequest) {
-        var pageResult = policyVersionListQueryUseCase.getAgeVerificationList(pageRequest.page(), pageRequest.size());
+        PaginationResponse<PolicyListItemResponse> pageResult = PaginationResponse.from(
+            policyVersionListQueryUseCase.getAgeVerificationList(pageRequest.page(), pageRequest.size())
+                .map(PolicyListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(pageResult.content(), pageResult.page(), pageResult.size(), pageResult.totalElements()));
     }
 }

@@ -2,7 +2,7 @@ package com.tastyhouse.webapplication.coupon.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
+import com.tastyhouse.webapplication.coupon.port.out.MyCouponListItemResult;
 
 /**
  * 쿠폰 조회 인바운드 포트.
@@ -12,7 +12,7 @@ import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
  */
 public interface CouponQueryUseCase {
 
-    List<MyCouponListItemResponse> getMyCoupons(Long memberId);
+    List<MyCouponListItemResult> getMyCoupons(Long memberId);
 
-    List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId);
+    List<MyCouponListItemResult> getMyAvailableCoupons(Long memberId);
 }

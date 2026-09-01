@@ -1,7 +1,7 @@
 package com.tastyhouse.webapplication.payment.port.in;
 
-import com.tastyhouse.webapplication.payment.response.PaymentRefundResponse;
-import com.tastyhouse.webapplication.payment.response.PaymentResponse;
+import com.tastyhouse.webapplication.payment.port.out.PaymentRefundViewResult;
+import com.tastyhouse.webapplication.payment.port.out.PaymentViewResult;
 
 /**
  * 결제 조회 인바운드 포트.
@@ -11,11 +11,11 @@ import com.tastyhouse.webapplication.payment.response.PaymentResponse;
  */
 public interface PaymentQueryUseCase {
 
-    PaymentResponse getPayment(Long memberId, Long id);
+    PaymentViewResult getPayment(Long memberId, Long id);
 
-    PaymentResponse getPayment(Long id);
+    PaymentViewResult getPayment(Long id);
 
-    PaymentResponse getPaymentByOrderId(Long memberId, Long orderId);
+    PaymentViewResult getPaymentByOrderId(Long memberId, Long orderId);
 
-    PaymentRefundResponse getRefund(Long refundId);
+    PaymentRefundViewResult getRefund(Long refundId);
 }

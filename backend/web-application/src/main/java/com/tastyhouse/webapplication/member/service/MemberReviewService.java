@@ -3,9 +3,9 @@ package com.tastyhouse.webapplication.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
 import com.tastyhouse.webapplication.review.service.ReviewQueryService;
 
 @Service
@@ -18,18 +18,12 @@ public class MemberReviewService {
     }
 
     @Transactional(readOnly = true)
-    public PaginationResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
-        return PaginationResponse.from(reviewQueryService.findMyReviews(memberId, page, size)
-            .map(dto -> MyReviewListItemResponse.from(
-                dto.id(),
-                dto.imageUrl(),
-                dto.ownerOnly()
-            )));
+    public PageResult<MyReviewListItemResult> getMyReviews(Long memberId, int page, int size) {
+        return reviewQueryService.findMyReviews(memberId, page, size);
     }
 
     @Transactional(readOnly = true)
-    public MyReviewCountResponse getMyReviewCount(Long memberId) {
-        long count = reviewQueryService.countVisibleReviewsByMemberId(memberId);
-        return MyReviewCountResponse.from(count);
+    public long getMyReviewCount(Long memberId) {
+        return reviewQueryService.countVisibleReviewsByMemberId(memberId);
     }
 }

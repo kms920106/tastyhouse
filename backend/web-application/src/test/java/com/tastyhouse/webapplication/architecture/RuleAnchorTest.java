@@ -65,13 +65,23 @@ class RuleAnchorTest {
     /**
      * 모듈 전체를 대상으로 하는 규칙들({@code applicationMustBeServletFree} ·
      * {@code applicationMustNotDependOnAdapters} · {@code shouldNotDependOnQuerydsl} ·
-     * {@code shouldNotDependOnInfrastructure})의 anchor.
+     * {@code shouldNotDependOnInfrastructure} · <b>챕터 10 신설
+     * {@code applicationShouldNotDependOnSwagger} · {@code applicationShouldNotDependOnApiCommon}</b>)의
+     * anchor.
+     *
+     * <p>신설 규칙 2종도 {@code noClasses()}로 <b>모듈 전체</b>를 대상으로 하므로 별도 anchor를 두지
+     * 않는다 — 이 테스트가 그 둘의 anchor를 겸한다(대상이 "모듈의 모든 클래스"라서 셀 것이 같다).
+     *
+     * <p><b>챕터 10에서 하한을 297 → 200으로 재기준했다.</b> 26개 컨텍스트의 Response record 131개가
+     * 표현 계약으로서 web-api로 승격돼 이 모듈을 <b>정상적으로</b> 떠났기 때문이다(admin이 챕터 06에서
+     * 290, ceo가 챕터 09에서 334로 내린 것과 같은 이유). 하한을 낮추는 것은 규칙을 무르게 하는 것이
+     * 아니라 <b>측정 대상이 바뀐 것을 반영</b>하는 것이며, 이 값은 여전히 "모듈이 비었는지"를 잡는다.
      */
     @Test
     void moduleIsNotEmpty() {
         assertThat(classes.size())
             .as("모듈이 비면 noClasses() 전역 규칙이 전부 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(297);
+            .isGreaterThanOrEqualTo(200);
     }
 
     /**

@@ -19,8 +19,8 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.webapplication.shop.response.ShopPriceBadgeResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopPriceBadgeQueryUseCase;
+import com.tastyhouse.webapplication.shop.port.out.ShopPriceBadgeViewResult;
 
 /**
  * 손님용 가게 매장가격 뱃지 조회 서비스(CQRS query 측).
@@ -91,7 +91,7 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
      * 응답을 준다 — 뱃지는 <b>부가 표시</b>라 판정 불가가 가게 화면 전체를 깨서는 안 된다.
      */
     @Override
-    public ShopPriceBadgeResponse getPriceBadges(Long shopId) {
+    public ShopPriceBadgeViewResult getPriceBadges(Long shopId) {
         LocalDateTime now = LocalDateTime.now();
 
         boolean sameAsStorePrice = storePriceBadgePolicy.shouldExposeSameAsStorePriceBadge(
@@ -107,7 +107,7 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
             now
         );
 
-        return ShopPriceBadgeResponse.from(sameAsStorePrice, storePricePickup);
+        return new ShopPriceBadgeViewResult(sameAsStorePrice, storePricePickup);
     }
 
     /**

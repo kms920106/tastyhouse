@@ -1,6 +1,6 @@
 # web-application
 
-사용자 웹(web-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`), 그 구현인 `*CommandService`/`*QueryService`, 그리고 QueryService가 조립하는 표현 계약(`<ctx>/response/`)이 여기 있다.
+사용자 웹(web-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`가 여기 있다. **표현 계약(`<ctx>/response/`)은 챕터 10으로 `web-api`로 승격됐다** — 이 모듈에는 더 이상 없다.
 
 컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·config·security 정책·전역 예외 핸들러와 부트스트랩(`WebApiApplication`)은 `web-api`에 남아 있다(`web-api/AGENTS.md`).
 
@@ -17,7 +17,7 @@ com.tastyhouse.webapplication/
 ├── WebApplicationConfig.java     @ComponentScan 진입점 — 쓰는 앱이 @Import 한다
 ├── <ctx>/port/in/                UseCase 인터페이스 + Command record
 ├── <ctx>/service/                *CommandService/*QueryService implements {Ctx}UseCase
-├── <ctx>/response/               QueryService가 조립하는 표현 계약 record
+├── <ctx>/port/out/               Command 경로·파생 반환 Result (챕터 10 — 읽기 계약 패키지와 구분)
 └── auth/                         인증 컨텍스트 (아래 "auth가 왜 여기까지 왔나" 참고)
     ├── token/                    JwtTokenProvider · TokenService
     └── security/                 CustomUserDetails · CustomUserDetailsService
@@ -25,11 +25,32 @@ com.tastyhouse.webapplication/
 
 컨텍스트 27종: `auth` · `banner` · `bug` · `coupon` · `event` · `faq` · `follow` · `grade` · `mail` · `member` · `menureview` · `notice` · `notification` · `order` · `partnership` · `payment` · `point` · `policy` · `product` · `rank` · `referral` · `reservation` · `review` · `search` · `shop` · `sms`(+`file`은 컨트롤러만 있어 이 모듈에 없음).
 
-## 왜 `response/`가 함께 왔나
+## `response/`는 챕터 10으로 web-api로 갔다
 
-이 저장소의 확정 규칙상 **`{도메인}QueryService`가 Result → Response 변환을 담당**한다(루트 `backend/CLAUDE.md`의 DTO 조립 규칙). 따라서 `response/`를 web-api에 남기면 서비스가 `com.tastyhouse.webapi..`를 역참조하게 되어 `applicationMustNotDependOnAdapters`가 곧바로 위반되고, 모듈 분리 자체가 성립하지 않는다. `batch-application`이 `crawling/bbq/response/`를 함께 옮긴 것과 같은 판단이다.
+**챕터 02 당시에는 `response/`가 이 모듈에 함께 왔다.** 그때의 확정 규칙은 "`{도메인}QueryService`가 Result → Response 변환을 담당"이었으므로, `response/`를 web-api에 남기면 서비스가 `com.tastyhouse.webapi..`를 역참조해 `applicationMustNotDependOnAdapters`가 곧바로 위반됐기 때문이다.
 
-**`request/`는 반대로 web-api에 남는다** — Request → Command 매핑은 인바운드 어댑터의 책임이고(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 그 방향(web-api → web-application)은 정상 의존이다.
+**챕터 10이 그 전제를 바꿨다** — 조립 주체를 QueryService에서 **Response record 자신**(`from(XxxResult)`)으로 옮기고 Response를 web-api로 승격했다(131개, 26개 컨텍스트). 유스케이스는 이제 프레임워크-프리 `*Result`·`PageResult`를 반환하므로 역참조가 생기지 않는다. 그 결과 이 모듈의 `io.swagger` import는 **0건**이고 `com.tastyhouse.apicommon` 참조도 **0건**이며, 두 상태를 `LayerRulesTest`의 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다(챕터 10 신설, admin 챕터 06·ceo 챕터 09와 동일한 규칙). **이로써 3개 앱이 모두 같은 설계가 됐다.**
+
+**`request/`는 원래부터 web-api에 있었고 그대로다** — Request → Command 매핑은 인바운드 어댑터의 책임이며(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 이제 양방향 매핑이 모두 web-api의 책임이다.
+
+### 표현 계약이 만들 수 없는 값은 이 모듈이 `*View`/`*ViewResult`로 넘긴다
+
+승격 후에도 **application에 남아야 하는 조립**이 있다. 표현 계약(api 모듈)은 도메인 모델·도메인 서비스·아웃바운드 포트를 알 수 없고 시계도 읽지 않아야 하므로, 아래는 이 모듈이 계산해 결과만 넘긴다.
+
+| 남는 이유 | 예 |
+|---|---|
+| 읽기 포트가 아예 없는 파생(도메인 enum 상수에서 생성) | `GradeInfoResult`(`MemberGrade.values()`) |
+| 여러 읽기 포트를 합친 결과 | `PointHistoryViewResult`(잔액+내역)·`ShopInfoViewResult`(2포트 6쿼리)·`FollowMemberSearchResult`·`MemberStatsResult` |
+| 도메인 서비스·정책 판정이 필요한 값 | `ShopDetailViewResult`(`ShopOperatingStatusService`)·`ShopPriceBadgeViewResult`(`StorePriceBadgePolicy`)·`ReservationSlotAvailabilityResult`(`SlotPolicy`+시계) |
+| 도메인 enum의 **비-accessor 호출**이 필요한 값 | `PaymentCancelResult`(`getMessage()`)·`ProductNutritionView`(`AllergenType.from`)·`ShopDeliveryTipScheduleItemResult`(`DayType.from`) |
+| 금액 VO 언랩 | `PaymentViewResult`·`PaymentRefundViewResult`(`Money#value()`) |
+| 시계 의존 파생 | `MyCouponListItemResult`(`daysRemaining`·`expired`)·`ScheduledOrderSlotsViewResult` |
+| 다른 컨텍스트에 물어본 값 | `OrderProductViewResult`(`reviewed` — 리뷰 배치 조회로 N+1 회피) |
+| 판별 유니온(분기 판정이 도메인 규칙) | `SocialLoginResult`·`SocialLinkResult`·`PhoneLoginResult`(auth) |
+
+**중첩 `Status` enum은 Result로 함께 복제하되 상수명을 바꾸지 않는다** — 상수 이름이 그대로 JSON 값이라 이름을 바꾸면 API가 바뀐다(`SocialLoginResult.Status`).
+
+**`@JsonInclude`·`@JsonFormat` 같은 jackson 직렬화 어노테이션은 Response 쪽에만 둔다** — 직렬화는 web-api에서 일어나므로 Result로 옮기면 무의미해지고, `@JsonFormat` 소실은 날짜 포맷이 조용히 바뀌어 프론트 파싱을 깬다(챕터 10 실측 8인스턴스/6파일).
 
 ## auth가 왜 여기까지 왔나 (챕터 02 서블릿 결합 판단 기록)
 

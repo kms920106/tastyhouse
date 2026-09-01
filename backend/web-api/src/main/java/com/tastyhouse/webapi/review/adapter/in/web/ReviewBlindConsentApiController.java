@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.webapplication.review.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommand;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommandUseCase;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentQueryUseCase;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindRejectCommand;
+import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 /**
@@ -57,8 +57,8 @@ public class ReviewBlindConsentApiController {
         @CurrentUser CustomUserDetails userDetails,
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
-        ReviewBlindNoticeResponse response = reviewBlindConsentQueryService.getBlindNotice(
-            reviewId, userDetails.getMemberId()
+        ReviewBlindNoticeResponse response = ReviewBlindNoticeResponse.from(
+            reviewBlindConsentQueryService.getBlindNotice(reviewId, userDetails.getMemberId())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageExposureResult;
 import com.tastyhouse.application.shop.port.out.ShopQueryPort;
-import com.tastyhouse.webapplication.shop.response.ShopMenuCollectionImageResponse;
 import com.tastyhouse.webapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 
 /**
@@ -27,19 +26,7 @@ public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionIm
     }
 
     @Override
-    public List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long shopId) {
-        return shopQueryPort.findExposedMenuCollectionImages(shopId).stream()
-            .map(this::toShopMenuCollectionImageResponse)
-            .toList();
-    }
-
-    private ShopMenuCollectionImageResponse toShopMenuCollectionImageResponse(
-        ShopMenuCollectionImageExposureResult dto
-    ) {
-        return ShopMenuCollectionImageResponse.from(
-            dto.id(),
-            dto.imageUrl(),
-            dto.sort()
-        );
+    public List<ShopMenuCollectionImageExposureResult> getMenuCollectionImages(Long shopId) {
+        return shopQueryPort.findExposedMenuCollectionImages(shopId);
     }
 }

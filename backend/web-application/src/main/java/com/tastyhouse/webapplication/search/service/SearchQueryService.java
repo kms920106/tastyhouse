@@ -9,8 +9,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
-
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
@@ -20,24 +19,23 @@ import com.tastyhouse.application.search.port.out.RecommendedKeywordResult;
 import com.tastyhouse.application.search.port.out.SearchQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
-import com.tastyhouse.webapplication.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapplication.product.service.ProductQueryService;
 import com.tastyhouse.webapplication.search.port.in.SearchQueryUseCase;
-import com.tastyhouse.webapplication.search.response.SearchPopularKeywordResponse;
-import com.tastyhouse.webapplication.search.response.SearchRecommendedKeywordResponse;
-import com.tastyhouse.webapplication.search.response.SearchReviewListItemResponse;
-import com.tastyhouse.webapplication.search.response.SearchShopListItemResponse;
 
 /**
  * 검색 조회 서비스.
  *
  * <p>조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다. 인기·추천 검색어는 infra read
- * 어댑터({@link SearchQueryPort})를 주입해 조회하고, Response 조립은 private 매퍼가 담당한다.
+ * 어댑터({@link SearchQueryPort})를 주입해 조회하고, 결과를 그대로 반환한다 — 표현 계약(Response)
+ * 조립은 web-api 컨트롤러의 책임이다.
  *
  * <p>가게·메뉴·리뷰 검색은 다른 도메인(product/review/shop)의 read model에 위임한다. 리뷰·가게는 각
  * 도메인의 infra query DAO({@link ReviewQueryPort}·{@link ShopSearchQueryPort})를 직접 주입하고, 메뉴 검색은
  * 같은 모듈의 {@link ProductQueryService}(내부적으로 product infra query DAO를 소비)에 위임한다 —
  * 상품 검색 결과 조립은 product 도메인 소관이므로 그 QueryService를 재사용한다.
+ *
+ * <p><b>챕터 10</b>에서 메뉴 검색의 {@code ProductSummaryResponse} 조립이 컨트롤러로 내려갔다 — 이제 이
+ * 서비스는 어느 경로에서도 표현 계약을 만들지 않고 읽기 계약만 반환한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -64,52 +62,44 @@ public class SearchQueryService implements SearchQueryUseCase {
     }
 
     @Override
-    public List<SearchPopularKeywordResponse> getPopularKeywords() {
-        return searchQueryPort.findVisiblePopularKeywords().stream()
-            .map(this::toSearchPopularKeywordResponse)
-            .toList();
+    public List<PopularKeywordResult> getPopularKeywords() {
+        return searchQueryPort.findVisiblePopularKeywords();
     }
 
     @Override
-    public List<SearchRecommendedKeywordResponse> getRecommendedKeywords() {
-        return searchQueryPort.findVisibleRecommendedKeywords().stream()
-            .map(this::toSearchRecommendedKeywordResponse)
-            .toList();
+    public List<RecommendedKeywordResult> getRecommendedKeywords() {
+        return searchQueryPort.findVisibleRecommendedKeywords();
     }
 
     @Override
-    public PaginationResponse<ProductSummaryResponse> searchMenus(String query, int page, int size) {
+    public PageResult<SearchProductItemResult> searchMenus(String query, int page, int size) {
         String keyword = validateKeyword(query);
-        return PaginationResponse.from(productQueryService.searchByKeyword(keyword, page, size)
-            .map(this::toProductSummaryResponse));
+        return productQueryService.searchByKeyword(keyword, page, size);
     }
 
     @Override
-    public PaginationResponse<SearchReviewListItemResponse> searchReviews(String query, int page, int size) {
+    public PageResult<SearchReviewItemResult> searchReviews(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return PaginationResponse.from(reviewQueryPort.searchByKeyword(keyword, pageQuery)
-            .map(this::toSearchReviewListItemResponse));
+        return reviewQueryPort.searchByKeyword(keyword, pageQuery);
     }
 
     @Override
-    public PaginationResponse<SearchShopListItemResponse> searchShopsPaged(String query, Long memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemResult> searchShopsPaged(String query, Long memberId, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
         Long deliveryAdminDongId = memberDeliveryAddressQueryPort
             .findDefaultAdminDongId(MemberId.of(memberId))
             .orElse(null);
-        return PaginationResponse.from(shopSearchQueryPort.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery)
-            .map(this::toSearchShopListItemResponse));
+        return shopSearchQueryPort.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery);
     }
 
     /** 비로그인 검색 — 배송지를 알 수 없으므로 배달지역 필터를 걸지 않는다. */
     @Override
-    public PaginationResponse<SearchShopListItemResponse> searchShopsPublic(String query, int page, int size) {
+    public PageResult<ShopBookmarkedItemResult> searchShopsPublic(String query, int page, int size) {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
-        return PaginationResponse.from(shopSearchQueryPort.searchByKeywordWithBookmark(keyword, null, null, pageQuery)
-            .map(this::toSearchShopListItemResponse));
+        return shopSearchQueryPort.searchByKeywordWithBookmark(keyword, null, null, pageQuery);
     }
 
     private String validateKeyword(String query) {
@@ -120,44 +110,4 @@ public class SearchQueryService implements SearchQueryUseCase {
         return keyword;
     }
 
-    private SearchPopularKeywordResponse toSearchPopularKeywordResponse(PopularKeywordResult dto) {
-        return SearchPopularKeywordResponse.of(dto.rank(), dto.keyword(), dto.newKeyword());
-    }
-
-    private SearchRecommendedKeywordResponse toSearchRecommendedKeywordResponse(RecommendedKeywordResult dto) {
-        return SearchRecommendedKeywordResponse.of(dto.keyword());
-    }
-
-    private ProductSummaryResponse toProductSummaryResponse(SearchProductItemResult dto) {
-        return ProductSummaryResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.imageUrl(),
-            dto.originalPrice(),
-            dto.discountPrice(),
-            dto.discountRate(),
-            dto.rating(),
-            dto.reviewCount(),
-            dto.representative(),
-            dto.spiciness()
-        );
-    }
-
-    private SearchReviewListItemResponse toSearchReviewListItemResponse(SearchReviewItemResult dto) {
-        return SearchReviewListItemResponse.from(dto.id(), dto.imageUrl());
-    }
-
-    private SearchShopListItemResponse toSearchShopListItemResponse(ShopBookmarkedItemResult dto) {
-        return SearchShopListItemResponse.from(
-            dto.shopId(),
-            dto.shopName(),
-            dto.stationName(),
-            dto.rating(),
-            dto.imageUrl(),
-            dto.bookmarked(),
-            dto.minOrderAmount(),
-            dto.minDeliveryTip(),
-            dto.maxDeliveryTip()
-        );
-    }
 }

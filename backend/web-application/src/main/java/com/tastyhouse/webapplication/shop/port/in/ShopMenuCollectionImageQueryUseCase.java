@@ -2,7 +2,7 @@ package com.tastyhouse.webapplication.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.shop.response.ShopMenuCollectionImageResponse;
+import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageExposureResult;
 
 /**
  * 가게 메뉴판 이미지 조회 인바운드 포트.
@@ -12,5 +12,5 @@ import com.tastyhouse.webapplication.shop.response.ShopMenuCollectionImageRespon
  */
 public interface ShopMenuCollectionImageQueryUseCase {
 
-    List<ShopMenuCollectionImageResponse> getMenuCollectionImages(Long shopId);
+    List<ShopMenuCollectionImageExposureResult> getMenuCollectionImages(Long shopId);
 }

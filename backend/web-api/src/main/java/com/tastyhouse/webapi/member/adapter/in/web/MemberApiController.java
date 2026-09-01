@@ -15,10 +15,10 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.member.port.in.MemberScreenUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.request.NicknameAvailabilityRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.PhoneAvailabilityRequest;
-import com.tastyhouse.webapplication.member.response.MemberNicknameAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberProfileResponse;
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberNicknameAvailabilityResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberPhoneAvailabilityResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberProfileResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
 
 @RestController
 @RequestMapping("/api/members")
@@ -36,7 +36,7 @@ public class MemberApiController {
     public ResponseEntity<ApiResponse<MemberProfileResponse>> getMemberBasicProfile(
         @Parameter(description = "조회할 회원 ID", example = "2") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMemberBasicProfile(id)));
+        return ResponseEntity.ok(ApiResponse.success(MemberProfileResponse.from(memberService.getMemberBasicProfile(id))));
     }
 
     @Operation(summary = "회원 통계 조회", description = "특정 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회합니다.")
@@ -44,7 +44,7 @@ public class MemberApiController {
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMemberStats(
         @Parameter(description = "조회할 회원 ID", example = "2") @PathVariable Long id
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.getMemberStats(id)));
+        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberService.getMemberStats(id))));
     }
 
     @Operation(summary = "휴대폰번호 가입 가능 여부 확인", description = "입력한 휴대폰번호로 이미 가입된 활성 회원이 있는지 확인합니다. 인증번호 발송 전에 호출합니다. 인증 없이 호출 가능합니다.")
@@ -52,7 +52,7 @@ public class MemberApiController {
     public ResponseEntity<ApiResponse<MemberPhoneAvailabilityResponse>> checkPhoneAvailability(
         @Valid @ModelAttribute PhoneAvailabilityRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.checkPhoneAvailability(request.phoneNumber())));
+        return ResponseEntity.ok(ApiResponse.success(MemberPhoneAvailabilityResponse.from(memberService.checkPhoneAvailability(request.phoneNumber()))));
     }
 
     @Operation(summary = "닉네임 중복확인", description = "사용하려는 닉네임의 사용 가능 여부를 확인합니다. 인증 없이 호출 가능합니다.")
@@ -60,6 +60,6 @@ public class MemberApiController {
     public ResponseEntity<ApiResponse<MemberNicknameAvailabilityResponse>> checkNicknameAvailability(
         @Valid @ModelAttribute NicknameAvailabilityRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(memberService.checkNicknameAvailability(request.nickname())));
+        return ResponseEntity.ok(ApiResponse.success(MemberNicknameAvailabilityResponse.from(memberService.checkNicknameAvailability(request.nickname()))));
     }
 }

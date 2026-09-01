@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.payment.port.in;
 
-import com.tastyhouse.webapplication.payment.response.PaymentCancelResponse;
+import com.tastyhouse.webapplication.payment.port.out.PaymentCancelResult;
 
 /**
  * 회원 결제 쓰기 인바운드 포트.
@@ -20,7 +20,7 @@ public interface PaymentCommandUseCase {
 
     Long completeOnSitePayment(PaymentOnSiteCompleteCommand command);
 
-    PaymentCancelResponse cancelPayment(PaymentCancelCommand command);
+    PaymentCancelResult cancelPayment(PaymentCancelCommand command);
 
     Long requestRefund(PaymentRefundRequestCommand command);
 }

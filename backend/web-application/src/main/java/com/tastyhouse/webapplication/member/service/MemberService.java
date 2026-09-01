@@ -5,20 +5,16 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
+import com.tastyhouse.webapplication.coupon.port.out.MyCouponListItemResult;
 import com.tastyhouse.webapplication.coupon.service.CouponQueryService;
-import com.tastyhouse.webapplication.member.response.MemberNicknameAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapplication.member.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberProfileResponse;
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
-import com.tastyhouse.webapplication.member.response.MemberVerifyPasswordResponse;
-import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
-import com.tastyhouse.webapplication.member.response.MyGradeResponse;
-import com.tastyhouse.webapplication.member.response.MyProfileResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapplication.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.webapplication.member.port.out.MemberStatsResult;
+import com.tastyhouse.webapplication.member.port.out.MyGradeResult;
 import com.tastyhouse.webapplication.member.port.in.MemberCommandUseCase;
 import com.tastyhouse.webapplication.member.port.in.MemberScreenUseCase;
 import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
@@ -32,6 +28,10 @@ import com.tastyhouse.webapplication.member.port.in.MemberWithdrawCommand;
  * <p>회원 자체의 조회·변경은 CQRS 분리에 따라 {@link MemberQueryService}/{@link MemberCommandService}가
  * 담당하고, 이 클래스는 "토큰 검증 후 변경"처럼 여러 협력자를 순서대로 엮는 화면 단위 흐름과, 내 정보
  * 화면이 함께 보여주는 다른 컨텍스트(쿠폰·리뷰·북마크·등급·회원 통계) 위임만 얇게 유지한다.
+ *
+ * <p>반환 타입은 읽기 계약({@code *Result}·{@code PageResult})이며 응답 record를 조립하지 않는다 —
+ * Response 조립은 web-api의 컨트롤러가 담당한다(챕터 10). 감쌀 값이 하나뿐인 연산(사용 가능 여부·리뷰
+ * 개수·인증 토큰)은 경계 타입({@code boolean}/{@code long}/{@code String})을 그대로 내보내고 컨트롤러가 감싼다.
  *
  * <p><b>트랜잭션 원자성 판정</b> — 이 파사드는 의도적으로 {@code @Transactional}을 갖지 않는다. 파사드가
  * 트랜잭션을 열면 아래 판정에서 "DB 원자성이 필요 없다"고 판단된 단계(JWT 서명 검증·Redis 접근)까지 DB
@@ -80,14 +80,13 @@ public class MemberService implements MemberScreenUseCase {
     }
 
     @Override
-    public MemberVerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password) {
+    public String verifyPasswordAndIssueToken(Long memberId, String password) {
         memberAuthService.verifyPassword(memberId, password);
-        String verifyToken = memberAuthService.createPersonalInfoVerifyToken(memberId);
-        return MemberVerifyPasswordResponse.from(verifyToken);
+        return memberAuthService.createPersonalInfoVerifyToken(memberId);
     }
 
     @Override
-    public MemberPersonalInfoResponse getPersonalInfo(Long memberId) {
+    public MemberPersonalInfoResult getPersonalInfo(Long memberId) {
         return memberQueryService.getPersonalInfo(memberId);
     }
 
@@ -146,57 +145,57 @@ public class MemberService implements MemberScreenUseCase {
     }
 
     @Override
-    public MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
+    public boolean checkNicknameAvailability(String nickname) {
         return memberQueryService.checkNicknameAvailability(nickname);
     }
 
     @Override
-    public MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber) {
+    public boolean checkPhoneAvailability(String phoneNumber) {
         return memberQueryService.checkPhoneAvailability(phoneNumber);
     }
 
     @Override
-    public MyGradeResponse getMyGrade(Long memberId) {
+    public MyGradeResult getMyGrade(Long memberId) {
         return memberGradeService.getMyGrade(memberId);
     }
 
     @Override
-    public List<MyCouponListItemResponse> getMyCoupons(Long memberId) {
+    public List<MyCouponListItemResult> getMyCoupons(Long memberId) {
         return couponQueryService.getMyCoupons(memberId);
     }
 
     @Override
-    public List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId) {
+    public List<MyCouponListItemResult> getMyAvailableCoupons(Long memberId) {
         return couponQueryService.getMyAvailableCoupons(memberId);
     }
 
     @Override
-    public PaginationResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size) {
+    public PageResult<MyReviewListItemResult> getMyReviews(Long memberId, int page, int size) {
         return memberReviewService.getMyReviews(memberId, page, size);
     }
 
     @Override
-    public MyReviewCountResponse getMyReviewCount(Long memberId) {
+    public long getMyReviewCount(Long memberId) {
         return memberReviewService.getMyReviewCount(memberId);
     }
 
     @Override
-    public PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size) {
+    public PageResult<ShopBookmarkedItemResult> getMyBookmarkedShops(Long memberId, int page, int size) {
         return memberShopService.getMyBookmarkedShops(memberId, page, size);
     }
 
     @Override
-    public MemberProfileResponse getMemberBasicProfile(Long targetMemberId) {
+    public MemberWithProfileImageResult getMemberBasicProfile(Long targetMemberId) {
         return memberQueryService.getMemberProfile(targetMemberId);
     }
 
     @Override
-    public MyProfileResponse getMyProfile(Long memberId) {
+    public MemberWithProfileImageResult getMyProfile(Long memberId) {
         return memberQueryService.getMyProfile(memberId);
     }
 
     @Override
-    public MemberStatsResponse getMemberStats(Long memberId) {
+    public MemberStatsResult getMemberStats(Long memberId) {
         return memberStatsQueryService.getMemberStats(memberId);
     }
 }

@@ -1,7 +1,7 @@
 package com.tastyhouse.webapplication.policy.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.policy.response.PolicyListItemResponse;
+import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 약관 버전 목록 조회 인바운드 포트.
@@ -11,11 +11,11 @@ import com.tastyhouse.webapplication.policy.response.PolicyListItemResponse;
  */
 public interface PolicyVersionListQueryUseCase {
 
-    PaginationResponse<PolicyListItemResponse> getTermsOfServiceList(int page, int size);
+    PageResult<PolicyListItemResult> getTermsOfServiceList(int page, int size);
 
-    PaginationResponse<PolicyListItemResponse> getPrivacyPolicyList(int page, int size);
+    PageResult<PolicyListItemResult> getPrivacyPolicyList(int page, int size);
 
-    PaginationResponse<PolicyListItemResponse> getElectronicFinancialTransactionsList(int page, int size);
+    PageResult<PolicyListItemResult> getElectronicFinancialTransactionsList(int page, int size);
 
-    PaginationResponse<PolicyListItemResponse> getAgeVerificationList(int page, int size);
+    PageResult<PolicyListItemResult> getAgeVerificationList(int page, int size);
 }

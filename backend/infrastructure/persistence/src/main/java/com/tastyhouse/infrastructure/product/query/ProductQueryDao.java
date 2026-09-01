@@ -2171,7 +2171,14 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         com.querydsl.core.types.Expression<Long> shopIdExpression,
         LocalDateTime now
     ) {
-        return com.querydsl.core.types.dsl.Expressions.asNumber(
+        // numberTemplate(Long.class, "{0}", ...)으로 감싸는 이유: Expressions.asNumber(subquery)는
+        // 반환 타입을 Object로 지워버린다. 서브쿼리 자체는 Long을 보고하지만 asNumber를 거치면
+        // getType()이 Object가 되고, Projections.constructor는 리플렉션으로 생성자를 찾으므로
+        // 컴파일은 통과한 뒤 조회 시점에 "No constructor found ... class java.lang.Object"로 터진다.
+        // numberTemplate은 대상 타입을 명시적으로 고정해 이 소실을 막는다.
+        return com.querydsl.core.types.dsl.Expressions.numberTemplate(
+            Long.class,
+            "{0}",
             JPAExpressions
                 // sumLong()을 쓰는 이유: 이 저장소의 QueryDSL 포크(OpenFeign 6.11)에서 sum()이
                 // sumAggregate()로 개명됐고, 수량 합은 Integer 범위를 넘길 수 있어 Long 집계가 맞다.

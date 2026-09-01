@@ -2,19 +2,15 @@ package com.tastyhouse.webapplication.member.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.member.response.MemberNicknameAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberPersonalInfoResponse;
-import com.tastyhouse.webapplication.member.response.MemberPhoneAvailabilityResponse;
-import com.tastyhouse.webapplication.member.response.MemberProfileResponse;
-import com.tastyhouse.webapplication.member.response.MemberStatsResponse;
-import com.tastyhouse.webapplication.member.response.MemberVerifyPasswordResponse;
-import com.tastyhouse.webapplication.member.response.MyCouponListItemResponse;
-import com.tastyhouse.webapplication.member.response.MyGradeResponse;
-import com.tastyhouse.webapplication.member.response.MyProfileResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewCountResponse;
-import com.tastyhouse.webapplication.member.response.MyReviewListItemResponse;
-import com.tastyhouse.webapplication.member.response.ShopBookmarkListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
+import com.tastyhouse.webapplication.coupon.port.out.MyCouponListItemResult;
+import com.tastyhouse.webapplication.member.port.out.MemberStatsResult;
+import com.tastyhouse.webapplication.member.port.out.MyGradeResult;
 
 /**
  * 내 정보 화면 인바운드 포트.
@@ -33,9 +29,9 @@ public interface MemberScreenUseCase {
 
     void updateMyProfile(MemberProfileUpdateCommand command);
 
-    MemberVerifyPasswordResponse verifyPasswordAndIssueToken(Long memberId, String password);
+    String verifyPasswordAndIssueToken(Long memberId, String password);
 
-    MemberPersonalInfoResponse getPersonalInfo(Long memberId);
+    MemberPersonalInfoResult getPersonalInfo(Long memberId);
 
     void updatePersonalInfo(MemberPersonalInfoUpdateCommand command, String verifyToken, String smsVerifyToken);
 
@@ -43,25 +39,25 @@ public interface MemberScreenUseCase {
 
     void withdrawMember(MemberWithdrawCommand command, String bearerToken);
 
-    MemberNicknameAvailabilityResponse checkNicknameAvailability(String nickname);
+    boolean checkNicknameAvailability(String nickname);
 
-    MemberPhoneAvailabilityResponse checkPhoneAvailability(String phoneNumber);
+    boolean checkPhoneAvailability(String phoneNumber);
 
-    MyGradeResponse getMyGrade(Long memberId);
+    MyGradeResult getMyGrade(Long memberId);
 
-    List<MyCouponListItemResponse> getMyCoupons(Long memberId);
+    List<MyCouponListItemResult> getMyCoupons(Long memberId);
 
-    List<MyCouponListItemResponse> getMyAvailableCoupons(Long memberId);
+    List<MyCouponListItemResult> getMyAvailableCoupons(Long memberId);
 
-    PaginationResponse<MyReviewListItemResponse> getMyReviews(Long memberId, int page, int size);
+    PageResult<MyReviewListItemResult> getMyReviews(Long memberId, int page, int size);
 
-    MyReviewCountResponse getMyReviewCount(Long memberId);
+    long getMyReviewCount(Long memberId);
 
-    PaginationResponse<ShopBookmarkListItemResponse> getMyBookmarkedShops(Long memberId, int page, int size);
+    PageResult<ShopBookmarkedItemResult> getMyBookmarkedShops(Long memberId, int page, int size);
 
-    MemberProfileResponse getMemberBasicProfile(Long targetMemberId);
+    MemberWithProfileImageResult getMemberBasicProfile(Long targetMemberId);
 
-    MyProfileResponse getMyProfile(Long memberId);
+    MemberWithProfileImageResult getMyProfile(Long memberId);
 
-    MemberStatsResponse getMemberStats(Long memberId);
+    MemberStatsResult getMemberStats(Long memberId);
 }

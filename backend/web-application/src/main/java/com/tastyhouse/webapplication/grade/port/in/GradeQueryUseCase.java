@@ -2,7 +2,7 @@ package com.tastyhouse.webapplication.grade.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.grade.response.GradeInfoListItemResponse;
+import com.tastyhouse.webapplication.grade.port.out.GradeInfoResult;
 
 /**
  * 등급 정책 조회 인바운드 포트.
@@ -15,5 +15,5 @@ import com.tastyhouse.webapplication.grade.response.GradeInfoListItemResponse;
  */
 public interface GradeQueryUseCase {
 
-    List<GradeInfoListItemResponse> getGradeInfoList();
+    List<GradeInfoResult> getGradeInfoList();
 }

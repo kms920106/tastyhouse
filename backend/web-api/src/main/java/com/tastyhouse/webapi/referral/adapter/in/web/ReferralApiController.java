@@ -13,7 +13,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapplication.referral.port.in.ReferralQueryUseCase;
-import com.tastyhouse.webapplication.referral.response.ReferralMemberListItemResponse;
+import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberListItemResponse;
 
 @RestController
 @RequestMapping("/api/referrals")
@@ -31,7 +31,9 @@ public class ReferralApiController {
     public ResponseEntity<ApiResponse<List<ReferralMemberListItemResponse>>> getMyReferrals(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        List<ReferralMemberListItemResponse> referrals = referralQueryService.getMyReferrals(userDetails.getMemberId());
+        List<ReferralMemberListItemResponse> referrals = referralQueryService.getMyReferrals(userDetails.getMemberId()).stream()
+            .map(ReferralMemberListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(referrals));
     }
 }

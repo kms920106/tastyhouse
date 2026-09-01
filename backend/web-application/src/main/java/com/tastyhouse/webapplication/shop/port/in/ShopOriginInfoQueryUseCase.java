@@ -1,6 +1,6 @@
 package com.tastyhouse.webapplication.shop.port.in;
 
-import com.tastyhouse.webapplication.shop.response.ShopOriginInfoResponse;
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 /**
  * 가게 원산지 정보 조회 인바운드 포트.
@@ -10,5 +10,6 @@ import com.tastyhouse.webapplication.shop.response.ShopOriginInfoResponse;
  */
 public interface ShopOriginInfoQueryUseCase {
 
-    ShopOriginInfoResponse getOriginInfo(Long shopId);
+    /** 미설정이면 {@code null} — 손님 화면은 원산지 영역을 통째로 감춘다. */
+    ShopOriginInfoResult getOriginInfo(Long shopId);
 }

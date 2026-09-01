@@ -2,7 +2,7 @@ package com.tastyhouse.webapplication.member.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.member.response.MemberDeliveryAddressItemResponse;
+import com.tastyhouse.application.member.port.out.MemberDeliveryAddressItemResult;
 
 /**
  * 회원 배송지 조회 인바운드 포트.
@@ -12,5 +12,5 @@ import com.tastyhouse.webapplication.member.response.MemberDeliveryAddressItemRe
  */
 public interface MemberDeliveryAddressQueryUseCase {
 
-    List<MemberDeliveryAddressItemResponse> getMyDeliveryAddresses(Long memberId);
+    List<MemberDeliveryAddressItemResult> getMyDeliveryAddresses(Long memberId);
 }

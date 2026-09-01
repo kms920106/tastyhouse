@@ -23,8 +23,8 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewCreateRequest;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewUpdateRequest;
-import com.tastyhouse.webapplication.menureview.response.MenuReviewListItemResponse;
-import com.tastyhouse.webapplication.menureview.response.MenuReviewWritableItemResponse;
+import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
+import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritableItemResponse;
 import com.tastyhouse.webapplication.menureview.port.in.MenuReviewCommandUseCase;
 import com.tastyhouse.webapplication.menureview.port.in.MenuReviewCreateCommand;
 import com.tastyhouse.webapplication.menureview.port.in.MenuReviewDeleteCommand;
@@ -65,7 +65,9 @@ public class MenuReviewApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         List<MenuReviewWritableItemResponse> response =
-            menuReviewQueryService.findWritableItems(orderId, userDetails.getMemberId());
+            menuReviewQueryService.findWritableItems(orderId, userDetails.getMemberId()).stream()
+                .map(MenuReviewWritableItemResponse::from)
+                .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -113,8 +115,10 @@ public class MenuReviewApiController {
         @Parameter(description = "상품 ID", example = "1") @PathVariable Long productId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MenuReviewListItemResponse> pageResponse =
-            menuReviewQueryService.findByProductId(productId, pageRequest.page(), pageRequest.size());
+        PaginationResponse<MenuReviewListItemResponse> pageResponse = PaginationResponse.from(
+            menuReviewQueryService.findByProductId(productId, pageRequest.page(), pageRequest.size())
+                .map(MenuReviewListItemResponse::from)
+        );
         ApiResponse<List<MenuReviewListItemResponse>> response = ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         );

@@ -1,7 +1,8 @@
 package com.tastyhouse.webapplication.notification.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.notification.response.NotificationListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+
+import com.tastyhouse.application.notification.port.out.NotificationListItemResult;
 
 /**
  * 알림 조회 인바운드 포트.
@@ -11,7 +12,7 @@ import com.tastyhouse.webapplication.notification.response.NotificationListItemR
  */
 public interface NotificationQueryUseCase {
 
-    PaginationResponse<NotificationListItemResponse> findNotifications(Long memberId, int page, int size);
+    PageResult<NotificationListItemResult> findNotifications(Long memberId, int page, int size);
 
     long countUnread(Long memberId);
 }

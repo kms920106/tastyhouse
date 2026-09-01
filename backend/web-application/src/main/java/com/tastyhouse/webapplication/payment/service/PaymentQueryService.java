@@ -12,21 +12,22 @@ import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.application.payment.port.out.PaymentQueryPort;
 import com.tastyhouse.application.payment.port.out.PaymentRefundResult;
 import com.tastyhouse.application.payment.port.out.PaymentResult;
-import com.tastyhouse.webapplication.payment.response.PaymentRefundResponse;
-import com.tastyhouse.webapplication.payment.response.PaymentResponse;
 import com.tastyhouse.webapplication.payment.port.in.PaymentQueryUseCase;
+import com.tastyhouse.webapplication.payment.port.out.PaymentRefundViewResult;
+import com.tastyhouse.webapplication.payment.port.out.PaymentViewResult;
 
 /**
  * 회원 결제 조회 서비스(web-api).
  *
- * <p>infra query DAO({@link PaymentQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
- * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
+ * <p>infra query DAO({@link PaymentQueryPort})만 주입해 조회하고, 읽기 계약 조립(private 매퍼)을
+ * 담당한다(공통 지침 패턴 2·3). write 포트는 주입하지 않는다. 금액 VO 언랩과 enum 강등이 여기서
+ * 끝나야 하는 이유는 {@code PaymentViewResult} Javadoc 참고(챕터 10).
  *
  * <p>결제 조회는 회원 스코프이므로, DAO가 주문에서 함께 투영한 {@code memberId}를 요청 회원과 대조해
  * 남의 결제 열람을 막는다.
  *
  * <p>command 경로({@link PaymentCommandService})는 식별자만 돌려주므로, 커밋 이후 컨트롤러가
- * {@link #getPayment(Long, Long)}으로 재조회해 응답을 조립한다(CQRS 분리).
+ * {@link #getPayment(Long, Long)}으로 재조회해 계약을 조립한다(CQRS 분리).
  */
 @Service
 @Transactional(readOnly = true)
@@ -42,8 +43,8 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      * 결제 단건(PK) — 요청 회원의 결제가 아니면 {@code PAYMENT_ACCESS_DENIED}.
      */
     @Override
-    public PaymentResponse getPayment(Long memberId, Long id) {
-        return toPaymentResponse(
+    public PaymentViewResult getPayment(Long memberId, Long id) {
+        return toPaymentViewResult(
             validateOwnership(loadPayment(id), memberId, ErrorCode.PAYMENT_ACCESS_DENIED)
         );
     }
@@ -55,8 +56,8 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      * 없으므로 검증 없이 조회한다(기존 동작 보존 — 콜백 승인 자체도 소유권을 검증하지 않는다).
      */
     @Override
-    public PaymentResponse getPayment(Long id) {
-        return toPaymentResponse(loadPayment(id));
+    public PaymentViewResult getPayment(Long id) {
+        return toPaymentViewResult(loadPayment(id));
     }
 
     private PaymentResult loadPayment(Long id) {
@@ -71,10 +72,10 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      * {@code PAYMENT_NOT_FOUND}로 응답한다.
      */
     @Override
-    public PaymentResponse getPaymentByOrderId(Long memberId, Long orderId) {
+    public PaymentViewResult getPaymentByOrderId(Long memberId, Long orderId) {
         PaymentResult result = paymentQueryPort.findPaymentByOrderId(OrderId.of(orderId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
-        return toPaymentResponse(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
+        return toPaymentViewResult(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
     }
 
     /**
@@ -83,10 +84,10 @@ public class PaymentQueryService implements PaymentQueryUseCase {
      * <p>환불 요청 command 직후의 응답 조립용 재조회다 — 소유권은 요청 시점에 이미 검증되었다.
      */
     @Override
-    public PaymentRefundResponse getRefund(Long refundId) {
+    public PaymentRefundViewResult getRefund(Long refundId) {
         PaymentRefundResult result = paymentQueryPort.findRefundById(PaymentRefundId.of(refundId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));
-        return toPaymentRefundResponse(result);
+        return toPaymentRefundViewResult(result);
     }
 
     /**
@@ -99,8 +100,8 @@ public class PaymentQueryService implements PaymentQueryUseCase {
         return result;
     }
 
-    private PaymentResponse toPaymentResponse(PaymentResult result) {
-        return PaymentResponse.from(
+    private PaymentViewResult toPaymentViewResult(PaymentResult result) {
+        return new PaymentViewResult(
             result.id(),
             result.orderId(),
             result.paymentMethod() == null ? null : result.paymentMethod().name(),
@@ -120,8 +121,8 @@ public class PaymentQueryService implements PaymentQueryUseCase {
         );
     }
 
-    private PaymentRefundResponse toPaymentRefundResponse(PaymentRefundResult result) {
-        return PaymentRefundResponse.from(
+    private PaymentRefundViewResult toPaymentRefundViewResult(PaymentRefundResult result) {
+        return new PaymentRefundViewResult(
             result.id(),
             result.paymentId(),
             result.refundAmount() == null ? null : result.refundAmount().value(),

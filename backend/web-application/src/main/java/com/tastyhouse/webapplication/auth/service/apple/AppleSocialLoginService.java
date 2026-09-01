@@ -26,10 +26,10 @@ import com.tastyhouse.webapplication.auth.port.out.SocialProfile;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapplication.auth.token.TokenService;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
-import com.tastyhouse.webapplication.auth.response.AuthJwtResponse;
-import com.tastyhouse.webapplication.auth.response.AuthSocialLinkResponse;
-import com.tastyhouse.webapplication.auth.response.AuthSocialLoginResponse;
-import com.tastyhouse.webapplication.auth.response.AuthSocialProfileResponse;
+import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.SocialLinkResult;
+import com.tastyhouse.webapplication.auth.port.out.SocialLoginResult;
+import com.tastyhouse.webapplication.auth.port.out.SocialProfileResult;
 
 @Service
 public class AppleSocialLoginService {
@@ -70,7 +70,7 @@ public class AppleSocialLoginService {
     // [Apple 특이점] 사용자 이름(name)은 최초 동의 시에만 form_post로 전달되며 id_token에 포함되지 않는다.
     // 따라서 Apple 프로필에는 sub/email만 저장하고, 회원가입 시 사용자가 직접 이름을 입력한다.
     @Transactional
-    public AuthSocialLoginResponse login(String authorizationCode) {
+    public SocialLoginResult login(String authorizationCode) {
         // exchange가 토큰 교환과 id_token 검증(실패 시 APPLE_ID_TOKEN_INVALID)을 함께 수행한다.
         SocialCredential credential = appleOAuthClient.exchange(SocialAuthorization.of(authorizationCode));
         SocialProfile appleUser = appleOAuthClient.fetchProfile(credential);
@@ -88,7 +88,7 @@ public class AppleSocialLoginService {
 
             Member member = memberRepository.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-            return AuthSocialLoginResponse.ofLogin(issueJwt(member));
+            return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         // 소셜 계정은 없지만 동일 이메일로 일반가입한 회원이 존재하는 경우
@@ -96,11 +96,11 @@ public class AppleSocialLoginService {
         String appleEmail = appleUser.email();
         if (StringUtils.hasText(appleEmail) && memberRepository.existsByUsername(appleEmail)) {
             String appleTempToken = issueTempToken(credential.value());
-            return AuthSocialLoginResponse.ofLinkingRequired(appleTempToken);
+            return SocialLoginResult.ofLinkingRequired(appleTempToken);
         }
 
         String appleTempToken = issueTempToken(credential.value());
-        return AuthSocialLoginResponse.ofSignUpRequired(appleTempToken);
+        return SocialLoginResult.ofSignUpRequired(appleTempToken);
     }
 
     // Apple 계정을 기존 일반가입 계정에 연동하고 JWT 발급
@@ -109,7 +109,7 @@ public class AppleSocialLoginService {
     // - 전화번호로 가입된 회원이 없으면 NEEDS_SIGN_UP 반환 (appleTempToken 유지)
     // - MEMBER_SOCIAL_ACCOUNT INSERT 후 JWT 발급 (appleTempToken 삭제)
     @Transactional
-    public AuthSocialLinkResponse linkAccount(String appleTempToken, String smsVerifyToken) {
+    public SocialLinkResult linkAccount(String appleTempToken, String smsVerifyToken) {
         if (jwtTokenProvider.isInvalidSmsVerifyToken(smsVerifyToken)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
@@ -133,9 +133,9 @@ public class AppleSocialLoginService {
         // 해당 전화번호로 가입된 회원이 없으면 회원가입이 필요한 상태로 응답한다.
         // appleTempToken은 /signup/apple에서 재사용해야 하므로 삭제하지 않는다.
         if (findMember.isEmpty()) {
-            return AuthSocialLinkResponse.ofSignUpRequired(
+            return SocialLinkResult.ofSignUpRequired(
                 appleTempToken,
-                new AuthSocialProfileResponse(
+                new SocialProfileResult(
                     providerId,
                     appleUser.email(),
                     appleUser.nickname(),
@@ -165,14 +165,14 @@ public class AppleSocialLoginService {
 
         appleTempTokenRedisRepository.delete(appleTempToken);
 
-        return AuthSocialLinkResponse.ofLogin(issueJwt(member));
+        return SocialLinkResult.ofLogin(issueJwt(member));
     }
 
     // Apple 소셜 회원가입 처리 후 JWT 발급
     // - appleTempToken으로 Redis에서 appleIdToken 조회
     // - 회원가입 완료 후 appleTempToken 삭제 (1회용)
     @Transactional
-    public AuthJwtResponse signUp(
+    public JwtResult signUp(
         String appleTempToken,
         String username,
         String nickname,
@@ -224,7 +224,7 @@ public class AppleSocialLoginService {
         return appleTempToken;
     }
 
-    private AuthJwtResponse issueJwt(Member member) {
+    private JwtResult issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

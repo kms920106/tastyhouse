@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.product.response.ProductNutritionResponse;
 import com.tastyhouse.webapplication.product.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.webapplication.product.port.out.ProductNutritionView;
+import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
 
 /**
  * 손님용 메뉴 영양성분·알레르기 조회 API.
@@ -38,7 +39,8 @@ public class ProductNutritionApiController {
             + "화면이 코드→라벨 매핑표를 들 필요가 없습니다.")
     @GetMapping("/v1/{id}/nutrition")
     public ResponseEntity<ApiResponse<ProductNutritionResponse>> getNutrition(@PathVariable Long id) {
-        ProductNutritionResponse response = productNutritionQueryService.getNutrition(id);
+        ProductNutritionView view = productNutritionQueryService.getNutrition(id);
+        ProductNutritionResponse response = view == null ? null : ProductNutritionResponse.from(view);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

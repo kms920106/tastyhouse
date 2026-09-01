@@ -1,8 +1,7 @@
 package com.tastyhouse.webapplication.point.port.in;
 
-import com.tastyhouse.webapplication.point.response.PointHistoryResponse;
-import com.tastyhouse.webapplication.point.response.PointResponse;
-import com.tastyhouse.webapplication.point.response.PointUsableResponse;
+import com.tastyhouse.application.point.port.out.PointBalanceResult;
+import com.tastyhouse.webapplication.point.port.out.PointHistoryViewResult;
 
 /**
  * 포인트 조회 인바운드 포트.
@@ -12,9 +11,12 @@ import com.tastyhouse.webapplication.point.response.PointUsableResponse;
  */
 public interface PointQueryUseCase {
 
-    PointResponse getMemberPoint(Long memberId);
+    PointBalanceResult getMemberPoint(Long memberId);
 
-    PointHistoryResponse getPointHistory(Long memberId);
+    PointHistoryViewResult getPointHistory(Long memberId);
 
-    PointUsableResponse getUsablePoint(Long memberId);
+    /**
+     * @return 주문에 사용할 수 있는 포인트(잔액 없는 회원은 0)
+     */
+    Integer getUsablePoint(Long memberId);
 }

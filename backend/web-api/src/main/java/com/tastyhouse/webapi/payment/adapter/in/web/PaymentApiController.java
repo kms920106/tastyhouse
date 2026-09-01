@@ -18,9 +18,9 @@ import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentConfirmReques
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCreateRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.RefundRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.TossPaymentConfirmApiRequest;
-import com.tastyhouse.webapplication.payment.response.PaymentCancelResponse;
-import com.tastyhouse.webapplication.payment.response.PaymentRefundResponse;
-import com.tastyhouse.webapplication.payment.response.PaymentResponse;
+import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentCancelResponse;
+import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentRefundResponse;
+import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
 import com.tastyhouse.webapplication.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.webapplication.payment.port.in.PaymentCommandUseCase;
 import com.tastyhouse.webapplication.payment.port.in.PaymentConfirmCommand;
@@ -69,7 +69,7 @@ public class PaymentApiController {
     ) {
         PaymentConfirmCommand command = request.toCommand();
         Long paymentId = paymentCommandUseCase.confirmPayment(command);
-        PaymentResponse response = paymentQueryService.getPayment(paymentId);
+        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -82,7 +82,7 @@ public class PaymentApiController {
         Long memberId = userDetails.getMemberId();
         TossPaymentConfirmCommand command = request.toCommand(memberId);
         Long paymentId = paymentCommandUseCase.confirmTossPayment(command);
-        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
+        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -92,7 +92,7 @@ public class PaymentApiController {
         @PathVariable Long orderId,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        PaymentResponse response = paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId);
+        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -104,7 +104,7 @@ public class PaymentApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         PaymentCancelCommand command = request.toCommand(userDetails.getMemberId(), id);
-        PaymentCancelResponse response = paymentCommandUseCase.cancelPayment(command);
+        PaymentCancelResponse response = PaymentCancelResponse.from(paymentCommandUseCase.cancelPayment(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -117,7 +117,7 @@ public class PaymentApiController {
         Long memberId = userDetails.getMemberId();
         PaymentOnSiteCompleteCommand command = PaymentOnSiteCompleteCommand.of(memberId, id);
         Long paymentId = paymentCommandUseCase.completeOnSitePayment(command);
-        PaymentResponse response = paymentQueryService.getPayment(memberId, paymentId);
+        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -130,7 +130,7 @@ public class PaymentApiController {
     ) {
         PaymentRefundRequestCommand command = request.toCommand(userDetails.getMemberId(), id);
         Long refundId = paymentCommandUseCase.requestRefund(command);
-        PaymentRefundResponse response = paymentQueryService.getRefund(refundId);
+        PaymentRefundResponse response = PaymentRefundResponse.from(paymentQueryService.getRefund(refundId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

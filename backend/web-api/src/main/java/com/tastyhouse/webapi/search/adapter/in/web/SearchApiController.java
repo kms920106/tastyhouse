@@ -13,16 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.webapplication.product.response.ProductSummaryResponse;
 import com.tastyhouse.webapplication.search.port.in.SearchQueryUseCase;
+import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.request.SearchKeywordRequest;
-import com.tastyhouse.webapplication.search.response.SearchPopularKeywordResponse;
-import com.tastyhouse.webapplication.search.response.SearchRecommendedKeywordResponse;
-import com.tastyhouse.webapplication.search.response.SearchReviewListItemResponse;
-import com.tastyhouse.webapplication.search.response.SearchShopListItemResponse;
+import com.tastyhouse.webapi.search.adapter.in.web.response.SearchPopularKeywordResponse;
+import com.tastyhouse.webapi.search.adapter.in.web.response.SearchRecommendedKeywordResponse;
+import com.tastyhouse.webapi.search.adapter.in.web.response.SearchReviewListItemResponse;
+import com.tastyhouse.webapi.search.adapter.in.web.response.SearchShopListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -39,13 +40,21 @@ public class SearchApiController {
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")
     public ResponseEntity<ApiResponse<List<SearchPopularKeywordResponse>>> getPopularKeywords() {
-        return ResponseEntity.ok(ApiResponse.success(searchQueryService.getPopularKeywords()));
+        return ResponseEntity.ok(ApiResponse.success(
+            searchQueryService.getPopularKeywords().stream()
+                .map(SearchPopularKeywordResponse::from)
+                .toList()
+        ));
     }
 
     @Operation(summary = "추천 검색어 조회", description = "운영 관리 추천 검색어 태그 목록 반환.")
     @GetMapping("/v1/recommended-keywords")
     public ResponseEntity<ApiResponse<List<SearchRecommendedKeywordResponse>>> getRecommendedKeywords() {
-        return ResponseEntity.ok(ApiResponse.success(searchQueryService.getRecommendedKeywords()));
+        return ResponseEntity.ok(ApiResponse.success(
+            searchQueryService.getRecommendedKeywords().stream()
+                .map(SearchRecommendedKeywordResponse::from)
+                .toList()
+        ));
     }
 
     @Operation(summary = "메뉴 검색", description = "메뉴 탭 — 메뉴명 기반 검색. 판매 중인 메뉴만 포함.")
@@ -55,7 +64,10 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchQueryService.searchMenus(search.query(), pageRequest.page(), pageRequest.size());
+        var result = PaginationResponse.from(
+            searchQueryService.searchMenus(search.query(), pageRequest.page(), pageRequest.size())
+                .map(ProductSummaryResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -68,7 +80,10 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchQueryService.searchReviews(search.query(), pageRequest.page(), pageRequest.size());
+        var result = PaginationResponse.from(
+            searchQueryService.searchReviews(search.query(), pageRequest.page(), pageRequest.size())
+                .map(SearchReviewListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -82,7 +97,10 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser CustomUserDetails userDetails
     ) {
-        var result = searchQueryService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        var result = PaginationResponse.from(
+            searchQueryService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(SearchShopListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));
@@ -95,7 +113,10 @@ public class SearchApiController {
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var result = searchQueryService.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size());
+        var result = PaginationResponse.from(
+            searchQueryService.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size())
+                .map(SearchShopListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             result.content(), pageRequest.page(), pageRequest.size(), result.totalElements()
         ));

@@ -22,11 +22,12 @@ import com.tastyhouse.webapplication.follow.port.in.FollowQueryUseCase;
 import com.tastyhouse.webapplication.follow.port.in.FollowerRemoveCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.follow.adapter.in.web.request.FollowSearchRequest;
-import com.tastyhouse.webapplication.follow.response.FollowIsFollowingResponse;
-import com.tastyhouse.webapplication.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapplication.follow.response.FollowMemberSearchListItemResponse;
+import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowIsFollowingResponse;
+import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberListItemResponse;
+import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchListItemResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -92,7 +93,10 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followQueryUseCase.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
+            followQueryUseCase.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(FollowMemberListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -108,7 +112,10 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followQueryUseCase.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
+            followQueryUseCase.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(FollowMemberListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -123,7 +130,10 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followQueryUseCase.getFollowingList(memberId, null, pageRequest.page(), pageRequest.size());
+        PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
+            followQueryUseCase.getFollowingList(memberId, null, pageRequest.page(), pageRequest.size())
+                .map(FollowMemberListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -138,7 +148,10 @@ public class FollowApiController {
         @Parameter(description = "조회할 회원 ID", example = "1") @PathVariable Long memberId,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followQueryUseCase.getFollowerList(memberId, null, pageRequest.page(), pageRequest.size());
+        PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
+            followQueryUseCase.getFollowerList(memberId, null, pageRequest.page(), pageRequest.size())
+                .map(FollowMemberListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),
@@ -154,7 +167,10 @@ public class FollowApiController {
         @Valid @ModelAttribute FollowSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = followQueryUseCase.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FollowMemberSearchListItemResponse> pageResult = PaginationResponse.from(
+            followQueryUseCase.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+                .map(FollowMemberSearchListItemResponse::from)
+        );
         return ResponseEntity.ok(ApiResponse.success(
             pageResult.content(),
             pageResult.page(),

@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -40,26 +39,26 @@ import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
-import com.tastyhouse.webapplication.review.response.ReviewBestListItemResponse;
-import com.tastyhouse.webapplication.review.response.ReviewCommentListResponse;
-import com.tastyhouse.webapplication.review.response.ReviewCommentResponse;
-import com.tastyhouse.webapplication.review.response.ReviewDetailResponse;
-import com.tastyhouse.webapplication.review.response.ReviewLatestListItemResponse;
-import com.tastyhouse.webapplication.review.response.ReviewLikeStatusResponse;
-import com.tastyhouse.webapplication.review.response.ReviewMemberListItemResponse;
-import com.tastyhouse.webapplication.review.response.ReviewProductResponse;
-import com.tastyhouse.webapplication.review.response.ReviewReplyResponse;
-import com.tastyhouse.webapplication.review.response.ReviewResponse;
-import com.tastyhouse.webapplication.review.response.ReviewWriteInfoResponse;
+import com.tastyhouse.webapplication.review.port.out.ReviewCommentListView;
+import com.tastyhouse.webapplication.review.port.out.ReviewDetailView;
+import com.tastyhouse.webapplication.review.port.out.ReviewProductView;
+import com.tastyhouse.webapplication.review.port.out.ReviewSubmitResultView;
+import com.tastyhouse.webapplication.review.port.out.ReviewWriteInfoView;
 import com.tastyhouse.webapplication.review.port.in.ReviewQueryUseCase;
 
 /**
  * 리뷰 조회 서비스(web).
  *
- * <p>읽기 포트({@link ReviewQueryPort}·{@link ReviewStatisticsQueryPort})만 주입해 조회하고
- * Response를 조립한다(private 매퍼).
- * 파일 경로 → 표시용 URL 변환은 DAO({@code FileUrlResolver})가 담당하므로 이 계층은 이미 URL이 된
- * 필드를 그대로 조립한다(응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
+ * <p>읽기 포트({@link ReviewQueryPort}·{@link ReviewStatisticsQueryPort})만 주입해 조회하고 읽기
+ * 계약으로 반환한다.
+ *
+ * <p><b>챕터 10 이후 Response를 조립하지 않는다</b> — Response record가 web-api로 승격됐으므로 표현
+ * 조립은 컨트롤러의 몫이다. 대신 <b>판정·집계는 전부 이 계층에 남는다</b>: 배달 평가 3필드의 작성자
+ * 본인 판정, 댓글·답글 합계, 할인가 우선 가격 선택. 그래서 공용 읽기 계약으로 표현되지 않는 값은 앱
+ * 네임스페이스의 {@code port.out} View로 나른다.
+ *
+ * <p>파일 경로 → 표시용 URL 변환은 DAO({@code FileUrlResolver})가 담당하므로 이 계층은 이미 URL이 된
+ * 필드를 그대로 나른다(응답에 파일 식별자·경로를 노출하지 않는다는 규칙).
  *
  * <p>과거 core 조회 서비스가 여러 조회를 조합해 만들던 값(리뷰 상세의 태그명)도 이 계층이 조합한다 —
  * DAO는 단일 조회 단위만 제공한다.
@@ -104,31 +103,24 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 베스트 리뷰 목록.
      */
     @Override
-    public PaginationResponse<ReviewBestListItemResponse> searchBestReviewList(int page, int size) {
-        PageResult<ReviewBestListItemResponse> pageResult = reviewQueryPort.findBestReviews(PageQuery.of(page, size))
-            .map(this::toBestReviewListItemResponse);
-        return PaginationResponse.from(pageResult);
+    public PageResult<BestReviewListItemResult> searchBestReviewList(int page, int size) {
+        return reviewQueryPort.findBestReviews(PageQuery.of(page, size));
     }
 
     /**
      * 최신 리뷰 목록 — FOLLOWING이면 로그인 회원이 팔로우한 회원들의 리뷰만 조회한다.
      */
     @Override
-    public PaginationResponse<ReviewLatestListItemResponse> searchLatestReviewList(
+    public PageResult<LatestReviewListItemResult> searchLatestReviewList(
         int page,
         int size,
         String type,
         Long memberId
     ) {
-        PageResult<ReviewLatestListItemResponse> pageResult;
         if (ReviewListType.from(type) == ReviewListType.FOLLOWING && memberId != null) {
-            pageResult = findLatestReviewsByFollowing(MemberId.of(memberId), page, size)
-                .map(this::toLatestReviewListItemResponse);
-        } else {
-            pageResult = reviewQueryPort.findLatestReviews(PageQuery.of(page, size))
-                .map(this::toLatestReviewListItemResponse);
+            return findLatestReviewsByFollowing(MemberId.of(memberId), page, size);
         }
-        return PaginationResponse.from(pageResult);
+        return reviewQueryPort.findLatestReviews(PageQuery.of(page, size));
     }
 
     /**
@@ -138,28 +130,28 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 작성자 본인에게만 노출되며, 그 외에는 빈 결과가 돌아가 컨트롤러가 404를 낸다.
      */
     @Override
-    public Optional<ReviewDetailResponse> findReviewDetail(Long reviewId, Long viewerMemberId) {
+    public Optional<ReviewDetailView> findReviewDetail(Long reviewId, Long viewerMemberId) {
         return findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
-            .map(result -> toReviewDetailResponse(result, viewerMemberId));
+            .map(result -> toReviewDetailView(result, viewerMemberId));
     }
 
     /**
      * 리뷰 등록·수정 응답 — 명령이 돌려준 식별자로 커밋 이후 재조회해 조립한다.
      *
-     * <p>{@link ReviewCommandService}가 식별자만 반환하므로(CQRS 교차 주입 금지) 등록·수정 API의 응답은
-     * 이 메서드가 만든다. 응답 계약을 바꾸지 않기 위해 {@code ReviewResponse}의 필드 구성은 그대로 두고,
-     * 값의 출처만 "명령이 들고 있던 도메인 모델"에서 "커밋된 행의 투영"으로 옮겼다.
+     * <p>{@link ReviewCommandService}가 식별자만 반환하므로(CQRS 교차 주입 금지) 등록·수정 API의 응답
+     * 재료는 이 메서드가 만든다. 응답 계약을 바꾸지 않기 위해 {@code ReviewResponse}의 필드 구성을 그대로
+     * 승계하며, {@code productId}는 상세 투영에 없어 별도 포트 조회로 채운다.
      *
      * <p><b>⚠️ {@code authorMemberId}(작성자)를 반드시 뷰어로 넘겨야 한다.</b> 리뷰 상세 투영은 이제
      * 사장님만보기 리뷰를 <b>작성자 본인에게만</b> 노출하므로, 뷰어를 넘기지 않으면 사장님만보기로 등록하는
      * 순간 등록 자체는 성공했는데 응답 조립에서 {@code REVIEW_NOT_FOUND}(404)가 나는 회귀가 생긴다.
      */
     @Override
-    public ReviewResponse getReviewResponse(Long reviewId, Long authorMemberId) {
+    public ReviewSubmitResultView getReviewSubmitResult(Long reviewId, Long authorMemberId) {
         ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId), authorMemberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
-        return ReviewResponse.from(
+        return new ReviewSubmitResultView(
             detail.id(),
             findProductIdOfReview(reviewId),
             detail.tasteRating(),
@@ -177,9 +169,8 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 리뷰 좋아요 여부.
      */
     @Override
-    public ReviewLikeStatusResponse isLiked(Long reviewId, Long memberId) {
-        boolean liked = reviewQueryPort.existsLike(ReviewId.of(reviewId), memberId);
-        return ReviewLikeStatusResponse.from(liked);
+    public boolean isLiked(Long reviewId, Long memberId) {
+        return reviewQueryPort.existsLike(ReviewId.of(reviewId), memberId);
     }
 
     /**
@@ -191,13 +182,13 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 1회 비용은 감수한다).
      */
     @Override
-    public ReviewCommentListResponse searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
+    public ReviewCommentListView searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
         requireVisibleReview(reviewId, viewerMemberId);
 
         List<ReviewCommentItemResult> comments = reviewQueryPort.findComments(ReviewId.of(reviewId));
 
         if (comments.isEmpty()) {
-            return ReviewCommentListResponse.from(List.of(), 0);
+            return new ReviewCommentListView(List.of(), 0);
         }
 
         List<ReviewCommentId> commentIds = comments.stream()
@@ -209,24 +200,22 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         Map<Long, List<ReviewReplyItemResult>> repliesByCommentId = allReplies.stream()
             .collect(Collectors.groupingBy(ReviewReplyItemResult::commentId));
 
-        List<ReviewCommentResponse> commentResponses = comments.stream()
-            .map(comment -> {
-                List<ReviewReplyResponse> replyResponses = repliesByCommentId.getOrDefault(comment.id(), List.of()).stream()
-                    .map(this::toReplyResponse)
-                    .toList();
-                return toCommentResponse(comment, replyResponses);
-            })
+        List<ReviewCommentListView.CommentWithReplies> items = comments.stream()
+            .map(comment -> new ReviewCommentListView.CommentWithReplies(
+                comment,
+                repliesByCommentId.getOrDefault(comment.id(), List.of())
+            ))
             .toList();
 
         int totalCount = comments.size() + allReplies.size();
-        return ReviewCommentListResponse.from(commentResponses, totalCount);
+        return new ReviewCommentListView(items, totalCount);
     }
 
     /**
      * 리뷰 상세 + 연결 상품 정보. 상품이 없어도 리뷰 정보만으로 응답한다(상품 필드는 비운다).
      */
     @Override
-    public Optional<ReviewProductResponse> findReviewProduct(Long reviewId, Long viewerMemberId) {
+    public Optional<ReviewProductView> findReviewProduct(Long reviewId, Long viewerMemberId) {
         Optional<ReviewDetailResult> reviewDetailOpt = findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId);
         if (reviewDetailOpt.isEmpty()) {
             return Optional.empty();
@@ -243,7 +232,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
                     ? product.discountPrice()
                     : product.originalPrice();
 
-                return ReviewProductResponse.from(
+                return new ReviewProductView(
                     product.id(),
                     product.name(),
                     getFirstImageUrl(product.id()),
@@ -267,7 +256,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
                 );
             })
             .or(() -> Optional.of(
-                ReviewProductResponse.from(
+                new ReviewProductView(
                     null, null, null, null,
                     reviewDetail.id(),
                     reviewDetail.content(),
@@ -293,7 +282,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 리뷰 작성 화면 정보 — 주문 상품에서 상품을 찾아 가격·대표 이미지와 작성 이력 여부를 함께 준다.
      */
     @Override
-    public ReviewWriteInfoResponse getReviewWriteInfo(Long orderProductId, Long memberId) {
+    public ReviewWriteInfoView getReviewWriteInfo(Long orderProductId, Long memberId) {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.AUTH_REQUIRED);
         }
@@ -319,7 +308,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             ownership.orderId(), ownership.productId(), memberId
         );
 
-        return ReviewWriteInfoResponse.from(
+        return new ReviewWriteInfoView(
             product.id(),
             product.name(),
             getFirstImageUrl(product.id()),
@@ -345,14 +334,8 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * 특정 회원이 쓴 리뷰 목록(대표 이미지 1장).
      */
     @Override
-    public PaginationResponse<ReviewMemberListItemResponse> findMemberReviews(Long memberId, int page, int size) {
-        PageResult<ReviewMemberListItemResponse> pageResult =
-            reviewQueryPort.findReviewsByMemberId(memberId, PageQuery.of(page, size))
-                .map(dto -> ReviewMemberListItemResponse.from(
-                    dto.id(),
-                    dto.imageUrl()
-                ));
-        return PaginationResponse.from(pageResult);
+    public PageResult<MyReviewListItemResult> findMemberReviews(Long memberId, int page, int size) {
+        return reviewQueryPort.findReviewsByMemberId(memberId, PageQuery.of(page, size));
     }
 
     /**
@@ -514,36 +497,8 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         return reviewQueryPort.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
     }
 
-    private ReviewBestListItemResponse toBestReviewListItemResponse(BestReviewListItemResult dto) {
-        return ReviewBestListItemResponse.from(
-            dto.id(),
-            dto.imageUrl(),
-            dto.stationName(),
-            dto.shopName(),
-            dto.productName(),
-            dto.totalRating(),
-            dto.content()
-        );
-    }
-
-    private ReviewLatestListItemResponse toLatestReviewListItemResponse(LatestReviewListItemResult dto) {
-        return ReviewLatestListItemResponse.from(
-            dto.id(),
-            dto.imageUrls(),
-            dto.stationName(),
-            dto.totalRating(),
-            dto.content(),
-            dto.memberId(),
-            dto.memberNickname(),
-            dto.memberProfileImageUrl(),
-            dto.createdAt(),
-            dto.likeCount(),
-            dto.commentCount()
-        );
-    }
-
     /**
-     * 리뷰 상세 응답 조립 — 배달 평가 3필드는 <b>작성자 본인일 때만</b> 채운다.
+     * 리뷰 상세 조회 결과 조립 — 배달 평가 3필드는 <b>작성자 본인일 때만</b> 채운다.
      *
      * <p>배달 평가는 「배민 앱 미노출」 규격에 따라 다른 고객에게 보이지 않아야 하지만, 작성자 본인이
      * 자기 수정 폼을 열 때는 기존 값이 초깃값으로 필요하다. 두 요구가 충돌하지 않도록 노출 범위를
@@ -556,11 +511,11 @@ public class ReviewQueryService implements ReviewQueryUseCase {
      * "값이 없으면 유지"를 서버에 넣지 않은 것은 그 순간 {@code null}이 "안 보냄"과 "지워줘" 두 뜻을 갖게
      * 되어 배달 평가를 지울 방법이 사라지기 때문이다.
      */
-    private ReviewDetailResponse toReviewDetailResponse(ReviewDetailResult dto, Long viewerMemberId) {
+    private ReviewDetailView toReviewDetailView(ReviewDetailResult dto, Long viewerMemberId) {
         boolean author = viewerMemberId != null && viewerMemberId.equals(dto.memberId());
         OrderMethod orderMethod = author ? dto.orderMethod() : null;
 
-        return ReviewDetailResponse.from(
+        return new ReviewDetailView(
             dto.id(),
             dto.shopId(),
             dto.shopName(),
@@ -586,33 +541,6 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             orderMethod == null ? null : orderMethod.name(),
             author ? dto.deliveryRating() : null,
             author ? dto.deliveryComment() : null
-        );
-    }
-
-    private ReviewCommentResponse toCommentResponse(ReviewCommentItemResult dto, List<ReviewReplyResponse> replies) {
-        return ReviewCommentResponse.from(
-            dto.id(),
-            dto.reviewId(),
-            dto.memberId(),
-            dto.memberNickname(),
-            dto.memberProfileImageUrl(),
-            dto.content(),
-            dto.createdAt(),
-            replies
-        );
-    }
-
-    private ReviewReplyResponse toReplyResponse(ReviewReplyItemResult dto) {
-        return ReviewReplyResponse.from(
-            dto.id(),
-            dto.commentId(),
-            dto.memberId(),
-            dto.memberNickname(),
-            dto.memberProfileImageUrl(),
-            dto.replyToMemberId(),
-            dto.replyToMemberNickname(),
-            dto.content(),
-            dto.createdAt()
         );
     }
 

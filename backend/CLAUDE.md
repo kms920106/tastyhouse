@@ -12,7 +12,7 @@
 application 4            web-         admin-         ceo-         batch-
                          application  application    application  application
    │  <ctx>/port/in/(UseCase + Command) + <ctx>/service/(CQRS)
-   │  ※ <ctx>/response/ 는 api 모듈로 이동 — admin(챕터 06)·ceo(챕터 09) 완료, web은 미적용(챕터 10 예정)이라 아직 여기 있다
+   │  ※ <ctx>/response/ 는 api 모듈로 이동 완료 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
    ↓                                    ※ infrastructure를 컴파일 클래스패스에 두지 않는다
 도메인                   domain-module               모델·VO·write 포트·도메인 서비스 (프레임워크-프리)
                                                      + 다중 앱 공유 읽기 계약(챕터 05)
@@ -245,7 +245,7 @@ reference 구현: `external-api`의 `oauth/spi/`(`SocialOAuthClient`·`SocialPro
   - **예외 — `PageResult<T>` 변환은 그대로 `from(pageResult)`**: `PaginationResponse.from(PageResult<T> pageResult)`처럼 `PageResult<T>`(`com.tastyhouse.domain.shared.page.PageResult` — domain-module의 공용 페이징 타입)를 받아 `content()`/`page()`/`size()`/`totalElements()`를 그대로 위임하는 경우는 이 규칙의 대상이 아닙니다. `PageResult<T>` 자체는 도메인 result가 아니라 공용 페이징 계약이므로 원시타입 언패킹 대상이 아니며, 이 경우 페이징 응답(`PaginationResponse<T>`)이 `PageResult<T>`를 import하는 것은 허용합니다.
 - `new`는 이러한 팩토리 메서드 **내부**에만 남깁니다(각 record가 자기 자신을 생성). 호출부에는 `new`가 남지 않는 것을 목표로 합니다.
 
-reference 구현 (챕터 06 적용분 = admin): `admin-api`의 `notice` 도메인 — `notice/adapter/in/web/response/NoticeListItemResponse.from(NoticeManagementListItemResult result)`(기본형) + 컨트롤러의 `PaginationResponse.from(pageResult.map(NoticeListItemResponse::from))`(PageResult 위임은 예외 그대로). 형태 2 사례: `ShopRiderGuideDetailResponse.from(ShopRiderGuideResult, List<ShopRiderGuideHistoryResult>)`. 중첩 조립 사례: `admin-api`의 `order` 도메인 — `OrderDetailResponse.from(OrderDetailResult)`가 `OrderProductResponse`/`PaymentSummaryResponse` 중첩 리스트·필드를 각 record의 `from`으로 위임 조립한다(`.map(OrderProductResponse::from)`). **ceo도 챕터 09로 같은 설계가 적용됐다**(reference: `ceo-api`의 `shop`·`product` 도메인 — `ShopBusinessHourResponse.from(ShopBusinessHourResult)`·`ProductOptionGroupResponse.from(ProductOptionGroupViewResult)`). **web만 미적용이라 아직 QueryService의 private 매퍼가 조립하므로, 그 앱의 reference는 `web-application/AGENTS.md`를 따른다**(챕터 10 예정).
+reference 구현 (챕터 06 적용분 = admin): `admin-api`의 `notice` 도메인 — `notice/adapter/in/web/response/NoticeListItemResponse.from(NoticeManagementListItemResult result)`(기본형) + 컨트롤러의 `PaginationResponse.from(pageResult.map(NoticeListItemResponse::from))`(PageResult 위임은 예외 그대로). 형태 2 사례: `ShopRiderGuideDetailResponse.from(ShopRiderGuideResult, List<ShopRiderGuideHistoryResult>)`. 중첩 조립 사례: `admin-api`의 `order` 도메인 — `OrderDetailResponse.from(OrderDetailResult)`가 `OrderProductResponse`/`PaymentSummaryResponse` 중첩 리스트·필드를 각 record의 `from`으로 위임 조립한다(`.map(OrderProductResponse::from)`). **ceo(챕터 09)·web(챕터 10)에도 같은 설계가 적용됐다**(reference: `ceo-api`의 `shop`·`product` 도메인 — `ShopBusinessHourResponse.from(ShopBusinessHourResult)`·`ProductOptionGroupResponse.from(ProductOptionGroupViewResult)`; `web-api`의 `order`·`auth` 도메인 — `OrderDetailResponse.from(OrderDetailViewResult)`·`AuthSocialLoginResponse.from(SocialLoginResult)`). **3개 앱이 같은 규칙을 따르므로 앱별 예외가 없다.**
 
 ## command/DTO 지역 변수 추출 규칙 (호출 인자로 인라인 조립 지양)
 
@@ -602,7 +602,7 @@ import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEn
 | 계층 순위 | 계층 | 매칭 패키지 세그먼트 |
 |---|---|---|
 | 1 | **domain** (가장 안쪽·핵심) | `com.tastyhouse.domain.<ctx>.model` / `.vo` / `.event` / `.repository`(write 포트) / `.service`(순수 POJO 도메인 서비스) / `.port`(출력 포트) |
-| 2 | **application** | `com.tastyhouse.{web\|admin\|ceo\|batch}application.*` — 인바운드 포트(`<ctx>.port.in`)·CQRS 서비스(`<ctx>.service`)·표현 계약(`<ctx>.response` — **ceo·web만. admin은 챕터 06으로 api 모듈로 이동했다**) |
+| 2 | **application** | `com.tastyhouse.{web\|admin\|ceo\|batch}application.*` — 인바운드 포트(`<ctx>.port.in`)·CQRS 서비스(`<ctx>.service`)·**표현 계약(`<ctx>.response`)은 여기 없다 — 3개 앱 전부 api 모듈로 이동했다**(admin 챕터 06 · ceo 챕터 09 · web 챕터 10) |
 | 3 | **infrastructure** | `com.tastyhouse.infrastructure.<ctx>.query`(query DAO·Result DTO·SearchCondition) / `.persistence`(`.converter`) / `.listener` |
 | 4 | **external / shared** (어댑터·횡단 공용) | `com.tastyhouse.external.*`, `com.tastyhouse.security.*`, `com.tastyhouse.logging.*`, `com.tastyhouse.domain.shared.*`, `com.tastyhouse.domain.exception.*` |
 | 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*`, `com.tastyhouse.ceoapi.*`, `com.tastyhouse.batch.*` — 내부는 아래 "presentation 내부 서브정렬"로 5-a → 5-b 세분 |
@@ -806,7 +806,7 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryDao`(
 - **메서드명에 admin 마커를 붙이지 않는다**: [admin 전용 네이밍 규칙](#admin-전용-네이밍-규칙-메서드타입명에-admin-flavor-admin-접두접미중간어-금지)을 그대로 따라 순수 동작명을 쓴다. 소비자 구분은 이름이 아니라 **시그니처(파라미터 차이)와 동작 의미**로 하고, 비-admin 형제와 이름이 충돌할 때만 `ById`처럼 의미 있는 한정어를 붙인다(예: `findOrderDetail(memberId, orderId)` vs `findOrderDetailById(orderId)`). 노출 범위 차이는 `findAllNotices`(비노출 포함 전체) vs `findVisibleNotices`(노출분만)처럼 **동작 자체를 이름에 담아** 구별한다.
 - **대형 도메인만 용도별 DAO 분리 허용**: 한 도메인의 조회가 너무 많아 DAO 하나가 비대해지면 용도별로 나눌 수 있다. 나눌 때도 접미어는 `QueryDao`로 유지하고 용도를 접두·중간어로 표현한다(예: `shop`의 `ShopQueryDao`/`ShopSearchQueryDao`/`ShopChoiceQueryDao`). 분리 기준은 "소비 모듈"이 아니라 **조회 용도(검색 vs 상세 vs 서브 애그리거트)** 다. 여러 DAO로 나뉘어도 대응 `{Ctx}QueryPort`는 도메인 용도별로 함께 나뉜다(예: `ShopQueryPort`/`ShopSearchQueryPort`/`ShopChoiceQueryPort`).
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관한다**: 전환 시 과거 조회 서비스의 모든 메서드를 기계적으로 옮기지 않고, 호출부가 실제로 존재하는 것만 포트에 만든다. Result record의 필드도 소비하는 Response가 실제로 쓰는 것만 남긴다 — 쓰이지 않는 조회·필드를 함께 옮기면 그 순간부터 "누가 쓰는지 모르지만 지울 수도 없는" 코드가 되고, 불필요한 컬럼·조인이 쿼리에 남는다.
-- **api 모듈에서의 사용법**: 소비 모듈의 `{도메인}QueryService`가 **`{Ctx}QueryPort` 인터페이스**를 주입해 쓰고(DAO 구현체를 직접 알지 않는다), 유스케이스는 `*Result`를 그대로 반환한다. **Result → Response 변환 주체는 챕터 06(admin)·09(ceo)로 바뀌었다** — 두 앱은 api 모듈의 Response record가 `from(Result)`로 조립하고(그 모듈의 QueryService에는 매퍼가 없다), web은 아직 QueryService의 private 매퍼가 담당한다(챕터 10 예정)([DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)). 그 덕분에 api 모듈은 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)).
+- **api 모듈에서의 사용법**: 소비 모듈의 `{도메인}QueryService`가 **`{Ctx}QueryPort` 인터페이스**를 주입해 쓰고(DAO 구현체를 직접 알지 않는다), 유스케이스는 `*Result`를 그대로 반환한다. **Result → Response 변환 주체는 api 모듈이다**(admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 완료) — api 모듈의 Response record가 `from(Result)`로 조립하며, `{앱}-application`의 QueryService에는 매퍼가 없다([DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)). 그 덕분에 api 모듈은 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)).
 - **DAO는 표현에 필요한 완성 형태로 투영한다**: Result는 소비 Service가 추가 조회나 파생 계산 없이 그대로 응답에 옮길 수 있는 값을 담는다. 대표 사례가 **파일 URL**로, DAO가 `uploaded_file`을 join한 뒤 `FileUrlResolver`로 표시용 URL까지 완성해 담는다(경로나 fileId를 넘겨 Service가 변환하게 하지 않는다). 이를 위해 DAO가 도메인 출력 포트(`FileStoragePort`)를 경유하는 `@Component`를 주입받는 것은 허용된다 — driven 어댑터가 도메인 포트를 쓰는 정상 형태이고 변환 자체가 순수 연산이라 쿼리를 늘리지 않는다. 상세는 [파일 URL 조립 위치 규칙](#파일-url-조립-위치-규칙-query-dao가-fileurlresolver로-완성) 참고.
 - **`@QueryProjection` → `Projections.constructor` 전환**: Result record가 QueryDSL을 모르는 계약 모듈로 옮겨지며 그 record에 `@QueryProjection`을 달 수 없다. DAO의 select 절은 `Projections.constructor(XxxResult.class, notice.id, notice.title, ...)` 형태로 조립한다. **`Projections.constructor`는 리플렉션으로 런타임에 생성자를 찾으므로**, Result record가 `public`이 아니거나 select 절 인자 개수·타입·순서가 생성자와 불일치하면 컴파일은 통과하고 **호출 시점에만 500**이 난다(`ShopRiderGuidePickupPresenceResult` 선례). 전환한 쿼리는 반드시 한 번 호출해 확인한다.
 - **가드 테스트 위치가 함께 이동했다**: `QueryResultRecordVisibilityTest`(public record 강제)는 이제 읽기 계약 패키지의 Result를 스캔 대상으로 삼는다. 신설 `ProjectionConstructorMatchingTest`(`infrastructure:persistence`)는 select 절 인자 개수가 대상 record의 public 생성자 파라미터 개수와 일치하는지 소스 스캔으로 검증해, `@QueryProjection`이 주던 컴파일 게이트를 대체한다.
@@ -955,8 +955,8 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 | `apiModuleShouldOnlyReadDomainEnums` | `{web,admin,ceo}-api` 3곳 | **챕터 07 신설 짝 규칙** — 도메인 enum에 호출 가능한 메서드를 읽기 accessor 3종(`name`·`getDescription`·`getDisplayName`)으로 제한한다. 위 규칙이 **타입 수준**에서 뚫은 구멍을 **메서드 수준**에서 막는다(`commandRecordsShouldNotHoldMultipartFile` 선례와 같은 구조). 도메인 enum 76개 중 **13개가 비즈니스 로직을 노출**하므로(`MemberGrade#fromReviewCount`·`OrderStatus#canTransitionTo` 등) 타입 성격 술어만으로는 컨트롤러가 등급 계산·전이 인가를 해도 통과한다. **허용 목록은 바이트코드 그래프 실측에서 도출했고 늘리지 않는다** |
 | `domainBoundaryPredicatesShouldStillBite` | `{web,admin,ceo}-api` 3곳 | **챕터 07 신설** — 위 두 규칙이 현재 위반 0건이라 carve-out을 잘못 넓혀도 조용히 통과하므로, 동일 술어를 조립해 애그리거트 루트가 여전히 금지 대상인지와 **설계 전제**(enum이 `..model` 패키지에 애그리거트와 공존)를 상시 단정한다 |
 | `seedersShouldDependOnUseCasesOnly` | `{admin,ceo}-api` 2곳 | `..config..`는 `{앱}application..service..` 구체 클래스 의존 금지. `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` 한정)의 사각지대 보완. 시더가 없는 web-api·`config..`가 없는 batch-module에는 두지 않는다(공허 통과 회피) |
-| `applicationShouldNotDependOnSwagger` | **`admin-application` 1곳** | **챕터 06 신설** — 모듈 전체 ✗ `io.swagger..`. "유스케이스 계층은 API 문서화 도구를 알지 않는다(Response 조립은 api 모듈 담당)". **ceo·web-application에는 아직 없다** — 06이 admin에만 적용됐고 그 두 모듈은 `io.swagger` import가 각각 105·131개 파일이라 지금 심으면 즉시 실패한다. 06 확대 시 함께 심는다 |
-| `applicationShouldNotDependOnApiCommon` | **`admin-application` 1곳** | **챕터 06 신설** — 모듈 전체 ✗ `com.tastyhouse.apicommon..`. `PaginationResponse`·`ApiResponse` 같은 HTTP 래퍼는 표현 계약이므로 유스케이스 계층이 조립하지 않는다(application은 `PageResult`를 반환하고 컨트롤러가 감싼다). 위와 같은 이유로 **ceo·web-application에는 아직 없다** |
+| `applicationShouldNotDependOnSwagger` | **`{admin,ceo,web}-application` 3곳** | **챕터 06 신설(admin) → 09(ceo)·10(web) 확대 완료** — 모듈 전체 ✗ `io.swagger..`. "유스케이스 계층은 API 문서화 도구를 알지 않는다(Response 조립은 api 모듈 담당)". 세 모듈 모두 `io.swagger` import 0건이며 이 규칙이 그 상태를 고정한다 |
+| `applicationShouldNotDependOnApiCommon` | **`{admin,ceo,web}-application` 3곳** | **챕터 06 신설(admin) → 09(ceo)·10(web) 확대 완료** — 모듈 전체 ✗ `com.tastyhouse.apicommon..`. `PaginationResponse`·`ApiResponse` 같은 HTTP 래퍼는 표현 계약이므로 유스케이스 계층이 조립하지 않는다(application은 `PageResult`를 반환하고 컨트롤러가 감싼다). **ceo·web은 `build.gradle`의 api-common 의존 제거가 챕터 11의 몫이라 지금은 이 규칙이 유일한 방어선이다**(admin은 의존 제거가 1차 방어선인 이중화 상태) |
 
 **`allowEmptyShould(true)`는 리포 전체에서 0건이며, 새로 도입하지 않는다.** `noClasses().that()...`은 대상이 0건이어도 조용히 통과하므로, 규칙이 대상을 잃으면 공허 통과를 여는 대신 **규칙을 지우거나 anchor를 고친다** — 이번 재편에서 batch-module 쪽 규칙 4개를 삭제한 것이 그 선례다(대상 클래스가 전부 `batch-application`으로 떠났다).
 
@@ -985,10 +985,10 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   {앱}-api/         <ctx>/adapter/in/web/   컨트롤러 + request/
   {앱}-application/ <ctx>/port/in/          UseCase 인터페이스 + Command record
   {앱}-application/ <ctx>/service/          서비스 구현
-  {앱}-application/ <ctx>/response/         표현 계약 — **web만**(admin은 챕터 06, ceo는 챕터 09로 api 모듈로 이동)
+  {앱}-api/         <ctx>/adapter/in/web/response/  표현 계약 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
   ```
 
-  **모듈 재편(챕터 01~05)으로 계층 경계가 패키지가 아니라 모듈이 됐다.** 과거 이 3층은 한 api 모듈 안의 `<ctx>/application/..` 하위 패키지였으나, 지금은 api 모듈과 `{앱}-application` 모듈로 물리 분리되어 있다 — 그래서 경로에 `application` 세그먼트가 없다(모듈명이 그 역할을 한다). `request/`는 매핑이 어댑터 책임이므로 api 쪽에 있다. **`response/`의 거처는 챕터 06(admin)·09(ceo)로 바뀌었다** — 원래는 QueryService가 조립하므로 application 쪽이었으나, 유스케이스 계층에서 Swagger·HTTP 표현을 걷어내려고 api 모듈로 올렸다(admin·ceo 완료, web 미적용). 그 결과 admin·ceo-application의 `io.swagger` import는 0건이고 web-application만 131개 파일이다.
+  **모듈 재편(챕터 01~05)으로 계층 경계가 패키지가 아니라 모듈이 됐다.** 과거 이 3층은 한 api 모듈 안의 `<ctx>/application/..` 하위 패키지였으나, 지금은 api 모듈과 `{앱}-application` 모듈로 물리 분리되어 있다 — 그래서 경로에 `application` 세그먼트가 없다(모듈명이 그 역할을 한다). `request/`는 매핑이 어댑터 책임이므로 api 쪽에 있다. **`response/`의 거처는 챕터 06(admin)·09(ceo)·10(web)으로 바뀌었다** — 원래는 QueryService가 조립하므로 application 쪽이었으나, 유스케이스 계층에서 Swagger·HTTP 표현을 걷어내려고 api 모듈로 올렸다(3개 앱 완료). 그 결과 admin·ceo·web-application 세 모듈 모두 `io.swagger` import가 0건이다.
 
   **worked example — `ceo-api`의 shop 컨텍스트(영업시간)**: 한 연산이 네 파일에 어떻게 흩어지는지의 최종형이다.
 
@@ -1004,7 +1004,7 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   **클래스명은 그대로 `{도메인}CommandService`/`{도메인}QueryService`를 유지한다** — 기존 ArchUnit 규칙들이 접미어로 대상을 매칭하므로 이름을 바꾸면 규칙이 조용히 대상을 잃는다. 이번 전환에서 바뀌는 것은 **패키지 위치와 `implements` 추가**뿐이다.
 - **역할과 주입 대상**:
   - `{도메인}CommandService` — `@Transactional`. 해당 **`{도메인}CommandUseCase`를 implements**한다. **Command를 수신**해 도메인 타입으로 승격(`XxxId.of`/`Enum.from`)하고, domain-module의 **write 포트**(`{도메인}Repository`)와 **순수 POJO 도메인 서비스**(`<ctx>/service/`)를 주입한다. 도메인 변경 후 [명시적 save](#도메인-모델-jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)를 호출한다.
-  - `{도메인}QueryService` — `@Transactional(readOnly = true)`. 해당 **`{도메인}QueryUseCase`를 implements**한다. infrastructure DAO가 아니라 **`{Ctx}QueryPort`를 주입**하며(위 [읽기 경로 포트화](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료) 참조), **Result → Response 변환 주체는 챕터 06(admin)·09(ceo)로 갈린다** — 두 앱은 `*Result`를 그대로 반환하고 조립은 api 모듈의 Response record가 하며(이 서비스에 매퍼가 없다), web은 아직 private 매퍼로 조립한다(챕터 10 예정).
+  - `{도메인}QueryService` — `@Transactional(readOnly = true)`. 해당 **`{도메인}QueryUseCase`를 implements**한다. infrastructure DAO가 아니라 **`{Ctx}QueryPort`를 주입**하며(위 [읽기 경로 포트화](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료) 참조), **`*Result`를 그대로 반환하고 Response 조립은 api 모듈의 Response record가 한다**(이 서비스에 매퍼가 없다 — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 동일).
 - **컨트롤러는 UseCase 인터페이스만 주입한다**: 컨트롤러 생성자에 `application/service/`의 구체 클래스가 등장하지 않는다. 이것이 인바운드 포트 도입의 실익인 컴파일 게이트가 실제로 작동하는 지점이다.
 - **`MultipartFile`은 서비스 파라미터로만 허용하고 Command 필드로는 금지한다**: 업로드 자체를 받는 경계 타입이라 서비스 시그니처에 남기는 것은 존치하되(파일 업로드 흐름을 재설계하지 않기 위함), **Command에는 업로드 결과 참조**(파일 식별자·URL)만 담는다. Command가 서블릿 업로드 타입을 보유하면 application 계층이 web 플럼빙에 결합되고, 직렬화·재실행이 불가능해진다.
 - **서로의 의존을 교차 주입하지 않는다**: **CommandService는 `..query..`를 주입하지 않고, QueryService는 write 포트를 주입하지 않는다.** 이 두 금지가 CQRS 분리를 실제로 지탱하는 지점이다 — 한쪽이라도 허용하면 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐 있어, 조회 트랜잭션에서 쓰기가 일어나거나 명령 경로가 표현용 투영에 결합되는 것을 막을 수 없다. 명령 처리 후 응답이 필요하면 **명령은 식별자만 반환하고 컨트롤러가 QueryService로 재조회**한다.
@@ -1057,7 +1057,7 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 | 두어야 할 곳 | 기준 |
 |---|---|
 | `domain-module` | 도메인 모델·VO·write 포트·불변식(순수 POJO, 프레임워크-프리) |
-| `{web,admin,ceo,batch}-application` | 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 (+ `response/` — **ceo·web만. admin은 챕터 06으로 api 모듈로 이동**). **infra를 컴파일 클래스패스에 두지 않는다** |
+| `{web,admin,ceo,batch}-application` | 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 (**`response/`는 없다 — 3개 앱 전부 api 모듈 소유**). **infra를 컴파일 클래스패스에 두지 않는다** |
 | `{web,admin,ceo}-api` · `batch-module` | 인바운드 어댑터 — 컨트롤러/`@Scheduled` 트리거 + `request/` + config·security 정책 + 부트스트랩 |
 | `infrastructure:persistence` | domain write 포트의 JPA 어댑터 + `{Ctx}QueryPort` 구현 DAO + `<ctx>/listener` + 도메인 서비스 빈 등록 |
 | `infrastructure:redis` | Redis 연결·`StringRedisTemplate` + rate limiting. **domain조차 모른다**(포트가 없는 순수 기술) |

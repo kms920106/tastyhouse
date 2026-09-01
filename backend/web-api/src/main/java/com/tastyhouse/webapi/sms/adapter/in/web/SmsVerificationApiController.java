@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapi.sms.adapter.in.web.request.SmsVerificationConfirmRequest;
 import com.tastyhouse.webapi.sms.adapter.in.web.request.SmsVerificationSendRequest;
-import com.tastyhouse.webapplication.sms.response.SmsVerificationTokenResponse;
+import com.tastyhouse.webapi.sms.adapter.in.web.response.SmsVerificationTokenResponse;
 
 @RestController
 @RequestMapping("/api/sms-verifications")

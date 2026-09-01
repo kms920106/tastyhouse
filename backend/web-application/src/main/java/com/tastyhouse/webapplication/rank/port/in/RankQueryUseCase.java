@@ -3,9 +3,9 @@ package com.tastyhouse.webapplication.rank.port.in;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.webapplication.rank.response.RankDurationResponse;
-import com.tastyhouse.webapplication.rank.response.RankMemberListItemResponse;
-import com.tastyhouse.webapplication.rank.response.RankPrizeListItemResponse;
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankDurationResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeResult;
 
 /**
  * 랭킹 조회 인바운드 포트.
@@ -15,11 +15,11 @@ import com.tastyhouse.webapplication.rank.response.RankPrizeListItemResponse;
  */
 public interface RankQueryUseCase {
 
-    Optional<RankDurationResponse> getDuration();
+    Optional<RankDurationResult> getDuration();
 
-    List<RankPrizeListItemResponse> getPrizes();
+    List<RankPrizeResult> getPrizes();
 
-    List<RankMemberListItemResponse> getMemberRankList(String rankType, int limit);
+    List<MemberRankResult> getMemberRankList(String rankType, int limit);
 
-    RankMemberListItemResponse getMyMemberRank(Long memberId, String rankType);
+    MemberRankResult getMyMemberRank(Long memberId, String rankType);
 }

@@ -15,11 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapplication.event.port.in.EventQueryUseCase;
 import com.tastyhouse.webapi.event.adapter.in.web.request.EventSearchRequest;
-import com.tastyhouse.webapplication.event.response.EventAnnouncementListItemResponse;
-import com.tastyhouse.webapplication.event.response.EventDetailResponse;
-import com.tastyhouse.webapplication.event.response.EventListItemResponse;
+import com.tastyhouse.webapi.event.adapter.in.web.response.EventAnnouncementListItemResponse;
+import com.tastyhouse.webapi.event.adapter.in.web.response.EventDetailResponse;
+import com.tastyhouse.webapi.event.adapter.in.web.response.EventListItemResponse;
 
 @RestController
 @RequestMapping("/api/event")
@@ -38,7 +39,10 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = eventQueryService.getEventList(search.status(), pageRequest.page(), pageRequest.size());
+        var pageResult = PaginationResponse.from(
+            eventQueryService.getEventList(search.status(), pageRequest.page(), pageRequest.size())
+                .map(EventListItemResponse::from)
+        );
         ApiResponse<List<EventListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }
@@ -49,7 +53,7 @@ public class EventApiController {
         @Parameter(description = "이벤트 ID", example = "1")
         @PathVariable Long id
     ) {
-        EventDetailResponse event = eventQueryService.getEventDetail(id);
+        EventDetailResponse event = EventDetailResponse.from(eventQueryService.getEventDetail(id));
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 
@@ -58,7 +62,10 @@ public class EventApiController {
     public ResponseEntity<ApiResponse<List<EventAnnouncementListItemResponse>>> getEventAnnouncementList(
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        var pageResult = eventQueryService.getEventAnnouncementList(pageRequest.page(), pageRequest.size());
+        var pageResult = PaginationResponse.from(
+            eventQueryService.getEventAnnouncementList(pageRequest.page(), pageRequest.size())
+                .map(EventAnnouncementListItemResponse::from)
+        );
         ApiResponse<List<EventAnnouncementListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
         return ResponseEntity.ok(response);
     }

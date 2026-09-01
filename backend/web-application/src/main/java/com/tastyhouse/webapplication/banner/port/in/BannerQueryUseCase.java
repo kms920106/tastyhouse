@@ -1,7 +1,7 @@
 package com.tastyhouse.webapplication.banner.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.banner.response.BannerListItemResponse;
+import com.tastyhouse.application.banner.port.out.BannerListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 배너 조회 인바운드 포트.
@@ -11,7 +11,7 @@ import com.tastyhouse.webapplication.banner.response.BannerListItemResponse;
  */
 public interface BannerQueryUseCase {
 
-    PaginationResponse<BannerListItemResponse> getHomeBanners(int page, int size);
+    PageResult<BannerListItemResult> getHomeBanners(int page, int size);
 
-    PaginationResponse<BannerListItemResponse> getSidebarBanners(int page, int size);
+    PageResult<BannerListItemResult> getSidebarBanners(int page, int size);
 }

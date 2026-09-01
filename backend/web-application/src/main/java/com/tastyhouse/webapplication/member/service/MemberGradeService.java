@@ -8,7 +8,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
-import com.tastyhouse.webapplication.member.response.MyGradeResponse;
+import com.tastyhouse.webapplication.member.port.out.MyGradeResult;
 
 @Service
 public class MemberGradeService {
@@ -20,7 +20,7 @@ public class MemberGradeService {
     }
 
     @Transactional(readOnly = true)
-    public MyGradeResponse getMyGrade(Long memberId) {
+    public MyGradeResult getMyGrade(Long memberId) {
         int currentReviewCount = memberReviewRankRepository.findLatestByMemberIdAndRankType(MemberId.of(memberId), RankType.ALL)
             .map(MemberReviewRank::getReviewCount)
             .orElse(0);
@@ -33,7 +33,7 @@ public class MemberGradeService {
             reviewsNeeded = nextGrade.getMinReviewCount() - currentReviewCount;
         }
 
-        return MyGradeResponse.from(
+        return new MyGradeResult(
             currentGrade.name(),
             currentGrade.getDisplayName(),
             nextGrade != null ? nextGrade.name() : null,

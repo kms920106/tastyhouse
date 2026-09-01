@@ -2,7 +2,7 @@ package com.tastyhouse.webapplication.referral.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.referral.response.ReferralMemberListItemResponse;
+import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
 
 /**
  * 추천인 조회 인바운드 포트.
@@ -15,5 +15,5 @@ import com.tastyhouse.webapplication.referral.response.ReferralMemberListItemRes
  */
 public interface ReferralQueryUseCase {
 
-    List<ReferralMemberListItemResponse> getMyReferrals(Long referrerId);
+    List<MemberReferralResult> getMyReferrals(Long referrerId);
 }

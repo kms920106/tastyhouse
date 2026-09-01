@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationConfirmRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationSendRequest;
-import com.tastyhouse.webapplication.mail.response.MailVerificationTokenResponse;
+import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenResponse;
 
 @RestController
 @RequestMapping("/api/mail-verifications")

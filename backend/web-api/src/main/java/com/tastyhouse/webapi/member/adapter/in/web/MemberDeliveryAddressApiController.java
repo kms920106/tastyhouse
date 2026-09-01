@@ -20,7 +20,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressCreateRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressUpdateRequest;
-import com.tastyhouse.webapplication.member.response.MemberDeliveryAddressItemResponse;
+import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddressItemResponse;
 import com.tastyhouse.webapplication.member.port.in.MemberDeliveryAddressChangeDefaultCommand;
 import com.tastyhouse.webapplication.member.port.in.MemberDeliveryAddressCommandUseCase;
 import com.tastyhouse.webapplication.member.port.in.MemberDeliveryAddressCreateCommand;
@@ -54,7 +54,10 @@ public class MemberDeliveryAddressApiController {
         @CurrentUser CustomUserDetails userDetails
     ) {
         List<MemberDeliveryAddressItemResponse> responses =
-            memberDeliveryAddressQueryService.getMyDeliveryAddresses(userDetails.getMemberId());
+            memberDeliveryAddressQueryService.getMyDeliveryAddresses(userDetails.getMemberId())
+                .stream()
+                .map(MemberDeliveryAddressItemResponse::from)
+                .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 

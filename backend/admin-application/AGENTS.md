@@ -34,7 +34,7 @@ Response record는 `@Schema`(Swagger)를 달고 `PaginationResponse`(HTTP 래퍼
 
 **`request/`는 여전히 admin-api에 있다** — Request → Command 매핑은 인바운드 어댑터의 책임이고(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 즉 지금은 `request/`·`response/` 둘 다 api 모듈에 있고, 이 모듈은 포트와 서비스만 갖는다.
 
-**ceo·web은 아직 과거 형태다** — 챕터 06이 admin에만 적용됐으므로 `ceo-application`·`web-application`의 `response/`는 그대로 있고 `io.swagger` import도 각각 105·131개 파일이다. 그 두 모듈의 AGENTS.md 서술은 현재도 유효하다.
+**ceo·web도 같은 형태가 됐다** — 챕터 09(ceo 105개)·챕터 10(web 131개)으로 확대 적용이 끝나, `ceo-application`·`web-application`의 `response/`도 각 api 모듈로 승격됐고 세 모듈 모두 `io.swagger` import가 0건이다. 3개 앱의 설계가 동일하다.
 
 ## auth 처리 (web-application 선례와 동일)
 

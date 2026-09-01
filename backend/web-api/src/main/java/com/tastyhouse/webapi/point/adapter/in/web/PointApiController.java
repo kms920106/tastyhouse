@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.webapplication.point.port.in.PointQueryUseCase;
-import com.tastyhouse.webapplication.point.response.PointHistoryResponse;
-import com.tastyhouse.webapplication.point.response.PointResponse;
-import com.tastyhouse.webapplication.point.response.PointUsableResponse;
+import com.tastyhouse.webapi.point.adapter.in.web.response.PointHistoryResponse;
+import com.tastyhouse.webapi.point.adapter.in.web.response.PointResponse;
+import com.tastyhouse.webapi.point.adapter.in.web.response.PointUsableResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -31,7 +31,7 @@ public class PointApiController {
     public ResponseEntity<ApiResponse<PointResponse>> getMyPoint(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(pointQueryService.getMemberPoint(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(PointResponse.from(pointQueryService.getMemberPoint(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "포인트 내역 조회", description = "사용 가능 포인트, 이번달 소멸 예정 포인트, 포인트 적립/사용 내역 목록을 조회합니다.")
@@ -39,7 +39,7 @@ public class PointApiController {
     public ResponseEntity<ApiResponse<PointHistoryResponse>> getMyPointHistory(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(pointQueryService.getPointHistory(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(PointHistoryResponse.from(pointQueryService.getPointHistory(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "사용 가능 포인트 조회 (주문용)", description = "주문 시 사용 가능한 포인트를 조회합니다.")
@@ -47,6 +47,6 @@ public class PointApiController {
     public ResponseEntity<ApiResponse<PointUsableResponse>> getMyUsablePoint(
         @CurrentUser CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(pointQueryService.getUsablePoint(userDetails.getMemberId())));
+        return ResponseEntity.ok(ApiResponse.success(PointUsableResponse.of(pointQueryService.getUsablePoint(userDetails.getMemberId()))));
     }
 }

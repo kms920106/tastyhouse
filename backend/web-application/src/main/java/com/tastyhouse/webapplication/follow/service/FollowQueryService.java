@@ -5,23 +5,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.page.PageQuery;
+import com.tastyhouse.domain.shared.page.PageResult;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.application.member.follow.port.out.FollowMemberResult;
 import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
-import com.tastyhouse.webapplication.follow.response.FollowMemberListItemResponse;
-import com.tastyhouse.webapplication.follow.response.FollowMemberSearchListItemResponse;
+import com.tastyhouse.webapplication.follow.port.out.FollowMemberSearchResult;
 import com.tastyhouse.webapplication.follow.port.in.FollowQueryUseCase;
 
 /**
  * 팔로우 조회 서비스.
  *
- * <p>목록은 읽기 포트({@link MemberFollowQueryPort})가 뷰어의 팔로우 여부까지 함께 투영하고,
- * 닉네임 검색은 회원 읽기 포트({@link MemberQueryPort})를 쓴다. 단건 팔로우 여부·카운트도
- * 표현용 조회이므로 write 포트가 아니라 같은 읽기 포트가 답한다(CQRS 교차 주입 금지).
+ * <p>목록은 읽기 포트({@link MemberFollowQueryPort})가 뷰어의 팔로우 여부까지 함께 투영하므로 그 결과를
+ * 그대로 내보내고, 닉네임 검색은 회원 읽기 포트({@link MemberQueryPort})의 결과에 팔로우 여부를 얹어
+ * {@link FollowMemberSearchResult}로 합성한다. 단건 팔로우 여부·카운트도 표현용 조회이므로 write 포트가
+ * 아니라 같은 읽기 포트가 답한다(CQRS 교차 주입 금지).
  *
- * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 응답에 전달한다.
+ * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 전달한다.
+ * 도메인 enum({@code MemberGrade})은 검색 합성 지점에서 상수명 문자열로 낮춘다 — 인바운드 포트가 도메인
+ * 타입을 노출하지 않게 하려면 강등이 이 계층에서 끝나야 한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -56,47 +58,37 @@ public class FollowQueryService implements FollowQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<FollowMemberListItemResponse> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
-        return PaginationResponse.from(memberFollowQueryPort
-            .findFollowingList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
-            .map(this::toFollowMemberListItemResponse));
+    public PageResult<FollowMemberResult> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
+        return memberFollowQueryPort.findFollowingList(
+            MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size)
+        );
     }
 
     @Override
-    public PaginationResponse<FollowMemberListItemResponse> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
-        return PaginationResponse.from(memberFollowQueryPort
-            .findFollowerList(MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size))
-            .map(this::toFollowMemberListItemResponse));
+    public PageResult<FollowMemberResult> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
+        return memberFollowQueryPort.findFollowerList(
+            MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size)
+        );
     }
 
     @Override
-    public PaginationResponse<FollowMemberSearchListItemResponse> searchMembersByNickname(
+    public PageResult<FollowMemberSearchResult> searchMembersByNickname(
         String nickname,
         Long viewerMemberId,
         int page,
         int size
     ) {
-        return PaginationResponse.from(memberQueryPort.findByNicknameContaining(nickname, PageQuery.of(page, size))
-            .map(result -> FollowMemberSearchListItemResponse.of(
+        return memberQueryPort.findByNicknameContaining(nickname, PageQuery.of(page, size))
+            .map(result -> new FollowMemberSearchResult(
                 result.id(),
                 result.nickname(),
                 result.memberGrade().name(),
                 result.profileImageUrl(),
                 viewerMemberId != null && isFollowing(viewerMemberId, result.id())
-            )));
+            ));
     }
 
     private MemberId toViewerId(Long viewerMemberId) {
         return viewerMemberId == null ? null : MemberId.of(viewerMemberId);
-    }
-
-    private FollowMemberListItemResponse toFollowMemberListItemResponse(FollowMemberResult result) {
-        return FollowMemberListItemResponse.of(
-            result.memberId(),
-            result.nickname(),
-            result.memberGrade().name(),
-            result.profileImageUrl(),
-            result.following()
-        );
     }
 }

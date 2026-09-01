@@ -2,8 +2,8 @@ package com.tastyhouse.webapplication.faq.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.faq.response.FaqCategoryListItemResponse;
-import com.tastyhouse.webapplication.faq.response.FaqListItemResponse;
+import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
+import com.tastyhouse.application.faq.port.out.FaqResult;
 
 /**
  * FAQ 조회 인바운드 포트.
@@ -13,7 +13,7 @@ import com.tastyhouse.webapplication.faq.response.FaqListItemResponse;
  */
 public interface FaqQueryUseCase {
 
-    List<FaqCategoryListItemResponse> getFaqCategories();
+    List<FaqCategoryResult> getFaqCategories();
 
-    List<FaqListItemResponse> getFaqList(Long categoryId);
+    List<FaqResult> getFaqList(Long categoryId);
 }

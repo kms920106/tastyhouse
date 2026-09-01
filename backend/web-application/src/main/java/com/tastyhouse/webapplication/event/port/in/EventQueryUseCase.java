@@ -1,9 +1,9 @@
 package com.tastyhouse.webapplication.event.port.in;
 
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.event.response.EventAnnouncementListItemResponse;
-import com.tastyhouse.webapplication.event.response.EventDetailResponse;
-import com.tastyhouse.webapplication.event.response.EventListItemResponse;
+import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventDetailResult;
+import com.tastyhouse.application.event.port.out.EventListItemResult;
 
 /**
  * 이벤트 조회 인바운드 포트.
@@ -13,9 +13,9 @@ import com.tastyhouse.webapplication.event.response.EventListItemResponse;
  */
 public interface EventQueryUseCase {
 
-    PaginationResponse<EventListItemResponse> getEventList(String status, int page, int size);
+    PageResult<EventListItemResult> getEventList(String status, int page, int size);
 
-    EventDetailResponse getEventDetail(Long eventId);
+    EventDetailResult getEventDetail(Long eventId);
 
-    PaginationResponse<EventAnnouncementListItemResponse> getEventAnnouncementList(int page, int size);
+    PageResult<EventAnnouncementResult> getEventAnnouncementList(int page, int size);
 }
