@@ -19,8 +19,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.StorePriceVerificationRejectRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.StorePriceVerificationSearchRequest;
-import com.tastyhouse.adminapplication.product.response.StorePriceVerificationDetailResponse;
-import com.tastyhouse.adminapplication.product.response.StorePriceVerificationListItemResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationDetailResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationListItemResponse;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationApproveCommand;
 import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationCommandUseCase;
 import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationRejectCommand;
@@ -72,10 +74,12 @@ public class StorePriceVerificationAdminApiController {
         @Valid @ModelAttribute StorePriceVerificationSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<StorePriceVerificationListItemResponse> pageResponse =
+        PageResult<StorePriceVerificationListItemResult> pageResult =
             storePriceVerificationQueryUseCase.getVerifications(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
+        PaginationResponse<StorePriceVerificationListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(StorePriceVerificationListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -89,7 +93,11 @@ public class StorePriceVerificationAdminApiController {
     public ResponseEntity<ApiResponse<StorePriceVerificationDetailResponse>> getStorePriceVerification(
         @PathVariable Long id
     ) {
-        StorePriceVerificationDetailResponse response = storePriceVerificationQueryUseCase.getVerification(id);
+        StorePriceVerificationListItemResult verification = storePriceVerificationQueryUseCase.getVerification(id);
+        StorePriceVerificationDetailResponse response = StorePriceVerificationDetailResponse.from(
+            verification,
+            storePriceVerificationQueryUseCase.getVerificationItems(id)
+        );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

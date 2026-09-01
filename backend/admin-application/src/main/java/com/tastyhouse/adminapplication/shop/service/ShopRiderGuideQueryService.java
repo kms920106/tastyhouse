@@ -1,8 +1,5 @@
 package com.tastyhouse.adminapplication.shop.service;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,21 +7,18 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideHistoryResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideListItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderPickupLocationResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideQueryUseCase;
 
 /**
  * admin용 라이더 안내 검수 조회 서비스(CQRS query 측).
  *
  * <p>소유권 검증 없이 전체 가게의 라이더 안내를 조회한다(admin 무제한 원칙).
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -37,78 +31,20 @@ public class ShopRiderGuideQueryService implements ShopRiderGuideQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<ShopRiderGuideListItemResponse> getRiderGuides(
+    public PageResult<ShopRiderGuideListItemResult> getRiderGuides(
         String shopName,
         Boolean hasVisitGuide,
         int page,
         int size
     ) {
-        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideManagementQueryPort
-            .findRiderGuidePage(shopName, hasVisitGuide, PageQuery.of(page, size));
-
-        return PaginationResponse.from(pageResult.map(this::toShopRiderGuideListItemResponse));
+        return shopRiderGuideManagementQueryPort.findRiderGuidePage(shopName, hasVisitGuide, PageQuery.of(page, size));
     }
 
     @Override
-    public ShopRiderGuideDetailResponse getRiderGuide(Long shopId) {
+    public ShopRiderGuideDetail getRiderGuide(Long shopId) {
         ShopRiderGuideResult result = shopRiderGuideManagementQueryPort.findRiderGuide(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
-        List<ShopRiderGuideHistoryResponse> histories = shopRiderGuideManagementQueryPort.findHistories(shopId).stream()
-            .map(this::toShopRiderGuideHistoryResponse)
-            .toList();
-
-        return ShopRiderGuideDetailResponse.from(
-            result.shopId(),
-            result.shopName(),
-            result.shopRoadAddress(),
-            result.visitGuide(),
-            toShopRiderPickupLocationResponse(result),
-            histories
-        );
-    }
-
-    private ShopRiderGuideListItemResponse toShopRiderGuideListItemResponse(ShopRiderGuideListItemResult dto) {
-        return ShopRiderGuideListItemResponse.from(
-            dto.shopId(),
-            dto.shopName(),
-            dto.visitGuide(),
-            dto.hasPickupLocation(),
-            dto.updatedAt()
-        );
-    }
-
-    private ShopRiderGuideHistoryResponse toShopRiderGuideHistoryResponse(ShopRiderGuideHistoryResult dto) {
-        return ShopRiderGuideHistoryResponse.from(
-            dto.id(),
-            dto.actorType().name(),
-            dto.actorId(),
-            dto.actionType().name(),
-            dto.previousVisitGuide(),
-            dto.newVisitGuide(),
-            dto.reason(),
-            dto.createdAt()
-        );
-    }
-
-    /**
-     * 픽업 위치가 미설정이면 null을 반환해, 프론트가 "가게 실주소로 폴백" 상태임을 한 필드로 판정하게 한다.
-     */
-    private ShopRiderPickupLocationResponse toShopRiderPickupLocationResponse(ShopRiderGuideResult result) {
-        String roadAddress = result.pickupRoadAddress();
-        BigDecimal latitude = result.pickupLatitude();
-        BigDecimal longitude = result.pickupLongitude();
-
-        if (roadAddress == null || latitude == null || longitude == null) {
-            return null;
-        }
-
-        return ShopRiderPickupLocationResponse.from(
-            roadAddress,
-            result.pickupLotAddress(),
-            result.pickupDetailAddress(),
-            latitude,
-            longitude
-        );
+        return new ShopRiderGuideDetail(result, shopRiderGuideManagementQueryPort.findHistories(shopId));
     }
 }

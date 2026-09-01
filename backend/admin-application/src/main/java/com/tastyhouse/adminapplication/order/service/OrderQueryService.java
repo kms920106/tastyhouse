@@ -1,7 +1,6 @@
 package com.tastyhouse.adminapplication.order.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,27 +15,20 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
-import com.tastyhouse.application.order.port.out.OrderPaymentResult;
-import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
-import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
 import com.tastyhouse.application.order.port.out.OrderSearchCondition;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.order.response.OrderDetailResponse;
-import com.tastyhouse.adminapplication.order.response.OrderListItemResponse;
-import com.tastyhouse.adminapplication.order.response.OrderProductOptionResponse;
-import com.tastyhouse.adminapplication.order.response.OrderProductResponse;
-import com.tastyhouse.adminapplication.order.response.PaymentSummaryResponse;
 import com.tastyhouse.adminapplication.order.port.in.OrderQueryUseCase;
 
 /**
  * 주문 관리 조회 서비스(admin-api).
  *
- * <p>infra query DAO({@link OrderManagementQueryPort})만 주입해 조회하고, 응답 조립(private 매퍼)을 담당한다
- * (공통 지침 패턴 2·3). write 포트는 주입하지 않는다.
+ * <p>infra query DAO({@link OrderManagementQueryPort})만 주입해 조회한다. write 포트는 주입하지 않는다.
  *
  * <p>enum 후보값은 HTTP 경계에서 {@code String}으로 받아 여기서 {@code Enum.from(...)}으로 승격한다
  * (도메인 enum 경계 규칙). 관리자 조회는 회원 스코프가 없어 소유권 검증을 하지 않는다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -52,7 +44,7 @@ public class OrderQueryService implements OrderQueryUseCase {
      * 주문 관리 목록.
      */
     @Override
-    public PaginationResponse<OrderListItemResponse> getOrders(
+    public PageResult<OrderManagementListItemResult> getOrders(
         Long shopId,
         String orderStatus,
         String orderMethod,
@@ -75,116 +67,15 @@ public class OrderQueryService implements OrderQueryUseCase {
             endDate
         );
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<OrderListItemResponse> pageResult = orderManagementQueryPort.findOrders(condition, pageQuery)
-            .map(this::toOrderListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return orderManagementQueryPort.findOrders(condition, pageQuery);
     }
 
     /**
      * 주문 관리 상세.
      */
     @Override
-    public OrderDetailResponse getOrder(Long id) {
-        OrderDetailResult result = orderManagementQueryPort.findOrderDetail(OrderId.of(id))
+    public OrderDetailResult getOrder(Long id) {
+        return orderManagementQueryPort.findOrderDetail(OrderId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
-        return toOrderDetailResponse(result);
-    }
-
-    private OrderListItemResponse toOrderListItemResponse(OrderManagementListItemResult result) {
-        return OrderListItemResponse.from(
-            result.id(),
-            result.orderNumber(),
-            result.shopName(),
-            result.ordererName(),
-            result.orderMethod() != null ? result.orderMethod().name() : null,
-            result.orderStatus() != null ? result.orderStatus().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.finalAmount(),
-            result.totalItemCount(),
-            result.createdAt(),
-            result.scheduledAt()
-        );
-    }
-
-    private OrderDetailResponse toOrderDetailResponse(OrderDetailResult result) {
-        List<OrderProductResponse> orderProducts = result.orderProducts().stream()
-            .map(this::toOrderProductResponse)
-            .toList();
-        PaymentSummaryResponse payment = result.payment() != null ? toPaymentSummaryResponse(result.payment()) : null;
-        return OrderDetailResponse.from(
-            result.id(),
-            result.orderNumber(),
-            result.orderMethod() != null ? result.orderMethod().name() : null,
-            toPaymentStatusName(result.payment()),
-            result.shopName(),
-            result.shopPhoneNumber(),
-            result.ordererName(),
-            result.ordererPhone(),
-            result.ordererEmail(),
-            result.totalProductAmount(),
-            result.productDiscountAmount(),
-            result.couponDiscountAmount(),
-            result.pointDiscountAmount(),
-            result.totalDiscountAmount(),
-            result.finalAmount(),
-            result.usedPoint(),
-            result.earnedPoint(),
-            orderProducts,
-            payment,
-            result.payment() == null ? null : result.payment().approvedAt(),
-            result.createdAt(),
-            result.scheduledAt(),
-            result.scheduledSlotEndAt()
-        );
-    }
-
-    /**
-     * 결제 상태 이름 — 결제가 없거나 상태가 비어 있으면 {@code null}(기존 동작 보존).
-     */
-    private String toPaymentStatusName(OrderPaymentResult payment) {
-        if (payment == null || payment.paymentStatus() == null) {
-            return null;
-        }
-        return payment.paymentStatus().name();
-    }
-
-    private OrderProductResponse toOrderProductResponse(OrderProductResult result) {
-        List<OrderProductOptionResponse> selectedOptions = result.options().stream()
-            .map(this::toOrderProductOptionResponse)
-            .toList();
-        return OrderProductResponse.from(
-            result.orderProductId(),
-            result.productId(),
-            result.name(),
-            result.imageUrl(),
-            result.quantity(),
-            result.originalPrice(),
-            result.discountPrice(),
-            result.totalOptionPrice(),
-            result.totalPrice(),
-            selectedOptions
-        );
-    }
-
-    private OrderProductOptionResponse toOrderProductOptionResponse(OrderProductOptionResult result) {
-        return OrderProductOptionResponse.from(
-            result.orderProductOptionId(),
-            result.optionGroupName(),
-            result.optionName(),
-            result.additionalPrice()
-        );
-    }
-
-    private PaymentSummaryResponse toPaymentSummaryResponse(OrderPaymentResult result) {
-        return PaymentSummaryResponse.from(
-            result.id(),
-            result.paymentMethod() != null ? result.paymentMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.amount() != null ? result.amount().value() : null,
-            result.cardCompany(),
-            result.cardNumber(),
-            result.approvedAt(),
-            result.receiptUrl()
-        );
     }
 }

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopRequestCommentResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentQueryUseCase;
 
 @Tag(name = "Admin Shop Request Comment", description = "관리자 요청건 문의 답변 API")
@@ -47,7 +47,9 @@ public class ShopRequestCommentApiController {
     public ResponseEntity<ApiResponse<List<ShopRequestCommentResponse>>> getComments(
         @PathVariable Long requestId
     ) {
-        List<ShopRequestCommentResponse> response = shopRequestCommentQueryUseCase.getComments(requestId);
+        List<ShopRequestCommentResponse> response = shopRequestCommentQueryUseCase.getComments(requestId).stream()
+            .map(ShopRequestCommentResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -14,17 +14,16 @@ import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.CouponManagementQueryPort;
 import com.tastyhouse.application.coupon.port.out.CouponSearchCondition;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.coupon.response.CouponDetailResponse;
-import com.tastyhouse.adminapplication.coupon.response.CouponListItemResponse;
-import com.tastyhouse.adminapplication.coupon.response.MemberCouponItemResponse;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponQueryUseCase;
 
 /**
  * 쿠폰 관리 조회 서비스(admin).
  *
- * <p>읽기 포트({@link CouponManagementQueryPort})만 주입해 조회하고 Response를 조립한다(패턴 2/3). 도메인
- * write 포트를 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
+ * <p>읽기 포트({@link CouponManagementQueryPort})만 주입해 조회한다(패턴 2/3). 도메인 write 포트를
+ * 주입하지 않으므로 조회 경로가 도메인 모델을 거치지 않는다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -37,7 +36,7 @@ public class CouponQueryService implements CouponQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<CouponListItemResponse> getCoupons(
+    public PageResult<CouponListItemResult> getCoupons(
         String name,
         String discountType,
         Boolean visible,
@@ -48,73 +47,19 @@ public class CouponQueryService implements CouponQueryUseCase {
         CouponSearchCondition condition = CouponSearchCondition.of(name, type, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<CouponListItemResponse> pageResult = couponManagementQueryPort.findAllCoupons(condition, pageQuery)
-            .map(this::toCouponListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return couponManagementQueryPort.findAllCoupons(condition, pageQuery);
     }
 
     @Override
-    public CouponDetailResponse getCoupon(Long id) {
-        CouponDetailResult couponDetail = couponManagementQueryPort.findCouponDetailById(CouponId.of(id))
+    public CouponDetailResult getCoupon(Long id) {
+        return couponManagementQueryPort.findCouponDetailById(CouponId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
-        return toCouponDetailResponse(couponDetail);
     }
 
     @Override
-    public PaginationResponse<MemberCouponItemResponse> getIssuedCoupons(Long id, int page, int size) {
+    public PageResult<MemberCouponItemResult> getIssuedCoupons(Long id, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        PageResult<MemberCouponItemResponse> pageResult =
-            couponManagementQueryPort.findIssuedMemberCoupons(CouponId.of(id), pageQuery)
-                .map(this::toMemberCouponItemResponse);
-        return PaginationResponse.from(pageResult);
-    }
-
-    private CouponListItemResponse toCouponListItemResponse(CouponListItemResult dto) {
-        return CouponListItemResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.discountType().name(),
-            dto.discountAmount(),
-            dto.maxDiscountAmount(),
-            dto.minOrderAmount(),
-            dto.maxDiscountCount(),
-            dto.issueStartAt(),
-            dto.issueEndAt(),
-            dto.useStartAt(),
-            dto.useEndAt(),
-            dto.visible()
-        );
-    }
-
-    private CouponDetailResponse toCouponDetailResponse(CouponDetailResult dto) {
-        return CouponDetailResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.description(),
-            dto.discountType().name(),
-            dto.discountAmount(),
-            dto.maxDiscountAmount(),
-            dto.minOrderAmount(),
-            dto.maxDiscountCount(),
-            dto.issueStartAt(),
-            dto.issueEndAt(),
-            dto.useStartAt(),
-            dto.useEndAt(),
-            dto.visible(),
-            dto.createdAt(),
-            dto.updatedAt()
-        );
-    }
-
-    private MemberCouponItemResponse toMemberCouponItemResponse(MemberCouponItemResult dto) {
-        return MemberCouponItemResponse.from(
-            dto.id(),
-            dto.memberId(),
-            dto.used(),
-            dto.usedAt(),
-            dto.expiredAt(),
-            dto.createdAt()
-        );
+        return couponManagementQueryPort.findIssuedMemberCoupons(CouponId.of(id), pageQuery);
     }
 }

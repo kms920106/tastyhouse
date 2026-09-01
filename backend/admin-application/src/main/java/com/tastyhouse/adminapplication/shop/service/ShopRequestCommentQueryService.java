@@ -9,7 +9,6 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
-import com.tastyhouse.adminapplication.shop.response.ShopRequestCommentResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentQueryUseCase;
 
 /**
@@ -19,6 +18,9 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentQueryUseCa
  *
  * <p>스레드를 읽기 전에 요청 존재를 먼저 확인한다. 댓글 조회만 하면 <b>없는 요청에도 빈 배열 200</b>이
  * 내려가 담당자가 "문의가 없는 요청"과 "잘못된 requestId"를 구분할 수 없다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -34,22 +36,10 @@ public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUs
      * 요청건 문의 스레드를 작성순으로 조회한다.
      */
     @Override
-    public List<ShopRequestCommentResponse> getComments(Long requestId) {
+    public List<ShopRequestCommentResult> getComments(Long requestId) {
         shopRequestManagementQueryPort.findRequestDetail(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestManagementQueryPort.findComments(requestId).stream()
-            .map(this::toCommentResponse)
-            .toList();
-    }
-
-    private ShopRequestCommentResponse toCommentResponse(ShopRequestCommentResult result) {
-        return ShopRequestCommentResponse.from(
-            result.commentId(),
-            result.authorType().name(),
-            result.authorType().getDescription(),
-            result.content(),
-            result.createdAt()
-        );
+        return shopRequestManagementQueryPort.findComments(requestId);
     }
 }

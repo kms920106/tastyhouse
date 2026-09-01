@@ -7,14 +7,15 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementQueryPort;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopNoticeManagementListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeQueryUseCase;
 
 /**
  * admin용 점주 공지 검수 조회 서비스(CQRS query 측).
  *
  * <p>소유권 검증 없이 전체 가게 공지를 가게·가게명·게시중단 여부로 필터해 조회한다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -27,29 +28,13 @@ public class ShopNoticeQueryService implements ShopNoticeQueryUseCase {
     }
 
     @Override
-    public PaginationResponse<ShopNoticeManagementListItemResponse> getNotices(
+    public PageResult<ShopNoticeManagementListItemResult> getNotices(
         Long shopId,
         String shopName,
         Boolean hidden,
         int page,
         int size
     ) {
-        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeManagementQueryPort
-            .findNoticePage(shopId, shopName, hidden, PageQuery.of(page, size));
-
-        return PaginationResponse.from(pageResult.map(this::toShopNoticeManagementListItemResponse));
-    }
-
-    private ShopNoticeManagementListItemResponse toShopNoticeManagementListItemResponse(ShopNoticeManagementListItemResult dto) {
-        return ShopNoticeManagementListItemResponse.of(
-            dto.id(),
-            dto.shopId(),
-            dto.shopName(),
-            dto.content(),
-            dto.imageUrls(),
-            dto.exposed(),
-            dto.hidden(),
-            dto.createdAt()
-        );
+        return shopNoticeManagementQueryPort.findNoticePage(shopId, shopName, hidden, PageQuery.of(page, size));
     }
 }

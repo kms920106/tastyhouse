@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.adminapplication.auth.port.in.AuthCommandUseCase;
 import com.tastyhouse.adminapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.adminapplication.auth.response.JwtResponse;
+import com.tastyhouse.adminapplication.auth.port.out.JwtResult;
 import com.tastyhouse.adminapplication.auth.token.TokenService;
 
 /**
@@ -34,7 +34,7 @@ public class AuthCommandService implements AuthCommandUseCase {
      * 아이디/비밀번호 인증 후 JWT 토큰을 발급한다.
      */
     @Override
-    public JwtResponse login(AuthLoginCommand command) {
+    public JwtResult login(AuthLoginCommand command) {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(command.username(), command.password())
         );
@@ -47,7 +47,7 @@ public class AuthCommandService implements AuthCommandUseCase {
      * 리프레시 토큰으로 새 JWT 토큰을 재발급한다.
      */
     @Override
-    public JwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         return tokenService.refresh(refreshToken);
     }
 

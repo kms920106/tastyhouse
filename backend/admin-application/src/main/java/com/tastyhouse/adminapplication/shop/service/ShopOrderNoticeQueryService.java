@@ -1,10 +1,12 @@
 package com.tastyhouse.adminapplication.shop.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
-import com.tastyhouse.adminapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
@@ -14,6 +16,9 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
  * 먼저 봐야 한다. 소유권 검증은 하지 않는다(관리자는 전 가게에 접근 가능).
  *
  * <p>CQRS 교차 주입 금지 규칙에 따라 write 포트를 주입하지 않는다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 미등록 가게의 빈 응답 조립도 표현 계약이라 컨트롤러가 담당한다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -26,12 +31,10 @@ public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase 
     }
 
     /**
-     * 가게의 주문안내를 조회한다. 미설정이면 {@code content}가 null인 빈 응답을 돌려준다.
+     * 가게의 주문안내를 조회한다. 미설정이면 빈 {@code Optional}이다.
      */
     @Override
-    public ShopOrderNoticeResponse getOrderNotice(Long shopId) {
-        return shopOrderNoticeManagementQueryPort.findOrderNotice(shopId)
-            .map(result -> ShopOrderNoticeResponse.of(result.content(), result.hidden(), result.hiddenReason()))
-            .orElseGet(ShopOrderNoticeResponse::empty);
+    public Optional<ShopOrderNoticeResult> getOrderNotice(Long shopId) {
+        return shopOrderNoticeManagementQueryPort.findOrderNotice(shopId);
     }
 }

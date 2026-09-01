@@ -25,8 +25,10 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopNoticeManagementListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 점주 공지 검수 관리자 API.
@@ -54,9 +56,11 @@ public class ShopNoticeAdminApiController {
         @Valid @ModelAttribute ShopNoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopNoticeManagementListItemResponse> pageResponse = shopNoticeQueryUseCase.getNotices(
+        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeQueryUseCase.getNotices(
             search.shopId(), search.shopName(), search.hidden(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopNoticeManagementListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopNoticeManagementListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));

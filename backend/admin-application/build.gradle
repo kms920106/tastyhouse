@@ -6,8 +6,13 @@ dependencies {
     // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 security-module/admin-api에 남는다 —
     // applicationMustBeServletFree가 강제한다.
     implementation project(':security-core')
-    // Response record·PaginationResponse 등 표현 계약(QueryService가 조립).
-    // 이 모듈이 api로 노출하는 spring-boot-starter-web·springdoc(@Schema)을 전이로 받는다.
+    // TODO(챕터 06 최종 절단): 이 의존은 제거 대상이다 — 챕터 06으로 Response·PaginationResponse
+    // 조립이 api 모듈로 올라가면서 이 모듈의 com.tastyhouse.apicommon 참조가 0건이 됐고,
+    // applicationShouldNotDependOnApiCommon이 사용 자체를 금지한다. 지금 남아 있는 이유는
+    // FileUploadCommandService/UseCase가 MultipartFile(spring-web)을 쓰는데 그 전이를 이 모듈로
+    // 받고 있기 때문이다 — 절단 시 spring-web을 직접 선언해야 한다
+// (선언 형태는 ceo-application/build.gradle:20 선례. 단 그 모듈은 spring-web을
+//  api-common-module과 '함께' 선언한 것이고 절단을 수행한 것은 아니다).
     implementation project(':api-common-module')
 
     // Spring Boot Starter

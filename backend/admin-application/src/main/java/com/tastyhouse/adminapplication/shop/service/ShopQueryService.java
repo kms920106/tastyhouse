@@ -9,10 +9,13 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopChoiceManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeAssignmentResult;
@@ -27,31 +30,18 @@ import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBusinessHourResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopAmenityCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopAmenityResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBannerImageItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopChoiceDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopChoiceListItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopClosedDayResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopFoodTypeCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopFoodTypeResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopListItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopOrderMethodItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopPhotoCategoryImageItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopPhotoCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.StationResponse;
-import com.tastyhouse.adminapplication.shop.response.TagResponse;
+import com.tastyhouse.application.shop.port.out.StationResult;
+import com.tastyhouse.application.shop.port.out.TagResult;
 import com.tastyhouse.adminapplication.shop.port.in.ShopQueryUseCase;
 
 /**
  * admin용 가게 관리 조회 서비스(CQRS query 측).
  *
- * <p>표현 목적 조회는 전부 읽기 포트에서 Result를 받아 Response로 조립한다. 가게 단건 관리 상세도
+ * <p>표현 목적 조회는 전부 읽기 포트에서 Result를 받아 그대로 넘긴다. 가게 단건 관리 상세도
  * 마찬가지라 write 포트를 주입하지 않는다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -75,14 +65,12 @@ public class ShopQueryService implements ShopQueryUseCase {
     }
 
     @Override
-    public List<StationResponse> getStations() {
-        return shopChoiceManagementQueryPort.findAllStations().stream()
-            .map(station -> StationResponse.from(station.id(), station.stationName()))
-            .toList();
+    public List<StationResult> getStations() {
+        return shopChoiceManagementQueryPort.findAllStations();
     }
 
     @Override
-    public PaginationResponse<ShopListItemResponse> getShops(
+    public PageResult<ShopListItemResult> getShops(
         String name,
         Long stationId,
         Boolean permanentlyClosed,
@@ -90,251 +78,93 @@ public class ShopQueryService implements ShopQueryUseCase {
         int size
     ) {
         ShopSearchCondition condition = ShopSearchCondition.of(name, stationId, permanentlyClosed);
-        PageResult<ShopListItemResponse> pageResult =
-            shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size))
-                .map(this::toShopListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size));
     }
 
-    private ShopListItemResponse toShopListItemResponse(ShopListItemResult dto) {
-        return ShopListItemResponse.from(
-            dto.id(),
-            dto.name(),
-            dto.stationName(),
-            dto.roadAddress(),
-            dto.rating(),
-            dto.permanentlyClosed()
-        );
-    }
-
+    /**
+     * 가게 상세와 썸네일 URL을 함께 조회한다. 썸네일은 다른 읽기 포트에 있어 조회가 두 번 필요하며,
+     * 이미지가 없으면 URL은 null이다.
+     */
     @Override
-    public ShopDetailResponse getShop(Long id) {
+    public ShopDetail getShop(Long id) {
         ShopManagementDetailResult shop = shopManagementQueryPort.findManagementDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
-        return toShopDetailResponse(shop);
-    }
 
-    private ShopDetailResponse toShopDetailResponse(ShopManagementDetailResult shop) {
         String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shop.id())
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
 
-        return ShopDetailResponse.from(
-            shop.id(),
-            shop.stationId(),
-            shop.name(),
-            shop.latitude(),
-            shop.longitude(),
-            shop.rating(),
-            shop.roadAddress(),
-            shop.lotAddress(),
-            shop.phoneNumber(),
-            thumbnailImageUrl,
-            shop.permanentlyClosed(),
-            shop.cupDepositEnabled(),
-            shop.createdAt(),
-            shop.updatedAt()
-        );
+        return new ShopDetail(shop, thumbnailImageUrl);
     }
 
     @Override
-    public List<ShopBusinessHourResponse> getBusinessHours(Long id) {
-        return shopBasicInfoQueryPort.findBusinessHours(id).stream()
-            .map(this::toShopBusinessHourResponse)
-            .toList();
-    }
-
-    private ShopBusinessHourResponse toShopBusinessHourResponse(ShopBusinessHourResult businessHour) {
-        return ShopBusinessHourResponse.from(
-            businessHour.id(),
-            businessHour.dayType().name(),
-            businessHour.dayType().getDescription(),
-            businessHour.openTime(),
-            businessHour.closeTime(),
-            businessHour.closed(),
-            businessHour.allDay()
-        );
-    }
-
-
-    @Override
-    public List<ShopBreakTimeResponse> getBreakTimes(Long id) {
-        return shopBasicInfoQueryPort.findBreakTimes(id).stream()
-            .map(this::toShopBreakTimeResponse)
-            .toList();
-    }
-
-    private ShopBreakTimeResponse toShopBreakTimeResponse(ShopBreakTimeResult breakTime) {
-        return ShopBreakTimeResponse.from(
-            breakTime.id(),
-            breakTime.dayType().name(),
-            breakTime.dayType().getDescription(),
-            breakTime.startTime(),
-            breakTime.endTime()
-        );
-    }
-
-
-    @Override
-    public List<ShopClosedDayResponse> getClosedDays(Long id) {
-        return shopBasicInfoQueryPort.findClosedDays(id).stream()
-            .map(this::toShopClosedDayResponse)
-            .toList();
-    }
-
-    private ShopClosedDayResponse toShopClosedDayResponse(ShopClosedDayResult closedDay) {
-        return ShopClosedDayResponse.from(
-            closedDay.id(),
-            closedDay.closedDayType().name(),
-            closedDay.closedDayType().getDescription()
-        );
+    public List<ShopBusinessHourResult> getBusinessHours(Long id) {
+        return shopBasicInfoQueryPort.findBusinessHours(id);
     }
 
     @Override
-    public List<ShopAmenityCategoryResponse> getAmenityCategories() {
-        return shopManagementQueryPort.findAllAmenityCategories().stream()
-            .map(this::toShopAmenityCategoryResponse)
-            .toList();
-    }
-
-    private ShopAmenityCategoryResponse toShopAmenityCategoryResponse(ShopAmenityCategoryResult dto) {
-        return ShopAmenityCategoryResponse.from(
-            dto.id(),
-            dto.amenity().name(),
-            dto.displayName(),
-            dto.activeIconUrl(),
-            dto.inactiveIconUrl(),
-            dto.sort(),
-            dto.visible()
-        );
+    public List<ShopBreakTimeResult> getBreakTimes(Long id) {
+        return shopBasicInfoQueryPort.findBreakTimes(id);
     }
 
     @Override
-    public List<ShopFoodTypeCategoryResponse> getFoodTypeCategories() {
-        return shopManagementQueryPort.findAllFoodTypeCategories().stream()
-            .map(this::toShopFoodTypeCategoryResponse)
-            .toList();
-    }
-
-    private ShopFoodTypeCategoryResponse toShopFoodTypeCategoryResponse(ShopFoodTypeCategoryResult dto) {
-        return ShopFoodTypeCategoryResponse.from(
-            dto.id(),
-            dto.foodType().name(),
-            dto.displayName(),
-            dto.activeIconUrl(),
-            dto.inactiveIconUrl(),
-            dto.sort(),
-            dto.visible()
-        );
+    public List<ShopClosedDayResult> getClosedDays(Long id) {
+        return shopBasicInfoQueryPort.findClosedDays(id);
     }
 
     @Override
-    public List<ShopAmenityResponse> getShopAmenities(Long id) {
-        return shopBasicInfoQueryPort.findAmenityAssignments(id).stream()
-            .map(this::toShopAmenityResponse)
-            .toList();
-    }
-
-    private ShopAmenityResponse toShopAmenityResponse(ShopAmenityAssignmentResult dto) {
-        return ShopAmenityResponse.from(
-            dto.id(),
-            dto.amenityCategoryId(),
-            dto.amenity().name(),
-            dto.displayName(),
-            dto.activeIconUrl()
-        );
+    public List<ShopAmenityCategoryResult> getAmenityCategories() {
+        return shopManagementQueryPort.findAllAmenityCategories();
     }
 
     @Override
-    public List<ShopFoodTypeResponse> getShopFoodTypes(Long id) {
-        return shopManagementQueryPort.findFoodTypeAssignments(id).stream()
-            .map(this::toShopFoodTypeResponse)
-            .toList();
-    }
-
-    private ShopFoodTypeResponse toShopFoodTypeResponse(ShopFoodTypeAssignmentResult dto) {
-        return ShopFoodTypeResponse.from(
-            dto.id(),
-            dto.foodTypeCategoryId(),
-            dto.foodType().name(),
-            dto.displayName(),
-            dto.activeIconUrl()
-        );
+    public List<ShopFoodTypeCategoryResult> getFoodTypeCategories() {
+        return shopManagementQueryPort.findAllFoodTypeCategories();
     }
 
     @Override
-    public List<TagResponse> getTags() {
-        return shopChoiceManagementQueryPort.findAllTags().stream()
-            .map(tag -> TagResponse.from(tag.id(), tag.tagName()))
-            .toList();
+    public List<ShopAmenityAssignmentResult> getShopAmenities(Long id) {
+        return shopBasicInfoQueryPort.findAmenityAssignments(id);
     }
 
     @Override
-    public List<ShopOrderMethodItemResponse> getOrderMethods(Long id) {
-        return shopBasicInfoQueryPort.findOrderMethods(id).stream()
-            .map(this::toShopOrderMethodItemResponse)
-            .toList();
-    }
-
-    private ShopOrderMethodItemResponse toShopOrderMethodItemResponse(ShopOrderMethodResult orderMethod) {
-        return ShopOrderMethodItemResponse.from(
-            orderMethod.id(),
-            orderMethod.orderMethod().name(),
-            orderMethod.orderMethod().getDisplayName()
-        );
+    public List<ShopFoodTypeAssignmentResult> getShopFoodTypes(Long id) {
+        return shopManagementQueryPort.findFoodTypeAssignments(id);
     }
 
     @Override
-    public List<ShopBannerImageItemResponse> getBannerImages(Long id) {
-        return shopBasicInfoQueryPort.findBannerImages(id).stream()
-            .map(image -> ShopBannerImageItemResponse.from(
-                image.id(),
-                image.imageUrl(),
-                image.sort()
-            ))
-            .toList();
+    public List<TagResult> getTags() {
+        return shopChoiceManagementQueryPort.findAllTags();
     }
 
     @Override
-    public List<ShopPhotoCategoryResponse> getPhotoCategories(Long id) {
-        return shopBasicInfoQueryPort.findPhotoCategories(id).stream()
-            .map(this::toShopPhotoCategoryResponse)
-            .toList();
-    }
-
-    private ShopPhotoCategoryResponse toShopPhotoCategoryResponse(ShopPhotoCategoryResult category) {
-        return ShopPhotoCategoryResponse.from(category.id(), category.name());
+    public List<ShopOrderMethodResult> getOrderMethods(Long id) {
+        return shopBasicInfoQueryPort.findOrderMethods(id);
     }
 
     @Override
-    public List<ShopPhotoCategoryImageItemResponse> getPhotoCategoryImages(Long categoryId) {
-        return shopManagementQueryPort.findPhotoCategoryImages(categoryId).stream()
-            .map(this::toShopPhotoCategoryImageItemResponse)
-            .toList();
-    }
-
-    private ShopPhotoCategoryImageItemResponse toShopPhotoCategoryImageItemResponse(ShopPhotoCategoryImageManagementResult dto) {
-        return ShopPhotoCategoryImageItemResponse.from(
-            dto.id(),
-            dto.shopPhotoCategoryId(),
-            dto.imageUrl(),
-            dto.sort(),
-            dto.visible()
-        );
+    public List<ShopBannerImageResult> getBannerImages(Long id) {
+        return shopBasicInfoQueryPort.findBannerImages(id);
     }
 
     @Override
-    public PaginationResponse<ShopChoiceListItemResponse> getShopChoices(int page, int size) {
-        PageResult<ShopChoiceListItemResponse> pageResult =
-            shopChoiceManagementQueryPort.findEditorChoices(PageQuery.of(page, size))
-                .map(dto -> ShopChoiceListItemResponse.from(dto.id(), dto.shopId(), dto.name(), dto.title()));
-        return PaginationResponse.from(pageResult);
+    public List<ShopPhotoCategoryResult> getPhotoCategories(Long id) {
+        return shopBasicInfoQueryPort.findPhotoCategories(id);
     }
 
     @Override
-    public ShopChoiceDetailResponse getShopChoice(Long id) {
+    public List<ShopPhotoCategoryImageManagementResult> getPhotoCategoryImages(Long categoryId) {
+        return shopManagementQueryPort.findPhotoCategoryImages(categoryId);
+    }
+
+    @Override
+    public PageResult<EditorChoiceResult> getShopChoices(int page, int size) {
+        return shopChoiceManagementQueryPort.findEditorChoices(PageQuery.of(page, size));
+    }
+
+    @Override
+    public ShopChoiceDetailResult getShopChoice(Long id) {
         return shopChoiceManagementQueryPort.findShopChoiceById(id)
-            .map(dto -> ShopChoiceDetailResponse.from(dto.id(), dto.shopId(), dto.title(), dto.content()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
 

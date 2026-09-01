@@ -118,24 +118,27 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopPhotoCategorySave
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopUpdateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.TagCreateRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopAmenityCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopAmenityResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBannerImageItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBreakTimeResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopBusinessHourResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopChoiceDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopChoiceListItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopClosedDayResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopFoodTypeCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopFoodTypeResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopListItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopOrderMethodItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopPhotoCategoryImageItemResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopPhotoCategoryResponse;
-import com.tastyhouse.adminapplication.shop.response.StationResponse;
-import com.tastyhouse.adminapplication.shop.response.TagResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopAmenityCategoryResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopAmenityResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopBannerImageItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopBreakTimeResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopBusinessHourResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopChoiceDetailResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopChoiceListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopClosedDayResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDetailResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopFoodTypeCategoryResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopFoodTypeResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderMethodItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryImageItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.StationResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopQueryUseCase;
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Tag(name = "Shop Admin", description = "가게 관리자 API")
 @RestController
@@ -264,7 +267,9 @@ public class ShopApiController {
     @Operation(summary = "지하철역 목록 조회", description = "가게 등록·수정 시 선택 가능한 지하철역 목록을 조회합니다.")
     @GetMapping("/v1/stations")
     public ResponseEntity<ApiResponse<List<StationResponse>>> getStations() {
-        List<StationResponse> response = shopQueryUseCase.getStations();
+        List<StationResponse> response = shopQueryUseCase.getStations().stream()
+            .map(StationResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -274,10 +279,12 @@ public class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopListItemResponse> pageResponse = shopQueryUseCase.getShops(
+        PageResult<ShopListItemResult> pageResult = shopQueryUseCase.getShops(
             search.name(), search.stationId(), search.permanentlyClosed(),
             pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -335,7 +342,8 @@ public class ShopApiController {
     @Operation(summary = "가게 상세 조회", description = "가게 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ShopDetailResponse>> getShop(@PathVariable Long id) {
-        ShopDetailResponse response = shopQueryUseCase.getShop(id);
+        ShopQueryUseCase.ShopDetail detail = shopQueryUseCase.getShop(id);
+        ShopDetailResponse response = ShopDetailResponse.from(detail.shop(), detail.thumbnailImageUrl());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -375,7 +383,9 @@ public class ShopApiController {
     @Operation(summary = "운영시간 목록 조회", description = "가게의 운영시간 목록을 조회합니다.")
     @GetMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<List<ShopBusinessHourResponse>>> getBusinessHours(@PathVariable Long id) {
-        List<ShopBusinessHourResponse> response = shopQueryUseCase.getBusinessHours(id);
+        List<ShopBusinessHourResponse> response = shopQueryUseCase.getBusinessHours(id).stream()
+            .map(ShopBusinessHourResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -417,7 +427,9 @@ public class ShopApiController {
     @Operation(summary = "브레이크타임 목록 조회", description = "가게의 브레이크타임 목록을 조회합니다.")
     @GetMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<List<ShopBreakTimeResponse>>> getBreakTimes(@PathVariable Long id) {
-        List<ShopBreakTimeResponse> response = shopQueryUseCase.getBreakTimes(id);
+        List<ShopBreakTimeResponse> response = shopQueryUseCase.getBreakTimes(id).stream()
+            .map(ShopBreakTimeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -459,7 +471,9 @@ public class ShopApiController {
     @Operation(summary = "정기 휴무일 목록 조회", description = "가게의 정기 휴무일 목록을 조회합니다.")
     @GetMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<List<ShopClosedDayResponse>>> getClosedDays(@PathVariable Long id) {
-        List<ShopClosedDayResponse> response = shopQueryUseCase.getClosedDays(id);
+        List<ShopClosedDayResponse> response = shopQueryUseCase.getClosedDays(id).stream()
+            .map(ShopClosedDayResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -489,7 +503,9 @@ public class ShopApiController {
     @Operation(summary = "편의시설 카테고리 목록 조회", description = "편의시설 마스터 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/amenity-categories")
     public ResponseEntity<ApiResponse<List<ShopAmenityCategoryResponse>>> getAmenityCategories() {
-        List<ShopAmenityCategoryResponse> response = shopQueryUseCase.getAmenityCategories();
+        List<ShopAmenityCategoryResponse> response = shopQueryUseCase.getAmenityCategories().stream()
+            .map(ShopAmenityCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -515,7 +531,9 @@ public class ShopApiController {
     @Operation(summary = "음식종류 카테고리 목록 조회", description = "음식종류 마스터 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/food-type-categories")
     public ResponseEntity<ApiResponse<List<ShopFoodTypeCategoryResponse>>> getFoodTypeCategories() {
-        List<ShopFoodTypeCategoryResponse> response = shopQueryUseCase.getFoodTypeCategories();
+        List<ShopFoodTypeCategoryResponse> response = shopQueryUseCase.getFoodTypeCategories().stream()
+            .map(ShopFoodTypeCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -541,7 +559,9 @@ public class ShopApiController {
     @Operation(summary = "가게 편의시설 목록 조회", description = "가게에 지정된 편의시설 목록을 조회합니다.")
     @GetMapping("/v1/{id}/amenities")
     public ResponseEntity<ApiResponse<List<ShopAmenityResponse>>> getShopAmenities(@PathVariable Long id) {
-        List<ShopAmenityResponse> response = shopQueryUseCase.getShopAmenities(id);
+        List<ShopAmenityResponse> response = shopQueryUseCase.getShopAmenities(id).stream()
+            .map(ShopAmenityResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -572,7 +592,9 @@ public class ShopApiController {
     @Operation(summary = "가게 음식종류 목록 조회", description = "가게에 지정된 음식종류 목록을 조회합니다.")
     @GetMapping("/v1/{id}/food-types")
     public ResponseEntity<ApiResponse<List<ShopFoodTypeResponse>>> getShopFoodTypes(@PathVariable Long id) {
-        List<ShopFoodTypeResponse> response = shopQueryUseCase.getShopFoodTypes(id);
+        List<ShopFoodTypeResponse> response = shopQueryUseCase.getShopFoodTypes(id).stream()
+            .map(ShopFoodTypeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -601,7 +623,9 @@ public class ShopApiController {
     @Operation(summary = "태그 목록 조회", description = "태그 목록을 조회합니다.")
     @GetMapping("/v1/tags")
     public ResponseEntity<ApiResponse<List<TagResponse>>> getTags() {
-        List<TagResponse> response = shopQueryUseCase.getTags();
+        List<TagResponse> response = shopQueryUseCase.getTags().stream()
+            .map(TagResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -624,7 +648,9 @@ public class ShopApiController {
     @Operation(summary = "가게 주문수단 목록 조회", description = "가게에 지정된 주문수단 목록을 조회합니다.")
     @GetMapping("/v1/{id}/order-methods")
     public ResponseEntity<ApiResponse<List<ShopOrderMethodItemResponse>>> getOrderMethods(@PathVariable Long id) {
-        List<ShopOrderMethodItemResponse> response = shopQueryUseCase.getOrderMethods(id);
+        List<ShopOrderMethodItemResponse> response = shopQueryUseCase.getOrderMethods(id).stream()
+            .map(ShopOrderMethodItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -653,7 +679,9 @@ public class ShopApiController {
     @Operation(summary = "배너 이미지 목록 조회", description = "가게의 배너 이미지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/banners")
     public ResponseEntity<ApiResponse<List<ShopBannerImageItemResponse>>> getBannerImages(@PathVariable Long id) {
-        List<ShopBannerImageItemResponse> response = shopQueryUseCase.getBannerImages(id);
+        List<ShopBannerImageItemResponse> response = shopQueryUseCase.getBannerImages(id).stream()
+            .map(ShopBannerImageItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -679,7 +707,9 @@ public class ShopApiController {
     @Operation(summary = "포토 카테고리 목록 조회", description = "가게의 포토 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/{id}/photo-categories")
     public ResponseEntity<ApiResponse<List<ShopPhotoCategoryResponse>>> getPhotoCategories(@PathVariable Long id) {
-        List<ShopPhotoCategoryResponse> response = shopQueryUseCase.getPhotoCategories(id);
+        List<ShopPhotoCategoryResponse> response = shopQueryUseCase.getPhotoCategories(id).stream()
+            .map(ShopPhotoCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -716,7 +746,9 @@ public class ShopApiController {
     @Operation(summary = "포토 카테고리 이미지 목록 조회", description = "포토 카테고리에 속한 이미지 목록을 조회합니다.")
     @GetMapping("/v1/photo-categories/{categoryId}/images")
     public ResponseEntity<ApiResponse<List<ShopPhotoCategoryImageItemResponse>>> getPhotoCategoryImages(@PathVariable Long categoryId) {
-        List<ShopPhotoCategoryImageItemResponse> response = shopQueryUseCase.getPhotoCategoryImages(categoryId);
+        List<ShopPhotoCategoryImageItemResponse> response = shopQueryUseCase.getPhotoCategoryImages(categoryId).stream()
+            .map(ShopPhotoCategoryImageItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -753,7 +785,9 @@ public class ShopApiController {
     @Operation(summary = "테하 초이스 목록 조회", description = "테하 초이스 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/editor-choices")
     public ResponseEntity<ApiResponse<List<ShopChoiceListItemResponse>>> getShopChoices(@Valid @ModelAttribute PageRequest pageRequest) {
-        PaginationResponse<ShopChoiceListItemResponse> pageResponse = shopQueryUseCase.getShopChoices(pageRequest.page(), pageRequest.size());
+        PageResult<EditorChoiceResult> pageResult = shopQueryUseCase.getShopChoices(pageRequest.page(), pageRequest.size());
+        PaginationResponse<ShopChoiceListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopChoiceListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -768,7 +802,7 @@ public class ShopApiController {
     @Operation(summary = "테하 초이스 상세 조회", description = "테하 초이스 상세를 조회합니다.")
     @GetMapping("/v1/editor-choices/{choiceId}")
     public ResponseEntity<ApiResponse<ShopChoiceDetailResponse>> getShopChoice(@PathVariable Long choiceId) {
-        ShopChoiceDetailResponse response = shopQueryUseCase.getShopChoice(choiceId);
+        ShopChoiceDetailResponse response = ShopChoiceDetailResponse.from(shopQueryUseCase.getShopChoice(choiceId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

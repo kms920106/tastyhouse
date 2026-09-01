@@ -20,8 +20,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.request.OrderSearchRequest;
 import com.tastyhouse.adminapi.order.adapter.in.web.request.OrderStatusUpdateRequest;
-import com.tastyhouse.adminapplication.order.response.OrderDetailResponse;
-import com.tastyhouse.adminapplication.order.response.OrderListItemResponse;
+import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderDetailResponse;
+import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemResponse;
+import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.order.port.in.OrderCommandUseCase;
 import com.tastyhouse.adminapplication.order.port.in.OrderDeleteCommand;
 import com.tastyhouse.adminapplication.order.port.in.OrderStatusChangeCommand;
@@ -46,17 +48,18 @@ public class OrderApiController {
         @Valid @ModelAttribute OrderSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<OrderListItemResponse> pageResponse = orderQueryUseCase.getOrders(
+        PageResult<OrderManagementListItemResult> pageResult = orderQueryUseCase.getOrders(
             search.shopId(), search.orderStatus(), search.orderMethod(), search.paymentStatus(),
             search.orderNumber(), search.ordererName(), search.startDate(), search.endDate(),
             pageRequest.page(), pageRequest.size());
+        PaginationResponse<OrderListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(OrderListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrder(@PathVariable Long id) {
-        OrderDetailResponse response = orderQueryUseCase.getOrder(id);
+        OrderDetailResponse response = OrderDetailResponse.from(orderQueryUseCase.getOrder(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

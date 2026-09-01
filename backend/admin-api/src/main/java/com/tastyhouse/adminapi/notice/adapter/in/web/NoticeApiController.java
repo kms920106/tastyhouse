@@ -22,8 +22,10 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.notice.adapter.in.web.request.NoticeCreateRequest;
 import com.tastyhouse.adminapi.notice.adapter.in.web.request.NoticeSearchRequest;
 import com.tastyhouse.adminapi.notice.adapter.in.web.request.NoticeUpdateRequest;
-import com.tastyhouse.adminapplication.notice.response.NoticeDetailResponse;
-import com.tastyhouse.adminapplication.notice.response.NoticeListItemResponse;
+import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeDetailResponse;
+import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResponse;
+import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeCommandUseCase;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeDeleteCommand;
@@ -49,7 +51,8 @@ public class NoticeApiController {
         @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<NoticeListItemResponse> pageResponse = noticeQueryUseCase.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<NoticeManagementListItemResult> pageResult = noticeQueryUseCase.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<NoticeListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(NoticeListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -64,7 +67,7 @@ public class NoticeApiController {
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세을 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        NoticeDetailResponse response = noticeQueryUseCase.getNotice(id);
+        NoticeDetailResponse response = NoticeDetailResponse.from(noticeQueryUseCase.getNotice(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

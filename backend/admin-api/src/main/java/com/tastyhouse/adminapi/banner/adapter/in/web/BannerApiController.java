@@ -22,8 +22,10 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerCreateRequest;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerSearchRequest;
 import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerUpdateRequest;
-import com.tastyhouse.adminapplication.banner.response.BannerDetailResponse;
-import com.tastyhouse.adminapplication.banner.response.BannerListItemResponse;
+import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
+import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResponse;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.adminapplication.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.adminapplication.banner.port.in.BannerDeleteCommand;
@@ -49,7 +51,8 @@ public class BannerApiController {
         @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BannerListItemResponse> pageResponse = bannerQueryUseCase.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<BannerManagementListItemResult> pageResult = bannerQueryUseCase.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(BannerListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -64,7 +67,7 @@ public class BannerApiController {
     @Operation(summary = "배너 상세 조회", description = "배너 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BannerDetailResponse>> getBanner(@PathVariable Long id) {
-        BannerDetailResponse response = bannerQueryUseCase.getBanner(id);
+        BannerDetailResponse response = BannerDetailResponse.from(bannerQueryUseCase.getBanner(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

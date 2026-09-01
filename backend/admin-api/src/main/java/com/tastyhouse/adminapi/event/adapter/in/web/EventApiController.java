@@ -25,10 +25,12 @@ import com.tastyhouse.adminapi.event.adapter.in.web.request.EventCreateRequest;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventSearchRequest;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventUpdateRequest;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventWinnerCreateRequest;
-import com.tastyhouse.adminapplication.event.response.EventAnnouncementResponse;
-import com.tastyhouse.adminapplication.event.response.EventDetailResponse;
-import com.tastyhouse.adminapplication.event.response.EventListItemResponse;
-import com.tastyhouse.adminapplication.event.response.EventWinnerResponse;
+import com.tastyhouse.adminapi.event.adapter.in.web.response.EventAnnouncementResponse;
+import com.tastyhouse.adminapi.event.adapter.in.web.response.EventDetailResponse;
+import com.tastyhouse.adminapi.event.adapter.in.web.response.EventListItemResponse;
+import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse;
+import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.event.port.in.EventAnnouncementCreateCommand;
 import com.tastyhouse.adminapplication.event.port.in.EventAnnouncementUpdateCommand;
 import com.tastyhouse.adminapplication.event.port.in.EventCommandUseCase;
@@ -58,7 +60,8 @@ public class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<EventListItemResponse> pageResponse = eventQueryUseCase.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PageResult<EventManagementListItemResult> pageResult = eventQueryUseCase.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<EventListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(EventListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -73,7 +76,7 @@ public class EventApiController {
     @Operation(summary = "이벤트 상세 조회", description = "이벤트 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<EventDetailResponse>> getEvent(@PathVariable Long id) {
-        EventDetailResponse response = eventQueryUseCase.getEvent(id);
+        EventDetailResponse response = EventDetailResponse.from(eventQueryUseCase.getEvent(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -121,7 +124,7 @@ public class EventApiController {
     @Operation(summary = "당첨자 발표 공지 조회", description = "이벤트의 당첨자 발표 공지를 조회합니다.")
     @GetMapping("/v1/{id}/announcement")
     public ResponseEntity<ApiResponse<EventAnnouncementResponse>> getAnnouncement(@PathVariable Long id) {
-        EventAnnouncementResponse response = eventQueryUseCase.getAnnouncement(id);
+        EventAnnouncementResponse response = EventAnnouncementResponse.from(eventQueryUseCase.getAnnouncement(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -139,7 +142,9 @@ public class EventApiController {
     @Operation(summary = "당첨자 목록 조회", description = "이벤트의 당첨자 목록을 순위순으로 조회합니다.")
     @GetMapping("/v1/{id}/winners")
     public ResponseEntity<ApiResponse<List<EventWinnerResponse>>> getWinners(@PathVariable Long id) {
-        List<EventWinnerResponse> winners = eventQueryUseCase.getWinners(id);
+        List<EventWinnerResponse> winners = eventQueryUseCase.getWinners(id).stream()
+            .map(EventWinnerResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(winners));
     }
 

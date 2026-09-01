@@ -30,9 +30,11 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderGuideSearchR
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideDeleteRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideRevisionRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopRiderGuideListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Tag(name = "Shop Rider Guide Admin", description = "라이더 가게방문 안내 검수 관리자 API")
 @RestController
@@ -54,9 +56,11 @@ public class ShopRiderGuideAdminApiController {
         @Valid @ModelAttribute ShopRiderGuideSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopRiderGuideListItemResponse> pageResponse = shopRiderGuideQueryUseCase.getRiderGuides(
+        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideQueryUseCase.getRiderGuides(
             search.shopName(), search.hasVisitGuide(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopRiderGuideListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopRiderGuideListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -66,7 +70,8 @@ public class ShopRiderGuideAdminApiController {
         description = "가게 단건의 라이더 안내 문구·픽업 위치와 최근 변경 이력(최대 20건)을 조회합니다.")
     @GetMapping("/v1/{id}/rider-guide")
     public ResponseEntity<ApiResponse<ShopRiderGuideDetailResponse>> getRiderGuide(@PathVariable Long id) {
-        ShopRiderGuideDetailResponse response = shopRiderGuideQueryUseCase.getRiderGuide(id);
+        ShopRiderGuideQueryUseCase.ShopRiderGuideDetail detail = shopRiderGuideQueryUseCase.getRiderGuide(id);
+        ShopRiderGuideDetailResponse response = ShopRiderGuideDetailResponse.from(detail.guide(), detail.histories());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

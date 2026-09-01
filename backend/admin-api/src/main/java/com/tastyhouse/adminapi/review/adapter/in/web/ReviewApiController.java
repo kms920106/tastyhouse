@@ -28,9 +28,13 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewHiddenUpdateRequest;
 import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewSearchRequest;
-import com.tastyhouse.adminapplication.review.response.ReviewCommentListItemResponse;
-import com.tastyhouse.adminapplication.review.response.ReviewListItemResponse;
-import com.tastyhouse.adminapplication.review.response.ReviewManagementDetailResponse;
+import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewCommentListItemResponse;
+import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewListItemResponse;
+import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDetailResponse;
+import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.review.port.in.ReviewQueryUseCase;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
@@ -52,7 +56,7 @@ public class ReviewApiController {
         @Valid @ModelAttribute ReviewSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ReviewListItemResponse> pageResponse = reviewQueryUseCase.getReviews(
+        PageResult<ReviewListItemResult> pageResult = reviewQueryUseCase.getReviews(
             search.shopId(),
             search.productId(),
             search.memberId(),
@@ -64,13 +68,14 @@ public class ReviewApiController {
             pageRequest.page(),
             pageRequest.size()
         );
+        PaginationResponse<ReviewListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ReviewListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "리뷰 상세 조회", description = "숨김 리뷰를 포함하여 리뷰 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReviewManagementDetailResponse>> getReview(@PathVariable Long id) {
-        ReviewManagementDetailResponse response = reviewQueryUseCase.getReview(id);
+        ReviewManagementDetailResponse response = ReviewManagementDetailResponse.from(reviewQueryUseCase.getReview(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -96,7 +101,11 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 댓글/답글 조회", description = "리뷰의 모든 댓글과 답글을 숨김 포함하여 조회합니다.")
     @GetMapping("/v1/{id}/comments")
     public ResponseEntity<ApiResponse<List<ReviewCommentListItemResponse>>> getComments(@PathVariable Long id) {
-        List<ReviewCommentListItemResponse> response = reviewQueryUseCase.getComments(id);
+        List<ReviewCommentListItemResult> comments = reviewQueryUseCase.getComments(id);
+        List<ReviewReplyListItemResult> replies = reviewQueryUseCase.getReplies(comments);
+        List<ReviewCommentListItemResponse> response = comments.stream()
+            .map(comment -> ReviewCommentListItemResponse.from(comment, replies))
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

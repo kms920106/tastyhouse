@@ -1,6 +1,8 @@
 # admin-application
 
-관리자 웹(admin-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`), 그 구현인 `*CommandService`/`*QueryService`, 그리고 QueryService가 조립하는 표현 계약(`<ctx>/response/`)이 여기 있다.
+관리자 웹(admin-api)의 **application 계층**을 소유하는 모듈. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`가 여기 있다.
+
+**`<ctx>/response/`는 챕터 06으로 admin-api로 이동했다** — 이 모듈은 `io.swagger`·`com.tastyhouse.apicommon` import가 0건이고, 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. QueryService는 `*Result`(프레임워크-프리 읽기 계약)를 반환하고 조립은 컨트롤러·Response record가 한다.
 
 컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·config·security 정책·부트스트랩(`AdminApiApplication`)은 `admin-api`에 남아 있다(`admin-api/AGENTS.md`).
 
@@ -17,18 +19,22 @@ com.tastyhouse.adminapplication/
 ├── AdminApplicationConfig.java   @ComponentScan 진입점 — 쓰는 앱이 @Import 한다
 ├── <ctx>/port/in/                UseCase 인터페이스 + Command record
 ├── <ctx>/service/                *CommandService/*QueryService implements {Ctx}UseCase
-└── <ctx>/response/               QueryService가 조립하는 표현 계약 record
+└── (<ctx>/response/ 는 챕터 06으로 admin-api로 이동 — 이 모듈에 없다)
 ```
 
 컨텍스트 19종: `admin` · `auth` · `banner` · `bug` · `ceo` · `coupon` · `event` · `faq` · `file` · `member` · `notice` · `order` · `partnership` · `point` · `policy` · `product` · `rank` · `review` · `shop`.
 
 대형 컨텍스트는 관심사 단위로 서비스를 더 쪼갠다(`shop`의 `ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*` 등) — 이 관례는 분리 전과 동일하다.
 
-## 왜 `response/`가 함께 왔나
+## `response/`는 왜 떠났나 (챕터 06 — 과거 판단의 번복)
 
-이 저장소의 확정 규칙상 **`{도메인}QueryService`가 Result → Response 변환을 담당**한다(루트 `backend/CLAUDE.md`의 DTO 조립 규칙). 따라서 `response/`를 admin-api에 남기면 서비스가 `com.tastyhouse.adminapi..`를 역참조하게 되어 `applicationMustNotDependOnAdapters`가 곧바로 위반되고, 모듈 분리 자체가 성립하지 않는다. `web-application`·`batch-application`과 같은 판단이다.
+**과거 이 절은 "왜 `response/`가 함께 왔나"였고, 근거는 "확정 규칙상 `{도메인}QueryService`가 Result → Response 변환을 담당하므로 `response/`를 admin-api에 남기면 서비스가 `com.tastyhouse.adminapi..`를 역참조해 `applicationMustNotDependOnAdapters`를 위반한다"였다.** 챕터 06이 그 전제를 뒤집었다 — 변환 주체가 QueryService가 아니게 됐기 때문이다.
 
-**`request/`는 반대로 admin-api에 남는다** — Request → Command 매핑은 인바운드 어댑터의 책임이고(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 그 방향(admin-api → admin-application)은 정상 의존이다.
+Response record는 `@Schema`(Swagger)를 달고 `PaginationResponse`(HTTP 래퍼)를 쓴다. 그것이 이 모듈에 있으면 **유스케이스 계층이 API 문서화 도구와 HTTP 표현을 알게 된다**(전환 전 실측: `io.swagger` import 85개 파일). 챕터 06은 그 오염을 걷어내려고 조립 책임을 **컨트롤러·Response record**로 올렸다. 그러면 역참조 문제는 애초에 생기지 않는다 — 서비스가 Response를 모르고 `*Result`만 반환하기 때문이다.
+
+**`request/`는 여전히 admin-api에 있다** — Request → Command 매핑은 인바운드 어댑터의 책임이고(완전 매핑 전략), 컨트롤러가 `request.toCommand(...)`로 조립해 넘긴다. 즉 지금은 `request/`·`response/` 둘 다 api 모듈에 있고, 이 모듈은 포트와 서비스만 갖는다.
+
+**ceo·web은 아직 과거 형태다** — 챕터 06이 admin에만 적용됐으므로 `ceo-application`·`web-application`의 `response/`는 그대로 있고 `io.swagger` import도 각각 105·131개 파일이다. 그 두 모듈의 AGENTS.md 서술은 현재도 유효하다.
 
 ## auth 처리 (web-application 선례와 동일)
 

@@ -19,9 +19,13 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductApprovalRejectRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductApprovalSearchRequest;
-import com.tastyhouse.adminapplication.product.response.ProductImageChangeRequestItemResponse;
-import com.tastyhouse.adminapplication.product.response.ProductRepresentativeRequestItemResponse;
-import com.tastyhouse.adminapplication.product.response.ProductVegetarianRequestItemResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImageChangeRequestItemResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductRepresentativeRequestItemResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarianRequestItemResponse;
+import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
+import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.product.port.in.ProductApprovalCommandUseCase;
 import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeApproveCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeRejectCommand;
@@ -65,10 +69,10 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ProductImageChangeRequestItemResponse> pageResponse =
-            productApprovalQueryUseCase.getImageChangeRequests(
-                search.status(), pageRequest.page(), pageRequest.size()
-            );
+        PageResult<ProductImageChangeRequestResult> pageResult = productApprovalQueryUseCase.getImageChangeRequests(
+            search.status(), pageRequest.page(), pageRequest.size()
+        );
+        PaginationResponse<ProductImageChangeRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductImageChangeRequestItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -101,10 +105,10 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ProductVegetarianRequestItemResponse> pageResponse =
-            productApprovalQueryUseCase.getVegetarianRequests(
-                search.status(), pageRequest.page(), pageRequest.size()
-            );
+        PageResult<ProductVegetarianRequestResult> pageResult = productApprovalQueryUseCase.getVegetarianRequests(
+            search.status(), pageRequest.page(), pageRequest.size()
+        );
+        PaginationResponse<ProductVegetarianRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductVegetarianRequestItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -138,10 +142,10 @@ public class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ProductRepresentativeRequestItemResponse> pageResponse =
-            productApprovalQueryUseCase.getRepresentativeRequests(
-                search.status(), pageRequest.page(), pageRequest.size()
-            );
+        PageResult<ProductRepresentativeRequestResult> pageResult = productApprovalQueryUseCase.getRepresentativeRequests(
+            search.status(), pageRequest.page(), pageRequest.size()
+        );
+        PaginationResponse<ProductRepresentativeRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductRepresentativeRequestItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));

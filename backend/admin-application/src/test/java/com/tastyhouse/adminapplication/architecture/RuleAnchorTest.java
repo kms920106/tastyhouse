@@ -65,13 +65,22 @@ class RuleAnchorTest {
     /**
      * 모듈 전체를 대상으로 하는 규칙들({@code applicationMustBeServletFree} ·
      * {@code applicationMustNotDependOnAdapters} · {@code shouldNotDependOnQuerydsl} ·
-     * {@code shouldNotDependOnInfrastructure})의 anchor.
+     * {@code shouldNotDependOnInfrastructure} · 챕터 06 신설
+     * {@code applicationShouldNotDependOnSwagger} · {@code applicationShouldNotDependOnApiCommon})의 anchor.
+     *
+     * <p>챕터 06 신설 규칙 2개도 {@code noClasses()} 전역 형태라 별도 anchor가 필요 없다 — 모듈에
+     * 클래스가 남아 있는 한 대상 0건이 될 수 없고, 그 하한을 이 테스트가 지킨다.
+     *
+     * <p><b>챕터 06에서 하한을 373 → 290으로 내렸다.</b> 표현 계약 {@code *Response} 85개가 admin-api로
+     * 승격되며 모듈 실측이 373 → 298로 줄었기 때문이고, <b>계층이 무너진 것이 아니라 챕터 06이 의도한
+     * 이동</b>이다. 하한은 원칙대로 실측(298)보다 낮게 잡아 정상적인 증감에는 흔들리지 않게 하되,
+     * 대량 소실은 여전히 잡히도록 한 자릿수 여유만 둔다.
      */
     @Test
     void moduleIsNotEmpty() {
         assertThat(classes.size())
             .as("모듈이 비면 noClasses() 전역 규칙이 전부 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(373);
+            .isGreaterThanOrEqualTo(290);
     }
 
     /**

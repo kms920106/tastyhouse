@@ -15,9 +15,6 @@ import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.review.response.ReviewBlindRequestDetailResponse;
-import com.tastyhouse.adminapplication.review.response.ReviewBlindRequestListItemResponse;
 import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestQueryUseCase;
 
 /**
@@ -27,6 +24,9 @@ import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestQueryUse
  * Request record는 domain-free 원칙에 따라 enum을 직접 다루지 않는다.
  *
  * <p>명령 동작은 {@link ReviewBlindRequestCommandService}로 분리했다(CQRS).
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -42,7 +42,7 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
      * 게시중단 요청 목록 — 상점·상태·사유·기간으로 필터링한다.
      */
     @Override
-    public PaginationResponse<ReviewBlindRequestListItemResponse> getBlindRequests(
+    public PageResult<ReviewBlindRequestListItemResult> getBlindRequests(
         Long shopId,
         String status,
         String reason,
@@ -57,60 +57,15 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
         ReviewBlindRequestSearchCondition condition = ReviewBlindRequestSearchCondition.of(
             shopId, blindStatus, blindReason, startDate, endDate
         );
-        PageResult<ReviewBlindRequestListItemResponse> pageResult = reviewBlindRequestManagementQueryPort
-            .findBlindRequestPage(condition, PageQuery.of(page, size))
-            .map(this::toReviewBlindRequestListItemResponse);
-        return PaginationResponse.from(pageResult);
+        return reviewBlindRequestManagementQueryPort.findBlindRequestPage(condition, PageQuery.of(page, size));
     }
 
     /**
      * 게시중단 요청 심사 상세.
      */
     @Override
-    public ReviewBlindRequestDetailResponse getBlindRequest(Long id) {
-        ReviewBlindRequestDetailResult detail = reviewBlindRequestManagementQueryPort.findBlindRequestDetail(id)
+    public ReviewBlindRequestDetailResult getBlindRequest(Long id) {
+        return reviewBlindRequestManagementQueryPort.findBlindRequestDetail(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
-        return toReviewBlindRequestDetailResponse(detail);
-    }
-
-    private ReviewBlindRequestListItemResponse toReviewBlindRequestListItemResponse(ReviewBlindRequestListItemResult dto) {
-        return ReviewBlindRequestListItemResponse.from(
-            dto.id(),
-            dto.reviewId(),
-            dto.shopId(),
-            dto.shopName(),
-            dto.reason().name(),
-            dto.reason().getDescription(),
-            dto.status().name(),
-            dto.status().getDescription(),
-            dto.reviewContent(),
-            dto.reviewTotalRating(),
-            dto.blindUntil(),
-            dto.createdAt()
-        );
-    }
-
-    private ReviewBlindRequestDetailResponse toReviewBlindRequestDetailResponse(ReviewBlindRequestDetailResult dto) {
-        return ReviewBlindRequestDetailResponse.from(
-            dto.id(),
-            dto.reviewId(),
-            dto.shopId(),
-            dto.shopName(),
-            dto.reason().name(),
-            dto.reason().getDescription(),
-            dto.status().name(),
-            dto.status().getDescription(),
-            dto.reviewContent(),
-            dto.reviewTotalRating(),
-            dto.detailReason(),
-            dto.rejectReason(),
-            dto.blindUntil(),
-            dto.reviewImageUrls(),
-            dto.attachmentUrls(),
-            dto.reviewMemberNickname(),
-            dto.reviewHidden(),
-            dto.reviewCreatedAt(),
-            dto.createdAt()
-        );
     }
 }

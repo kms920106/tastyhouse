@@ -23,8 +23,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRequestSearchRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopImageChangeRequestItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopImageChangeQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController
@@ -45,9 +47,11 @@ public class ShopImageChangeAdminApiController {
         @Valid @ModelAttribute ShopImageChangeRequestSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse = shopImageChangeQueryUseCase.getImageChangeRequests(
+        PageResult<ShopImageChangeRequestResult> pageResult = shopImageChangeQueryUseCase.getImageChangeRequests(
             search.status(), search.imageType(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopImageChangeRequestItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopImageChangeRequestItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));

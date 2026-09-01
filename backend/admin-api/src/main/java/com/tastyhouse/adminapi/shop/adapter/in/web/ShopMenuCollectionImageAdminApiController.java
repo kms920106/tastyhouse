@@ -23,8 +23,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageSearchRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopMenuCollectionImageRequestItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 /**
  * 메뉴모음컷 검수 관리자 API.
@@ -59,10 +61,12 @@ public class ShopMenuCollectionImageAdminApiController {
         @Valid @ModelAttribute ShopMenuCollectionImageSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopMenuCollectionImageRequestItemResponse> pageResponse =
+        PageResult<ShopMenuCollectionImageRequestResult> pageResult =
             shopMenuCollectionImageQueryUseCase.getMenuCollectionImageRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
+        PaginationResponse<ShopMenuCollectionImageRequestItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopMenuCollectionImageRequestItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));

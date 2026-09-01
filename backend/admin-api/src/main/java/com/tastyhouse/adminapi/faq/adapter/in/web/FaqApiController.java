@@ -24,9 +24,11 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqCategoryUpdateReque
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqCreateRequest;
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqSearchRequest;
 import com.tastyhouse.adminapi.faq.adapter.in.web.request.FaqUpdateRequest;
-import com.tastyhouse.adminapplication.faq.response.FaqCategoryResponse;
-import com.tastyhouse.adminapplication.faq.response.FaqDetailResponse;
-import com.tastyhouse.adminapplication.faq.response.FaqListItemResponse;
+import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqCategoryResponse;
+import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqDetailResponse;
+import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
+import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryCommandUseCase;
 import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.adminapplication.faq.port.in.FaqCategoryDeleteCommand;
@@ -67,14 +69,16 @@ public class FaqApiController {
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "FAQ 카테고리 목록을 정렬 순서대로 조회합니다. (비노출 포함)")
     @GetMapping("/v1/categories")
     public ResponseEntity<ApiResponse<List<FaqCategoryResponse>>> getCategories() {
-        List<FaqCategoryResponse> categories = faqQueryUseCase.getCategories();
+        List<FaqCategoryResponse> categories = faqQueryUseCase.getCategories().stream()
+            .map(FaqCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
     @Operation(summary = "FAQ 카테고리 상세 조회", description = "FAQ 카테고리 상세를 조회합니다.")
     @GetMapping("/v1/categories/{categoryId}")
     public ResponseEntity<ApiResponse<FaqCategoryResponse>> getCategory(@PathVariable Long categoryId) {
-        FaqCategoryResponse response = faqQueryUseCase.getCategory(categoryId);
+        FaqCategoryResponse response = FaqCategoryResponse.from(faqQueryUseCase.getCategory(categoryId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -111,14 +115,15 @@ public class FaqApiController {
         @Valid @ModelAttribute FaqSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<FaqListItemResponse> pageResponse = faqQueryUseCase.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<FaqManagementListItemResult> pageResult = faqQueryUseCase.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<FaqListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(FaqListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "FAQ 항목 상세 조회", description = "FAQ 항목 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<FaqDetailResponse>> getFaq(@PathVariable Long id) {
-        FaqDetailResponse response = faqQueryUseCase.getFaq(id);
+        FaqDetailResponse response = FaqDetailResponse.from(faqQueryUseCase.getFaq(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

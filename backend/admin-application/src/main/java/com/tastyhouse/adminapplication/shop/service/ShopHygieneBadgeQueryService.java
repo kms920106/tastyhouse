@@ -8,10 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeQueryUseCase;
-import com.tastyhouse.adminapplication.shop.response.ShopHygieneBadgeResponse;
 
 /**
  * admin용 가게 위생 인증 뱃지 조회 서비스(CQRS query 측). 소유권 검증 없이 전체 가게를 대상으로 한다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -24,20 +26,8 @@ public class ShopHygieneBadgeQueryService implements ShopHygieneBadgeQueryUseCas
     }
 
     @Override
-    public List<ShopHygieneBadgeResponse> getHygieneBadges(Long shopId) {
-        return shopBasicInfoQueryPort.findHygieneBadges(shopId).stream()
-            .map(this::toShopHygieneBadgeResponse)
-            .toList();
-    }
-
-    private ShopHygieneBadgeResponse toShopHygieneBadgeResponse(ShopHygieneBadgeResult dto) {
-        return ShopHygieneBadgeResponse.of(
-            dto.id(),
-            dto.shopId(),
-            dto.badgeType().name(),
-            dto.certifiedDate(),
-            dto.lastInspectionMonth()
-        );
+    public List<ShopHygieneBadgeResult> getHygieneBadges(Long shopId) {
+        return shopBasicInfoQueryPort.findHygieneBadges(shopId);
     }
 
 }

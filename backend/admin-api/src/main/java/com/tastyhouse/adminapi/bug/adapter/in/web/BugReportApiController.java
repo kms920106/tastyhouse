@@ -21,8 +21,10 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportAssignRequest
 import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportClassifyRequest;
 import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportSearchRequest;
 import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportStatusUpdateRequest;
-import com.tastyhouse.adminapplication.bug.response.BugReportDetailResponse;
-import com.tastyhouse.adminapplication.bug.response.BugReportListItemResponse;
+import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportDetailResponse;
+import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResponse;
+import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportCommandUseCase;
@@ -48,18 +50,19 @@ public class BugReportApiController {
         @Valid @ModelAttribute BugReportSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<BugReportListItemResponse> pageResponse = bugReportQueryUseCase.getBugReports(
+        PageResult<BugReportListItemWithMemberResult> pageResult = bugReportQueryUseCase.getBugReports(
             search.title(), search.content(), search.memberId(),
             search.status(), search.category(), search.priority(),
             pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<BugReportListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(BugReportListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "버그 제보 상세 조회", description = "버그 제보 상세를 조회합니다. 첨부 이미지 URL과 제보 회원 정보를 포함합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BugReportDetailResponse>> getBugReport(@PathVariable Long id) {
-        BugReportDetailResponse response = bugReportQueryUseCase.getBugReport(id);
+        BugReportDetailResponse response = BugReportDetailResponse.from(bugReportQueryUseCase.getBugReport(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

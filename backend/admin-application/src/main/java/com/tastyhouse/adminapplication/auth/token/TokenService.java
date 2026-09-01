@@ -11,7 +11,7 @@ import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 import com.tastyhouse.security.token.RefreshTokenRedisRepository;
 import com.tastyhouse.adminapplication.admin.service.AdminQueryService;
-import com.tastyhouse.adminapplication.auth.response.JwtResponse;
+import com.tastyhouse.adminapplication.auth.port.out.JwtResult;
 
 /**
  * 관리자 토큰 발급·갱신·무효화 비즈니스 로직
@@ -42,7 +42,7 @@ public class TokenService {
     /**
      * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장
      */
-    public JwtResponse issue(Authentication authentication, boolean rememberMe) {
+    public JwtResult issue(Authentication authentication, boolean rememberMe) {
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication, rememberMe);
 
@@ -52,13 +52,13 @@ public class TokenService {
                 jwtTokenProvider.getRefreshTokenTtl(rememberMe)
         );
 
-        return JwtResponse.of(accessToken, refreshToken, "Bearer");
+        return JwtResult.of(accessToken, refreshToken, "Bearer");
     }
 
     /**
      * Refresh Token으로 새 Access Token + Refresh Token 재발급 (Refresh Token Rotation)
      */
-    public JwtResponse refresh(String refreshToken) {
+    public JwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
         }
@@ -84,7 +84,7 @@ public class TokenService {
 
         refreshTokenRepository.save(username, newRefreshToken, jwtTokenProvider.getRefreshTokenTtl(false));
 
-        return JwtResponse.of(newAccessToken, newRefreshToken, "Bearer");
+        return JwtResult.of(newAccessToken, newRefreshToken, "Bearer");
     }
 
     /**

@@ -23,11 +23,11 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPeriodUpdateReque
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeCreateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeUpdateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankSearchRequest;
-import com.tastyhouse.adminapplication.rank.response.RankMemberListItemResponse;
-import com.tastyhouse.adminapplication.rank.response.RankPeriodDetailResponse;
-import com.tastyhouse.adminapplication.rank.response.RankPeriodListItemResponse;
-import com.tastyhouse.adminapplication.rank.response.RankPrizeDetailResponse;
-import com.tastyhouse.adminapplication.rank.response.RankPrizeListItemResponse;
+import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankMemberListItemResponse;
+import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodDetailResponse;
+import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodListItemResponse;
+import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeDetailResponse;
+import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemResponse;
 import com.tastyhouse.adminapplication.rank.port.in.RankAggregateCommand;
 import com.tastyhouse.adminapplication.rank.port.in.RankCommandUseCase;
 import com.tastyhouse.adminapplication.rank.port.in.RankPeriodCreateCommand;
@@ -56,7 +56,9 @@ public class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankQueryUseCase.getMemberRankList(search.type(), search.limit());
+        List<RankMemberListItemResponse> ranks = rankQueryUseCase.getMemberRankList(search.type(), search.limit()).stream()
+            .map(RankMemberListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(ranks));
     }
 
@@ -71,7 +73,9 @@ public class RankApiController {
     @Operation(summary = "랭킹 기간 목록 조회", description = "등록된 랭킹 기간 목록을 조회합니다.")
     @GetMapping("/v1/periods")
     public ResponseEntity<ApiResponse<List<RankPeriodListItemResponse>>> getPeriods() {
-        List<RankPeriodListItemResponse> periods = rankQueryUseCase.getPeriods();
+        List<RankPeriodListItemResponse> periods = rankQueryUseCase.getPeriods().stream()
+            .map(RankPeriodListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(periods));
     }
 
@@ -86,7 +90,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 기간 상세 조회", description = "랭킹 기간 상세를 조회합니다.")
     @GetMapping("/v1/periods/{id}")
     public ResponseEntity<ApiResponse<RankPeriodDetailResponse>> getPeriod(@PathVariable Long id) {
-        RankPeriodDetailResponse response = rankQueryUseCase.getPeriod(id);
+        RankPeriodDetailResponse response = RankPeriodDetailResponse.from(rankQueryUseCase.getPeriod(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -112,7 +116,9 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 목록 조회", description = "해당 기간의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/periods/{id}/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes(@PathVariable Long id) {
-        List<RankPrizeListItemResponse> prizes = rankQueryUseCase.getPrizesByPeriod(id);
+        List<RankPrizeListItemResponse> prizes = rankQueryUseCase.getPrizesByPeriod(id).stream()
+            .map(RankPrizeListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(prizes));
     }
 
@@ -130,7 +136,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 상세 조회", description = "랭킹 경품 상세를 조회합니다.")
     @GetMapping("/v1/prizes/{prizeId}")
     public ResponseEntity<ApiResponse<RankPrizeDetailResponse>> getPrize(@PathVariable Long prizeId) {
-        RankPrizeDetailResponse response = rankQueryUseCase.getPrize(prizeId);
+        RankPrizeDetailResponse response = RankPrizeDetailResponse.from(rankQueryUseCase.getPrize(prizeId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

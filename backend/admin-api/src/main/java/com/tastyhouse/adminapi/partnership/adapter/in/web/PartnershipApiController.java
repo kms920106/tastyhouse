@@ -20,8 +20,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.request.PartnershipSearchRequest;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.request.PartnershipStatusUpdateRequest;
-import com.tastyhouse.adminapplication.partnership.response.PartnershipRequestDetailResponse;
-import com.tastyhouse.adminapplication.partnership.response.PartnershipRequestListItemResponse;
+import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestDetailResponse;
+import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipStatusChangeCommand;
@@ -46,16 +48,17 @@ public class PartnershipApiController {
         @Valid @ModelAttribute PartnershipSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = partnershipQueryUseCase.getPartnershipRequests(
+        PageResult<PartnershipRequestListItemResult> pageResult = partnershipQueryUseCase.getPartnershipRequests(
             search.businessName(), search.contactName(), search.contactPhone(), search.status(),
             search.startDate(), search.endDate(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<PartnershipRequestListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(PartnershipRequestListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
     @Operation(summary = "제휴 신청 상세 조회", description = "제휴 신청 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<PartnershipRequestDetailResponse>> getPartnershipRequest(@PathVariable Long id) {
-        PartnershipRequestDetailResponse response = partnershipQueryUseCase.getPartnershipRequest(id);
+        PartnershipRequestDetailResponse response = PartnershipRequestDetailResponse.from(partnershipQueryUseCase.getPartnershipRequest(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -24,9 +24,11 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentStatusChangeRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentDetailResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Tag(name = "Shop Delivery Area Adjustment Admin", description = "프랜차이즈 배달지역 조정 신청 검수 관리자 API")
 @RestController
@@ -50,9 +52,11 @@ public class ShopDeliveryAreaAdjustmentAdminApiController {
         @Valid @ModelAttribute ShopDeliveryAreaAdjustmentSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopDeliveryAreaAdjustmentListItemResponse> pageResponse = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequests(
+        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequests(
             search.status(), search.shopId(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopDeliveryAreaAdjustmentListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopDeliveryAreaAdjustmentListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));
@@ -61,7 +65,8 @@ public class ShopDeliveryAreaAdjustmentAdminApiController {
     @Operation(summary = "배달지역 조정 신청 상세 조회", description = "조정 신청의 중첩 사유와 정보제공 동의서를 포함한 상세를 조회합니다.")
     @GetMapping("/v1/delivery-area-adjustments/{requestId}")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaAdjustmentDetailResponse>> getAdjustmentRequest(@PathVariable Long requestId) {
-        ShopDeliveryAreaAdjustmentDetailResponse response = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequest(requestId);
+        ShopDeliveryAreaAdjustmentDetailResponse response =
+            ShopDeliveryAreaAdjustmentDetailResponse.from(shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequest(requestId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

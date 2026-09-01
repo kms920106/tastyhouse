@@ -11,9 +11,6 @@ import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentDetailResponse;
-import com.tastyhouse.adminapplication.shop.response.ShopDeliveryAreaAdjustmentListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
 
 /**
@@ -21,6 +18,9 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQu
  *
  * <p>소유권 검증 없이 전체 신청을 상태·가게로 필터해 조회한다. 동의서 URL은 infra query DAO가 조인으로
  * 완성하므로 여기서 파일을 재조회하지 않는다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -33,7 +33,7 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
     }
 
     @Override
-    public PaginationResponse<ShopDeliveryAreaAdjustmentListItemResponse> getAdjustmentRequests(
+    public PageResult<ShopDeliveryAreaAdjustmentListItemResult> getAdjustmentRequests(
         String status,
         Long shopId,
         int page,
@@ -41,46 +41,13 @@ public class ShopDeliveryAreaAdjustmentQueryService implements ShopDeliveryAreaA
     ) {
         DeliveryAreaAdjustmentStatus adjustmentStatus = status == null ? null : DeliveryAreaAdjustmentStatus.from(status);
 
-        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentManagementQueryPort
+        return shopDeliveryAreaAdjustmentManagementQueryPort
             .findAdjustmentRequestPage(adjustmentStatus, shopId, PageQuery.of(page, size));
-
-        return PaginationResponse.from(pageResult.map(this::toShopDeliveryAreaAdjustmentListItemResponse));
     }
 
     @Override
-    public ShopDeliveryAreaAdjustmentDetailResponse getAdjustmentRequest(Long requestId) {
-        ShopDeliveryAreaAdjustmentDetailResult dto = shopDeliveryAreaAdjustmentManagementQueryPort.findAdjustmentRequestById(requestId)
+    public ShopDeliveryAreaAdjustmentDetailResult getAdjustmentRequest(Long requestId) {
+        return shopDeliveryAreaAdjustmentManagementQueryPort.findAdjustmentRequestById(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));
-
-        return toShopDeliveryAreaAdjustmentDetailResponse(dto);
-    }
-
-    private ShopDeliveryAreaAdjustmentListItemResponse toShopDeliveryAreaAdjustmentListItemResponse(ShopDeliveryAreaAdjustmentListItemResult dto) {
-        return ShopDeliveryAreaAdjustmentListItemResponse.from(
-            dto.id(),
-            dto.shopId(),
-            dto.shopName(),
-            dto.counterpartShopName(),
-            dto.franchiseName(),
-            dto.status().name(),
-            dto.createdAt()
-        );
-    }
-
-    private ShopDeliveryAreaAdjustmentDetailResponse toShopDeliveryAreaAdjustmentDetailResponse(ShopDeliveryAreaAdjustmentDetailResult dto) {
-        return ShopDeliveryAreaAdjustmentDetailResponse.from(
-            dto.id(),
-            dto.shopId(),
-            dto.shopName(),
-            dto.counterpartShopName(),
-            dto.counterpartBusinessNumber(),
-            dto.franchiseName(),
-            dto.reason(),
-            dto.consentFileUrl(),
-            dto.status().name(),
-            dto.rejectReason(),
-            dto.createdAt(),
-            dto.updatedAt()
-        );
     }
 }

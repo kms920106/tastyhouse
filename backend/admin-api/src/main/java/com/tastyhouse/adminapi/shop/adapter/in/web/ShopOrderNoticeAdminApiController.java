@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopOrderNoticeHideRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopOrderNoticeResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 
 /**
@@ -49,7 +49,9 @@ public class ShopOrderNoticeAdminApiController {
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내 본문과 게시중단 여부·사유를 조회합니다.")
     @GetMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<ShopOrderNoticeResponse>> getOrderNotice(@PathVariable Long id) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryUseCase.getOrderNotice(id);
+        ShopOrderNoticeResponse response = shopOrderNoticeQueryUseCase.getOrderNotice(id)
+            .map(ShopOrderNoticeResponse::from)
+            .orElseGet(ShopOrderNoticeResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

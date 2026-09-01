@@ -17,7 +17,7 @@ import com.tastyhouse.adminapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.RefreshTokenRequest;
 import com.tastyhouse.adminapplication.auth.port.in.AuthCommandUseCase;
 import com.tastyhouse.adminapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.adminapplication.auth.response.JwtResponse;
+import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 
 @Tag(name = "Admin Auth", description = "관리자 인증 API")
 @RestController
@@ -35,13 +35,13 @@ public class AuthApiController {
     @PostMapping("/v1/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthLoginCommand command = request.toCommand();
-        return ResponseEntity.ok(ApiResponse.success(authCommandUseCase.login(command)));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.login(command))));
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새로운 Access/Refresh Token을 발급합니다.")
     @PostMapping("/v1/refresh")
     public ResponseEntity<ApiResponse<JwtResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(authCommandUseCase.refresh(request.refreshToken())));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.refresh(request.refreshToken()))));
     }
 
     @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제합니다.")

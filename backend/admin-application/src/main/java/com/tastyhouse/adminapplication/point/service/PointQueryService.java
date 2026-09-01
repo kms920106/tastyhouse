@@ -1,5 +1,7 @@
 package com.tastyhouse.adminapplication.point.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,16 +12,16 @@ import com.tastyhouse.application.point.port.out.PointBalanceResult;
 import com.tastyhouse.application.point.port.out.PointHistoryResult;
 import com.tastyhouse.application.point.port.out.PointManagementQueryPort;
 import com.tastyhouse.application.point.port.out.PointSearchCondition;
-import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.point.response.PointBalanceResponse;
-import com.tastyhouse.adminapplication.point.response.PointHistoryResponse;
 import com.tastyhouse.adminapplication.point.port.in.PointQueryUseCase;
 
 /**
  * 포인트 관리 조회 서비스.
  *
- * <p>읽기 포트({@link PointManagementQueryPort})만 주입해 조회하고 Response를 조립한다. write 포트·도메인
- * 서비스를 주입하지 않으며, 수동 적립·차감은 {@link PointCommandService}가 담당한다.
+ * <p>읽기 포트({@link PointManagementQueryPort})만 주입해 조회한다. write 포트·도메인 서비스를 주입하지
+ * 않으며, 수동 적립·차감은 {@link PointCommandService}가 담당한다.
+ *
+ * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
+ * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -32,27 +34,15 @@ public class PointQueryService implements PointQueryUseCase {
     }
 
     @Override
-    public PointBalanceResponse getPointBalance(Long memberId) {
-        return pointManagementQueryPort.findBalanceByMemberId(memberId)
-            .map(result -> toPointBalanceResponse(memberId, result))
-            .orElseGet(() -> PointBalanceResponse.zero(memberId));
+    public Optional<PointBalanceResult> getPointBalance(Long memberId) {
+        return pointManagementQueryPort.findBalanceByMemberId(memberId);
     }
 
     @Override
-    public PaginationResponse<PointHistoryResponse> getPointHistories(Long memberId, String type, int page, int size) {
+    public PageResult<PointHistoryResult> getPointHistories(Long memberId, String type, int page, int size) {
         PointType pointType = type == null ? null : PointType.from(type);
         PointSearchCondition condition = PointSearchCondition.of(memberId, pointType);
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<PointHistoryResponse> pageResult = pointManagementQueryPort.findPointHistoryPage(condition, pageQuery)
-            .map(this::toPointHistoryResponse);
-        return PaginationResponse.from(pageResult);
-    }
-
-    private PointBalanceResponse toPointBalanceResponse(Long memberId, PointBalanceResult result) {
-        return PointBalanceResponse.from(memberId, result.availablePoints(), result.expiredThisMonth());
-    }
-
-    private PointHistoryResponse toPointHistoryResponse(PointHistoryResult result) {
-        return PointHistoryResponse.from(result.pointType().name(), result.pointAmount(), result.reason(), result.createdAt());
+        return pointManagementQueryPort.findPointHistoryPage(condition, pageQuery);
     }
 }

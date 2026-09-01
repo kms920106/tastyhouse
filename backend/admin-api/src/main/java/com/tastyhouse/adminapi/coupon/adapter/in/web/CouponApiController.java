@@ -23,9 +23,12 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponCreateRequest
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponIssueRequest;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponSearchRequest;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponUpdateRequest;
-import com.tastyhouse.adminapplication.coupon.response.CouponDetailResponse;
-import com.tastyhouse.adminapplication.coupon.response.CouponListItemResponse;
-import com.tastyhouse.adminapplication.coupon.response.MemberCouponItemResponse;
+import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponDetailResponse;
+import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponListItemResponse;
+import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemResponse;
+import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
+import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponCommandUseCase;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponDeleteCommand;
@@ -52,7 +55,8 @@ public class CouponApiController {
         @Valid @ModelAttribute CouponSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<CouponListItemResponse> pageResponse = couponQueryUseCase.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<CouponListItemResult> pageResult = couponQueryUseCase.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PaginationResponse<CouponListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(CouponListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -67,7 +71,7 @@ public class CouponApiController {
     @Operation(summary = "쿠폰 상세 조회", description = "쿠폰 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<CouponDetailResponse>> getCoupon(@PathVariable Long id) {
-        CouponDetailResponse response = couponQueryUseCase.getCoupon(id);
+        CouponDetailResponse response = CouponDetailResponse.from(couponQueryUseCase.getCoupon(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -107,7 +111,8 @@ public class CouponApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<MemberCouponItemResponse> pageResponse = couponQueryUseCase.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PageResult<MemberCouponItemResult> pageResult = couponQueryUseCase.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PaginationResponse<MemberCouponItemResponse> pageResponse = PaginationResponse.from(pageResult.map(MemberCouponItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 }

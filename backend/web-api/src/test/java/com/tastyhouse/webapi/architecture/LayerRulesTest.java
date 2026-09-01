@@ -1,6 +1,11 @@
 package com.tastyhouse.webapi.architecture;
 
+import java.util.Set;
+
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
@@ -28,6 +33,19 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * <p>{@code allowEmptyShould(true)}는 이 파일 어디에도 쓰지 않는다.
  */
 class LayerRulesTest {
+
+    private static final String DOMAIN_ROOT = "com.tastyhouse.domain";
+
+    /**
+     * api 모듈이 도메인 enum에 호출할 수 있는 읽기 전용 accessor.
+     *
+     * <p>바이트코드 그래프 실측에서 도출했다(admin-api 기준 {@code name} 57 · {@code getDescription} 8 ·
+     * {@code getDisplayName} 1이 전부이고 {@code ordinal}·{@code toString}·{@code values}는 0건).
+     * <b>항목을 추가하지 않는다</b> — 이 목록이 커지는 것은 api 모듈이 도메인 로직을 수행하기 시작했다는
+     * 신호이므로, 목록을 늘리지 말고 그 호출을 application으로 옮긴다.
+     */
+    private static final Set<String> ALLOWED_DOMAIN_ENUM_ACCESSORS =
+        Set.of("name", "getDescription", "getDisplayName");
 
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
@@ -208,29 +226,47 @@ class LayerRulesTest {
 
 
     /**
-     * <b>신설</b> — api 모듈은 도메인 모델을 알지 않는다(모듈 전역).
+     * api 모듈은 도메인 모델을 알지 않는다(모듈 전역).
      *
      * <p>기존 {@code controllersShouldBeDomainFree}는 {@code *ApiController} 접미어,
-     * {@code requestRecordsShouldBeDomainAndInfraFree}는 {@code ..request..} 패키지로 대상을
-     * 좁히므로 {@code config..}·{@code security..}·{@code exception..}이 <b>무검사 사각지대</b>였다.
-     * 실제로 {@code AdminSeeder}가 부트스트랩에서 {@code domain.admin.model.AdminRole}을
-     * import하고 있었고 어느 규칙에도 걸리지 않았다 — 이 규칙이 그 지점을 봉인한다.
+     * {@code requestRecordsShouldBeDomainAndInfraFree}는 {@code ..request..} 패키지로 대상을 좁히므로
+     * {@code config..}·{@code security..}·{@code exception..}이 <b>무검사 사각지대</b>였다 — 이 규칙이
+     * 그 지점을 모듈 전역으로 봉인한다.
      *
-     * <p><b>{@code domain.exception..}만 carve-out</b>한다. 근거는 새로 만드는 것이 아니라 Command
-     * record에 대해 이미 확립된 것과 동일하다(backend/CLAUDE.md) — 예외는 계층 칸이 없는 <b>횡단
-     * 관심사</b>이고, {@code api-common-module}이 {@code api project(':domain-module')}로 도메인
-     * 예외를 전 모듈의 공용 에러 계약으로 노출한다. carve-out이 없으면 web-api의
-     * {@code GlobalExceptionHandler}({@code BusinessException}·{@code ErrorCode} 사용)가 걸린다.
+     * <p><b>carve-out 3종</b>.
+     * {@code domain.exception..}은 계층 칸이 없는 <b>횡단 관심사</b>이고({@code api-common-module}이
+     * {@code api project(':domain-module')}로 공용 에러 계약을 전 모듈에 노출한다),
+     * {@code domain.shared.page..}는 챕터 06이 페이징 조립을 컨트롤러로 옮기며 <b>정상 경로</b>가 됐다
+     * (application이 {@code PageResult}를 반환하고 컨트롤러가 {@code PaginationResponse.from(...)}으로
+     * 감싼다). 세 번째가 아래 <b>도메인 enum</b>이다.
      *
-     * <p>{@code domain.shared..}는 <b>일부러 carve-out에 넣지 않는다</b> — 현재 위반 0건이고,
-     * 미리 넓히면 규칙이 무뎌진다. 이 규칙이 {@code domain.shared.page.PageResult}에도 <b>실제로
-     * 걸리는 것을 실측 확인</b>했으나, 정당한 {@code PageResult} 소비자는 이 규칙의 대상이 아닌
-     * {@code api-common-module}의 {@code PaginationResponse}이고, 페이징 응답 조립은 api 모듈이
-     * 아니라 application 서비스의 책임이다(backend/CLAUDE.md). 즉 api 모듈 클래스가
-     * {@code PageResult}를 만지는 것은 이미 그 조립 규칙 위반이므로, 여기서 걸리는 것이 옳다.
+     * <p><b>챕터 07 — 도메인 enum의 읽기 전용 accessor는 위반이 아니다(타입 성격 술어).</b>
+     * 챕터 06이 Response 조립을 컨트롤러로 올리면서 읽기 계약 {@code *Result}가 품은 도메인 enum을
+     * {@code result.type().name()}으로 읽는 것이 <b>설계상 필연</b>이 됐다. 규칙의 원래 의도는
+     * <b>승격 방향</b>(String·Long → 도메인 타입)을 막는 것인데 챕터 06이 옮긴 것은 <b>강등 방향</b>
+     * (도메인 타입 → String)이고, ArchUnit 의존 그래프는 두 방향을 구분하지 못한다. 실측 위반 67건은
+     * 전부 읽기 전용 accessor였고 도메인 객체 생성·상태 변경·리포지토리 접근은 0건이었다.
      *
-     * <p>anchor가 모듈 전체({@code noClasses()})라 클래스가 존재하는 한 <b>대상 0건이 될 수 없다</b>
-     * ({@code apiModuleMustNotContainApplicationLayer}·{@code shouldNotDependOnQuerydsl}과 같은 형태).
+     * <p><b>패키지 술어를 쓸 수 없다</b>: 도메인 enum 76개는 전부 {@code com.tastyhouse.domain.<ctx>.model}에
+     * <b>애그리거트 루트와 같은 자리</b>에 있다. carve-out을 {@code resideInAPackage("..model..")}로 쓰면
+     * {@code Shop}·{@code Order}까지 함께 열려 규칙이 무력해진다(선례: 패키지 술어 예외는 대상이 전부 그
+     * 패키지에 살면 규칙을 삼킨다). 그래서 위치가 아니라 <b>타입 성격</b>({@code JavaClass#isEnum()})으로
+     * 좁히고, {@code DOMAIN_ROOT} 패키지 조건을 함께 걸어 domain 밖 enum까지 열리지 않게 한다.
+     *
+     * <p><b>타입 수준 carve-out만으로는 이빨이 빠진다</b> — 도메인 enum은 무행위 값 집합이 아니다.
+     * 76개 중 13개가 비즈니스 로직을 노출하며({@code MemberGrade#fromReviewCount} 등급 배정 규칙,
+     * {@code OrderStatus#canTransitionTo} 상태 전이 가드), 이 규칙만 두면 컨트롤러가 그것을 호출해도
+     * 빌드가 통과한다. 짝 규칙 {@link #apiModuleShouldOnlyReadDomainEnums}가 호출 가능 메서드를
+     * accessor로 제한해 그 구멍을 막는다({@code commandRecordsShouldNotHoldMultipartFile}이 클래스 수준
+     * {@code MultipartFile} carve-out을 필드 수준에서 막는 것과 같은 구조).
+     *
+     * <p><b>⚠️ 위반은 {@code import}로 보이지 않는다</b>: ArchUnit은 import 문이 아니라 바이트코드 상수
+     * 풀을 읽으므로, 이 모듈에 {@code import com.tastyhouse.domain..}이 0건이어도 {@code *Result}
+     * 컴포넌트를 통한 <b>전이 의존</b>으로 잡힌다. 그때 대상은 {@code java.lang.Enum}이 아니라 <b>구체
+     * enum</b>이다(javac가 메서드 참조 소유자로 정적 수신 타입을 기록한다). <b>따라서 grep으로 검증하면
+     * "위반 0건"으로 오판한다</b> — 검증은 반드시 이 테스트로 한다.
+     *
+     * <p>anchor가 모듈 전체({@code noClasses()})라 클래스가 존재하는 한 <b>대상 0건이 될 수 없다</b>.
      */
     @Test
     void apiModuleShouldBeDomainModelFree() {
@@ -238,11 +274,133 @@ class LayerRulesTest {
             .should().dependOnClassesThat(
                 resideInAPackage("com.tastyhouse.domain..")
                     .and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+                    .and(not(resideInAPackage("com.tastyhouse.domain.shared.page..")))
+                    .and(not(domainEnum()))
+                    .as("도메인 모델(enum·에러 계약·페이징 계약 제외)")
             )
             .because("api 모듈은 도메인 모델을 알지 않는다(승격은 application 서비스 담당). "
-                + "공용 에러 계약 domain.exception..만 carve-out");
+                + "enum은 짝 규칙이 읽기 accessor만 허용하는 조건으로 carve-out");
 
         rule.check(classes);
+    }
+
+    /**
+     * <b>챕터 07 신설 짝 규칙</b> — api 모듈은 도메인 enum의 <b>읽기 전용 accessor만</b> 호출한다.
+     *
+     * <p>{@link #apiModuleShouldBeDomainModelFree}가 타입 수준에서 뚫어 둔 구멍을 이 규칙이 <b>메서드
+     * 수준</b>에서 막는다 — {@code commandRecordsShouldBeBoundaryTyped}가 {@code MultipartFile}을 열고
+     * {@code commandRecordsShouldNotHoldMultipartFile}이 필드 수준에서 막는 것과 같은 구조다.
+     *
+     * <p>도메인 enum 76개 중 <b>13개가 비즈니스 로직을 노출</b>한다 —
+     * {@code MemberGrade#fromReviewCount}(등급 배정 규칙)·{@code MemberGrade#isHigherThanOrEqual}·
+     * {@code OrderStatus#canTransitionTo}(상태 전이 가드)·{@code DayType#appliesTo}·
+     * {@code ClosedDayType#matches}·{@code ReservationStatus#isBlocking} 등. 타입 성격 술어만 두면
+     * 컨트롤러가 회원 등급을 계산하거나 주문 전이를 인가해도 빌드가 통과하고, <b>응답 JSON 스키마
+     * 대조로는 잡히지 않는다</b>(값이 같으면 JSON이 동일하다). 그것을 잡는 것은 이 규칙뿐이다.
+     *
+     * <p>허용 목록은 {@link #ALLOWED_DOMAIN_ENUM_ACCESSORS}이며 바이트코드 그래프 실측에서 도출했다.
+     */
+    @Test
+    void apiModuleShouldOnlyReadDomainEnums() {
+        ArchRule rule = noClasses()
+            .should().callMethodWhere(DescribedPredicate.describe(
+                "도메인 enum의 비-accessor 호출",
+                (JavaMethodCall call) -> domainEnum().test(call.getTargetOwner())
+                    && !ALLOWED_DOMAIN_ENUM_ACCESSORS.contains(call.getName())))
+            .because("api 모듈은 도메인 enum의 읽기 전용 accessor만 호출한다"
+                + "(from(String) 승격·상태 전이 판정·등급 계산은 application·domain 담당)");
+
+        rule.check(classes);
+    }
+
+    /**
+     * <b>챕터 07 신설</b> — 위 두 규칙이 <b>여전히 물린다</b>는 영구 증명.
+     *
+     * <p>두 규칙은 현재 위반 0건이므로, carve-out을 잘못 넓혀(예: {@code isEnum()} 대신 {@code ..model..}
+     * 패키지 술어로 되돌려) 규칙이 무력해져도 <b>그대로 통과한다</b>. 그 무력화를 잡는 것이 이 테스트다.
+     * 스펙이 제안한 "일부러 위반 코드를 넣어 확인 후 되돌린다"는 한 번 확인하고 사라지므로, 동일 술어를
+     * 조립해 판별력 자체를 상시 단정한다.
+     *
+     * <p>(4)가 특히 중요하다 — 술어를 {@code isEnum()}으로 좁힌 <b>이유 자체</b>(enum과 애그리거트 루트가
+     * 같은 패키지에 산다)를 고정하므로, 전제가 바뀌면 낡은 주석이 아니라 실패로 드러난다.
+     *
+     * <p>domain 클래스는 이 모듈 테스트 클래스패스에 있다 — {@code api-common-module}이
+     * {@code api project(':domain-module')}로 전이 노출한다.
+     */
+    @Test
+    void domainBoundaryPredicatesShouldStillBite() {
+        JavaClasses domainClasses = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages(DOMAIN_ROOT);
+
+        DescribedPredicate<JavaClass> forbidden = resideInAPackage("com.tastyhouse.domain..")
+            .and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+            .and(not(resideInAPackage("com.tastyhouse.domain.shared.page..")))
+            .and(not(domainEnum()));
+
+        JavaClass shop = domainClasses.get("com.tastyhouse.domain.shop.model.Shop");
+        JavaClass memberGrade = domainClasses.get("com.tastyhouse.domain.member.model.MemberGrade");
+
+        // (1) 애그리거트 루트는 여전히 금지 — carve-out을 패키지 술어로 되돌리면 여기서 실패한다.
+        if (!forbidden.test(shop)) {
+            throw new AssertionError(
+                "carve-out이 너무 넓습니다 — 애그리거트 루트 Shop이 허용 대상이 됐습니다. "
+                    + "enum 타입 성격 술어를 패키지 술어로 되돌리지 않았는지 확인하세요.");
+        }
+
+        // (2) 도메인 enum은 carve-out 대상이다.
+        if (!memberGrade.isEnum() || forbidden.test(memberGrade)) {
+            throw new AssertionError("도메인 enum MemberGrade가 carve-out되지 않았습니다.");
+        }
+
+        // (3) 짝 규칙이 막아야 할 대상이 실재한다 — 로직 메서드가 허용 목록 밖임을 단정.
+        boolean hasLogicMethodOutsideAllowList = memberGrade.getMethods().stream()
+            .anyMatch(method -> method.getName().equals("fromReviewCount")
+                && !ALLOWED_DOMAIN_ENUM_ACCESSORS.contains(method.getName()));
+        if (!hasLogicMethodOutsideAllowList) {
+            throw new AssertionError(
+                "전제가 바뀌었습니다 — MemberGrade#fromReviewCount가 없거나 허용 목록에 들어갔습니다. "
+                    + "짝 규칙 apiModuleShouldOnlyReadDomainEnums가 무엇을 막는지 재검토하세요.");
+        }
+
+        // (4) 설계 전제 고정 — 도메인 enum이 애그리거트 루트와 같은 '..model' 패키지에 공존하기 때문에
+        //     패키지 술어를 쓸 수 없다. 그 공존이 깨지면(enum 전용 패키지가 생기면) 술어를 단순화할 수
+        //     있으므로, 전제를 주석이 아니라 단정으로 고정한다.
+        long enumsInAggregatePackages = domainClasses.stream()
+            .filter(JavaClass::isEnum)
+            .filter(javaClass -> javaClass.getPackageName().startsWith(DOMAIN_ROOT))
+            .filter(javaClass -> javaClass.getPackageName().endsWith(".model"))
+            .count();
+        if (enumsInAggregatePackages == 0) {
+            throw new AssertionError(
+                "전제가 바뀌었습니다 — '..model' 패키지에 도메인 enum이 더는 없습니다. "
+                    + "enum이 자기 패키지로 분리됐다면 타입 성격 술어를 패키지 술어로 단순화할 수 "
+                    + "있는지 재검토하세요.");
+        }
+        if (!shop.getPackageName().endsWith(".model")) {
+            throw new AssertionError(
+                "전제가 바뀌었습니다 — 애그리거트 루트 Shop이 '..model' 패키지에 없습니다: "
+                    + shop.getPackageName());
+        }
+    }
+
+    /**
+     * 도메인 enum — 위치가 아니라 <b>타입 성격</b>으로 판별한다.
+     *
+     * <p>{@code isEnum()}에 {@code DOMAIN_ROOT} 패키지 조건을 함께 거는 이유는, 그냥 {@code isEnum()}이면
+     * domain 밖 enum까지 대상이 되어 술어의 의미가 흐려지기 때문이다.
+     *
+     * <p><b>{@code domain.exception..}은 제외한다</b> — {@code ErrorCode}가 enum이라서 그냥 두면 짝 규칙
+     * {@link #apiModuleShouldOnlyReadDomainEnums}이 전역 예외 핸들러의 {@code getCode()}·
+     * {@code getDefaultMessage()} 호출을 잡는다(web-api에서 실측 2건). 에러 계약은 클래스 수준 규칙에서도
+     * carve-out된 <b>횡단 관심사</b>이므로 두 규칙이 같은 예외를 공유해야 한다 — 이 술어를 두 규칙이
+     * 함께 쓰는 이유이기도 하다.
+     */
+    private static DescribedPredicate<JavaClass> domainEnum() {
+        return DescribedPredicate.describe("도메인 enum",
+            javaClass -> javaClass.isEnum()
+                && javaClass.getPackageName().startsWith(DOMAIN_ROOT)
+                && !javaClass.getPackageName().startsWith(DOMAIN_ROOT + ".exception"));
     }
 
 }

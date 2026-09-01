@@ -191,7 +191,7 @@ public class OrderQueryService implements OrderQueryUseCase {
             result.id(),
             result.paymentMethod() != null ? result.paymentMethod().name() : null,
             result.paymentStatus() != null ? result.paymentStatus().name() : null,
-            result.amount() != null ? result.amount().value() : null,
+            result.amount(),
             cupDepositAmount,
             result.cardCompany(),
             result.cardNumber(),

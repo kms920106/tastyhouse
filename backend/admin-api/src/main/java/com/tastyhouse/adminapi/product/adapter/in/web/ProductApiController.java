@@ -27,11 +27,13 @@ import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductOptionCreat
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductSearchRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductUpdateRequest;
-import com.tastyhouse.adminapplication.product.response.ProductCategoryResponse;
-import com.tastyhouse.adminapplication.product.response.ProductDetailResponse;
-import com.tastyhouse.adminapplication.product.response.ProductImagesResponse;
-import com.tastyhouse.adminapplication.product.response.ProductListItemResponse;
-import com.tastyhouse.adminapplication.product.response.ProductOptionGroupsResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductCategoryResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductDetailResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemResponse;
+import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
+import com.tastyhouse.application.product.port.out.ProductListItemResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.product.port.in.ProductCategoryCreateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductCategoryCreateUseCase;
 import com.tastyhouse.adminapplication.product.port.in.ProductCreateCommand;
@@ -93,10 +95,11 @@ public class ProductApiController {
         @Valid @ModelAttribute ProductSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ProductListItemResponse> pageResponse = productQueryUseCase.getProducts(
+        PageResult<ProductListItemResult> pageResult = productQueryUseCase.getProducts(
             search.shopId(), search.productCategoryId(), search.name(), search.visible(), search.soldOut(),
             pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ProductListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
 
@@ -111,7 +114,7 @@ public class ProductApiController {
     @Operation(summary = "상품 상세 조회", description = "상품 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProduct(@PathVariable Long id) {
-        ProductDetailResponse response = productQueryUseCase.getProduct(id);
+        ProductDetailResponse response = ProductDetailResponse.from(productQueryUseCase.getProduct(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -145,7 +148,7 @@ public class ProductApiController {
     @Operation(summary = "상품 옵션 조회", description = "상품의 옵션그룹과 옵션 목록을 조회합니다. (공통 옵션그룹 병합 포함)")
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
-        ProductOptionGroupsResponse response = productQueryUseCase.getProductOptions(id);
+        ProductOptionGroupsResponse response = ProductOptionGroupsResponse.from(productQueryUseCase.getProductOptions(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -174,7 +177,7 @@ public class ProductApiController {
     @Operation(summary = "상품 이미지 목록 조회", description = "상품에 등록된 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = productQueryUseCase.getProductImages(id);
+        ProductImagesResponse response = ProductImagesResponse.from(productQueryUseCase.getProductImages(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -194,7 +197,9 @@ public class ProductApiController {
     public ResponseEntity<ApiResponse<List<ProductCategoryResponse>>> getProductCategories(
         @Valid @ModelAttribute ProductCategorySearchRequest search
     ) {
-        List<ProductCategoryResponse> response = productQueryUseCase.getProductCategories(search.shopId());
+        List<ProductCategoryResponse> response = productQueryUseCase.getProductCategories(search.shopId()).stream()
+            .map(ProductCategoryResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -341,8 +341,8 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
      * 기존 {@code PaymentRepository#findByOrderId}와 동일한 fail-loud 시맨틱을 유지한다.
      */
     private OrderPaymentResult findPayment(OrderId orderId) {
-        return queryFactory
-            .select(Projections.constructor(OrderPaymentResult.class,
+        PaymentProjection row = queryFactory
+            .select(Projections.constructor(PaymentProjection.class,
                 paymentJpaEntity.id,
                 paymentJpaEntity.paymentMethod,
                 paymentJpaEntity.paymentStatus,
@@ -355,6 +355,32 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .from(paymentJpaEntity)
             .where(paymentJpaEntity.orderId.eq(orderId.value()))
             .fetchOne();
+
+        return row == null ? null : withUnwrappedAmount(row);
+    }
+
+    /**
+     * 투영된 {@code Amount} VO를 경계 타입 {@code Integer}로 풀어 재조립한다.
+     *
+     * <p>{@code PAYMENT.amount}가 {@code @Convert} 매핑이라 QueryDSL이 {@code SimplePath<Amount>}를
+     * 생성하므로 투영은 VO로 받을 수밖에 없고, {@code Projections.constructor}는 생성자 직접 투영이라
+     * 변환을 투영식에 넣을 수 없다. 그래서 fetch 직후에 푼다
+     * ({@code withResolvedShopThumbnailImageUrl}과 같은 형태).
+     *
+     * <p>이 언랩이 읽기 계약을 경계 타입으로 유지해, api 모듈이 {@code Amount.value()}를 호출하지
+     * 않게 한다(챕터 07 — {@code apiModuleShouldBeDomainModelFree}의 유일한 비-enum 위반이었다).
+     */
+    private OrderPaymentResult withUnwrappedAmount(PaymentProjection row) {
+        return new OrderPaymentResult(
+            row.id(),
+            row.paymentMethod(),
+            row.paymentStatus(),
+            row.amount() == null ? null : row.amount().value(),
+            row.cardCompany(),
+            row.cardNumber(),
+            row.approvedAt(),
+            row.receiptUrl()
+        );
     }
 
     private BooleanExpression shopIdEq(Long shopId) {

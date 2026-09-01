@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopHygieneBadgeCreateRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopHygieneBadgeResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopHygieneBadgeResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeQueryUseCase;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
@@ -39,7 +39,9 @@ public class ShopHygieneBadgeAdminApiController {
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")
     public ResponseEntity<ApiResponse<List<ShopHygieneBadgeResponse>>> getHygieneBadges(@PathVariable Long id) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryUseCase.getHygieneBadges(id);
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryUseCase.getHygieneBadges(id).stream()
+            .map(ShopHygieneBadgeResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

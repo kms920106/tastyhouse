@@ -24,8 +24,10 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
-import com.tastyhouse.adminapplication.shop.response.ShopContentBoardListItemResponse;
+import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
+import com.tastyhouse.domain.shared.page.PageResult;
 
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController
@@ -46,9 +48,11 @@ public class ShopContentBoardAdminApiController {
         @Valid @ModelAttribute ShopContentBoardSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PaginationResponse<ShopContentBoardListItemResponse> pageResponse = shopContentBoardQueryUseCase.getContentBoards(
+        PageResult<ShopContentBoardResult> pageResult = shopContentBoardQueryUseCase.getContentBoards(
             search.shopId(), search.hidden(), search.contentType(), pageRequest.page(), pageRequest.size()
         );
+        PaginationResponse<ShopContentBoardListItemResponse> pageResponse =
+            PaginationResponse.from(pageResult.map(ShopContentBoardListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(
             pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()
         ));

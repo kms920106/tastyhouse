@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.adminapplication.ceo.response.CeoListItemResponse;
+import com.tastyhouse.adminapi.ceo.adapter.in.web.response.CeoListItemResponse;
 import com.tastyhouse.adminapplication.ceo.port.in.CeoQueryUseCase;
 
 @Tag(name = "Ceo Admin", description = "점주 관리자 API")
@@ -27,7 +27,9 @@ public class CeoApiController {
     @Operation(summary = "점주 목록 조회", description = "가게 배정용 점주 Select 드롭다운을 위한 전체 점주 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<CeoListItemResponse>>> getCeos() {
-        List<CeoListItemResponse> ceos = ceoQueryUseCase.getCeos();
+        List<CeoListItemResponse> ceos = ceoQueryUseCase.getCeos().stream()
+            .map(CeoListItemResponse::from)
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(ceos));
     }
 }
