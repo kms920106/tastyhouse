@@ -45,7 +45,6 @@ com.tastyhouse.webapplication/
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `application-common-module` (implementation) — `{Ctx}QueryPort`·Result DTO·SearchCondition
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **auth/token이 쓰는 서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
 - `external-api` (implementation) — 소셜 로그인 SPI(`external.oauth.spi`)
 - `api-common-module` (implementation) — `PaginationResponse<T>` 등 표현 계약
@@ -74,3 +73,7 @@ web-api에 함께 있을 때는 컨트롤러가 정당하게 서블릿 타입을
 ## 빈 배선
 
 `WebApplicationConfig`(`@ComponentScan("com.tastyhouse.webapplication")`)를 `WebApiApplication`의 `@Import`에 추가한다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이다(`InfrastructureModuleConfig`·`BatchApplicationConfig` 선례).
+
+- **읽기 계약을 이 모듈이 소유한다 (챕터 09 — `application-common-module` 해체 완료)**: 이 앱만 소비하는 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`은 `src/main/java/com/tastyhouse/application/<ctx>/port/out/`에 있다. 패키지가 모듈명과 어긋나는 것은 의도된 선택이며(`infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례), 그 덕분에 계약이 어느 모듈로 가든 소비 측 import와 ArchUnit 패키지 규칙이 바뀌지 않는다.
+  - **2개 이상의 앱이 쓰는 공유 계약은 여기 두지 않고 `domain-module`이 소유한다** — 다른 앱이 이 모듈을 의존하게 되는 앱 간 수평 의존을 막기 위해서다. 새 계약을 추가하기 전에 소비 앱이 몇 개인지 먼저 센다.
+  - **프레임워크-프리를 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. 계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.

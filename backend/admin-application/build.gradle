@@ -2,7 +2,6 @@ dependencies {
     // 내부 모듈 — application 계층은 domain과 읽기 계약만 안다.
     // infrastructure를 컴파일 클래스패스에 두지 않는 것이 이 모듈 신설의 핵심이다(빌드 그래프가 계층을 강제).
     implementation project(':domain-module')
-    implementation project(':application-common-module')
     // auth 서비스가 쓰는 서블릿-프리 타입(JwtTokenProvider·Redis 토큰 저장소) 한정.
     // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 admin-api에 남는다 —
     // applicationMustBeServletFree가 강제한다.

@@ -42,7 +42,6 @@ com.tastyhouse.adminapplication/
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `application-common-module` (implementation) — `{Ctx}QueryPort`·Result DTO·SearchCondition
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소(접두사 `admin:rt:`/`admin:bl:`). **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
 - `api-common-module` (implementation) — `PaginationResponse<T>` 등 표현 계약. 이 모듈이 `api`로 노출하는 `spring-boot-starter-web`·springdoc(`@Schema`)을 전이로 받는다
 
@@ -88,5 +87,9 @@ admin-api에 함께 있을 때는 컨트롤러가 정당하게 서블릿 타입�
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 관리자 앱을 띄우는 것은 `admin-api`의 fat jar다.
-- **web-application과 서비스를 공유하지 않는다** — `NoticeQueryService`처럼 같은 이름이 두 모듈에 공존하는 것은 정상이다(패키지가 달라 충돌하지 않음). 소비자가 다르면 조회 범위·응답 형태가 다르므로 통합하지 않는다. 공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `application-common-module`의 `{Ctx}QueryPort` 계약이며, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
+- **web-application과 서비스를 공유하지 않는다** — `NoticeQueryService`처럼 같은 이름이 두 모듈에 공존하는 것은 정상이다(패키지가 달라 충돌하지 않음). 소비자가 다르면 조회 범위·응답 형태가 다르므로 통합하지 않는다. 공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 그 모듈이 소유하는 다중 앱 공유 `{Ctx}QueryPort` 계약이며, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
 - **admin/web Result 충돌 시 `Management` 한정어**를 상시 적용한다(루트 `backend/CLAUDE.md` 참고).
+
+- **읽기 계약을 이 모듈이 소유한다 (챕터 09 — `application-common-module` 해체 완료)**: 이 앱만 소비하는 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`은 `src/main/java/com/tastyhouse/application/<ctx>/port/out/`에 있다. 패키지가 모듈명과 어긋나는 것은 의도된 선택이며(`infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례), 그 덕분에 계약이 어느 모듈로 가든 소비 측 import와 ArchUnit 패키지 규칙이 바뀌지 않는다.
+  - **2개 이상의 앱이 쓰는 공유 계약은 여기 두지 않고 `domain-module`이 소유한다** — 다른 앱이 이 모듈을 의존하게 되는 앱 간 수평 의존을 막기 위해서다. 새 계약을 추가하기 전에 소비 앱이 몇 개인지 먼저 센다.
+  - **프레임워크-프리를 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. 계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.

@@ -29,8 +29,7 @@ bootJar {
     enabled = false
 }
 
-// domain-module과 application-common-module은 프레임워크-프리 모듈이라 spring 주입 대상에서 제외한다
-// (아래 별도 블록에서 설정).
+// domain-module은 프레임워크-프리 모듈이라 spring 주입 대상에서 제외한다 (아래 별도 블록에서 설정).
 // subprojects가 spring-boot-starter를 일괄 주입하면 domain-module 컴파일 클래스패스에
 // spring-core/context/beans가 올라와 `import org.springframework.stereotype.Service;`가 통과해버린다.
 // 즉 "production 의존은 Lombok 하나뿐"이라는 원칙이 리뷰 규율로만 남고 빌드로 강제되지 않는다.
@@ -40,7 +39,7 @@ bootJar {
 // include 'infrastructure:persistence' 하나만으로도 중간 경로에 해당하는 빈 프로젝트를
 // 자동 생성하므로, 여기서 제외하지 않으면 org.springframework.boot 플러그인이 적용돼
 // bootJar가 "Main class name has not been configured"로 실패한다.
-configure(subprojects.findAll { it.name != 'domain-module' && it.name != 'application-common-module' && it.path != ':infrastructure' }) {
+configure(subprojects.findAll { it.name != 'domain-module' && it.path != ':infrastructure' }) {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
@@ -94,26 +93,3 @@ project(':domain-module') {
     }
 }
 
-// application-common-module 전용 설정 — domain-module과 같은 이유로 spring-boot 플러그인과
-// spring-boot-starter 주입 없이, 버전 관리(BOM)와 테스트 실행 설정만 물려준다.
-// 이 모듈이 소유하는 것은 읽기 포트 인터페이스와 그 반환 DTO(Result·SearchCondition)뿐이며,
-// 구현은 infrastructure:persistence의 QueryDao가 맡는다. 프레임워크가 들어오면 그 계약이
-// 특정 런타임에 묶이므로 domain-module과 동일한 순수성 게이트를 적용한다.
-project(':application-common-module') {
-    apply plugin: 'java'
-    apply plugin: 'io.spring.dependency-management'
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencyManagement {
-        imports {
-            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-        }
-    }
-
-    tasks.named('test') {
-        useJUnitPlatform()
-    }
-}

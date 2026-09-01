@@ -16,7 +16,10 @@ import org.springframework.util.ClassUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * {@code <ctx>/query/} 이하 Result record가 {@code public}으로 선언되었는지 검증하는 가드 테스트.
+ * 조회 Result record가 {@code public}으로 선언되었는지 검증하는 가드 테스트.
+ *
+ * <p>대상은 infra 내부 투영({@code <ctx>/query/})과 읽기 계약({@code ..application.<ctx>.port.out})
+ * 두 갈래다 — 아래 {@link #QUERY_PACKAGE_PATTERNS} 참조.
  *
  * <p><b>왜 필요한가</b>: {@code Projections.constructor(Xxx.class, ...)}가 만드는 QueryDSL
  * {@code ConstructorExpression}은 대상 타입의 생성자를 {@code Class#getConstructors()}로 탐색하는데,
@@ -47,8 +50,21 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class QueryResultRecordVisibilityTest {
 
-    private static final String QUERY_PACKAGE_PATTERN =
-        "classpath*:com/tastyhouse/infrastructure/**/query/*.class";
+    /**
+     * 스캔 대상은 두 갈래다.
+     *
+     * <p>첫째는 infra 내부의 {@code <ctx>/query/} — DAO가 자기 패키지에 두는 중간 투영이다.
+     * 둘째는 읽기 계약 패키지 {@code com.tastyhouse.application.<ctx>.port.out} — 포트가 반환하는
+     * {@code *Result}로, {@code Projections.constructor}에 실제로 넘겨지는 것은 대부분 이쪽이다.
+     *
+     * <p><b>둘째 패턴은 챕터 09에서 추가됐다.</b> 그 전까지 이 테스트는 infra 패턴만 스캔하고 있었는데,
+     * 계약이 {@code application-common-module}로 이관된 챕터 04 이후로는 정작 주된 투영 대상이 스캔
+     * 범위 밖에 있었다(문서는 "port.out을 스캔한다"고 서술하고 있어 코드와 어긋나 있었다). 계약이 5개
+     * 모듈로 분산된 지금은 {@code classpath*:}가 그 다섯을 모두 훑으므로 한 패턴으로 전부 커버된다.
+     */
+    private static final List<String> QUERY_PACKAGE_PATTERNS = List.of(
+        "classpath*:com/tastyhouse/infrastructure/**/query/*.class",
+        "classpath*:com/tastyhouse/application/**/port/out/*.class");
 
     @Test
     @DisplayName("query 패키지의 Result record는 public이어야 한다 (QueryDSL Projections.constructor 탐색 대상)")
@@ -57,7 +73,8 @@ class QueryResultRecordVisibilityTest {
 
         // 스캔이 아무것도 못 찾으면 규칙이 공허하게 통과하므로, 대상이 존재하는 것 자체를 먼저 검증한다.
         assertThat(resultRecords)
-            .as("query 패키지에서 record를 하나도 찾지 못했다 — 스캔 패턴(%s)이 잘못되었을 수 있다", QUERY_PACKAGE_PATTERN)
+            .as("query 패키지에서 record를 하나도 찾지 못했다 — 스캔 패턴(%s)이 잘못되었을 수 있다",
+                QUERY_PACKAGE_PATTERNS)
             .isNotEmpty();
 
         List<String> nonPublicRecords = resultRecords.stream()
@@ -95,7 +112,7 @@ class QueryResultRecordVisibilityTest {
 
         List<Class<?>> records = new ArrayList<>();
         try {
-            for (Resource resource : resolver.getResources(QUERY_PACKAGE_PATTERN)) {
+            for (Resource resource : resolveAll(resolver)) {
                 String className = metadataReaderFactory.getMetadataReader(resource)
                     .getClassMetadata()
                     .getClassName();
@@ -109,9 +126,23 @@ class QueryResultRecordVisibilityTest {
                 }
             }
         } catch (IOException e) {
-            throw new IllegalStateException("query 패키지 클래스 스캔에 실패했다: " + QUERY_PACKAGE_PATTERN, e);
+            throw new IllegalStateException("query 패키지 클래스 스캔에 실패했다: " + QUERY_PACKAGE_PATTERNS, e);
         }
 
         return records;
+    }
+
+    /**
+     * 두 패턴이 매칭한 리소스를 합쳐 돌려준다.
+     *
+     * <p>같은 클래스가 두 패턴에 동시에 잡히는 일은 없다 — 패키지 경로가 서로 배타적이기 때문이다.
+     * 설령 중복되더라도 이 테스트는 "public인가"만 보므로 같은 타입을 두 번 검사할 뿐 결과가 달라지지 않는다.
+     */
+    private List<Resource> resolveAll(PathMatchingResourcePatternResolver resolver) throws IOException {
+        List<Resource> resources = new ArrayList<>();
+        for (String pattern : QUERY_PACKAGE_PATTERNS) {
+            resources.addAll(List.of(resolver.getResources(pattern)));
+        }
+        return resources;
     }
 }

@@ -12,12 +12,6 @@ dependencies {
     // 이 모듈이 전이 노출할 이유가 없다.
     // 앱 내부(com.tastyhouse.{app}application..) 침범은 의존 스코프가 아니라
     // LayerRulesTest#shouldNotDependOnApiModules가 막는다.
-    //
-    // application-common-module 의존은 아직 함께 남겨둔다 — 계약 파일이 실제로 옮겨가는 것은
-    // 챕터 05~08이므로, 지금 지우면 QueryDao가 참조하는 Result/QueryPort 259개가 전부 사라져
-    // 이 모듈이 컴파일되지 않는다. 이 챕터의 목표는 "계약이 어디로 가든 infra가 계속 컴파일되도록"
-    // 배선을 미리 까는 것이므로 두 벌을 병존시키고, 모듈 삭제는 챕터 09가 담당한다.
-    implementation project(':application-common-module')
     implementation project(':web-application')
     implementation project(':admin-application')
     implementation project(':ceo-application')

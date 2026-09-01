@@ -61,7 +61,6 @@ com.tastyhouse.application/            ← split package (챕터 06)
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `application-common-module` (implementation) — 아직 이 모듈로 옮기지 않은 `{Ctx}QueryPort`·Result DTO·SearchCondition. **챕터 06으로 ceo 단독분 61개가 이 모듈로 왔지만 의존 선언은 남긴다** — admin·web 단독분이 아직 그 모듈에 있고, 모듈 제거는 챕터 09가 담당한다
 - `security-module` (implementation) — `JwtProperties`·Redis 토큰 저장소. **서블릿-프리 타입 한정**이며, Spring Security core는 이 모듈이 `api`로 노출하는 starter를 타고 들어온다
 - `api-common-module` (implementation) — `PaginationResponse<T>`·공용 shop 응답 3종 등 표현 계약
 
@@ -108,3 +107,6 @@ ceo-api에 함께 있을 때는 컨트롤러가 정당하게 서블릿 타입을
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 점주 앱을 띄우는 것은 `ceo-api`의 fat jar다.
 - **배달팁 파트 5종의 집합 불변식**은 이 모듈의 서비스가 replace-all로 검증한다(구간 "3개 이하 + 금액 오름차순 + 팁 내림차순", 거리별↔지역별 상호 배타). 컨트롤러가 하나로 묶여 있는 이유와 판정 기준은 `ceo-api/AGENTS.md`와 루트 `backend/CLAUDE.md`의 "집합 불변식 설정 컬렉션은 replace-all PUT으로 교체하는 규칙" 참고.
 - **web/admin-application과 서비스를 공유하지 않는다** — 같은 이름이 여러 모듈에 공존하는 것은 정상이다. 공유되는 것은 `domain-module`의 write 포트·도메인 서비스와 **여러 앱이 함께 쓰는 읽기 계약**(`domain-module` 소유, 챕터 05~06)이며, 그 시그니처를 바꿀 때는 소비 모듈 전체를 함께 확인한다.
+
+- **챕터 09 갱신 — `application-common-module`이 사라졌다**: 위 [읽기 계약도 이 모듈이 소유한다](#읽기-계약도-이-모듈이-소유한다-챕터-06)의 "admin·web 단독분은 아직 그 모듈에 있다"는 전제가 해소됐다. 이제 앱 단독 계약은 각 `{앱}-application`이, 다중 앱 공유 계약은 `domain-module`이 소유하며 `application-common-module` 의존 선언도 제거됐다.
+- **프레임워크-프리는 이제 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. 계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.

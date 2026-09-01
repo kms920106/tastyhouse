@@ -6,9 +6,9 @@
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
-`domain-module`의 순수 도메인 모델을 영속화하고, `application-common-module`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, `application-common-module`이 선언한 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain-module`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
-**QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application-common-module`이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
+**QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 계약 소유 모듈 5개(`{앱}-application` 4개 + `domain-module`)가 나눠 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
 ## 패키지 구조
 
@@ -29,22 +29,22 @@ com.tastyhouse.infrastructure/
     │   ├── XxxRepositoryImpl.java        @Repository — domain XxxRepository(write 포트) 구현
     │   └── XxxIdConverter.java           AttributeConverter<XxxId, Long> (@Convert FK VO 매핑)
     ├── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**
-    │   └── XxxQueryDao.java              @Repository — application-common-module의 읽기 포트를 implements.
+    │   └── XxxQueryDao.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
     │                                     (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
     │                                     JPAQueryFactory + QXxxJpaEntity로 `Projections.constructor(XxxResult.class, ...)` 투영
     └── listener/                         크로스커팅 도메인 이벤트 리스너(@TransactionalEventListener)
 ```
 
-**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `application-common-module`의 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐다. `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
+**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐다(챕터 09 이후 소유 모듈은 소비 앱 수에 따라 `{앱}-application` 또는 `domain-module`). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
 
 현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`를 가진 도메인: `coupon`·`file`·`mail`·`member`·`payment`·`point`·`policy`·`product`·`sms`.
 
 ## 규칙
 
 - **패키지 루트는 `com.tastyhouse.infrastructure`** — web/admin/ceo/batch의 `scanBasePackages`에 이 패키지가 등록되어 있어야 빈(RepositoryImpl·QueryDao·Listener·Config)이 인식된다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain-module은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
-- **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `application-common-module`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
-- **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. `domain-module`도 `application-common-module`도 `querydsl-core`/`querydsl-apt` 의존을 완전히 제거했으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
-- **Q타입 생성 위치 (개정됨)**: `QXxxJpaEntity`(엔티티)는 이 모듈에서 생성된다(`build/generated/sources/annotationProcessor/java/main`). **`QXxxResult`(Result DTO의 Q타입)는 더 이상 생성되지 않는다** — Result record가 `application-common-module`(QueryDSL 미의존)로 이관되며 `@QueryProjection`을 뗐고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건). domain-module과 application-common-module 둘 다 apt가 없어 Q타입이 생성되지 않는다.
+- **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
+- **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
+- **Q타입 생성 위치 (개정됨)**: `QXxxJpaEntity`(엔티티)는 이 모듈에서 생성된다(`build/generated/sources/annotationProcessor/java/main`). **`QXxxResult`(Result DTO의 Q타입)는 더 이상 생성되지 않는다** — Result record가 QueryDSL을 모르는 계약 모듈로 이관되며 `@QueryProjection`을 뗐고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건). 계약 소유 모듈 어디에도 apt가 없어 Q타입이 생성되지 않는다.
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 `mail`·`sms` 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
 - **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`).
 - **저장 시맨틱은 load-copy-save**: `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
@@ -63,7 +63,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
-표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `application-common-module`의 `com.tastyhouse.application.<ctx>.port.out`이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 소비 앱 수에 따라 갈린다)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
@@ -73,6 +73,39 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
 - **소비 모듈은 web/admin/ceo-api만이 아니다**: `batch-module`도 이 DAO를 포트 인터페이스로 직접 소비한다(reference: `product` 도메인의 `ProductQueryPort#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). batch 역시 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다.
 - **Result record는 반드시 `public`이고 select 절과 생성자가 일치해야 한다**: `Projections.constructor`는 리플렉션으로 런타임에 생성자를 찾으므로, record가 package-private이거나 select 절 인자 개수·타입·순서가 생성자와 어긋나면 컴파일은 통과하고 **호출 시점에만 500**이 난다. `ProjectionConstructorMatchingTest`(이 모듈)가 select 절 인자 개수와 대상 record의 public 생성자 파라미터 개수 일치를 소스 스캔으로 검증한다. 전환·신규 작성한 쿼리는 반드시 한 번 호출해 확인한다.
+
+### 읽기 계약 가드 3종은 이 모듈이 소유한다 (챕터 09 — `application-common-module`에서 이관)
+
+계약 자체는 5개 모듈로 흩어졌지만, **그 계약을 검증하는 가드는 이 모듈에 모여 있다** — 이 모듈이 4개 application 모듈을 `implementation`으로, `domain-module`을 `api`로 의존해 **계약 소유 모듈 5개가 전부 테스트 런타임 클래스패스에 올라오는 유일한 지점**이기 때문이다.
+
+| 가드 | 무엇을 막나 | 컴파일러가 못 잡는 이유 |
+|---|---|---|
+| `QueryResultRecordVisibilityTest` | Result record가 package-private인 것 | `Projections.constructor`가 `Class<?>`를 받아 리플렉션으로 찾는다 |
+| `ProjectionConstructorMatchingTest` | select 절 인자 개수 ≠ 생성자 파라미터 개수 | 가변인자 `Expression<?>...`라 개수가 어긋나도 통과한다 |
+| `ReadContractSingleOwnerTest` | 같은 FQCN이 두 모듈에 정의되는 것 | split package라 중복 정의가 정상 컴파일된다 |
+
+**`public` record 강제의 근거는 실제 장애다.** `ShopRiderGuidePickupPresenceResult`가 "DAO 내부에서만 쓰는 중간 투영이니 노출을 좁힌다"는 의도로 package-private으로 선언되어, admin "라이더 안내 검수" 목록 조회(`GET /api/shops/v1/rider-guides`)가 **전부 500**으로 실패했다. 같은 패키지의 다른 Result record 30여 개는 모두 `public`이라 이 한 건만 어긋난 상태였고, 빌드·리뷰 어디에서도 걸리지 않아 브라우저 검증 단계에서야 발견됐다. 실패 형태는 아래와 같다.
+
+```
+com.querydsl.core.types.ExpressionException: No constructor found for class
+com.tastyhouse.infrastructure.shop.query.ShopRiderGuidePickupPresenceResult
+with parameters: [class java.lang.Long, class java.lang.String, ...]
+```
+
+**`@QueryProjection` → `Projections.constructor` 전환의 배경.** 챕터 03까지 Result record는 이 모듈이 소유해 `@QueryProjection`을 달 수 있었고, 생성된 `QXxxResult` 타입이 **컴파일 타임에** 생성자 시그니처를 강제해 주었다. 읽기 경로 포트화(챕터 04) 이후 Result가 QueryDSL을 모르는 계약 모듈로 옮겨가면서 그 어노테이션을 쓸 수 없게 됐다 — 계약 모듈에 querydsl-apt를 붙이는 것은 "QueryDSL은 infra 밖으로 새지 않는다"는 확정 결정의 역행이라 **금지**다. 잃어버린 컴파일 게이트를 위 가드 2종이 대신한다.
+
+```java
+// before (챕터 03까지, 이 모듈 소유 시절): @QueryProjection 생성자 — 컴파일 타임 검증
+.select(new QNoticeManagementListItemResult(notice.id, notice.title, notice.content, notice.visible, notice.createdAt))
+
+// after: Projections.constructor — 리플렉션, 런타임에만 실패
+.select(Projections.constructor(NoticeManagementListItemResult.class,
+    notice.id, notice.title, notice.content, notice.visible, notice.createdAt))
+```
+
+- **select 절 인자 개수·타입·순서가 record 생성자와 일치해야 한다.** 전환하는 select 절마다 record 컴포넌트 순서와 대조하고, **그 조회 경로를 실제로 한 번 호출해** 확인한다.
+- **DAO 본문에 중첩된 `private` 헬퍼 record는 가드 대상이 아니다** — `new`로 직접 조립하는 내부 계산용이라 리플렉션 탐색을 거치지 않는다. 투영에 쓰려면 애초에 독립 파일로 분리해야 하고, 그 시점에 가드 대상이 된다.
+- **`FileUrlResolver` 재조립(`withResolvedXxx` 패턴)은 이 전환과 무관하다** — fetch 직후 Result를 재조립하는 로직은 소유 모듈이 바뀌어도 그대로 동작한다.
 
 ### QueryDSL 동적 where 조건 조립 규칙 (`BooleanBuilder` 대신 `BooleanExpression` varargs 헬퍼)
 
@@ -105,7 +138,7 @@ if (condition.title() != null) { where.and(noticeJpaEntity.title.containsIgnoreC
 - 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 **where 조립이 아닌 선행 데이터 계산**은 이 규칙 대상이 아니다(계산된 집합을 최종 where에 넣을 때만 `xxxIn(Set<Long>)` 헬퍼를 쓴다).
 - **크로스 도메인 조인은 정식 Q타입으로 한다**: 전 도메인이 이 모듈로 이동해 모든 JPA 엔티티 Q타입이 같은 모듈에 있으므로, 다른 도메인 엔티티를 조인할 때 `QXxxJpaEntity`를 직접 import한다. 과거 전환 과도기에 쓰였던 `PathBuilder<Object>("XxxJpaEntity")` 문자열 우회는 전부 정식 Q타입 조인으로 복원되었으며, 신규 코드에서 이 우회를 다시 도입하지 않는다.
 
-reference 구현: `notice/query/NoticeQueryDao`(`application-common-module`의 `NoticeQueryPort` implements).
+reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort` implements).
 
 **대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 3개로 나눴다.
 
@@ -166,7 +199,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ### Internal
 - `domain-module` (api) — 도메인 모델·write 포트·출력 포트·`shared/page`·`shared/event`·`shared/exception`·`exception` 참조
-- `application-common-module` (implementation) — `{Ctx}QueryPort` 인터페이스·Result·SearchCondition을 구현·투영하기 위해 의존(QueryDao가 이 모듈의 인터페이스를 `implements`)
+- `{web,admin,ceo,batch}-application` (implementation) — 각 앱이 소유한 `{Ctx}QueryPort`·Result·SearchCondition을 구현·투영하기 위해 4개 모두 의존한다(QueryDao가 그 인터페이스를 `implements`). 다중 앱 공유 계약은 `domain-module` 소유라 위 `api project(':domain-module')`로 이미 보인다
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`

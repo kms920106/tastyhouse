@@ -35,6 +35,16 @@ class LayerRulesTest {
         .importPackages("com.tastyhouse.webapplication");
 
     /**
+     * 챕터 08으로 이 모듈이 소유하게 된 web 단독 읽기 계약(split package).
+     *
+     * <p>위 {@code classes}와 분리하는 이유는, 기존 규칙들이 {@code com.tastyhouse.application..port.out..}을
+     * <b>외부</b>로 취급하기 때문이다. 한 importer에 합치면 계약 자신이 그 규칙의 대상이 되어 의미가 뒤집힌다.
+     */
+    private final JavaClasses readContracts = new ClassFileImporter()
+        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+        .importPackages("com.tastyhouse.application");
+
+    /**
      * CQRS 교차 주입 금지(명령 → 조회). web-api에서 이동한 규칙이다.
      *
      * <p>{@code *CommandService}는 읽기 포트({@code com.tastyhouse.application..port.out..})와
@@ -270,6 +280,34 @@ class LayerRulesTest {
             .because("앱 간 수평 의존을 두지 않는다 — 공유 읽기 계약은 domain-module이 소유한다");
 
         rule.check(classes);
+    }
+
+    /**
+     * 읽기 계약은 프레임워크-프리를 유지한다(챕터 09).
+     *
+     * <p>이 계약들은 원래 {@code application-common-module}에 있었고, 그 모듈이 루트 build.gradle의
+     * spring-boot-starter 일괄 적용에서 <b>제외</b>돼 있어 {@code org.springframework} import가 아예
+     * 컴파일 에러였다 — 프레임워크-프리가 빌드 게이트로 강제되던 것이다. 챕터 08으로 이 모듈에
+     * 들어오면서 그 게이트가 사라졌다(이 모듈은 starter를 받는다). 잃어버린 강제를 규칙으로 되살린다.
+     *
+     * <p>허용 대상을 {@code java..}·{@code com.tastyhouse.domain..}과 자기 자신으로 한정한다. 계약이
+     * 참조해도 되는 것은 도메인 타입뿐이며, 이는 build.gradle을 바꾸지 않고도 계약을 옮길 수 있었던
+     * 근거이기도 하다.
+     */
+    @Test
+    void readContractsShouldBeFrameworkFree() {
+        ArchRule rule = classes()
+            .that().resideInAPackage("com.tastyhouse.application..port.out..")
+            .should().onlyDependOnClassesThat()
+            .resideInAnyPackage(
+                "java..",
+                "com.tastyhouse.domain..",
+                "com.tastyhouse.application..port.out.."
+            )
+            .because("읽기 계약은 도메인 타입만 참조한다 — application-common-module에서 "
+                + "빌드 게이트로 강제되던 프레임워크-프리를 규칙으로 승계한다");
+
+        rule.check(readContracts);
     }
 
 }

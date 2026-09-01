@@ -23,6 +23,11 @@ class RuleAnchorTest {
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.batchapplication");
 
+    /** {@code LayerRulesTest#readContractsShouldBeFrameworkFree}가 쓰는 importer와 동일 범위. */
+    private final JavaClasses readContracts = new ClassFileImporter()
+        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+        .importPackages("com.tastyhouse.application");
+
     /** {@code applicationServicesShouldNotDependOnWebLayer} · {@code schedulerServicesShouldImplementUseCase}의 anchor. */
     @Test
     void schedulerServicesExist() {
@@ -63,6 +68,22 @@ class RuleAnchorTest {
         assertThat(classes.size())
             .as("모듈이 비면 noClasses() 전역 규칙이 전부 공허하게 통과한다")
             .isGreaterThanOrEqualTo(28);
+    }
+
+    /**
+     * {@code readContractsShouldBeFrameworkFree}의 anchor(챕터 09).
+     *
+     * <p>이 계약들은 {@code com.tastyhouse.batchapplication}이 아니라 split package인
+     * {@code com.tastyhouse.application}에 있어 위 {@code classes} importer에 잡히지 않는다.
+     * 별도 anchor가 없으면 계약이 통째로 사라져도 규칙이 조용히 통과한다.
+     */
+    @Test
+    void readContractsExist() {
+        assertThat(readContracts.stream()
+            .filter(c -> resideInAPackage("..port.out..").test(c))
+            .count())
+            .as("batch 단독 읽기 계약이 0건이면 프레임워크-프리 규칙이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(2);
     }
 
 }

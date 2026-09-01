@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * canonical 생성자 파라미터 개수와 일치하는지 검증하는 가드 테스트.
  *
  * <p><b>왜 필요한가</b>: 읽기 경로 포트화(챕터 04)로 Result record가 infrastructure-module 밖
- * {@code application-common-module}으로 이동하면서 {@code @QueryProjection}을 쓸 수 없게 되었다.
+ * 읽기 계약 패키지 {@code com.tastyhouse.application..port.out}로 이동하면서 {@code @QueryProjection}을 쓸 수 없게 되었다.
  * {@code @QueryProjection}은 생성된 {@code QXxxResult} 타입이 <b>컴파일 타임에</b> 생성자 시그니처를
  * 강제해 주었지만, 그 대체인 {@code Projections.constructor}는 {@code Class<?>}와 가변인자
  * {@code Expression<?>...}를 받으므로 <b>개수·타입이 어긋나도 컴파일이 통과</b>한다. 실패는 해당

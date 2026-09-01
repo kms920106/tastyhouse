@@ -38,7 +38,7 @@
 - **출력 포트는 `<ctx>/port/`에 둔다**: 외부 시스템을 도메인이 인터페이스로 선언하고 `external-api`가 구현한다(`file/port/FileStoragePort`, `payment/port/PgPaymentGateway`, `mail/port/MailSender`, `sms/port/SmsSender`, `product/port/ProductReviewStatisticsPort`, `rank/port/MemberReviewCountPort`). 이벤트 발행 포트는 `shared/event/DomainEventPublisher`이며 스프링 구현은 infrastructure-module의 `SpringDomainEventPublisher`다.
 - **낙관적 락 충돌은 `shared/exception/OptimisticLockConflictException`으로 표현**한다. 스프링의 `ObjectOptimisticLockingFailureException`을 이 예외로 번역하는 책임은 `infrastructure:persistence`의 `RepositoryImpl`에 있고, 재시도 루프는 소비 모듈에 둔다(상세는 루트 CLAUDE.md "낙관적 락 재시도 배치 규칙").
 - **command 파라미터는 원시 타입 또는 도메인 타입으로 받는다**: presentation의 Request 타입을 인자로 받는 팩토리·메서드를 두지 않는다(레이어 역전 방지). HTTP 경계는 `String`/`Long`으로 받고 api 모듈 서비스에서 `Enum.from(String)`·`XxxId.of(Long)`으로 승격한 뒤 이 모듈에 전달한다.
-- **조회 결과 DTO를 `com.tastyhouse.domain..` 안에 두지 않는다**: Result record와 `SearchCondition`은 도메인 모델이 아니다. 앱 전용 투영은 `application-common-module`(챕터 04)이, **다중 앱 공유분은 이 모듈의 `com.tastyhouse.application..port.out`**(챕터 05)이 소유한다 — 후자는 물리적 거처만 이 모듈일 뿐 패키지가 `com.tastyhouse.domain..`이 아니라서 도메인 순수성 규칙의 대상이 아니다. 아래 [공유 읽기 계약](#공유-읽기-계약은-이-모듈이-소유한다-챕터-05) 절을 먼저 읽는다. 접미어 `Result` 통일·`Dto` 금지·admin 충돌 시 `Management` 한정어 규칙은 위치와 무관하게 적용된다.
+- **조회 결과 DTO를 `com.tastyhouse.domain..` 안에 두지 않는다**: Result record와 `SearchCondition`은 도메인 모델이 아니다. 앱 전용 투영은 그 앱의 `{앱}-application`(챕터 06~08)이, **다중 앱 공유분은 이 모듈의 `com.tastyhouse.application..port.out`**(챕터 05)이 소유한다 — 후자는 물리적 거처만 이 모듈일 뿐 패키지가 `com.tastyhouse.domain..`이 아니라서 도메인 순수성 규칙의 대상이 아니다. 아래 [공유 읽기 계약](#공유-읽기-계약은-이-모듈이-소유한다-챕터-05) 절을 먼저 읽는다. 접미어 `Result` 통일·`Dto` 금지·admin 충돌 시 `Management` 한정어 규칙은 위치와 무관하게 적용된다.
 - **QueryDSL 동적 where 조립 규칙은 이 모듈 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure:persistence`(`<ctx>/query/`의 QueryDao)의 규칙이다 — `infrastructure-module/AGENTS.md` 참고.
 
 ### 공유 읽기 계약은 이 모듈이 소유한다 (챕터 05)
@@ -61,15 +61,15 @@
 
 **패키지가 `com.tastyhouse.domain..`이 아닌 것은 의도다.** `DomainPurityTest`·`ContextBoundaryTest`는 `importPackages("com.tastyhouse.domain")`으로 대상을 모으므로 이 계약들은 스캔 범위 밖이다. 읽기 계약은 도메인 모델이 아니라 표현용 투영이라 컨텍스트 경계 규칙(`model`/`repository`/`service` 상호 참조 금지)의 대상이어서는 안 되기 때문이다 — **회피가 아니라 정확한 구분**이며, 모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례다. 덕분에 소비 측 import와 ArchUnit 규칙 패턴(`com.tastyhouse.application..port.out..`)이 이동으로 인해 바뀌지 않았다.
 
-**여기에 무엇을 추가할 수 있나.** 소비 앱이 하나면 두지 않는다 — `application-common-module`(또는 그 앱의 application 모듈) 소관이다. 둘 이상이더라도 **판정이 애매하면 각 앱이 선언 중복으로 갖고 이 모듈로 보내지 않는다.** 이 모듈이 표현 투영의 쓰레기통이 되면 과거 domain-module 배치 기각 사유("표현 목적 투영 184개가 순수 도메인에 섞인다")가 되살아난다. 기준은 "점주가 설정하고 회원이 보고 관리자가 검수하는 도메인 개념 자체인가"이다.
+**여기에 무엇을 추가할 수 있나.** 소비 앱이 하나면 두지 않는다 — 그 앱의 `{앱}-application` 소관이다. 둘 이상이더라도 **판정이 애매하면 각 앱이 선언 중복으로 갖고 이 모듈로 보내지 않는다.** 이 모듈이 표현 투영의 쓰레기통이 되면 과거 domain-module 배치 기각 사유("표현 목적 투영 184개가 순수 도메인에 섞인다")가 되살아난다. 기준은 "점주가 설정하고 회원이 보고 관리자가 검수하는 도메인 개념 자체인가"이다.
 
-**패키지가 두 모듈에 걸쳐 있다(split package) — 지금은 안전하지만 전제가 있다.** 8개 `com.tastyhouse.application.<ctx>.port.out` 패키지가 이 모듈과 `application-common-module` 양쪽에 존재한다. 이것이 문제를 일으키지 않는 조건은 셋이고, 전부 현재 충족된다.
+**패키지가 여러 모듈에 걸쳐 있다(split package) — 지금은 안전하지만 전제가 있다.** `com.tastyhouse.application.<ctx>.port.out` 패키지가 이 모듈과 `{앱}-application` 4개에 걸쳐 존재한다(챕터 09로 `application-common-module`이 사라지며 소유가 5개 모듈로 갈렸다). **같은 FQCN이 두 모듈에 정의되면 클래스패스 순서로 한쪽이 조용히 이기므로, `infrastructure:persistence`의 `ReadContractSingleOwnerTest`가 이를 검출한다.** 이것이 문제를 일으키지 않는 조건은 셋이고, 전부 현재 충족된다.
 
 1. **JPMS를 쓰지 않는다** — 리포 전체에 `module-info.java`가 0개다. 모듈 시스템은 split package를 하드 에러로 막지만, 평범한 클래스패스는 허용한다. **JPMS를 도입하려면 이 배치를 먼저 재검토해야 한다.**
 2. **양방향 모두 package-private 결합이 없다** — 옮긴 50개와 남은 쪽 모두 최상위 타입이 전부 `public`이다. package-private 타입이 생기면 같은 패키지인데도 jar 경계를 넘지 못해 컴파일이 깨진다.
 3. **FQN 중복이 없다** — 두 jar에 같은 이름의 클래스가 없어 클래스로더 shadowing이 발생하지 않는다(fat jar의 `BOOT-INF/lib/` 안에서 확인).
 
-이동의 부수효과로 `application-common-module`의 포트 23개 파일이 옮겨간 Result를 **import 없이 같은 패키지로 참조**하게 됐다(예: `ShopQueryPort`가 `ShopAmenityCategoryResult`를 import 없이 사용). 같은 패키지라 컴파일되지만 **선언 위치가 다른 jar라는 사실이 소스에 드러나지 않으므로**, 이 파일들을 읽을 때 해당 타입을 `application-common-module`에서 찾으면 없다. 옮겨간 50개 목록은 위 표와 구성 문단을 기준으로 삼는다.
+이동의 부수효과로 앱 소유 포트들이 이 모듈로 옮겨간 Result를 **import 없이 같은 패키지로 참조**하게 됐다(예: `ShopQueryPort`가 `ShopAmenityCategoryResult`를 import 없이 사용). 같은 패키지라 컴파일되지만 **선언 위치가 다른 jar라는 사실이 소스에 드러나지 않으므로**, 이 파일들을 읽을 때 해당 타입을 자기 모듈에서 찾으면 없다. 옮겨간 50개 목록은 위 표와 구성 문단을 기준으로 삼는다.
 
 **프레임워크-프리 게이트가 그대로 적용된다.** 이 모듈은 spring 주입 제외 대상이므로 옮겨온 계약에 `import org.springframework...`가 한 줄이라도 있으면 **컴파일 에러**다. 현재 50개 파일의 import는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..` 뿐이고, 참조하는 도메인 타입은 enum과 `Amount` VO뿐이다(애그리거트·리포지토리·서비스 참조 0건).
 
@@ -94,3 +94,5 @@
 - 테스트: `junit-jupiter`, `assertj-core`, `archunit-junit5` — 실제로 쓰는 것만 선언한다. `spring-boot-starter-test`는 **의도적으로 제외**(도메인 테스트는 전부 순수 단위 테스트라 스프링 컨텍스트가 필요 없고, starter를 두면 테스트 클래스패스로 spring이 되돌아와 순수성 검증이 무뎌진다)
 
 <!-- MANUAL: -->
+
+- **공유 읽기 계약의 순수성은 `ReadContractPurityTest`가 지킨다 (챕터 09 신설)**: 이 모듈이 소유한 계약은 패키지가 `com.tastyhouse.application..`이라 `DomainPurityTest`·`ContextBoundaryTest`의 스캔 범위(`importPackages("com.tastyhouse.domain")`) **밖**에 있다 — 그것이 의도된 구분이다(읽기 계약은 도메인 모델이 아니라 표현용 투영이므로 컨텍스트 경계 규칙의 대상이어서는 안 된다). 순수성만은 별도로 지켜야 하므로 전용 테스트를 뒀다. 프레임워크 차단 자체는 이 모듈에서 여전히 **컴파일 게이트**가 1차로 담당하므로, 이 규칙의 실질적 역할은 계약이 `domain..model`의 애그리거트·리포지토리를 끌어다 쓰는 것을 막는 **2차 방어선**이다.

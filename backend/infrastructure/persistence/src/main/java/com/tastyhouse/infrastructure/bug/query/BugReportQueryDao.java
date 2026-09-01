@@ -196,7 +196,7 @@ public class BugReportQueryDao implements BugReportQueryPort {
      * 스칼라 투영과 이미지 2차 조회 결과를 최종 Result로 합친다.
      *
      * <p>조립에 쓰는 {@link BugReportDetailProjection}은 이 어댑터 내부 전용 타입이라 포트 DTO 쪽에
-     * 팩토리를 둘 수 없다(둘 경우 application-common-module이 infra를 참조하게 된다).
+     * 팩토리를 둘 수 없다(둘 경우 읽기 계약이 infra를 참조하게 된다).
      */
     private BugReportDetailResult toDetailResult(BugReportDetailProjection projection,
                                                  List<BugReportImageResult> images) {

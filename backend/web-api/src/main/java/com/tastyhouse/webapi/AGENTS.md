@@ -15,7 +15,7 @@
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
 | `ratelimit/` | 분산 Rate Limiting. RateLimit 애노테이션, RateLimitAspect(AOP), RateLimiterService(Redis 기반), RateLimitKeyType(사용자/IP/전역). |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
-| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PaginationResponse<T> (표준 4필드 페이징 응답 공용 제네릭 — 도메인별 `XxxPageResponse`를 만들지 않는다). 서비스가 `{Ctx}QueryPort`(application-common-module)로부터 받는 `PageResult<T>`(domain-module `shared/page`)를 `PaginationResponse.from(...)`으로 변환한다. |
+| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PaginationResponse<T> (표준 4필드 페이징 응답 공용 제네릭 — 도메인별 `XxxPageResponse`를 만들지 않는다). 서비스가 `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)로부터 받는 `PageResult<T>`(domain-module `shared/page`)를 `PaginationResponse.from(...)`으로 변환한다. |
 
 ## Feature Packages
 | Package | Purpose |
@@ -53,7 +53,7 @@
 - **`record`는 별도 파일로 분리** — 서비스/컨트롤러 본문에 응답 record를 중첩 선언하지 않고 feature 폴더의 `response/`에 `public record`로 둔다(reference: `notice/response/NoticeListItemResponse`). 단, `content`/`page`/`size`/`totalElements` 표준 페이징 응답은 도메인 폴더에 만들지 않고 `common/PaginationResponse<T>` 공용 제네릭을 재사용한다(reference: `notice`/`order`/`policy` 도메인의 페이징 조회 메서드). 상세는 루트 CLAUDE.md의 "페이징 응답 공용 제네릭 래퍼 규칙" 참고.
 - **컨트롤러는 도메인별 application 서비스만 호출** — repository/JPA·QueryDSL에 직접 접근하지 않는다. 도메인당 **CQRS로 분리된 두 서비스**를 각각 주입한다(reference: `order/OrderCommandService`+`OrderQueryService`, `payment/PaymentCommandService`+`PaymentQueryService`).
   - `{도메인}CommandService`(`@Transactional`): domain write 포트·도메인 서비스만 주입. 생성/수정/삭제/상태전이를 수행하고 **식별자만 반환**한다.
-  - `{도메인}QueryService`(`@Transactional(readOnly = true)`): `application-common-module`의 `{Ctx}QueryPort` 인터페이스만 주입(infra DAO 구현체는 알지 않는다). 조회와 Response 조립(private 매퍼)을 담당한다.
+  - `{도메인}QueryService`(`@Transactional(readOnly = true)`): `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스만 주입(infra DAO 구현체는 알지 않는다). 조회와 Response 조립(private 매퍼)을 담당한다.
   - **등록(POST)은 생성된 `Long` id만 반환**한다 — `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, 커밋 이후 QueryService로 재조회해 상세 DTO를 조립하지 않는다(과거 이 모듈만 등록 8종이 재조회 형태였으나 전면 전환됨). 생성 응답 전용 래퍼 record를 만들지 않고, 행을 생성하고도 `ApiResponse<Void>`를 반환하지 않는다. 상세가 필요한 클라이언트는 그 id로 GET 상세를 호출한다. 업로드·인증/토큰 발급·토글·상태전이·POST-as-query는 적용 제외. 상세는 루트 CLAUDE.md 참고. 수정(PUT)·상태전이(PATCH) 응답에서 상세 DTO가 필요하면 종전대로 QueryService 재조회로 조립한다.
   - 인증·회원·파일·등급·추천처럼 애그리거트 CRUD가 아닌 흐름 지향 서비스는 CQRS 쌍이 아닌 단일 서비스로 남아 있다(`auth/AuthService`, `member/MemberService`, `file/FileService`, `grade/GradeService`, `referral/ReferralService`).
 - **도메인 enum은 컨트롤러/Request에 core 타입으로 노출하지 않는다** — HTTP 경계는 `String`(다중값 `List<String>`)으로 받고 `{도메인}CommandService`/`{도메인}QueryService`에서 domain enum의 `Enum.from(String)`으로 승격한다(ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭). String 파라미터에는 `@Schema(allowableValues={...})`/`@Parameter(...)`로 Swagger 후보값을 명시하고, 변환 실패는 domain enum `from()`에서 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`으로 처리한다(reference: `event/EventQueryService`·`EventStatus`, `shop/ShopQueryService`·`FoodType`/`Amenity`). 상세는 루트 CLAUDE.md 참고.
@@ -73,7 +73,7 @@
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.
 - **성공 응답은 `ApiResponse`, 에러 응답은 `ProblemDetail`**: `ApiResponse`는 `success(data)`·`success(data, page, size, totalElements)` 두 정적 팩토리만 갖는 **성공 전용** 타입이다(`error(...)`는 없다). 에러는 GlobalExceptionHandler가 RFC7807 `ProblemDetail`로 응답하며, `errorCode` property에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용된다.
-- **페이징**: `common/PageRequest`(size/page) → `{Ctx}QueryPort`(application-common-module)가 `PageResult<T>`(domain-module `shared/page`) 반환 → 서비스가 `common/PaginationResponse.from(pageResult)`로 변환.
+- **페이징**: `common/PageRequest`(size/page) → `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)가 `PageResult<T>`(domain-module `shared/page`) 반환 → 서비스가 `common/PaginationResponse.from(pageResult)`로 변환.
 - **@CurrentUser** 커스텀 애노테이션으로 인증된 사용자 주입 — SecurityContextHolder 간접화.
 - **CQS**: 트랜잭션 경계를 이 패키지가 소유한다 — `{도메인}CommandService`는 `@Transactional`, `{도메인}QueryService`는 `@Transactional(readOnly = true)`. domain-module의 도메인 서비스는 POJO라 `@Transactional`을 갖지 않는다.
 
@@ -81,7 +81,6 @@
 
 ### Internal
 - `domain-module` — 도메인 모델·VO·write 포트·도메인 서비스, 도메인 예외 (BusinessException, ErrorCode), 페이징 계약 (PageQuery/PageResult).
-- `application-common-module` — `{Ctx}QueryPort` 인터페이스·Result DTO·SearchCondition (조회 계약 전용).
 - `infrastructure-module` — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단).
 - `external-api` — OAuth 로그인, 결제, 이메일/SMS, 파일 업로드, 크롤링 어댑터.
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit.

@@ -40,7 +40,6 @@ com.tastyhouse.batchapplication/
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `application-common-module` (implementation) — `{Ctx}QueryPort`·Result DTO
 - `external-api` (implementation) — `BbqApiClient`·`RemoteImageDownloader` (위 crawling 판단의 귀결)
 
 ### External
@@ -49,7 +48,7 @@ com.tastyhouse.batchapplication/
 
 ### infrastructure 의존 없음 — 이 모듈의 핵심
 
-**`import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다.** `domain-module`·`application-common-module`의 프레임워크-프리 컴파일 게이트와 같은 방식으로, 계층 규칙이 리뷰 규율이 아니라 빌드 게이트가 된다. ArchUnit `shouldNotDependOnInfrastructure`는 누군가 build.gradle에 의존 한 줄을 되돌리는 회귀를 막는 2차 방어선이다(컴파일은 통과하고 계층만 조용히 무너지는 경우).
+**`import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다.** `domain-module`의 프레임워크-프리 컴파일 게이트와 같은 방식으로, 계층 규칙이 리뷰 규율이 아니라 빌드 게이트가 된다. ArchUnit `shouldNotDependOnInfrastructure`는 누군가 build.gradle에 의존 한 줄을 되돌리는 회귀를 막는 2차 방어선이다(컴파일은 통과하고 계층만 조용히 무너지는 경우).
 
 ## ArchUnit (`architecture/LayerRulesTest`)
 
@@ -86,3 +85,7 @@ batch-module에서 이동한 5개 + 물리 분리로 비로소 표현 가능해�
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 배치를 띄우는 것은 `batch-module`의 fat jar다.
 - **빈 배선 실수는 빌드로 드러나지 않는다** — batch에는 `contextLoads` 테스트가 없어서 `@Import` 누락 시 빌드는 green이고 jar만 조용히 깨진다. 배선을 건드렸으면 실제로 띄워 `Started BatchApplication` 마커를 확인한다(`batch-module/AGENTS.md`의 명령 참고).
+
+- **읽기 계약을 이 모듈이 소유한다 (챕터 09 — `application-common-module` 해체 완료)**: 이 앱만 소비하는 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`은 `src/main/java/com/tastyhouse/application/<ctx>/port/out/`에 있다. 패키지가 모듈명과 어긋나는 것은 의도된 선택이며(`infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례), 그 덕분에 계약이 어느 모듈로 가든 소비 측 import와 ArchUnit 패키지 규칙이 바뀌지 않는다.
+  - **2개 이상의 앱이 쓰는 공유 계약은 여기 두지 않고 `domain-module`이 소유한다** — 다른 앱이 이 모듈을 의존하게 되는 앱 간 수평 의존을 막기 위해서다. 새 계약을 추가하기 전에 소비 앱이 몇 개인지 먼저 센다.
+  - **프레임워크-프리를 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. 계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.

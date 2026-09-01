@@ -192,10 +192,12 @@ frontend/   Next.js 앱 3개 — web(사용자 모바일 웹) · admin(관리자
 docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
 ```
 
-- **backend 모듈** (`backend/settings.gradle`): 총 18개이며 세 갈래입니다.
+- **backend 모듈** (`backend/settings.gradle`): 총 17개이며 세 갈래입니다.
   - **실행 앱 4개**(bootJar): `web-api`, `admin-api`, `ceo-api`, `batch-module` — 컨트롤러/스케줄러 트리거와 부트스트랩만 갖는 thin adapter입니다.
   - **앱별 application 계층 4개**: `web-application`, `admin-application`, `ceo-application`, `batch-application` — 유스케이스(인바운드 포트 + CQRS 서비스)를 소유하며 infrastructure를 컴파일 클래스패스에 두지 않습니다.
-  - **공유 모듈**: `domain-module`, `application-common-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-module`, `logging-module`, `api-common-module`.
+  - **공유 모듈**: `domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-module`, `logging-module`, `api-common-module`.
+
+  읽기 계약(`com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`)을 담던 `application-common-module`은 계약이 전부 소유 모듈로 옮겨가며 **삭제됐습니다**(18 → 17개). 지금은 한 앱만 쓰는 계약은 그 앱의 `{앱}-application`이, 2개 이상이 쓰는 공유 계약은 `domain-module`이 소유합니다 — 패키지는 그대로라 한 최상위 패키지를 5개 모듈이 나눠 갖습니다.
 
   `infrastructure`는 기술별로 나뉜 **중첩 프로젝트**입니다(디렉터리 `backend/infrastructure/{persistence,redis}/`, Gradle 좌표 `:infrastructure:persistence`·`:infrastructure:redis`). 자바 패키지는 `com.tastyhouse.infrastructure..`로 불변입니다. 모듈 지도와 배치 기준은 `backend/CLAUDE.md`의 "모듈 지도" 절을 참조합니다.
 - **작업 전 해당 영역 문서를 먼저 읽습니다.** backend 각 모듈과 frontend 각 앱의 `src/` 하위 디렉터리에는 그 영역의 최신 상세 가이드가 담긴 `AGENTS.md`가 있으므로, 이 파일의 요약에 의존하지 말고 해당 문서를 직접 확인합니다.
