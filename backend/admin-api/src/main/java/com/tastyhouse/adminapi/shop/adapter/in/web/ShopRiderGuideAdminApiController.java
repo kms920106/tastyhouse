@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideManagementCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideRevisionCommand;
 
@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderGuideSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideDeleteRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideRevisionRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
@@ -41,10 +41,10 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RequestMapping("/api/shops")
 public class ShopRiderGuideAdminApiController {
 
-    private final ShopRiderGuideQueryUseCase shopRiderGuideQueryUseCase;
-    private final ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase;
+    private final ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase;
+    private final ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase;
 
-    public ShopRiderGuideAdminApiController(ShopRiderGuideQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
+    public ShopRiderGuideAdminApiController(ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase) {
         this.shopRiderGuideQueryUseCase = shopRiderGuideQueryUseCase;
         this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
     }
@@ -70,7 +70,7 @@ public class ShopRiderGuideAdminApiController {
         description = "가게 단건의 라이더 안내 문구·픽업 위치와 최근 변경 이력(최대 20건)을 조회합니다.")
     @GetMapping("/v1/{id}/rider-guide")
     public ResponseEntity<ApiResponse<ShopRiderGuideDetailResponse>> getRiderGuide(@PathVariable Long id) {
-        ShopRiderGuideQueryUseCase.ShopRiderGuideDetail detail = shopRiderGuideQueryUseCase.getRiderGuide(id);
+        ShopRiderGuideManagementQueryUseCase.ShopRiderGuideDetail detail = shopRiderGuideQueryUseCase.getRiderGuide(id);
         ShopRiderGuideDetailResponse response = ShopRiderGuideDetailResponse.from(detail.guide(), detail.histories());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -79,7 +79,7 @@ public class ShopRiderGuideAdminApiController {
         description = "등록 기준에 벗어난 안내 문구를 삭제하고 사유와 함께 이력을 남깁니다. 픽업 위치는 유지됩니다.")
     @DeleteMapping("/v1/{id}/rider-guide/visit-guide")
     public ResponseEntity<ApiResponse<Void>> deleteVisitGuide(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderVisitGuideDeleteRequest request
     ) {
@@ -92,7 +92,7 @@ public class ShopRiderGuideAdminApiController {
         description = "안내 문구는 그대로 두고 수정 요청 이력만 남깁니다. 점주 알림 발송은 후속 과제입니다.")
     @PostMapping("/v1/{id}/rider-guide/visit-guide/revision-request")
     public ResponseEntity<ApiResponse<Long>> requestRevision(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderVisitGuideRevisionRequest request
     ) {
@@ -105,11 +105,11 @@ public class ShopRiderGuideAdminApiController {
         description = "라이더 제보를 반영해 픽업 위치를 관리자가 직접 수정합니다. 가게 실주소·좌표는 변경되지 않습니다.")
     @PutMapping("/v1/{id}/rider-guide/pickup-location")
     public ResponseEntity<ApiResponse<Void>> updatePickupLocation(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderPickupLocationUpdateRequest request
     ) {
-        ShopRiderPickupLocationUpdateCommand command = request.toCommand(id, userDetails.getPrincipalId());
+        ShopRiderPickupLocationManagementUpdateCommand command = request.toCommand(id, userDetails.getPrincipalId());
         shopRiderGuideCommandUseCase.updatePickupLocation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

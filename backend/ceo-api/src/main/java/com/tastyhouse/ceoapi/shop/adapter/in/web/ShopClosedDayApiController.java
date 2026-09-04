@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopHolidayClosureUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopTemporaryClosureCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerDeleteCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopHolidayClosureUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureDeleteCommand;
@@ -44,7 +44,7 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 휴무 통합 조회", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부·정기 휴무·임시 휴무를 통합 조회합니다.")
     @GetMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<ShopClosedDaysResponse>> getClosedDays(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopClosedDaysResponse response =
@@ -55,7 +55,7 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 공휴일 휴무 설정", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부를 변경합니다.")
     @PutMapping("/v1/{id}/closed-days/holiday")
     public ResponseEntity<ApiResponse<Void>> updateHolidayClosure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopHolidayClosureUpdateRequest request
     ) {
@@ -67,11 +67,11 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 정기 휴무 추가", description = "로그인한 점주가 소유한 가게에 정기 휴무를 추가합니다(최대 15개).")
     @PostMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<Long>> createClosedDay(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopClosedDayCreateRequest request
     ) {
-        ShopClosedDayCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        ShopClosedDayOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
         Long closedDayId = shopClosedDayCommandUseCase.createClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(closedDayId));
     }
@@ -79,10 +79,10 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 정기 휴무 삭제", description = "로그인한 점주가 소유한 가게의 정기 휴무를 삭제합니다.")
     @DeleteMapping("/v1/closed-days/{closedDayId}")
     public ResponseEntity<ApiResponse<Void>> deleteClosedDay(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long closedDayId
     ) {
-        ShopClosedDayDeleteCommand command = ShopClosedDayDeleteCommand.of(userDetails.getCeoId(), closedDayId);
+        ShopClosedDayOwnerDeleteCommand command = ShopClosedDayOwnerDeleteCommand.of(userDetails.getCeoId(), closedDayId);
         shopClosedDayCommandUseCase.deleteClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -90,7 +90,7 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 임시 휴무 등록", description = "로그인한 점주가 소유한 가게에 임시 휴무를 등록합니다(누적 최대 30일).")
     @PostMapping("/v1/{id}/temporary-closures")
     public ResponseEntity<ApiResponse<Long>> createTemporaryClosure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopTemporaryClosureCreateRequest request
     ) {
@@ -102,7 +102,7 @@ public class ShopClosedDayApiController {
     @Operation(summary = "내 가게 임시 휴무 삭제", description = "로그인한 점주가 소유한 가게의 임시 휴무를 삭제합니다.")
     @DeleteMapping("/v1/temporary-closures/{temporaryClosureId}")
     public ResponseEntity<ApiResponse<Void>> deleteTemporaryClosure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long temporaryClosureId
     ) {
         ShopTemporaryClosureDeleteCommand command = ShopTemporaryClosureDeleteCommand.of(userDetails.getCeoId(), temporaryClosureId);

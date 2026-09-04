@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.review.adapter.in.web;
 
 import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestApproveCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestCommandUseCase;
+import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestManagementCommandUseCase;
 import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestRejectCommand;
 
 import java.util.List;
@@ -35,11 +35,11 @@ import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestQueryUse
 public class ReviewBlindRequestApiController {
 
     private final ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase;
-    private final ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase;
+    private final ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase;
 
     public ReviewBlindRequestApiController(
         ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase,
-        ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase
+        ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase
     ) {
         this.reviewBlindRequestQueryUseCase = reviewBlindRequestQueryUseCase;
         this.reviewBlindRequestCommandUseCase = reviewBlindRequestCommandUseCase;

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopPhoneNumberCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopPhoneNumberCommandUseCase;
@@ -42,7 +42,7 @@ public class ShopPhoneNumberApiController {
     @Operation(summary = "내 가게 전화번호 목록 조회", description = "로그인한 점주가 소유한 가게의 전화번호 목록을 조회합니다.")
     @GetMapping("/v1/{id}/phone-numbers")
     public ResponseEntity<ApiResponse<List<ShopPhoneNumberResponse>>> getPhoneNumbers(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryService.getPhoneNumbers(userDetails.getCeoId(), id).stream()
@@ -54,7 +54,7 @@ public class ShopPhoneNumberApiController {
     @Operation(summary = "내 가게 전화번호 등록", description = "로그인한 점주가 소유한 가게에 전화번호를 등록합니다(최대 10개).")
     @PostMapping("/v1/{id}/phone-numbers")
     public ResponseEntity<ApiResponse<Long>> addPhoneNumber(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopPhoneNumberCreateRequest request
     ) {
@@ -66,7 +66,7 @@ public class ShopPhoneNumberApiController {
     @Operation(summary = "내 가게 전화번호 삭제", description = "로그인한 점주가 소유한 가게의 전화번호를 삭제합니다.")
     @DeleteMapping("/v1/phone-numbers/{phoneNumberId}")
     public ResponseEntity<ApiResponse<Void>> deletePhoneNumber(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long phoneNumberId
     ) {
         ShopPhoneNumberDeleteCommand command = ShopPhoneNumberDeleteCommand.of(userDetails.getCeoId(), phoneNumberId);
@@ -77,7 +77,7 @@ public class ShopPhoneNumberApiController {
     @Operation(summary = "내 가게 대표 전화번호 지정", description = "로그인한 점주가 소유한 가게의 대표 전화번호를 지정합니다.")
     @PatchMapping("/v1/phone-numbers/{phoneNumberId}/primary")
     public ResponseEntity<ApiResponse<Void>> designatePrimary(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long phoneNumberId
     ) {
         ShopPhoneNumberPrimaryDesignateCommand command = ShopPhoneNumberPrimaryDesignateCommand.of(userDetails.getCeoId(), phoneNumberId);

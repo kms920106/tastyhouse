@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSearchRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDetailResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
@@ -29,16 +29,16 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @RequestMapping("/api/shops")
 public class ShopApiController {
 
-    private final ShopQueryUseCase shopQueryService;
+    private final ShopOwnerQueryUseCase shopQueryService;
 
-    public ShopApiController(ShopQueryUseCase shopQueryService) {
+    public ShopApiController(ShopOwnerQueryUseCase shopQueryService) {
         this.shopQueryService = shopQueryService;
     }
 
     @Operation(summary = "내 가게 목록 조회", description = "로그인한 점주가 소유한 가게 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<ShopListItemResponse>>> getMyShops(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ShopSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
@@ -63,7 +63,7 @@ public class ShopApiController {
     @Operation(summary = "내 가게 상세 조회", description = "로그인한 점주가 소유한 가게의 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ShopDetailResponse>> getMyShop(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopDetailResponse response = ShopDetailResponse.from(shopQueryService.getMyShop(userDetails.getCeoId(), id));

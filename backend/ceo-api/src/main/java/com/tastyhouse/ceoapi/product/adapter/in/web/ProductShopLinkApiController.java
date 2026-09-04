@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
@@ -67,7 +67,7 @@ public class ProductShopLinkApiController {
             + "productCategoryId·productCategoryName은 null입니다.")
     @GetMapping("/v1/{id}/shops")
     public ResponseEntity<ApiResponse<List<ProductShopLinkResponse>>> getShopLinks(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -84,7 +84,7 @@ public class ProductShopLinkApiController {
             + "유지되고 새 연결은 대상 가게 메뉴판 끝에 붙습니다.")
     @PutMapping("/v1/{id}/shops")
     public ResponseEntity<ApiResponse<Void>> replaceShopLinks(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Valid @RequestBody ProductShopLinkReplaceRequest request
     ) {
@@ -99,7 +99,7 @@ public class ProductShopLinkApiController {
             + "PRODUCT_SHOP_LINK_ALREADY_LINKED로 거절됩니다.")
     @PostMapping("/v1/{id}/shops/{targetShopId}")
     public ResponseEntity<ApiResponse<Void>> linkToShop(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Parameter(description = "불러올 대상 가게 ID", example = "2") @PathVariable Long targetShopId,
         @Valid @RequestBody ProductShopLinkCreateRequest request
@@ -115,7 +115,7 @@ public class ProductShopLinkApiController {
             + "메뉴가 0개가 되면 거절됩니다.")
     @DeleteMapping("/v1/{id}/shops/{targetShopId}")
     public ResponseEntity<ApiResponse<Void>> unlinkFromShop(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Parameter(description = "제외할 대상 가게 ID", example = "2") @PathVariable Long targetShopId
     ) {

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapplication.referral.port.in.ReferralQueryUseCase;
 import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberListItemResponse;
@@ -29,7 +29,7 @@ public class ReferralApiController {
     @Operation(summary = "내 추천 이력 조회", description = "내가 추천한 회원 목록과 보상 상태를 조회합니다.")
     @GetMapping("/v1/my")
     public ResponseEntity<ApiResponse<List<ReferralMemberListItemResponse>>> getMyReferrals(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         List<ReferralMemberListItemResponse> referrals = referralQueryService.getMyReferrals(userDetails.getMemberId()).stream()
             .map(ReferralMemberListItemResponse::from)

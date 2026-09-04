@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductVegetarianRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianStatusResponse;
@@ -54,7 +54,7 @@ public class ProductVegetarianApiController {
             + "vegetarianType은 바뀌지 않습니다.")
     @GetMapping("/v1/{id}/vegetarian")
     public ResponseEntity<ApiResponse<ProductVegetarianStatusResponse>> getProductVegetarian(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -67,7 +67,7 @@ public class ProductVegetarianApiController {
             + "요청이 있으면 거부됩니다.")
     @PostMapping("/v1/{id}/vegetarian")
     public ResponseEntity<ApiResponse<Long>> requestProductVegetarian(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductVegetarianRequest request
     ) {
@@ -80,7 +80,7 @@ public class ProductVegetarianApiController {
         description = "승인을 거치지 않고 즉시 해제됩니다. 이미 해제 상태여도 실패가 아닙니다(멱등).")
     @DeleteMapping("/v1/{id}/vegetarian")
     public ResponseEntity<ApiResponse<Void>> clearProductVegetarian(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {

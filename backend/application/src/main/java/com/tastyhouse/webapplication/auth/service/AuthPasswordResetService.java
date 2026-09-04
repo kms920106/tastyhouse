@@ -11,7 +11,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
 
@@ -49,13 +49,13 @@ public class AuthPasswordResetService {
 
     private final MemberRepository memberRepository;
     private final MailVerificationService mailVerificationService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberCommandService memberCommandService;
 
     public AuthPasswordResetService(
         MemberRepository memberRepository,
         MailVerificationService mailVerificationService,
-        JwtTokenProvider jwtTokenProvider,
+        MemberJwtTokenProvider jwtTokenProvider,
         MemberCommandService memberCommandService
     ) {
         this.memberRepository = memberRepository;

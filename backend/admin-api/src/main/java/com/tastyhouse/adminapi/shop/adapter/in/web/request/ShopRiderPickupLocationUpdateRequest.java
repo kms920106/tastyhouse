@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
 
 import java.math.BigDecimal;
 
@@ -42,8 +42,8 @@ public record ShopRiderPickupLocationUpdateRequest(
     BigDecimal longitude
 ) {
 
-    public ShopRiderPickupLocationUpdateCommand toCommand(Long shopId, Long adminId) {
-        return new ShopRiderPickupLocationUpdateCommand(
+    public ShopRiderPickupLocationManagementUpdateCommand toCommand(Long shopId, Long adminId) {
+        return new ShopRiderPickupLocationManagementUpdateCommand(
             shopId, adminId, roadAddress, lotAddress, detailAddress, latitude, longitude
         );
     }

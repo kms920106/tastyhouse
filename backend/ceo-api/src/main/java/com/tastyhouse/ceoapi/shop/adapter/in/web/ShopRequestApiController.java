@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestSearchRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
@@ -31,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestListItemRes
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalogResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCancelCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentOwnerCreateCommand;
 
 @Tag(name = "Ceo Shop Request", description = "점주 요청처리 현황 조회 API")
 @RestController
@@ -55,7 +55,7 @@ public class ShopRequestApiController {
     )
     @GetMapping("/v1/{id}/requests")
     public ResponseEntity<ApiResponse<List<ShopRequestListItemResponse>>> getRequests(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ShopRequestSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
@@ -86,7 +86,7 @@ public class ShopRequestApiController {
     )
     @GetMapping("/v1/{id}/requests/{requestId}")
     public ResponseEntity<ApiResponse<ShopRequestDetailResponse>> getRequestDetail(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
@@ -101,7 +101,7 @@ public class ShopRequestApiController {
     )
     @PatchMapping("/v1/{id}/requests/{requestId}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelRequest(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
@@ -116,7 +116,7 @@ public class ShopRequestApiController {
     )
     @GetMapping("/v1/{id}/requests/{requestId}/comments")
     public ResponseEntity<ApiResponse<List<ShopRequestCommentResponse>>> getComments(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
@@ -132,12 +132,12 @@ public class ShopRequestApiController {
     )
     @PostMapping("/v1/{id}/requests/{requestId}/comments")
     public ResponseEntity<ApiResponse<Long>> createComment(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long requestId,
         @Valid @RequestBody ShopRequestCommentCreateRequest request
     ) {
-        ShopRequestCommentCreateCommand command = request.toCommand(userDetails.getCeoId(), id, requestId);
+        ShopRequestCommentOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id, requestId);
         Long commentId = shopRequestCommandUseCase.addComment(command);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }

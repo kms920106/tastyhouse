@@ -15,7 +15,7 @@ import com.tastyhouse.webapplication.mail.port.in.MailVerificationSendCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationConfirmRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationSendRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenResponse;
@@ -26,11 +26,11 @@ import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenR
 public class MailVerificationApiController {
 
     private final MailVerificationCommandUseCase mailVerificationCommandUseCase;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberJwtTokenProvider jwtTokenProvider;
 
     public MailVerificationApiController(
         MailVerificationCommandUseCase mailVerificationCommandUseCase,
-        JwtTokenProvider jwtTokenProvider
+        MemberJwtTokenProvider jwtTokenProvider
     ) {
         this.mailVerificationCommandUseCase = mailVerificationCommandUseCase;
         this.jwtTokenProvider = jwtTokenProvider;

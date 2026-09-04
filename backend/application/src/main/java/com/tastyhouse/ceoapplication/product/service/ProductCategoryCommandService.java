@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryOwnerCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
@@ -54,7 +54,7 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
 
     /** 메뉴그룹을 등록하고 생성된 id를 반환한다. */
     @Override
-    public Long createProductCategory(ProductCategoryCreateCommand command) {
+    public Long createProductCategory(ProductCategoryOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         String name = command.name();

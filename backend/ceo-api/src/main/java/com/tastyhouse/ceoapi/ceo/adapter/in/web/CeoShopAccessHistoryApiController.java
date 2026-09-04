@@ -20,7 +20,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoShopAccessHistorySearchRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryListItemResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 
 @Tag(name = "Ceo Shop Access History", description = "점주 시스템 접근권한 부여·말소 이력 조회 API")
 @RestController
@@ -45,7 +45,7 @@ public class CeoShopAccessHistoryApiController {
     )
     @GetMapping("/v1/me/shop-access-histories")
     public ResponseEntity<ApiResponse<List<CeoShopAccessHistoryListItemResponse>>> getShopAccessHistories(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute CeoShopAccessHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {

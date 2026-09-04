@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopAmenityUnassignUseCase {
 
-    void unassignAmenity(ShopAmenityUnassignCommand command);
+    void unassignAmenity(ShopAmenityManagementUnassignCommand command);
 }

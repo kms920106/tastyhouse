@@ -20,16 +20,16 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBreakTimeResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
 
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController
@@ -47,7 +47,7 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 운영시간 목록 조회", description = "로그인한 점주가 소유한 가게의 운영시간 목록을 조회합니다.")
     @GetMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<List<ShopBusinessHourResponse>>> getBusinessHours(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopBusinessHourResponse> response = shopBusinessHourQueryService.getBusinessHours(userDetails.getCeoId(), id).stream()
@@ -59,11 +59,11 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 운영시간 등록", description = "로그인한 점주가 소유한 가게에 운영시간을 등록합니다.")
     @PostMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<Long>> createBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        ShopBusinessHourCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        ShopBusinessHourOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
         Long businessHourId = shopBusinessHourCommandUseCase.createBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
     }
@@ -71,11 +71,11 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 운영시간 수정", description = "로그인한 점주가 소유한 가게의 운영시간을 수정합니다.")
     @PutMapping("/v1/business-hours/{businessHourId}")
     public ResponseEntity<ApiResponse<Void>> updateBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long businessHourId,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        ShopBusinessHourUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), businessHourId);
+        ShopBusinessHourOwnerUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), businessHourId);
         shopBusinessHourCommandUseCase.updateBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -83,10 +83,10 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 운영시간 삭제", description = "로그인한 점주가 소유한 가게의 운영시간을 삭제합니다.")
     @DeleteMapping("/v1/business-hours/{businessHourId}")
     public ResponseEntity<ApiResponse<Void>> deleteBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long businessHourId
     ) {
-        ShopBusinessHourDeleteCommand command = ShopBusinessHourDeleteCommand.of(userDetails.getCeoId(), businessHourId);
+        ShopBusinessHourOwnerDeleteCommand command = ShopBusinessHourOwnerDeleteCommand.of(userDetails.getCeoId(), businessHourId);
         shopBusinessHourCommandUseCase.deleteBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -94,7 +94,7 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 브레이크타임 목록 조회", description = "로그인한 점주가 소유한 가게의 브레이크타임 목록을 조회합니다.")
     @GetMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<List<ShopBreakTimeResponse>>> getBreakTimes(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopBreakTimeResponse> response = shopBusinessHourQueryService.getBreakTimes(userDetails.getCeoId(), id).stream()
@@ -106,11 +106,11 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 브레이크타임 등록", description = "로그인한 점주가 소유한 가게에 브레이크타임을 등록합니다.")
     @PostMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<Long>> createBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        ShopBreakTimeCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        ShopBreakTimeOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
         Long breakTimeId = shopBusinessHourCommandUseCase.createBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(breakTimeId));
     }
@@ -118,11 +118,11 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 브레이크타임 수정", description = "로그인한 점주가 소유한 가게의 브레이크타임을 수정합니다.")
     @PutMapping("/v1/break-times/{breakTimeId}")
     public ResponseEntity<ApiResponse<Void>> updateBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long breakTimeId,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        ShopBreakTimeUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), breakTimeId);
+        ShopBreakTimeOwnerUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), breakTimeId);
         shopBusinessHourCommandUseCase.updateBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -130,10 +130,10 @@ public class ShopBusinessHourApiController {
     @Operation(summary = "내 가게 브레이크타임 삭제", description = "로그인한 점주가 소유한 가게의 브레이크타임을 삭제합니다.")
     @DeleteMapping("/v1/break-times/{breakTimeId}")
     public ResponseEntity<ApiResponse<Void>> deleteBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long breakTimeId
     ) {
-        ShopBreakTimeDeleteCommand command = ShopBreakTimeDeleteCommand.of(userDetails.getCeoId(), breakTimeId);
+        ShopBreakTimeOwnerDeleteCommand command = ShopBreakTimeOwnerDeleteCommand.of(userDetails.getCeoId(), breakTimeId);
         shopBusinessHourCommandUseCase.deleteBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

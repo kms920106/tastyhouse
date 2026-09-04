@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBusinessHourUpdateUseCase {
 
-    void updateBusinessHour(ShopBusinessHourUpdateCommand command);
+    void updateBusinessHour(ShopBusinessHourManagementUpdateCommand command);
 }

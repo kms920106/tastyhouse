@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationOwnerUpdateCommand;
 
 /**
  * 라이더 픽업 위치 등록·수정 요청.
@@ -42,8 +42,8 @@ public record ShopRiderPickupLocationUpdateRequest(
     BigDecimal longitude
 ) {
 
-    public ShopRiderPickupLocationUpdateCommand toCommand(Long ceoId, Long shopId) {
-        return new ShopRiderPickupLocationUpdateCommand(
+    public ShopRiderPickupLocationOwnerUpdateCommand toCommand(Long ceoId, Long shopId) {
+        return new ShopRiderPickupLocationOwnerUpdateCommand(
             ceoId,
             shopId,
             roadAddress(),

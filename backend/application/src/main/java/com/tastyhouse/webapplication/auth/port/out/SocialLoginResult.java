@@ -11,16 +11,16 @@ package com.tastyhouse.webapplication.auth.port.out;
  * {@code AuthSocialLoginResponse.Status}의 구조를 그대로 승계한 것이다 — 상수 이름이 그대로 JSON
  * 값이 되므로 이름을 바꾸면 API가 바뀐다.
  *
- * <p>거처가 앱 네임스페이스인 근거는 {@link JwtResult}와 같다(인증은 앱별 계약).
+ * <p>거처가 앱 네임스페이스인 근거는 {@link MemberJwtResult}와 같다(인증은 앱별 계약).
  */
 public record SocialLoginResult(
     Status status,
     String tempToken,
-    JwtResult jwt
+    MemberJwtResult jwt
 ) {
     public enum Status {LOGIN, NEEDS_SIGN_UP, NEEDS_LINKING}
 
-    public static SocialLoginResult ofLogin(JwtResult jwt) {
+    public static SocialLoginResult ofLogin(MemberJwtResult jwt) {
         return new SocialLoginResult(
             Status.LOGIN,
             null,

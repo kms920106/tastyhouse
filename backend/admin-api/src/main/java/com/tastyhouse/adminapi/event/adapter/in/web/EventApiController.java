@@ -39,7 +39,7 @@ import com.tastyhouse.adminapplication.event.port.in.EventDeleteCommand;
 import com.tastyhouse.adminapplication.event.port.in.EventUpdateCommand;
 import com.tastyhouse.adminapplication.event.port.in.EventWinnerCreateCommand;
 import com.tastyhouse.adminapplication.event.port.in.EventWinnerDeleteCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventQueryUseCase;
+import com.tastyhouse.adminapplication.event.port.in.EventManagementQueryUseCase;
 
 @Tag(name = "Event Admin", description = "이벤트 관리자 API")
 @RestController
@@ -47,9 +47,9 @@ import com.tastyhouse.adminapplication.event.port.in.EventQueryUseCase;
 public class EventApiController {
 
     private final EventCommandUseCase eventCommandUseCase;
-    private final EventQueryUseCase eventQueryUseCase;
+    private final EventManagementQueryUseCase eventQueryUseCase;
 
-    public EventApiController(EventCommandUseCase eventCommandUseCase, EventQueryUseCase eventQueryUseCase) {
+    public EventApiController(EventCommandUseCase eventCommandUseCase, EventManagementQueryUseCase eventQueryUseCase) {
         this.eventCommandUseCase = eventCommandUseCase;
         this.eventQueryUseCase = eventQueryUseCase;
     }

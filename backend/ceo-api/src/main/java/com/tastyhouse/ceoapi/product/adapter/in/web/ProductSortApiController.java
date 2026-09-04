@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryOrderRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryRelocateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOrderRequest;
@@ -46,7 +46,7 @@ public class ProductSortApiController {
             + "메뉴그룹 집합과 다르면 PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH로 거부됩니다.")
     @PutMapping("/v1/categories/order")
     public ResponseEntity<ApiResponse<Void>> reorderProductCategories(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductCategoryOrderRequest request
     ) {
         ProductCategoryReorderCommand command = request.toCommand(userDetails.getCeoId());
@@ -59,7 +59,7 @@ public class ProductSortApiController {
             + "현재 메뉴 집합과 다르면 PRODUCT_ORDER_TARGET_MISMATCH로 거부됩니다.")
     @PutMapping("/v1/order")
     public ResponseEntity<ApiResponse<Void>> reorderProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOrderRequest request
     ) {
         ProductReorderCommand command = request.toCommand(userDetails.getCeoId());
@@ -72,7 +72,7 @@ public class ProductSortApiController {
             + "출발 그룹의 순서도 서버가 함께 0..N-1로 재정규화합니다.")
     @PutMapping("/v1/category")
     public ResponseEntity<ApiResponse<Void>> relocateProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductCategoryRelocateRequest request
     ) {
         ProductRelocateCommand command = request.toCommand(userDetails.getCeoId());

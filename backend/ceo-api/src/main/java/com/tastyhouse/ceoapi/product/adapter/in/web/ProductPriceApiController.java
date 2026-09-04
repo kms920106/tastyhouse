@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductPriceReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceResponse;
@@ -62,7 +62,7 @@ public class ProductPriceApiController {
             + "보내야 기존 행이 갱신됩니다.")
     @GetMapping("/v1/{id}/prices")
     public ResponseEntity<ApiResponse<List<ProductPriceResponse>>> getPrices(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -79,7 +79,7 @@ public class ProductPriceApiController {
             + "배달가가 메뉴 대표가로 동기화되며, 배달가가 매장가보다 높아지면 가게 인증이 즉시 해제됩니다.")
     @PutMapping("/v1/{id}/prices")
     public ResponseEntity<ApiResponse<Void>> replacePrices(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductPriceReplaceRequest request
     ) {

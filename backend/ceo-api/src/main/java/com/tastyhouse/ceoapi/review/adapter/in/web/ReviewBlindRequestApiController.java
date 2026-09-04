@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewBlindRequestCreateRequest;
 import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCancelCommand;
-import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCommandUseCase;
+import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCreateCommand;
 
 @Tag(name = "Ceo Review Blind Request", description = "점주 리뷰 게시중단 요청 API")
@@ -24,9 +24,9 @@ import com.tastyhouse.ceoapplication.review.port.in.ReviewBlindRequestCreateComm
 @RequestMapping("/api/shops")
 public class ReviewBlindRequestApiController {
 
-    private final ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase;
+    private final ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase;
 
-    public ReviewBlindRequestApiController(ReviewBlindRequestCommandUseCase reviewBlindRequestCommandUseCase) {
+    public ReviewBlindRequestApiController(ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase) {
         this.reviewBlindRequestCommandUseCase = reviewBlindRequestCommandUseCase;
     }
 
@@ -38,7 +38,7 @@ public class ReviewBlindRequestApiController {
     )
     @PostMapping("/v1/{id}/reviews/{reviewId}/blind-requests")
     public ResponseEntity<ApiResponse<Long>> createBlindRequest(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long reviewId,
         @Valid @RequestBody ReviewBlindRequestCreateRequest request
@@ -55,7 +55,7 @@ public class ReviewBlindRequestApiController {
     )
     @PatchMapping("/v1/{id}/reviews/blind-requests/{requestId}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelBlindRequest(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {

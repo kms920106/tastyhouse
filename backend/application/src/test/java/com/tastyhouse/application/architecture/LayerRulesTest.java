@@ -103,7 +103,7 @@ class LayerRulesTest {
             .that().haveSimpleNameEndingWith("QueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.webapplication.shop.service.ShopQueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.adminapplication.admin.service.AdminQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.ceoapplication.ceo.service.CeoQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.ceoapplication.ceo.service.CeoOwnerQueryService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.review.adapter.in.web.request.CommentCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReviewCreateRequest;
@@ -66,7 +66,7 @@ public class ReviewApiController {
     @GetMapping("/v1/write/order-items/{orderProductId}")
     public ResponseEntity<ApiResponse<ReviewWriteInfoResponse>> getReviewWriteInfo(
         @Parameter(description = "주문 상품 ID", example = "1") @PathVariable Long orderProductId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewWriteInfoResponse response = ReviewWriteInfoResponse.from(
             reviewQueryService.getReviewWriteInfo(orderProductId, memberIdOrNull(userDetails))
@@ -78,7 +78,7 @@ public class ReviewApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createReview(
         @Valid @RequestBody ReviewCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long reviewId = reviewCommandUseCase.createReview(command);
@@ -90,7 +90,7 @@ public class ReviewApiController {
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReview(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @Valid @RequestBody ReviewUpdateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), reviewId);
         Long updatedReviewId = reviewCommandUseCase.updateReview(command);
@@ -104,7 +104,7 @@ public class ReviewApiController {
     @DeleteMapping("/v1/{reviewId}")
     public ResponseEntity<ApiResponse<Void>> deleteReview(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewDeleteCommand command = ReviewDeleteCommand.of(userDetails.getMemberId(), reviewId);
         reviewCommandUseCase.deleteReview(command);
@@ -127,7 +127,7 @@ public class ReviewApiController {
     public ResponseEntity<ApiResponse<List<ReviewLatestListItemResponse>>> getLatestReviewList(
         @Valid @ModelAttribute PageRequest pageRequest,
         @Valid @ModelAttribute ReviewSearchRequest search,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         PaginationResponse<ReviewLatestListItemResponse> pageResponse = PaginationResponse.from(
@@ -142,7 +142,7 @@ public class ReviewApiController {
     @GetMapping("/v1/{reviewId}")
     public ResponseEntity<ApiResponse<ReviewDetailResponse>> getReviewDetail(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return reviewQueryService.findReviewDetail(reviewId, memberIdOrNull(userDetails))
                 .map(detail -> ResponseEntity.ok(ApiResponse.success(ReviewDetailResponse.from(detail))))
@@ -153,7 +153,7 @@ public class ReviewApiController {
     @GetMapping("/v1/{reviewId}/product")
     public ResponseEntity<ApiResponse<ReviewProductResponse>> getReviewProduct(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return reviewQueryService.findReviewProduct(reviewId, memberIdOrNull(userDetails))
                 .map(product -> ResponseEntity.ok(ApiResponse.success(ReviewProductResponse.from(product))))
@@ -164,7 +164,7 @@ public class ReviewApiController {
     @GetMapping("/v1/{reviewId}/like")
     public ResponseEntity<ApiResponse<ReviewLikeStatusResponse>> isLiked(
         @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewLikeStatusResponse liked;
         if (userDetails == null) {
@@ -180,7 +180,7 @@ public class ReviewApiController {
     @PostMapping("/v1/{reviewId}/like")
     public ResponseEntity<ApiResponse<ReviewLikeResponse>> toggleReviewLike(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         reviewQueryService.requireVisibleReview(reviewId, userDetails.getMemberId());
         ReviewLikeToggleCommand command = ReviewLikeToggleCommand.of(userDetails.getMemberId(), reviewId);
@@ -193,7 +193,7 @@ public class ReviewApiController {
     public ResponseEntity<ApiResponse<Long>> createComment(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
         @Valid @RequestBody CommentCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         reviewQueryService.requireVisibleReview(reviewId, userDetails.getMemberId());
         ReviewCommentCreateCommand command = request.toCommand(userDetails.getMemberId(), reviewId);
@@ -206,7 +206,7 @@ public class ReviewApiController {
     public ResponseEntity<ApiResponse<Long>> createReply(
         @Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId,
         @Valid @RequestBody ReplyCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         Long parentReviewId = reviewCommandUseCase.findReviewIdOfComment(commentId);
         reviewQueryService.requireVisibleReview(parentReviewId, userDetails.getMemberId());
@@ -219,7 +219,7 @@ public class ReviewApiController {
     @GetMapping("/v1/{reviewId}/comments")
     public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewCommentListResponse response = ReviewCommentListResponse.from(
             reviewQueryService.searchCommentsWithReplies(reviewId, memberIdOrNull(userDetails))
@@ -248,7 +248,7 @@ public class ReviewApiController {
      * {@code @CurrentUser}가 {@code null}로 들어올 수 있다. 사장님만보기 리뷰의 본인 판정에 쓰인다
      * ({@code ShopApiController}의 동명 헬퍼와 같은 형태).
      */
-    private Long memberIdOrNull(CustomUserDetails userDetails) {
+    private Long memberIdOrNull(MemberUserDetails userDetails) {
         return userDetails == null ? null : userDetails.getMemberId();
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupLinkRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupLinkedProductResponse;
@@ -63,7 +63,7 @@ public class ProductOptionGroupLinkApiController {
             + "없습니다(PRODUCT_OPTION_GROUP_SHOP_MISMATCH).")
     @PostMapping("/v1/{id}/option-groups/{optionGroupId}")
     public ResponseEntity<ApiResponse<Void>> linkOptionGroup(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long optionGroupId,
         @Valid @RequestBody ProductOptionGroupLinkRequest request
@@ -79,7 +79,7 @@ public class ProductOptionGroupLinkApiController {
             + "0..N-1로 다시 매깁니다.")
     @DeleteMapping("/v1/{id}/option-groups/{optionGroupId}")
     public ResponseEntity<ApiResponse<Void>> unlinkOptionGroup(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long optionGroupId,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
@@ -94,7 +94,7 @@ public class ProductOptionGroupLinkApiController {
             + "연결된 현재 집합과 다르면 거부됩니다(PRODUCT_ORDER_TARGET_MISMATCH).")
     @PutMapping("/v1/{id}/option-groups/sort")
     public ResponseEntity<ApiResponse<Void>> changeOptionGroupOrder(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupSortRequest request
     ) {
@@ -108,7 +108,7 @@ public class ProductOptionGroupLinkApiController {
             + "가게 단위로 한 번에 반환합니다.")
     @GetMapping("/v1/option-groups/products")
     public ResponseEntity<ApiResponse<List<ProductOptionGroupLinkedProductsResponse>>> getLinkedProductsByShop(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
         List<ProductOptionGroupLinkedProductsResponse> response = productOptionGroupQueryService.getLinkedProductsByShop( userDetails.getCeoId(), request.shopId() ).stream()
@@ -121,7 +121,7 @@ public class ProductOptionGroupLinkApiController {
         description = "연결 해제 전 영향 확인용입니다. 결과가 1건이면 마지막 연결이라 해제가 거부됩니다.")
     @GetMapping("/v1/option-groups/{optionGroupId}/products")
     public ResponseEntity<ApiResponse<List<ProductOptionGroupLinkedProductResponse>>> getLinkedProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long optionGroupId,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {

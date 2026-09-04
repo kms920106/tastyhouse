@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.port.in.AuthCommandUseCase;
+import com.tastyhouse.webapplication.auth.port.in.MemberAuthCommandUseCase;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.AppleLoginRequest;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.FacebookLoginRequest;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.KakaoLoginRequest;
@@ -39,9 +39,9 @@ import com.tastyhouse.webapi.auth.adapter.in.web.response.AuthSocialLoginRespons
 @Tag(name = "Auth", description = "인증 관련 API")
 public class AuthApiController {
 
-    private final AuthCommandUseCase authCommandService;
+    private final MemberAuthCommandUseCase authCommandService;
 
-    public AuthApiController(AuthCommandUseCase authCommandService) {
+    public AuthApiController(MemberAuthCommandUseCase authCommandService) {
         this.authCommandService = authCommandService;
     }
 

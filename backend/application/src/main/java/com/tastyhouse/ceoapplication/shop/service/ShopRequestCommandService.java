@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shop.service.ShopRequestCancelService;
 import com.tastyhouse.domain.shop.service.ShopRequestCommentService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCancelCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentOwnerCreateCommand;
 
 /**
  * 점주용 요청처리 현황 명령 서비스(CQRS command 측).
@@ -56,7 +56,7 @@ public class ShopRequestCommandService implements ShopRequestCommandUseCase {
      * @return 생성된 댓글 식별자
      */
     @Override
-    public Long addComment(ShopRequestCommentCreateCommand command) {
+    public Long addComment(ShopRequestCommentOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         Long requestId = command.requestId();

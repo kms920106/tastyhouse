@@ -7,5 +7,5 @@ public interface ShopRequestCommandUseCase {
 
     void cancelRequest(ShopRequestCancelCommand command);
 
-    Long addComment(ShopRequestCommentCreateCommand command);
+    Long addComment(ShopRequestCommentOwnerCreateCommand command);
 }

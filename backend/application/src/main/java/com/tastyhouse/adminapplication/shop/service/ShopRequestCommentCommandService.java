@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapplication.shop.service;
 
 import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentManagementCreateCommand;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class ShopRequestCommentCommandService implements ShopRequestCommentComma
      * @return 생성된 댓글 식별자
      */
     @Override
-    public Long addComment(ShopRequestCommentCreateCommand command) {
+    public Long addComment(ShopRequestCommentManagementCreateCommand command) {
         Long requestId = command.requestId();
         Long adminId = command.adminId();
         String content = command.content();

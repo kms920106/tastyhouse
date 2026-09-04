@@ -21,7 +21,7 @@ import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
-import com.tastyhouse.application.shared.port.out.GeoRingsPort;
+import com.tastyhouse.application.shared.port.out.GeoRingsQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBlockedView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
@@ -56,12 +56,12 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
 
     private final AdminDongQueryPort adminDongQueryPort;
     private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;
-    private final GeoRingsPort geoRingsPort;
+    private final GeoRingsQueryPort geoRingsPort;
 
     public ShopDeliveryAreaPolygonQueryService(
         AdminDongQueryPort adminDongQueryPort,
         ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort,
-        GeoRingsPort geoRingsPort
+        GeoRingsQueryPort geoRingsPort
     ) {
         this.adminDongQueryPort = adminDongQueryPort;
         this.shopDeliveryAreaQueryPort = shopDeliveryAreaQueryPort;

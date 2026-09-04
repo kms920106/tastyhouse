@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOwnerCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOrderChangeCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionUpdateCommand;
@@ -73,7 +73,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
 
     /** 옵션그룹에 옵션을 등록하고 생성된 id를 반환한다. 정렬값은 서버가 목록 맨 뒤로 채운다. */
     @Override
-    public Long createProductOption(ProductOptionCreateCommand command) {
+    public Long createProductOption(ProductOptionOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         Long optionGroupId = command.optionGroupId();

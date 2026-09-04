@@ -32,6 +32,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         // In a real application, you might derive roles from the Member entity.
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");
 
-        return new CustomUserDetails(member, Collections.singleton(authority));
+        return new MemberUserDetails(member, Collections.singleton(authority));
     }
 }

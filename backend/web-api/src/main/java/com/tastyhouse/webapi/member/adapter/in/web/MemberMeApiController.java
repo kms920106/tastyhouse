@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.webapplication.member.port.in.MemberPersonalInfoUpdateCommand;
 import com.tastyhouse.webapplication.member.port.in.MemberProfileUpdateCommand;
@@ -55,7 +55,7 @@ public class MemberMeApiController {
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(회원 ID, 닉네임, 등급, 상태메시지, 프로필 이미지)를 조회합니다.")
     @GetMapping("/v1/me/profile")
     public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberService.getMyProfile(userDetails.getMemberId()))));
     }
@@ -63,7 +63,7 @@ public class MemberMeApiController {
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
     @PutMapping("/v1/me/profile")
     public ResponseEntity<ApiResponse<Void>> updateMyProfile(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @RequestBody UpdateProfileRequest request
     ) {
         MemberProfileUpdateCommand command = request.toCommand(userDetails.getMemberId());
@@ -74,7 +74,7 @@ public class MemberMeApiController {
     @Operation(summary = "내 통계 조회", description = "로그인한 회원의 리뷰 수, 팔로잉 수, 팔로워 수를 조회합니다.")
     @GetMapping("/v1/me/stats")
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberService.getMemberStats(userDetails.getMemberId()))));
     }
@@ -82,7 +82,7 @@ public class MemberMeApiController {
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
     @PostMapping("/v1/me/verify-password")
     public ResponseEntity<ApiResponse<MemberVerifyPasswordResponse>> verifyPassword(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
         MemberVerifyPasswordResponse response =
@@ -93,7 +93,7 @@ public class MemberMeApiController {
     @Operation(summary = "개인정보 조회", description = "개인정보 수정 화면에 표시할 현재 개인정보를 조회합니다.")
     @GetMapping("/v1/me/personal-info")
     public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberService.getPersonalInfo(userDetails.getMemberId()))));
     }
@@ -106,7 +106,7 @@ public class MemberMeApiController {
     )
     @PutMapping("/v1/me/personal-info")
     public ResponseEntity<ApiResponse<Void>> updateMyPersonalInfo(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @RequestHeader("X-Verify-Token") String verifyToken,
         @RequestHeader(value = "X-Sms-Verify-Token", required = false) String smsVerifyToken,
         @Valid @RequestBody UpdatePersonalInfoRequest request
@@ -119,7 +119,7 @@ public class MemberMeApiController {
     @Operation(summary = "내 등급 조회", description = "로그인한 회원의 현재 등급, 다음 등급, 현재 리뷰 수, 다음 등급까지 필요한 리뷰 수를 조회합니다.")
     @GetMapping("/v1/me/grade")
     public ResponseEntity<ApiResponse<MyGradeResponse>> getMyGrade(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberService.getMyGrade(userDetails.getMemberId()))));
     }
@@ -127,7 +127,7 @@ public class MemberMeApiController {
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
     @GetMapping("/v1/me/coupons")
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyCoupons(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
             memberService.getMyCoupons(userDetails.getMemberId())
@@ -140,7 +140,7 @@ public class MemberMeApiController {
     @Operation(summary = "사용 가능한 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 사용 가능한 쿠폰을 조회합니다. (미사용 + 유효기간 내)")
     @GetMapping("/v1/me/coupons/available")
     public ResponseEntity<ApiResponse<List<MyCouponListItemResponse>>> getMyAvailableCoupons(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
             memberService.getMyAvailableCoupons(userDetails.getMemberId())
@@ -153,7 +153,7 @@ public class MemberMeApiController {
     @Operation(summary = "내가 작성한 리뷰 개수 조회", description = "로그인한 회원이 작성한 리뷰 개수를 조회합니다.")
     @GetMapping("/v1/me/reviews/count")
     public ResponseEntity<ApiResponse<MyReviewCountResponse>> getMyReviewCount(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberService.getMyReviewCount(userDetails.getMemberId()))));
     }
@@ -161,7 +161,7 @@ public class MemberMeApiController {
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/me/reviews")
     public ResponseEntity<ApiResponse<List<MyReviewListItemResponse>>> getMyReviews(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<MyReviewListItemResponse> pageResult = PaginationResponse.from(
@@ -179,7 +179,7 @@ public class MemberMeApiController {
     @Operation(summary = "내가 즐겨찾기한 가게 목록 조회", description = "로그인한 회원이 북마크한 가게 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/me/bookmarks")
     public ResponseEntity<ApiResponse<List<ShopBookmarkListItemResponse>>> getMyBookmarkedShops(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ShopBookmarkListItemResponse> pageResult = PaginationResponse.from(
@@ -200,7 +200,7 @@ public class MemberMeApiController {
     )
     @PutMapping("/v1/me/password")
     public ResponseEntity<ApiResponse<Void>> updateMyPassword(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @RequestHeader("X-Verify-Token") String verifyToken,
         @Valid @RequestBody UpdatePasswordRequest request
     ) {
@@ -212,7 +212,7 @@ public class MemberMeApiController {
     @Operation(summary = "회원 탈퇴", description = "탈퇴 사유를 선택하여 회원 탈퇴를 처리합니다. 탈퇴 즉시 Access Token이 무효화됩니다.")
     @DeleteMapping("/v1/me")
     public ResponseEntity<ApiResponse<Void>> withdrawMember(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @RequestHeader("Authorization") String bearerToken,
         @Valid @RequestBody WithdrawMemberRequest request
     ) {

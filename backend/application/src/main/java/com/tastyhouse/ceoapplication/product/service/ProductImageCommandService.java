@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadOwnerCommandService;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageChangeRequestCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductImageDeleteCommand;
@@ -43,7 +43,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
     private final ProductImageRepository productImageRepository;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductImageSpecValidator productImageSpecValidator;
-    private final FileUploadCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandService fileUploadCommandService;
 
     public ProductImageCommandService(
         ProductImageApprovalService productImageApprovalService,
@@ -51,7 +51,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
         ProductImageRepository productImageRepository,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductImageSpecValidator productImageSpecValidator,
-        FileUploadCommandService fileUploadCommandService
+        FileUploadOwnerCommandService fileUploadCommandService
     ) {
         this.productImageApprovalService = productImageApprovalService;
         this.productRepository = productRepository;

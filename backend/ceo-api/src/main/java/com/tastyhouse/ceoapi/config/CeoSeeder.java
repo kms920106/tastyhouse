@@ -10,14 +10,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoCommandUseCase;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoCreateCommand;
-import com.tastyhouse.ceoapplication.ceo.port.in.CeoQueryUseCase;
+import com.tastyhouse.ceoapplication.ceo.port.in.CeoOwnerQueryUseCase;
 
 /**
  * 최초 점주 계정 시드.
  * 공개 회원가입이 없으므로 첫 점주 계정은 부팅 시 멱등하게 주입한다.
  * 초기 자격증명은 application.yml(ceo.seed.*)에서 주입한다.
  *
- * <p>조회는 구체 서비스가 아니라 인바운드 포트({@code CeoQueryUseCase})를 주입한다
+ * <p>조회는 구체 서비스가 아니라 인바운드 포트({@code CeoOwnerQueryUseCase})를 주입한다
  * ({@code seedersShouldDependOnUseCasesOnly}). {@code AdminSeeder}와 달리 role 개념이 없어
  * ({@code CeoCreateCommand}에 role 필드가 없다) 이 모듈은 원래부터 domain-free다.
  */
@@ -28,7 +28,7 @@ public class CeoSeeder {
 
     @Bean
     public ApplicationRunner seedCeo(
-        CeoQueryUseCase ceoQueryUseCase,
+        CeoOwnerQueryUseCase ceoQueryUseCase,
         CeoCommandUseCase ceoCommandUseCase,
         PasswordEncoder passwordEncoder,
         CeoSeedProperties seedProperties

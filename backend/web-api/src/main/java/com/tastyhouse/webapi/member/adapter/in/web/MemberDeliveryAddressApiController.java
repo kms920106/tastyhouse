@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressCreateRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressUpdateRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddressItemResponse;
@@ -51,7 +51,7 @@ public class MemberDeliveryAddressApiController {
     )
     @GetMapping("/v1/me/delivery-addresses")
     public ResponseEntity<ApiResponse<List<MemberDeliveryAddressItemResponse>>> getMyDeliveryAddresses(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         List<MemberDeliveryAddressItemResponse> responses =
             memberDeliveryAddressQueryService.getMyDeliveryAddresses(userDetails.getMemberId())
@@ -69,7 +69,7 @@ public class MemberDeliveryAddressApiController {
     )
     @PostMapping("/v1/me/delivery-addresses")
     public ResponseEntity<ApiResponse<Long>> createDeliveryAddress(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @RequestBody MemberDeliveryAddressCreateRequest request
     ) {
         MemberDeliveryAddressCreateCommand command = request.toCommand(userDetails.getMemberId());
@@ -84,7 +84,7 @@ public class MemberDeliveryAddressApiController {
     )
     @PutMapping("/v1/me/delivery-addresses/{id}")
     public ResponseEntity<ApiResponse<Void>> updateDeliveryAddress(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody MemberDeliveryAddressUpdateRequest request
     ) {
@@ -96,7 +96,7 @@ public class MemberDeliveryAddressApiController {
     @Operation(summary = "배달 주소 삭제", description = "본인의 배달 주소를 삭제합니다.")
     @DeleteMapping("/v1/me/delivery-addresses/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteDeliveryAddress(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @PathVariable Long id
     ) {
         MemberDeliveryAddressDeleteCommand command = MemberDeliveryAddressDeleteCommand.of(userDetails.getMemberId(), id);
@@ -110,7 +110,7 @@ public class MemberDeliveryAddressApiController {
     )
     @PatchMapping("/v1/me/delivery-addresses/{id}/default")
     public ResponseEntity<ApiResponse<Void>> changeDefaultDeliveryAddress(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @PathVariable Long id
     ) {
         MemberDeliveryAddressChangeDefaultCommand command = MemberDeliveryAddressChangeDefaultCommand.of(userDetails.getMemberId(), id);

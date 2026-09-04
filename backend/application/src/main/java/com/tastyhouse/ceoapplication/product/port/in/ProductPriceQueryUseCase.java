@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapplication.product.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.application.product.port.out.ProductPriceView;
+import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
 
 
 /**
@@ -13,5 +13,5 @@ import com.tastyhouse.application.product.port.out.ProductPriceView;
  */
 public interface ProductPriceQueryUseCase {
 
-    List<ProductPriceView> getPrices(Long ceoId, Long shopId, Long productId);
+    List<ProductOwnerPriceView> getPrices(Long ceoId, Long shopId, Long productId);
 }

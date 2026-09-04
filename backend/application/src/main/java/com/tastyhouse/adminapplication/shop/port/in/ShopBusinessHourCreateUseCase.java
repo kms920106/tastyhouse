@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBusinessHourCreateUseCase {
 
-    Long createBusinessHour(ShopBusinessHourCreateCommand command);
+    Long createBusinessHour(ShopBusinessHourManagementCreateCommand command);
 }

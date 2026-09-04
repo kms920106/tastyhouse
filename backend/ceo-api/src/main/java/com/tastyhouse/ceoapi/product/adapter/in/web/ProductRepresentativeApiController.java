@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductRepresentativeCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeClearCommand;
@@ -50,7 +50,7 @@ public class ProductRepresentativeApiController {
             + "이미 추천이거나 검수 대기 중인 메뉴는 건너뛰므로 반환 목록이 요청보다 짧을 수 있습니다.")
     @PostMapping("/v1/representative-requests")
     public ResponseEntity<ApiResponse<List<Long>>> requestRepresentative(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductRepresentativeCreateRequest request
     ) {
         ProductRepresentativeRequestCommand command = request.toCommand(userDetails.getCeoId());
@@ -63,7 +63,7 @@ public class ProductRepresentativeApiController {
             + "해제하려 하면 거부됩니다. 이미 해제 상태여도 실패가 아닙니다(멱등).")
     @DeleteMapping("/v1/{id}/representative")
     public ResponseEntity<ApiResponse<Void>> clearRepresentative(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {

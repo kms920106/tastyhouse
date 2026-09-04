@@ -5,7 +5,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipOwnerViewResult;
 
 /**
  * 점주 배달팁 설정 화면 통합 응답.
@@ -36,7 +36,7 @@ public record ShopDeliveryTipSettingResponse(
     /** 배달팁을 한 번도 설정하지 않은 가게의 추가팁 유형 기본값. */
     private static final String EXTRA_TIP_TYPE_NONE = "NONE";
 
-    public static ShopDeliveryTipSettingResponse from(ShopDeliveryTipViewResult result) {
+    public static ShopDeliveryTipSettingResponse from(ShopDeliveryTipOwnerViewResult result) {
         ShopDeliveryTipSettingResult setting = result.setting();
         return new ShopDeliveryTipSettingResponse(
             result.tiers().stream()

@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
 import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageApproveCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageManagementCommandUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageRejectCommand;
 
 import java.util.List;
@@ -24,7 +24,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
@@ -42,12 +42,12 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageAdminApiController {
 
-    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase;
-    private final ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase;
+    private final ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase;
+    private final ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase;
 
     public ShopMenuCollectionImageAdminApiController(
-        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase,
-        ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase
+        ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase,
+        ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase
     ) {
         this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
         this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;

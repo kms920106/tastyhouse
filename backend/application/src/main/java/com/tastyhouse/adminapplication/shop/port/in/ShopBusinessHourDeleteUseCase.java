@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBusinessHourDeleteUseCase {
 
-    void deleteBusinessHour(ShopBusinessHourDeleteCommand command);
+    void deleteBusinessHour(ShopBusinessHourManagementDeleteCommand command);
 }

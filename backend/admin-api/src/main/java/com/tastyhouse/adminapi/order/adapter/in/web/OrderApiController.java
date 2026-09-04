@@ -24,20 +24,20 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderDetailResponse
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.order.port.in.OrderCommandUseCase;
+import com.tastyhouse.adminapplication.order.port.in.OrderManagementCommandUseCase;
 import com.tastyhouse.adminapplication.order.port.in.OrderDeleteCommand;
 import com.tastyhouse.adminapplication.order.port.in.OrderStatusChangeCommand;
-import com.tastyhouse.adminapplication.order.port.in.OrderQueryUseCase;
+import com.tastyhouse.adminapplication.order.port.in.OrderManagementQueryUseCase;
 
 @Tag(name = "Order Admin", description = "주문 관리자 API")
 @RestController
 @RequestMapping("/api/orders")
 public class OrderApiController {
 
-    private final OrderCommandUseCase orderCommandUseCase;
-    private final OrderQueryUseCase orderQueryUseCase;
+    private final OrderManagementCommandUseCase orderCommandUseCase;
+    private final OrderManagementQueryUseCase orderQueryUseCase;
 
-    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryUseCase) {
+    public OrderApiController(OrderManagementCommandUseCase orderCommandUseCase, OrderManagementQueryUseCase orderQueryUseCase) {
         this.orderCommandUseCase = orderCommandUseCase;
         this.orderQueryUseCase = orderQueryUseCase;
     }

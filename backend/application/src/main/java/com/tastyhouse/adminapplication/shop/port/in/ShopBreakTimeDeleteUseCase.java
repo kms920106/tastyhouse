@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBreakTimeDeleteUseCase {
 
-    void deleteBreakTime(ShopBreakTimeDeleteCommand command);
+    void deleteBreakTime(ShopBreakTimeManagementDeleteCommand command);
 }

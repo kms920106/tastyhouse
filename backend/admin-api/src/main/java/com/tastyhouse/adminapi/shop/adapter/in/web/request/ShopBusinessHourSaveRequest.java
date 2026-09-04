@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourCreateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementUpdateCommand;
 
 import java.time.LocalTime;
 
@@ -27,12 +27,12 @@ public record ShopBusinessHourSaveRequest(
     Boolean is24Hours
 ) {
 
-    public ShopBusinessHourCreateCommand toCreateCommand(Long adminId, Long shopId) {
-        return new ShopBusinessHourCreateCommand(adminId, shopId, dayType, openTime, closeTime, isClosed, is24Hours);
+    public ShopBusinessHourManagementCreateCommand toCreateCommand(Long adminId, Long shopId) {
+        return new ShopBusinessHourManagementCreateCommand(adminId, shopId, dayType, openTime, closeTime, isClosed, is24Hours);
     }
 
-    public ShopBusinessHourUpdateCommand toUpdateCommand(Long adminId, Long businessHourId) {
-        return new ShopBusinessHourUpdateCommand(
+    public ShopBusinessHourManagementUpdateCommand toUpdateCommand(Long adminId, Long businessHourId) {
+        return new ShopBusinessHourManagementUpdateCommand(
             adminId, businessHourId, dayType, openTime, closeTime, isClosed, is24Hours
         );
     }

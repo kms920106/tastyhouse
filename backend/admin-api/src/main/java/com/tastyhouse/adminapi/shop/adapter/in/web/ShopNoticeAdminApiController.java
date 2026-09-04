@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeManagementCommandUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeHideCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeUnhideCommand;
 
@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
@@ -42,10 +42,10 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RequestMapping("/api/shops")
 public class ShopNoticeAdminApiController {
 
-    private final ShopNoticeQueryUseCase shopNoticeQueryUseCase;
-    private final ShopNoticeCommandUseCase shopNoticeCommandUseCase;
+    private final ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase;
+    private final ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase;
 
-    public ShopNoticeAdminApiController(ShopNoticeQueryUseCase shopNoticeQueryUseCase, ShopNoticeCommandUseCase shopNoticeCommandUseCase) {
+    public ShopNoticeAdminApiController(ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase, ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase) {
         this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
         this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
     }
@@ -69,7 +69,7 @@ public class ShopNoticeAdminApiController {
     @Operation(summary = "점주 공지 게시중단", description = "규정을 위반한 점주 공지를 게시중단합니다. 사유는 가게 변경이력에 남습니다.")
     @PutMapping("/v1/notices/{noticeId}/hide")
     public ResponseEntity<ApiResponse<Void>> hideNotice(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long noticeId,
         @Valid @RequestBody ShopNoticeHideRequest request
     ) {
@@ -81,7 +81,7 @@ public class ShopNoticeAdminApiController {
     @Operation(summary = "점주 공지 게시중단 해제", description = "게시중단된 점주 공지를 다시 게시합니다. 점주가 설정한 노출 여부가 그대로 복원됩니다.")
     @PutMapping("/v1/notices/{noticeId}/unhide")
     public ResponseEntity<ApiResponse<Void>> unhideNotice(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long noticeId
     ) {
         ShopNoticeUnhideCommand command = ShopNoticeUnhideCommand.of(userDetails.getPrincipalId(), noticeId);

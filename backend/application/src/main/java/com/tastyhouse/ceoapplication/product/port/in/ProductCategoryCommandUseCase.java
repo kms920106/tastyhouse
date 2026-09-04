@@ -7,7 +7,7 @@ package com.tastyhouse.ceoapplication.product.port.in;
  */
 public interface ProductCategoryCommandUseCase {
 
-    Long createProductCategory(ProductCategoryCreateCommand command);
+    Long createProductCategory(ProductCategoryOwnerCreateCommand command);
 
     void updateProductCategory(ProductCategoryUpdateCommand command);
 

@@ -15,7 +15,7 @@ import com.tastyhouse.webapplication.sms.port.in.SmsVerificationSendCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.webapi.sms.adapter.in.web.request.SmsVerificationConfirmRequest;
 import com.tastyhouse.webapi.sms.adapter.in.web.request.SmsVerificationSendRequest;
 import com.tastyhouse.webapi.sms.adapter.in.web.response.SmsVerificationTokenResponse;
@@ -26,11 +26,11 @@ import com.tastyhouse.webapi.sms.adapter.in.web.response.SmsVerificationTokenRes
 public class SmsVerificationApiController {
 
     private final SmsVerificationCommandUseCase smsVerificationCommandUseCase;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberJwtTokenProvider jwtTokenProvider;
 
     public SmsVerificationApiController(
         SmsVerificationCommandUseCase smsVerificationCommandUseCase,
-        JwtTokenProvider jwtTokenProvider
+        MemberJwtTokenProvider jwtTokenProvider
     ) {
         this.smsVerificationCommandUseCase = smsVerificationCommandUseCase;
         this.jwtTokenProvider = jwtTokenProvider;

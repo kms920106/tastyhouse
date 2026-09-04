@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductOptionManagementCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -41,8 +41,8 @@ public record ProductOptionCreateRequest(
     Integer personalCupDiscountAmount
 ) {
 
-    public ProductOptionCreateCommand toCommand(Long optionGroupId) {
-        return new ProductOptionCreateCommand(
+    public ProductOptionManagementCreateCommand toCommand(Long optionGroupId) {
+        return new ProductOptionManagementCreateCommand(
             optionGroupId, name, additionalPrice, sort, soldOut,
             visible, cupCount, personalCupDiscountAmount
         );

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentOwnerCreateCommand;
 
 /**
  * 요청건 문의 작성 요청(점주).
@@ -22,7 +22,7 @@ public record ShopRequestCommentCreateRequest(
     String content
 ) {
 
-    public ShopRequestCommentCreateCommand toCommand(Long ceoId, Long shopId, Long requestId) {
-        return new ShopRequestCommentCreateCommand(ceoId, shopId, requestId, content());
+    public ShopRequestCommentOwnerCreateCommand toCommand(Long ceoId, Long shopId, Long requestId) {
+        return new ShopRequestCommentOwnerCreateCommand(ceoId, shopId, requestId, content());
     }
 }

@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.member.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.member.port.in.MemberWithdrawCommand;
+import com.tastyhouse.adminapplication.member.port.in.MemberManagementWithdrawCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -17,7 +17,7 @@ public record MemberWithdrawRequest(
     String reasonDetail
 ) {
 
-    public MemberWithdrawCommand toCommand(Long memberId) {
-        return new MemberWithdrawCommand(memberId, reason(), reasonDetail());
+    public MemberManagementWithdrawCommand toCommand(Long memberId) {
+        return new MemberManagementWithdrawCommand(memberId, reason(), reasonDetail());
     }
 }

@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopClosedDayDeleteUseCase {
 
-    void deleteClosedDay(ShopClosedDayDeleteCommand command);
+    void deleteClosedDay(ShopClosedDayManagementDeleteCommand command);
 }

@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.auth.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.MemberJwtResult;
 
 @Schema(description = "JWT 인증 토큰 응답")
 public record AuthJwtResponse(
@@ -16,7 +16,7 @@ public record AuthJwtResponse(
     String tokenType
 ) {
 
-    public static AuthJwtResponse from(JwtResult result) {
+    public static AuthJwtResponse from(MemberJwtResult result) {
         return new AuthJwtResponse(
             result.accessToken(),
             result.refreshToken(),

@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardHiddenChangeCommand;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
@@ -34,10 +34,10 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RequestMapping("/api/shops")
 public class ShopContentBoardAdminApiController {
 
-    private final ShopContentBoardQueryUseCase shopContentBoardQueryUseCase;
-    private final ShopContentBoardCommandUseCase shopContentBoardCommandUseCase;
+    private final ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase;
+    private final ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase;
 
-    public ShopContentBoardAdminApiController(ShopContentBoardQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardCommandUseCase shopContentBoardCommandUseCase) {
+    public ShopContentBoardAdminApiController(ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase) {
         this.shopContentBoardQueryUseCase = shopContentBoardQueryUseCase;
         this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
     }
@@ -72,7 +72,7 @@ public class ShopContentBoardAdminApiController {
     @Operation(summary = "콘텐츠보드 삭제", description = "가게 콘텐츠보드를 삭제합니다.")
     @DeleteMapping("/v1/content-boards/{contentBoardId}")
     public ResponseEntity<ApiResponse<Void>> deleteContentBoard(@PathVariable Long contentBoardId) {
-        ShopContentBoardDeleteCommand command = ShopContentBoardDeleteCommand.of(contentBoardId);
+        ShopContentBoardManagementDeleteCommand command = ShopContentBoardManagementDeleteCommand.of(contentBoardId);
         shopContentBoardCommandUseCase.deleteContentBoard(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

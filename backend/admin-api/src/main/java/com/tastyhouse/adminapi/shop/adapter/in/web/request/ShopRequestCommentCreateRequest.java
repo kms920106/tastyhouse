@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentManagementCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -22,7 +22,7 @@ public record ShopRequestCommentCreateRequest(
     String content
 ) {
 
-    public ShopRequestCommentCreateCommand toCommand(Long requestId, Long adminId) {
-        return new ShopRequestCommentCreateCommand(requestId, adminId, content);
+    public ShopRequestCommentManagementCreateCommand toCommand(Long requestId, Long adminId) {
+        return new ShopRequestCommentManagementCreateCommand(requestId, adminId, content);
     }
 }

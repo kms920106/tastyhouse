@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseDeleteCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseUpdateCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseQueryUseCase;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 
 /**
  * 자주 쓰는 문구 API.
@@ -55,7 +55,7 @@ public class CeoReplyPhraseApiController {
     )
     @GetMapping("/v1/reply-phrases")
     public ResponseEntity<ApiResponse<List<CeoReplyPhraseResponse>>> getReplyPhrases(
-        @AuthenticationPrincipal CustomUserDetails userDetails
+        @AuthenticationPrincipal CeoUserDetails userDetails
     ) {
         List<CeoReplyPhraseResponse> response =
             ceoReplyPhraseQueryService.getReplyPhrases(userDetails.getCeoId()).stream()
@@ -71,7 +71,7 @@ public class CeoReplyPhraseApiController {
     )
     @PostMapping("/v1/reply-phrases")
     public ResponseEntity<ApiResponse<Long>> createReplyPhrase(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody CeoReplyPhraseCreateRequest request
     ) {
         CeoReplyPhraseCreateCommand command = request.toCommand(userDetails.getCeoId());
@@ -85,7 +85,7 @@ public class CeoReplyPhraseApiController {
     )
     @PutMapping("/v1/reply-phrases/{id}")
     public ResponseEntity<ApiResponse<Void>> updateReplyPhrase(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody CeoReplyPhraseCreateRequest request
     ) {
@@ -100,7 +100,7 @@ public class CeoReplyPhraseApiController {
     )
     @DeleteMapping("/v1/reply-phrases/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteReplyPhrase(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         CeoReplyPhraseDeleteCommand command = CeoReplyPhraseDeleteCommand.of(userDetails.getCeoId(), id);

@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionUpdateRequest;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOwnerCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOrderChangeCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionUpdateCommand;
@@ -50,11 +50,11 @@ public class ProductOptionApiController {
         description = "생성된 옵션 ID만 반환합니다. 노출 순서는 서버가 그룹의 맨 뒤로 채웁니다.")
     @PostMapping("/v1/option-groups/{optionGroupId}/options")
     public ResponseEntity<ApiResponse<Long>> createProductOption(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long optionGroupId,
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
-        ProductOptionCreateCommand command = request.toCommand(userDetails.getCeoId(), optionGroupId);
+        ProductOptionOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), optionGroupId);
         Long optionId = productOptionCommandUseCase.createProductOption(command);
         return ResponseEntity.ok(ApiResponse.success(optionId));
     }
@@ -63,7 +63,7 @@ public class ProductOptionApiController {
         description = "품절·숨김 상태와 노출 순서는 이 경로로 바꾸지 않습니다.")
     @PutMapping("/v1/options/{id}")
     public ResponseEntity<ApiResponse<Void>> updateProductOption(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionUpdateRequest request
     ) {
@@ -78,7 +78,7 @@ public class ProductOptionApiController {
             + "(PRODUCT_OPTION_MIN_SELECT_VIOLATION).")
     @DeleteMapping("/v1/options/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProductOption(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionDeleteRequest request
     ) {
@@ -92,7 +92,7 @@ public class ProductOptionApiController {
             + "옵션 집합과 다르면 거부됩니다(PRODUCT_ORDER_TARGET_MISMATCH).")
     @PutMapping("/v1/option-groups/{optionGroupId}/options/sort")
     public ResponseEntity<ApiResponse<Void>> changeProductOptionOrder(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long optionGroupId,
         @Valid @RequestBody ProductOptionSortRequest request
     ) {

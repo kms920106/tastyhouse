@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductExposureRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResponse;
@@ -56,7 +56,7 @@ public class ProductExposureApiController {
         description = "설정된 기간·요일·시간대와 함께 지금 노출 중인지(exposedNow)와 그 사유(hiddenReason)를 반환합니다.")
     @GetMapping("/v1/{id}/exposure")
     public ResponseEntity<ApiResponse<ProductExposureResponse>> getProductExposure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -68,7 +68,7 @@ public class ProductExposureApiController {
         description = "기간과 요일·시간대를 통째로 치환합니다. hours를 빈 배열로 보내면 요일·시간 제약이 사라집니다.")
     @PutMapping("/v1/{id}/exposure")
     public ResponseEntity<ApiResponse<Void>> changeProductExposure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductExposureRequest request
     ) {
@@ -81,7 +81,7 @@ public class ProductExposureApiController {
         description = "기간·요일·시간대를 모두 비워 상시 노출로 되돌립니다. 숨김 상태는 바뀌지 않습니다.")
     @DeleteMapping("/v1/{id}/exposure")
     public ResponseEntity<ApiResponse<Void>> clearProductExposure(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {

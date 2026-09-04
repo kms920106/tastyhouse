@@ -16,20 +16,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailResponse;
-import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductCreateUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerCreateUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductDeleteUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductQueryUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerUpdateUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerQueryUseCase;
 
 /**
  * 점주 메뉴 CRUD API.
@@ -44,15 +44,15 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductQueryUseCase;
 @RequestMapping("/api/products")
 public class ProductApiController {
 
-    private final ProductQueryUseCase productQueryService;
-    private final ProductCreateUseCase productCreateUseCase;
-    private final ProductUpdateUseCase productUpdateUseCase;
+    private final ProductOwnerQueryUseCase productQueryService;
+    private final ProductOwnerCreateUseCase productCreateUseCase;
+    private final ProductOwnerUpdateUseCase productUpdateUseCase;
     private final ProductDeleteUseCase productDeleteUseCase;
 
     public ProductApiController(
-        ProductQueryUseCase productQueryService,
-        ProductCreateUseCase productCreateUseCase,
-        ProductUpdateUseCase productUpdateUseCase,
+        ProductOwnerQueryUseCase productQueryService,
+        ProductOwnerCreateUseCase productCreateUseCase,
+        ProductOwnerUpdateUseCase productUpdateUseCase,
         ProductDeleteUseCase productDeleteUseCase
     ) {
         this.productQueryService = productQueryService;
@@ -66,7 +66,7 @@ public class ProductApiController {
             + "별도 API가 담당하므로 이 응답에 포함되지 않습니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProduct(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -80,10 +80,10 @@ public class ProductApiController {
             + "생략하면 shopId 가게 하나에만 연결됩니다(기존 동작).")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createProduct(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductCreateRequest request
     ) {
-        ProductCreateCommand command = request.toCommand(userDetails.getCeoId());
+        ProductOwnerCreateCommand command = request.toCommand(userDetails.getCeoId());
         Long productId = productCreateUseCase.createProduct(command);
         return ResponseEntity.ok(ApiResponse.success(productId));
     }
@@ -93,11 +93,11 @@ public class ProductApiController {
             + "노출 순서가 다시 매겨집니다.")
     @PutMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> updateProduct(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductUpdateRequest request
     ) {
-        ProductUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        ProductOwnerUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
         productUpdateUseCase.updateProduct(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -107,7 +107,7 @@ public class ProductApiController {
             + "제약에 걸린 메뉴는 200 응답의 failed에 담기고 나머지는 정상 삭제됩니다.")
     @DeleteMapping("/v1")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> deleteProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductDeleteRequest request
     ) {
         ProductDeleteCommand command = request.toCommand(userDetails.getCeoId());

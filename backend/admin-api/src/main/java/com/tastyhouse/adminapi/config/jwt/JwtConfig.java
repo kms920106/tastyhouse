@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.adminapplication.auth.token.JwtTokenProvider;
+import com.tastyhouse.adminapplication.auth.token.AdminJwtTokenProvider;
 import com.tastyhouse.security.jwt.JwtAuthenticationFilter;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 
@@ -17,7 +17,7 @@ public class JwtConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
-        JwtTokenProvider jwtTokenProvider,
+        AdminJwtTokenProvider jwtTokenProvider,
         BlacklistRedisRepository blacklistRepository,
         ObjectMapper objectMapper
     ) {

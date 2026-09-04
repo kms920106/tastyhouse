@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCancelRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCreateRequest;
@@ -55,7 +55,7 @@ public class PaymentApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createPayment(
         @Valid @RequestBody PaymentCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaymentCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long paymentId = paymentCommandUseCase.createPayment(command);
@@ -77,7 +77,7 @@ public class PaymentApiController {
     @PostMapping("/v1/toss/confirm")
     public ResponseEntity<ApiResponse<PaymentResponse>> confirmTossPayment(
         @Valid @RequestBody TossPaymentConfirmApiRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
         TossPaymentConfirmCommand command = request.toCommand(memberId);
@@ -90,7 +90,7 @@ public class PaymentApiController {
     @GetMapping("/v1/order/{orderId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrderId(
         @PathVariable Long orderId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaymentResponse response = PaymentResponse.from(paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId));
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -101,7 +101,7 @@ public class PaymentApiController {
     public ResponseEntity<ApiResponse<PaymentCancelResponse>> cancelPayment(
         @PathVariable Long id,
         @Valid @RequestBody PaymentCancelRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaymentCancelCommand command = request.toCommand(userDetails.getMemberId(), id);
         PaymentCancelResponse response = PaymentCancelResponse.from(paymentCommandUseCase.cancelPayment(command));
@@ -112,7 +112,7 @@ public class PaymentApiController {
     @PostMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<PaymentResponse>> completeOnSitePayment(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
         PaymentOnSiteCompleteCommand command = PaymentOnSiteCompleteCommand.of(memberId, id);
@@ -126,7 +126,7 @@ public class PaymentApiController {
     public ResponseEntity<ApiResponse<PaymentRefundResponse>> requestRefund(
         @PathVariable Long id,
         @Valid @RequestBody RefundRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaymentRefundRequestCommand command = request.toCommand(userDetails.getMemberId(), id);
         Long refundId = paymentCommandUseCase.requestRefund(command);

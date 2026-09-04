@@ -5,8 +5,8 @@ import java.time.LocalTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
 
 @Schema(description = "가게 운영시간 등록/수정 요청")
 public record ShopBusinessHourSaveRequest(
@@ -27,11 +27,11 @@ public record ShopBusinessHourSaveRequest(
     Boolean is24Hours
 ) {
 
-    public ShopBusinessHourCreateCommand toCommand(Long ceoId, Long shopId) {
-        return new ShopBusinessHourCreateCommand(ceoId, shopId, dayType(), openTime(), closeTime(), isClosed(), is24Hours());
+    public ShopBusinessHourOwnerCreateCommand toCommand(Long ceoId, Long shopId) {
+        return new ShopBusinessHourOwnerCreateCommand(ceoId, shopId, dayType(), openTime(), closeTime(), isClosed(), is24Hours());
     }
 
-    public ShopBusinessHourUpdateCommand toUpdateCommand(Long ceoId, Long businessHourId) {
-        return new ShopBusinessHourUpdateCommand(ceoId, businessHourId, dayType(), openTime(), closeTime(), isClosed(), is24Hours());
+    public ShopBusinessHourOwnerUpdateCommand toUpdateCommand(Long ceoId, Long businessHourId) {
+        return new ShopBusinessHourOwnerUpdateCommand(ceoId, businessHourId, dayType(), openTime(), closeTime(), isClosed(), is24Hours());
     }
 }

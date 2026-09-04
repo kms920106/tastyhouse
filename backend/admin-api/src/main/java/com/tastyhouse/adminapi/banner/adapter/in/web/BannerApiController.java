@@ -30,7 +30,7 @@ import com.tastyhouse.adminapplication.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.adminapplication.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.adminapplication.banner.port.in.BannerDeleteCommand;
 import com.tastyhouse.adminapplication.banner.port.in.BannerUpdateCommand;
-import com.tastyhouse.adminapplication.banner.port.in.BannerQueryUseCase;
+import com.tastyhouse.adminapplication.banner.port.in.BannerManagementQueryUseCase;
 
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController
@@ -38,9 +38,9 @@ import com.tastyhouse.adminapplication.banner.port.in.BannerQueryUseCase;
 public class BannerApiController {
 
     private final BannerCommandUseCase bannerCommandUseCase;
-    private final BannerQueryUseCase bannerQueryUseCase;
+    private final BannerManagementQueryUseCase bannerQueryUseCase;
 
-    public BannerApiController(BannerCommandUseCase bannerCommandUseCase, BannerQueryUseCase bannerQueryUseCase) {
+    public BannerApiController(BannerCommandUseCase bannerCommandUseCase, BannerManagementQueryUseCase bannerQueryUseCase) {
         this.bannerCommandUseCase = bannerCommandUseCase;
         this.bannerQueryUseCase = bannerQueryUseCase;
     }

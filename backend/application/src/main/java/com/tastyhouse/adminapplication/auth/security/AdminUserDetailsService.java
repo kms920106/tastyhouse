@@ -31,6 +31,6 @@ public class AdminUserDetailsService implements UserDetailsService {
         // 권한은 Admin.role 에서 파생 (예: SUPER_ADMIN -> ROLE_SUPER_ADMIN)
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + admin.getRole().name());
 
-        return new CustomUserDetails(admin, Collections.singleton(authority));
+        return new AdminUserDetails(admin, Collections.singleton(authority));
     }
 }

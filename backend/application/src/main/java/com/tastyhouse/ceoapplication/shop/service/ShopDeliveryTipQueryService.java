@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipOwnerViewResult;
 
 /**
  * 점주용 가게 배달팁 조회 서비스(CQRS query 측).
@@ -37,7 +37,7 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
     }
 
     @Override
-    public ShopDeliveryTipViewResult getDeliveryTips(Long ceoId, Long shopId) {
+    public ShopDeliveryTipOwnerViewResult getDeliveryTips(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopDeliveryTipSettingResult setting = shopDeliveryTipQueryPort.findSetting(shopId).orElse(null);
@@ -46,7 +46,7 @@ public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase 
         List<ShopDeliveryTipRegionResult> regions = shopDeliveryTipQueryPort.findRegionTips(shopId);
         List<ShopDeliveryTipScheduleResult> schedules = shopDeliveryTipQueryPort.findScheduleTips(shopId);
 
-        return new ShopDeliveryTipViewResult(
+        return new ShopDeliveryTipOwnerViewResult(
             setting,
             tiers,
             regions,

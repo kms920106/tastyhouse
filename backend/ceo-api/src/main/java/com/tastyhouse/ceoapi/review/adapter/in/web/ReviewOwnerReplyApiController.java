@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreateRequest;
 import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyCommandUseCase;
 import com.tastyhouse.ceoapplication.review.port.in.ReviewOwnerReplyCreateCommand;
@@ -39,7 +39,7 @@ public class ReviewOwnerReplyApiController {
     )
     @PostMapping("/v1/{id}/reviews/{reviewId}/owner-reply")
     public ResponseEntity<ApiResponse<Long>> createOwnerReply(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long reviewId,
         @Valid @RequestBody ReviewOwnerReplyCreateRequest request
@@ -55,7 +55,7 @@ public class ReviewOwnerReplyApiController {
     )
     @PutMapping("/v1/{id}/reviews/{reviewId}/owner-reply")
     public ResponseEntity<ApiResponse<Void>> updateOwnerReply(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long reviewId,
         @Valid @RequestBody ReviewOwnerReplyCreateRequest request
@@ -71,7 +71,7 @@ public class ReviewOwnerReplyApiController {
     )
     @DeleteMapping("/v1/{id}/reviews/{reviewId}/owner-reply")
     public ResponseEntity<ApiResponse<Void>> deleteOwnerReply(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long reviewId
     ) {

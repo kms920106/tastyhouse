@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopAmenityAssignUseCase {
 
-    Long assignAmenity(ShopAmenityAssignCommand command);
+    Long assignAmenity(ShopAmenityManagementAssignCommand command);
 }

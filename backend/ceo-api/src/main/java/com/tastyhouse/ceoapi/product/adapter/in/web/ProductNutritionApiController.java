@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductNutritionUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAllergenTypeResponse;
@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionRes
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionUpdateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionOwnerQueryUseCase;
 
 /**
  * 점주 메뉴 영양성분·알레르기 관리 API.
@@ -44,10 +44,10 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionQueryUseCas
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
 
-    private final ProductNutritionQueryUseCase productNutritionQueryService;
+    private final ProductNutritionOwnerQueryUseCase productNutritionQueryService;
     private final ProductNutritionCommandUseCase productNutritionCommandUseCase;
 
-    public ProductNutritionApiController(ProductNutritionQueryUseCase productNutritionQueryService, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
+    public ProductNutritionApiController(ProductNutritionOwnerQueryUseCase productNutritionQueryService, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
         this.productNutritionQueryService = productNutritionQueryService;
         this.productNutritionCommandUseCase = productNutritionCommandUseCase;
     }
@@ -68,7 +68,7 @@ public class ProductNutritionApiController {
             + "한글 라벨이 아니라 코드 배열로 내려갑니다.")
     @GetMapping("/v1/{id}/nutrition")
     public ResponseEntity<ApiResponse<ProductNutritionResponse>> getNutrition(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -81,7 +81,7 @@ public class ProductNutritionApiController {
             + "알레르기 목록은 통째로 교체됩니다(빈 배열이면 표시가 비워집니다). 관리자 승인을 거치지 않습니다.")
     @PutMapping("/v1/{id}/nutrition")
     public ResponseEntity<ApiResponse<Void>> updateNutrition(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductNutritionUpdateRequest request
     ) {
@@ -95,7 +95,7 @@ public class ProductNutritionApiController {
             + "알레르기 목록도 함께 지워지며, 없는 정보를 지우려 하면 404입니다.")
     @DeleteMapping("/v1/{id}/nutrition")
     public ResponseEntity<ApiResponse<Void>> deleteNutrition(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {

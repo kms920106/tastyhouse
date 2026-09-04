@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBreakTimeUpdateUseCase {
 
-    void updateBreakTime(ShopBreakTimeUpdateCommand command);
+    void updateBreakTime(ShopBreakTimeManagementUpdateCommand command);
 }

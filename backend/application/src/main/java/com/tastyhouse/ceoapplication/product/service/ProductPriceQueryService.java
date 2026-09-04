@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.out.ProductPriceView;
+import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
 import com.tastyhouse.ceoapplication.product.port.in.ProductPriceQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.product.service.ProductPriceService;
@@ -39,11 +39,11 @@ public class ProductPriceQueryService implements ProductPriceQueryUseCase {
     }
 
     @Override
-    public List<ProductPriceView> getPrices(Long ceoId, Long shopId, Long productId) {
+    public List<ProductOwnerPriceView> getPrices(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         return productPriceService.findPrices(ShopId.of(shopId), ProductId.of(productId)).stream()
-            .map(price -> new ProductPriceView(
+            .map(price -> new ProductOwnerPriceView(
                 price.getId(),
                 price.getPriceName(),
                 price.getDeliveryPrice(),

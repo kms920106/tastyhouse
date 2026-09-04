@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityAssignCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityOwnerAssignCommand;
 
 @Schema(description = "내 가게 편의시설 지정 요청")
 public record ShopAmenityAssignRequest(
@@ -12,7 +12,7 @@ public record ShopAmenityAssignRequest(
     Long amenityCategoryId
 ) {
 
-    public ShopAmenityAssignCommand toCommand(Long ceoId, Long shopId) {
-        return new ShopAmenityAssignCommand(ceoId, shopId, amenityCategoryId());
+    public ShopAmenityOwnerAssignCommand toCommand(Long ceoId, Long shopId) {
+        return new ShopAmenityOwnerAssignCommand(ceoId, shopId, amenityCategoryId());
     }
 }

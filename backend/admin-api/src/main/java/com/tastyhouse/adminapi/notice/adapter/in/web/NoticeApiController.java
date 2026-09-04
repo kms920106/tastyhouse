@@ -30,7 +30,7 @@ import com.tastyhouse.adminapplication.notice.port.in.NoticeCommandUseCase;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeDeleteCommand;
 import com.tastyhouse.adminapplication.notice.port.in.NoticeUpdateCommand;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeQueryUseCase;
+import com.tastyhouse.adminapplication.notice.port.in.NoticeManagementQueryUseCase;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
@@ -38,9 +38,9 @@ import com.tastyhouse.adminapplication.notice.port.in.NoticeQueryUseCase;
 public class NoticeApiController {
 
     private final NoticeCommandUseCase noticeCommandUseCase;
-    private final NoticeQueryUseCase noticeQueryUseCase;
+    private final NoticeManagementQueryUseCase noticeQueryUseCase;
 
-    public NoticeApiController(NoticeCommandUseCase noticeCommandUseCase, NoticeQueryUseCase noticeQueryUseCase) {
+    public NoticeApiController(NoticeCommandUseCase noticeCommandUseCase, NoticeManagementQueryUseCase noticeQueryUseCase) {
         this.noticeCommandUseCase = noticeCommandUseCase;
         this.noticeQueryUseCase = noticeQueryUseCase;
     }

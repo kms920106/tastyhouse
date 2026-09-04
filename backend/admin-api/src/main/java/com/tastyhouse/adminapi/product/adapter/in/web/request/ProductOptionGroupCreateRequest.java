@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductOptionGroupManagementCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -44,8 +44,8 @@ public record ProductOptionGroupCreateRequest(
     String groupType
 ) {
 
-    public ProductOptionGroupCreateCommand toCommand(Long productId) {
-        return new ProductOptionGroupCreateCommand(
+    public ProductOptionGroupManagementCreateCommand toCommand(Long productId) {
+        return new ProductOptionGroupManagementCreateCommand(
             productId, name, description, required, multipleSelect,
             minSelect, maxSelect, sort, visible, groupType
         );

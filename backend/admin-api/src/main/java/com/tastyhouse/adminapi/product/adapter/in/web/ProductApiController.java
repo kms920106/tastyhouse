@@ -34,49 +34,49 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemRe
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
 import com.tastyhouse.application.product.port.out.ProductListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.product.port.in.ProductCategoryCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductCategoryManagementCreateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductCategoryCreateUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductCreateCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductCreateUseCase;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementCreateUseCase;
 import com.tastyhouse.adminapplication.product.port.in.ProductDeactivateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductDeactivateUseCase;
 import com.tastyhouse.adminapplication.product.port.in.ProductImageCreateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductImageCreateUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductOptionManagementCreateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductOptionCreateUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductOptionGroupManagementCreateCommand;
 import com.tastyhouse.adminapplication.product.port.in.ProductOptionGroupCreateUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductSoldOutCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductSoldOutUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductUpdateCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductUpdateUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductQueryUseCase;
+import com.tastyhouse.adminapplication.product.port.in.ProductSoldOutManagementCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductSoldOutManagementUseCase;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementUpdateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementUpdateUseCase;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementQueryUseCase;
 
 @Tag(name = "Product Admin", description = "상품 관리자 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductApiController {
 
-    private final ProductCreateUseCase productCreateUseCase;
-    private final ProductUpdateUseCase productUpdateUseCase;
-    private final ProductSoldOutUseCase productSoldOutUseCase;
+    private final ProductManagementCreateUseCase productCreateUseCase;
+    private final ProductManagementUpdateUseCase productUpdateUseCase;
+    private final ProductSoldOutManagementUseCase productSoldOutUseCase;
     private final ProductDeactivateUseCase productDeactivateUseCase;
     private final ProductOptionGroupCreateUseCase productOptionGroupCreateUseCase;
     private final ProductOptionCreateUseCase productOptionCreateUseCase;
     private final ProductImageCreateUseCase productImageCreateUseCase;
     private final ProductCategoryCreateUseCase productCategoryCreateUseCase;
-    private final ProductQueryUseCase productQueryUseCase;
+    private final ProductManagementQueryUseCase productQueryUseCase;
 
     public ProductApiController(
-        ProductCreateUseCase productCreateUseCase,
-        ProductUpdateUseCase productUpdateUseCase,
-        ProductSoldOutUseCase productSoldOutUseCase,
+        ProductManagementCreateUseCase productCreateUseCase,
+        ProductManagementUpdateUseCase productUpdateUseCase,
+        ProductSoldOutManagementUseCase productSoldOutUseCase,
         ProductDeactivateUseCase productDeactivateUseCase,
         ProductOptionGroupCreateUseCase productOptionGroupCreateUseCase,
         ProductOptionCreateUseCase productOptionCreateUseCase,
         ProductImageCreateUseCase productImageCreateUseCase,
         ProductCategoryCreateUseCase productCategoryCreateUseCase,
-        ProductQueryUseCase productQueryUseCase
+        ProductManagementQueryUseCase productQueryUseCase
     ) {
         this.productCreateUseCase = productCreateUseCase;
         this.productUpdateUseCase = productUpdateUseCase;
@@ -106,7 +106,7 @@ public class ProductApiController {
     @Operation(summary = "상품 등록", description = "새로운 상품을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
-        ProductCreateCommand command = request.toCommand();
+        ProductManagementCreateCommand command = request.toCommand();
         Long id = productCreateUseCase.createProduct(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
@@ -124,7 +124,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @RequestBody ProductUpdateRequest request
     ) {
-        ProductUpdateCommand command = request.toCommand(id);
+        ProductManagementUpdateCommand command = request.toCommand(id);
         productUpdateUseCase.updateProduct(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -132,7 +132,7 @@ public class ProductApiController {
     @Operation(summary = "상품 품절 처리", description = "상품을 품절 상태로 변경합니다.")
     @PatchMapping("/v1/{id}/sold-out")
     public ResponseEntity<ApiResponse<Void>> markSoldOut(@PathVariable Long id) {
-        ProductSoldOutCommand command = ProductSoldOutCommand.of(id);
+        ProductSoldOutManagementCommand command = ProductSoldOutManagementCommand.of(id);
         productSoldOutUseCase.markSoldOut(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -158,7 +158,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupCreateRequest request
     ) {
-        ProductOptionGroupCreateCommand command = request.toCommand(id);
+        ProductOptionGroupManagementCreateCommand command = request.toCommand(id);
         Long optionGroupId = productOptionGroupCreateUseCase.createProductOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
@@ -169,7 +169,7 @@ public class ProductApiController {
         @PathVariable Long groupId,
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
-        ProductOptionCreateCommand command = request.toCommand(groupId);
+        ProductOptionManagementCreateCommand command = request.toCommand(groupId);
         Long optionId = productOptionCreateUseCase.createProductOption(command);
         return ResponseEntity.ok(ApiResponse.success(optionId));
     }
@@ -206,7 +206,7 @@ public class ProductApiController {
     @Operation(summary = "상품 카테고리 등록", description = "새로운 상품 카테고리를 등록합니다.")
     @PostMapping("/v1/categories")
     public ResponseEntity<ApiResponse<Long>> createProductCategory(@Valid @RequestBody ProductCategoryCreateRequest request) {
-        ProductCategoryCreateCommand command = request.toCommand();
+        ProductCategoryManagementCreateCommand command = request.toCommand();
         Long id = productCategoryCreateUseCase.createProductCategory(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }

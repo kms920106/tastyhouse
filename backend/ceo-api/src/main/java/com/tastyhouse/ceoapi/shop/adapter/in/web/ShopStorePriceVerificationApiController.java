@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopStorePriceVerificationRequestCommand;
@@ -62,7 +62,7 @@ public class ShopStorePriceVerificationApiController {
             + "있거나 할인이 진행 중인 메뉴가 포함되면 거부됩니다.")
     @PostMapping(value = "/v1/{id}/store-price-verifications", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> requestStorePriceVerification(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Parameter(description = "매장 가격표 이미지 파일", required = true)
         @RequestParam("file") MultipartFile file,
@@ -86,7 +86,7 @@ public class ShopStorePriceVerificationApiController {
             + "배달가가 매장가를 넘으면 해제됩니다) 매장가 입력 가능 여부는 verified로 판단합니다.")
     @GetMapping("/v1/{id}/store-price-verifications/latest")
     public ResponseEntity<ApiResponse<ShopStorePriceVerificationResponse>> getLatestStorePriceVerification(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopStorePriceVerificationResponse response =

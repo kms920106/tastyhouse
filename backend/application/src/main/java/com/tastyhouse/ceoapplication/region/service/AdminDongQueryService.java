@@ -20,7 +20,7 @@ import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
-import com.tastyhouse.application.shared.port.out.GeoRingsPort;
+import com.tastyhouse.application.shared.port.out.GeoRingsQueryPort;
 
 /**
  * 행정동 검색 서비스(CQRS query 측).
@@ -46,9 +46,9 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
     private static final int MAX_BOUNDARY_ITEMS = 200;
 
     private final AdminDongQueryPort adminDongQueryPort;
-    private final GeoRingsPort geoRingsPort;
+    private final GeoRingsQueryPort geoRingsPort;
 
-    public AdminDongQueryService(AdminDongQueryPort adminDongQueryPort, GeoRingsPort geoRingsPort) {
+    public AdminDongQueryService(AdminDongQueryPort adminDongQueryPort, GeoRingsQueryPort geoRingsPort) {
         this.adminDongQueryPort = adminDongQueryPort;
         this.geoRingsPort = geoRingsPort;
     }

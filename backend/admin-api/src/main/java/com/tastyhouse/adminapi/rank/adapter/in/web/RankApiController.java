@@ -36,7 +36,7 @@ import com.tastyhouse.adminapplication.rank.port.in.RankPeriodUpdateCommand;
 import com.tastyhouse.adminapplication.rank.port.in.RankPrizeCreateCommand;
 import com.tastyhouse.adminapplication.rank.port.in.RankPrizeDeleteCommand;
 import com.tastyhouse.adminapplication.rank.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.adminapplication.rank.port.in.RankQueryUseCase;
+import com.tastyhouse.adminapplication.rank.port.in.RankManagementQueryUseCase;
 
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController
@@ -44,9 +44,9 @@ import com.tastyhouse.adminapplication.rank.port.in.RankQueryUseCase;
 public class RankApiController {
 
     private final RankCommandUseCase rankCommandUseCase;
-    private final RankQueryUseCase rankQueryUseCase;
+    private final RankManagementQueryUseCase rankQueryUseCase;
 
-    public RankApiController(RankCommandUseCase rankCommandUseCase, RankQueryUseCase rankQueryUseCase) {
+    public RankApiController(RankCommandUseCase rankCommandUseCase, RankManagementQueryUseCase rankQueryUseCase) {
         this.rankCommandUseCase = rankCommandUseCase;
         this.rankQueryUseCase = rankQueryUseCase;
     }

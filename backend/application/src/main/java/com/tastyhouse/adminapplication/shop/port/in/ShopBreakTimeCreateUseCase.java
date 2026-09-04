@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopBreakTimeCreateUseCase {
 
-    Long createBreakTime(ShopBreakTimeCreateCommand command);
+    Long createBreakTime(ShopBreakTimeManagementCreateCommand command);
 }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommand;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommandUseCase;
 import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentQueryUseCase;
@@ -54,7 +54,7 @@ public class ReviewBlindConsentApiController {
     )
     @GetMapping("/v1/{reviewId}/blind")
     public ResponseEntity<ApiResponse<ReviewBlindNoticeResponse>> getBlindNotice(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindNoticeResponse response = ReviewBlindNoticeResponse.from(
@@ -70,7 +70,7 @@ public class ReviewBlindConsentApiController {
     )
     @PostMapping("/v1/{reviewId}/blind/consent")
     public ResponseEntity<ApiResponse<Void>> consentToDelete(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindConsentCommand command = ReviewBlindConsentCommand.of(userDetails.getMemberId(), reviewId);
@@ -85,7 +85,7 @@ public class ReviewBlindConsentApiController {
     )
     @PostMapping("/v1/{reviewId}/blind/reject")
     public ResponseEntity<ApiResponse<Void>> rejectDeletion(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindRejectCommand command = ReviewBlindRejectCommand.of(userDetails.getMemberId(), reviewId);

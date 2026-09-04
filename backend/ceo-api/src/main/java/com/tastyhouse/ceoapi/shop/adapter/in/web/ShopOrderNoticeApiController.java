@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOrderNoticeUpsertRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeUpsertCommand;
 
 /**
@@ -35,12 +35,12 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeUpsertCommand;
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
 
-    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService;
-    private final ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase;
+    private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryService;
+    private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;
 
     public ShopOrderNoticeApiController(
-        ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService,
-        ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase
+        ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryService,
+        ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase
     ) {
         this.shopOrderNoticeQueryService = shopOrderNoticeQueryService;
         this.shopOrderNoticeCommandUseCase = shopOrderNoticeCommandUseCase;
@@ -49,7 +49,7 @@ public class ShopOrderNoticeApiController {
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내를 조회합니다. 미설정이면 content가 null이며, 관리자 게시중단 여부와 사유가 함께 내려갑니다.")
     @GetMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<ShopOrderNoticeResponse>> getOrderNotice(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(userDetails.getCeoId(), id)
@@ -61,7 +61,7 @@ public class ShopOrderNoticeApiController {
     @Operation(summary = "주문안내 등록·수정", description = "가게의 주문안내를 등록하거나 수정합니다(가게당 1건 전체교체). 승인 절차 없이 즉시 손님 화면에 반영됩니다.")
     @PutMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<Void>> upsertOrderNotice(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopOrderNoticeUpsertRequest request
     ) {

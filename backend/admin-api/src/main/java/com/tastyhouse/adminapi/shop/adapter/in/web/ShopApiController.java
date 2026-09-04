@@ -1,28 +1,28 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityAssignCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityManagementAssignCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityAssignUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityCategoryCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityCategoryCreateUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityCategoryUpdateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityCategoryUpdateUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityUnassignCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityManagementUnassignCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityUnassignUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBannerImageCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBannerImageCreateUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBannerImageDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBannerImageDeleteUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeManagementCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeCreateUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeManagementDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeDeleteUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeManagementUpdateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeUpdateUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourCreateUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourDeleteUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementUpdateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourUpdateUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCeoAssignCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCeoAssignUseCase;
@@ -36,9 +36,9 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopChoiceUpdateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopChoiceUpdateUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCloseCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCloseUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayManagementCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayCreateUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayDeleteCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayManagementDeleteCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayDeleteUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCreateCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopCreateUseCase;
@@ -96,7 +96,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityCategoryCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityCategoryUpdateRequest;
@@ -135,7 +135,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryIma
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.StationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
@@ -182,7 +182,7 @@ public class ShopApiController {
     private final ShopChoiceCreateUseCase shopChoiceCreateUseCase;
     private final ShopChoiceUpdateUseCase shopChoiceUpdateUseCase;
     private final ShopChoiceDeleteUseCase shopChoiceDeleteUseCase;
-    private final ShopQueryUseCase shopQueryUseCase;
+    private final ShopManagementQueryUseCase shopQueryUseCase;
 
     public ShopApiController(
         ShopCreateUseCase shopCreateUseCase,
@@ -222,7 +222,7 @@ public class ShopApiController {
         ShopChoiceCreateUseCase shopChoiceCreateUseCase,
         ShopChoiceUpdateUseCase shopChoiceUpdateUseCase,
         ShopChoiceDeleteUseCase shopChoiceDeleteUseCase,
-        ShopQueryUseCase shopQueryUseCase
+        ShopManagementQueryUseCase shopQueryUseCase
     ) {
         this.shopCreateUseCase = shopCreateUseCase;
         this.shopCeoAssignUseCase = shopCeoAssignUseCase;
@@ -295,7 +295,7 @@ public class ShopApiController {
     @Operation(summary = "가게 등록", description = "새로운 가게를 등록합니다. 담당 점주를 함께 지정하면 시스템 접근권한 부여 이력이 기록됩니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createShop(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @Valid @RequestBody ShopCreateRequest request
     ) {
         ShopCreateCommand command = request.toCommand(userDetails.getPrincipalId());
@@ -313,7 +313,7 @@ public class ShopApiController {
     )
     @PutMapping("/v1/{id}/ceo")
     public ResponseEntity<ApiResponse<Void>> assignCeo(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopCeoAssignRequest request
     ) {
@@ -331,7 +331,7 @@ public class ShopApiController {
     )
     @DeleteMapping("/v1/{id}/ceo")
     public ResponseEntity<ApiResponse<Void>> revokeCeo(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopCeoRevokeCommand command = ShopCeoRevokeCommand.of(userDetails.getPrincipalId(), id);
@@ -342,7 +342,7 @@ public class ShopApiController {
     @Operation(summary = "가게 상세 조회", description = "가게 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ShopDetailResponse>> getShop(@PathVariable Long id) {
-        ShopQueryUseCase.ShopDetail detail = shopQueryUseCase.getShop(id);
+        ShopManagementQueryUseCase.ShopDetail detail = shopQueryUseCase.getShop(id);
         ShopDetailResponse response = ShopDetailResponse.from(detail.shop(), detail.thumbnailImageUrl());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -392,11 +392,11 @@ public class ShopApiController {
     @Operation(summary = "운영시간 등록", description = "가게에 운영시간을 등록합니다.")
     @PostMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<Long>> createBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        ShopBusinessHourCreateCommand command = request.toCreateCommand(userDetails.getPrincipalId(), id);
+        ShopBusinessHourManagementCreateCommand command = request.toCreateCommand(userDetails.getPrincipalId(), id);
         Long businessHourId = shopBusinessHourCreateUseCase.createBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
     }
@@ -404,11 +404,11 @@ public class ShopApiController {
     @Operation(summary = "운영시간 수정", description = "등록된 운영시간을 수정합니다.")
     @PutMapping("/v1/business-hours/{businessHourId}")
     public ResponseEntity<ApiResponse<Void>> updateBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long businessHourId,
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
-        ShopBusinessHourUpdateCommand command = request.toUpdateCommand(userDetails.getPrincipalId(), businessHourId);
+        ShopBusinessHourManagementUpdateCommand command = request.toUpdateCommand(userDetails.getPrincipalId(), businessHourId);
         shopBusinessHourUpdateUseCase.updateBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -416,10 +416,10 @@ public class ShopApiController {
     @Operation(summary = "운영시간 삭제", description = "등록된 운영시간을 삭제합니다.")
     @DeleteMapping("/v1/business-hours/{businessHourId}")
     public ResponseEntity<ApiResponse<Void>> deleteBusinessHour(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long businessHourId
     ) {
-        ShopBusinessHourDeleteCommand command = ShopBusinessHourDeleteCommand.of(userDetails.getPrincipalId(), businessHourId);
+        ShopBusinessHourManagementDeleteCommand command = ShopBusinessHourManagementDeleteCommand.of(userDetails.getPrincipalId(), businessHourId);
         shopBusinessHourDeleteUseCase.deleteBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -436,11 +436,11 @@ public class ShopApiController {
     @Operation(summary = "브레이크타임 등록", description = "가게에 브레이크타임을 등록합니다.")
     @PostMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<Long>> createBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        ShopBreakTimeCreateCommand command = request.toCreateCommand(userDetails.getPrincipalId(), id);
+        ShopBreakTimeManagementCreateCommand command = request.toCreateCommand(userDetails.getPrincipalId(), id);
         Long breakTimeId = shopBreakTimeCreateUseCase.createBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(breakTimeId));
     }
@@ -448,11 +448,11 @@ public class ShopApiController {
     @Operation(summary = "브레이크타임 수정", description = "등록된 브레이크타임을 수정합니다.")
     @PutMapping("/v1/break-times/{breakTimeId}")
     public ResponseEntity<ApiResponse<Void>> updateBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long breakTimeId,
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
-        ShopBreakTimeUpdateCommand command = request.toUpdateCommand(userDetails.getPrincipalId(), breakTimeId);
+        ShopBreakTimeManagementUpdateCommand command = request.toUpdateCommand(userDetails.getPrincipalId(), breakTimeId);
         shopBreakTimeUpdateUseCase.updateBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -460,10 +460,10 @@ public class ShopApiController {
     @Operation(summary = "브레이크타임 삭제", description = "등록된 브레이크타임을 삭제합니다.")
     @DeleteMapping("/v1/break-times/{breakTimeId}")
     public ResponseEntity<ApiResponse<Void>> deleteBreakTime(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long breakTimeId
     ) {
-        ShopBreakTimeDeleteCommand command = ShopBreakTimeDeleteCommand.of(userDetails.getPrincipalId(), breakTimeId);
+        ShopBreakTimeManagementDeleteCommand command = ShopBreakTimeManagementDeleteCommand.of(userDetails.getPrincipalId(), breakTimeId);
         shopBreakTimeDeleteUseCase.deleteBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -480,11 +480,11 @@ public class ShopApiController {
     @Operation(summary = "정기 휴무일 등록", description = "가게에 정기 휴무일을 등록합니다.")
     @PostMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<Long>> createClosedDay(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopClosedDaySaveRequest request
     ) {
-        ShopClosedDayCreateCommand command = request.toCommand(userDetails.getPrincipalId(), id);
+        ShopClosedDayManagementCreateCommand command = request.toCommand(userDetails.getPrincipalId(), id);
         Long closedDayId = shopClosedDayCreateUseCase.createClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(closedDayId));
     }
@@ -492,10 +492,10 @@ public class ShopApiController {
     @Operation(summary = "정기 휴무일 삭제", description = "등록된 정기 휴무일을 삭제합니다.")
     @DeleteMapping("/v1/closed-days/{closedDayId}")
     public ResponseEntity<ApiResponse<Void>> deleteClosedDay(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long closedDayId
     ) {
-        ShopClosedDayDeleteCommand command = ShopClosedDayDeleteCommand.of(userDetails.getPrincipalId(), closedDayId);
+        ShopClosedDayManagementDeleteCommand command = ShopClosedDayManagementDeleteCommand.of(userDetails.getPrincipalId(), closedDayId);
         shopClosedDayDeleteUseCase.deleteClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -568,11 +568,11 @@ public class ShopApiController {
     @Operation(summary = "가게 편의시설 지정", description = "가게에 편의시설을 지정합니다.")
     @PostMapping("/v1/{id}/amenities")
     public ResponseEntity<ApiResponse<Long>> assignAmenity(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopAmenityAssignRequest request
     ) {
-        ShopAmenityAssignCommand command = request.toCommand(userDetails.getPrincipalId(), id);
+        ShopAmenityManagementAssignCommand command = request.toCommand(userDetails.getPrincipalId(), id);
         Long amenityId = shopAmenityAssignUseCase.assignAmenity(command);
         return ResponseEntity.ok(ApiResponse.success(amenityId));
     }
@@ -580,11 +580,11 @@ public class ShopApiController {
     @Operation(summary = "가게 편의시설 해제", description = "가게에 지정된 편의시설을 해제합니다.")
     @DeleteMapping("/v1/{id}/amenities/{amenityCategoryId}")
     public ResponseEntity<ApiResponse<Void>> unassignAmenity(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long amenityCategoryId
     ) {
-        ShopAmenityUnassignCommand command = ShopAmenityUnassignCommand.of(userDetails.getPrincipalId(), id, amenityCategoryId);
+        ShopAmenityManagementUnassignCommand command = ShopAmenityManagementUnassignCommand.of(userDetails.getPrincipalId(), id, amenityCategoryId);
         shopAmenityUnassignUseCase.unassignAmenity(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

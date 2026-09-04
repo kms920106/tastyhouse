@@ -19,7 +19,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 배너 관리 command 서비스.
  *
  * <p>domain write 포트({@link BannerRepository})만 주입해 생성·수정·삭제를 수행한다. 조회는
- * {@link BannerQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
+ * {@link BannerManagementQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
  *
  * <p>경계 타입만 담은 command를 받아 {@code BannerType.from(String)}·{@code UploadedFileId.of(Long)}
  * 같은 도메인 승격을 이 서비스에서 수행한다(도메인 enum 경계 규칙). {@code Banner}는 순수 POJO라

@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
 import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentManagementCreateCommand;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.adminapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
 import com.tastyhouse.adminapplication.shop.port.in.ShopRequestCommentQueryUseCase;
@@ -59,11 +59,11 @@ public class ShopRequestCommentApiController {
     )
     @PostMapping("/v1/requests/{requestId}/comments")
     public ResponseEntity<ApiResponse<Long>> createComment(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal AdminUserDetails userDetails,
         @PathVariable Long requestId,
         @Valid @RequestBody ShopRequestCommentCreateRequest request
     ) {
-        ShopRequestCommentCreateCommand command = request.toCommand(requestId, userDetails.getPrincipalId());
+        ShopRequestCommentManagementCreateCommand command = request.toCommand(requestId, userDetails.getPrincipalId());
         Long commentId = shopRequestCommentCommandUseCase.addComment(command);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }

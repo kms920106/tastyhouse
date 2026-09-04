@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeManagementCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopBreakTimeManagementUpdateCommand;
 
 import java.time.LocalTime;
 
@@ -24,11 +24,11 @@ public record ShopBreakTimeSaveRequest(
     LocalTime endTime
 ) {
 
-    public ShopBreakTimeCreateCommand toCreateCommand(Long adminId, Long shopId) {
-        return new ShopBreakTimeCreateCommand(adminId, shopId, dayType, startTime, endTime);
+    public ShopBreakTimeManagementCreateCommand toCreateCommand(Long adminId, Long shopId) {
+        return new ShopBreakTimeManagementCreateCommand(adminId, shopId, dayType, startTime, endTime);
     }
 
-    public ShopBreakTimeUpdateCommand toUpdateCommand(Long adminId, Long breakTimeId) {
-        return new ShopBreakTimeUpdateCommand(adminId, breakTimeId, dayType, startTime, endTime);
+    public ShopBreakTimeManagementUpdateCommand toUpdateCommand(Long adminId, Long breakTimeId) {
+        return new ShopBreakTimeManagementUpdateCommand(adminId, breakTimeId, dayType, startTime, endTime);
     }
 }

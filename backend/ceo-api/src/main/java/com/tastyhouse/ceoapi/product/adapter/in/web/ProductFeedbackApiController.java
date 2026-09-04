@@ -18,12 +18,12 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductFeedbackSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
-import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackCommandUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackReadCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase;
 
@@ -48,11 +48,11 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase
 public class ProductFeedbackApiController {
 
     private final ProductFeedbackQueryUseCase productFeedbackQueryService;
-    private final ProductFeedbackCommandUseCase productFeedbackCommandUseCase;
+    private final ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase;
 
     public ProductFeedbackApiController(
         ProductFeedbackQueryUseCase productFeedbackQueryService,
-        ProductFeedbackCommandUseCase productFeedbackCommandUseCase
+        ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase
     ) {
         this.productFeedbackQueryService = productFeedbackQueryService;
         this.productFeedbackCommandUseCase = productFeedbackCommandUseCase;
@@ -64,7 +64,7 @@ public class ProductFeedbackApiController {
             + "최대 10건 담기고 그 외 유형은 빈 배열입니다. 제보자 정보는 내려주지 않습니다.")
     @GetMapping("/v1/feedbacks")
     public ResponseEntity<ApiResponse<List<ProductFeedbackResponse>>> getFeedbacks(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductFeedbackSearchRequest request
     ) {
         PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackQueryService.getFeedbacks(
@@ -84,7 +84,7 @@ public class ProductFeedbackApiController {
             + "상태가 생기지 않습니다.")
     @GetMapping("/v1/feedbacks/unread")
     public ResponseEntity<ApiResponse<ProductFeedbackUnreadResponse>> getUnread(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackQueryService.getUnread( userDetails.getCeoId(), request.shopId() ));
@@ -96,7 +96,7 @@ public class ProductFeedbackApiController {
             + "삭제되지 않습니다 — 반복 제보 추이가 근거 자료가 되기 때문입니다.")
     @PatchMapping("/v1/feedbacks/read")
     public ResponseEntity<ApiResponse<Void>> markRead(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductShopScopeRequest request
     ) {
         ProductFeedbackReadCommand command = request.toFeedbackReadCommand(userDetails.getCeoId());

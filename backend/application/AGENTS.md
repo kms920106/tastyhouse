@@ -48,11 +48,13 @@ com.tastyhouse.application/            ← split package — 앱 단독 읽기 �
 
 ### 앱 간 동명 클래스는 정상이다
 
-`NoticeQueryService`·`TokenService`·`AuthCommandService`·`ShopQueryService`처럼 같은 이름이 여러 앱 패키지에 공존하는 것은 **의도된 중복**이다(패키지가 달라 충돌하지 않는다). 소비자가 다르면 조회 범위·응답 형태가 다르고, 인증은 주체(`Member`·`Admin`·`Ceo`)·ErrorCode·`JWT_SECRET_*`가 앱별로 분리돼 있다. 통합하지 않는다.
+**앱별로 같은 역할의 타입이 따로 존재하는 것은 의도된 중복이다** — 소비자가 다르면 조회 범위·응답 형태가 다르고, 인증은 주체(`Member`·`Admin`·`Ceo`)·ErrorCode·`JWT_SECRET_*`가 앱별로 분리돼 있다. 통합하지 않는다.
+
+**다만 이름까지 같게 두지는 않는다(챕터 02에서 개명 완료).** 챕터 03 평탄화로 세 앱의 타입이 같은 패키지에 공존하므로 simple name이 앱 간에도 유일해야 한다. `NoticeQueryService`(web) / `NoticeManagementQueryService`(admin), `ShopQueryService`(web) / `ShopManagementQueryService`(admin) / `ShopOwnerQueryService`(ceo), `MemberTokenService` / `AdminTokenService` / `CeoTokenService`처럼 **web은 순수명, admin은 `Management`, ceo는 `Owner`**(인증 타입은 주체명 접두)로 구별한다.
 
 공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와, 그 모듈이 소유하는 다중 앱 공유 `{Ctx}QueryPort` 계약뿐이다. 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
 
-**admin/web Result 충돌 시 `Management` 한정어**를 상시 적용한다(루트 `backend/CLAUDE.md` 참고). 동명 클래스 182건의 일괄 개명은 챕터 02의 몫이다.
+**앱 간 타입명 충돌 시 `Management`/`Owner` 한정어**를 상시 적용한다 — `Result`·`QueryPort`뿐 아니라 `*UseCase`·`*Service`·`*Command`·협력 빈(`*Reader`·`*View`)까지가 대상이다(규칙 전문과 한정어 삽입 위치는 루트 `backend/CLAUDE.md` 참고). 동명 클래스 **182건의 일괄 개명은 챕터 02에서 완료**했다.
 
 ### 읽기 계약을 이 모듈이 소유한다
 

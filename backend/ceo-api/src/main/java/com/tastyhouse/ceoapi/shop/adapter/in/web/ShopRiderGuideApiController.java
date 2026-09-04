@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderGuideQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderGuideOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderVisitGuideUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderVisitGuideValidateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderGuideResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideValidationResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderGuideCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderGuideOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationClearCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderPickupLocationOwnerUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderVisitGuideUpdateCommand;
 
 @Tag(name = "Ceo Shop Rider Guide", description = "점주 라이더 가게방문 안내·픽업 위치 관리 API")
@@ -32,10 +32,10 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderVisitGuideUpdateComma
 @RequestMapping("/api/shops")
 public class ShopRiderGuideApiController {
 
-    private final ShopRiderGuideQueryUseCase shopRiderGuideQueryService;
-    private final ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase;
+    private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryService;
+    private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;
 
-    public ShopRiderGuideApiController(ShopRiderGuideQueryUseCase shopRiderGuideQueryService, ShopRiderGuideCommandUseCase shopRiderGuideCommandUseCase) {
+    public ShopRiderGuideApiController(ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryService, ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase) {
         this.shopRiderGuideQueryService = shopRiderGuideQueryService;
         this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
     }
@@ -44,7 +44,7 @@ public class ShopRiderGuideApiController {
         description = "로그인한 점주가 소유한 가게의 라이더 가게방문 안내 문구와 픽업 위치를 함께 조회합니다. 미등록 가게도 정상 응답(null)을 반환합니다.")
     @GetMapping("/v1/{id}/rider-guide")
     public ResponseEntity<ApiResponse<ShopRiderGuideResponse>> getRiderGuide(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopRiderGuideResponse response =
@@ -56,7 +56,7 @@ public class ShopRiderGuideApiController {
         description = "라이더 가게방문 안내 문구를 등록·수정합니다(최대 200자). 빈 문자열을 보내면 등록된 문구가 삭제됩니다.")
     @PutMapping("/v1/{id}/rider-guide/visit-guide")
     public ResponseEntity<ApiResponse<Void>> updateVisitGuide(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderVisitGuideUpdateRequest request
     ) {
@@ -69,7 +69,7 @@ public class ShopRiderGuideApiController {
         description = "등록 전 라이더 가게방문 안내 문구가 등록 기준(금칙어·가게 실주소 재기재·배차 특정)을 위반하는지 미리 검수합니다. 위반이 있어도 200으로 사유 목록을 반환합니다.")
     @PostMapping("/v1/{id}/rider-guide/visit-guide/validate")
     public ResponseEntity<ApiResponse<ShopRiderVisitGuideValidationResponse>> validateVisitGuide(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderVisitGuideValidateRequest request
     ) {
@@ -82,11 +82,11 @@ public class ShopRiderGuideApiController {
         description = "가게 실주소와 별도로 관리되는 라이더 픽업 위치를 등록·수정합니다. 가게 실주소·좌표는 변경되지 않으므로 배달가능지역·배달팁에 영향이 없습니다.")
     @PutMapping("/v1/{id}/rider-guide/pickup-location")
     public ResponseEntity<ApiResponse<Void>> updatePickupLocation(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopRiderPickupLocationUpdateRequest request
     ) {
-        ShopRiderPickupLocationUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
+        ShopRiderPickupLocationOwnerUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
         shopRiderGuideCommandUseCase.updatePickupLocation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -95,7 +95,7 @@ public class ShopRiderGuideApiController {
         description = "라이더 픽업 위치를 비워 가게 실주소로 폴백시킵니다. 안내 문구는 유지되며, 이미 미설정 상태에서 호출해도 정상 처리됩니다.")
     @DeleteMapping("/v1/{id}/rider-guide/pickup-location")
     public ResponseEntity<ApiResponse<Void>> clearPickupLocation(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopRiderPickupLocationClearCommand command = ShopRiderPickupLocationClearCommand.of(userDetails.getCeoId(), id);

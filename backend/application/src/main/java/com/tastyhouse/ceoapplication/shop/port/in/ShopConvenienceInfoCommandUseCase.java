@@ -7,7 +7,7 @@ public interface ShopConvenienceInfoCommandUseCase {
 
     void updateConvenienceInfo(ShopConvenienceInfoUpdateCommand command);
 
-    Long assignAmenity(ShopAmenityAssignCommand command);
+    Long assignAmenity(ShopAmenityOwnerAssignCommand command);
 
-    void unassignAmenity(ShopAmenityUnassignCommand command);
+    void unassignAmenity(ShopAmenityOwnerUnassignCommand command);
 }

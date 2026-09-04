@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
@@ -85,7 +85,7 @@ public class ProductOptionGroupCommandService implements ProductOptionGroupComma
      * (모든 읽기가 링크를 INNER JOIN한다) 소유 가게도 판정되지 않아 되찾을 수 없는 고아가 된다.
      */
     @Override
-    public Long createProductOptionGroup(ProductOptionGroupCreateCommand command) {
+    public Long createProductOptionGroup(ProductOptionGroupOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         Long productId = command.productId();

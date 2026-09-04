@@ -13,7 +13,7 @@ import com.tastyhouse.webapplication.bug.port.in.BugReportCommandUseCase;
 import com.tastyhouse.webapplication.bug.port.in.BugReportCreateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.bug.adapter.in.web.request.BugReportCreateRequest;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -31,7 +31,7 @@ public class BugReportApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createBugReport(
         @Valid @RequestBody BugReportCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         BugReportCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long bugReportId = bugReportCommandUseCase.createBugReport(command);

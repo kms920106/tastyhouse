@@ -20,7 +20,7 @@ import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ShopReviewSearchRequest;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ShopReviewSortTypeUpdateRequest;
 import com.tastyhouse.ceoapi.review.adapter.in.web.response.ReviewBlindReasonCatalogResponse;
@@ -55,7 +55,7 @@ public class ShopReviewApiController {
     )
     @GetMapping("/v1/{id}/reviews")
     public ResponseEntity<ApiResponse<List<ShopReviewListItemResponse>>> getReviews(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ShopReviewSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
@@ -90,7 +90,7 @@ public class ShopReviewApiController {
     )
     @GetMapping("/v1/{id}/reviews/statistics")
     public ResponseEntity<ApiResponse<ShopReviewStatisticsResponse>> getStatistics(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopReviewStatisticsResponse response =
@@ -105,7 +105,7 @@ public class ShopReviewApiController {
     )
     @GetMapping("/v1/{id}/reviews/sort-type")
     public ResponseEntity<ApiResponse<ShopReviewSortTypeResponse>> getSortType(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopReviewSortTypeResponse response =
@@ -120,7 +120,7 @@ public class ShopReviewApiController {
     )
     @PutMapping("/v1/{id}/reviews/sort-type")
     public ResponseEntity<ApiResponse<Void>> changeSortType(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopReviewSortTypeUpdateRequest request
     ) {
@@ -135,7 +135,7 @@ public class ShopReviewApiController {
     )
     @GetMapping("/v1/{id}/reviews/{reviewId}")
     public ResponseEntity<ApiResponse<ShopReviewDetailResponse>> getReviewDetail(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long reviewId
     ) {

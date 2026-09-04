@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.shop.port.out.ShopDetailViewResult;
+import com.tastyhouse.application.shop.port.out.ShopOwnerDetailViewResult;
 
 @Schema(description = "내 가게 상세 응답")
 public record ShopDetailResponse(
@@ -61,7 +61,7 @@ public record ShopDetailResponse(
         example = "false")
     boolean cupDepositEnabled
 ) {
-    public static ShopDetailResponse from(ShopDetailViewResult result) {
+    public static ShopDetailResponse from(ShopOwnerDetailViewResult result) {
         return new ShopDetailResponse(
             result.id(),
             result.stationId(),

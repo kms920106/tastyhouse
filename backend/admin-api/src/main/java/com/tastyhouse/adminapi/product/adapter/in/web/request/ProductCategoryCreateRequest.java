@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductCategoryCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductCategoryManagementCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -25,7 +25,7 @@ public record ProductCategoryCreateRequest(
     Boolean visible
 ) {
 
-    public ProductCategoryCreateCommand toCommand() {
-        return new ProductCategoryCreateCommand(shopId, name, sort, visible);
+    public ProductCategoryManagementCreateCommand toCommand() {
+        return new ProductCategoryManagementCreateCommand(shopId, name, sort, visible);
     }
 }

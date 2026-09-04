@@ -12,12 +12,12 @@ package com.tastyhouse.webapplication.auth.port.out;
 public record SocialLinkResult(
     Status status,
     String tempToken,
-    JwtResult jwt,
+    MemberJwtResult jwt,
     SocialProfileResult socialProfile
 ) {
     public enum Status {LOGIN, NEEDS_SIGN_UP}
 
-    public static SocialLinkResult ofLogin(JwtResult jwt) {
+    public static SocialLinkResult ofLogin(MemberJwtResult jwt) {
         return new SocialLinkResult(
             Status.LOGIN,
             null,

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.rank.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.adapter.in.web.request.RankSearchRequest;
 import com.tastyhouse.webapi.rank.adapter.in.web.response.RankDurationResponse;
@@ -62,7 +62,7 @@ public class RankApiController {
     @Operation(summary = "내 리뷰 랭킹 조회", description = "현재 로그인한 유저의 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
     @GetMapping("/v1/members/me")
     public ResponseEntity<ApiResponse<RankMemberListItemResponse>> getMyMemberRank(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @ModelAttribute RankSearchRequest search
     ) {
         RankMemberListItemResponse myRank = RankMemberListItemResponse.from(

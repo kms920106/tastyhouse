@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageDeleteCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageReorderCommand;
@@ -50,12 +50,12 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageReorder
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
 
-    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService;
-    private final ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase;
+    private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService,
-        ShopMenuCollectionImageCommandUseCase shopMenuCollectionImageCommandUseCase
+        ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryService,
+        ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase
     ) {
         this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;
         this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;
@@ -65,7 +65,7 @@ public class ShopMenuCollectionImageApiController {
         description = "표시 순서대로 조회합니다. 검수 대기·반려 건도 상태와 반려 사유를 담아 함께 내려갑니다.")
     @GetMapping("/v1/{id}/menu-collection-images")
     public ResponseEntity<ApiResponse<List<ShopMenuCollectionImageResponse>>> getMenuCollectionImages(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageQueryService.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
@@ -79,7 +79,7 @@ public class ShopMenuCollectionImageApiController {
             + "정원을 차지합니다. 등록 시 검수 대기 상태가 되고, 승인 후 손님 화면에 노출됩니다.")
     @PostMapping(value = "/v1/{id}/menu-collection-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> registerMenuCollectionImage(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Parameter(description = "메뉴모음컷 이미지 파일", required = true)
         @RequestParam("file") MultipartFile file
@@ -94,7 +94,7 @@ public class ShopMenuCollectionImageApiController {
             + "일치하지 않으면 거부됩니다. 승인을 거치지 않고 즉시 반영됩니다.")
     @PutMapping("/v1/{id}/menu-collection-images/order")
     public ResponseEntity<ApiResponse<Void>> changeMenuCollectionImageOrder(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopMenuCollectionImageOrderRequest request
     ) {
@@ -108,7 +108,7 @@ public class ShopMenuCollectionImageApiController {
             + "없습니다. 삭제 후 남은 것의 표시 순서는 서버가 0부터 다시 매깁니다.")
     @DeleteMapping("/v1/{id}/menu-collection-images/{imageId}")
     public ResponseEntity<ApiResponse<Void>> deleteMenuCollectionImage(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long imageId
     ) {

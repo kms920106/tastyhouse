@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadOwnerCommandService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,7 +59,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
     private final ObjectMapper objectMapper;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final StorePriceListImageSpecValidator storePriceListImageSpecValidator;
-    private final FileUploadCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandService fileUploadCommandService;
 
     public ShopStorePriceVerificationCommandService(
         ObjectMapper objectMapper,
@@ -67,7 +67,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
         ShopRequestIndexRecorder shopRequestIndexRecorder,
         ShopOwnershipValidator shopOwnershipValidator,
         StorePriceListImageSpecValidator storePriceListImageSpecValidator,
-        FileUploadCommandService fileUploadCommandService
+        FileUploadOwnerCommandService fileUploadCommandService
     ) {
         this.objectMapper = objectMapper;
         this.storePriceVerificationService = storePriceVerificationService;

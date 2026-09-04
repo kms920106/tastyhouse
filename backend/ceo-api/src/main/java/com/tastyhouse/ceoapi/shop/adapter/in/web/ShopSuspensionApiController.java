@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionBulkCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse;
@@ -42,7 +42,7 @@ public class ShopSuspensionApiController {
     @Operation(summary = "영업 임시중지 목록 조회", description = "가게의 영업 임시중지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/suspensions")
     public ResponseEntity<ApiResponse<List<ShopSuspensionResponse>>> getSuspensions(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopSuspensionResponse> response = shopSuspensionQueryService.getSuspensions(userDetails.getCeoId(), id).stream()
@@ -54,7 +54,7 @@ public class ShopSuspensionApiController {
     @Operation(summary = "영업 임시중지 등록", description = "가게에 영업 임시중지를 등록합니다. 주문수단을 비우면 전체 주문수단 대상으로 1건 생성되고, 지정하면 주문수단별로 각각 생성됩니다.")
     @PostMapping("/v1/{id}/suspensions")
     public ResponseEntity<ApiResponse<List<Long>>> createSuspension(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopSuspensionCreateRequest request
     ) {
@@ -66,7 +66,7 @@ public class ShopSuspensionApiController {
     @Operation(summary = "영업 임시중지 해제", description = "가게의 영업 임시중지를 즉시 해제합니다.")
     @PatchMapping("/v1/{id}/suspensions/{suspensionId}/release")
     public ResponseEntity<ApiResponse<Void>> releaseSuspension(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @PathVariable Long suspensionId
     ) {
@@ -78,7 +78,7 @@ public class ShopSuspensionApiController {
     @Operation(summary = "영업 임시중지 일괄 등록", description = "여러 가게에 동일한 사유/기간으로 영업 임시중지를 일괄 등록합니다.")
     @PostMapping("/v1/suspensions/bulk")
     public ResponseEntity<ApiResponse<List<Long>>> createSuspensionsBulk(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ShopSuspensionBulkCreateRequest request
     ) {
         ShopSuspensionBulkCreateCommand command = request.toCommand(userDetails.getCeoId());

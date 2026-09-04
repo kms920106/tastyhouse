@@ -27,7 +27,7 @@ import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportClassifyCommand;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportCommandUseCase;
+import com.tastyhouse.adminapplication.bug.port.in.BugReportManagementCommandUseCase;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportStatusChangeCommand;
 import com.tastyhouse.adminapplication.bug.port.in.BugReportQueryUseCase;
 
@@ -36,10 +36,10 @@ import com.tastyhouse.adminapplication.bug.port.in.BugReportQueryUseCase;
 @RequestMapping("/api/bug-reports")
 public class BugReportApiController {
 
-    private final BugReportCommandUseCase bugReportCommandUseCase;
+    private final BugReportManagementCommandUseCase bugReportCommandUseCase;
     private final BugReportQueryUseCase bugReportQueryUseCase;
 
-    public BugReportApiController(BugReportCommandUseCase bugReportCommandUseCase, BugReportQueryUseCase bugReportQueryUseCase) {
+    public BugReportApiController(BugReportManagementCommandUseCase bugReportCommandUseCase, BugReportQueryUseCase bugReportQueryUseCase) {
         this.bugReportCommandUseCase = bugReportCommandUseCase;
         this.bugReportQueryUseCase = bugReportQueryUseCase;
     }

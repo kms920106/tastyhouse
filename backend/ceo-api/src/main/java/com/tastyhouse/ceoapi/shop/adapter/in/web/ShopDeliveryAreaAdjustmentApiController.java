@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentItemResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCommandUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 
 @Tag(name = "Ceo Shop Delivery Area Adjustment", description = "점주 프랜차이즈 배달지역 조정 신청 API")
@@ -31,12 +31,12 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCrea
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentApiController {
 
-    private final ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryService;
-    private final ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
+    private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryService;
+    private final ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 
     public ShopDeliveryAreaAdjustmentApiController(
-        ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryService,
-        ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
+        ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryService,
+        ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
     ) {
         this.shopDeliveryAreaAdjustmentQueryService = shopDeliveryAreaAdjustmentQueryService;
         this.shopDeliveryAreaAdjustmentCommandUseCase = shopDeliveryAreaAdjustmentCommandUseCase;
@@ -45,7 +45,7 @@ public class ShopDeliveryAreaAdjustmentApiController {
     @Operation(summary = "내 가게 배달지역 조정 신청 이력 조회", description = "로그인한 점주가 소유한 가게의 배달지역 조정 신청 이력을 최근순으로 조회합니다.")
     @GetMapping("/v1/{id}/delivery-area-adjustments")
     public ResponseEntity<ApiResponse<List<ShopDeliveryAreaAdjustmentItemResponse>>> getAdjustmentRequests(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentQueryService.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
@@ -60,7 +60,7 @@ public class ShopDeliveryAreaAdjustmentApiController {
     )
     @PostMapping(value = "/v1/{id}/delivery-area-adjustments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> requestAdjustment(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ShopDeliveryAreaAdjustmentCreateRequest request,
         @Parameter(description = "조정신청 관련 정보제공 동의서 파일", required = true)

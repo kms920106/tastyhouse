@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
 
 @Schema(description = "가게 브레이크타임 등록/수정 요청")
 public record ShopBreakTimeSaveRequest(
@@ -24,11 +24,11 @@ public record ShopBreakTimeSaveRequest(
     LocalTime endTime
 ) {
 
-    public ShopBreakTimeCreateCommand toCommand(Long ceoId, Long shopId) {
-        return new ShopBreakTimeCreateCommand(ceoId, shopId, dayType(), startTime(), endTime());
+    public ShopBreakTimeOwnerCreateCommand toCommand(Long ceoId, Long shopId) {
+        return new ShopBreakTimeOwnerCreateCommand(ceoId, shopId, dayType(), startTime(), endTime());
     }
 
-    public ShopBreakTimeUpdateCommand toUpdateCommand(Long ceoId, Long breakTimeId) {
-        return new ShopBreakTimeUpdateCommand(ceoId, breakTimeId, dayType(), startTime(), endTime());
+    public ShopBreakTimeOwnerUpdateCommand toUpdateCommand(Long ceoId, Long breakTimeId) {
+        return new ShopBreakTimeOwnerUpdateCommand(ceoId, breakTimeId, dayType(), startTime(), endTime());
     }
 }

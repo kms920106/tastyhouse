@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductUpdateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerUpdateCommand;
 
 @Schema(description = "메뉴 정보 변경 요청")
 public record ProductUpdateRequest(
@@ -58,8 +58,8 @@ public record ProductUpdateRequest(
     String weightText
 ) {
 
-    public ProductUpdateCommand toCommand(Long ceoId, Long productId) {
-        return new ProductUpdateCommand(
+    public ProductOwnerUpdateCommand toCommand(Long ceoId, Long productId) {
+        return new ProductOwnerUpdateCommand(
             ceoId,
             productId,
             this.shopId(),

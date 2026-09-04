@@ -13,7 +13,7 @@ package com.tastyhouse.webapplication.auth.port.out;
  *
  * <p><b>챕터 10</b>에서 신설. 이 값은 DB 조회 결과가 아니라 external-api의 소셜 SPI
  * ({@code SocialProfile})에서 옮겨 담은 것이라 공유 읽기 계약 패키지에 형제가 없다. 앱 네임스페이스에
- * 두는 근거는 {@link JwtResult}와 같다.
+ * 두는 근거는 {@link MemberJwtResult}와 같다.
  *
  * <p><b>null 필드 생략은 계약이다</b> — 대응 표현 계약 {@code AuthSocialProfileResponse}가
  * {@code @JsonInclude(NON_NULL)}을 갖는다. 그 어노테이션은 직렬화가 일어나는 web-api의 Response에

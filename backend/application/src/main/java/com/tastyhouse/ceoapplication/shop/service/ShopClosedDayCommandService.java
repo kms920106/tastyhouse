@@ -21,8 +21,8 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerDeleteCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopHolidayClosureUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureCreateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureDeleteCommand;
@@ -84,7 +84,7 @@ public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase 
     }
 
     @Override
-    public Long createClosedDay(ShopClosedDayCreateCommand command) {
+    public Long createClosedDay(ShopClosedDayOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         String closedDayType = command.closedDayType();
@@ -98,7 +98,7 @@ public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase 
     }
 
     @Override
-    public void deleteClosedDay(ShopClosedDayDeleteCommand command) {
+    public void deleteClosedDay(ShopClosedDayOwnerDeleteCommand command) {
         Long ceoId = command.ceoId();
         Long closedDayId = command.closedDayId();
 

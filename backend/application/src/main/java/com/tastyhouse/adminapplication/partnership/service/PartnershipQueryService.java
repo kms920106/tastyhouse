@@ -20,7 +20,7 @@ import com.tastyhouse.adminapplication.partnership.port.in.PartnershipQueryUseCa
  * 제휴 신청 관리 조회 서비스.
  *
  * <p>읽기 포트({@link PartnershipQueryPort})만 주입해 조회한다. write 포트를 주입하지 않으며,
- * 쓰기는 {@link PartnershipCommandService}가 담당한다.
+ * 쓰기는 {@link PartnershipManagementCommandService}가 담당한다.
  *
  * <p>HTTP 경계에서 받은 {@code String} 상태값은 여기서 {@code PartnershipStatus.from}으로 승격한다.
  *

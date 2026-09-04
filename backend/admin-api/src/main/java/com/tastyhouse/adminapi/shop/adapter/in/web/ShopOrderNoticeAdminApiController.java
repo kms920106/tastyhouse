@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeManagementCommandUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeHideCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeUnhideCommand;
 
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopOrderNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeManagementQueryUseCase;
 
 /**
  * 주문안내 검수 관리자 API.
@@ -35,12 +35,12 @@ import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeAdminApiController {
 
-    private final ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase;
-    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase;
+    private final ShopOrderNoticeManagementCommandUseCase shopOrderNoticeCommandUseCase;
+    private final ShopOrderNoticeManagementQueryUseCase shopOrderNoticeQueryUseCase;
 
     public ShopOrderNoticeAdminApiController(
-        ShopOrderNoticeCommandUseCase shopOrderNoticeCommandUseCase,
-        ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase
+        ShopOrderNoticeManagementCommandUseCase shopOrderNoticeCommandUseCase,
+        ShopOrderNoticeManagementQueryUseCase shopOrderNoticeQueryUseCase
     ) {
         this.shopOrderNoticeCommandUseCase = shopOrderNoticeCommandUseCase;
         this.shopOrderNoticeQueryUseCase = shopOrderNoticeQueryUseCase;

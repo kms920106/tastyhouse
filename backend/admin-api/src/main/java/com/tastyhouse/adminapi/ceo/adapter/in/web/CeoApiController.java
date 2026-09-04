@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.ceo.adapter.in.web.response.CeoListItemResponse;
-import com.tastyhouse.adminapplication.ceo.port.in.CeoQueryUseCase;
+import com.tastyhouse.adminapplication.ceo.port.in.CeoManagementQueryUseCase;
 
 @Tag(name = "Ceo Admin", description = "점주 관리자 API")
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoApiController {
 
-    private final CeoQueryUseCase ceoQueryUseCase;
+    private final CeoManagementQueryUseCase ceoQueryUseCase;
 
-    public CeoApiController(CeoQueryUseCase ceoQueryUseCase) {
+    public CeoApiController(CeoManagementQueryUseCase ceoQueryUseCase) {
         this.ceoQueryUseCase = ceoQueryUseCase;
     }
 

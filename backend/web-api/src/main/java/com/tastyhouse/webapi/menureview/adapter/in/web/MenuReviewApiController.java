@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewCreateRequest;
 import com.tastyhouse.webapi.menureview.adapter.in.web.request.MenuReviewUpdateRequest;
 import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewListItemResponse;
@@ -62,7 +62,7 @@ public class MenuReviewApiController {
     @GetMapping("/v1/writable/orders/{orderId}")
     public ResponseEntity<ApiResponse<List<MenuReviewWritableItemResponse>>> getWritableItems(
         @Parameter(description = "주문 ID", example = "100") @PathVariable Long orderId,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         List<MenuReviewWritableItemResponse> response =
             menuReviewQueryService.findWritableItems(orderId, userDetails.getMemberId()).stream()
@@ -79,7 +79,7 @@ public class MenuReviewApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createMenuReview(
         @Valid @RequestBody MenuReviewCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long menuReviewId = menuReviewCommandUseCase.createMenuReview(command);
@@ -91,7 +91,7 @@ public class MenuReviewApiController {
     public ResponseEntity<ApiResponse<Void>> updateMenuReview(
         @Parameter(description = "메뉴 평가 ID", example = "77") @PathVariable Long id,
         @Valid @RequestBody MenuReviewUpdateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), id);
         menuReviewCommandUseCase.updateMenuReview(command);
@@ -102,7 +102,7 @@ public class MenuReviewApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteMenuReview(
         @Parameter(description = "메뉴 평가 ID", example = "77") @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewDeleteCommand command = MenuReviewDeleteCommand.of(userDetails.getMemberId(), id);
         menuReviewCommandUseCase.deleteMenuReview(command);

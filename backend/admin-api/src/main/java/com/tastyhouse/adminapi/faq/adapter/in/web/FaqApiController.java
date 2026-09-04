@@ -37,7 +37,7 @@ import com.tastyhouse.adminapplication.faq.port.in.FaqCommandUseCase;
 import com.tastyhouse.adminapplication.faq.port.in.FaqCreateCommand;
 import com.tastyhouse.adminapplication.faq.port.in.FaqDeleteCommand;
 import com.tastyhouse.adminapplication.faq.port.in.FaqUpdateCommand;
-import com.tastyhouse.adminapplication.faq.port.in.FaqQueryUseCase;
+import com.tastyhouse.adminapplication.faq.port.in.FaqManagementQueryUseCase;
 
 @Tag(name = "FAQ Admin", description = "FAQ 관리자 API")
 @RestController
@@ -46,12 +46,12 @@ public class FaqApiController {
 
     private final FaqCommandUseCase faqCommandUseCase;
     private final FaqCategoryCommandUseCase faqCategoryCommandUseCase;
-    private final FaqQueryUseCase faqQueryUseCase;
+    private final FaqManagementQueryUseCase faqQueryUseCase;
 
     public FaqApiController(
         FaqCommandUseCase faqCommandUseCase,
         FaqCategoryCommandUseCase faqCategoryCommandUseCase,
-        FaqQueryUseCase faqQueryUseCase
+        FaqManagementQueryUseCase faqQueryUseCase
     ) {
         this.faqCommandUseCase = faqCommandUseCase;
         this.faqCategoryCommandUseCase = faqCategoryCommandUseCase;

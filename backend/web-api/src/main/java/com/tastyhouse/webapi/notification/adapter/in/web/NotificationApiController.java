@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationListItemResponse;
 import com.tastyhouse.webapplication.notification.port.in.NotificationCommandUseCase;
 import com.tastyhouse.webapplication.notification.port.in.NotificationMarkAllAsReadCommand;
@@ -51,7 +51,7 @@ public class NotificationApiController {
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NotificationListItemResponse>>> getNotifications(
         @Valid @ModelAttribute PageRequest pageRequest,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaginationResponse<NotificationListItemResponse> pageResponse = PaginationResponse.from(
             notificationQueryService.findNotifications(
@@ -71,7 +71,7 @@ public class NotificationApiController {
 
     @Operation(summary = "미읽음 알림 개수 조회", description = "헤더 배지에 표시할 미읽음 알림 개수를 조회합니다.")
     @GetMapping("/v1/unread-count")
-    public ResponseEntity<ApiResponse<Long>> getUnreadCount(@CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<Long>> getUnreadCount(@CurrentUser MemberUserDetails userDetails) {
         long unreadCount = notificationQueryService.countUnread(userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(unreadCount));
     }
@@ -84,7 +84,7 @@ public class NotificationApiController {
     @PutMapping("/v1/{id}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(
         @Parameter(description = "알림 ID", example = "12") @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         NotificationMarkAsReadCommand command = NotificationMarkAsReadCommand.of(id, userDetails.getMemberId());
         notificationCommandUseCase.markAsRead(command);
@@ -93,7 +93,7 @@ public class NotificationApiController {
 
     @Operation(summary = "알림 전체 읽음 처리", description = "미읽음 알림을 모두 읽음으로 표시합니다(멱등).")
     @PutMapping("/v1/read-all")
-    public ResponseEntity<ApiResponse<Void>> markAllAsRead(@CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<Void>> markAllAsRead(@CurrentUser MemberUserDetails userDetails) {
         NotificationMarkAllAsReadCommand command = NotificationMarkAllAsReadCommand.of(userDetails.getMemberId());
         notificationCommandUseCase.markAllAsRead(command);
         return ResponseEntity.ok(ApiResponse.success(null));

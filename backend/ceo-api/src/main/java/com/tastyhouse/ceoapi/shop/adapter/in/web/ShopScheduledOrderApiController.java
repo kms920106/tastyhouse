@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdateRequest;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopScheduledOrderCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopScheduledOrderUpdateCommand;
@@ -43,7 +43,7 @@ public class ShopScheduledOrderApiController {
     )
     @PutMapping("/v1/{id}/scheduled-order")
     public ResponseEntity<ApiResponse<Void>> updateScheduledOrder(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopScheduledOrderUpdateRequest request
     ) {

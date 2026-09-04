@@ -16,7 +16,7 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.search.port.in.SearchQueryUseCase;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.request.SearchKeywordRequest;
@@ -95,7 +95,7 @@ public class SearchApiController {
     public ResponseEntity<ApiResponse<List<SearchShopListItemResponse>>> searchShopsPaged(
         @Valid @ModelAttribute SearchKeywordRequest search,
         @Valid @ModelAttribute PageRequest pageRequest,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         var result = PaginationResponse.from(
             searchQueryService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())

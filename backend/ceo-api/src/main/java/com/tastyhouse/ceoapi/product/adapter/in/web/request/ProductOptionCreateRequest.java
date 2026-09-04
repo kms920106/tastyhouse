@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOwnerCreateCommand;
 
 @Schema(description = "옵션 등록 요청")
 public record ProductOptionCreateRequest(
@@ -44,8 +44,8 @@ public record ProductOptionCreateRequest(
      * 같은 타입의 금액·수량 필드가 연달아 있어 위치 기반 조립은 뒤바뀜을 컴파일러가 잡지 못한다.
      * 반드시 이름 기반 접근자로 조립한다.
      */
-    public ProductOptionCreateCommand toCommand(Long ceoId, Long optionGroupId) {
-        return new ProductOptionCreateCommand(
+    public ProductOptionOwnerCreateCommand toCommand(Long ceoId, Long optionGroupId) {
+        return new ProductOptionOwnerCreateCommand(
             ceoId,
             this.shopId(),
             optionGroupId,

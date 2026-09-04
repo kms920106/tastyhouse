@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityAssignCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopAmenityManagementAssignCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +12,7 @@ public record ShopAmenityAssignRequest(
     Long amenityCategoryId
 ) {
 
-    public ShopAmenityAssignCommand toCommand(Long adminId, Long shopId) {
-        return new ShopAmenityAssignCommand(adminId, shopId, amenityCategoryId);
+    public ShopAmenityManagementAssignCommand toCommand(Long adminId, Long shopId) {
+        return new ShopAmenityManagementAssignCommand(adminId, shopId, amenityCategoryId);
     }
 }

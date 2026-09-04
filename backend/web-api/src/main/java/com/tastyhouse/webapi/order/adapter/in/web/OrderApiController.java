@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.member.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.webapi.order.adapter.in.web.request.OrderCreateRequest;
 import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
@@ -43,7 +43,7 @@ public class OrderApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createOrder(
         @Valid @RequestBody OrderCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         OrderCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long orderId = orderCommandUseCase.createOrder(command);
@@ -53,7 +53,7 @@ public class OrderApiController {
     @Operation(summary = "주문 목록 조회", description = "회원의 주문 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<OrderListItemResponse>>> getOrderList(
-        @CurrentUser CustomUserDetails userDetails,
+        @CurrentUser MemberUserDetails userDetails,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         Long memberId = userDetails.getMemberId();
@@ -74,7 +74,7 @@ public class OrderApiController {
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderDetail(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
         OrderDetailResponse response = OrderDetailResponse.from(orderQueryService.getOrderDetail(memberId, id));

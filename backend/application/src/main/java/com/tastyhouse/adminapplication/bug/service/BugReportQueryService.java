@@ -27,7 +27,7 @@ import com.tastyhouse.adminapplication.bug.port.in.BugReportQueryUseCase;
  * 버그 제보 관리 조회 서비스.
  *
  * <p>읽기 포트({@link BugReportQueryPort})만 주입해 제보를 조회한다. write 포트를 주입하지 않으며,
- * 쓰기는 {@link BugReportCommandService}가 담당한다.
+ * 쓰기는 {@link BugReportManagementCommandService}가 담당한다.
  *
  * <p>제보자 요약 정보는 다른 컨텍스트(member)의 읽기 포트에서 가져와 이 서비스가 합성한다. 첨부
  * 이미지는 {@link BugReportQueryPort}가 이미 파일명·URL까지 join으로 함께 가져오므로 이 서비스는 추가

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationSearchRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
@@ -53,7 +53,7 @@ public class ReservationApiController {
     @GetMapping("/v1/availability")
     public ResponseEntity<ApiResponse<ReservationSlotAvailabilityResponse>> getAvailability(
         @Valid @ModelAttribute ReservationSearchRequest search,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationSlotAvailabilityResponse response = ReservationSlotAvailabilityResponse.from(
             reservationQueryService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
@@ -65,7 +65,7 @@ public class ReservationApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> create(
         @Valid @RequestBody ReservationCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long reservationId = reservationCommandUseCase.createReservation(command);
@@ -76,7 +76,7 @@ public class ReservationApiController {
     @Operation(summary = "내 예약 목록 조회", description = "로그인한 회원의 예약 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         List<ReservationResponse> responses = reservationQueryService.getMyReservations(userDetails.getMemberId()).stream()
             .map(ReservationResponse::from)
@@ -88,7 +88,7 @@ public class ReservationApiController {
     @GetMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<ReservationCompleteDetailResponse>> getDetail(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCompleteDetailResponse response = ReservationCompleteDetailResponse.from(
             reservationQueryService.getCompleteDetail(userDetails.getMemberId(), id)
@@ -100,7 +100,7 @@ public class ReservationApiController {
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationDetailResponse response = ReservationDetailResponse.from(
             reservationQueryService.getReservationDetail(userDetails.getMemberId(), id)
@@ -112,7 +112,7 @@ public class ReservationApiController {
     @PatchMapping("/v1/{id}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancel(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCancelCommand command = ReservationCancelCommand.of(userDetails.getMemberId(), id);
         reservationCommandUseCase.cancelReservation(command);

@@ -27,12 +27,12 @@ import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewRe
 public class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
-    private final StorePriceVerificationReader storePriceVerificationReader;
+    private final StorePriceVerificationOwnerReader storePriceVerificationReader;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopStorePriceVerificationQueryService(
         StorePriceVerificationService storePriceVerificationService,
-        StorePriceVerificationReader storePriceVerificationReader,
+        StorePriceVerificationOwnerReader storePriceVerificationReader,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.storePriceVerificationService = storePriceVerificationService;

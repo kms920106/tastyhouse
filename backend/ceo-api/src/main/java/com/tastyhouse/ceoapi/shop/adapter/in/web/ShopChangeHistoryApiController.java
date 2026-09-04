@@ -19,7 +19,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopChangeHistoryQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopChangeHistorySearchRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeCategoryResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListItemResponse;
@@ -41,7 +41,7 @@ public class ShopChangeHistoryApiController {
     )
     @GetMapping("/v1/{id}/change-histories")
     public ResponseEntity<ApiResponse<List<ShopChangeHistoryListItemResponse>>> getChangeHistories(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ShopChangeHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest

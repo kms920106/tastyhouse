@@ -13,13 +13,13 @@ import com.tastyhouse.domain.shop.service.ShopBusinessHourService;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourUpdateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
 
 /**
  * 점주용 영업시간·휴게시간 변경 서비스(CQRS command 측).
@@ -51,7 +51,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public Long createBusinessHour(ShopBusinessHourCreateCommand command) {
+    public Long createBusinessHour(ShopBusinessHourOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         String dayType = command.dayType();
@@ -69,7 +69,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public void updateBusinessHour(ShopBusinessHourUpdateCommand command) {
+    public void updateBusinessHour(ShopBusinessHourOwnerUpdateCommand command) {
         Long ceoId = command.ceoId();
         Long businessHourId = command.businessHourId();
         String dayType = command.dayType();
@@ -86,7 +86,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public void deleteBusinessHour(ShopBusinessHourDeleteCommand command) {
+    public void deleteBusinessHour(ShopBusinessHourOwnerDeleteCommand command) {
         Long ceoId = command.ceoId();
         Long businessHourId = command.businessHourId();
 
@@ -96,7 +96,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public Long createBreakTime(ShopBreakTimeCreateCommand command) {
+    public Long createBreakTime(ShopBreakTimeOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         String dayType = command.dayType();
@@ -112,7 +112,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public void updateBreakTime(ShopBreakTimeUpdateCommand command) {
+    public void updateBreakTime(ShopBreakTimeOwnerUpdateCommand command) {
         Long ceoId = command.ceoId();
         Long breakTimeId = command.breakTimeId();
         String dayType = command.dayType();
@@ -125,7 +125,7 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     @Override
-    public void deleteBreakTime(ShopBreakTimeDeleteCommand command) {
+    public void deleteBreakTime(ShopBreakTimeOwnerDeleteCommand command) {
         Long ceoId = command.ceoId();
         Long breakTimeId = command.breakTimeId();
 

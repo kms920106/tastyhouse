@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupResponse;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUpdateCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupQueryUseCase;
@@ -65,7 +65,7 @@ public class ProductOptionGroupApiController {
             + "포함합니다.")
     @GetMapping("/v1/option-groups")
     public ResponseEntity<ApiResponse<List<ProductOptionGroupResponse>>> getProductOptionGroups(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupSearchRequest request
     ) {
         List<ProductOptionGroupResponse> response = productOptionGroupQueryService.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
@@ -79,10 +79,10 @@ public class ProductOptionGroupApiController {
             + "그 메뉴의 맨 뒤로 채웁니다.")
     @PostMapping("/v1/option-groups")
     public ResponseEntity<ApiResponse<Long>> createProductOptionGroup(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionGroupCreateRequest request
     ) {
-        ProductOptionGroupCreateCommand command = request.toCommand(userDetails.getCeoId());
+        ProductOptionGroupOwnerCreateCommand command = request.toCommand(userDetails.getCeoId());
         Long optionGroupId = productOptionGroupCommandUseCase.createProductOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
@@ -94,7 +94,7 @@ public class ProductOptionGroupApiController {
             + "변경하므로 경로 자체를 두지 않습니다.")
     @PutMapping("/v1/option-groups/{id}")
     public ResponseEntity<ApiResponse<Void>> updateProductOptionGroup(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupUpdateRequest request
     ) {
@@ -108,7 +108,7 @@ public class ProductOptionGroupApiController {
             + "위함입니다. 메뉴판과 손님 화면에서는 즉시 사라집니다.")
     @DeleteMapping("/v1/option-groups/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProductOptionGroup(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupDeleteRequest request
     ) {

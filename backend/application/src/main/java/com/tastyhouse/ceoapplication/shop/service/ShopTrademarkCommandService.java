@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
-import com.tastyhouse.ceoapplication.file.service.FileUploadCommandService;
+import com.tastyhouse.ceoapplication.file.service.FileUploadOwnerCommandService;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopThumbnailChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkCommandUseCase;
@@ -27,13 +27,13 @@ public class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase 
     private final ShopImageApprovalService shopImageApprovalService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
-    private final FileUploadCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandService fileUploadCommandService;
 
     public ShopTrademarkCommandService(
         ShopImageApprovalService shopImageApprovalService,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
-        FileUploadCommandService fileUploadCommandService
+        FileUploadOwnerCommandService fileUploadCommandService
     ) {
         this.shopImageApprovalService = shopImageApprovalService;
         this.shopOwnershipValidator = shopOwnershipValidator;

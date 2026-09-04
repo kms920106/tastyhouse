@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.product.port.in.ProductFeedbackCommandUseCase;
 import com.tastyhouse.webapplication.product.port.in.ProductFeedbackCreateCommand;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreateRequest;
@@ -47,7 +47,7 @@ public class ProductFeedbackApiController {
     public ResponseEntity<ApiResponse<Long>> createFeedback(
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Valid @RequestBody ProductFeedbackCreateRequest request,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ProductFeedbackCreateCommand command = request.toCommand(userDetails.getMemberId(), id);
         Long feedbackId = productFeedbackCommandUseCase.submitFeedback(command);

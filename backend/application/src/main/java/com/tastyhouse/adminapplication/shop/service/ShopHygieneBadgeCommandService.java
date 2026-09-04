@@ -23,7 +23,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 않고 write 포트로 직접 다루며, 경계 타입 승격(String → {@link HygieneBadgeType})을 담당한다.
  *
  * <p>CQRS 규칙대로 <b>식별자만</b> 반환한다 — 등록 응답 조립은 커밋 이후 컨트롤러가
- * {@link ShopHygieneBadgeQueryService}로 재조회해 담당한다.
+ * {@link ShopHygieneBadgeManagementQueryService}로 재조회해 담당한다.
  */
 @Service
 @Transactional

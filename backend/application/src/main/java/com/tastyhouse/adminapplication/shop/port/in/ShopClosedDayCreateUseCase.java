@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.shop.port.in;
  */
 public interface ShopClosedDayCreateUseCase {
 
-    Long createClosedDay(ShopClosedDayCreateCommand command);
+    Long createClosedDay(ShopClosedDayManagementCreateCommand command);
 }

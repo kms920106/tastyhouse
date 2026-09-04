@@ -7,22 +7,22 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.member.model.MemberGender;
-import com.tastyhouse.webapplication.auth.token.TokenService;
+import com.tastyhouse.webapplication.auth.token.MemberTokenService;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
 import com.tastyhouse.webapplication.member.service.MemberAuthService;
-import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.MemberJwtResult;
 
 @Service
 public class CredentialLoginService {
 
     private final AuthenticationManager authenticationManager;
-    private final TokenService tokenService;
+    private final MemberTokenService tokenService;
     private final MemberCommandService memberCommandService;
     private final MemberAuthService memberAuthService;
 
     public CredentialLoginService(
         AuthenticationManager authenticationManager,
-        TokenService tokenService,
+        MemberTokenService tokenService,
         MemberCommandService memberCommandService,
         MemberAuthService memberAuthService
     ) {
@@ -49,7 +49,7 @@ public class CredentialLoginService {
     }
 
     // 아이디/비밀번호 인증 후 JWT 토큰을 발급
-    public JwtResult login(String username, String password, boolean rememberMe) {
+    public MemberJwtResult login(String username, String password, boolean rememberMe) {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -59,7 +59,7 @@ public class CredentialLoginService {
     }
 
     // 리프레시 토큰으로 새 JWT 토큰을 재발급
-    public JwtResult refresh(String refreshToken) {
+    public MemberJwtResult refresh(String refreshToken) {
         return tokenService.refresh(refreshToken);
     }
 

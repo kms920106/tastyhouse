@@ -23,10 +23,10 @@ import com.tastyhouse.webapplication.auth.port.out.SocialAuthorization;
 import com.tastyhouse.webapplication.auth.port.out.SocialCredential;
 import com.tastyhouse.webapplication.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.webapplication.auth.port.out.SocialProfile;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
-import com.tastyhouse.webapplication.auth.token.TokenService;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberTokenService;
 import com.tastyhouse.webapplication.member.service.MemberCommandService;
-import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.port.out.MemberJwtResult;
 import com.tastyhouse.webapplication.auth.port.out.SocialLinkResult;
 import com.tastyhouse.webapplication.auth.port.out.SocialLoginResult;
 import com.tastyhouse.webapplication.auth.port.out.SocialProfileResult;
@@ -39,8 +39,8 @@ public class NaverSocialLoginService {
     private final MemberCommandService memberCommandService;
     private final MemberRepository memberRepository;
     private final MemberSocialAccountRepository memberSocialAccountRepository;
-    private final TokenService tokenService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberTokenService tokenService;
+    private final MemberJwtTokenProvider jwtTokenProvider;
     private final NaverTempTokenRedisRepository naverTempTokenRedisRepository;
 
     public NaverSocialLoginService(
@@ -48,8 +48,8 @@ public class NaverSocialLoginService {
         MemberCommandService memberCommandService,
         MemberRepository memberRepository,
         MemberSocialAccountRepository memberSocialAccountRepository,
-        TokenService tokenService,
-        JwtTokenProvider jwtTokenProvider,
+        MemberTokenService tokenService,
+        MemberJwtTokenProvider jwtTokenProvider,
         NaverTempTokenRedisRepository naverTempTokenRedisRepository
     ) {
         this.naverOAuthClient = naverOAuthClient;
@@ -161,7 +161,7 @@ public class NaverSocialLoginService {
     // - naverTempToken으로 Redis에서 naverAccessToken 조회
     // - 회원가입 완료 후 naverTempToken 삭제 (1회용)
     @Transactional
-    public JwtResult signUp(String naverTempToken, String username, String nickname, String fullName,
+    public MemberJwtResult signUp(String naverTempToken, String username, String nickname, String fullName,
                               MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
@@ -200,7 +200,7 @@ public class NaverSocialLoginService {
         return naverTempToken;
     }
 
-    private JwtResult issueJwt(Member member) {
+    private MemberJwtResult issueJwt(Member member) {
         return tokenService.issue(member, false);
     }
 }

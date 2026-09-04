@@ -23,7 +23,7 @@ import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestQueryUse
  * <p>{@code status}/{@code reason}은 HTTP 경계에서 문자열로 받아 여기서 도메인 enum으로 승격한다 —
  * Request record는 domain-free 원칙에 따라 enum을 직접 다루지 않는다.
  *
- * <p>명령 동작은 {@link ReviewBlindRequestCommandService}로 분리했다(CQRS).
+ * <p>명령 동작은 {@link ReviewBlindRequestManagementCommandService}로 분리했다(CQRS).
  *
  * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
  * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.

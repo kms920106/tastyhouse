@@ -20,7 +20,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoLoginHistorySearchRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItemResponse;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryQueryUseCase;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 
 @Tag(name = "Ceo Login History", description = "점주 개인정보 접속기록(로그인 이력) 조회 API")
 @RestController
@@ -43,7 +43,7 @@ public class CeoLoginHistoryApiController {
     )
     @GetMapping("/v1/me/login-histories")
     public ResponseEntity<ApiResponse<List<CeoLoginHistoryListItemResponse>>> getLoginHistories(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute CeoLoginHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {

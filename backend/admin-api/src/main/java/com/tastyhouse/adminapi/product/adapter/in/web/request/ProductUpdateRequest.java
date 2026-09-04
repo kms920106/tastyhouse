@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductUpdateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementUpdateCommand;
 
 import java.math.BigDecimal;
 
@@ -50,8 +50,8 @@ public record ProductUpdateRequest(
     Integer sort
 ) {
 
-    public ProductUpdateCommand toCommand(Long productId) {
-        return new ProductUpdateCommand(
+    public ProductManagementUpdateCommand toCommand(Long productId) {
+        return new ProductManagementUpdateCommand(
             productId, productCategoryId, name, description,
             originalPrice, discountPrice, discountRate,
             representative, spiciness, soldOut, visible, sort

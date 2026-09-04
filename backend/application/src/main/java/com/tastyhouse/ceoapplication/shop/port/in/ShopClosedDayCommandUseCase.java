@@ -7,9 +7,9 @@ public interface ShopClosedDayCommandUseCase {
 
     void updateHolidayClosure(ShopHolidayClosureUpdateCommand command);
 
-    Long createClosedDay(ShopClosedDayCreateCommand command);
+    Long createClosedDay(ShopClosedDayOwnerCreateCommand command);
 
-    void deleteClosedDay(ShopClosedDayDeleteCommand command);
+    void deleteClosedDay(ShopClosedDayOwnerDeleteCommand command);
 
     Long createTemporaryClosure(ShopTemporaryClosureCreateCommand command);
 

@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentCommandUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentManagementCommandUseCase;
 import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
 import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
 
@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjus
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentStatusChangeRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentQueryUseCase;
+import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
@@ -35,12 +35,12 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentAdminApiController {
 
-    private final ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
-    private final ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
+    private final ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
+    private final ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 
     public ShopDeliveryAreaAdjustmentAdminApiController(
-        ShopDeliveryAreaAdjustmentQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase,
-        ShopDeliveryAreaAdjustmentCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
+        ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase,
+        ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
     ) {
         this.shopDeliveryAreaAdjustmentQueryUseCase = shopDeliveryAreaAdjustmentQueryUseCase;
         this.shopDeliveryAreaAdjustmentCommandUseCase = shopDeliveryAreaAdjustmentCommandUseCase;

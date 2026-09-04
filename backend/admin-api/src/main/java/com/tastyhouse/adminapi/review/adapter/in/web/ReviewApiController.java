@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.review.adapter.in.web;
 
-import com.tastyhouse.adminapplication.review.port.in.ReviewCommandUseCase;
+import com.tastyhouse.adminapplication.review.port.in.ReviewManagementCommandUseCase;
 import com.tastyhouse.adminapplication.review.port.in.ReviewCommentDeleteCommand;
 import com.tastyhouse.adminapplication.review.port.in.ReviewCommentHiddenChangeCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewDeleteCommand;
+import com.tastyhouse.adminapplication.review.port.in.ReviewManagementDeleteCommand;
 import com.tastyhouse.adminapplication.review.port.in.ReviewHiddenChangeCommand;
 import com.tastyhouse.adminapplication.review.port.in.ReviewReplyDeleteCommand;
 import com.tastyhouse.adminapplication.review.port.in.ReviewReplyHiddenChangeCommand;
@@ -35,17 +35,17 @@ import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.adminapplication.review.port.in.ReviewManagementQueryUseCase;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewApiController {
 
-    private final ReviewCommandUseCase reviewCommandUseCase;
-    private final ReviewQueryUseCase reviewQueryUseCase;
+    private final ReviewManagementCommandUseCase reviewCommandUseCase;
+    private final ReviewManagementQueryUseCase reviewQueryUseCase;
 
-    public ReviewApiController(ReviewCommandUseCase reviewCommandUseCase, ReviewQueryUseCase reviewQueryUseCase) {
+    public ReviewApiController(ReviewManagementCommandUseCase reviewCommandUseCase, ReviewManagementQueryUseCase reviewQueryUseCase) {
         this.reviewCommandUseCase = reviewCommandUseCase;
         this.reviewQueryUseCase = reviewQueryUseCase;
     }
@@ -93,7 +93,7 @@ public class ReviewApiController {
     @Operation(summary = "리뷰 삭제", description = "소유권 검증 없이 리뷰를 삭제합니다.")
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Long id) {
-        ReviewDeleteCommand command = ReviewDeleteCommand.of(id);
+        ReviewManagementDeleteCommand command = ReviewManagementDeleteCommand.of(id);
         reviewCommandUseCase.deleteReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }

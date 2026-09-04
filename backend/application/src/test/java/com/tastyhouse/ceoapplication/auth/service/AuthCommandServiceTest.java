@@ -21,10 +21,10 @@ import com.tastyhouse.domain.ceo.repository.CeoRepository;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.ceoapplication.ceo.port.in.CeoLoginHistorySuccessCommand;
-import com.tastyhouse.ceoapplication.auth.token.TokenService;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
-import com.tastyhouse.ceoapplication.auth.port.in.AuthLoginCommand;
-import com.tastyhouse.ceoapplication.auth.port.out.JwtResult;
+import com.tastyhouse.ceoapplication.auth.token.CeoTokenService;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthLoginCommand;
+import com.tastyhouse.ceoapplication.auth.port.out.CeoJwtResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,18 +58,18 @@ class AuthCommandServiceTest {
     private static final String USER_AGENT = "Mozilla/5.0";
 
     private AuthenticationManager authenticationManager;
-    private TokenService tokenService;
+    private CeoTokenService tokenService;
     private CeoRepository ceoRepository;
     private CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandService;
-    private AuthCommandService authCommandService;
+    private CeoAuthCommandService authCommandService;
 
     @BeforeEach
     void setUp() {
         authenticationManager = mock(AuthenticationManager.class);
-        tokenService = mock(TokenService.class);
+        tokenService = mock(CeoTokenService.class);
         ceoRepository = mock(CeoRepository.class);
         ceoLoginHistoryCommandService = mock(CeoLoginHistoryCommandUseCase.class);
-        authCommandService = new AuthCommandService(
+        authCommandService = new CeoAuthCommandService(
             authenticationManager,
             tokenService,
             ceoRepository,
@@ -82,10 +82,10 @@ class AuthCommandServiceTest {
     @DisplayName("로그인 성공 시 SUCCESS 이력을 남기고 토큰을 발급한다")
     void login_success_recordsSuccessHistory() {
         givenAuthenticationSucceeds();
-        JwtResult expected = JwtResult.of("access", "refresh", "Bearer");
+        CeoJwtResult expected = CeoJwtResult.of("access", "refresh", "Bearer");
         when(tokenService.issue(any(Authentication.class), anyBoolean())).thenReturn(expected);
 
-        JwtResult actual = authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT));
+        CeoJwtResult actual = authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT));
 
         assertThat(actual).isEqualTo(expected);
         verify(ceoLoginHistoryCommandService).recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
@@ -99,7 +99,7 @@ class AuthCommandServiceTest {
         givenAuthenticationFailsWith(authenticationException);
         givenCeoExists();
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
@@ -115,7 +115,7 @@ class AuthCommandServiceTest {
         givenAuthenticationFailsWith(authenticationException);
         givenCeoExists();
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
@@ -130,7 +130,7 @@ class AuthCommandServiceTest {
         givenAuthenticationFailsWith(authenticationException);
         givenCeoExists();
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
 
         verify(ceoLoginHistoryCommandService)
@@ -145,7 +145,7 @@ class AuthCommandServiceTest {
         givenAuthenticationFailsWith(authenticationException);
         when(ceoRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
 
         verifyNoInteractions(ceoLoginHistoryCommandService);
@@ -161,7 +161,7 @@ class AuthCommandServiceTest {
             .when(ceoLoginHistoryCommandService)
             .recordFailure(argThat(command -> CEO_ID.equals(command.ceoId())));
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
     }
 
@@ -174,7 +174,7 @@ class AuthCommandServiceTest {
             .when(ceoLoginHistoryCommandService)
             .recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
 
-        assertThatThrownBy(() -> authCommandService.login(AuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
+        assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(recordingFailure);
 
         verify(tokenService, never()).issue(any(), anyBoolean());
@@ -184,7 +184,7 @@ class AuthCommandServiceTest {
     @DisplayName("refresh는 접속기록을 남기지 않는다 — 토큰 갱신은 새로운 접속이 아니다")
     void refresh_recordsNothing() {
         when(tokenService.refresh("refresh-token"))
-            .thenReturn(JwtResult.of("access", "refresh", "Bearer"));
+            .thenReturn(CeoJwtResult.of("access", "refresh", "Bearer"));
 
         authCommandService.refresh("refresh-token");
 
@@ -192,7 +192,7 @@ class AuthCommandServiceTest {
     }
 
     private void givenAuthenticationSucceeds() {
-        CustomUserDetails userDetails = new CustomUserDetails(
+        CeoUserDetails userDetails = new CeoUserDetails(
             CEO_ID,
             USERNAME,
             List.of(new SimpleGrantedAuthority("ROLE_CEO"))

@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopThumbnailChangeRequestCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkChangeRequestCommand;
@@ -38,7 +38,7 @@ public class ShopTrademarkApiController {
     @Operation(summary = "상표 이미지 현황 조회", description = "가게의 현재 상표 이미지와 변경 요청 상태 목록을 조회합니다.")
     @GetMapping("/v1/{id}/trademark")
     public ResponseEntity<ApiResponse<ShopImageStatusResponse>> getTrademark(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
@@ -49,7 +49,7 @@ public class ShopTrademarkApiController {
     @Operation(summary = "상표 이미지 변경요청", description = "가게의 상표 이미지 변경을 요청합니다. (JPG, 900KB 이하, 최소 560x560, 1:1 비율)")
     @PostMapping(value = "/v1/{id}/trademark/requests", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> requestTrademarkChange(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Parameter(description = "상표 이미지 파일", required = true)
         @RequestParam("file") MultipartFile file
@@ -62,7 +62,7 @@ public class ShopTrademarkApiController {
     @Operation(summary = "대표이미지 현황 조회", description = "가게의 현재 대표이미지와 변경 요청 상태 목록을 조회합니다.")
     @GetMapping("/v1/{id}/thumbnail")
     public ResponseEntity<ApiResponse<ShopImageStatusResponse>> getThumbnail(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
@@ -73,7 +73,7 @@ public class ShopTrademarkApiController {
     @Operation(summary = "대표이미지 변경요청", description = "가게의 대표이미지 변경을 요청합니다. (JPG/PNG, 10MB 이하, 최소 700x700)")
     @PostMapping(value = "/v1/{id}/thumbnail/requests", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> requestThumbnailChange(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Parameter(description = "대표이미지 파일", required = true)
         @RequestParam("file") MultipartFile file

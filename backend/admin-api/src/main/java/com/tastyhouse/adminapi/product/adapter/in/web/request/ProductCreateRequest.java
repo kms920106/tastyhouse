@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductCreateCommand;
+import com.tastyhouse.adminapplication.product.port.in.ProductManagementCreateCommand;
 
 import java.math.BigDecimal;
 
@@ -60,8 +60,8 @@ public record ProductCreateRequest(
     Integer sort
 ) {
 
-    public ProductCreateCommand toCommand() {
-        return new ProductCreateCommand(
+    public ProductManagementCreateCommand toCommand() {
+        return new ProductManagementCreateCommand(
             shopId, productCategoryId, name, description,
             originalPrice, discountPrice, discountRate,
             rating, reviewCount, representative, spiciness,

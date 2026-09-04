@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductAvailabilitySearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductHiddenRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionHiddenRequest;
@@ -40,10 +40,10 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUntilCh
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutOwnerCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutOwnerUseCase;
 import com.tastyhouse.ceoapplication.product.port.in.ProductAvailabilityQueryUseCase;
 
 /**
@@ -60,7 +60,7 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductAvailabilityQueryUse
 public class ProductAvailabilityApiController {
 
     private final ProductAvailabilityQueryUseCase productAvailabilityQueryService;
-    private final ProductSoldOutUseCase productSoldOutUseCase;
+    private final ProductSoldOutOwnerUseCase productSoldOutUseCase;
     private final ProductHideUseCase productHideUseCase;
     private final ProductReleaseUseCase productReleaseUseCase;
     private final ProductSoldOutUntilChangeUseCase productSoldOutUntilChangeUseCase;
@@ -71,7 +71,7 @@ public class ProductAvailabilityApiController {
 
     public ProductAvailabilityApiController(
         ProductAvailabilityQueryUseCase productAvailabilityQueryService,
-        ProductSoldOutUseCase productSoldOutUseCase,
+        ProductSoldOutOwnerUseCase productSoldOutUseCase,
         ProductHideUseCase productHideUseCase,
         ProductReleaseUseCase productReleaseUseCase,
         ProductSoldOutUntilChangeUseCase productSoldOutUntilChangeUseCase,
@@ -98,7 +98,7 @@ public class ProductAvailabilityApiController {
             + "품절보기·숨김보기를 함께 지정하면 OR로 동작합니다.")
     @GetMapping("/v1/availability")
     public ResponseEntity<ApiResponse<List<ProductAvailabilityGroupResponse>>> getProductAvailability(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
         List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
@@ -112,7 +112,7 @@ public class ProductAvailabilityApiController {
             + "내려주며, 검색어는 옵션명에 부분일치합니다.")
     @GetMapping("/v1/availability/options")
     public ResponseEntity<ApiResponse<List<ProductOptionAvailabilityGroupResponse>>> getProductOptionAvailability(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
         List<ProductOptionAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductOptionAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
@@ -128,10 +128,10 @@ public class ProductAvailabilityApiController {
             + "부분 실패는 200 응답의 failed에 담깁니다.")
     @PatchMapping("/v1/availability/sold-out")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> markProductsSoldOut(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductSoldOutRequest request
     ) {
-        ProductSoldOutCommand command = request.toCommand(userDetails.getCeoId());
+        ProductSoldOutOwnerCommand command = request.toCommand(userDetails.getCeoId());
         ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productSoldOutUseCase.markProductsSoldOut(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -141,7 +141,7 @@ public class ProductAvailabilityApiController {
             + "제약에 걸린 메뉴는 failed에 담기고 나머지는 정상 적용됩니다.")
     @PatchMapping("/v1/availability/hidden")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> hideProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductHiddenRequest request
     ) {
         ProductHideCommand command = request.toCommand(userDetails.getCeoId());
@@ -153,7 +153,7 @@ public class ProductAvailabilityApiController {
         description = "ALL은 품절과 숨김을 함께 풉니다. 이미 판매중인 항목이 섞여 있어도 실패가 아닙니다(멱등).")
     @PatchMapping("/v1/availability/release")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> releaseProducts(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductReleaseRequest request
     ) {
         ProductReleaseCommand command = request.toCommand(userDetails.getCeoId());
@@ -165,7 +165,7 @@ public class ProductAvailabilityApiController {
         description = "품절 상태가 아닌 대상은 failed에 담깁니다(목록을 열어둔 사이 다른 탭에서 해제됐을 수 있습니다).")
     @PatchMapping("/v1/availability/sold-out-until")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> changeProductsSoldOutUntil(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductSoldOutUntilRequest request
     ) {
         ProductSoldOutUntilChangeCommand command = request.toCommand(userDetails.getCeoId());
@@ -179,7 +179,7 @@ public class ProductAvailabilityApiController {
         description = "옵션그룹별로 최소 선택 개수만큼은 판매 중이어야 합니다. 제약에 걸린 옵션은 failed에 담깁니다.")
     @PatchMapping("/v1/availability/options/sold-out")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> markOptionsSoldOut(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionSoldOutRequest request
     ) {
         ProductOptionSoldOutCommand command = request.toCommand(userDetails.getCeoId());
@@ -191,7 +191,7 @@ public class ProductAvailabilityApiController {
         description = "숨김도 선택 불가로 만들므로 품절과 동일하게 옵션그룹별 최소 선택 개수 제약이 적용됩니다.")
     @PatchMapping("/v1/availability/options/hidden")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> hideOptions(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionHiddenRequest request
     ) {
         ProductOptionHideCommand command = request.toCommand(userDetails.getCeoId());
@@ -202,7 +202,7 @@ public class ProductAvailabilityApiController {
     @Operation(summary = "옵션 일괄 품절·숨김 해제", description = "해제 방향에는 제약이 없습니다(멱등).")
     @PatchMapping("/v1/availability/options/release")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> releaseOptions(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionReleaseRequest request
     ) {
         ProductOptionReleaseCommand command = request.toCommand(userDetails.getCeoId());
@@ -213,7 +213,7 @@ public class ProductAvailabilityApiController {
     @Operation(summary = "옵션 품절 기간 일괄 변경", description = "품절 상태가 아닌 대상은 failed에 담깁니다.")
     @PatchMapping("/v1/availability/options/sold-out-until")
     public ResponseEntity<ApiResponse<ProductAvailabilityChangeResponse>> changeOptionsSoldOutUntil(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionSoldOutUntilRequest request
     ) {
         ProductOptionSoldOutUntilChangeCommand command = request.toCommand(userDetails.getCeoId());

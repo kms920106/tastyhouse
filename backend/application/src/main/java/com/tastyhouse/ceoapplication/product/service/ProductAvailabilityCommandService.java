@@ -23,10 +23,10 @@ import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUseCase
 import com.tastyhouse.ceoapplication.product.port.in.ProductOptionTargetCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductReleaseUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutOwnerCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeCommand;
 import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUntilChangeUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutUseCase;
+import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutOwnerUseCase;
 import com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -56,7 +56,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
  */
 @Service
 @Transactional
-public class ProductAvailabilityCommandService implements ProductSoldOutUseCase, ProductHideUseCase, ProductReleaseUseCase, ProductSoldOutUntilChangeUseCase, ProductOptionSoldOutUseCase, ProductOptionHideUseCase, ProductOptionReleaseUseCase, ProductOptionSoldOutUntilChangeUseCase {
+public class ProductAvailabilityCommandService implements ProductSoldOutOwnerUseCase, ProductHideUseCase, ProductReleaseUseCase, ProductSoldOutUntilChangeUseCase, ProductOptionSoldOutUseCase, ProductOptionHideUseCase, ProductOptionReleaseUseCase, ProductOptionSoldOutUntilChangeUseCase {
 
     /**
      * 다음 오픈 시각을 산출할 수 없을 때의 폴백 — 영업시간 미등록이거나 +7일 내 영업일이 없는 가게다.
@@ -98,7 +98,7 @@ public class ProductAvailabilityCommandService implements ProductSoldOutUseCase,
      * 기본값을 계산하지 않는다(영업시간·휴무일·공휴일을 알아야 하고, 그 규칙은 서버가 소유한다).
      */
     @Override
-    public ProductAvailabilityChangeView markProductsSoldOut(ProductSoldOutCommand command) {
+    public ProductAvailabilityChangeView markProductsSoldOut(ProductSoldOutOwnerCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         List<Long> productIds = command.productIds();

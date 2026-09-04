@@ -11,8 +11,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
-import com.tastyhouse.webapplication.auth.token.TokenService;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberTokenService;
 
 /**
  * 회원 인증 협력 서비스.
@@ -27,14 +27,14 @@ public class MemberAuthService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final TokenService tokenService;
+    private final MemberJwtTokenProvider jwtTokenProvider;
+    private final MemberTokenService tokenService;
 
     public MemberAuthService(
         MemberRepository memberRepository,
         PasswordEncoder passwordEncoder,
-        JwtTokenProvider jwtTokenProvider,
-        TokenService tokenService
+        MemberJwtTokenProvider jwtTokenProvider,
+        MemberTokenService tokenService
     ) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;

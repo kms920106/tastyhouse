@@ -17,7 +17,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * 공지사항 관리 command 서비스.
  *
  * <p>domain write 포트({@link NoticeRepository})만 주입해 생성·수정·삭제를 수행한다. 조회는
- * {@link NoticeQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
+ * {@link NoticeManagementQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
  *
  * <p>{@code Notice}는 순수 POJO라 더티 체킹이 없으므로 도메인 변경 후 명시적으로
  * {@code noticeRepository.save(notice)}를 호출한다.

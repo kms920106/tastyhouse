@@ -18,17 +18,17 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.RefreshTokenRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
-import com.tastyhouse.ceoapplication.auth.port.in.AuthCommandUseCase;
-import com.tastyhouse.ceoapplication.auth.port.in.AuthLoginCommand;
+import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthCommandUseCase;
+import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthLoginCommand;
 
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthApiController {
 
-    private final AuthCommandUseCase authCommandUseCase;
+    private final CeoAuthCommandUseCase authCommandUseCase;
 
-    public AuthApiController(AuthCommandUseCase authCommandUseCase) {
+    public AuthApiController(CeoAuthCommandUseCase authCommandUseCase) {
         this.authCommandUseCase = authCommandUseCase;
     }
 
@@ -46,7 +46,7 @@ public class AuthApiController {
         @Valid @RequestBody LoginRequest request,
         HttpServletRequest httpRequest
     ) {
-        AuthLoginCommand command = request.toCommand(
+        CeoAuthLoginCommand command = request.toCommand(
             ClientIpResolver.resolve(httpRequest),
             httpRequest.getHeader("User-Agent")
         );

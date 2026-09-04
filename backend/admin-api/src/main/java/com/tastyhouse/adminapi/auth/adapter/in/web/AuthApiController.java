@@ -15,8 +15,8 @@ import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.RefreshTokenRequest;
-import com.tastyhouse.adminapplication.auth.port.in.AuthCommandUseCase;
-import com.tastyhouse.adminapplication.auth.port.in.AuthLoginCommand;
+import com.tastyhouse.adminapplication.auth.port.in.AdminAuthCommandUseCase;
+import com.tastyhouse.adminapplication.auth.port.in.AdminAuthLoginCommand;
 import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 
 @Tag(name = "Admin Auth", description = "관리자 인증 API")
@@ -24,9 +24,9 @@ import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 @RequestMapping("/api/auth")
 public class AuthApiController {
 
-    private final AuthCommandUseCase authCommandUseCase;
+    private final AdminAuthCommandUseCase authCommandUseCase;
 
-    public AuthApiController(AuthCommandUseCase authCommandUseCase) {
+    public AuthApiController(AdminAuthCommandUseCase authCommandUseCase) {
         this.authCommandUseCase = authCommandUseCase;
     }
 
@@ -34,7 +34,7 @@ public class AuthApiController {
     @RateLimit(limit = 10, windowSeconds = 60, keyType = RateLimitKeyType.IP, keyPrefix = "rate_limit:admin_login")
     @PostMapping("/v1/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
-        AuthLoginCommand command = request.toCommand();
+        AdminAuthLoginCommand command = request.toCommand();
         return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.login(command))));
     }
 

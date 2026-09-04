@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductCategoryOwnerCreateCommand;
 
 @Schema(description = "메뉴그룹 등록 요청")
 public record ProductCategoryCreateRequest(
@@ -23,7 +23,7 @@ public record ProductCategoryCreateRequest(
     String description
 ) {
 
-    public ProductCategoryCreateCommand toCommand(Long ceoId) {
-        return new ProductCategoryCreateCommand(ceoId, shopId, name, description);
+    public ProductCategoryOwnerCreateCommand toCommand(Long ceoId) {
+        return new ProductCategoryOwnerCreateCommand(ceoId, shopId, name, description);
     }
 }

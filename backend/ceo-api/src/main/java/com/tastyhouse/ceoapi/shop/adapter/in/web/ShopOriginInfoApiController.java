@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoQueryUseCase;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOriginInfoUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoCommandUseCase;
@@ -37,10 +37,10 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoUpdateCommand;
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
 
-    private final ShopOriginInfoQueryUseCase shopOriginInfoQueryService;
+    private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryService;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
 
-    public ShopOriginInfoApiController(ShopOriginInfoQueryUseCase shopOriginInfoQueryService, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
+    public ShopOriginInfoApiController(ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryService, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
         this.shopOriginInfoQueryService = shopOriginInfoQueryService;
         this.shopOriginInfoCommandUseCase = shopOriginInfoCommandUseCase;
     }
@@ -50,7 +50,7 @@ public class ShopOriginInfoApiController {
             + "null이 아니라 sourceType=DIRECT·content=null로 내려가므로 화면이 분기 없이 빈 폼을 그릴 수 있습니다.")
     @GetMapping("/v1/{id}/origin")
     public ResponseEntity<ApiResponse<ShopOriginInfoResponse>> getOriginInfo(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopOriginInfoResponse response =
@@ -65,7 +65,7 @@ public class ShopOriginInfoApiController {
             + "url이 필수이며, 입력 방식이 바뀌면 서버가 반대편 필드를 null로 정리합니다.")
     @PutMapping("/v1/{id}/origin")
     public ResponseEntity<ApiResponse<Void>> updateOriginInfo(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopOriginInfoUpdateRequest request
     ) {

@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.product.port.in;
  */
 public interface ProductOptionGroupCreateUseCase {
 
-    Long createProductOptionGroup(ProductOptionGroupCreateCommand command);
+    Long createProductOptionGroup(ProductOptionGroupManagementCreateCommand command);
 }

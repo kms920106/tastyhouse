@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonQueryUs
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaQueryUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaPolygonSaveRequest;
@@ -68,7 +68,7 @@ public class ShopDeliveryAreaApiController {
     @Operation(summary = "내 가게 배달가능지역 조회", description = "로그인한 점주가 소유한 가게의 배달가능지역(행정동) 목록을 조회합니다.")
     @GetMapping("/v1/{id}/delivery-areas")
     public ResponseEntity<ApiResponse<List<ShopDeliveryAreaItemResponse>>> getDeliveryAreas(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopDeliveryAreaItemResponse> response = shopDeliveryAreaQueryService.getDeliveryAreas(userDetails.getCeoId(), id).stream()
@@ -80,7 +80,7 @@ public class ShopDeliveryAreaApiController {
     @Operation(summary = "내 가게 배달가능지역 추가", description = "로그인한 점주가 소유한 가게에 배달가능지역(행정동)을 추가합니다.")
     @PostMapping("/v1/{id}/delivery-areas")
     public ResponseEntity<ApiResponse<Long>> createDeliveryArea(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaCreateRequest request
     ) {
@@ -92,7 +92,7 @@ public class ShopDeliveryAreaApiController {
     @Operation(summary = "내 가게 배달가능지역 삭제", description = "로그인한 점주가 소유한 가게의 배달가능지역을 삭제합니다. 해당 지역에 지역별 배달팁이 설정돼 있으면 삭제할 수 없습니다.")
     @DeleteMapping("/v1/delivery-areas/{deliveryAreaId}")
     public ResponseEntity<ApiResponse<Void>> deleteDeliveryArea(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long deliveryAreaId
     ) {
         ShopDeliveryAreaDeleteCommand command = ShopDeliveryAreaDeleteCommand.of(userDetails.getCeoId(), deliveryAreaId);
@@ -106,7 +106,7 @@ public class ShopDeliveryAreaApiController {
     )
     @PostMapping("/v1/{id}/delivery-areas/bulk")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaBulkResponse>> createDeliveryAreasBulk(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaBulkRequest request
     ) {
@@ -122,7 +122,7 @@ public class ShopDeliveryAreaApiController {
     )
     @PostMapping("/v1/{id}/delivery-areas/bulk-delete")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaBulkDeleteResponse>> deleteDeliveryAreasBulk(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaBulkRequest request
     ) {
@@ -138,7 +138,7 @@ public class ShopDeliveryAreaApiController {
     )
     @GetMapping("/v1/{id}/delivery-areas/radius-preview")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaRadiusPreviewResponse>> getRadiusPreview(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @RequestParam @Min(value = 500, message = "반경은 500m 이상이어야 합니다.")
         @Max(value = 7000, message = "반경은 7000m를 넘을 수 없습니다.") int radiusMeters
@@ -154,7 +154,7 @@ public class ShopDeliveryAreaApiController {
     )
     @PostMapping("/v1/{id}/delivery-areas/radius")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaBulkResponse>> applyRadius(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaRadiusRequest request
     ) {
@@ -170,7 +170,7 @@ public class ShopDeliveryAreaApiController {
     )
     @GetMapping("/v1/{id}/delivery-areas/polygon")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaPolygonResponse>> getPolygon(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopDeliveryAreaPolygonResponse response =
@@ -184,7 +184,7 @@ public class ShopDeliveryAreaApiController {
     )
     @PutMapping("/v1/{id}/delivery-areas/polygon")
     public ResponseEntity<ApiResponse<Void>> savePolygon(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
@@ -203,7 +203,7 @@ public class ShopDeliveryAreaApiController {
     )
     @PostMapping("/v1/{id}/delivery-areas/polygon/preview")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaPolygonPreviewResponse>> previewPolygon(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
@@ -218,7 +218,7 @@ public class ShopDeliveryAreaApiController {
     )
     @DeleteMapping("/v1/{id}/delivery-areas/polygon")
     public ResponseEntity<ApiResponse<Void>> deletePolygon(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopDeliveryAreaPolygonDeleteCommand command = ShopDeliveryAreaPolygonDeleteCommand.of(userDetails.getCeoId(), id);

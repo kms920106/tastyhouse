@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOwnerCreateCommand;
 
 /**
  * 옵션그룹 등록 요청.
@@ -61,8 +61,8 @@ public record ProductOptionGroupCreateRequest(
     String groupType
 ) {
 
-    public ProductOptionGroupCreateCommand toCommand(Long ceoId) {
-        return new ProductOptionGroupCreateCommand(
+    public ProductOptionGroupOwnerCreateCommand toCommand(Long ceoId) {
+        return new ProductOptionGroupOwnerCreateCommand(
             ceoId,
             this.shopId(),
             this.productId(),

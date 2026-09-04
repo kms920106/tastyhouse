@@ -34,7 +34,7 @@ import com.tastyhouse.adminapplication.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.adminapplication.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponQueryUseCase;
+import com.tastyhouse.adminapplication.coupon.port.in.CouponManagementQueryUseCase;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
@@ -42,9 +42,9 @@ import com.tastyhouse.adminapplication.coupon.port.in.CouponQueryUseCase;
 public class CouponApiController {
 
     private final CouponCommandUseCase couponCommandUseCase;
-    private final CouponQueryUseCase couponQueryUseCase;
+    private final CouponManagementQueryUseCase couponQueryUseCase;
 
-    public CouponApiController(CouponCommandUseCase couponCommandUseCase, CouponQueryUseCase couponQueryUseCase) {
+    public CouponApiController(CouponCommandUseCase couponCommandUseCase, CouponManagementQueryUseCase couponQueryUseCase) {
         this.couponCommandUseCase = couponCommandUseCase;
         this.couponQueryUseCase = couponQueryUseCase;
     }

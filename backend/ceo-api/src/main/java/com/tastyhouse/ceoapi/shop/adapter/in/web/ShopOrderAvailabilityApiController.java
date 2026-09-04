@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderAvailabilityResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemResponse;
 
@@ -36,7 +36,7 @@ public class ShopOrderAvailabilityApiController {
     )
     @GetMapping("/v1/{id}/order-availability")
     public ResponseEntity<ApiResponse<ShopOrderAvailabilityResponse>> getOrderAvailability(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         ShopOrderAvailabilityResponse response =
@@ -50,7 +50,7 @@ public class ShopOrderAvailabilityApiController {
     )
     @GetMapping("/v1/{id}/order-methods")
     public ResponseEntity<ApiResponse<List<ShopOrderMethodItemResponse>>> getOrderMethods(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
         List<ShopOrderMethodItemResponse> response = shopOrderAvailabilityQueryService.getOrderMethods(userDetails.getCeoId(), id).stream()

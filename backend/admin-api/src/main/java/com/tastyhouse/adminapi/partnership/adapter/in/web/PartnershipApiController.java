@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.partnership.port.in.PartnershipCommandUseCase;
+import com.tastyhouse.adminapplication.partnership.port.in.PartnershipManagementCommandUseCase;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipStatusChangeCommand;
 import com.tastyhouse.adminapplication.partnership.port.in.PartnershipQueryUseCase;
@@ -34,10 +34,10 @@ import com.tastyhouse.adminapplication.partnership.port.in.PartnershipQueryUseCa
 @RequestMapping("/api/partnership-requests")
 public class PartnershipApiController {
 
-    private final PartnershipCommandUseCase partnershipCommandUseCase;
+    private final PartnershipManagementCommandUseCase partnershipCommandUseCase;
     private final PartnershipQueryUseCase partnershipQueryUseCase;
 
-    public PartnershipApiController(PartnershipCommandUseCase partnershipCommandUseCase, PartnershipQueryUseCase partnershipQueryUseCase) {
+    public PartnershipApiController(PartnershipManagementCommandUseCase partnershipCommandUseCase, PartnershipQueryUseCase partnershipQueryUseCase) {
         this.partnershipCommandUseCase = partnershipCommandUseCase;
         this.partnershipQueryUseCase = partnershipQueryUseCase;
     }

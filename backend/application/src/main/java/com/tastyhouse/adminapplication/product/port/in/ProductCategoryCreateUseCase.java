@@ -8,5 +8,5 @@ package com.tastyhouse.adminapplication.product.port.in;
  */
 public interface ProductCategoryCreateUseCase {
 
-    Long createProductCategory(ProductCategoryCreateCommand command);
+    Long createProductCategory(ProductCategoryManagementCreateCommand command);
 }

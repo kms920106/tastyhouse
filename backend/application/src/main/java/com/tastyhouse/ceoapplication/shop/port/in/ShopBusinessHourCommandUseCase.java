@@ -7,15 +7,15 @@ package com.tastyhouse.ceoapplication.shop.port.in;
  */
 public interface ShopBusinessHourCommandUseCase {
 
-    Long createBusinessHour(ShopBusinessHourCreateCommand command);
+    Long createBusinessHour(ShopBusinessHourOwnerCreateCommand command);
 
-    void updateBusinessHour(ShopBusinessHourUpdateCommand command);
+    void updateBusinessHour(ShopBusinessHourOwnerUpdateCommand command);
 
-    void deleteBusinessHour(ShopBusinessHourDeleteCommand command);
+    void deleteBusinessHour(ShopBusinessHourOwnerDeleteCommand command);
 
-    Long createBreakTime(ShopBreakTimeCreateCommand command);
+    Long createBreakTime(ShopBreakTimeOwnerCreateCommand command);
 
-    void updateBreakTime(ShopBreakTimeUpdateCommand command);
+    void updateBreakTime(ShopBreakTimeOwnerUpdateCommand command);
 
-    void deleteBreakTime(ShopBreakTimeDeleteCommand command);
+    void deleteBreakTime(ShopBreakTimeOwnerDeleteCommand command);
 }

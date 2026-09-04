@@ -3,7 +3,7 @@ package com.tastyhouse.adminapi.auth.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.adminapplication.auth.port.in.AuthLoginCommand;
+import com.tastyhouse.adminapplication.auth.port.in.AdminAuthLoginCommand;
 
 @Schema(description = "관리자 로그인 요청")
 public record LoginRequest(
@@ -19,7 +19,7 @@ public record LoginRequest(
     boolean rememberMe
 ) {
 
-    public AuthLoginCommand toCommand() {
-        return AuthLoginCommand.of(username, password, rememberMe);
+    public AdminAuthLoginCommand toCommand() {
+        return AdminAuthLoginCommand.of(username, password, rememberMe);
     }
 }

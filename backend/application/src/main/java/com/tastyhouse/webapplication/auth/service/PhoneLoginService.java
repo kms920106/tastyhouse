@@ -10,22 +10,22 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.webapplication.auth.token.JwtTokenProvider;
-import com.tastyhouse.webapplication.auth.token.TokenService;
-import com.tastyhouse.webapplication.auth.port.out.JwtResult;
+import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.webapplication.auth.token.MemberTokenService;
+import com.tastyhouse.webapplication.auth.port.out.MemberJwtResult;
 import com.tastyhouse.webapplication.auth.port.out.PhoneLoginResult;
 
 @Service
 public class PhoneLoginService {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
-    private final TokenService tokenService;
+    private final MemberTokenService tokenService;
 
     public PhoneLoginService(
-        JwtTokenProvider jwtTokenProvider,
+        MemberJwtTokenProvider jwtTokenProvider,
         MemberRepository memberRepository,
-        TokenService tokenService
+        MemberTokenService tokenService
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.memberRepository = memberRepository;
@@ -45,7 +45,7 @@ public class PhoneLoginService {
         Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
-            JwtResult jwt = tokenService.issue(memberOpt.get(), false);
+            MemberJwtResult jwt = tokenService.issue(memberOpt.get(), false);
             return PhoneLoginResult.ofLogin(jwt);
         }
 

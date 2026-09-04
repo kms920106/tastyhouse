@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapi.product.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.product.port.out.ProductPriceView;
+import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
 
 /**
  * 메뉴 가격 행 한 줄 응답.
@@ -34,7 +34,7 @@ public record ProductPriceResponse(
     Integer sort
 ) {
 
-    public static ProductPriceResponse from(ProductPriceView view) {
+    public static ProductPriceResponse from(ProductOwnerPriceView view) {
         return new ProductPriceResponse(
             view.id(),
             view.priceName(),

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductCreateCommand;
+import com.tastyhouse.ceoapplication.product.port.in.ProductOwnerCreateCommand;
 
 @Schema(description = "메뉴 등록 요청")
 public record ProductCreateRequest(
@@ -61,8 +61,8 @@ public record ProductCreateRequest(
     List<ProductShopLinkItemRequest> links
 ) {
 
-    public ProductCreateCommand toCommand(Long ceoId) {
-        return new ProductCreateCommand(
+    public ProductOwnerCreateCommand toCommand(Long ceoId) {
+        return new ProductOwnerCreateCommand(
             ceoId,
             this.shopId(),
             this.productCategoryId(),

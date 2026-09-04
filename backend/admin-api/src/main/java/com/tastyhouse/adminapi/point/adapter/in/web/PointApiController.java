@@ -27,7 +27,7 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.adminapplication.point.port.in.PointCommandUseCase;
 import com.tastyhouse.adminapplication.point.port.in.PointDeductCommand;
 import com.tastyhouse.adminapplication.point.port.in.PointEarnCommand;
-import com.tastyhouse.adminapplication.point.port.in.PointQueryUseCase;
+import com.tastyhouse.adminapplication.point.port.in.PointManagementQueryUseCase;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
 @RestController
@@ -35,9 +35,9 @@ import com.tastyhouse.adminapplication.point.port.in.PointQueryUseCase;
 public class PointApiController {
 
     private final PointCommandUseCase pointCommandUseCase;
-    private final PointQueryUseCase pointQueryUseCase;
+    private final PointManagementQueryUseCase pointQueryUseCase;
 
-    public PointApiController(PointCommandUseCase pointCommandUseCase, PointQueryUseCase pointQueryUseCase) {
+    public PointApiController(PointCommandUseCase pointCommandUseCase, PointManagementQueryUseCase pointQueryUseCase) {
         this.pointCommandUseCase = pointCommandUseCase;
         this.pointQueryUseCase = pointQueryUseCase;
     }

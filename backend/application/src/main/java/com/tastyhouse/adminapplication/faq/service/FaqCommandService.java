@@ -19,7 +19,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
  * FAQ 항목 관리 command 서비스.
  *
  * <p>domain write 포트({@link FaqRepository}·{@link FaqCategoryRepository})만 주입해 생성·수정·삭제를
- * 수행한다. 조회는 {@link FaqQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
+ * 수행한다. 조회는 {@link FaqManagementQueryService}가 담당하며, 이 서비스는 infra query DAO를 주입하지 않는다.
  * {@link FaqCategoryRepository}는 소속 카테고리 존재 검증(단건 로드)에만 쓰이므로 write 포트 주입이
  * 맞다 — 두 애그리거트를 함께 save하지 않으므로 도메인 서비스로 하강시키지 않았다.
  *

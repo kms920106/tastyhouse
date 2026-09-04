@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductImageSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusResponse;
@@ -62,7 +62,7 @@ public class ProductImageApiController {
         description = "반영된 이미지 목록(정렬 순)과 검수 요청 이력을 함께 반환합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImageStatusResponse>> getProductImages(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
@@ -75,7 +75,7 @@ public class ProductImageApiController {
             + "추가됩니다. 같은 메뉴에 검수 대기 중인 요청이 있으면 거부됩니다.")
     @PostMapping(value = "/v1/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Long>> requestProductImage(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Parameter(description = "대상 가게 ID", required = true)
         @RequestParam("shopId") Long shopId,
@@ -93,7 +93,7 @@ public class ProductImageApiController {
             + "일치하지 않으면 거부됩니다. 승인을 거치지 않고 즉시 반영됩니다.")
     @PutMapping("/v1/{id}/images/sort")
     public ResponseEntity<ApiResponse<Void>> changeProductImageSort(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductImageSortRequest request
     ) {
@@ -107,7 +107,7 @@ public class ProductImageApiController {
             + "이미지에서 소속 가게를 역조회해 shopId와 대조합니다.")
     @DeleteMapping("/v1/images/{imageId}")
     public ResponseEntity<ApiResponse<Void>> deleteProductImage(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long imageId,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMinOrderAmountUpdateRequest;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMinOrderAmountCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopMinOrderAmountUpdateCommand;
@@ -42,7 +42,7 @@ public class ShopMinOrderAmountApiController {
     )
     @PutMapping("/v1/{id}/min-order-amount")
     public ResponseEntity<ApiResponse<Void>> updateMinOrderAmount(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ShopMinOrderAmountUpdateRequest request
     ) {

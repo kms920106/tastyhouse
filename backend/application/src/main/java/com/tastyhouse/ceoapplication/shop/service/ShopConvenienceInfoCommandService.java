@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.service.ShopConvenienceInfoService;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityAssignCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityUnassignCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityOwnerAssignCommand;
+import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityOwnerUnassignCommand;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoCommandUseCase;
 import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoUpdateCommand;
 
@@ -61,7 +61,7 @@ public class ShopConvenienceInfoCommandService implements ShopConvenienceInfoCom
     }
 
     @Override
-    public Long assignAmenity(ShopAmenityAssignCommand command) {
+    public Long assignAmenity(ShopAmenityOwnerAssignCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         Long amenityCategoryId = command.amenityCategoryId();
@@ -71,7 +71,7 @@ public class ShopConvenienceInfoCommandService implements ShopConvenienceInfoCom
     }
 
     @Override
-    public void unassignAmenity(ShopAmenityUnassignCommand command) {
+    public void unassignAmenity(ShopAmenityOwnerUnassignCommand command) {
         Long ceoId = command.ceoId();
         Long shopId = command.shopId();
         Long amenityCategoryId = command.amenityCategoryId();

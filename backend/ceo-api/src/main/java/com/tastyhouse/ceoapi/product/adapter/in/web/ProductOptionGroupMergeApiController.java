@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeExclusionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergePreviewSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeRequest;
@@ -59,7 +59,7 @@ public class ProductOptionGroupMergeApiController {
             + "불투명 토큰입니다.")
     @GetMapping("/v1/option-groups/merge-suggestions")
     public ResponseEntity<ApiResponse<List<ProductOptionGroupMergeSuggestionResponse>>> getMergeSuggestions(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergeSuggestionSearchRequest request
     ) {
         List<ProductOptionGroupMergeSuggestionResponse> response = productOptionGroupMergeQueryService.getMergeSuggestions(userDetails.getCeoId(), request.shopId()).stream()
@@ -75,7 +75,7 @@ public class ProductOptionGroupMergeApiController {
             + "추천되는 것이 의도된 동작입니다.")
     @PostMapping("/v1/option-groups/merge-suggestions/exclusions")
     public ResponseEntity<ApiResponse<Long>> excludeMergeSuggestion(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @RequestBody ProductOptionGroupMergeExclusionCreateRequest request
     ) {
         ProductOptionGroupMergeExclusionCreateCommand command = request.toCommand(userDetails.getCeoId());
@@ -89,7 +89,7 @@ public class ProductOptionGroupMergeApiController {
             + "합치면 사라집니다.")
     @GetMapping("/v1/option-groups/merge-preview")
     public ResponseEntity<ApiResponse<ProductOptionGroupMergePreviewResponse>> getMergePreview(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergePreviewSearchRequest request
     ) {
         ProductOptionGroupMergePreviewResponse response = ProductOptionGroupMergePreviewResponse.from(productOptionGroupMergeQueryService.getMergePreview( userDetails.getCeoId(), request.shopId(), request.baseOptionGroupId(), request.optionGroupIds() ));
@@ -102,7 +102,7 @@ public class ProductOptionGroupMergeApiController {
             + "되돌릴 수 없습니다. 살아남은 기준 그룹 ID를 반환하므로 목록을 재조회하세요.")
     @PostMapping("/v1/option-groups/{id}/merge")
     public ResponseEntity<ApiResponse<Long>> mergeProductOptionGroups(
-        @AuthenticationPrincipal CustomUserDetails userDetails,
+        @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id,
         @Valid @RequestBody ProductOptionGroupMergeRequest request
     ) {

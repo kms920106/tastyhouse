@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
-import com.tastyhouse.webapplication.auth.security.CustomUserDetails;
+import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
 import com.tastyhouse.webapplication.shop.port.in.ShopBookmarkToggleCommand;
 import com.tastyhouse.webapplication.shop.port.in.ShopCommandUseCase;
 import com.tastyhouse.webapplication.shop.port.in.ShopDetailQueryUseCase;
@@ -88,7 +88,7 @@ public class ShopApiController {
     @GetMapping("/v1/best")
     public ResponseEntity<ApiResponse<List<ShopBestListItemResponse>>> getBestShops(
         @Valid @ModelAttribute PageRequest pageRequest,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         // 공개 경로라 비로그인이면 principal 이 null 이다 — 그때는 배달지역 필터를 걸지 않는다.
         PaginationResponse<ShopBestListItemResponse> pageResponse = PaginationResponse.from(
@@ -115,7 +115,7 @@ public class ShopApiController {
     public ResponseEntity<ApiResponse<List<ShopLatestListItemResponse>>> getLatestShops(
         @Valid @ModelAttribute ShopSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         PaginationResponse<ShopLatestListItemResponse> pageResponse = PaginationResponse.from(
             shopSearchQueryUseCase.searchLatestShops(
@@ -261,7 +261,7 @@ public class ShopApiController {
     @GetMapping("/v1/{id}/bookmark")
     public ResponseEntity<ApiResponse<ShopBookmarkResponse>> isBookmarked(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ShopBookmarkResponse bookmarked;
         if (userDetails == null) {
@@ -277,7 +277,7 @@ public class ShopApiController {
     @PostMapping("/v1/{id}/bookmark")
     public ResponseEntity<ApiResponse<ShopBookmarkResponse>> toggleBookmark(
         @PathVariable Long id,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
@@ -304,7 +304,7 @@ public class ShopApiController {
     public ResponseEntity<ApiResponse<ShopDeliveryTipResponse>> getShopDeliveryTip(
         @PathVariable Long id,
         @Valid @ModelAttribute ShopDeliveryTipSearchRequest search,
-        @CurrentUser CustomUserDetails userDetails
+        @CurrentUser MemberUserDetails userDetails
     ) {
         ShopDeliveryTipResponse deliveryTip = ShopDeliveryTipResponse.from(
             shopOrderInfoQueryUseCase.getShopDeliveryTip(
@@ -357,7 +357,7 @@ public class ShopApiController {
      * <p>목록 조회는 인증 없이도 열려 있어({@code PublicPaths}) principal 이 {@code null} 로 들어온다.
      * 배달지역 필터는 회원 배송지가 있을 때만 걸리므로 여기서 그대로 흘려보낸다.
      */
-    private Long memberIdOrNull(CustomUserDetails userDetails) {
+    private Long memberIdOrNull(MemberUserDetails userDetails) {
         return userDetails == null ? null : userDetails.getMemberId();
     }
 }

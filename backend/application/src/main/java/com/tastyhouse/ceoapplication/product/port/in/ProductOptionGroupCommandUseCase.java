@@ -7,7 +7,7 @@ package com.tastyhouse.ceoapplication.product.port.in;
  */
 public interface ProductOptionGroupCommandUseCase {
 
-    Long createProductOptionGroup(ProductOptionGroupCreateCommand command);
+    Long createProductOptionGroup(ProductOptionGroupOwnerCreateCommand command);
 
     void updateProductOptionGroup(ProductOptionGroupUpdateCommand command);
 

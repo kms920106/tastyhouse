@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayCreateCommand;
+import com.tastyhouse.adminapplication.shop.port.in.ShopClosedDayManagementCreateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +12,7 @@ public record ShopClosedDaySaveRequest(
     String closedDayType
 ) {
 
-    public ShopClosedDayCreateCommand toCommand(Long adminId, Long shopId) {
-        return new ShopClosedDayCreateCommand(adminId, shopId, closedDayType);
+    public ShopClosedDayManagementCreateCommand toCommand(Long adminId, Long shopId) {
+        return new ShopClosedDayManagementCreateCommand(adminId, shopId, closedDayType);
     }
 }
