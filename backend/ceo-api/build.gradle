@@ -5,7 +5,7 @@ dependencies {
     // api-common-module이 api project(':domain-module')로 전이 노출하므로 재선언이 필요 없다.
     // web/admin/ceo-api 3개 모듈 모두 같은 상태다(web-api의 GlobalExceptionHandler가 쓰는
     // domain.exception..도 그 전이 경로로 해결된다).
-    implementation project(':ceo-application')
+    implementation project(':application')
     // infrastructure:persistence은 runtimeOnly로 강등하지 않고 implementation을 유지한다(챕터 05 §2 검토 결과).
     // 챕터 04로 이 모듈 소스에 infra query/persistence import는 0건이 됐지만, 앱 부트스트랩이
     // @Import(InfrastructureModuleConfig.class)로 infra 진입점 설정을 컴파일 타임에 참조한다.

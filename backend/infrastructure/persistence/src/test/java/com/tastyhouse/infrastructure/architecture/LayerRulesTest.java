@@ -53,12 +53,12 @@ class LayerRulesTest {
                 "com.tastyhouse.adminapi..",
                 "com.tastyhouse.ceoapi..",
                 "com.tastyhouse.batch..",
-                // 챕터 01~04로 신설된 application 계층 모듈 4개(앱 전부). 이로써
-                // 물리 분리된 application 계층이 빠짐없이 금지 목록에 올랐다.
+                // 물리 분리된 application 계층의 앱 패키지 4개(앱 전부).
                 // 주의: "com.tastyhouse.*application.."처럼 뭉뚱그리면 읽기 계약 패키지
                 // com.tastyhouse.application..(infra가 이 포트를 정당하게 구현한다)까지 걸린다.
-                // 그래서 모듈별 패키지를 정확히 나열한다. 챕터 09로 그 계약의 소유 모듈이
-                // 5개로 갈렸지만 패키지는 그대로이므로 이 주의사항도 그대로 유효하다.
+                // 그래서 앱별 패키지를 정확히 나열한다. 챕터 01로 이 4개 앱 패키지가 :application
+                // 모듈 하나에 함께 살게 됐지만(앱 단독 계약은 이 모듈 1개 소유, 공유 55개만
+                // domain-module — 챕터 04 복귀 예정) 패키지는 그대로이므로 이 주의사항도 그대로 유효하다.
                 "com.tastyhouse.batchapplication..",
                 "com.tastyhouse.webapplication..",
                 "com.tastyhouse.adminapplication..",

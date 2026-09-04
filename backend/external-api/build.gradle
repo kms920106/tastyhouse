@@ -8,11 +8,10 @@ dependencies {
     implementation project(':domain-module')
     // 챕터 04 — 의존 역전. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를
     // 소유한 application 모듈에 의존한다(방향: adapter → port). 반대 방향(application →
-    // external-api)은 위 두 build.gradle에서 제거됐으므로 순환이 아니다.
-    // - web-application: 소셜 로그인 SPI(auth.port.out)
-    // - batch-application: BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입
-    implementation project(':web-application')
-    implementation project(':batch-application')
+    // external-api)은 application/build.gradle에서 제거됐으므로 순환이 아니다.
+    // - web 앱: 소셜 로그인 SPI(auth.port.out)
+    // - batch 앱: BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입
+    implementation project(':application')
 
     // Spring Boot Starter
     // 서블릿 스택 실사용은 MultipartFile 1종뿐이라 starter-web(tomcat+webmvc 전체) 대신

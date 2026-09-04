@@ -4,9 +4,9 @@
 # security-core
 
 ## Purpose
-`{web,admin,ceo,batch}-application`·`security-module`이 공유하는 **서블릿-프리 보안 코어 라이브러리 모듈**(`java-library`, 챕터 03 신설). `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)을 캡슐화한다.
+`application`·`security-module`이 공유하는 **서블릿-프리 보안 코어 라이브러리 모듈**(`java-library`, 챕터 03 신설). `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)을 캡슐화한다.
 
-**신설 배경**: 기존에는 이 타입들이 `security-module`에 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속, `JwtAuthenticationEntryPoint`, `JwtAccessDeniedHandler`)과 함께 있었는데, `{web,admin,ceo,batch}-application`이 `JwtTokenProvider`·토큰 저장소를 쓰려고 `security-module`을 의존하면 `starter-web`·서블릿 필터까지 컴파일 클래스패스에 딸려 들어와 **application 계층의 클래스패스가 서블릿 스택으로 오염**됐다. ArchUnit `applicationMustBeServletFree`는 소스의 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 그래서 서블릿-프리 타입만 이 모듈로 분리해 **빌드 그래프로 강제**한다. 자세한 배경은 `security-module/AGENTS.md`의 [security-core 분리](../security-module/AGENTS.md#security-core-분리-챕터-03)와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-프로그램-완료--챕터-0106--챕터-03-security-core-분리) 참고.
+**신설 배경**: 기존에는 이 타입들이 `security-module`에 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속, `JwtAuthenticationEntryPoint`, `JwtAccessDeniedHandler`)과 함께 있었는데, `application`이 `JwtTokenProvider`·토큰 저장소를 쓰려고 `security-module`을 의존하면 `starter-web`·서블릿 필터까지 컴파일 클래스패스에 딸려 들어와 **application 계층의 클래스패스가 서블릿 스택으로 오염**됐다. ArchUnit `applicationMustBeServletFree`는 소스의 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 그래서 서블릿-프리 타입만 이 모듈로 분리해 **빌드 그래프로 강제**한다. 자세한 배경은 `security-module/AGENTS.md`의 [security-core 분리](../security-module/AGENTS.md#security-core-분리-챕터-03)와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합-챕터-01) 참고.
 
 **API 변경 없음** — JWT 토큰 포맷·Redis key prefix·인증 플로우는 분리 전과 완전히 동일하다. 모듈 소속만 바뀌었다.
 
@@ -26,7 +26,7 @@
 ## For AI Agents
 
 ### Working In This Directory
-- **이 모듈에 서블릿 타입을 끌어들이지 않는다.** `jakarta.servlet.*`·`OncePerRequestFilter`·`AuthenticationEntryPoint`·`AccessDeniedHandler` 등 서블릿 결합 타입이 필요한 기능은 이 모듈이 아니라 `security-module`에 둔다 — 그것이 이 모듈이 `{web,admin,ceo,batch}-application`의 안전한 의존 대상으로 남는 유일한 이유다.
+- **이 모듈에 서블릿 타입을 끌어들이지 않는다.** `jakarta.servlet.*`·`OncePerRequestFilter`·`AuthenticationEntryPoint`·`AccessDeniedHandler` 등 서블릿 결합 타입이 필요한 기능은 이 모듈이 아니라 `security-module`에 둔다 — 그것이 이 모듈이 `application`의 안전한 의존 대상으로 남는 유일한 이유다.
 - **`RefreshTokenRedisRepository`/`BlacklistRedisRepository`는 키 접두사를 생성자 파라미터로 받는 순수 POJO**다(`@Repository` 자기 등록 아님). web-api는 `"rt:"`/`"bl:"`, admin-api는 `"admin:rt:"`/`"admin:bl:"`를 각자 `@Configuration`에서 빈 등록 시 주입한다 — reference: `web-api/config/jwt/RedisRepositoryConfig`, `admin-api/config/jwt/RedisRepositoryConfig`. 새 접두사가 필요한 저장소를 추가할 때도 이 패턴(접두사 주입형 POJO + 사용처 빈 등록)을 따른다.
 - **소셜 임시토큰 저장소는 접두사가 고정**이므로 `@Repository` 자기 등록으로 두고 접두사 주입을 적용하지 않는다(web-api 전용, admin-api는 소셜 로그인이 없어 빈이 떠도 무해).
 - **`JwtTokenProvider`는 `@Component`가 아닌 파라미터형 POJO**다. principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다. 각 API는 이 클래스를 상속한 얇은 `@Component` 하위 클래스로 자기 등록한다 — reference: `web-api`/`admin-api`의 `config/jwt/JwtTokenProvider`(`super(props, "memberId"|"adminId", CustomUserDetails::new)`). web은 검증용 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드를 **web 전용으로만** 추가한다(admin은 미사용). `key`/`parseClaims`/`jwtProperties`는 `protected`라 하위 클래스가 재사용한다.
@@ -52,6 +52,6 @@
 - `spring-boot-starter-data-redis` — 직접 선언이 아니라 `infrastructure:redis`가 `api`로 노출하는 것을 전이로 받는다
 
 ### Consumers (챕터 03)
-- `{web,admin,ceo}-application` — `implementation project(':security-core')`로 직접 의존(서블릿 스택 없이 auth/token 서비스가 사용). batch-application은 원래 security 의존이 없어 대상 아님
+- `application` — `implementation project(':security-core')`로 직접 의존(서블릿 스택 없이 auth/token 서비스가 사용). batch 유스케이스는 원래 security를 쓰지 않으며, 모듈 통합 후 클래스패스에 보이더라도 참조하지 않는다
 - `security-module` — `api project(':security-core')`로 재노출(잔류한 서블릿 결합 타입이 이 모듈의 `JwtTokenProvider`·토큰 저장소를 쓴다)
 - `{web,admin,ceo}-api` — `security-module`을 통해 전이로 수신(기존 좌표 그대로, 직접 의존 선언 없음)

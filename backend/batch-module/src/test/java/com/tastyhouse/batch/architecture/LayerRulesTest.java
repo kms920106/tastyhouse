@@ -67,4 +67,33 @@ class LayerRulesTest {
         rule.check(classes);
     }
 
+
+    /**
+     * <b>챕터 01 신설 — 어댑터는 자기 앱의 application 슬라이스만 의존한다.</b>
+     *
+     * <p><b>이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.</b> 그전까지 batch의 어댑터가 다른 앱의
+     * UseCase를 주입하는 것은 <b>빌드가</b> 막았다 — 이 모듈의 build.gradle에
+     * {@code project(':batch-application')} 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예
+     * 없었다. 챕터 01이 4개 application 모듈을 {@code :application} 하나로 합치면서 4개 앱 패키지가
+     * <b>전부 이 모듈의 컴파일 클래스패스에 들어왔고</b>, 이제 batch-module이
+     * {@code com.tastyhouse.webapplication..}의 UseCase를 주입해도 컴파일이 통과한다.
+     *
+     * <p>그래서 이 규칙을 <b>모듈 통합과 같은 커밋에</b> 넣는다. 나중에 추가하면 그 사이에 들어온
+     * 교차 의존이 정상으로 굳는다.
+     *
+     * <p>짝이 되는 규칙은 {@code :application} 모듈의 {@code AppIsolationTest#appsShouldNotDependOnEachOther}다 —
+     * 그쪽이 application 계층끼리의 수평 의존을, 이쪽이 어댑터 → 남의 application 의존을 막는다.
+     * 자기 앱({@code com.tastyhouse.batchapplication..})은 정방향이므로 목록에서 제외한다.
+     */
+    @Test
+    void adaptersShouldOnlyUseOwnAppUseCases() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.webapplication..",
+                "com.tastyhouse.adminapplication..",
+                "com.tastyhouse.ceoapplication..")
+            .because("인바운드 어댑터는 자기 앱의 application 슬라이스만 의존한다");
+
+        rule.check(classes);
+    }
 }

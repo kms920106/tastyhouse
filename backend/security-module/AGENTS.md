@@ -46,11 +46,11 @@
 
 ## security-core 분리 (챕터 03)
 
-**`{web,admin,ceo,batch}-application`이 이 모듈(`security-module`)을 의존하면 서블릿 필터·EntryPoint·AccessDeniedHandler까지 컴파일 클래스패스에 딸려 들어와 application 계층이 서블릿 스택으로 오염됐다.** ArchUnit `applicationMustBeServletFree`는 소스 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 빌드 그래프로 강제해야 했다.
+**`application`이 이 모듈(`security-module`)을 의존하면 서블릿 필터·EntryPoint·AccessDeniedHandler까지 컴파일 클래스패스에 딸려 들어와 application 계층이 서블릿 스택으로 오염됐다.** ArchUnit `applicationMustBeServletFree`는 소스 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 빌드 그래프로 강제해야 했다.
 
-서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종)을 신설 모듈 `security-core`로 옮기고, `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch-application은 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
+서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종)을 신설 모듈 `security-core`로 옮기고, `application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch 유스케이스는 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
 
-자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-프로그램-완료--챕터-0106--챕터-03-security-core-분리) 참고.
+자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합-챕터-01) 참고.
 
 ## Redis 위임 (챕터 05)
 
