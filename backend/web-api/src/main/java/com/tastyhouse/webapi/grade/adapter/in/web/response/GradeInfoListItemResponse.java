@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.grade.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.grade.port.out.GradeInfoResult;
+import com.tastyhouse.application.grade.port.out.GradeInfoResult;
 
 @Schema(description = "등급 세부 조건 항목")
 public record GradeInfoListItemResponse(

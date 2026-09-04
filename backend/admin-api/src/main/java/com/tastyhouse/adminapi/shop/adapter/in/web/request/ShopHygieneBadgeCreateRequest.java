@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 
 import java.time.LocalDate;
 

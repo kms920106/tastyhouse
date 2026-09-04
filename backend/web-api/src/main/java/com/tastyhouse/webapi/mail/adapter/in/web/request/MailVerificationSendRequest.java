@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-import com.tastyhouse.webapplication.mail.port.in.MailVerificationSendCommand;
+import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;
 
 @Schema(description = "메일 인증번호 발송 요청")
 public record MailVerificationSendRequest(

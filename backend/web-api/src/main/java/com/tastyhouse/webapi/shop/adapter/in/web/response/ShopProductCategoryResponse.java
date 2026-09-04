@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopProductCategoryViewResult;
+import com.tastyhouse.application.shop.port.out.ShopProductCategoryViewResult;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 
 @Schema(description = "가게 상품 카테고리 응답")

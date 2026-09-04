@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.order.port.out.OrderDetailViewResult;
+import com.tastyhouse.application.order.port.out.OrderDetailViewResult;
 
 @Schema(description = "주문 상세 조회 응답")
 public record OrderDetailResponse(

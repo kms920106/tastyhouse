@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopThumbnailChangeRequestCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkChangeRequestCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopTrademarkCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopThumbnailChangeRequestCommand;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkChangeRequestCommand;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
 
 @Tag(name = "Ceo Shop Trademark", description = "점주 가게 상표/대표이미지 변경요청 API")
 @RestController

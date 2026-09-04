@@ -2,8 +2,8 @@ package com.tastyhouse.webapi.order.adapter.in.web.request;
 
 import java.util.List;
 
-import com.tastyhouse.webapplication.order.port.in.OrderLineCommand;
-import com.tastyhouse.webapplication.order.port.in.OrderLineOptionCommand;
+import com.tastyhouse.application.order.port.in.OrderLineCommand;
+import com.tastyhouse.application.order.port.in.OrderLineOptionCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;

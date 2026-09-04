@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.point.port.out.PointHistoryViewResult;
+import com.tastyhouse.application.point.port.out.PointHistoryViewResult;
 
 @Schema(description = "포인트 내역 응답 DTO")
 public record PointHistoryResponse(

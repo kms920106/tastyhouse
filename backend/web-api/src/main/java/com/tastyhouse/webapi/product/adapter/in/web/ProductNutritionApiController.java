@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.product.port.in.ProductNutritionQueryUseCase;
-import com.tastyhouse.webapplication.product.port.out.ProductNutritionView;
+import com.tastyhouse.application.product.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductNutritionView;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
 
 /**

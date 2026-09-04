@@ -10,7 +10,8 @@
    │  컨트롤러/@Scheduled 트리거 + request/ + config·security 정책 + 부트스트랩
    ↓
 application 1            application   ← 4개 앱의 유스케이스를 담는 단일 모듈(챕터 01로 4 → 1)
-                         자바 패키지는 앱별로 남아 있다 — com.tastyhouse.{web|admin|ceo|batch}application..
+                         자바 패키지도 챕터 03으로 평탄화됐다 — com.tastyhouse.application 하나뿐이며
+                         앱 소속은 패키지가 아니라 마커 애노테이션(@WebApp/@AdminApp/@CeoApp/@BatchApp)이 표현한다
    │  <ctx>/port/in/(UseCase + Command) + <ctx>/service/(CQRS)
    │  ※ <ctx>/response/ 는 api 모듈로 이동 완료 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
    │  ※ 앱 간 수평 의존은 모듈이 아니라 ArchUnit이 막는다 — AppIsolationTest(이 모듈) ·
@@ -30,7 +31,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 ```
 
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것도, 챕터 01의 통합으로 줄어든 것도 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
-- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`application` 모듈은 자바 패키지 5개를 갖는다** — 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)다. 챕터 01의 통합은 Gradle 모듈만 4 → 1로 줄였고 패키지는 건드리지 않았다(평탄화는 챕터 03). **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
+- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application`(유스케이스 + 앱 단독 계약) / `domain-module`(다중 앱 공유 계약 55개)** 두 모듈이 나눠 소유하는 split package가 됐고, 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
 - **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(4개 앱 공통), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain-module/AGENTS.md`, JWT 토큰 발급/검증·Redis 토큰 저장소는 `security-core/AGENTS.md`, 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
 - **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·Redis 토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleConfig`·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)·빈 배선(`SecurityModuleConfig`의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕에 이동한 `@Repository` 빈을 그대로 스캔)은 전부 불변이다. API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
@@ -39,11 +40,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | 최상위 패키지 | 소유 모듈 | 계층 |
 |---|---|---|
 | `com.tastyhouse.domain..` | `domain-module` | 도메인 |
-| `com.tastyhouse.application..` | **2개 모듈이 나눠 소유** — `application`(앱 단독 계약 271) / `domain-module`(다중 앱 공유 55 — 챕터 04에서 `application`으로 복귀 예정) | 읽기 계약(`port.out`) — 한 최상위 패키지를 2개 모듈이 나눠 갖는 **split package**다(챕터 01로 5개 → 2개). 모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례이며, 그 덕분에 계약이 어느 모듈로 가든 소비 측 import가 바뀌지 않는다. FQCN 중복은 `ReadContractSingleOwnerTest`가 검출한다. 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence) 참고 |
-| `com.tastyhouse.webapplication..` | `application` | application |
-| `com.tastyhouse.adminapplication..` | `application` | application |
-| `com.tastyhouse.ceoapplication..` | `application` | application |
-| `com.tastyhouse.batchapplication..` | `application` | application |
+| `com.tastyhouse.application..` | **2개 모듈이 나눠 소유** — `application`(유스케이스 `<ctx>/port/in`·`<ctx>/service` 전부 + 앱 단독 읽기 계약 271) / `domain-module`(다중 앱 공유 읽기 계약 55 — 챕터 04에서 `application`으로 복귀 예정) | 챕터 01(모듈 통합) 시점에는 앱별 패키지(`com.tastyhouse.{web\|admin\|ceo\|batch}application..`)와 읽기 계약 패키지가 나뉘어 있었으나, **챕터 03(패키지 평탄화)으로 이 한 패키지 `com.tastyhouse.application`으로 합쳐졌다.** 유스케이스(`<ctx>/port/in`·`<ctx>/service`)와 읽기 계약(`<ctx>/port/out`)이 같은 패키지 트리 안에 공존하고, 그 트리를 소유 모듈만 다르게 나눠 갖는 **split package**다(모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례이며, 그 덕분에 계약이 어느 모듈로 가든 소비 측 import가 바뀌지 않는다). 패키지만으로는 4개 앱 중 어디 소속인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 대신 표현한다. FQCN 중복은 `ReadContractSingleOwnerTest`가 검출한다. 읽기 계약 소유 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence) 참고 |
 | `com.tastyhouse.webapi..` | `web-api` | 인바운드 어댑터 |
 | `com.tastyhouse.adminapi..` | `admin-api` | 인바운드 어댑터 |
 | `com.tastyhouse.ceoapi..` | `ceo-api` | 인바운드 어댑터 |
@@ -55,7 +52,19 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | `com.tastyhouse.apicommon..` | `api-common-module` | 공유(HTTP 플럼빙) |
 | `com.tastyhouse.logging..` | `logging-module` | 공유(횡단) |
 
-**`webapi`와 `webapplication`은 접두어가 겹치므로**(`com.tastyhouse.webap...`) import 정렬·grep 시 세그먼트 전체를 비교한다 — 아래 [import 순서](#코딩-스타일-import-순서)의 계층 판별도 이 패키지 기준이다.
+## 앱 마커 규칙 (챕터 03 — 스캔이 패키지에서 애노테이션으로)
+
+**패키지 평탄화(위 [모듈 지도](#모듈-지도-모듈-재편-완료--application-모듈-통합-챕터-01) 참고)로 `com.tastyhouse.{web|admin|ceo|batch}application` 4개 최상위 패키지가 `com.tastyhouse.application` 하나로 합쳐지면서, "이 클래스가 어느 앱 것인가"를 패키지로 가릴 수 없게 됐다. 그 자리를 마커 애노테이션 4종이 대신한다.**
+
+- **`com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`** — 순수 마커다. `@Component` 메타를 얹지 않고 `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`만 갖는다(메타를 얹으면 기존 `@Service`/`@Component`의 의미가 흐려진다).
+- **빈과 UseCase 인터페이스는 정확히 하나씩 단다**: `@Service`/`@Component` 빈 242개(@Service 220 + @Component 22)와 `..port.in..`의 UseCase 인터페이스 257개 전부에 마커가 붙어 있다. 형태는 `@Service` 애노테이션 바로 옆에 마커를 병기하는 두 줄이다(예: `@Service` 다음 줄 또는 같은 줄에 `@WebApp`).
+- **Command record에는 마커를 달지 않는다 — 소속은 유도한다**: 300여 개 record에 손으로 마커를 다는 것은 누락이 확실하다는 판단으로, `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄, 고정점까지)로 유도한다. 유도 결과가 0개면 고아(죽은 코드), 2개 이상이면 앱 간 공유(경계 위반)로 둘 다 위반이다. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로, `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다. 이 목록에는 이런 "런타임 역직렬화로만 생성되는" 경우만 담고, 새 항목을 추가하기 전에 그 record를 실제로 어디서 만드는지부터 확인한다.
+  - `AppOwnership`은 `application`의 `testFixtures`에 있고 `java-test-fixtures` 플러그인으로 api 4모듈이 `testImplementation(testFixtures(project(':application')))`로 재사용한다 — api 모듈의 `adaptersShouldOnlyUseOwnAppUseCases`도 같은 유도(컨트롤러가 의존하는 Command record가 자기 앱 것인지 판정)가 필요하기 때문이다.
+- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`(`WebApplicationConfig` 등)가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 기동 시점에 그 빈이 처음 필요해질 때 `NoSuchBeanDefinitionException`으로만 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
+- **`<ctx>/port/out`의 의미가 넓어졌다** — 평탄화 이전에는 "읽기 계약(QueryPort·Result·SearchCondition)"만의 자리였으나, 지금은 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약 + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
+  - **이 확장이 `commandServicesShouldNotDependOnQueryDaos`를 이름 기준으로 바꾸게 만들었다**: `port.out`에 Command 반환 record가 함께 살게 되면서, 이 규칙이 여전히 패키지 술어(`resideInAPackage("..port.out..")`)였다면 그 record를 반환하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡혔을 것이다. 그래서 판별을 **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바꿨다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryDaos`도 이름 기준으로 전환했다.
+- **ArchUnit 규칙 4종(`AppIsolationTest`, `application` 모듈)**: `appsShouldNotDependOnEachOther`(마커 4종의 4×3=12조합 — 앱 간 수평 의존 금지, 공유는 domain-module·읽기 계약뿐), `beansShouldHaveExactlyOneAppMarker`, `useCasesShouldHaveExactlyOneAppMarker`, `commandRecordsShouldBelongToExactlyOneApp`(위 유도 결과 검증). 마커별 빈·UseCase 개수 하한(`markerBeanCounts`·`markerUseCaseCounts`)이 앱별 anchor를 승계한다.
+- **다른 규칙에도 마커·유도 술어가 번졌다**: `commandRecordsShouldBeBoundaryTyped`의 batch 예외는 importer가 아니라 `.areNotAnnotatedWith(BatchApp.class)`로 표현하고, api 4모듈의 `adaptersShouldOnlyUseOwnAppUseCases`(컨트롤러가 자기 앱 UseCase만 의존)는 패키지 열거가 아니라 마커+`AppOwnership` 유도 술어로 판정한다.
 
 ## admin 전용 네이밍 규칙 (메서드·타입명에 admin-flavor `Admin` 접두·접미·중간어 금지)
 
@@ -607,14 +616,14 @@ import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEn
 | 계층 순위 | 계층 | 매칭 패키지 세그먼트 |
 |---|---|---|
 | 1 | **domain** (가장 안쪽·핵심) | `com.tastyhouse.domain.<ctx>.model` / `.vo` / `.event` / `.repository`(write 포트) / `.service`(순수 POJO 도메인 서비스) / `.port`(출력 포트) |
-| 2 | **application** | `com.tastyhouse.{web\|admin\|ceo\|batch}application.*` — 인바운드 포트(`<ctx>.port.in`)·CQRS 서비스(`<ctx>.service`)·**표현 계약(`<ctx>.response`)은 여기 없다 — 3개 앱 전부 api 모듈로 이동했다**(admin 챕터 06 · ceo 챕터 09 · web 챕터 10) |
+| 2 | **application** | `com.tastyhouse.application.*`(챕터 03으로 평탄화 — 인바운드 포트 `<ctx>.port.in`·CQRS 서비스 `<ctx>.service`·아웃바운드 계약 `<ctx>.port.out`을 앱 구분 없이 한 패키지가 담는다) — **표현 계약(`<ctx>.response`)은 여기 없다 — 3개 앱 전부 api 모듈로 이동했다**(admin 챕터 06 · ceo 챕터 09 · web 챕터 10) |
 | 3 | **infrastructure** | `com.tastyhouse.infrastructure.<ctx>.query`(query DAO·Result DTO·SearchCondition) / `.persistence`(`.converter`) / `.listener` |
 | 4 | **external / shared** (어댑터·횡단 공용) | `com.tastyhouse.external.*`, `com.tastyhouse.security.*`, `com.tastyhouse.logging.*`, `com.tastyhouse.domain.shared.*`, `com.tastyhouse.domain.exception.*` |
 | 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*`, `com.tastyhouse.ceoapi.*`, `com.tastyhouse.batch.*` — 내부는 아래 "presentation 내부 서브정렬"로 5-a → 5-b 세분 |
 
-- **2순위 판별은 이제 패키지로 합니다 (챕터 06 개정 — 과거 "클래스명 접미어로 판별"의 대체)**: 모듈 재편 전에는 application 서비스가 api 모듈 안에 있어 패키지 접두어가 presentation과 같았고(`com.tastyhouse.webapi..`), 그래서 `*CommandService`/`*QueryService` **접미어**로 계층을 판별할 수밖에 없었습니다. 이제 application 계층이 `com.tastyhouse.*application..`이라는 **자기 최상위 패키지**를 가지므로, 접두어만 보고 2순위와 5순위를 가릅니다.
-  - **이 전환의 실익**: 접미어 판별은 `*Executor`·`*Validator`·`*Runner`처럼 이름이 다른 협력 빈을 놓쳤고, 그때마다 "이것도 사실상 application"이라는 사람 판단이 필요했습니다. 패키지 판별에는 그 예외가 없습니다 — `com.tastyhouse.ceoapplication.shop.service.ShopOwnershipValidator`는 이름과 무관하게 2순위입니다.
-  - `webapi`/`adminapi`/`ceoapi`(5순위)와 `webapplication`/`adminapplication`/`ceoapplication`(2순위)은 **접두어가 겹치므로**(`com.tastyhouse.webap...`) 정렬 시 세그먼트 전체를 비교합니다.
+- **2순위 판별은 이제 패키지로 합니다 (챕터 06 개정 — 과거 "클래스명 접미어로 판별"의 대체)**: 모듈 재편 전에는 application 서비스가 api 모듈 안에 있어 패키지 접두어가 presentation과 같았고(`com.tastyhouse.webapi..`), 그래서 `*CommandService`/`*QueryService` **접미어**로 계층을 판별할 수밖에 없었습니다. 이제 application 계층이 `com.tastyhouse.application..`이라는 **자기 최상위 패키지**를 가지므로, 접두어만 보고 2순위와 5순위를 가릅니다.
+  - **이 전환의 실익**: 접미어 판별은 `*Executor`·`*Validator`·`*Runner`처럼 이름이 다른 협력 빈을 놓쳤고, 그때마다 "이것도 사실상 application"이라는 사람 판단이 필요했습니다. 패키지 판별에는 그 예외가 없습니다 — `com.tastyhouse.application.shop.service.ShopOwnershipValidator`는 이름과 무관하게 2순위입니다.
+  - **`webapi`/`adminapi`/`ceoapi`(5순위)와 `application`(2순위)은 접두어가 겹치지 않습니다(챕터 03으로 앱별 application 패키지가 평탄화돼 `webapplication` 등이 사라졌기 때문)** — 과거에는 `com.tastyhouse.webap...`처럼 접두어가 겹쳐 세그먼트 전체를 비교해야 했으나, 지금은 `webapi`와 `application`이 애초에 다른 문자열이라 그 주의가 더 필요 없습니다.
 - **api 모듈은 3순위(infrastructure)에 등장하지 않습니다 (개정)** — `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) 의존이 전면 금지되어 있으므로(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)), api 모듈 파일의 자사 import 3순위는 이제 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`·Result·SearchCondition(`com.tastyhouse.application..port.out..`)이 대신합니다.
 
 - **같은 계층 순위 내부는 기존대로 알파벳(ASCII) 오름차순**으로 정렬합니다.
@@ -916,7 +925,7 @@ reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-
 
 **`infrastructure:persistence`에도 ArchUnit 계층 방향 규칙을 둔다.** 그동안 이 모듈에는 ArchUnit 의존 자체가 없었고, 기존 가드 2종(`QueryResultRecordVisibilityTest`·`EmbeddedRecordComponentOrderTest`)은 수제 리플렉션 클래스패스 스캔으로 **런타임 규약**(record 가시성·`@Embedded` 컴포넌트 순서)만 지키고 있어, 계층 방향 규칙을 둘 곳이 없었다. **기존 가드 2종은 그대로 둔다** — 스캔 방식이 이미 잘 동작하므로 ArchUnit으로 재작성하지 않고, 새 테스트에는 그 방식으로 표현할 수 없는 방향 규칙만 둔다.
 
-- **`shouldNotDependOnApiModules`** — infra는 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..`를 의존하지 않는다. 빌드 그래프상 이미 막혀 있지만(infra는 api 모듈을 의존하지 않음) 테스트로 명시해 향후 의존 추가 시 즉시 드러나게 한다. `..listener..`의 api 모듈 의존 금지도 이 규칙이 함께 커버한다(`@TransactionalEventListener` 규약 자체는 강제하지 않는다).
+- **`shouldNotDependOnApiModules` (개정 — 챕터 03 이후 예외 범위 확대)** — infra는 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..`뿐 아니라 **`com.tastyhouse.application..` 전체**를 의존하지 않는다. 과거(챕터 03까지)는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`) 4개를 개별 열거했으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지 자체가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 `..port.out..`(이 모듈이 구현해야 하는 아웃바운드 계약)만 예외로 뺐다(`.and(not(resideInAPackage("com.tastyhouse.application..port.out..")))`) — infra는 application의 서비스·UseCase는 절대 의존하지 않지만, 자신이 구현하는 포트 인터페이스와 그 입출력 타입(`{Ctx}QueryPort`·Result·SearchCondition)은 정당하게 참조해야 하기 때문이다. 빌드 그래프상 이미 막혀 있지만(infra는 api 모듈을 의존하지 않음) 테스트로 명시해 향후 의존 추가 시 즉시 드러나게 한다. `..listener..`의 api 모듈 의존 금지도 이 규칙이 함께 커버한다(`@TransactionalEventListener` 규약 자체는 강제하지 않는다).
 - **`persistenceShouldNotDependOnQuery`** — read→write 단방향. **반대 방향(`..query..` → `..persistence..`)은 정상**이다(DAO가 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태). 금지하는 것은 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
 - **봉인 목록 3건**: 도입 시점 위반은 전부 **도메인 출력 포트 어댑터**다(`ProductReviewStatisticsAdapter`·`MemberReviewCountAdapter`·`KeywordCountAdapter`). 도메인이 선언한 포트를 구현하면서 그 데이터의 소유 도메인이 이미 가진 read model을 재사용하는 형태로(예: 랭킹 집계용 리뷰 수는 리뷰 도메인 소유라 `review/query/`에 있고 랭킹 포트 어댑터가 도메인 값 타입으로 옮겨 담는다), write 경로가 아니라 **포트 구현**이라 위 위험에 해당하지 않지만 패키지 위치(`..persistence..`)가 규칙 표현과 어긋나 잡힌다. `ErrorCodeConventionTest`·`ContextBoundaryTest` 선례대로 클래스명으로 명시 제외하며 **목록은 줄어들기만 해야 한다** — 새 항목 추가는 새 위반을 승인하는 것이다. 짝 테스트 `sealedPersistenceToQueryShouldNotBeStale`(더 이상 위반하지 않는 낡은 항목 검출)·`sealedPersistenceToQueryListShouldNotBeEmpty`(전부 해소되면 봉인 장치 제거 지시)가 함께 붙는다.
 - **`allowEmptyShould(true)`를 쓰지 않는다** — api 모듈 4개와 동일하게 공허 통과를 허용하지 않는다.
@@ -991,24 +1000,24 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 - **위치 — 완전 매핑 패키지 배치 (개정)**: 과거 이 절은 "`..application..` 패키지를 만들지 않는다"였다. **그 규칙을 폐기하고** 각 api 모듈의 컨텍스트 아래를 아래 3층으로 배치한다. 계층 판별을 클래스명 접미어에만 의존하던 것을 패키지 구조로 끌어올려, 인바운드 어댑터와 application을 눈으로 구분할 수 있게 한다.
 
   ```
-  {앱}-api/         <ctx>/adapter/in/web/   컨트롤러 + request/
-  {앱}-application/ <ctx>/port/in/          UseCase 인터페이스 + Command record
-  {앱}-application/ <ctx>/service/          서비스 구현
-  {앱}-api/         <ctx>/adapter/in/web/response/  표현 계약 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
+  {앱}-api/    <ctx>/adapter/in/web/   컨트롤러 + request/
+  application/ <ctx>/port/in/         UseCase 인터페이스 + Command record (마커 애노테이션으로 앱 소속 표시)
+  application/ <ctx>/service/         서비스 구현 (마커 애노테이션으로 앱 소속 표시)
+  {앱}-api/    <ctx>/adapter/in/web/response/  표현 계약 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
   ```
 
-  **모듈 재편(챕터 01~05)으로 계층 경계가 패키지가 아니라 모듈이 됐다.** 과거 이 3층은 한 api 모듈 안의 `<ctx>/application/..` 하위 패키지였으나, 지금은 api 모듈과 `application` 모듈로 물리 분리되어 있다 — 그래서 경로에 `application` 세그먼트가 없다(모듈명이 그 역할을 한다). `request/`는 매핑이 어댑터 책임이므로 api 쪽에 있다. **`response/`의 거처는 챕터 06(admin)·09(ceo)·10(web)으로 바뀌었다** — 원래는 QueryService가 조립하므로 application 쪽이었으나, 유스케이스 계층에서 Swagger·HTTP 표현을 걷어내려고 api 모듈로 올렸다(3개 앱 완료). 그 결과 `application` 모듈의 세 앱 패키지 모두 `io.swagger` import가 0건이다.
+  **모듈 재편(챕터 01~05)으로 계층 경계가 패키지가 아니라 모듈이 됐고, 챕터 03의 패키지 평탄화로 앱 경계마저 패키지가 아니게 됐다.** 과거 이 3층은 한 api 모듈 안의 `<ctx>/application/..` 하위 패키지였으나, 지금은 api 모듈과 `application` 모듈로 물리 분리되어 있다 — 그래서 경로에 `application` 세그먼트가 없다(모듈명이 그 역할을 한다). `request/`는 매핑이 어댑터 책임이므로 api 쪽에 있다. **`response/`의 거처는 챕터 06(admin)·09(ceo)·10(web)으로 바뀌었다** — 원래는 QueryService가 조립하므로 application 쪽이었으나, 유스케이스 계층에서 Swagger·HTTP 표현을 걷어내려고 api 모듈로 올렸다(3개 앱 완료). 그 결과 `application` 모듈은 `io.swagger` import가 0건이다.
 
   **worked example — `ceo-api`의 shop 컨텍스트(영업시간)**: 한 연산이 네 파일에 어떻게 흩어지는지의 최종형이다.
 
   | 역할 | 실제 경로 |
   |---|---|
   | 인바운드 어댑터 | `ceo-api/.../ceoapi/shop/adapter/in/web/ShopBusinessHourApiController.java` |
-  | 인바운드 포트 + Command | `application/.../ceoapplication/shop/port/in/ShopBusinessHourCommandUseCase.java`·`ShopBusinessHourCreateCommand.java` |
-  | 서비스 구현 | `application/.../ceoapplication/shop/service/ShopBusinessHourCommandService.java` |
-  | 읽기 포트(아웃바운드) | `{web,ceo}-application/.../application/shop/port/out/ShopQueryPort.java`(소비 앱 수에 따라 소유 모듈이 갈린다) |
+  | 인바운드 포트 + Command | `application/.../application/shop/port/in/ShopBusinessHourCommandUseCase.java`(`@CeoApp`)·`ShopBusinessHourCreateCommand.java`(마커 없음 — 유도로 ceo 소속 판정) |
+  | 서비스 구현 | `application/.../application/shop/service/ShopBusinessHourCommandService.java`(`@CeoApp`) |
+  | 읽기 포트(아웃바운드) | `application/.../application/shop/port/out/ShopQueryPort.java`(소비 앱 수에 따라 소유 모듈이 `application`/`domain-module`로 갈린다 — 마커 없음) |
 
-  컨트롤러는 `ShopBusinessHourCommandUseCase`만 주입하고 `..ceoapplication..service..`를 알지 않으며(`webAdaptersShouldNotDependOnApplicationServices`, 그리고 모듈 분리 후에는 `apiModuleMustNotContainApplicationLayer`가 이 모듈에 서비스가 다시 생기는 것 자체를 막는다), 조회 측 `ShopBusinessHourQueryService`는 `infrastructure:persistence`의 DAO가 아니라 `ShopQueryPort` 인터페이스를 주입한다.
+  컨트롤러는 `ShopBusinessHourCommandUseCase`만 주입하고 서비스 구현을 알지 않으며(`webAdaptersShouldNotDependOnApplicationServices`, 그리고 모듈 분리 후에는 `apiModuleMustNotContainApplicationLayer`가 이 모듈에 서비스가 다시 생기는 것 자체를 막는다), 조회 측 `ShopBusinessHourQueryService`는 `infrastructure:persistence`의 DAO가 아니라 `ShopQueryPort` 인터페이스를 주입한다.
 
   **클래스명은 그대로 `{도메인}CommandService`/`{도메인}QueryService`를 유지한다** — 기존 ArchUnit 규칙들이 접미어로 대상을 매칭하므로 이름을 바꾸면 규칙이 조용히 대상을 잃는다. 이번 전환에서 바뀌는 것은 **패키지 위치와 `implements` 추가**뿐이다.
 - **역할과 주입 대상**:
@@ -1016,12 +1025,12 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   - `{도메인}QueryService` — `@Transactional(readOnly = true)`. 해당 **`{도메인}QueryUseCase`를 implements**한다. infrastructure DAO가 아니라 **`{Ctx}QueryPort`를 주입**하며(위 [읽기 경로 포트화](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료) 참조), **`*Result`를 그대로 반환하고 Response 조립은 api 모듈의 Response record가 한다**(이 서비스에 매퍼가 없다 — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 동일).
 - **컨트롤러는 UseCase 인터페이스만 주입한다**: 컨트롤러 생성자에 `application/service/`의 구체 클래스가 등장하지 않는다. 이것이 인바운드 포트 도입의 실익인 컴파일 게이트가 실제로 작동하는 지점이다.
 - **`MultipartFile`은 서비스 파라미터로만 허용하고 Command 필드로는 금지한다**: 업로드 자체를 받는 경계 타입이라 서비스 시그니처에 남기는 것은 존치하되(파일 업로드 흐름을 재설계하지 않기 위함), **Command에는 업로드 결과 참조**(파일 식별자·URL)만 담는다. Command가 서블릿 업로드 타입을 보유하면 application 계층이 web 플럼빙에 결합되고, 직렬화·재실행이 불가능해진다.
-  - **챕터 11 판정 — 포트 추상화(안 B)를 채택하지 않는다**: 이 예외 때문에 `{web,admin,ceo}-application`이 `org.springframework:spring-web` 한 좌표를 직접 선언한다(api-common 절단으로 전이 경로가 사라졌기 때문). 프레임워크-프리 업로드 표현(`UploadPayload` record)을 두고 컨트롤러가 변환하면 application이 완전 프레임워크-프리가 되지만, **3앱 업로드 경로 전수 재설계와 스트리밍/임시파일 시맨틱 검증이 따라붙어** "빌드 그래프 절단"이라는 챕터 11의 검증 가능한 목표에 업로드 재설계 리스크가 엮인다. 절단의 목적(swagger·HTTP 표현 조립 제거)은 이 예외와 무관하게 달성됐고, starter-web 전체가 아니라 `spring-web` 한 좌표만 남아 오염 범위도 최소다. 안 B는 후속 판정 항목으로 `docs/tasks/README.md`에 기록만 남겼다.
+  - **챕터 11 판정 — 포트 추상화(안 B)를 채택하지 않는다**: 이 예외 때문에 `application`이 `org.springframework:spring-web` 한 좌표를 직접 선언한다(api-common 절단으로 전이 경로가 사라졌기 때문). 프레임워크-프리 업로드 표현(`UploadPayload` record)을 두고 컨트롤러가 변환하면 application이 완전 프레임워크-프리가 되지만, **3앱 업로드 경로 전수 재설계와 스트리밍/임시파일 시맨틱 검증이 따라붙어** "빌드 그래프 절단"이라는 챕터 11의 검증 가능한 목표에 업로드 재설계 리스크가 엮인다. 절단의 목적(swagger·HTTP 표현 조립 제거)은 이 예외와 무관하게 달성됐고, starter-web 전체가 아니라 `spring-web` 한 좌표만 남아 오염 범위도 최소다. 안 B는 후속 판정 항목으로 `docs/tasks/README.md`에 기록만 남겼다.
 - **서로의 의존을 교차 주입하지 않는다**: **CommandService는 `..query..`를 주입하지 않고, QueryService는 write 포트를 주입하지 않는다.** 이 두 금지가 CQRS 분리를 실제로 지탱하는 지점이다 — 한쪽이라도 허용하면 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐 있어, 조회 트랜잭션에서 쓰기가 일어나거나 명령 경로가 표현용 투영에 결합되는 것을 막을 수 없다. 명령 처리 후 응답이 필요하면 **명령은 식별자만 반환하고 컨트롤러가 QueryService로 재조회**한다.
 - **조회만 있는 도메인은 QueryService만 둔다**: 쓰기 경로가 없는 도메인(공개 조회 전용 등)에 빈 `CommandService`를 만들지 않는다. 반대로 쓰기만 있는 경로도 `CommandService` 하나만 둔다 — "도메인당 2개"는 상한이 아니라 **역할이 존재할 때의 이름 규칙**이다.
 - **모듈 간 같은 이름이 공존하는 것은 정상이다**: `web-api`와 `admin-api`가 각각 `NoticeQueryService`를 갖는다(패키지가 달라 충돌하지 않음). 소비자가 다르면 조회 범위·응답 형태가 다르므로 통합하지 않는다.
 
-reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `NoticeRepository` 주입, 변경 후 명시적 `save`)·`application`의 `adminapplication/notice/NoticeQueryService`(`NoticeQueryPort` 주입. **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다** — private 매퍼가 남아 있는 것은 ceo·web뿐이다), `web-api`의 `notice/NoticeQueryService`(조회 전용이라 CommandService 없음)·`faq/FaqQueryService`(같은 이유), `web-api`의 `reservation/ReservationCommandService`(도메인 서비스 `ReservationBookingService`를 경유하는 명령 — 재시도 루프 때문에 트랜잭션 경계를 별도 `ReservationBookingExecutor`가 갖는 예외 형태).
+reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `NoticeRepository` 주입, 변경 후 명시적 `save`)·`application`의 `notice/NoticeManagementQueryService`(`@AdminApp`, `NoticeQueryPort` 주입. **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다** — private 매퍼가 남아 있는 것은 ceo·web뿐이다), `web-api`의 `notice/NoticeQueryService`(조회 전용이라 CommandService 없음)·`faq/FaqQueryService`(같은 이유), `web-api`의 `reservation/ReservationCommandService`(도메인 서비스 `ReservationBookingService`를 경유하는 명령 — 재시도 루프 때문에 트랜잭션 경계를 별도 `ReservationBookingExecutor`가 갖는 예외 형태).
 
 ## 앱 간 타입명 충돌 시 `Management`/`Owner` 한정어 상시 적용 규칙 (Result·Port·UseCase·Service·Command·협력 빈)
 
@@ -1155,7 +1164,7 @@ reference 구현: `ReferralRegistrationService`(등록 + 이벤트 발행만) �
 
 ## 점주 가게 관리(ceo-api) 소유권 검증 규칙
 
-**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `ceoapplication/shop/service/ShopOwnershipValidator`(@Component)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain-module이 아니라 **점주 앱의 application 계층(`application` 모듈의 `ceoapplication` 패키지)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
+**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `application`의 `shop/service/ShopOwnershipValidator`(`@Component` + `@CeoApp`)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain-module이 아니라 **점주 앱의 application 계층(`application` 모듈의 `shop` 패키지, `@CeoApp` 마커)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
 
 - **점주-가게 연결**: `Shop`에 `ceoId`(nullable, `@Convert` 없이 raw `Long` FK) 컬럼을 두어 1점주 N가게를 표현한다. 배정은 admin-api의 `ShopCreateCommand.ceoId`로 관리자가 수행하고, `Shop` 도메인은 `assignCeo(Long)`로 배정한다. `ShopSearchCondition.ceoId`로 "내 가게" 목록을 필터링한다.
 - **개별 리소스 삭제/변경 시 소유권 한계**: 하위 리소스 식별자만 경로에 있고(예: `/v1/phone-numbers/{phoneNumberId}`) infra query DAO에 해당 단건→shopId 역조회 메서드가 없으면 소유권 검증을 생략하고 그대로 위임한다. 이런 지점은 Service에 한계를 주석으로 명시하며, 향후 `shop/query/ShopQueryDao`에 `findXxxById`(shopId 포함) 조회를 추가해 검증을 강화할 수 있다. 역조회가 가능한 경우(영업시간/휴게시간)는 `ShopQueryService.findShopBusinessHourById`/`findShopBreakTimeById`로 대상의 shopId를 얻어 검증한다.

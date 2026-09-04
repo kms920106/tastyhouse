@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -44,27 +45,32 @@ class LayerRulesTest {
      * <p>{@code ..listener..}(도메인 이벤트 구독)도 이 규칙으로 함께 커버된다 — 리스너가
      * {@code @TransactionalEventListener} 규약을 지키는지(파라미터가 도메인 이벤트 타입인지)까지는
      * 강제하지 않되, api 모듈 의존 금지만은 여기서 보장한다.
+     *
+     * <p><b>챕터 03 개정 — 앱 패키지 4개 열거가 {@code com.tastyhouse.application..} 하나가 됐다.</b>
+     * 과거에는 {@code com.tastyhouse.{web,admin,ceo,batch}application..}을 하나씩 나열했다.
+     * "{@code com.tastyhouse.*application..}처럼 뭉뚱그리면 읽기 계약 패키지
+     * {@code com.tastyhouse.application..}까지 걸린다"는 것이 그 이유였는데, 평탄화로 <b>둘이 같은
+     * 패키지가 됐으므로</b> 열거로는 더 이상 구분할 수 없다.
+     *
+     * <p>그래서 판정을 뒤집는다 — {@code com.tastyhouse.application..} 전체를 금지하되
+     * {@code ..port.out..}만 예외로 뺀다. <b>infra는 application의 아웃바운드 포트({@code port.out})를
+     * 구현한다</b>는 것이 정방향이고({@code queryDaosShouldImplementQueryPorts}가 그것을 강제한다),
+     * 유스케이스({@code port.in}·{@code service})는 침범 금지라는 뜻이다. 열거보다 오히려 정확해졌다 —
+     * 과거 표현은 앱 패키지에 살지 않는 application 클래스를 그대로 통과시켰다.
      */
     @Test
     void shouldNotDependOnApiModules() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.webapi..",
-                "com.tastyhouse.adminapi..",
-                "com.tastyhouse.ceoapi..",
-                "com.tastyhouse.batch..",
-                // 물리 분리된 application 계층의 앱 패키지 4개(앱 전부).
-                // 주의: "com.tastyhouse.*application.."처럼 뭉뚱그리면 읽기 계약 패키지
-                // com.tastyhouse.application..(infra가 이 포트를 정당하게 구현한다)까지 걸린다.
-                // 그래서 앱별 패키지를 정확히 나열한다. 챕터 01로 이 4개 앱 패키지가 :application
-                // 모듈 하나에 함께 살게 됐지만(앱 단독 계약은 이 모듈 1개 소유, 공유 55개만
-                // domain-module — 챕터 04 복귀 예정) 패키지는 그대로이므로 이 주의사항도 그대로 유효하다.
-                "com.tastyhouse.batchapplication..",
-                "com.tastyhouse.webapplication..",
-                "com.tastyhouse.adminapplication..",
-                "com.tastyhouse.ceoapplication.."
-            )
-            .because("의존 방향은 api → infrastructure → domain 한 방향이다");
+            .should().dependOnClassesThat(
+                resideInAnyPackage(
+                    "com.tastyhouse.webapi..",
+                    "com.tastyhouse.adminapi..",
+                    "com.tastyhouse.ceoapi..",
+                    "com.tastyhouse.batch..",
+                    "com.tastyhouse.application.."
+                ).and(not(resideInAPackage("com.tastyhouse.application..port.out.."))))
+            .because("의존 방향은 api → infrastructure → domain 한 방향이다 — "
+                + "infra는 application의 아웃바운드 포트(port.out)를 구현하고 유스케이스는 침범하지 않는다");
 
         rule.check(classes);
     }

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.GeoPointCommand;
+import com.tastyhouse.application.shop.port.in.GeoPointCommand;
 
 /**
  * 도형을 이루는 좌표 한 점(요청 경계).

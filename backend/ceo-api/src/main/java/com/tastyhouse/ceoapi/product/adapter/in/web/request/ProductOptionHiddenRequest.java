@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionHideCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionHideCommand;
 
 @Schema(description = "옵션 일괄 숨김 요청")
 public record ProductOptionHiddenRequest(

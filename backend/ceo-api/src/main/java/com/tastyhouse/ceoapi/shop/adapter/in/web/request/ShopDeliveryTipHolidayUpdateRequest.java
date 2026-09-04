@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipHolidayUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipHolidayUpdateCommand;
 
 @Schema(description = "공휴일 추가 배달팁 설정 요청")
 public record ShopDeliveryTipHolidayUpdateRequest(

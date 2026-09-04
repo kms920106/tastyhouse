@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
 
 @Schema(description = "옵션그룹 합치기 실행 요청")
 public record ProductOptionGroupMergeRequest(

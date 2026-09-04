@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapplication.mail.port.in.MailVerificationCommandUseCase;
-import com.tastyhouse.webapplication.mail.port.in.MailVerificationConfirmCommand;
-import com.tastyhouse.webapplication.mail.port.in.MailVerificationSendCommand;
+import com.tastyhouse.application.mail.port.in.MailVerificationCommandUseCase;
+import com.tastyhouse.application.mail.port.in.MailVerificationConfirmCommand;
+import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationConfirmRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.request.MailVerificationSendRequest;
 import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenResponse;

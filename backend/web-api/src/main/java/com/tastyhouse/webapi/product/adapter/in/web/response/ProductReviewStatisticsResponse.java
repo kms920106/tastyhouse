@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.product.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.product.port.out.ProductReviewStatisticsView;
+import com.tastyhouse.application.product.port.out.ProductReviewStatisticsView;
 
 @Schema(description = "상품 리뷰 통계 응답")
 public record ProductReviewStatisticsResponse(

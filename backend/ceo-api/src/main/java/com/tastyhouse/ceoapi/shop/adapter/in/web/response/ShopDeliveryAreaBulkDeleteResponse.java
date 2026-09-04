@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.ceoapplication.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
 
 /**
  * 배달가능지역 일괄 삭제 결과.

@@ -17,16 +17,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardOwnerDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
 
 @Tag(name = "Ceo Shop Content Board", description = "점주 가게 콘텐츠보드 API")
 @RestController

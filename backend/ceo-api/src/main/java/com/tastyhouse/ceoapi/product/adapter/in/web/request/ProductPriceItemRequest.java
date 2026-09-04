@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductPriceItemCommand;
+import com.tastyhouse.application.product.port.in.ProductPriceItemCommand;
 
 /**
  * 메뉴 가격 행 하나.

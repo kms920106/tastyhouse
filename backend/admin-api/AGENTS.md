@@ -4,11 +4,13 @@
 # admin-api
 
 ## Purpose
-관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). **챕터 03으로 application 계층이 `application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·부트스트랩만 담당한다.** 컨트롤러는 `com.tastyhouse.adminapplication.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
+관리자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). **챕터 03으로 application 계층이 `application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·부트스트랩만 담당한다.** 컨트롤러는 `com.tastyhouse.application.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
 
 `admin`(관리자 계정)·`auth`(로그인/JWT)·`banner`·`bug`(버그 제보)·`ceo`(점주 계정)·`coupon`·`event`·`faq`·`file`·`member`(회원 관리)·`notice`·`order`·`partnership`·`point`·`policy`·`product`·`rank`·`review`·`shop` 도메인 관리 API를 제공한다.
 
 **관리자 측 application 계층은 `application`이 소유한다 (챕터 03 개정 — 과거 "이 모듈이 관리자 측 application 계층이다"의 번복).** 유스케이스가 관리자 전용이라는 사실은 그대로이고, 그것을 담는 **모듈만 바뀌었다**. web-api와 application 서비스를 공유하지 않는다는 성질도 그대로다(공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와 `domain-module`이 소유하는 다중 앱 공유 `{Ctx}QueryPort` 계약이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
+
+> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.adminapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌다. 패키지만으로는 이 모듈이 주입하는 UseCase가 admin 것인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@AdminApp`)이 표현한다 — 마커·유도 규칙 상세는 `application/AGENTS.md` 참고.
 
 **도메인당 CQRS 분리 (서비스는 `application` 소유)**: 도메인마다 두 서비스를 둔다 — `{도메인}CommandService`(`@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스만 주입, 조회 전담 — **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다**). **컨트롤러는 서비스 구현이 아니라 그 짝인 UseCase 인터페이스(`..port.in..`)를 주입한다** — 구체 서비스 클래스는 이 모듈의 컴파일 클래스패스에 보이지 않는다(`webAdaptersShouldNotDependOnApplicationServices`). 조회만 있는 도메인은 QueryService만(`ceo/CeoQueryService`), 명령만 있는 도메인은 CommandService만(`policy/PolicyCommandService`) 둔다. CommandService는 읽기 포트를, QueryService는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 QueryService로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. 대형 도메인(`shop`)은 관심사별로 서비스를 더 쪼갠다(`ShopContentBoard*`/`ShopHygieneBadge*`/`ShopImageChange*`). **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다. reference 구현: `notice/NoticeCommandService`·`notice/NoticeQueryService`.
 

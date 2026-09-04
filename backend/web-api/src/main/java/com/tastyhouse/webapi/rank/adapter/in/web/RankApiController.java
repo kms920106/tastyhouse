@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
-import com.tastyhouse.webapplication.rank.port.in.RankQueryUseCase;
+import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.rank.port.in.RankQueryUseCase;
 import com.tastyhouse.webapi.rank.adapter.in.web.request.RankSearchRequest;
 import com.tastyhouse.webapi.rank.adapter.in.web.response.RankDurationResponse;
 import com.tastyhouse.webapi.rank.adapter.in.web.response.RankMemberListItemResponse;

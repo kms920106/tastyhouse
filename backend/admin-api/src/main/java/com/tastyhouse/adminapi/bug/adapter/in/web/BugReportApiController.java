@@ -25,11 +25,11 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportDetailRespon
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResponse;
 import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportAssignCommand;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportClassifyCommand;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportManagementCommandUseCase;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.adminapplication.bug.port.in.BugReportQueryUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
+import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
+import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
+import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController

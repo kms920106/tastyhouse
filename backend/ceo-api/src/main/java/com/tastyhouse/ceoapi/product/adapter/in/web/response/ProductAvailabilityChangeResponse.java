@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.ceoapplication.product.port.out.ProductAvailabilityChangeView;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 
 /**
  * 품절·숨김 일괄 처리 결과.

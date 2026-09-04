@@ -5,8 +5,8 @@ import java.time.LocalTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
 
 @Schema(description = "가게 운영시간 등록/수정 요청")
 public record ShopBusinessHourSaveRequest(

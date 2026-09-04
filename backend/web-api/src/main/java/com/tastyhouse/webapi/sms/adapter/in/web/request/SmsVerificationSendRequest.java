@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-import com.tastyhouse.webapplication.sms.port.in.SmsVerificationSendCommand;
+import com.tastyhouse.application.sms.port.in.SmsVerificationSendCommand;
 
 @Schema(description = "SMS 인증번호 발송 요청")
 public record SmsVerificationSendRequest(

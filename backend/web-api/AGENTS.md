@@ -4,9 +4,11 @@
 # web-api
 
 ## Purpose
-최종 사용자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). **챕터 02로 application 계층이 `application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·전역 예외 핸들러·부트스트랩만 담당한다.** 컨트롤러는 `com.tastyhouse.webapplication.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
+최종 사용자용 REST API 애플리케이션 (실행 가능한 Spring Boot bootJar). **챕터 02로 application 계층이 `application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·전역 예외 핸들러·부트스트랩만 담당한다.** 컨트롤러는 `com.tastyhouse.application.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
 
 JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit)·로깅 설정은 계속 이 모듈에 있다. 다만 **서블릿-프리 인증 타입**(`JwtTokenProvider`·`TokenService`·`CustomUserDetails`·`CustomUserDetailsService`)은 `application`의 `auth/{token,security}`로 이동했다 — 자세한 판단 근거는 `application/AGENTS.md`의 "auth가 왜 여기까지 왔나" 참고.
+
+> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.webapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌고, 앱 소속은 마커 애노테이션(`@WebApp` 등)이 표현한다. 이 모듈이 import하는 UseCase·Command 타입의 **패키지 경로가 바뀌었으므로** 아래 예시·`adaptersShouldOnlyUseOwnAppUseCases` 설명을 그 기준으로 읽는다.
 
 ## Key Files
 | File | Description |

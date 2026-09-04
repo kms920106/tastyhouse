@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductRepresentativeRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductVegetarianRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

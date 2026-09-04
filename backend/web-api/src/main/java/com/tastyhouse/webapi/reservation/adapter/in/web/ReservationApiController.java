@@ -17,20 +17,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
+import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationSearchRequest;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationCompleteDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationDetailResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationResponse;
 import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlotAvailabilityResponse;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationCancelCommand;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationCommandUseCase;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationCompleteCommand;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationConfirmCommand;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationCreateCommand;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationQueryUseCase;
-import com.tastyhouse.webapplication.reservation.port.in.ReservationRejectCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationCancelCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationCommandUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationQueryUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController

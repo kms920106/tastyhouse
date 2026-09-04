@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 
 /**
  * 배달지역 조정 신청 접수 요청.

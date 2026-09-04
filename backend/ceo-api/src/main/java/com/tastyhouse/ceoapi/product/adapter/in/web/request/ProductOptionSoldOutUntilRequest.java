@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionSoldOutUntilChangeCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionSoldOutUntilChangeCommand;
 
 @Schema(description = "옵션 품절 기간 일괄 변경 요청")
 public record ProductOptionSoldOutUntilRequest(

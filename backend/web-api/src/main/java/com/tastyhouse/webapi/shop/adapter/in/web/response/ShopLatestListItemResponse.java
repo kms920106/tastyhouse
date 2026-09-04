@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopLatestListItemViewResult;
+import com.tastyhouse.application.shop.port.out.ShopLatestListItemViewResult;
 
 @Schema(description = "최신 매장 목록 아이템 응답")
 public record ShopLatestListItemResponse(

@@ -29,12 +29,12 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemRe
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponCommandUseCase;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponCreateCommand;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponDeleteCommand;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponIssueCommand;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.adminapplication.coupon.port.in.CouponManagementQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
+import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
+import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController

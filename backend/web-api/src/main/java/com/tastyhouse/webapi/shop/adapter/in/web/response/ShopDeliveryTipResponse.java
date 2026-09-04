@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopDeliveryTipViewResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
 
 /**
  * 배달팁 팝업·재견적 응답.

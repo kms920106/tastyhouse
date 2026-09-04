@@ -16,20 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBreakTimeResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
 
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController

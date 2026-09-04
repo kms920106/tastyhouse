@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.webapplication.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.security.jwt.JwtAuthenticationFilter;
 import com.tastyhouse.security.token.BlacklistRedisRepository;
 

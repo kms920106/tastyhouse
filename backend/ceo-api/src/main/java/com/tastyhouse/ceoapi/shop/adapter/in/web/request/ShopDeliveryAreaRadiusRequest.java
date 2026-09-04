@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 
 /**
  * 반경으로 배달가능지역을 일괄 적용하는 요청.

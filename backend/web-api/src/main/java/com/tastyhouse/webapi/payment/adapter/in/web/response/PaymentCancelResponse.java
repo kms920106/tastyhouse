@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.payment.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.payment.port.out.PaymentCancelResult;
+import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 
 @Schema(description = "결제 취소 응답")
 public record PaymentCancelResponse(

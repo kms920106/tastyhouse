@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopHygieneBadgeOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopHygieneBadgeResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 
 @Tag(name = "Ceo Shop Hygiene Badge", description = "점주 가게 위생 인증 뱃지 조회 API")
 @RestController

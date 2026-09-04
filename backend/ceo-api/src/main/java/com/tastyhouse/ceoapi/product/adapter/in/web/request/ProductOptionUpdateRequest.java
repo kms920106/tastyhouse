@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
 
 /**
  * 옵션 변경 요청. 품절·숨김 상태와 순서는 이 경로로 바꾸지 않는다 — 각각 품절·숨김 API와

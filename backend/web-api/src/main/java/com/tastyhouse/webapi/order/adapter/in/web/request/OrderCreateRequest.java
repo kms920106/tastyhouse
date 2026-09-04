@@ -3,8 +3,8 @@ package com.tastyhouse.webapi.order.adapter.in.web.request;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.webapplication.order.port.in.OrderCreateCommand;
-import com.tastyhouse.webapplication.order.port.in.OrderLineCommand;
+import com.tastyhouse.application.order.port.in.OrderCreateCommand;
+import com.tastyhouse.application.order.port.in.OrderLineCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;

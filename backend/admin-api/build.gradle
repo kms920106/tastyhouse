@@ -41,4 +41,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    // 챕터 03 — adaptersShouldOnlyUseOwnAppUseCases가 Command record의 앱 소속 유도(AppOwnership)를
+    // application 모듈과 공유한다. 복제하면 두 벌이 갈라지므로 test fixture로 받는다.
+    testImplementation(testFixtures(project(':application')))
 }

@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.search.adapter.in.scheduler;
 
-import com.tastyhouse.batchapplication.search.port.in.AggregatePopularKeywordsUseCase;
+import com.tastyhouse.application.search.port.in.AggregatePopularKeywordsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;

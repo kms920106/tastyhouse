@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeCreateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopHygieneBadgeCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopHygieneBadgeResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopHygieneBadgeManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeManagementQueryUseCase;
 
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
 @RestController

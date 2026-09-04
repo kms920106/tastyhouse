@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.policy.port.in.PolicyDetailQueryUseCase;
-import com.tastyhouse.webapplication.policy.port.in.PolicyVersionListQueryUseCase;
+import com.tastyhouse.application.policy.port.in.PolicyDetailQueryUseCase;
+import com.tastyhouse.application.policy.port.in.PolicyVersionListQueryUseCase;
 import com.tastyhouse.webapi.policy.adapter.in.web.response.PolicyDetailResponse;
 import com.tastyhouse.webapi.policy.adapter.in.web.response.PolicyListItemResponse;
 

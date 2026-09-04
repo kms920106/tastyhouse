@@ -15,16 +15,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionBulkCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionBulkCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionReleaseCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
 
 @Tag(name = "Ceo Shop Suspension", description = "점주 가게 영업 임시중지 API")
 @RestController

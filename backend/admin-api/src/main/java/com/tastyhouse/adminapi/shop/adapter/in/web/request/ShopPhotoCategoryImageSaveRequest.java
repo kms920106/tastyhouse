@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopPhotoCategoryImageCreateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

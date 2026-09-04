@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
 
 @Schema(description = "옵션그룹 합치기 추천 제외 요청")
 public record ProductOptionGroupMergeExclusionCreateRequest(

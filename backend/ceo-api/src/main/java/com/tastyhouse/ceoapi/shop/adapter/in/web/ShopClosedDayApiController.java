@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopHolidayClosureUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopTemporaryClosureCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopClosedDayOwnerDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopHolidayClosureUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopTemporaryClosureDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopHolidayClosureUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand;
 
 @Tag(name = "Ceo Shop Closed Day", description = "점주 가게 휴무(공휴일·정기·임시) 관리 API")
 @RestController

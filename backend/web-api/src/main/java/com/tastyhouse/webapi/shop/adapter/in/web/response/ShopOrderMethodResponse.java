@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopOrderMethodItemResult;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodItemResult;
 
 @Schema(description = "매장 주문 방식 목록 응답")
 public record ShopOrderMethodResponse(

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.event.port.in.EventQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventQueryUseCase;
 import com.tastyhouse.webapi.event.adapter.in.web.request.EventSearchRequest;
 import com.tastyhouse.webapi.event.adapter.in.web.response.EventAnnouncementListItemResponse;
 import com.tastyhouse.webapi.event.adapter.in.web.response.EventDetailResponse;

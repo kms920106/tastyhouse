@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.reservation.port.out.ReservationDetailViewResult;
+import com.tastyhouse.application.reservation.port.out.ReservationDetailViewResult;
 
 @Schema(description = "예약 상세 조회 응답")
 public record ReservationDetailResponse(

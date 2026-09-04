@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapplication.partnership.port.in.PartnershipRequestCreateCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
 
 @Schema(description = "광고 및 제휴 신청 요청")
 public record PartnershipRequestCreateRequest(

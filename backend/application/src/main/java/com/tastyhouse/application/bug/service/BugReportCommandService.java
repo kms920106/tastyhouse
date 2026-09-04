@@ -1,0 +1,60 @@
+package com.tastyhouse.application.bug.service;
+
+import com.tastyhouse.application.shared.marker.WebApp;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.domain.bug.model.BugReport;
+import com.tastyhouse.domain.bug.model.BugReportPlatform;
+import com.tastyhouse.domain.bug.service.BugReportRegistrationService;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.bug.port.in.BugReportCommandUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportCreateCommand;
+
+/**
+ * 회원 버그 제보 등록 서비스.
+ *
+ * <p>제보 등록은 제보 애그리거트와 첨부 이미지 애그리거트를 함께 저장하는 크로스 애그리거트
+ * 오케스트레이션이라, 로직을 이 서비스가 직접 갖지 않고 도메인 서비스
+ * {@link BugReportRegistrationService}에 위임한다(공통 지침 패턴 1·2). 이 서비스는 트랜잭션 경계와
+ * 경계 타입 승격(Long→VO, String→core enum)만 담당한다.
+ *
+ * <p>CQRS 규칙대로 <b>식별자만</b> 반환하며, 컨트롤러도 그 식별자를 그대로 응답한다 — 등록 응답은
+ * 생성된 id 하나이므로 재조회로 상세를 조립하지 않는다(등록 API 응답 본문 규칙). 상세가 필요한
+ * 클라이언트는 반환받은 id로 별도 조회를 호출한다.
+ */
+@Service
+@WebApp
+@Transactional
+public class BugReportCommandService implements BugReportCommandUseCase {
+
+    private final BugReportRegistrationService bugReportRegistrationService;
+
+    public BugReportCommandService(BugReportRegistrationService bugReportRegistrationService) {
+        this.bugReportRegistrationService = bugReportRegistrationService;
+    }
+
+    /**
+     * @return 등록된 제보 식별자
+     */
+    @Override
+    public Long createBugReport(BugReportCreateCommand command) {
+        String platform = command.platform();
+
+        MemberId reporterId = MemberId.of(command.reporterId());
+        BugReportPlatform bugReportPlatform = platform == null ? null : BugReportPlatform.from(platform);
+
+        BugReport bugReport = bugReportRegistrationService.register(
+            reporterId,
+            command.device(),
+            command.title(),
+            command.content(),
+            command.appVersion(),
+            bugReportPlatform,
+            command.osVersion(),
+            command.uploadedFileIds()
+        );
+
+        return bugReport.getBugReportId().value();
+    }
+}

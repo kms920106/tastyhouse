@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.review.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.review.port.in.ReviewCommentHiddenChangeCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewHiddenChangeCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewReplyHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
 
 import jakarta.validation.constraints.NotNull;
 

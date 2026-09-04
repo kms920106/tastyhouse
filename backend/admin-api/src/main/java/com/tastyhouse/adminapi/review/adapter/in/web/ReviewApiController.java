@@ -1,12 +1,12 @@
 package com.tastyhouse.adminapi.review.adapter.in.web;
 
-import com.tastyhouse.adminapplication.review.port.in.ReviewManagementCommandUseCase;
-import com.tastyhouse.adminapplication.review.port.in.ReviewCommentDeleteCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewCommentHiddenChangeCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewManagementDeleteCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewHiddenChangeCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewReplyDeleteCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewReplyHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewManagementCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewCommentDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewManagementDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.review.port.in.ReviewManagementQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewManagementQueryUseCase;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
 @RestController

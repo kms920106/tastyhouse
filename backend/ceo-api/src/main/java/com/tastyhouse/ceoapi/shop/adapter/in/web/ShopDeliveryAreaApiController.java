@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaQueryUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaPolygonSaveRequest;
@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemRe
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonPreviewResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadiusPreviewResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 
 @Tag(name = "Ceo Shop Delivery Area", description = "점주 가게 배달가능지역 관리 API")
 @RestController

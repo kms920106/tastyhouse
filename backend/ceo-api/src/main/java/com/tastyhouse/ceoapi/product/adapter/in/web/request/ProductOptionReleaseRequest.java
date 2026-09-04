@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionReleaseCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionReleaseCommand;
 
 @Schema(description = "옵션 일괄 품절·숨김 해제 요청")
 public record ProductOptionReleaseRequest(

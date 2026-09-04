@@ -15,8 +15,8 @@ import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.adminapi.auth.adapter.in.web.request.RefreshTokenRequest;
-import com.tastyhouse.adminapplication.auth.port.in.AdminAuthCommandUseCase;
-import com.tastyhouse.adminapplication.auth.port.in.AdminAuthLoginCommand;
+import com.tastyhouse.application.auth.port.in.AdminAuthCommandUseCase;
+import com.tastyhouse.application.auth.port.in.AdminAuthLoginCommand;
 import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 
 @Tag(name = "Admin Auth", description = "관리자 인증 API")

@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopIntroductionUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopIntroductionUpdateCommand;
 
 @Schema(description = "내 가게 소개(사장님 한마디) 등록 요청")
 public record ShopIntroductionUpdateRequest(

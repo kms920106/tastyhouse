@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
 import com.tastyhouse.infrastructure.redis.RedisModuleConfig;
 import com.tastyhouse.logging.LoggingModuleConfig;
 import com.tastyhouse.security.SecurityModuleConfig;
-import com.tastyhouse.webapplication.WebApplicationConfig;
+import com.tastyhouse.application.WebApplicationConfig;
 
 @SpringBootApplication
 @Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, ExternalApiConfig.class,

@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopStatusUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopStatusUpdateCommand;
 
 @Schema(description = "내 가게 노출 상태 변경 요청")
 public record ShopStatusUpdateRequest(

@@ -7,8 +7,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.shop.port.in.GeoPointCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
+import com.tastyhouse.application.shop.port.in.GeoPointCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
 
 /**
  * 배달지역 도형 저장 요청(전체 교체).

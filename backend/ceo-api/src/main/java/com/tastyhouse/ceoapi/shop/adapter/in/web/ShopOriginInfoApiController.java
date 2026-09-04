@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOriginInfoOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOriginInfoUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOriginInfoUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopOriginInfoCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOriginInfoUpdateCommand;
 
 /**
  * 점주 가게 원산지 표시 관리 API.

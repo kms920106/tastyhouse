@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.product.port.out.ProductBatchItemView;
+import com.tastyhouse.application.product.port.out.ProductBatchItemView;
 
 @Schema(description = "상품 배치 조회 응답")
 public record ProductBatchResponse(

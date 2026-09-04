@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.member.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.member.port.out.MemberStatsResult;
+import com.tastyhouse.application.member.port.out.MemberStatsResult;
 
 @Schema(description = "회원 통계 응답")
 public record MemberStatsResponse(

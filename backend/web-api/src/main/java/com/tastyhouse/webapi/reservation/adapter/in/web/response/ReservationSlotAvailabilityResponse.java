@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.reservation.port.out.ReservationSlotAvailabilityResult;
+import com.tastyhouse.application.reservation.port.out.ReservationSlotAvailabilityResult;
 
 @Schema(description = "날짜별 슬롯 가용성 응답")
 public record ReservationSlotAvailabilityResponse(

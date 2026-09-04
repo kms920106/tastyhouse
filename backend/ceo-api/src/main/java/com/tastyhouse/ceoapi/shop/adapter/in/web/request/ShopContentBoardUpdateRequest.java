@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopContentBoardUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
 
 @Schema(description = "가게 콘텐츠보드 수정 요청 (IMAGE/GIF는 file, VIDEO는 youtubeUrl 사용)")
 public record ShopContentBoardUpdateRequest(

@@ -69,8 +69,8 @@ public record SignUpRequest(
     String referrerNickname
 ) {
 
-    public com.tastyhouse.webapplication.auth.port.in.AuthSignUpCommand toCommand() {
-        return new com.tastyhouse.webapplication.auth.port.in.AuthSignUpCommand(
+    public com.tastyhouse.application.auth.port.in.AuthSignUpCommand toCommand() {
+        return new com.tastyhouse.application.auth.port.in.AuthSignUpCommand(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled,
             smsVerifyToken, mailVerifyToken, referrerNickname

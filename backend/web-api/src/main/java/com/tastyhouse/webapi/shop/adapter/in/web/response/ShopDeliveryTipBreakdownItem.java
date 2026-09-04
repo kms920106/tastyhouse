@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopDeliveryTipBreakdownItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipBreakdownItemResult;
 
 /**
  * 확정 배달팁의 항목별 근거 한 줄.

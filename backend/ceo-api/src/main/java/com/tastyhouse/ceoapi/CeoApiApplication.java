@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 
 import com.tastyhouse.apicommon.ApiCommonConfig;
 import com.tastyhouse.ceoapi.config.CeoSeedProperties;
-import com.tastyhouse.ceoapplication.CeoApplicationConfig;
+import com.tastyhouse.application.CeoApplicationConfig;
 import com.tastyhouse.external.config.ExternalApiConfig;
 import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
 import com.tastyhouse.infrastructure.redis.RedisModuleConfig;

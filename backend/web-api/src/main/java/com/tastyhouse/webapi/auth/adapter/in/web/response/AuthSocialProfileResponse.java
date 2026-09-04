@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.auth.adapter.in.web.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.auth.port.out.SocialProfileResult;
+import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 
 /**
  * 소셜 로그인 계정 연동 시 회원가입 폼 자동 매핑용 공통 프로필.

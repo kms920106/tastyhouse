@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopConvenienceInfoUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopAmenityResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityOwnerAssignCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopAmenityOwnerUnassignCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopConvenienceInfoUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerAssignCommand;
+import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerUnassignCommand;
+import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateCommand;
 
 @Tag(name = "Ceo Shop Convenience Info", description = "점주 가게 편의정보·편의시설 관리 API")
 @RestController

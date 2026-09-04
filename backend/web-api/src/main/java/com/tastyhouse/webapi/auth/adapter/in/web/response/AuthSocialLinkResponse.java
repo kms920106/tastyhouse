@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.auth.adapter.in.web.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.auth.port.out.SocialLinkResult;
+import com.tastyhouse.application.auth.port.out.SocialLinkResult;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "소셜 계정 연동 응답. status 필드로 분기: LOGIN / NEEDS_SIGN_UP")

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.coupon.port.out.MyCouponListItemResult;
+import com.tastyhouse.application.coupon.port.out.MyCouponListItemResult;
 
 @Schema(description = "내 쿠폰 목록 아이템")
 public record MyCouponListItemResponse(

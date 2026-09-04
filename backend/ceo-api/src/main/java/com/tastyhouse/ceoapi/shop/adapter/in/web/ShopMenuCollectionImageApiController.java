@@ -20,15 +20,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageReorderCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCommand;
 
 /**
  * 점주 메뉴모음컷 관리 API — 손님이 가게를 열었을 때 가장 먼저, 가장 상단에서 보는 이미지.

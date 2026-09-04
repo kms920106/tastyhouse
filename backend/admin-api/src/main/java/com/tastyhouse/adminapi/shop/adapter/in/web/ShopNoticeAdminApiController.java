@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeHideCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeUnhideCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeHideCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
 
 import java.util.List;
 
@@ -22,11 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
+import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopNoticeManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 

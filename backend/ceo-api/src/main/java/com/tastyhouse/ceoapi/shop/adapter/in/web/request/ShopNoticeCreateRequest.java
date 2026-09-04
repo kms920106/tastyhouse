@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
 
 @Schema(description = "점주 공지 등록 요청")
 public record ShopNoticeCreateRequest(

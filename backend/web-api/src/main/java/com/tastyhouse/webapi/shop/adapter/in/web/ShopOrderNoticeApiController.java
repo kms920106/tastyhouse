@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
-import com.tastyhouse.webapplication.shop.port.in.ShopOrderNoticeQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeQueryUseCase;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
 
 /**

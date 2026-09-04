@@ -1,6 +1,6 @@
 # application
 
-**4개 앱(web · admin · ceo · batch)의 application 계층을 담는 단일 모듈.** 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`(batch는 `*SchedulerService`), 그리고 앱 단독 읽기 계약 271개가 여기 있다.
+**4개 앱(web · admin · ceo · batch)의 application 계층을 담는 단일 모듈.** 자바 패키지는 `com.tastyhouse.application` 하나로 평탄화돼 있다(챕터 03) — 구조는 `com.tastyhouse.application.<도메인>.{port.in, port.out, service}`이고 도메인 아래에 앱별 폴더가 없다. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`(batch는 `*SchedulerService`), 그리고 앱 단독 읽기 계약 271개가 이 한 패키지 트리 안에 함께 있다. **앱 소속은 패키지가 아니라 마커 애노테이션**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`)이 표현한다 — 상세는 아래 [챕터 03 — 패키지 평탄화 + 앱 마커](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복).
 
 컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·`response/`·config·security 정책·전역 예외 핸들러와 부트스트랩은 각 api 모듈(`web-api`·`admin-api`·`ceo-api`·`batch-module`)에 남아 있다.
 
@@ -12,7 +12,21 @@
 - **소유권 연쇄가 부채를 낳았다.** 읽기 계약을 앱 모듈이 소유하게 하면서 "한 앱이 소유하면 다른 앱이 그 모듈을 의존해야 한다"를 피하려고, 공유 계약을 `domain-module`로 올리고 `application-common-module`을 해체했다(챕터 05·07·09). 그 결과가 split package 5모듈과 가드 3종(`ReadContractSingleOwnerTest`·`ReadContractPurityTest`·`RuleAnchorTest#isOwnedByThisModule`)이다. 챕터 04에서 그 55개를 이 모듈로 되돌리면 이 부채가 통째로 사라진다.
 - **중복이 컸고 이득이 없었다.** web·admin·ceo의 `LayerRulesTest`는 규칙 16종이 이름·본문까지 동일했다(diff는 carve-out 이름과 `because` 문구뿐). `gradle.properties`가 비어 있어 병렬 빌드 이득도 없었다.
 
-**이 챕터의 범위는 Gradle 모듈만 4 → 1이다.** 자바 패키지는 그대로다(`com.tastyhouse.{app}application` + `com.tastyhouse.application.<ctx>.port.out`). 뒤 챕터에서 동명 클래스 182건 개명(02) → 패키지 평탄화 + 앱 마커 애노테이션(03) → 공유 읽기 계약 55개 복귀(04)가 이어진다.
+**이 챕터의 범위는 Gradle 모듈만 4 → 1이다.** 자바 패키지는 그대로였다(`com.tastyhouse.{app}application` + `com.tastyhouse.application.<ctx>.port.out`). 뒤 챕터에서 동명 클래스 182건 개명(02) → **패키지 평탄화 + 앱 마커 애노테이션(03, 완료 — 아래 절)** → 공유 읽기 계약 55개 복귀(04)가 이어진다.
+
+## 챕터 03 — 패키지 평탄화 + 앱 마커 애노테이션 (과거 판단의 번복)
+
+**챕터 01 직후에는 Gradle 모듈만 합쳐졌고 앱별 패키지(`com.tastyhouse.{web|admin|ceo|batch}application`)는 그대로 남아 있었다. 이 챕터가 그 4개 패키지를 `com.tastyhouse.application` 하나로 평탄화했다.**
+
+- **왜 평탄화했나**: 챕터 01의 판단 근거 중 하나였던 "중복이 컸고 이득이 없었다"가 패키지 수준에서도 반복되고 있었다 — 앱별 패키지가 남아 있는 한 `ArchUnit` 슬라이스 규칙·import 정렬 규칙 모두 "접두어가 겹치는 4개 패키지"를 특별 취급해야 했고, 그 특별 취급 자체가 문서·규칙의 복잡도였다. 패키지를 하나로 합치면 그 특별 취급이 사라진다.
+- **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
+- **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다. **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
+- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
+- **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
+- **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
+- **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
+- **`AppOwnership`은 `testFixtures`에 있고 api 4모듈이 재사용한다**(`java-test-fixtures` 플러그인, `testImplementation(testFixtures(project(':application')))`) — api 모듈의 `adaptersShouldOnlyUseOwnAppUseCases`도 같은 유도가 필요하기 때문이다.
+- **ArchUnit 규칙 전환**: `commandServicesShouldNotDependOnQueryDaos`가 패키지 술어 → **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바뀌었다 — `port.out`에 Command 반환 record가 함께 살게 되어, 패키지 술어를 두면 그 record를 import하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡히기 때문이다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryDaos`도 이름 기준이다. `AppIsolationTest`는 슬라이스/패키지 술어에서 **마커 술어**로 전면 재작성됐다(아래 [ArchUnit — 4클래스](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절 반영). 상세 규칙 목록·근거는 루트 `backend/CLAUDE.md`의 "앱 마커 규칙" 절 참고.
 
 ### 잃어버린 컴파일 게이트를 무엇이 대체했나
 
@@ -23,21 +37,22 @@
 | application → 다른 앱 application | `AppIsolationTest#appsShouldNotDependOnEachOther` | 이 모듈 |
 | api 어댑터 → 다른 앱 application | `adaptersShouldOnlyUseOwnAppUseCases` | api 4모듈 각각 |
 
-## 패키지 구조
+## 패키지 구조 (챕터 03으로 평탄화 — 도메인 아래에 앱별 폴더가 없다)
 
 ```
-com.tastyhouse.webapplication/         27개 컨텍스트
-com.tastyhouse.adminapplication/       19개 컨텍스트
-com.tastyhouse.ceoapplication/          6개 컨텍스트
-com.tastyhouse.batchapplication/        7개 잡 슬러그
-  ├── {App}ApplicationConfig.java   @ComponentScan 진입점 — 쓰는 앱이 @Import 한다
-  ├── <ctx>/port/in/                UseCase 인터페이스 + Command record
-  ├── <ctx>/service/                *CommandService/*QueryService implements {Ctx}UseCase
-  └── <ctx>/port/out/               Command 경로·파생 반환 Result (읽기 계약 패키지와 구분)
-
-com.tastyhouse.application/            ← split package — 앱 단독 읽기 계약 271개
-└── <ctx>/port/out/                    {Ctx}QueryPort · *Result · *SearchCondition
+com.tastyhouse.application/
+  ├── {App}ApplicationConfig.java   @ComponentScan 진입점(마커 기반 필터) — 쓰는 앱이 @Import 한다. 4개(Web/Admin/Ceo/Batch)
+  ├── shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java   순수 마커 애노테이션 4종 — 앱 소속의 유일한 단서
+  ├── shared/exception/BatchJobException.java   (챕터 03 이동 — 과거 batchapplication/exception/)
+  └── <ctx>/
+      ├── port/in/                UseCase 인터페이스(마커 부착) + Command record(마커 없음 — AppOwnership 유도)
+      ├── service/                *CommandService/*QueryService(batch는 *SchedulerService), 마커 부착, implements {Ctx}UseCase
+      └── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
+                                  읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
+                                  아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
 ```
+
+패키지만 봐서는 어느 앱 것인지 알 수 없다 — 빈·UseCase는 마커 애노테이션이, Command record는 `AppOwnership`의 유도가 소속을 정한다(아래 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). 컨텍스트별 규모는 앱마다 다르다.
 
 - **web** 컨텍스트 27종: `auth` · `banner` · `bug` · `coupon` · `event` · `faq` · `follow` · `grade` · `mail` · `member` · `menureview` · `notice` · `notification` · `order` · `partnership` · `payment` · `point` · `policy` · `product` · `rank` · `referral` · `reservation` · `review` · `search` · `shop` · `sms`.
 - **admin** 컨텍스트 19종: `admin` · `auth` · `banner` · `bug` · `ceo` · `coupon` · `event` · `faq` · `file` · `member` · `notice` · `order` · `partnership` · `point` · `policy` · `product` · `rank` · `review` · `shop`.
@@ -130,41 +145,36 @@ com.tastyhouse.application/            ← split package — 앱 단독 읽기 �
 
 batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`가 0개이고 잡 본문이 `*SchedulerService`에 담기며, 스케줄이 유일한 입력이라 Command record가 없고 인바운드 포트가 전부 `void foo()`다.
 
-## ArchUnit — 4클래스
+## ArchUnit — 4클래스 (챕터 03으로 importer·판별 기준이 패키지에서 마커로 전환)
 
-통합 전 4벌(각 모듈의 `LayerRulesTest`·`RuleAnchorTest` 8개 파일)을 아래 4개로 합쳤다.
+**챕터 01 직후에는 아래 4클래스의 importer가 "4개 앱 패키지"(`com.tastyhouse.{web|admin|ceo|batch}application`)였다.** 챕터 03의 패키지 평탄화로 그 패키지 접두어가 사라지자 이 표현 자체가 성립하지 않게 됐고, 특히 `AppIsolationTest`는 슬라이스/패키지 술어에서 **마커 애노테이션 술어**로 전면 재작성됐다(`application/src/test/.../architecture/AppIsolationTest.java`).
 
 | 클래스 | importer | 내용 |
 |---|---|---|
-| `LayerRulesTest` | 4개 앱 패키지 | **공통 16종.** CQRS 교차 주입 2 · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 |
-| `AppIsolationTest` | 4개 앱 패키지 | **신설.** 앱 간 수평 의존 금지(슬라이스) + 슬라이스 정확히 4개 anchor |
-| `BatchSchedulerRulesTest` | `batchapplication`만 | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
-| `RuleAnchorTest` | 앱별 4개 + 계약 | 공허 통과 자동 검출. 앱별 하한 |
+| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 16종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 |
+| `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 4종 4×3=12조합 개별 검사 — 슬라이스가 아니다) · `beansShouldHaveExactlyOneAppMarker` · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계) |
+| `BatchSchedulerRulesTest` | `com.tastyhouse.application`(단일, `.areNotAnnotatedWith(BatchApp.class)` 등 마커 술어로 batch만 선별) | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
+| `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한만 담당 |
 
-**통합으로 의미가 달라져 손본 곳은 두 군데다.**
+**챕터 01 시점에 통합으로 의미가 달라져 손본 곳 두 군데는(carve-out FQN화, `applicationMustNotDependOnAdapters` 4패키지 확대) 챕터 03 이후에도 그대로 유효하다** — carve-out 대상 클래스와 api 패키지 이름 자체는 이번 평탄화로 바뀌지 않았다.
 
-- `queryServicesShouldNotDependOnWritePorts`의 carve-out을 simple name → **FQN**으로 바꿨다. `ShopQueryService`가 web·admin·ceo에 각각 있어, simple name으로 두면 **의도한 1개가 아니라 3개 전부가 면제**된다. 확정 carve-out 3건(web `ShopQueryService` 도메인 계산 입력 / admin `AdminQueryService`·ceo `CeoQueryService` 인증 조회)은 이관 대상이 아니며, **이 목록에 새 항목을 추가하지 않는다.**
-- `applicationMustNotDependOnAdapters`의 금지 대상을 **4개 api 패키지 전부**로 넓혔다(각 벌이 자기 앱 하나만 막던 것). 어느 앱의 서비스든 어느 api 모듈도 역참조할 수 없다는 뜻이라 오히려 강해졌다.
+- `queryServicesShouldNotDependOnWritePorts`의 carve-out은 simple name이 아니라 **FQN**이다. `ShopQueryService`가 web·admin·ceo에 각각 있어 simple name으로 두면 의도한 1개가 아니라 3개 전부가 면제되기 때문이다. 확정 carve-out 3건(web `ShopQueryService` 도메인 계산 입력 / admin `AdminQueryService`·ceo `CeoQueryService` 인증 조회)은 이관 대상이 아니며, **이 목록에 새 항목을 추가하지 않는다.**
+- `applicationMustNotDependOnAdapters`의 금지 대상은 **4개 api 패키지 전부**다. 어느 앱의 서비스든 어느 api 모듈도 역참조할 수 없다.
 
 **분리해 둔 이유가 있는 곳도 둘이다.**
 
-- `commandRecordsShouldBeBoundaryTyped`는 importer를 **web·admin·ceo 3개로 한정**한다. batch는 carve-out이 `domain.exception..` 하나뿐인 **엄격판**을 `BatchSchedulerRulesTest`에서 쓸 수 있는데, 한 importer로 합치면 batch가 느슨한 3-carve-out 규칙에 얹혀 엄격함을 잃는다.
-- `RuleAnchorTest`의 anchor는 **앱별로 유지**한다. 합계 하나로 두면 한 앱의 클래스가 통째로 사라져도 나머지 세 앱이 하한을 떠받쳐 anchor가 조용히 통과한다.
+- `commandRecordsShouldBeBoundaryTyped`는 (챕터 03 이후) `.areNotAnnotatedWith(BatchApp.class)`로 batch를 제외한다. batch는 carve-out이 `domain.exception..` 하나뿐인 **엄격판**을 `BatchSchedulerRulesTest`에서 쓸 수 있는데, 한 규칙으로 합치면 batch가 느슨한 3-carve-out 규칙에 얹혀 엄격함을 잃는다.
+- `AppIsolationTest`의 마커별 anchor(`markerBeanCounts`·`markerUseCaseCounts`)는 **마커별로 유지**한다. 합계 하나로 두면 한 앱의 빈·UseCase가 통째로 사라져도 나머지 세 앱이 하한을 떠받쳐 anchor가 조용히 통과한다.
 
 `allowEmptyShould(true)`는 어느 파일에도 쓰지 않는다 — 규칙이 대상을 잃으면 공허하게 통과시키지 말고 규칙을 지우거나 anchor를 고친다.
 
 ### anchor 하한
 
-| 앱 | `*CommandService` | `*QueryService` | `..port.in..` | 모듈 전체 |
-|---|---|---|---|---|
-| web | 17 | 29 | 99 | 200 |
-| admin | 30 | 28 | 228 | 290 |
-| ceo | 44 | 43 | 222 | 334 |
-| batch | — (exact 7 `*SchedulerService`) | — | exact 7 | 28 |
+**마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
 
-읽기 계약은 합계 **≥ 227**(85+79+61+2)이다. `isOwnedByThisModule` 소스-URI 필터가 `domain-module` jar의 공유 계약 55개를 걸러낸다 — **챕터 04에서 그 55개가 돌아오면 필터를 지우고 하한을 282로 올린다.**
+읽기 계약은 합계 **≥ 227**(85+79+61+2, `RuleAnchorTest` 소유)이다. `isOwnedByThisModule` 소스-URI 필터가 `domain-module` jar의 공유 계약 55개를 걸러낸다 — **챕터 04에서 그 55개가 돌아오면 필터를 지우고 하한을 282로 올린다.**
 
-하한으로 두는 이유는 컨텍스트가 늘어나는 것이 정상이기 때문이다. 정확히 일치를 요구하면 기능 추가마다 이 파일을 고쳐야 해 anchor가 규칙이 아니라 잡음이 된다(batch는 규모가 작아 일치를 쓴다).
+하한으로 두는 이유는 컨텍스트가 늘어나는 것이 정상이기 때문이다. 정확히 일치를 요구하면 기능 추가마다 이 파일을 고쳐야 해 anchor가 규칙이 아니라 잡음이 된다(batch UseCase는 규모가 작아 예외적으로 정확히 일치를 쓴다).
 
 ## Dependencies
 
@@ -187,11 +197,21 @@ batch 유스케이스가 `spring-web`·`spring-security-core`를 컴파일 클�
 
 application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다. `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다. `shouldNotDependOnInfrastructure`는 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선이다.
 
-## 빈 배선
+## 빈 배선 (챕터 03 개정 — 패키지 스캔에서 마커 스캔으로)
 
-**앱마다 `{App}ApplicationConfig`가 자기 패키지만 스캔한다**(`@ComponentScan("com.tastyhouse.{app}application")`). 모듈이 하나로 합쳐져도 **빈 스캔 범위는 불변**이며, 각 부트스트랩의 `@Import` 대상 클래스·패키지도 그대로다 — 그래서 이번 통합의 부트스트랩 소스 변경은 **0건**이다.
+**챕터 01 직후에는 앱마다 `{App}ApplicationConfig`가 자기 패키지만 스캔했다**(`@ComponentScan(basePackages = "com.tastyhouse.{app}application")`). 챕터 03의 평탄화로 그 앱별 패키지 자체가 사라졌으므로, 지금은 4개 `*ApplicationConfig` 전부가 **같은 루트 패키지(`com.tastyhouse.application`)를 스캔하되 마커로 걸러낸다**:
 
-`scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이다(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례).
+```java
+@ComponentScan(
+    basePackages = "com.tastyhouse.application",
+    useDefaultFilters = false,
+    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = WebApp.class))
+public class WebApplicationConfig { }
+```
+
+`useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 `WebApplicationConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
+
+각 부트스트랩의 `@Import` 대상 클래스는 챕터 01 이후 그대로다 — 그래서 이 챕터의 부트스트랩(api 모듈) 소스 변경은 **0건**이다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이다(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례).
 
 ## 주의
 

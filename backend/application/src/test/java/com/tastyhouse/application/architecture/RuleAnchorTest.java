@@ -14,13 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>이 저장소는 {@code allowEmptyShould(true)}를 금지한다 — 규칙이 대상을 잃으면 지우거나 anchor를
  * 고친다는 원칙이다. 그런데 {@code noClasses().that()...} 형태는 대상이 0건이어도 조용히 통과하므로,
- * 원칙을 지켰는지가 사람 눈에만 의존한다. 이 테스트가 그 지점을 자동화한다 — 챕터 01로 클래스가
- * 모듈 사이를 대량으로 옮겨 다닌 직후라 특히 필요하다(대상이 통째로 사라져도 빌드는 green이었다).
+ * 원칙을 지켰는지가 사람 눈에만 의존한다. 이 테스트가 그 지점을 자동화한다.
  *
- * <p><b>anchor는 앱별로 유지한다.</b> 4개 모듈이 한 모듈로 합쳐졌지만 자바 패키지는 앱별로 남아 있고
- * ({@code com.tastyhouse.{app}application}), 앱별로 세지 않으면 한 앱의 클래스가 통째로 사라져도
- * 나머지 세 앱이 합계 하한을 떠받쳐 anchor가 조용히 통과한다. 챕터 03에서 패키지가 평탄화되면
- * 마커 애노테이션 기준으로 다시 쓴다.
+ * <p><b>챕터 03 개정 — anchor가 앱별에서 모듈 합계로 바뀌었다.</b> 과거에는 앱별 패키지
+ * ({@code com.tastyhouse.{app}application})로 나눠 세어, 한 앱의 클래스가 통째로 사라져도 나머지 세
+ * 앱이 합계 하한을 떠받치는 것을 막았다. 평탄화로 그 구분이 사라졌으므로 여기서는 모듈 합계만 세고,
+ * <b>앱별 소실은 {@link AppIsolationTest}의 마커별 anchor</b>({@code markerBeanCounts}·
+ * {@code markerUseCaseCounts})가 승계해 잡는다. 마커가 앱 소속의 새 근거이기 때문이다.
  *
  * <p>batch의 anchor는 {@link BatchSchedulerRulesTest}가 갖는다(규모가 작아 하한이 아니라 정확히 일치).
  *
@@ -30,72 +30,50 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class RuleAnchorTest {
 
-    private final JavaClasses web = importApp("com.tastyhouse.webapplication");
-    private final JavaClasses admin = importApp("com.tastyhouse.adminapplication");
-    private final JavaClasses ceo = importApp("com.tastyhouse.ceoapplication");
-    private final JavaClasses batch = importApp("com.tastyhouse.batchapplication");
+    /** {@link LayerRulesTest}가 쓰는 importer와 동일 범위(챕터 03 — 하나로 합쳐졌다). */
+    private final JavaClasses classes = new ClassFileImporter()
+        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+        .importPackages("com.tastyhouse.application");
 
-    /** {@code LayerRulesTest#readContractsShouldBeFrameworkFree}가 쓰는 importer와 동일 범위. */
-    private final JavaClasses readContracts = importApp("com.tastyhouse.application");
-
-    private static JavaClasses importApp(String pkg) {
-        return new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages(pkg);
-    }
-
-    private static long countSuffix(JavaClasses classes, String suffix) {
+    private long countSuffix(String suffix) {
         return classes.stream().filter(c -> c.getSimpleName().endsWith(suffix)).count();
-    }
-
-    private static long countInboundPorts(JavaClasses classes) {
-        return classes.stream().filter(c -> resideInAPackage("..port.in..").test(c)).count();
     }
 
     /**
      * {@code commandServicesShouldNotDependOnQueryDaos} 등 CommandService 대상 규칙 4종의 anchor.
      *
-     * <p>batch는 CQRS를 쓰지 않아 {@code *CommandService}가 0개이므로 대상이 아니다.
+     * <p>하한 91은 통합 전 3개 앱의 합이다(web 17 + admin 30 + ceo 44). batch는 CQRS를 쓰지 않아
+     * {@code *CommandService}가 0개이므로 대상이 아니다.
      */
     @Test
     void commandServicesExist() {
-        assertThat(countSuffix(web, "CommandService"))
-            .as("web *CommandService가 0건이면 CommandService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(17);
-        assertThat(countSuffix(admin, "CommandService"))
-            .as("admin *CommandService가 0건이면 CommandService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(30);
-        assertThat(countSuffix(ceo, "CommandService"))
-            .as("ceo *CommandService가 0건이면 CommandService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(44);
+        assertThat(countSuffix("CommandService"))
+            .as("*CommandService가 0건이면 CommandService 대상 규칙들이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(91);
     }
 
-    /** {@code queryServicesShouldNotDependOnWritePorts} · {@code queryServicesShouldImplementUseCase}의 anchor. */
+    /**
+     * {@code queryServicesShouldNotDependOnWritePorts} · {@code queryServicesShouldImplementUseCase}의 anchor.
+     *
+     * <p>하한 100은 통합 전 3개 앱의 합이다(web 29 + admin 28 + ceo 43).
+     */
     @Test
     void queryServicesExist() {
-        assertThat(countSuffix(web, "QueryService"))
-            .as("web *QueryService가 0건이면 QueryService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(29);
-        assertThat(countSuffix(admin, "QueryService"))
-            .as("admin *QueryService가 0건이면 QueryService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(28);
-        assertThat(countSuffix(ceo, "QueryService"))
-            .as("ceo *QueryService가 0건이면 QueryService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(43);
+        assertThat(countSuffix("QueryService"))
+            .as("*QueryService가 0건이면 QueryService 대상 규칙들이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(100);
     }
 
-    /** {@code commandRecordsShouldBeBoundaryTyped} · {@code portInShouldNotDependOnWebPlumbing} 등의 anchor. */
+    /**
+     * {@code commandRecordsShouldBeBoundaryTyped} · {@code portInShouldNotDependOnWebPlumbing} 등의 anchor.
+     *
+     * <p>하한 556은 통합 전 4개 앱의 합이다(web 99 + admin 228 + ceo 222 + batch 7).
+     */
     @Test
     void inboundPortsExist() {
-        assertThat(countInboundPorts(web))
-            .as("web ..port.in..이 0건이면 경계 타입·web 플럼빙 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(99);
-        assertThat(countInboundPorts(admin))
-            .as("admin ..port.in..이 0건이면 경계 타입·web 플럼빙 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(228);
-        assertThat(countInboundPorts(ceo))
-            .as("ceo ..port.in..이 0건이면 경계 타입·web 플럼빙 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(222);
+        assertThat(classes.stream().filter(c -> resideInAPackage("..port.in..").test(c)).count())
+            .as("..port.in..이 0건이면 경계 타입·web 플럼빙 규칙이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(556);
     }
 
     /**
@@ -104,53 +82,48 @@ class RuleAnchorTest {
      * {@code shouldNotDependOnInfrastructure} · {@code applicationShouldNotDependOnSwagger} ·
      * {@code applicationShouldNotDependOnApiCommon})의 anchor.
      *
-     * <p>그 규칙들은 {@code noClasses()}로 <b>모듈 전체</b>를 대상으로 하므로 별도 anchor를 두지
-     * 않는다 — 이 테스트가 전부의 anchor를 겸한다.
-     *
-     * <p>하한은 통합 전 각 모듈이 갖고 있던 값을 그대로 승계한다(web 200 · admin 290 · ceo 334 ·
-     * batch 28). 합계 하나로 뭉뜽그리지 않는 이유는 위 클래스 Javadoc에 적었다 — 한 앱이 통째로
-     * 사라져도 나머지가 합계를 떠받치기 때문이다. 각 값은 Response 승격(챕터 06·09·10)으로
-     * 재기준된 뒤의 것이다.
+     * <p>하한 852는 통합 전 4개 앱의 합이다(web 200 + admin 290 + ceo 334 + batch 28). 각 값은
+     * Response 승격(챕터 06·09·10)으로 재기준된 뒤의 것이다. 이 합계가 한 앱의 소실을 못 잡는 것은
+     * 위 클래스 Javadoc대로 {@link AppIsolationTest}의 마커별 anchor가 보완한다.
      */
     @Test
-    void modulesAreNotEmpty() {
-        assertThat(web.size()).as("web 앱이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(200);
-        assertThat(admin.size()).as("admin 앱이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(290);
-        assertThat(ceo.size()).as("ceo 앱이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(334);
-        assertThat(batch.size()).as("batch 앱이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(28);
+    void moduleIsNotEmpty() {
+        assertThat(classes.size())
+            .as("모듈이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(852);
     }
 
     /**
      * {@code readContractsShouldBeFrameworkFree}의 anchor.
      *
-     * <p>이 계약들은 앱 패키지가 아니라 split package인 {@code com.tastyhouse.application}에 있어
-     * 위 앱 importer들에 잡히지 않는다. 별도 anchor가 없으면 계약이 통째로 사라져도 규칙이 조용히 통과한다.
+     * <p>하한 227은 통합 전 4개 앱의 합이다(web 85 + admin 79 + ceo 61 + batch 2). 챕터 03으로 규칙
+     * 대상이 읽기 계약에서 {@code port.out} 전체(아웃바운드 SPI·Command 반환 record 포함)로 넓어졌으나,
+     * 하한은 그대로 둔다 — 넓어진 만큼 실측이 늘어 하한이 더 여유로워질 뿐이고, 이 anchor가 잡으려는
+     * 것은 대량 소실이기 때문이다.
      *
-     * <p>하한 227은 통합 전 4개 모듈의 합이다(web 85 + admin 79 + ceo 61 + batch 2). 여기서는 계약이
-     * 한 트리로 합쳐져 소유 앱을 구분할 수 없으므로 앱별로 쪼개지 않는다 — 실측 271개에 대한
-     * 합계 하한으로 대량 소실을 잡는다.
+     * <p>{@code isOwnedByThisModule} 필터는 유지한다 — 아직 챕터 04 전이라 domain-module의 공유 계약
+     * 55개가 split package로 함께 잡히고, 그 55개가 하한을 떠받쳐 주면 정작 이 모듈의 계약이 사라져도
+     * anchor가 통과한다.
+     *
+     * <p><b>챕터 03 — 판별 방법이 바뀌었다.</b> 과거에는 "jar에서 왔으면 남의 것"으로 갈랐다(Gradle이
+     * 프로젝트 의존은 jar로, 자기 산출물은 {@code build/classes} 디렉터리로 올리기 때문). 이 챕터에서
+     * {@code java-test-fixtures} 플러그인을 적용하자({@link AppOwnership}을 api 모듈과 공유하려고)
+     * <b>자기 모듈 산출물도 {@code application-0.0.1-SNAPSHOT.jar}로 올라오게 되어</b> 그 필터가
+     * 전부를 걸러냈다 — anchor가 0을 세고 실패했다. 그래서 "jar 여부"가 아니라 <b>어느 jar인지</b>로
+     * 판별한다.
      */
     @Test
     void readContractsExist() {
-        assertThat(readContracts.stream()
+        assertThat(classes.stream()
             .filter(c -> resideInAPackage("..port.out..").test(c))
             .filter(RuleAnchorTest::isOwnedByThisModule)
             .count())
-            .as("앱 단독 읽기 계약이 0건이면 프레임워크-프리 규칙이 공허하게 통과한다")
+            .as("아웃바운드 계약이 0건이면 프레임워크-프리 규칙이 공허하게 통과한다")
             .isGreaterThanOrEqualTo(227);
     }
 
     /**
      * 이 모듈이 <b>직접 소유</b>한 계약인지 판별한다.
-     *
-     * <p>이 필터가 없으면 anchor가 공허 통과를 못 막는다. {@code importPackages("com.tastyhouse.application")}은
-     * 테스트 런타임 클래스패스 전체를 훑으므로 <b>{@code domain-module}의 공유 계약 55개까지 함께 세어진다</b>
-     * — split package라 패키지만으로는 소유 모듈을 가릴 수 없기 때문이다. 그 55개가 하한을 떠받쳐 주면
-     * 정작 이 모듈의 계약이 사라져도 anchor가 통과한다.
      *
      * <p>판별 근거는 소스 위치다 — Gradle은 프로젝트 의존을 <b>jar</b>로 올리고 자기 모듈 산출물만
      * {@code build/classes/java/main} <b>디렉터리</b>로 올리므로, jar에서 온 것을 걸러내면 자기 소유분만 남는다.
@@ -161,8 +134,7 @@ class RuleAnchorTest {
     private static boolean isOwnedByThisModule(JavaClass contract) {
         return contract.getSource()
             .map(source -> source.getUri().toString())
-            .filter(uri -> !uri.contains(".jar"))
+            .filter(uri -> uri.contains("/application/build/") || !uri.contains(".jar"))
             .isPresent();
     }
-
 }

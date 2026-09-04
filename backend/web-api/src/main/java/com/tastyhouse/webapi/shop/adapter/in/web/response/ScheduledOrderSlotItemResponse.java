@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ScheduledOrderSlotItemResult;
+import com.tastyhouse.application.shop.port.out.ScheduledOrderSlotItemResult;
 
 /**
  * 예약 가능 수령시간 슬롯 한 칸.

@@ -7,9 +7,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.adminapplication.admin.port.in.AdminCommandUseCase;
-import com.tastyhouse.adminapplication.admin.port.in.AdminCreateCommand;
-import com.tastyhouse.adminapplication.admin.port.in.AdminQueryUseCase;
+import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
+import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
+import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
 
 /**
  * 최초 SUPER_ADMIN 시드.

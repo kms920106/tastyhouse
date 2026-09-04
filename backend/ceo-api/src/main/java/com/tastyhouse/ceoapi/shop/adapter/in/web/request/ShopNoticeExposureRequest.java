@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeExposureChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
 
 @Schema(description = "점주 공지 앱 노출 토글 요청")
 public record ShopNoticeExposureRequest(

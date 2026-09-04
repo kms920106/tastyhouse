@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.review.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestRejectCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

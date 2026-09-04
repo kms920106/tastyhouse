@@ -18,19 +18,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeExposureRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeValidateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeCreateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeDeleteCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeExposureChangeCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopNoticeUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
 
 @Tag(name = "Ceo Shop Notice", description = "점주 가게 공지(사장님 공지) API")
 @RestController

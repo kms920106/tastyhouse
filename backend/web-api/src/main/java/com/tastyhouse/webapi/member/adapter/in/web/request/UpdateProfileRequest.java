@@ -3,7 +3,7 @@ package com.tastyhouse.webapi.member.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapplication.member.port.in.MemberProfileUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
 
 @Schema(description = "프로필 수정 요청")
 public record UpdateProfileRequest(

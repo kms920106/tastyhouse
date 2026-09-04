@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.tastyhouse.batchapplication.BatchApplicationConfig;
+import com.tastyhouse.application.BatchApplicationConfig;
 import com.tastyhouse.external.config.ExternalApiConfig;
 import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
 import com.tastyhouse.logging.LoggingModuleConfig;

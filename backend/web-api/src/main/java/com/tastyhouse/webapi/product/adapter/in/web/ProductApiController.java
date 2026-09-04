@@ -29,7 +29,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewStatis
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingPageResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductReviewsByRatingResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscountListItemResponse;
-import com.tastyhouse.webapplication.product.port.in.ProductQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 
 @RestController
 @RequestMapping("/api/products")

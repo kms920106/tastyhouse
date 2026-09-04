@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRiderVisitGuideUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateCommand;
 
 /**
  * 라이더 가게방문 안내 문구 등록·수정 요청.

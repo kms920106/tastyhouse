@@ -5,7 +5,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMenuCollectionImageReorderCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCommand;
 
 /**
  * 메뉴모음컷 순서 변경 요청.

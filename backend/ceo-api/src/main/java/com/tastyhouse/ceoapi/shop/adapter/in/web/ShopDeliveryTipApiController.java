@@ -13,23 +13,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipDistanceUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipHolidayUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipRegionsUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipSchedulesUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipTiersUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipSettingResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipDistanceRemoveCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipDistanceUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipHolidayUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipRegionsRemoveCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipRegionsUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipSchedulesUpdateCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryTipTiersUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceRemoveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipHolidayUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsRemoveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipSchedulesUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipTiersUpdateCommand;
 
 /**
  * 점주 가게 배달팁 관리 API.

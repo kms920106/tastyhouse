@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseCreateCommand;
-import com.tastyhouse.ceoapplication.ceo.port.in.CeoReplyPhraseUpdateCommand;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateCommand;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
 
 /**
  * 자주 쓰는 문구 등록·수정 요청. 등록과 수정이 같은 필드 셋이라 한 record를 공용한다.

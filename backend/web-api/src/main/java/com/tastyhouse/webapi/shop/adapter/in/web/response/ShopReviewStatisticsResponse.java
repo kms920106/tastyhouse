@@ -4,7 +4,7 @@ import java.util.Map;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopReviewStatisticsViewResult;
+import com.tastyhouse.application.shop.port.out.ShopReviewStatisticsViewResult;
 
 @Schema(description = "가게 리뷰 통계 응답")
 public record ShopReviewStatisticsResponse(

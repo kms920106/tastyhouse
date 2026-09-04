@@ -18,8 +18,8 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.RefreshTokenRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
-import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthCommandUseCase;
-import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthLoginCommand;
+import com.tastyhouse.application.auth.port.in.CeoAuthCommandUseCase;
+import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController

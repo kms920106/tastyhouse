@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.ceoapplication.shop.port.out.ShopDeliveryAreaBulkResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
 
 /**
  * 배달가능지역 일괄 처리 결과.

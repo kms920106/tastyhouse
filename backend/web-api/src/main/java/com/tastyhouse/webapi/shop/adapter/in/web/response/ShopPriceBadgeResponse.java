@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopPriceBadgeViewResult;
+import com.tastyhouse.application.shop.port.out.ShopPriceBadgeViewResult;
 
 /**
  * 가게 매장가격 뱃지 2종의 노출 여부.

@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideDeleteCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderVisitGuideRevisionCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionCommand;
 
 import java.util.List;
 
@@ -25,14 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.adminapplication.auth.security.AdminUserDetails;
+import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderGuideSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideDeleteRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRiderVisitGuideRevisionRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopRiderGuideManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 

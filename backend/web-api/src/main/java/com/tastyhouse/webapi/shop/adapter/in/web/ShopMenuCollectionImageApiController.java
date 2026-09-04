@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
 
 /**

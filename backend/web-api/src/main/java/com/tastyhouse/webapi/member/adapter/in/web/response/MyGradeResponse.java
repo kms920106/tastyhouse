@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.member.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.member.port.out.MyGradeResult;
+import com.tastyhouse.application.member.port.out.MyGradeResult;
 
 @Schema(description = "내 등급 정보 응답")
 public record MyGradeResponse(

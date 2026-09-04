@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyCreateRequest;
 import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyUpdateRequest;
-import com.tastyhouse.adminapplication.policy.port.in.PolicyActivateCommand;
-import com.tastyhouse.adminapplication.policy.port.in.PolicyCommandUseCase;
-import com.tastyhouse.adminapplication.policy.port.in.PolicyCreateCommand;
-import com.tastyhouse.adminapplication.policy.port.in.PolicyUpdateCommand;
+import com.tastyhouse.application.policy.port.in.PolicyActivateCommand;
+import com.tastyhouse.application.policy.port.in.PolicyCommandUseCase;
+import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
+import com.tastyhouse.application.policy.port.in.PolicyUpdateCommand;
 
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController

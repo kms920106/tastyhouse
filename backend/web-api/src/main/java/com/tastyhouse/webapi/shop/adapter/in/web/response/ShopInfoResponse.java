@@ -6,7 +6,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopInfoViewResult;
+import com.tastyhouse.application.shop.port.out.ShopInfoViewResult;
 
 @Schema(description = "가게 기본 정보 응답")
 public record ShopInfoResponse(

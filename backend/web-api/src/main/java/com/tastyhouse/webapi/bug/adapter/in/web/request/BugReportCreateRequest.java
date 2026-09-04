@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapplication.bug.port.in.BugReportCreateCommand;
+import com.tastyhouse.application.bug.port.in.BugReportCreateCommand;
 
 @Schema(description = "버그 제보 요청")
 public record BugReportCreateRequest(

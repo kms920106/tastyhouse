@@ -1,8 +1,15 @@
 package com.tastyhouse.webapi.architecture;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
@@ -11,10 +18,14 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.architecture.AppOwnership;
+import com.tastyhouse.application.shared.marker.WebApp;
+
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * web-api 레이어 경계 규칙(ArchUnit).
@@ -28,7 +39,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * <b>공허하게 통과</b>하기 때문이다.
  *
  * <p>잔류 규칙 중 application을 가리키던 패턴은 신규 패키지 기준으로 갱신했다
- * ({@code ..application.service..} → {@code com.tastyhouse.webapplication..service..}).
+ * ({@code ..application.service..} → {@code com.tastyhouse.application..service..}).
  *
  * <p>{@code allowEmptyShould(true)}는 이 파일 어디에도 쓰지 않는다.
  */
@@ -63,14 +74,21 @@ class LayerRulesTest {
     /**
      * 컨트롤러는 조회 어댑터도 직접 주입하지 않는다. 조회는 {@code *QueryService}가 읽기 포트를
      * 주입해 수행하고 Result → Response 변환까지 담당하므로(CQRS 분리 규칙), 컨트롤러가
-     * 읽기 포트({@code com.tastyhouse.application..port.out..})를 알 이유가 없다.
+     * 읽기 포트를 알 이유가 없다.
+     *
+     * <p><b>챕터 03 개정 — 판정 기준을 패키지에서 이름으로 바꿨다.</b> 평탄화로
+     * {@code <ctx>/port/out}이 "이 도메인의 모든 아웃바운드 계약"을 담게 되면서, 읽기 포트와 함께
+     * <b>CommandService가 반환하는 Result record</b>가 같은 패키지에 살게 됐다. 컨트롤러는 그 Result를
+     * 정당하게 받아 Response로 조립하므로({@code XxxResponse.from(XxxResult)} — 챕터 06·09·10),
+     * {@code ..port.out..} 패키지 술어를 그대로 두면 정상 경로가 전부 위반으로 잡힌다. 이 규칙이
+     * 실제로 막으려는 것은 <b>포트 인터페이스의 직접 주입</b>이므로 {@code *QueryPort} 이름으로 잡는다
+     * (application 모듈의 {@code commandServicesShouldNotDependOnQueryDaos}와 같은 전환).
      */
     @Test
     void controllersShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().resideInAPackage(
-                "com.tastyhouse.application..port.out..")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("QueryPort")
             .because("컨트롤러는 조회 어댑터도 읽기 포트도 직접 주입하지 않는다(조회는 QueryService 경유)");
 
         rule.check(classes);
@@ -142,7 +160,7 @@ class LayerRulesTest {
                 "com.tastyhouse.external.oauth.facebook..",
                 "com.tastyhouse.external.oauth.apple.."
             )
-            .because("소셜 로그인은 com.tastyhouse.webapplication.auth.port.out을 통해서만 사용한다");
+            .because("소셜 로그인은 com.tastyhouse.application.auth.port.out을 통해서만 사용한다");
 
         rule.check(classes);
     }
@@ -190,7 +208,7 @@ class LayerRulesTest {
      * 인바운드 어댑터는 application 서비스 구체 클래스에 의존하지 않는다 — UseCase 인터페이스만 주입한다.
      *
      * <p><b>챕터 02 개정</b> — 대상 패키지를 {@code ..application.service..}에서
-     * {@code com.tastyhouse.webapplication..service..}로 갱신했다. 접미어가 아니라 <b>위치</b>로 잡으므로
+     * {@code com.tastyhouse.application..service..}로 갱신했다. 접미어가 아니라 <b>위치</b>로 잡으므로
      * {@code *Service} 같은 비표준 접미어 파사드({@code MemberService})까지 걸린다 — 실제로 이 규칙이
      * 2a 정규화 직후 {@code MemberApiController}/{@code MemberMeApiController}의 파사드 직접 주입을
      * 잡아냈고, {@code MemberScreenUseCase} 포트를 신설해 해소했다.
@@ -199,7 +217,7 @@ class LayerRulesTest {
     void webAdaptersShouldNotDependOnApplicationServices() {
         ArchRule rule = noClasses()
             .that().resideInAPackage("..adapter.in.web..")
-            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.webapplication..service..")
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..service..")
             .because("인바운드 어댑터는 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
 
         rule.check(classes);
@@ -422,31 +440,68 @@ class LayerRulesTest {
 
 
     /**
-     * <b>챕터 01 신설 — 어댑터는 자기 앱의 application 슬라이스만 의존한다.</b>
+     * <b>챕터 01 신설 · 챕터 03 재작성 — 어댑터는 자기 앱의 application 슬라이스만 의존한다.</b>
      *
-     * <p><b>이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.</b> 그전까지 web의 어댑터가 다른 앱의
-     * UseCase를 주입하는 것은 <b>빌드가</b> 막았다 — 이 모듈의 build.gradle에
-     * {@code project(':web-application')} 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예
-     * 없었다. 챕터 01이 4개 application 모듈을 {@code :application} 하나로 합치면서 4개 앱 패키지가
-     * <b>전부 이 모듈의 컴파일 클래스패스에 들어왔고</b>, 이제 web-api이
-     * {@code com.tastyhouse.webapplication..}의 UseCase를 주입해도 컴파일이 통과한다.
+     * <p><b>이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.</b> 그전까지 이 모듈의 어댑터가 다른
+     * 앱의 UseCase를 주입하는 것은 <b>빌드가</b> 막았다 — build.gradle에 자기 앱의 application 모듈
+     * 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예 없었다. 챕터 01이 4개 application 모듈을
+     * {@code :application} 하나로 합치면서 4개 앱의 클래스가 <b>전부 이 모듈의 컴파일 클래스패스에
+     * 들어왔다.</b>
      *
-     * <p>그래서 이 규칙을 <b>모듈 통합과 같은 커밋에</b> 넣는다. 나중에 추가하면 그 사이에 들어온
-     * 교차 의존이 정상으로 굳는다.
+     * <p><b>챕터 03 재작성 — 판정 근거가 패키지에서 마커로 바뀌었다.</b> 챕터 01의 원본은 자기를 뺀
+     * 3개 앱 패키지를 열거해 금지했는데, 평탄화로 그 패키지들이 사라졌다. 이제 소속의 근거는
+     * {@link WebApp} 등 마커 애노테이션이므로 규칙도 마커로 판정한다.
      *
-     * <p>짝이 되는 규칙은 {@code :application} 모듈의 {@code AppIsolationTest#appsShouldNotDependOnEachOther}다 —
-     * 그쪽이 application 계층끼리의 수평 의존을, 이쪽이 어댑터 → 남의 application 의존을 막는다.
-     * 자기 앱({@code com.tastyhouse.webapplication..})은 정방향이므로 목록에서 제외한다.
+     * <p>세 갈래로 나눠 검사한다.
+     * <ul>
+     *   <li><b>(a) UseCase 인터페이스</b> — {@code ..port.in..}의 인터페이스에 의존한다면 그것이
+     *       {@link WebApp}를 달고 있어야 한다. 마커를 인터페이스가 직접 가지므로 술어가 단순하다.</li>
+     *   <li><b>(b) Command record</b> — record에는 마커가 없다. 소속을 {@link AppOwnership#derive}로
+     *       <b>유도</b>해 그 집합이 {@link WebApp}인지 본다(유도 규칙은 그 클래스 Javadoc 참조).</li>
+     *   <li><b>(c) 구체 서비스</b> — {@code @Service}/{@code @Component} 클래스 의존은 앱을 가릴 것도
+     *       없이 전부 금지이며, 이미 {@code com.tastyhouse.application..service..} 패키지를 막는
+     *       기존 규칙이 맡는다. 여기서 중복하지 않는다.</li>
+     * </ul>
+     *
+     * <p>짝이 되는 규칙은 application 모듈의
+     * {@code AppIsolationTest#appsShouldNotDependOnEachOther}다 — 그쪽이 application 계층끼리의 수평
+     * 의존을, 이쪽이 어댑터 → 남의 application 의존을 막는다.
      */
     @Test
     void adaptersShouldOnlyUseOwnAppUseCases() {
-        ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.adminapplication..",
-                "com.tastyhouse.ceoapplication..",
-                "com.tastyhouse.batchapplication..")
-            .because("인바운드 어댑터는 자기 앱의 application 슬라이스만 의존한다");
+        JavaClasses applicationClasses = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("com.tastyhouse.application");
 
-        rule.check(classes);
+        Map<String, Set<Class<? extends Annotation>>> commandApps = new HashMap<>();
+        AppOwnership.derive(applicationClasses)
+            .forEach((record, apps) -> commandApps.put(record.getName(), apps));
+
+        List<String> violations = new ArrayList<>();
+        for (JavaClass adapter : classes) {
+            for (JavaClass dependency : adapter.getDirectDependenciesFromSelf().stream()
+                .map(Dependency::getTargetClass).toList()) {
+
+                if (!dependency.getPackageName().contains(".port.in")) {
+                    continue;
+                }
+                if (dependency.isInterface()) {
+                    if (!dependency.isAnnotatedWith(WebApp.class)) {
+                        violations.add(adapter.getName() + " -> " + dependency.getName()
+                            + " (다른 앱의 UseCase — @WebApp가 아니다)");
+                    }
+                } else if (dependency.isRecord()) {
+                    Set<Class<? extends Annotation>> apps = commandApps.get(dependency.getName());
+                    if (apps != null && !apps.equals(Set.of(WebApp.class))) {
+                        violations.add(adapter.getName() + " -> " + dependency.getName()
+                            + " (소속 앱 " + AppOwnership.describe(apps) + " — @WebApp가 아니다)");
+                    }
+                }
+            }
+        }
+
+        assertThat(violations)
+            .as("인바운드 어댑터는 자기 앱(@WebApp)의 application 슬라이스만 의존한다")
+            .isEmpty();
     }
 }

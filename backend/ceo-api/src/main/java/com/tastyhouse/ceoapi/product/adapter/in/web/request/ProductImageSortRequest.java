@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductImageReorderCommand;
+import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
 
 /**
  * 메뉴 이미지 순서 변경 요청(replace-all).

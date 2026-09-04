@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundaryPort;
-import com.tastyhouse.batchapplication.region.port.out.AdminDongBoundarySource;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
+import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.geo.InteriorPoint;

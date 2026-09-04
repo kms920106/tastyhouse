@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjus
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentStatusChangeRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentDetailResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 

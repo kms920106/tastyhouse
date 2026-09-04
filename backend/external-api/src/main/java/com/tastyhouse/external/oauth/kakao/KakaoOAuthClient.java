@@ -8,11 +8,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.tastyhouse.webapplication.auth.port.out.SocialAuthorization;
-import com.tastyhouse.webapplication.auth.port.out.SocialCredential;
-import com.tastyhouse.webapplication.auth.port.out.SocialOAuthClient;
-import com.tastyhouse.webapplication.auth.port.out.SocialProfile;
-import com.tastyhouse.webapplication.auth.port.out.SocialProvider;
+import com.tastyhouse.application.auth.port.out.SocialAuthorization;
+import com.tastyhouse.application.auth.port.out.SocialCredential;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.port.out.SocialProvider;
 
 @Component
 public class KakaoOAuthClient implements SocialOAuthClient {

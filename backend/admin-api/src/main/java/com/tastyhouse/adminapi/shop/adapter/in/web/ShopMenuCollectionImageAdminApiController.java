@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageApproveCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageRejectCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageApproveCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectCommand;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionImageSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopMenuCollectionImageManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 

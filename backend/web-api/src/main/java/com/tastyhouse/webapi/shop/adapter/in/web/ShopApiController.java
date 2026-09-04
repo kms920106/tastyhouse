@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
-import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
-import com.tastyhouse.webapplication.shop.port.in.ShopBookmarkToggleCommand;
-import com.tastyhouse.webapplication.shop.port.in.ShopCommandUseCase;
-import com.tastyhouse.webapplication.shop.port.in.ShopDetailQueryUseCase;
-import com.tastyhouse.webapplication.shop.port.in.ShopOrderInfoQueryUseCase;
-import com.tastyhouse.webapplication.shop.port.in.ShopSearchQueryUseCase;
+import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.shop.port.in.ShopBookmarkToggleCommand;
+import com.tastyhouse.application.shop.port.in.ShopCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopSearchQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;

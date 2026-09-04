@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductSoldOutOwnerCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerCommand;
 
 @Schema(description = "메뉴 일괄 품절 요청")
 public record ProductSoldOutRequest(

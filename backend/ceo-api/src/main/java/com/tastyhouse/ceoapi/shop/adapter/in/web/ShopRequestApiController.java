@@ -18,20 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRequestSearchRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestDetailResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestListItemResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalogResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCancelCommand;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopRequestCommentOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRequestCancelCommand;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentOwnerCreateCommand;
 
 @Tag(name = "Ceo Shop Request", description = "점주 요청처리 현황 조회 API")
 @RestController

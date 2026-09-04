@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapplication.member.port.in.MemberPersonalInfoUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
 
 @Schema(description = "개인정보 수정 요청")
 public record UpdatePersonalInfoRequest(

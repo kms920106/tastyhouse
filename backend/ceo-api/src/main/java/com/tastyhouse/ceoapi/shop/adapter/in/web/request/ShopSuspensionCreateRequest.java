@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopSuspensionCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
 
 @Schema(description = "가게 영업 임시중지 등록 요청")
 public record ShopSuspensionCreateRequest(

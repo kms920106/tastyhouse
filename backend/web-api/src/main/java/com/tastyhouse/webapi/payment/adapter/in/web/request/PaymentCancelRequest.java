@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.tastyhouse.webapplication.payment.port.in.PaymentCancelCommand;
+import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 
 @Schema(description = "결제 취소 요청")
 public record PaymentCancelRequest(

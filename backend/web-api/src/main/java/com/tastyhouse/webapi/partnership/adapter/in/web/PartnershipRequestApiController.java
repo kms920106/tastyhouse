@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.webapplication.partnership.port.in.PartnershipCommandUseCase;
-import com.tastyhouse.webapplication.partnership.port.in.PartnershipRequestCreateCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipCommandUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.partnership.adapter.in.web.request.PartnershipRequestCreateRequest;
 

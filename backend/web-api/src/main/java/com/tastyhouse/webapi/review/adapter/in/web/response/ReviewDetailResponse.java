@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.review.port.out.ReviewDetailView;
+import com.tastyhouse.application.review.port.out.ReviewDetailView;
 
 @Schema(description = "리뷰 상세 조회 응답")
 public record ReviewDetailResponse(

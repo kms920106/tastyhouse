@@ -18,17 +18,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupResponse;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupUpdateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
 
 /**
  * 점주 옵션그룹 관리 API.

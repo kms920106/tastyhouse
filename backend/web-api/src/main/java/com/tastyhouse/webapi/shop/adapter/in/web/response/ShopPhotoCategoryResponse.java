@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopPhotoCategoryViewResult;
+import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryViewResult;
 
 @Schema(description = "가게 포토 카테고리 응답")
 public record ShopPhotoCategoryResponse(

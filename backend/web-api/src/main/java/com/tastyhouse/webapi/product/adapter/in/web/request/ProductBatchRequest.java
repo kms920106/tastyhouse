@@ -37,10 +37,10 @@ public record ProductBatchRequest(
         }
     }
 
-    public com.tastyhouse.webapplication.product.port.in.ProductBatchQuery toQuery() {
-        return new com.tastyhouse.webapplication.product.port.in.ProductBatchQuery(
+    public com.tastyhouse.application.product.port.in.ProductBatchQuery toQuery() {
+        return new com.tastyhouse.application.product.port.in.ProductBatchQuery(
             items.stream()
-                .map(item -> new com.tastyhouse.webapplication.product.port.in.ProductBatchQuery.Item(
+                .map(item -> new com.tastyhouse.application.product.port.in.ProductBatchQuery.Item(
                     item.productId(), item.optionId()))
                 .toList(),
             orderMethod

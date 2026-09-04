@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.banner.port.in.BannerQueryUseCase;
+import com.tastyhouse.application.banner.port.in.BannerQueryUseCase;
 import com.tastyhouse.webapi.banner.adapter.in.web.response.BannerListItemResponse;
 
 @RestController

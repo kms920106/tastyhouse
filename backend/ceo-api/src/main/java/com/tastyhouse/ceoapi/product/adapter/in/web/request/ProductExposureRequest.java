@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductExposureReplaceCommand;
+import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
 
 /**
  * 메뉴 노출기간 전체 치환 요청.

@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopDeliveryTipScheduleItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleItemResult;
 
 /**
  * 시간별 추가 배달팁 한 행.

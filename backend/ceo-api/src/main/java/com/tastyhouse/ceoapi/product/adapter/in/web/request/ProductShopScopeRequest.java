@@ -3,12 +3,12 @@ package com.tastyhouse.ceoapi.product.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductExposureClearCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackReadCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductImageDeleteCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductNutritionDeleteCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeClearCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductVegetarianClearCommand;
+import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
+import com.tastyhouse.application.product.port.in.ProductFeedbackReadCommand;
+import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeClearCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
 
 /**
  * 가게 소유권 검증만 필요한 조회 조건.

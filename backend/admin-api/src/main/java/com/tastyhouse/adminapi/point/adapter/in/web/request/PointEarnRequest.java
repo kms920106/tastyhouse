@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.point.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.point.port.in.PointEarnCommand;
+import com.tastyhouse.application.point.port.in.PointEarnCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;

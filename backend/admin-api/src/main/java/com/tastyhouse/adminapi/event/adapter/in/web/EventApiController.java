@@ -31,15 +31,15 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventListItemRespon
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.event.port.in.EventAnnouncementCreateCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventAnnouncementUpdateCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventCommandUseCase;
-import com.tastyhouse.adminapplication.event.port.in.EventCreateCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventDeleteCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventUpdateCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventWinnerCreateCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventWinnerDeleteCommand;
-import com.tastyhouse.adminapplication.event.port.in.EventManagementQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
+import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
+import com.tastyhouse.application.event.port.in.EventCommandUseCase;
+import com.tastyhouse.application.event.port.in.EventCreateCommand;
+import com.tastyhouse.application.event.port.in.EventDeleteCommand;
+import com.tastyhouse.application.event.port.in.EventUpdateCommand;
+import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
+import com.tastyhouse.application.event.port.in.EventWinnerDeleteCommand;
+import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
 
 @Tag(name = "Event Admin", description = "이벤트 관리자 API")
 @RestController

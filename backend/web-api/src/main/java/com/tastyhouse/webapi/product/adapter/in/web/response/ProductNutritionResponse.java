@@ -4,7 +4,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.product.port.out.ProductNutritionView;
+import com.tastyhouse.application.product.port.out.ProductNutritionView;
 
 /**
  * 메뉴 영양성분·알레르기(손님 화면).

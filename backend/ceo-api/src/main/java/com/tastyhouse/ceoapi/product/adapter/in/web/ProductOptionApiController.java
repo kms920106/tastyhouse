@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionDeleteRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionUpdateRequest;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOwnerCreateCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionDeleteCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionOrderChangeCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionOwnerCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
 
 /**
  * 점주 옵션 관리 API.

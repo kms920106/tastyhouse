@@ -24,10 +24,10 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.partnership.port.in.PartnershipManagementCommandUseCase;
-import com.tastyhouse.adminapplication.partnership.port.in.PartnershipDeleteCommand;
-import com.tastyhouse.adminapplication.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.adminapplication.partnership.port.in.PartnershipQueryUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
 
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController

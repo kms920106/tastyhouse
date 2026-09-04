@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementDeleteCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardHiddenChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 

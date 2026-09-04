@@ -57,8 +57,8 @@ public record SocialSignUpRequest(
     String referrerNickname
 ) {
 
-    public com.tastyhouse.webapplication.auth.port.in.AuthSocialSignUpCommand toCommand() {
-        return new com.tastyhouse.webapplication.auth.port.in.AuthSocialSignUpCommand(
+    public com.tastyhouse.application.auth.port.in.AuthSocialSignUpCommand toCommand() {
+        return new com.tastyhouse.application.auth.port.in.AuthSocialSignUpCommand(
             provider, tempToken, username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );

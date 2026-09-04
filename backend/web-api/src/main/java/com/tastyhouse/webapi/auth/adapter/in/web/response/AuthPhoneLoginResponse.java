@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.auth.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.auth.port.out.PhoneLoginResult;
+import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 
 @Schema(description = "휴대폰 인증 로그인 응답")
 public record AuthPhoneLoginResponse(

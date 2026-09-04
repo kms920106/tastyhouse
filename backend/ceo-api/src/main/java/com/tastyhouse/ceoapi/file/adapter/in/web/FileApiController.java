@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.file.port.in.FileUploadOwnerCommandUseCase;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 
 @Tag(name = "File Ceo", description = "파일 업로드 점주 API")
 @RestController

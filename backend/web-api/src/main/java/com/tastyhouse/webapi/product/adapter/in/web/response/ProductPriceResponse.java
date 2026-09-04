@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.product.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.product.port.out.ProductPriceView;
+import com.tastyhouse.application.product.port.out.ProductPriceView;
 
 /**
  * 메뉴 가격 한 행(가격명 + 주문유형으로 <b>이미 해석된</b> 단일 가격).

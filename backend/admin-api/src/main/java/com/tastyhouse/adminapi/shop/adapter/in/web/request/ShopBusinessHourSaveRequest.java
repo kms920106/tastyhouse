@@ -1,7 +1,7 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementCreateCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopBusinessHourManagementUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementUpdateCommand;
 
 import java.time.LocalTime;
 

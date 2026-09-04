@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.point.port.out.PointHistoryItemViewResult;
+import com.tastyhouse.application.point.port.out.PointHistoryItemViewResult;
 
 @Schema(description = "포인트 내역 항목")
 public record PointHistoryItemResponse(

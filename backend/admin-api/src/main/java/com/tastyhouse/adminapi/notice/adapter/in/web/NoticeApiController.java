@@ -26,11 +26,11 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeDetailRespon
 import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResponse;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeCommandUseCase;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeCreateCommand;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeDeleteCommand;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeUpdateCommand;
-import com.tastyhouse.adminapplication.notice.port.in.NoticeManagementQueryUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
+import com.tastyhouse.application.notice.port.in.NoticeDeleteCommand;
+import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
+import com.tastyhouse.application.notice.port.in.NoticeManagementQueryUseCase;
 
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.webapplication.auth.port.in.MemberAuthCommandUseCase;
+import com.tastyhouse.application.auth.port.in.MemberAuthCommandUseCase;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.AppleLoginRequest;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.FacebookLoginRequest;
 import com.tastyhouse.webapi.auth.adapter.in.web.request.KakaoLoginRequest;

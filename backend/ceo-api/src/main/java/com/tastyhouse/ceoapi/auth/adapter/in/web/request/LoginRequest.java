@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.auth.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-import com.tastyhouse.ceoapplication.auth.port.in.CeoAuthLoginCommand;
+import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 
 @Schema(description = "점주 로그인 요청")
 public record LoginRequest(

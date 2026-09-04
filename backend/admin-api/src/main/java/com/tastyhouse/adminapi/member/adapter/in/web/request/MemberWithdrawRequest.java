@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.member.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.member.port.in.MemberManagementWithdrawCommand;
+import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

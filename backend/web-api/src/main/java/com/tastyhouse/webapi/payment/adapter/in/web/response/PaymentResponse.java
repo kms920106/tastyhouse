@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.payment.port.out.PaymentViewResult;
+import com.tastyhouse.application.payment.port.out.PaymentViewResult;
 
 @Schema(description = "결제 상세 응답")
 public record PaymentResponse(

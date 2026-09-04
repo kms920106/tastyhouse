@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopMinOrderAmountUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
 
 @Schema(description = "가게 최소주문금액 변경 요청")
 public record ShopMinOrderAmountUpdateRequest(

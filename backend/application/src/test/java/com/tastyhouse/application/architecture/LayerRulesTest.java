@@ -6,6 +6,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.shared.marker.BatchApp;
+
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
@@ -36,37 +38,48 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  */
 class LayerRulesTest {
 
-    private final JavaClasses classes = new ClassFileImporter()
-        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-        .importPackages("com.tastyhouse.webapplication", "com.tastyhouse.adminapplication",
-                        "com.tastyhouse.ceoapplication", "com.tastyhouse.batchapplication");
-
     /**
-     * 이 모듈이 소유한 앱 단독 읽기 계약(split package) 271개.
+     * <b>챕터 03 — importer가 하나로 줄었다.</b>
      *
-     * <p>위 {@code classes}와 분리하는 이유는, 기존 규칙들이 {@code com.tastyhouse.application..port.out..}을
-     * <b>외부</b>로 취급하기 때문이다. 한 importer에 합치면 계약 자신이 그 규칙의 대상이 되어 의미가 뒤집힌다.
+     * <p>과거에는 앱 패키지 4개를 훑는 {@code classes}와 읽기 계약을 훑는 {@code readContracts}가
+     * 따로 있었다. 계약이 {@code com.tastyhouse.application..port.out..}에 살아 앱 패키지와 구분됐고,
+     * 규칙들이 계약을 <b>외부</b>로 취급했기 때문에 한 importer에 합치면 계약 자신이 대상이 되어
+     * 의미가 뒤집혔다.
      *
-     * <p>이 importer는 domain-module jar의 공유 계약 55개도 함께 잡는다 — split package라 패키지만으로는
-     * 소유 모듈을 가릴 수 없다. 챕터 04에서 그 55개가 이 모듈로 돌아오면 구분 자체가 사라진다.
+     * <p>평탄화로 그 구분이 사라졌다 — 계약도 서비스도 전부 {@code com.tastyhouse.application} 하나다.
+     * 그래서 importer를 하나로 합치고, 계약을 대상으로 삼던
+     * {@code readContractsShouldBeFrameworkFree}는 패키지 술어({@code ..port.out..})로 대상을 좁힌다.
      */
-    private final JavaClasses readContracts = new ClassFileImporter()
+    private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.application");
 
     /**
      * CQRS 교차 주입 금지(명령 → 조회).
      *
-     * <p>{@code *CommandService}는 읽기 포트({@code com.tastyhouse.application..port.out..})와
-     * 같은 모듈의 {@code *QueryService}를 주입하지 않는다 — 명령 경로가 표현용 투영에 결합되면
-     * 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐 있어 CQRS 분리가 이름만 남는다.
+     * <p>{@code *CommandService}는 읽기 포트도 같은 모듈의 {@code *QueryService}도 주입하지 않는다 —
+     * 명령 경로가 표현용 투영에 결합되면 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐
+     * 있어 CQRS 분리가 이름만 남는다.
+     *
+     * <p><b>챕터 03 개정 — 판정 기준을 패키지에서 이름으로 바꿨다(선택이 아니라 필수).</b> 평탄화로
+     * {@code <ctx>/port/out}이 "이 도메인의 모든 아웃바운드 계약"을 담게 되면서, 읽기 포트·아웃바운드
+     * SPI와 함께 <b>CommandService가 반환하는 Result/View record</b>가 같은 패키지에 살게 됐다.
+     * 그 record를 import하는 CommandService가 7개 있으므로({@code MemberAuthCommandService}·
+     * {@code PaymentCommandService}·{@code AdminAuthCommandService}·{@code CeoAuthCommandService}·
+     * {@code ShopDeliveryAreaCommandService}·{@code ProductAvailabilityCommandService}·
+     * {@code ProductOwnerCommandService}), {@code ..port.out..} 패키지 술어를 그대로 두면
+     * <b>이 챕터의 빌드가 곧바로 실패한다</b> — 규칙이 겨냥하지 않던 정당한 반환 타입을 위반으로 잡는다.
+     *
+     * <p>이름 기준({@code *QueryPort}·{@code *QueryService})은 읽기 포트 79개 중 78개를 그대로 덮는다.
+     * 접미어가 다른 나머지는 챕터 02에서 {@code GeoRingsQueryPort}로 개명해 해소했고, 아웃바운드 SPI
+     * 4개({@code SocialOAuthClient}·{@code BbqMenuPort}·{@code RemoteImagePort}·
+     * {@code AdminDongBoundaryPort})는 읽기 포트가 아니라 애초에 이 규칙의 대상이 아니다.
      */
     @Test
     void commandServicesShouldNotDependOnQueryDaos() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
-            .should().dependOnClassesThat().resideInAPackage(
-                "com.tastyhouse.application..port.out..")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("QueryPort")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
             .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -90,10 +103,13 @@ class LayerRulesTest {
      *
      * <p><b>챕터 01 개정 — 판정 기준을 simple name에서 FQN으로 바꿨다.</b> 4개 모듈이 하나로 합쳐지면서
      * 동명 클래스가 한 importer에 들어왔기 때문이다. 예컨대 {@code ShopQueryService}는 web·admin·ceo에
-     * 각각 존재하므로, 기존의 {@code haveSimpleNameNotEndingWith("ShopQueryService")}를 그대로 두면
-     * <b>의도한 web 1개가 아니라 3개 전부가 면제</b>되어 admin·ceo의 위반이 조용히 통과한다.
-     * FQN으로 못 박으면 면제 대상이 정확히 3개로 유지된다(챕터 02의 개명으로 동명 충돌이 해소되면
-     * 이 표현은 다시 단순해질 수 있으나, 그때도 FQN이 더 정확하므로 유지한다).
+     * 각각 존재했으므로, {@code haveSimpleNameNotEndingWith("ShopQueryService")}를 그대로 두면
+     * <b>의도한 web 1개가 아니라 3개 전부가 면제</b>되어 admin·ceo의 위반이 조용히 통과했다.
+     *
+     * <p><b>챕터 02·03 — FQN을 유지한다.</b> 챕터 02의 개명으로 앱 간 동명 충돌이 해소돼 simple name이
+     * 다시 유일해졌고, 챕터 03의 평탄화로 위 FQN 3개도 앱 패키지 없는 평탄 이름이 됐다. 그래도 FQN을
+     * 유지하는 이유는 그쪽이 더 정확하기 때문이다 — 나중에 같은 접미어의 형제가 생겨도 면제 범위가
+     * 넓어지지 않는다.
      *
      * <p>이 목록에 새 항목을 추가하지 않는다.
      */
@@ -101,9 +117,9 @@ class LayerRulesTest {
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("QueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.webapplication.shop.service.ShopQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.adminapplication.admin.service.AdminQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.ceoapplication.ceo.service.CeoOwnerQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerQueryService")
             .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.domain..repository..")
             .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -142,10 +158,12 @@ class LayerRulesTest {
     /**
      * Command record는 경계 타입만 싣는다(carve-out 3건 그대로 유지).
      *
-     * <p>importer를 <b>web·admin·ceo 3개 앱으로 한정</b>한다. batch에는 Command record가 없고
-     * 인바운드 포트가 {@code void foo()} 뿐이라 carve-out이 {@code domain.exception..} 하나인
-     * <b>엄격판</b>을 쓸 수 있으며, 그쪽은 {@link BatchSchedulerRulesTest#inboundPortsShouldBeBoundaryTyped()}가
-     * 맡는다. 한 importer로 합치면 batch가 느슨한 3-carve-out 규칙에 얹혀 엄격함을 잃는다.
+     * <p><b>챕터 03 개정 — batch 제외를 importer가 아니라 {@code @BatchApp} 마커로 표현한다.</b>
+     * 과거에는 importer를 web·admin·ceo 3개 앱 패키지로 한정해 batch를 뺐으나, 평탄화로 앱별 패키지가
+     * 사라져 그 방법을 쓸 수 없다. batch에는 Command record가 없고 인바운드 포트가 {@code void foo()}
+     * 뿐이라 carve-out이 {@code domain.exception..} 하나인 <b>엄격판</b>을 쓸 수 있으며, 그쪽은
+     * {@link BatchSchedulerRulesTest#inboundPortsShouldBeBoundaryTyped()}가 맡는다.
+     * batch를 이 규칙에 함께 넣으면 느슨한 3-carve-out 판에 얹혀 엄격함을 잃는다.
      *
      * <p>{@code com.tastyhouse.domain.exception..}은 예외로 허용한다 — {@code BusinessException}·
      * {@code ErrorCode}는 애그리거트가 아니라 전 계층이 공유하는 <b>횡단 관심사(에러 계약)</b>이고,
@@ -169,13 +187,9 @@ class LayerRulesTest {
      */
     @Test
     void commandRecordsShouldBeBoundaryTyped() {
-        JavaClasses appsWithCommands = new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.tastyhouse.webapplication", "com.tastyhouse.adminapplication",
-                            "com.tastyhouse.ceoapplication");
-
         ArchRule rule = noClasses()
             .that().resideInAPackage("..port.in..")
+            .and().areNotAnnotatedWith(BatchApp.class)
             .should().dependOnClassesThat(
                 resideInAnyPackage(
                     "com.tastyhouse.domain..",
@@ -188,7 +202,7 @@ class LayerRulesTest {
             .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다"
                 + "(에러 계약·페이징 계약은 횡단 관심사라 예외)");
 
-        rule.check(appsWithCommands);
+        rule.check(classes);
     }
 
     /**
@@ -339,6 +353,18 @@ class LayerRulesTest {
      * <p>허용 대상을 {@code java..}·{@code com.tastyhouse.domain..}과 자기 자신으로 한정한다. 계약이
      * 참조해도 되는 것은 도메인 타입뿐이며, 이는 build.gradle을 바꾸지 않고도 계약을 옮길 수 있었던
      * 근거이기도 하다.
+     *
+     * <p><b>챕터 03 개정 — 대상이 읽기 계약을 넘어 {@code port.out} 전체가 됐다.</b> 평탄화로
+     * {@code <ctx>/port/out}이 "이 도메인의 모든 아웃바운드 계약"이 되어 아웃바운드 SPI
+     * ({@code SocialOAuthClient}·{@code BbqMenuPort}·{@code RemoteImagePort})와 CommandService가
+     * 반환하는 Result record도 함께 산다. 그것들도 프레임워크-프리여야 하는 것은 마찬가지이므로
+     * 대상을 좁히지 않고 넓힌다.
+     *
+     * <p>확대 시 유일한 위반이던 {@code BbqMenuPort}는 같은 챕터에서 해소했다 — wire 타입인
+     * {@code Bbq*Response} 4개가 {@code crawling/bbq/response/}에 있어 허용 목록 밖이었고,
+     * 이를 {@code crawling/bbq/port/out/}으로 옮겨 자기 자신 허용 범위 안으로 들였다.
+     *
+     * <p>대상을 별도 importer가 아니라 패키지 술어로 잡는다 — 위 {@code classes} Javadoc 참조.
      */
     @Test
     void readContractsShouldBeFrameworkFree() {
@@ -353,7 +379,7 @@ class LayerRulesTest {
             .because("읽기 계약은 도메인 타입만 참조한다 — application-common-module에서 "
                 + "빌드 게이트로 강제되던 프레임워크-프리를 규칙으로 승계한다");
 
-        rule.check(readContracts);
+        rule.check(classes);
     }
 
     /**

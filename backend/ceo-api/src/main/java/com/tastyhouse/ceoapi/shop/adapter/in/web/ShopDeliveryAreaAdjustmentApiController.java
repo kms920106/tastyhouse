@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentItemResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 
 @Tag(name = "Ceo Shop Delivery Area Adjustment", description = "점주 프랜차이즈 배달지역 조정 신청 API")
 @RestController

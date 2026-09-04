@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeManagementCommandUseCase;
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeHideCommand;
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeUnhideCommand;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeHideCommand;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUnhideCommand;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopOrderNoticeHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
-import com.tastyhouse.adminapplication.shop.port.in.ShopOrderNoticeManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeManagementQueryUseCase;
 
 /**
  * 주문안내 검수 관리자 API.

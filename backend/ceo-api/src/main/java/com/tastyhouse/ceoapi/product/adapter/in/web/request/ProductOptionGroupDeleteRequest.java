@@ -3,7 +3,7 @@ package com.tastyhouse.ceoapi.product.adapter.in.web.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import com.tastyhouse.ceoapplication.product.port.in.ProductOptionGroupDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
 
 @Schema(description = "옵션그룹 삭제 요청")
 public record ProductOptionGroupDeleteRequest(

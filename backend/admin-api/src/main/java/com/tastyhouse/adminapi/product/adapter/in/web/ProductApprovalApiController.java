@@ -26,14 +26,14 @@ import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResu
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.product.port.in.ProductApprovalCommandUseCase;
-import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeApproveCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductImageChangeRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductRepresentativeApproveCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductRepresentativeRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductVegetarianApproveCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductVegetarianRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.ProductApprovalQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductApprovalCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductImageChangeApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductApprovalQueryUseCase;
 
 /**
  * 메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API.

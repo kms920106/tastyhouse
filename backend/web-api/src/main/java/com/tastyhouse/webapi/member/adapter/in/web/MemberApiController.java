@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
 import com.tastyhouse.webapi.member.adapter.in.web.request.NicknameAvailabilityRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.PhoneAvailabilityRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MemberNicknameAvailabilityResponse;

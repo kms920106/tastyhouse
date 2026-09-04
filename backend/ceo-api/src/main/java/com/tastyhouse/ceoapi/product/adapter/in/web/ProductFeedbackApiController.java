@@ -18,14 +18,14 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductFeedbackSearchRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnreadResponse;
-import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackReadCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductFeedbackQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductFeedbackOwnerCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductFeedbackReadCommand;
+import com.tastyhouse.application.product.port.in.ProductFeedbackQueryUseCase;
 
 /**
  * 점주 메뉴 정보 고객 의견 확인 API.

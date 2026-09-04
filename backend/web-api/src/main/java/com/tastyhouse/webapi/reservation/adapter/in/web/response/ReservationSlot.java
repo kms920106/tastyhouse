@@ -4,7 +4,7 @@ import java.time.LocalTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.reservation.port.out.ReservationSlotResult;
+import com.tastyhouse.application.reservation.port.out.ReservationSlotResult;
 
 @Schema(description = "슬롯 가용 정보")
 public record ReservationSlot(

@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.webapplication.auth.security.MemberUserDetails;
-import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommand;
-import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentCommandUseCase;
-import com.tastyhouse.webapplication.review.port.in.ReviewBlindConsentQueryUseCase;
-import com.tastyhouse.webapplication.review.port.in.ReviewBlindRejectCommand;
+import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.review.port.in.ReviewBlindConsentCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindConsentCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindConsentQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRejectCommand;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 

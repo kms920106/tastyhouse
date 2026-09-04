@@ -1,8 +1,8 @@
 package com.tastyhouse.adminapi.review.adapter.in.web;
 
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestApproveCommand;
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestManagementCommandUseCase;
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestRejectCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestApproveCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestManagementCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequest
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestListItemResponse;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.review.port.in.ReviewBlindRequestQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
 
 @Tag(name = "Review Blind Request Admin", description = "리뷰 게시중단 요청 심사 API")
 @RestController

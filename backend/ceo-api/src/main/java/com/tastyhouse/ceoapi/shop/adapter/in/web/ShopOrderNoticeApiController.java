@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOrderNoticeUpsertRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeResponse;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeOwnerCommandUseCase;
-import com.tastyhouse.ceoapplication.shop.port.in.ShopOrderNoticeUpsertCommand;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUpsertCommand;
 
 /**
  * 점주 주문안내(메뉴판 최상단 안내 문구) API.

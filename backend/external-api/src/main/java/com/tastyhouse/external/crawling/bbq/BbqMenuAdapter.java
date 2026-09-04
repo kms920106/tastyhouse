@@ -5,11 +5,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.batchapplication.crawling.bbq.port.out.BbqMenuPort;
-import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductCategoryResponse;
-import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductResponse;
-import com.tastyhouse.batchapplication.crawling.bbq.response.BbqProductSubOptionResponse;
-import com.tastyhouse.batchapplication.crawling.bbq.response.SubOptionItemDetailResponse;
+import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
+import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
+import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
+import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
+import com.tastyhouse.application.crawling.bbq.port.out.SubOptionItemDetailResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;

@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.admin.adapter.in.web.request.AdminCreateRequest;
-import com.tastyhouse.adminapplication.admin.port.in.AdminCommandUseCase;
-import com.tastyhouse.adminapplication.admin.port.in.AdminCreateCommand;
+import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
+import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
 
 @Tag(name = "Admin", description = "관리자 계정 관리 API")
 @RestController

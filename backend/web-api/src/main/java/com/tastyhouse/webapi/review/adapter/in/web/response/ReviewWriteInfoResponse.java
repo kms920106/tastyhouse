@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.review.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.review.port.out.ReviewWriteInfoView;
+import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
 
 @Schema(description = "리뷰 작성 페이지 정보 응답")
 public record ReviewWriteInfoResponse(

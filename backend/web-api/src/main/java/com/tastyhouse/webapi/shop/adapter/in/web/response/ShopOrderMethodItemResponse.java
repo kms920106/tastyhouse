@@ -2,7 +2,7 @@ package com.tastyhouse.webapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.shop.port.out.ShopOrderMethodItemResult;
+import com.tastyhouse.application.shop.port.out.ShopOrderMethodItemResult;
 
 /**
  * 주문 방식 항목.

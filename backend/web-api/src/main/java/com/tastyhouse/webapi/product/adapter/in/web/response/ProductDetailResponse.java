@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.webapplication.product.port.out.ProductDetailView;
+import com.tastyhouse.application.product.port.out.ProductDetailView;
 
 @Schema(description = "상품 상세 정보")
 public record ProductDetailResponse(

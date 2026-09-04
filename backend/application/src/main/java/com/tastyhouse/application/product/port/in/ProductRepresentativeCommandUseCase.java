@@ -1,0 +1,17 @@
+package com.tastyhouse.application.product.port.in;
+
+import com.tastyhouse.application.shared.marker.CeoApp;
+import java.util.List;
+
+/**
+ * 대표메뉴 쓰기 인바운드 포트.
+ *
+ * <p>컨트롤러는 이 인터페이스만 주입하고 구현을 알지 않는다.
+ */
+@CeoApp
+public interface ProductRepresentativeCommandUseCase {
+
+    List<Long> requestRepresentative(ProductRepresentativeRequestCommand command);
+
+    void clearRepresentative(ProductRepresentativeClearCommand command);
+}

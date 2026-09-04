@@ -23,11 +23,11 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerific
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationListItemResponse;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationApproveCommand;
-import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationCommandUseCase;
-import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationRejectCommand;
-import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationStartReviewCommand;
-import com.tastyhouse.adminapplication.product.port.in.StorePriceVerificationQueryUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationApproveCommand;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationCommandUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectCommand;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationStartReviewCommand;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
 
 /**
  * 매장 가격 인증 요청 검수 관리자 API.

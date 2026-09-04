@@ -1,6 +1,6 @@
 package com.tastyhouse.batch.product.adapter.in.scheduler;
 
-import com.tastyhouse.batchapplication.product.port.in.SyncProductOptionsUseCase;
+import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
 //import org.springframework.scheduling.annotation.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.coupon.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.coupon.port.in.CouponCreateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 
 import java.time.LocalDateTime;
 

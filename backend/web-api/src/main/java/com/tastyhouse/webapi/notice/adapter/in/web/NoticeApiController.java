@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.webapplication.notice.port.in.NoticeQueryUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeQueryUseCase;
 import com.tastyhouse.webapi.notice.adapter.in.web.response.NoticeListItemResponse;
 
 @RestController

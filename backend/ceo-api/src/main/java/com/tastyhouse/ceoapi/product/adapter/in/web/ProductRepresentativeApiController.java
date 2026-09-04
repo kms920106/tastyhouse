@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapplication.auth.security.CeoUserDetails;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductRepresentativeCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
-import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeClearCommand;
-import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeCommandUseCase;
-import com.tastyhouse.ceoapplication.product.port.in.ProductRepresentativeRequestCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeClearCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestCommand;
 
 /**
  * 점주 사장님 추천(대표 메뉴) API.

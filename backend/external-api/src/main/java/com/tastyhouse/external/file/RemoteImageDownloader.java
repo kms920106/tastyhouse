@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.batchapplication.crawling.bbq.port.out.RemoteImagePort;
+import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.domain.file.service.FileUploadCommand;
 import com.tastyhouse.domain.file.service.FileUploadService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;

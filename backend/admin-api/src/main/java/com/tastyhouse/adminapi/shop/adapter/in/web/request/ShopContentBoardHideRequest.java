@@ -1,6 +1,6 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.adminapplication.shop.port.in.ShopContentBoardHiddenChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 
 import jakarta.validation.constraints.NotNull;
 

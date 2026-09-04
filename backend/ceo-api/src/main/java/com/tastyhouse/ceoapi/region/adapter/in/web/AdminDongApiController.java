@@ -16,7 +16,7 @@ import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
-import com.tastyhouse.ceoapplication.region.port.in.AdminDongQueryUseCase;
+import com.tastyhouse.application.region.port.in.AdminDongQueryUseCase;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongBoundarySearchRequest;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongSearchRequest;
 import com.tastyhouse.ceoapi.region.adapter.in.web.request.AdminDongTreeRequest;
