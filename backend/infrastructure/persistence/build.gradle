@@ -4,35 +4,21 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈
     api project(':domain-module')
-    // 읽기 포트의 구현체가 이 모듈의 QueryDao다. 앱 단독 계약은 application 모듈 1개가 소유한다
-    // (공유 계약은 domain-module 소유 — 위 api 선언으로 이미 보인다).
-    // implementation으로 둔다 — 포트를 주입하는 쪽은 자기 build.gradle에서 직접 선언하므로
-    // 이 모듈이 전이 노출할 이유가 없다.
-    // 앱 내부(com.tastyhouse.{app}application..) 침범은 의존 스코프가 아니라
-    // LayerRulesTest#shouldNotDependOnApiModules가 막는다.
     implementation project(':application')
 
-    // Spring Boot Starter
     api 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // 외부 라이브러리
     implementation 'com.mysql:mysql-connector-j'
 
-    // QueryDSL (OpenFeign 포크 — CVE-2024-49203 대응, 원 com.querydsl:5.0.0은 패치 없음)
-    // implementation으로 강등 — 소비 모듈(web/admin/ceo/batch)에 QueryDSL을 전이 노출하지 않는다.
-    // 조회는 이 모듈의 <ctx>/query/ DAO가 캡슐화하며, api 모듈은 DAO와 Result DTO만 주입·import한다.
     implementation 'io.github.openfeign.querydsl:querydsl-jpa:6.11'
     annotationProcessor 'io.github.openfeign.querydsl:querydsl-apt:6.11:jakarta'
     annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
     annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 
-
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
-    // 계층 경계 가드(LayerRulesTest) — 타 모듈(domain/web/admin/ceo/batch)과 버전 통일
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
@@ -40,7 +26,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// QueryDSL 생성 파일을 build 폴더에 생성하도록 설정
 def querydslDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main").get().asFile
 def querydslTestDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/test").get().asFile
 
@@ -65,7 +50,6 @@ tasks.named('compileTestJava') {
     options.generatedSourceOutputDirectory = file(querydslTestDir)
 }
 
-// IntelliJ IDEA 설정: .apt_generated 폴더 대신 build 폴더 사용
 idea {
     module {
         generatedSourceDirs += file(querydslDir)
@@ -73,7 +57,6 @@ idea {
     }
 }
 
-// This module should not have a main method, so disable bootJar task
 jar {
     enabled = true
     archiveClassifier = ''

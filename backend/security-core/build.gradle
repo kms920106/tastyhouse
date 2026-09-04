@@ -4,25 +4,11 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈
-    // ErrorCode — 토큰 검증 실패를 도메인 에러 코드로 표현한다.
     implementation project(':domain-module')
-    // 토큰 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)이 StringRedisTemplate을 쓴다.
-    // 연결 설정과 템플릿 빈 자체는 이 모듈이 소유하지 않고 infrastructure:redis에 위임한다.
-    // 이 모듈이 data-redis 타입을 직접 선언하지 않는 이유는 infrastructure:redis가 그것을
-    // api로 노출하기 때문이다. Redis key prefix는 기존 발급 토큰과의 호환을 위해 불변이다.
     implementation project(':infrastructure:redis')
 
-    // 이 모듈은 서블릿 스택(starter-web·jakarta.servlet)을 의존하지 않는다 — 그것이 이 모듈을
-    // security-module에서 떼어낸 이유다(챕터 03). application 4모듈이 JwtTokenProvider와
-    // 토큰 저장소를 쓰기 위해 security-module을 의존하면 서블릿 필터·EntryPoint까지 컴파일
-    // 클래스패스에 딸려 들어와 계층이 오염된다. 서블릿 결합 타입은 전부 security-module에 남는다.
-
-    // JwtTokenProvider가 Authentication·UserDetails·GrantedAuthority를 시그니처에 노출하므로
-    // starter-security 전체 대신 core만, 그리고 api로 선언한다.
     api 'org.springframework.security:spring-security-core'
 
-    // JWT (JwtTokenProvider가 서명/파싱에 사용)
     api 'io.jsonwebtoken:jjwt-api:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
@@ -35,7 +21,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// 실행 가능한 애플리케이션이 아니므로 bootJar를 비활성화한다(security-module 선례).
 jar {
     enabled = true
     archiveClassifier = ''

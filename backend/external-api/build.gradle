@@ -4,32 +4,20 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈
     implementation project(':domain-module')
-    // 챕터 04 — 의존 역전. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를
-    // 소유한 application 모듈에 의존한다(방향: adapter → port). 반대 방향(application →
-    // external-api)은 application/build.gradle에서 제거됐으므로 순환이 아니다.
-    // - web 앱: 소셜 로그인 SPI(auth.port.out)
-    // - batch 앱: BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입
     implementation project(':application')
 
-    // Spring Boot Starter
-    // 서블릿 스택 실사용은 MultipartFile 1종뿐이라 starter-web(tomcat+webmvc 전체) 대신
-    // spring-web만 쓴다. Jackson은 아래 starter-webflux가 전이로 제공한다.
     implementation 'org.springframework:spring-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-    // 외부 라이브러리
     implementation 'software.amazon.awssdk:ses'
     implementation 'software.amazon.awssdk:sns'
     implementation 'io.awspring.cloud:spring-cloud-aws-s3'
     implementation 'com.google.firebase:firebase-admin:9.10.0'
-    // Apple 로그인: client_secret JWT 생성(ES256) + id_token 검증(RS256)
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -39,7 +27,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// This module should not have a main method, so disable bootJar task
 jar {
     enabled = true
     archiveClassifier = ''

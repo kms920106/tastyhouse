@@ -39,9 +39,11 @@
 
 ### Internal
 - `domain-module` (implementation) — 출력 포트 인터페이스(`<ctx>/port/`) 및 도메인 타입
+- `application` (implementation) — **의존 역전(챕터 04)**. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를 소유한 모듈에 의존한다(방향: adapter → port). web 앱의 소셜 로그인 SPI(`auth.port.out`), batch 앱의 BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입이 그것이다. **반대 방향(`application → external-api`)은 `application/build.gradle`에서 제거됐으므로 순환이 아니다** — 그 줄을 되살리면 빌드가 깨진다
 
 ### External
 - AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0
-- spring-boot-starter-mail, webflux(WebClient), JJWT 0.13.0
+- spring-boot-starter-mail, webflux(WebClient), JJWT 0.13.0 (Apple 로그인 — client_secret JWT 생성 ES256 + id_token 검증 RS256)
+- **`spring-web`만 선언하고 `starter-web`은 쓰지 않는다** — 서블릿 스택 실사용이 `MultipartFile` 1종뿐이라 tomcat+webmvc 전체를 들일 이유가 없다. Jackson은 `starter-webflux`가 전이로 제공하므로 별도 선언이 없다
 
 <!-- MANUAL: -->

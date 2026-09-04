@@ -65,14 +65,27 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`
-- `infrastructure:persistence` (implementation) — 빈 스캔 대상(`{도메인}QueryDao`가 실제로 뜨는 곳)이지만 `com.tastyhouse.infrastructure..`는 소스 레벨에서 import하지 않는다(ArchUnit이 차단)
+- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
+- `infrastructure:persistence` (implementation) — **`runtimeOnly`로 강등하지 않는다**: 소스 import는 0건이지만 부트스트랩이 `@Import(InfrastructureModuleConfig.class)`로 진입점 설정을 컴파일 타임에 참조한다(강등하면 실측상 4개 모듈 전부 "package does not exist"). 해소하려면 `@Import`를 문자열 `scanBasePackages`로 되돌려야 하는데 그것은 타입 세이프 조합이라는 설계 의도를 뒤집는다. 은닉은 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당한다
 - `external-api` — OAuth/결제/메시징/파일 어댑터
-- `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit
+- `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소
+- `infrastructure:redis` — rate limit 카운터(`RedisRateLimitCounter`)와 `StringRedisTemplate` 빈. 부트스트랩이 `@Import(RedisModuleConfig.class)`로 참조한다. 챕터 02에서 `@RateLimit`·aspect는 `api-common-module`로 올라갔고 이 모듈에는 카운터만 남았다
+- `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`
 - `logging-module` — 요청/응답 로깅(p6spy 전이)
+- **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain-module')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).
+- `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03).
 
-### External
-- Spring Web/WebFlux/Security, Redis, AOP, Validation
-- JJWT 0.13.0, springdoc-openapi 2.3.0 (p6spy는 logging-module 경유 전이 의존)
+### External — starter를 직접 선언하지 않는다
+공유 모듈이 `api`로 전이 노출하므로 이 모듈은 starter 좌표를 직접 쓰지 않는다.
+
+| 전이되는 것 | 노출 모듈 |
+|---|---|
+| `starter-web` · `starter-validation` · springdoc | `api-common-module` |
+| `starter-security` | `security-module` |
+| `starter-aop` | `logging-module` |
+| jjwt-api (impl·jackson은 runtimeOnly 전이) | `security-module` → `security-core` |
+
+"직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 **의도된 계약**이라 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을 `implementation`으로 좁히면 여기서 **즉시 컴파일 에러**로 드러나므로 침묵 파손은 없다.
+
 
 <!-- MANUAL: -->

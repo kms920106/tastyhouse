@@ -66,12 +66,24 @@
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`·`shared/model/ApprovalStatus`
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `CeoApplicationConfig`
-- `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단)
+- `infrastructure:persistence` (implementation) — **`runtimeOnly`로 강등하지 않는다**: 소스 import는 0건이지만 부트스트랩이 `@Import(InfrastructureModuleConfig.class)`로 진입점 설정을 컴파일 타임에 참조한다(강등하면 실측상 4개 모듈 전부 "package does not exist"). 해소하려면 `@Import`를 문자열 `scanBasePackages`로 되돌려야 하는데 그것은 타입 세이프 조합이라는 설계 의도를 뒤집는다. 은닉은 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당한다
 - `external-api`, `logging-module`, `security-module`
+- `infrastructure:redis` — rate limit 카운터와 `StringRedisTemplate` 빈. 부트스트랩이 `@Import(RedisModuleConfig.class)`로 참조한다
+- `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
+- **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain-module')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).
+- `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03).
 
-### External
-- Spring Web, Spring Security, springdoc-openapi 2.3.0, jjwt 0.13.0, Spring Data Redis
+### External — starter를 직접 선언하지 않는다
+공유 모듈이 `api`로 전이 노출하므로 이 모듈은 starter 좌표를 직접 쓰지 않는다.
+
+| 전이되는 것 | 노출 모듈 |
+|---|---|
+| `starter-web` · `starter-validation` · springdoc | `api-common-module` |
+| `starter-security` | `security-module` |
+| `starter-aop` | `logging-module` |
+| jjwt-api (impl·jackson은 runtimeOnly 전이) | `security-module` → `security-core` |
+
+"직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 **의도된 계약**이라 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을 `implementation`으로 좁히면 여기서 **즉시 컴파일 에러**로 드러나므로 침묵 파손은 없다.
 
 <!-- MANUAL: -->

@@ -4,28 +4,10 @@ plugins {
 }
 
 dependencies {
-    // 프레임워크-프리 도메인 모듈.
-    // - QueryDSL 의존 없음: @QueryProjection Result DTO와 query DAO는 전부 infrastructure:persistence
-    //   <ctx>/query/ 소유이므로 이 모듈은 com.querydsl.* 를 컴파일하지 않는다.
-    //   (api 모듈로의 QueryDSL 전이 노출을 원천 차단하는 지점)
-    // - spring-tx/spring-orm 의존 없음: 도메인 서비스는 전부 순수 POJO(@Transactional 미사용)이고,
-    //   빈 등록은 infrastructure:persistence의 DomainServiceConfig 소관이다. 낙관적 락 충돌은
-    //   프레임워크-프리 OptimisticLockConflictException으로 표현하고, 스프링 예외 번역은
-    //   infrastructure:persistence의 RepositoryImpl이 담당한다.
-
-    // - spring 의존 없음: 루트 build.gradle의 subprojects 블록이 이 모듈을 제외하므로
-    //   spring-boot-starter가 주입되지 않는다. 그 결과 `import org.springframework...` 한 줄이
-    //   실제 컴파일 에러가 되어, 프레임워크-프리가 리뷰 규율이 아니라 빌드 게이트로 강제된다.
-
-
-    // Test — spring-boot-starter-test 통째가 아니라 실제로 쓰는 것만 선언한다.
-    // domain-module의 테스트는 전부 순수 단위 테스트(@SpringBootTest류 0건)라 스프링 테스트 컨텍스트가
-    // 필요 없고, starter를 두면 테스트 클래스패스로 spring이 다시 들어와 순수성 검증이 무뎌진다.
+    // Test
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.assertj:assertj-core'
-    // 도메인 순수성(프레임워크-프리·의존 방향) 게이트용. 위 프레임워크-프리 원칙은 production
-    // 의존에만 적용되며, 그 원칙을 강제하는 테스트 의존은 이 규칙의 대상이 아니다.
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
@@ -33,9 +15,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// 실행 가능한 애플리케이션이 아니므로 일반 jar만 생성한다.
-// bootJar 비활성화 설정은 두지 않는다 — 이 모듈은 org.springframework.boot 플러그인을
-// 적용하지 않으므로 bootJar 태스크 자체가 존재하지 않는다(설정하면 스크립트 평가 에러).
 jar {
     enabled = true
     archiveClassifier = ''

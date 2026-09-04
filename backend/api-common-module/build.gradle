@@ -4,33 +4,15 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈 — PaginationResponse가 PageResult<T>를 사용한다.
-    // 이 모듈의 공개 시그니처(PaginationResponse.from)에 domain 타입이 노출되므로 api로 둔다.
-    // domain.exception(BusinessException·ErrorCode)도 이 노출을 타고 api 3모듈의 공용 에러 계약이 된다.
     api project(':domain-module')
-    // infrastructure:redis에 의존하지 않는다 — 챕터 02에서 rate limit의 표현 관심사
-    // (@RateLimit·RateLimitAspect·RateLimitException·RateLimitCounterPort)를 이 모듈로 올리고
-    // Redis 카운터만 인프라에 남겨 포트로 역전했다. 이제 방향은 redis → api-common이다.
 
-    // Spring Boot Starter — @RestControllerAdvice 사용.
-    // 소비 모듈(admin-api/ceo-api/web-api)도 각자 선언하지만 중복은 무해하다.
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-validation'
-    // GlobalExceptionHandler가 다루는 것은 core 예외 5종(AccessDenied/BadCredentials/
-    // Disabled/Locked/Authentication)뿐이라 starter-security 전체 대신 core만 선언한다.
     implementation 'org.springframework.security:spring-security-core'
 
-    // RateLimitAspect의 @Aspect/@Before (챕터 02에서 infrastructure:redis로부터 이관).
-    // implementation으로 두는 이유: 소비 앱이 컴파일에 필요한 것은 @RateLimit 애노테이션(이 모듈 소유)
-    // 뿐이고, 런타임 AOP 활성화(aspectjweaver → AopAutoConfiguration)는 logging-module이
-    // starter-aop를 api로 노출해 이미 3개 앱 클래스패스에 올려준다(각 앱 build.gradle 주석 참조).
-    // 그 노출이 implementation으로 좁아지면 이 선언을 api로 승격해야 한다 — 그때 앱은 계속
-    // 컴파일되지만 aspect가 프록시되지 않아 @RateLimit이 조용히 무시되므로, 이 결합을 여기 남긴다.
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
-    // Swagger — 공용 응답 record가 @Schema를 갖는다.
     api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
-
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -40,7 +22,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// 실행 가능한 애플리케이션이 아니므로 bootJar를 비활성화한다(security-module 선례).
 jar {
     enabled = true
     archiveClassifier = ''

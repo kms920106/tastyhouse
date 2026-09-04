@@ -39,3 +39,17 @@
 - **필드 셋이나 `@Schema` 문구가 다른 응답 record** — 예: `ShopDetailResponse`(admin은 감사 시각, ceo는 `trademarkImageUrl`/`hidden`), `ShopAmenityResponse`("가게" vs "내 가게").
 - **도메인 포트가 있는 기술 어댑터** — 그것은 `external-api`(도메인 포트 구현)나 `infrastructure:persistence`(DB 어댑터) 소관이다.
 - **기술 구현체** — 이 모듈은 계약(`RateLimitCounterPort`)만 두고 구현은 인프라 모듈에 맡긴다. 표현 계층이 인프라 모듈을 `implementation`으로 끌어오는 순간 챕터 02가 교정한 역방향 의존이 되살아난다.
+
+## Dependencies
+
+### Internal
+- `domain-module` (**api**) — `PaginationResponse.from(PageResult<T>)`의 공개 시그니처에 domain 타입이 노출되므로 `api`로 둔다. 그 노출을 타고 `domain.exception`(`BusinessException`·`ErrorCode`)도 api 3모듈의 **공용 에러 계약**이 된다.
+- **`infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 rate limit의 표현 관심사(`@RateLimit`·`RateLimitAspect`·`RateLimitException`·`RateLimitCounterPort`)를 이 모듈로 올리고 Redis 카운터만 인프라에 남겨 **포트로 역전**했다. 방향은 이제 `redis → api-common`이다.
+
+### External
+- `spring-boot-starter-web`·`spring-boot-starter-validation` (**api**) — `@RestControllerAdvice`. 소비 모듈도 각자 선언하지만 중복은 무해하다
+- `springdoc-openapi-starter-webmvc-ui` (**api**, 버전은 루트 `ext.springdocVersion`) — 공용 응답 record가 `@Schema`를 갖는다
+- `spring-security-core` (implementation) — `GlobalExceptionHandler`가 다루는 것은 core 예외 5종(`AccessDenied`/`BadCredentials`/`Disabled`/`Locked`/`Authentication`)뿐이라 starter 전체 대신 core만 선언한다
+- `spring-boot-starter-aop` (**implementation** — 의도적) — `RateLimitAspect`의 `@Aspect`/`@Before`. 소비 앱이 컴파일에 필요한 것은 `@RateLimit` 애노테이션(이 모듈 소유)뿐이고, 런타임 AOP 활성화(aspectjweaver → `AopAutoConfiguration`)는 `logging-module`이 `starter-aop`를 `api`로 노출해 이미 3개 앱 클래스패스에 올려준다. **그 노출이 `implementation`으로 좁아지면 이 선언을 `api`로 승격해야 한다** — 그때 앱은 계속 컴파일되지만 aspect가 프록시되지 않아 `@RateLimit`이 조용히 무시된다
+
+**이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례).

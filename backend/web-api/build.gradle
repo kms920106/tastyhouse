@@ -1,47 +1,15 @@
 dependencies {
-    // 내부 모듈
-    // domain-module은 선언하지 않는다 — 이 모듈 소스에 com.tastyhouse.domain.. import가 0건이고
-    // (apiModuleShouldBeDomainModelFree가 강제), domain 타입이 다시 필요해지더라도
-    // api-common-module이 api project(':domain-module')로 전이 노출하므로 재선언이 필요 없다.
-    // web/admin/ceo-api 3개 모듈 모두 같은 상태다(web-api의 GlobalExceptionHandler가 쓰는
-    // domain.exception..도 그 전이 경로로 해결된다).
     implementation project(':application')
-    // infrastructure:persistence은 runtimeOnly로 강등하지 않고 implementation을 유지한다(챕터 05 §2 검토 결과).
-    // 챕터 04로 이 모듈 소스에 infra query/persistence import는 0건이 됐지만, 앱 부트스트랩이
-    // @Import(InfrastructureModuleConfig.class)로 infra 진입점 설정을 컴파일 타임에 참조한다.
-    // 강등하면 이 한 줄 때문에 컴파일이 깨지고(실측: 4개 모듈 전부 "package does not exist"),
-    // 해소하려면 @Import를 문자열 기반 scanBasePackages로 되돌려야 하는데 이는
-    // InfrastructureModuleConfig의 설계 의도(패키지 문자열 나열 대신 타입 세이프 조합 —
-    // Spring Boot 레퍼런스 표준 구성)를 정면으로 뒤집는 것이라 비용이 이득보다 크다.
-    // 은닉은 의존 스코프가 아니라 ArchUnit(LayerRulesTest)이 담당한다.
     implementation project(':infrastructure:persistence')
     implementation project(':external-api')
     implementation project(':logging-module')
     implementation project(':security-module')
-    // rate limit 카운터(RedisRateLimitCounter)와 StringRedisTemplate 빈을 제공한다.
-    // 챕터 02에서 @RateLimit·aspect는 api-common-module로 올라갔고 이 모듈에는 카운터만 남았다.
-    // 부트스트랩이 @Import(RedisModuleConfig.class)로 이 모듈의 진입점 설정을 참조한다.
     implementation project(':infrastructure:redis')
     implementation project(':api-common-module')
-
-    // Spring Boot Starter는 직접 선언하지 않는다 — 공유 모듈이 api로 전이 노출한다.
-    //   starter-web · starter-validation · springdoc → api-common-module
-    //   starter-security                            → security-module
-    //   starter-aop                                 → logging-module
-    // "직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 주석으로 문서화된
-    // 의도된 계약이므로 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을
-    // 걷어내면 여기서 즉시 컴파일 에러로 드러나므로 침묵 파손은 없다.
-    //
-    // jjwt 3종(api/impl/jackson)도 선언하지 않는다 — 이 모듈에 io.jsonwebtoken 참조가 0건이고,
-    // security-module이 jjwt-api를 api로 노출하며 impl/jackson은 그 모듈의 runtimeOnly가
-    // 앱 runtimeClasspath로 전이되어 런타임 서명/파싱이 그대로 동작한다.
-
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
-    // 챕터 03 — adaptersShouldOnlyUseOwnAppUseCases가 Command record의 앱 소속 유도(AppOwnership)를
-    // application 모듈과 공유한다. 복제하면 두 벌이 갈라지므로 test fixture로 받는다.
     testImplementation(testFixtures(project(':application')))
 }

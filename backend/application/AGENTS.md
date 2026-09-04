@@ -177,6 +177,10 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ## Dependencies
 
+### 빌드 스크립트 형태
+- `java-test-fixtures` 플러그인 — `AppOwnership`을 api 4모듈 테스트가 재사용하기 위한 것이다. **같은 파일을 각 모듈에 복제하면 두 벌이 갈라지므로** test fixture로 공유한다(위 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). `testFixturesApi`로 `archunit-junit5`를 노출하는 이유는 `AppOwnership`이 마커 애노테이션(main)과 ArchUnit을 함께 보기 때문이다.
+- **실행 모듈이 아니므로 `bootJar { enabled = false }` + `jar { enabled = true; archiveClassifier = '' }`** — plain jar만 만든다(`security-module` 선례). 아래 [주의](#주의) 참고.
+
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-core` (implementation) — `JwtTokenProvider`·Redis 토큰 저장소. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**

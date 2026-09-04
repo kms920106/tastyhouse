@@ -139,6 +139,11 @@ domain-module → 의존 없음 (production 의존 0개)
 
 ## Dependencies
 
+### 루트 `build.gradle`이 소유하는 것
+- **버전 단일 관리** — `ext.springBootVersion`(BOM을 직접 import 하는 `domain-module` 블록용. 위 `plugins` 블록의 플러그인 버전과 **일치시킬 것**)과 `ext.springdocVersion`. springdoc 좌표는 Spring Boot BOM이 관리하지 않으므로 여기서 단일 관리하며, `web/admin/ceo-api`·`api-common-module` 4곳이 이 값을 참조한다.
+- **`ext['commons-lang3.version'] = '3.18.0'`** — Spring Boot 3.2.4 BOM이 고정하는 3.13.0이 **CVE-2025-48924**에 해당해 패치 버전으로 오버라이드한 것이다(BOM 관리 프로퍼티 재정의). 보안 목적이므로 BOM 버전과 맞추려고 되돌리지 않는다.
+- **`subprojects` 일괄 설정의 제외 대상 2개** — `domain-module`(프레임워크-프리 컴파일 게이트)과 `:infrastructure`(소스 없는 중첩 프로젝트 컨테이너). 각각의 근거는 [CLAUDE.md](CLAUDE.md#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)와 위 [모듈 의존 그래프](#module-dependency-graph)의 "중첩 프로젝트 컨테이너 주의"에 있다.
+
 ### External
 - Spring Boot 3.2.4 (web, webflux, security, data-jpa, data-redis, aop, mail, validation)
 - Java 21, Gradle (멀티모듈)

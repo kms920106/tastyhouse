@@ -4,21 +4,9 @@ plugins {
 }
 
 dependencies {
-    // domain-module에 의존하지 않는다. rate limiting은 domain에 대응 개념이 없는 순수 인프라
-    // 관심사라서 RateLimitException도 ErrorCode에 결합하지 않는다(RateLimitException javadoc 참조).
-    // HTTP 응답 조립은 각 api 모듈의 GlobalExceptionHandler가 ErrorCode로 직접 수행한다.
-
-    // RedisRateLimitCounter가 구현하는 RateLimitCounterPort의 소유 모듈이다(챕터 02).
-    // 방향이 api-common → redis에서 redis → api-common으로 역전됐다 — 어댑터가 계약을 의존하는
-    // 형태로, persistence가 읽기 포트 소유 모듈(application)을 의존하는 기존 선례와 동형이다.
     implementation project(':api-common-module')
 
-    // StringRedisTemplate·RedisConnectionFactory — RedisConfig와 RedisRateLimitCounter가 사용한다.
-    // 소비 모듈(security-module의 토큰 저장소)의 시그니처에도 RedisTemplate이 노출되므로 api로 둔다.
     api 'org.springframework.boot:spring-boot-starter-data-redis'
-    // starter-aop·starter-web은 선언하지 않는다 — @Aspect(RateLimitAspect)와
-    // HttpServletRequest 기반 IP 해석이 전부 api-common-module로 이동했다(챕터 02).
-    // 남은 것은 Redis Lua 카운터뿐이라 이 모듈은 서블릿·AOP 스택을 알지 않는다.
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -28,7 +16,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// 실행 가능한 애플리케이션이 아니므로 bootJar를 비활성화한다(security-module 선례).
 jar {
     enabled = true
     archiveClassifier = ''

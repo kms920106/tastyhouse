@@ -4,22 +4,11 @@ plugins {
 }
 
 dependencies {
-    // 내부 모듈
     implementation project(':domain-module')
-    // 서블릿-프리 보안 코어(JwtTokenProvider·Redis 토큰 저장소·JwtProperties). 이 모듈에 남은
-    // 서블릿 결합 타입(JwtAuthenticationFilter 등)이 그 타입들을 쓰고, api 3모듈도 이 좌표를
-    // 통해 전이로 수신하므로 api로 노출한다(챕터 03).
     api project(':security-core')
 
-    // Spring Boot Starter
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    // 남은 서블릿 결합 타입(필터·EntryPoint·AccessDeniedHandler)이 spring-security-web을
-    // 필요로 하므로 starter 전체를 api로 노출한다. web-api/admin-api도 자체적으로 이 starter를
-    // 선언하지만 중복은 무해하다. spring-security-core는 security-core가 api로 노출한다.
     api 'org.springframework.boot:spring-boot-starter-security'
-
-    // jjwt는 security-core로 이관됐다 — JwtTokenProvider가 그 모듈로 이동했고,
-    // security-core가 jjwt-api를 api로 노출하므로 여기서는 전이로 수신한다.
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -29,7 +18,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }
 
-// This module should not have a main method, so disable bootJar task
 jar {
     enabled = true
     archiveClassifier = ''

@@ -1,44 +1,23 @@
-// 챕터 03 — AppOwnership(Command record의 앱 소속 유도)을 api 4모듈 테스트가 재사용한다.
-// 같은 파일을 복제하면 두 벌이 갈라지므로 test fixture로 공유한다.
 plugins {
     id 'java-test-fixtures'
 }
 
 dependencies {
-    // 내부 모듈 — application 계층은 domain과 읽기 계약만 안다.
-    // infrastructure를 컴파일 클래스패스에 두지 않는 것이 이 모듈의 핵심이다(빌드 그래프가 계층을 강제).
     implementation project(':domain-module')
-    // web·admin·ceo auth/token 서비스가 쓰는 서블릿-프리 타입(JwtTokenProvider·Redis 토큰 저장소) 한정.
-    // 서블릿 결합 타입(필터·EntryPoint·SecurityConfig)은 security-module/각 api 모듈에 남는다 —
-    // applicationMustBeServletFree가 강제한다.
     implementation project(':security-core')
-    // external-api 의존은 두지 않는다. 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은
-    // 이 모듈이 소유하고 어댑터(external-api)가 그 계약을 구현한다 — 의존 역전.
-    // 이 줄을 되살리면 external-api ↔ application 순환이 되어 빌드가 깨진다.
 
-    // admin·ceo — AuthenticationManager·SecurityContextHolder·PasswordEncoder·UserDetails.
-    // 서블릿 결합은 ArchUnit이 막는다.
     implementation 'org.springframework.security:spring-security-core'
-    // web·admin·ceo — 업로드 경계 파라미터 MultipartFile 1종뿐이라 starter-web 전체 대신 spring-web만 선언한다.
     implementation 'org.springframework:spring-web'
-    // ceo ShopStorePriceVerificationCommandService의 ObjectMapper.
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-    // 트랜잭션 경계 선언(@Transactional)만을 위한 최소 의존.
     implementation 'org.springframework:spring-tx'
-
-    // spring-boot-autoconfigure(batch AdminDongSyncRunner의 @ConditionalOnProperty)는 루트
-    // build.gradle의 subprojects 블록이 넣는 spring-boot-starter로 전이 충족 — 재선언 불필요.
-    // security-module·api-common-module은 여기에 추가하지 않는다(서블릿 스택 유입 금지).
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 
-    // testFixtures — AppOwnership이 마커 애노테이션(main)과 ArchUnit을 함께 본다.
     testFixturesApi 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
-// 실행 모듈이 아니므로 bootJar 비활성 (security-module 선례)
 jar {
     enabled = true
     archiveClassifier = ''

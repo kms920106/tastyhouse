@@ -56,11 +56,12 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스·`ErrorCode`/`BusinessException`·`shared/page`
 - `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
 - `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단
 - `external-api` (implementation) — `BbqApiClient`(크롤링 HTTP 클라이언트), `RemoteImageDownloader`. **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-external.yml`) 때문에 유지한다
-- `logging-module` (implementation)
+- `logging-module` (implementation) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다
+- **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. web/admin/ceo와 달리 전이 경로도 없다(`application`이 `domain-module`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). 도메인 타입이 다시 필요해지면 여기에 직접 선언한다
+- `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03)
 
 ### External
 - Spring Boot Starter(루트 `subprojects`가 부여) — `@Scheduled`/`@Transactional` 지원
