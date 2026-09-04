@@ -11,13 +11,13 @@ import com.tastyhouse.domain.sms.port.SmsSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 
-public class AwsSnsSmsSender implements SmsSender {
+public class SnsSmsSender implements SmsSender {
 
-    private static final Logger log = LoggerFactory.getLogger(AwsSnsSmsSender.class);
+    private static final Logger log = LoggerFactory.getLogger(SnsSmsSender.class);
 
     private final SnsClient snsClient;
 
-    public AwsSnsSmsSender(SnsClient snsClient) {
+    public SnsSmsSender(SnsClient snsClient) {
         this.snsClient = snsClient;
     }
 

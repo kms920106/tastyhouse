@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * {@code application.yml}에만 있으므로, 다른 앱이 실수로 이 설정을 import 하면
  * {@code Could not resolve placeholder 'apple.team-id'}로 기동에 실패한다.
  *
- * <p>{@link com.tastyhouse.external.config.ExternalApiConfig}가 이 패키지를 제외하고 스캔하므로
+ * <p>{@link com.tastyhouse.external.config.ExternalModuleConfig}가 이 패키지를 제외하고 스캔하므로
  * 두 설정의 스캔 범위는 교집합이 없고, 둘 다 import 하면 external 모듈 전체가 된다.
  */
 @Configuration(proxyBeanMethods = false)

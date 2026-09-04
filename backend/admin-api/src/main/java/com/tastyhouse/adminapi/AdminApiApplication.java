@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Import;
 import com.tastyhouse.adminapi.config.AdminSeedProperties;
 import com.tastyhouse.application.AdminApplicationConfig;
 import com.tastyhouse.apicommon.ApiCommonConfig;
-import com.tastyhouse.external.config.ExternalApiConfig;
+import com.tastyhouse.external.config.ExternalModuleConfig;
 import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
 import com.tastyhouse.infrastructure.redis.RedisModuleConfig;
 import com.tastyhouse.logging.LoggingModuleConfig;
 import com.tastyhouse.security.SecurityModuleConfig;
 
 @SpringBootApplication
-@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, ExternalApiConfig.class,
+@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, ExternalModuleConfig.class,
          SecurityModuleConfig.class, LoggingModuleConfig.class, ApiCommonConfig.class,
          AdminApplicationConfig.class})
 @EnableConfigurationProperties(AdminSeedProperties.class)

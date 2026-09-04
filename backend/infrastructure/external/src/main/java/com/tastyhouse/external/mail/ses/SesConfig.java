@@ -32,6 +32,6 @@ public class SesConfig {
 
     @Bean
     public MailSender awsSesMailSender(SesClient sesClient, MailProperties mailProperties) {
-        return new AwsSesMailSender(sesClient, mailProperties.senderAddress());
+        return new SesMailSender(sesClient, mailProperties.senderAddress());
     }
 }

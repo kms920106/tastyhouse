@@ -16,7 +16,7 @@ import com.tastyhouse.external.sms.SmsProperties;
 import com.tastyhouse.external.sms.solapi.SolapiProperties;
 
 /**
- * external-api 모듈의 진입점 설정 — OAuth를 제외한 외부 연동 전체.
+ * infrastructure:external 모듈의 진입점 설정 — OAuth를 제외한 외부 연동 전체.
  *
  * <p>OAuth 클라이언트는 소셜 로그인을 쓰는 앱(web-api)만 필요하므로 이 스캔에서 제외하고
  * {@link com.tastyhouse.external.oauth.ExternalOAuthConfig}로 분리했다. 이전에는 admin/ceo/batch
@@ -50,5 +50,5 @@ import com.tastyhouse.external.sms.solapi.SolapiProperties;
     BbqProperties.class,
     AdminDongBoundaryProperties.class
 })
-public class ExternalApiConfig {
+public class ExternalModuleConfig {
 }

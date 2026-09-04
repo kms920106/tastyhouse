@@ -31,6 +31,6 @@ public class SnsConfig {
 
     @Bean
     public SmsSender awsSnsSmsSender(SnsClient snsClient) {
-        return new AwsSnsSmsSender(snsClient);
+        return new SnsSmsSender(snsClient);
     }
 }

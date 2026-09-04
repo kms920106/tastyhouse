@@ -14,14 +14,14 @@ import com.tastyhouse.domain.mail.port.MailSender;
 import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 
-public class AwsSesMailSender implements MailSender {
+public class SesMailSender implements MailSender {
 
-    private static final Logger log = LoggerFactory.getLogger(AwsSesMailSender.class);
+    private static final Logger log = LoggerFactory.getLogger(SesMailSender.class);
 
     private final SesClient sesClient;
     private final String senderEmail;
 
-    public AwsSesMailSender(SesClient sesClient, String senderEmail) {
+    public SesMailSender(SesClient sesClient, String senderEmail) {
         this.sesClient = sesClient;
         this.senderEmail = senderEmail;
     }
