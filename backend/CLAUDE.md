@@ -19,10 +19,9 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
                                         ※ infrastructure를 컴파일 클래스패스에 두지 않는다
                                         ※ api-common-module 의존도 없다 — 챕터 11로 절단 완료
 도메인                   domain-module               모델·VO·write 포트·도메인 서비스 (프레임워크-프리)
-                                                     + 다중 앱 공유 읽기 계약(챕터 05)
-   ※ 앱 전용 읽기 계약({Ctx}QueryPort · *Result · *SearchCondition) 271개는 위 application 모듈이 소유한다
-     (챕터 09로 application-common-module 해체 — 패키지는 com.tastyhouse.application..port.out 그대로).
-     공유 55개는 아직 domain-module에 있고 챕터 04에서 application으로 되돌린다
+   ※ 읽기 계약({Ctx}QueryPort · *Result · *SearchCondition)은 전부 위 application 모듈이 소유한다
+     (패키지는 com.tastyhouse.application..port.out). 챕터 04로 공유 계약 55개가 domain-module에서
+     돌아오면서 split package가 끝났다
    ↑ 구현
 아웃바운드 어댑터        infrastructure:persistence  JPA 어댑터 + QueryPort 구현 DAO + listener
                          infrastructure:redis        Redis 연결·템플릿 + rate limiting
@@ -31,7 +30,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 ```
 
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것도, 챕터 01의 통합으로 줄어든 것도 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
-- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application`(유스케이스 + 앱 단독 계약) / `domain-module`(다중 앱 공유 계약 55개)** 두 모듈이 나눠 소유하는 split package가 됐고, 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
+- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain-module`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
 - **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(4개 앱 공통), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain-module/AGENTS.md`, JWT 토큰 발급/검증·Redis 토큰 저장소는 `security-core/AGENTS.md`, 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
 - **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·Redis 토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleConfig`·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)·빈 배선(`SecurityModuleConfig`의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕에 이동한 `@Repository` 빈을 그대로 스캔)은 전부 불변이다. API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
@@ -40,7 +39,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | 최상위 패키지 | 소유 모듈 | 계층 |
 |---|---|---|
 | `com.tastyhouse.domain..` | `domain-module` | 도메인 |
-| `com.tastyhouse.application..` | **2개 모듈이 나눠 소유** — `application`(유스케이스 `<ctx>/port/in`·`<ctx>/service` 전부 + 앱 단독 읽기 계약 271) / `domain-module`(다중 앱 공유 읽기 계약 55 — 챕터 04에서 `application`으로 복귀 예정) | 챕터 01(모듈 통합) 시점에는 앱별 패키지(`com.tastyhouse.{web\|admin\|ceo\|batch}application..`)와 읽기 계약 패키지가 나뉘어 있었으나, **챕터 03(패키지 평탄화)으로 이 한 패키지 `com.tastyhouse.application`으로 합쳐졌다.** 유스케이스(`<ctx>/port/in`·`<ctx>/service`)와 읽기 계약(`<ctx>/port/out`)이 같은 패키지 트리 안에 공존하고, 그 트리를 소유 모듈만 다르게 나눠 갖는 **split package**다(모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례이며, 그 덕분에 계약이 어느 모듈로 가든 소비 측 import가 바뀌지 않는다). 패키지만으로는 4개 앱 중 어디 소속인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 대신 표현한다. FQCN 중복은 `ReadContractSingleOwnerTest`가 검출한다. 읽기 계약 소유 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence) 참고 |
+| `com.tastyhouse.application..` | **`application` 단독 소유** — 유스케이스(`<ctx>/port/in`·`<ctx>/service`) + 읽기 계약(`<ctx>/port/out`) 전부 | 챕터 01(모듈 통합) 시점에는 앱별 패키지(`com.tastyhouse.{web\|admin\|ceo\|batch}application..`)와 읽기 계약 패키지가 나뉘어 있었으나, **챕터 03(패키지 평탄화)으로 이 한 패키지 `com.tastyhouse.application`으로 합쳐졌다.** 유스케이스(`<ctx>/port/in`·`<ctx>/service`)와 읽기 계약(`<ctx>/port/out`)이 같은 패키지 트리 안에 공존하고, 한 모듈이 그 트리를 통째로 소유한다(챕터 04로 공유 계약 55개가 `domain-module`에서 돌아오며 split package가 끝났다 — 패키지 경로가 같아 이동에도 소비 측 import는 바뀌지 않았다). 패키지만으로는 4개 앱 중 어디 소속인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 대신 표현한다. 읽기 계약 소유 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence) 참고 |
 | `com.tastyhouse.webapi..` | `web-api` | 인바운드 어댑터 |
 | `com.tastyhouse.adminapi..` | `admin-api` | 인바운드 어댑터 |
 | `com.tastyhouse.ceoapi..` | `ceo-api` | 인바운드 어댑터 |
@@ -63,7 +62,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 - **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`(`WebApplicationConfig` 등)가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 기동 시점에 그 빈이 처음 필요해질 때 `NoSuchBeanDefinitionException`으로만 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
 - **`<ctx>/port/out`의 의미가 넓어졌다** — 평탄화 이전에는 "읽기 계약(QueryPort·Result·SearchCondition)"만의 자리였으나, 지금은 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약 + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
   - **이 확장이 `commandServicesShouldNotDependOnQueryDaos`를 이름 기준으로 바꾸게 만들었다**: `port.out`에 Command 반환 record가 함께 살게 되면서, 이 규칙이 여전히 패키지 술어(`resideInAPackage("..port.out..")`)였다면 그 record를 반환하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡혔을 것이다. 그래서 판별을 **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바꿨다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryDaos`도 이름 기준으로 전환했다.
-- **ArchUnit 규칙 4종(`AppIsolationTest`, `application` 모듈)**: `appsShouldNotDependOnEachOther`(마커 4종의 4×3=12조합 — 앱 간 수평 의존 금지, 공유는 domain-module·읽기 계약뿐), `beansShouldHaveExactlyOneAppMarker`, `useCasesShouldHaveExactlyOneAppMarker`, `commandRecordsShouldBelongToExactlyOneApp`(위 유도 결과 검증). 마커별 빈·UseCase 개수 하한(`markerBeanCounts`·`markerUseCaseCounts`)이 앱별 anchor를 승계한다.
+- **ArchUnit 규칙 4종(`AppIsolationTest`, `application` 모듈)**: `appsShouldNotDependOnEachOther`(마커 4종의 4×3=12조합 — 앱 간 수평 의존 금지, 공유는 domain-module뿐), `beansShouldHaveExactlyOneAppMarker`, `useCasesShouldHaveExactlyOneAppMarker`, `commandRecordsShouldBelongToExactlyOneApp`(위 유도 결과 검증). 마커별 빈·UseCase 개수 하한(`markerBeanCounts`·`markerUseCaseCounts`)이 앱별 anchor를 승계한다.
 - **다른 규칙에도 마커·유도 술어가 번졌다**: `commandRecordsShouldBeBoundaryTyped`의 batch 예외는 importer가 아니라 `.areNotAnnotatedWith(BatchApp.class)`로 표현하고, api 4모듈의 `adaptersShouldOnlyUseOwnAppUseCases`(컨트롤러가 자기 앱 UseCase만 의존)는 패키지 열거가 아니라 마커+`AppOwnership` 유도 술어로 판정한다.
 
 ## admin 전용 네이밍 규칙 (메서드·타입명에 admin-flavor `Admin` 접두·접미·중간어 금지)
@@ -85,7 +84,7 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
 
 - **적용 대상**: `com.tastyhouse.application.<ctx>.port.out` 이하의 조회 결과 record(JPA 엔티티에서 표현 목적으로 직접 투영한 반환 타입). 과거(챕터 03까지)는 QueryDSL이 `@QueryProjection`으로 직접 투영했으나, 읽기 경로 포트화(챕터 04) 이후 이 record는 QueryDSL을 모르는 모듈에 있으므로 `infrastructure:persistence`의 DAO가 `Projections.constructor(XxxResult.class, ...)`로 투영한다. DAO가 `from(...)` 정적 팩토리로 조합하는 비투영 record도 동일하게 `Result`로 접미합니다.
 - **적용 제외**: `*Condition`(검색 조건 — 같은 `port.out` 패키지에 두지만 접미어는 `SearchCondition` 유지), web-api/admin-api/ceo-api의 `*Request`/`*Response`(HTTP 경계 DTO)는 이 규칙 대상이 아니며 기존 네이밍 규칙을 그대로 따릅니다.
-- **폴더 위치 (개정됨 — 읽기 경로 포트화로 재개정)**: 결과 record는 [record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)에 따라 **`com.tastyhouse.application.<ctx>.port.out`** 에 독립 파일로 둡니다. 과거 core-module `application/dto/result/`에 있던 결과 DTO는 application 계층 해체로 `infrastructure:persistence`의 `<ctx>/query/`로 이관됐고(챕터 03까지), 읽기 경로 포트화(챕터 04)로 다시 이 신설 모듈로 이관됐습니다 — 상세는 아래 [query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence)을 참고합니다.
+- **폴더 위치 (개정됨 — 읽기 경로 포트화로 재개정)**: 결과 record는 [record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)에 따라 **`com.tastyhouse.application.<ctx>.port.out`** 에 독립 파일로 둡니다. 과거 core-module `application/dto/result/`에 있던 결과 DTO는 application 계층 해체로 `infrastructure:persistence`의 `<ctx>/query/`로 이관됐고(챕터 03까지), 읽기 경로 포트화(챕터 04)로 다시 이 신설 모듈로 이관됐습니다 — 상세는 아래 [query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence)을 참고합니다.
 - **admin 충돌 시 처리**: admin 전용 결과 record가 비-admin 형제와 이름이 충돌하면 위 [admin 전용 네이밍 규칙](#admin-전용-네이밍-규칙-메서드타입명에-admin-flavor-admin-접두접미중간어-금지)과 동일하게 `Management` 한정어로 구별합니다(예: `faq` 도메인의 admin 전용 `FaqCategoryManagementResult` vs web-api용 `FaqCategoryResult` — 단순 `Dto`→`Result` 치환 시 이름이 충돌해 `Management`를 적용한 사례).
 
 reference 구현: `com.tastyhouse.application.shop.port.out`(`BestShopItemResult`, `ShopBookmarkedItemResult` 등 — 과거 `*Dto`에서 전환), `com.tastyhouse.application.event.port.out`(`EventManagementListItemResult`), `com.tastyhouse.application.faq.port.out`(`FaqCategoryResult`/`FaqCategoryManagementResult`/`FaqDetailResult` — 폴더 이동과 admin 충돌 해결이 함께 발생한 사례로, admin/web Result가 지금은 같은 `faq.port.out` 패키지에 공존한다).
@@ -766,7 +765,7 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryDao`(
 
 **도메인 모델은 순수 POJO로 두고 JPA 엔티티와 분리하며, JPA 어댑터는 `infrastructure:persistence`이 소유한다.** 과거에는 "상태전이·불변식이 실재하는 도메인만 선별 전환하고 단순 CRUD 도메인은 현행(도메인 모델 = `@Entity`, persistence가 core-module 내부) 유지"가 허용되는 점진 전환(Strangler Fig, `md/CLEAN-ARCHITECTURE.md`)이었으나, **전 도메인 전환이 완료되어 지금은 선별이 아니라 전면 적용**이다. 클래스 수준(POJO화)과 모듈 수준(어댑터 분리)을 함께 적용해 "도메인은 JPA 구현을 모른다"를 빌드 그래프로 강제한다.
 
-- **모듈 경계 (개정됨 — 읽기 경로 포트화로 재개정)**: `web-api`/`admin-api`/`ceo-api`/`batch-module` → `domain-module`(도메인 POJO + write 포트 + 순수 POJO 도메인 서비스) `implementation`, `infrastructure:persistence`(JPA 어댑터 + query DAO 구현체) `implementation`. 읽기 계약(`{Ctx}QueryPort` + Result + SearchCondition)은 별도 모듈이 아니라 소비 앱의 `{앱}-application`(단독분)과 `domain-module`(공유분)이 소유하므로 **추가 의존 선언이 없다**. `infrastructure:persistence` → `domain-module` `implementation` + `{web,admin,ceo,batch}-application` `implementation`(DAO가 각 앱 소유 포트를 구현). api 모듈은 이제 **`com.tastyhouse.infrastructure..`를 전혀 import하지 않는다** — `{도메인}QueryService`는 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입한다. `..persistence..` 직접 의존과 QueryDSL 의존은 처음부터 ArchUnit으로 금지돼 있었고, 챕터 04로 `com.tastyhouse.infrastructure..` 전체(과거 허용되던 `..query..` 포함)가 금지 대상에 추가됐다(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)).
+- **모듈 경계 (개정됨 — 읽기 경로 포트화로 재개정)**: `web-api`/`admin-api`/`ceo-api`/`batch-module` → `domain-module`(도메인 POJO + write 포트 + 순수 POJO 도메인 서비스) `implementation`, `infrastructure:persistence`(JPA 어댑터 + query DAO 구현체) `implementation`. 읽기 계약(`{Ctx}QueryPort` + Result + SearchCondition)은 별도 모듈이 아니라 `application`이 전부 소유하므로 **추가 의존 선언이 없다**. `infrastructure:persistence` → `domain-module` `implementation` + `application` `implementation`(DAO가 그 포트를 구현). api 모듈은 이제 **`com.tastyhouse.infrastructure..`를 전혀 import하지 않는다** — `{도메인}QueryService`는 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입한다. `..persistence..` 직접 의존과 QueryDSL 의존은 처음부터 ArchUnit으로 금지돼 있었고, 챕터 04로 `com.tastyhouse.infrastructure..` 전체(과거 허용되던 `..query..` 포함)가 금지 대상에 추가됐다(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)).
 - **domain-module은 JPA뿐 아니라 QueryDSL·spring-tx까지 없는 완전 프레임워크-프리 모듈이다**: production 의존이 **하나도 없으며**(Lombok까지 제거되어 접근자·생성자를 수기로 작성한다), `@Entity`/`JpaRepository`/`RepositoryImpl`/`AttributeConverter`/`BaseEntity`/`QueryDslConfig`/`EntityManager`는 전부 `infrastructure:persistence`에 있다. `domain-module/build.gradle`에서 `spring-boot-starter-data-jpa`·`mysql-connector-j`·`querydsl-jpa`뿐 아니라 **`querydsl-core`·`querydsl-apt`(및 querydsl sourceSets/generated 블록)·`spring-tx`·`spring-orm`도 제거**됐다 — `@QueryProjection` Result DTO와 query DAO가 전부 infrastructure `<ctx>/query/` 소유가 되어 `com.querydsl.*`을 컴파일할 필요가 없어졌고, 도메인 서비스는 전부 순수 POJO(`@Service`/`@Transactional` 미사용)라 스프링 트랜잭션 API도 필요 없어졌다. 낙관적 락 충돌은 프레임워크-프리 `com.tastyhouse.domain.shared.exception.OptimisticLockConflictException`으로 표현하고, 스프링 예외(`ObjectOptimisticLockingFailureException`) 번역은 `infrastructure:persistence`의 `RepositoryImpl`이 담당한다.
   - **이 순수성은 빌드로 강제된다 (컴파일 게이트)**: 루트 `build.gradle`의 spring 주입 블록은 `configure(subprojects.findAll { it.name != 'domain-module' })`로 **domain-module을 제외**하고, domain-module은 바로 아래 `project(':domain-module')` 블록에서 `java` + `io.spring.dependency-management`(버전 고정만 하고 의존은 추가하지 않음)만 적용받는다. 그 결과 domain-module의 컴파일 클래스패스에 `org.springframework.*`가 아예 없어 **`import org.springframework.stereotype.Service;` 한 줄이 컴파일 에러**가 된다 — 순수성이 리뷰 규율이 아니라 빌드 게이트로 보장된다. `org.springframework.boot` 플러그인을 적용하지 않으므로 이 모듈에는 `bootJar` 태스크가 없고, 따라서 `bootJar { enabled = false }`를 쓰면 스크립트 평가 에러가 난다(다른 `java-library` 모듈과 다른 점).
   - **테스트도 spring-free**: `spring-boot-starter-test` 통째 대신 실제로 쓰는 `junit-jupiter`·`assertj-core`·`archunit-junit5`만 선언한다. domain-module 테스트는 전부 순수 단위 테스트(`@SpringBootTest`류 0건)라 스프링 테스트 컨텍스트가 필요 없고, starter를 두면 테스트 클래스패스로 spring이 되돌아와 순수성 검증이 무뎌진다. **domain-module에 `@SpringBootTest`를 추가해야 할 상황이면 그 테스트가 이 모듈에 있어야 하는지를 먼저 의심한다**(대개 `infrastructure:persistence` 소속이다).
@@ -787,33 +786,28 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryDao`(
 - **Spring 조립 — 스캔·전역 설정은 소유 모듈(infrastructure)이 선언 (개정됨)**: `com.tastyhouse.infrastructure`는 `WebApiApplication`/`AdminApiApplication`/`CeoApiApplication`/`BatchApplication`의 `scanBasePackages`에 등록되어 있고, JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`, `basePackageClasses` 타입 세이프 방식)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 전부 `infrastructure:persistence` 자신의 `InfrastructurePersistenceConfig`(패키지 루트)로 병합됐다.** domain-module은 완전 프레임워크-프리가 되며 과거 core의 `config/DatabaseConfig.java`를 폐지했다(그 파일이 `@EnableJpaRepositories(basePackages="com.tastyhouse.core.domain")`·`@EntityScan`·`@EnableJpaAuditing`·`@EnableTransactionManagement`를 core에서 선언했으나, 도메인 패키지에 더 이상 JPA가 없어 무의미해졌고 auditing/tx는 엔티티·리포지토리를 소유한 infrastructure로 옮기는 것이 응집도상 자연스럽다). domain-module은 infrastructure를 의존하지 않아 컴파일 타임에 그 패키지를 볼 수 없으므로(IDE "Cannot resolve package" 에러), 엔티티를 소유한 모듈이 스스로 스캔·전역 설정을 선언하는 것이 Spring Boot 공식 권장(`basePackageClasses`)과 일치한다.
 - **scanBasePackages에서 domain 스캔 엔트리를 제거한다 (개정됨)**: domain-module에는 `@Component`/`@Service`/`@Configuration`이 **0건**이므로(도메인 서비스는 순수 POJO이고 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리 메서드로 수행) 스캔할 대상이 아예 없다. 따라서 4개 앱(`WebApiApplication`/`AdminApiApplication`/`CeoApiApplication`/`BatchApplication`)의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 과거의 `"com.tastyhouse.core"` 항목을 삭제했다. 남는 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다. 도메인에 새 순수 POJO 서비스를 추가할 때도 스캔 엔트리를 되살리지 말고 **해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean`을 추가한다(없으면 신설)**.
 
-## query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙 (개정 — 읽기 계약은 소비 앱이 소유, 구현은 `infrastructure:persistence`)
+## query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙 (개정 — 읽기 계약은 전부 `application`이 소유, 구현은 `infrastructure:persistence`)
 
-**표현 목적 조회(read)의 계약(인터페이스 + 입출력 DTO)은 패키지 `com.tastyhouse.application.<ctx>.port.out`에 두고, 그 구현(QueryDSL DAO)은 `infrastructure:persistence`의 `<ctx>/query/` 패키지가 소유한다.** 계약의 **소유 모듈은 소비 앱 수가 정한다** — 한 앱만 쓰면 그 앱의 `{앱}-application`, 2개 이상이 쓰면 `domain-module`이다(챕터 09로 `application-common-module`이 해체되며 5개 모듈로 분산됐다. 패키지는 그대로다). 과거(챕터 03까지)는 `infrastructure:persistence`의 `<ctx>/query/` 패키지 하나가 `{도메인}QueryDao` + `@QueryProjection` Result DTO + `{도메인}SearchCondition`을 전부 소유했고, api 모듈이 그 DAO를 직접 주입했다. 챕터 04(읽기 경로 포트화)에서 이 구조를 완전 매핑 전략으로 역전했다 — **infra가 구현해야 하는 인터페이스는 api 모듈이 컴파일 타임에 봐야 하는데, infra → api 방향 의존은 만들 수 없고(`LayerRulesTest#shouldNotDependOnApiModules`) domain-module에 두면 표현용 투영 184개가 순수 도메인에 섞이므로**, 계약 전용 신규 모듈 `application-common-module`이 필요했다.
+**표현 목적 조회(read)의 계약(인터페이스 + 입출력 DTO)은 패키지 `com.tastyhouse.application.<ctx>.port.out`에 두고, 그 구현(QueryDSL DAO)은 `infrastructure:persistence`의 `<ctx>/query/` 패키지가 소유한다.** **읽기 계약은 전부 `application` 모듈의 `<ctx>/port/out`에 있고 구현은 `infrastructure:persistence`다** — 소비 앱이 몇 개인지는 배치와 무관하다(의존성 정리 프로그램 챕터 04로 공유 계약 55개가 `domain-module`에서 돌아오며 `com.tastyhouse.application`을 한 모듈이 단독 소유하게 됐다. 아래 번복 절 참고). 과거(챕터 03까지)는 `infrastructure:persistence`의 `<ctx>/query/` 패키지 하나가 `{도메인}QueryDao` + `@QueryProjection` Result DTO + `{도메인}SearchCondition`을 전부 소유했고, api 모듈이 그 DAO를 직접 주입했다. 챕터 04(읽기 경로 포트화)에서 이 구조를 완전 매핑 전략으로 역전했다 — **infra가 구현해야 하는 인터페이스는 api 모듈이 컴파일 타임에 봐야 하는데, infra → api 방향 의존은 만들 수 없고(`LayerRulesTest#shouldNotDependOnApiModules`) domain-module에 두면 표현용 투영 184개가 순수 도메인에 섞이므로**, 계약 전용 신규 모듈 `application-common-module`이 필요했다.
 
 과거 core-module `application/` 계층이 조회 서비스와 `application/dto/result/`를 소유했던 문제(도메인에 QueryDSL 의존 유입·그 의존의 api 전이·CQRS 경계 흐려짐)는 챕터 03까지의 구조로 이미 해소돼 있었다. 이번 전환의 동기는 그와 다르다 — **api 모듈이 인프라 구현 상세(DAO 클래스)를 컴파일 타임에 직접 알아야 했던 마지막 결합**을 인터페이스 경계로 끊는 것이다.
 
-### 다중 앱 공유 계약은 `domain-module`이 소유한다 (챕터 05)
+### 다중 앱 공유 계약은 `domain-module`이 소유한다 — **번복됨** (모듈 재편 챕터 05 → 의존성 정리 챕터 04)
 
-**위 규칙의 절반이다 — 2개 이상의 앱이 함께 쓰는 읽기 계약은 소비 앱 모듈이 아니라 `domain-module`에 있다.** 패키지는 `com.tastyhouse.application.<ctx>.port.out` **그대로**이므로, 한 최상위 패키지를 두 모듈이 나눠 소유하는 구조다.
+**이 규칙은 폐기됐다.** 2개 이상의 앱이 함께 쓰는 읽기 계약 55개를 `domain-module`에 두던 시기가 있었고, 그동안 `com.tastyhouse.application.<ctx>.port.out`은 두 모듈이 나눠 갖는 split package였다. 지금은 **읽기 계약 전부를 `application` 모듈이 소유**한다.
 
-**왜.** 포트를 소비자별로 쪼개도(챕터 04) 여러 앱이 함께 쓰는 메서드와 `*Result`가 남는다. 그것을 어느 한 앱의 application 모듈에 주면 나머지 앱이 그 모듈을 의존해야 한다 — **앱 간 수평 의존**이다. `domain-module`은 이미 4개 앱이 전부 의존하므로 소유자를 여기로 옮기면 **새 의존 간선이 하나도 생기지 않는다.** 이것이 수평 의존을 0으로 만드는 조치다.
+**원래 근거.** 당시 이 문서는 이렇게 적었다 — "포트를 소비자별로 쪼개도 여러 앱이 함께 쓰는 메서드와 `*Result`가 남는다. 그것을 어느 한 앱의 application 모듈에 주면 나머지 앱이 그 모듈을 의존해야 한다 — **앱 간 수평 의존**이다. `domain-module`은 이미 4개 앱이 전부 의존하므로 소유자를 여기로 옮기면 **새 의존 간선이 하나도 생기지 않는다.**" 근거는 이 하나뿐이었고, 그 시점에는 타당했다.
 
-**대상.** `event`·`member`·`order`·`point`·`product`·`rank`·`review`·`shop` 8개 컨텍스트 50파일(shop 32개). 포트는 `ShopBasicInfoQueryPort`·`ShopDeliveryTipQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`·`ReviewTagQueryPort` 5개다.
+**왜 번복했나.** application 모듈 통합 프로그램 챕터 01이 앱별 application 모듈 4개를 `application` 하나로 합치면서 **"어느 한 앱의 모듈"이라는 것이 존재하지 않게 됐다.** 공유 계약을 `application`에 두어도 의존할 다른 앱 모듈이 없으니 수평 의존이 생길 자리가 없다 — 회피하려던 대상이 사라져 근거가 소멸했다. 되돌린 결과 두 가지를 얻었다.
 
-**패키지를 바꾸지 않은 이유 셋.**
+- **split package와 그 가드 3종이 필요 없어졌다.** `ReadContractPurityTest`(domain-module)·`ReadContractSingleOwnerTest`(persistence)는 삭제했고, `application` `RuleAnchorTest`의 소유 모듈 판별 필터도 제거했다(하한은 227 → 282로 올렸다). 같은 모듈 안의 FQCN 중복은 이제 컴파일 에러라 별도 가드가 필요 없다.
+- **`domain-module`이 "표현 투영의 쓰레기통"이 될 위험에서 벗어났다.** 이 문서가 애초에 계약 전용 모듈을 만든 이유("표현용 투영이 순수 도메인에 섞인다")가 공유분 55개에 한해 되살아나 있던 상태였다.
 
-1. **소비 측 import 수정이 0건**이다. 개명하면 50개 타입의 소비 파일을 전부 고쳐야 하고, 그 과정에서 `Projections.constructor` 인자 회귀(런타임에만 터지는)가 생긴다.
-2. **ArchUnit 규칙이 무변경으로 통과**한다. `queryDaosShouldImplementQueryPorts`·`controllersShouldNotDependOnQueryDaos`·`commandServicesShouldNotDependOnQueryDaos`가 전부 `com.tastyhouse.application..port.out..` 패키지로 대상을 잡는다.
-3. **`DomainPurityTest`·`ContextBoundaryTest`의 스캔 범위 밖에 남는다.** 두 테스트는 `importPackages("com.tastyhouse.domain")`으로 대상을 모은다. 읽기 계약은 도메인 모델이 아니라 표현용 투영이므로 컨텍스트 경계 규칙(`model`/`repository`/`service` 상호 참조 금지)의 대상이어서는 안 된다 — **회피가 아니라 정확한 구분**이다. 개명했다면 50개 Result가 갑자기 경계 검사 대상이 되어 봉인 목록이 늘어났을 것이다.
+**이동은 `git mv`뿐이었다** — 패키지 경로가 같아 **소비자 import 변경 0건**이다(persistence DAO·앱 QueryService·api Response record 전부 무변경). api 모듈은 그동안 `persistence → domain-module` 전이로 이 55개를 봤으나 이제 이미 선언돼 있던 `implementation project(':application')`로 직접 본다 — `build.gradle` 변경도 없었다.
 
-모듈명과 패키지명이 어긋나는 것은 `infrastructure:persistence`가 `com.tastyhouse.infrastructure..`를 쓰는 것과 같은 선례다. **`domain-module`은 물리적 거처만 제공하고, 논리적 계층(패키지)은 읽기 계약 그대로다.**
+**새 계약을 어디에 둘지 판정할 것이 없다.** 소비 앱 수를 세던 절차는 함께 폐기됐다 — 읽기 계약이면 `application`의 `com.tastyhouse.application.<ctx>.port.out`이다. `domain-module`에는 모델·VO·write 포트·도메인 서비스만 둔다.
 
-**새 계약을 어디에 둘지 판정.** 소비 앱이 **하나면 그 앱의 `{앱}-application`**, **둘 이상이면 `domain-module`**이다. 다중 앱이 쓰더라도 **애매하면 각 앱이 선언 중복으로 갖고 `domain-module`로 보내지 않는다** — `domain-module`이 표현 투영의 쓰레기통이 되면 위 문단의 기각 사유("표현용 투영 184개가 순수 도메인에 섞인다")가 되살아난다. 기준은 "점주가 설정하고 회원이 보고 관리자가 검수하는 도메인 개념 자체인가"이다. 옮긴 50개는 전수 검사 결과 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..` 밖 import가 0건이고 참조 도메인 타입이 enum과 `Amount` VO뿐이라(애그리거트·리포지토리·서비스 참조 0건) 이 기준을 만족한다.
-
-**프레임워크-프리 게이트가 자동으로 강제한다.** `domain-module`은 루트 `build.gradle`의 spring 주입 제외 대상이라 `import org.springframework...` 한 줄이 **실제 컴파일 에러**다. 옮길 계약에 프레임워크 import가 섞이면 빌드가 즉시 실패한다.
-
-- **패키지 구성 (계약 — 소유 모듈은 소비 앱 수에 따라 갈린다)**: `com.tastyhouse.application.<ctx>.port.out`에 아래 셋을 둔다. Result record는 [record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)대로 각각 독립 `.java` 파일이며, 접미어는 [결과 DTO 접미어 규칙](#결과-dto-접미어-규칙-result로-통일-dto-금지)대로 `Result`다. 이름·`Management` 한정어 등 기존 명명 규칙은 그대로 승계했다 — `View`로의 개명은 하지 않았다(184개 개명 + 소비 99파일 연쇄 수정 비용 대비 이득 없음).
+- **패키지 구성 (계약 — 소유 모듈은 언제나 `application`)**: `com.tastyhouse.application.<ctx>.port.out`에 아래 셋을 둔다. Result record는 [record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)대로 각각 독립 `.java` 파일이며, 접미어는 [결과 DTO 접미어 규칙](#결과-dto-접미어-규칙-result로-통일-dto-금지)대로 `Result`다. 이름·`Management` 한정어 등 기존 명명 규칙은 그대로 승계했다 — `View`로의 개명은 하지 않았다(184개 개명 + 소비 99파일 연쇄 수정 비용 대비 이득 없음).
   - `{Ctx}QueryPort` — 인터페이스(DAO당 1개, 48개+). 해당 `{Ctx}QueryDao`의 public 메서드를 전사한다.
   - `{용도}Result` — `public record`(`@QueryProjection` 없음 — 이 모듈은 QueryDSL을 모른다). DAO가 `Projections.constructor`로 투영한다.
   - `{도메인}SearchCondition` — 포트 메서드 파라미터인 동적 검색 조건 record. 정적 팩토리 `of(...)`로 조립하며([DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)) 필드는 HTTP 경계에서 넘어온 원시타입(`String`/`Long`/`Boolean`)이다.
@@ -899,7 +893,7 @@ reference 구현: `domain-module/.../notice/repository/NoticeRepository`(`findBy
     - **컨텍스트 경계는 여전히 모듈이 아니다.** 25개 컨텍스트의 수평 경계는 `domain-module`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 계속 담당한다. 이 항목의 금지는 그대로 유효하다.
     - 분할 대상이 "컨텍스트"(25개, 수평)가 아니라 "계층 × 앱"(8개, 수직)이었기 때문에 위 우려(모듈 폭증)가 현실화되지 않았다 — 모듈은 25개가 아니라 6개 늘었다.
     - **다만 앱 축은 되돌렸다(application 통합 챕터 01).** 위 4개 application 모듈은 `application` 하나로 합쳐졌다 — 앱 분할이 준 컴파일 게이트가 사실상 없었고(`infrastructure:persistence`가 4개를 모두 의존해 모든 실행 jar에 4개 jar가 들어 있었다) 규칙 16종이 4벌 중복이었기 때문이다. **계층 축 분할은 그대로 유효하다.** 근거와 대체 규칙은 `application/AGENTS.md`의 "과거 판단의 번복" 절 참고.
-  - **~~단일 예외 — `application-common-module`~~ (챕터 09에서 소멸)**: 읽기 경로 포트를 소유할 모듈 하나를 신설했던 예외는 **모듈 자체가 삭제되며 사라졌다**. 계약이 전부 소비 앱의 `{앱}-application`(단독분)과 `domain-module`(공유분)으로 옮겨가 그 모듈이 비었기 때문이다. 지금은 **읽기 계약 전용 모듈이 없다** — 계약을 어디 둘지는 위 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence)이 소비 앱 수로 판정한다.
+  - **~~단일 예외 — `application-common-module`~~ (챕터 09에서 소멸)**: 읽기 경로 포트를 소유할 모듈 하나를 신설했던 예외는 **모듈 자체가 삭제되며 사라졌다**. 계약이 전부 소비 앱의 application 모듈로 옮겨가 그 모듈이 비었기 때문이다(공유분 55개는 잠시 `domain-module`을 거쳐 챕터 04에서 `application`으로 돌아왔다). 지금은 **읽기 계약 전용 모듈이 없다** — 계약은 전부 `application`이 소유한다. 위 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence) 참고.
 
 reference 구현: `domain-module/src/test/.../architecture/ContextBoundaryTest`(경계 규칙 1 + 순환 규칙 1 + 봉인 짝 테스트 3). 같은 모듈의 `DomainPurityTest`(프레임워크 순수성·모듈 방향)와 역할이 겹치지 않는다 — 이쪽은 **컨텍스트 간 수평 경계**만 본다.
 
@@ -1015,7 +1009,7 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   | 인바운드 어댑터 | `ceo-api/.../ceoapi/shop/adapter/in/web/ShopBusinessHourApiController.java` |
   | 인바운드 포트 + Command | `application/.../application/shop/port/in/ShopBusinessHourCommandUseCase.java`(`@CeoApp`)·`ShopBusinessHourCreateCommand.java`(마커 없음 — 유도로 ceo 소속 판정) |
   | 서비스 구현 | `application/.../application/shop/service/ShopBusinessHourCommandService.java`(`@CeoApp`) |
-  | 읽기 포트(아웃바운드) | `application/.../application/shop/port/out/ShopQueryPort.java`(소비 앱 수에 따라 소유 모듈이 `application`/`domain-module`로 갈린다 — 마커 없음) |
+  | 읽기 포트(아웃바운드) | `application/.../application/shop/port/out/ShopQueryPort.java`(소유 모듈은 언제나 `application` — 마커 없음) |
 
   컨트롤러는 `ShopBusinessHourCommandUseCase`만 주입하고 서비스 구현을 알지 않으며(`webAdaptersShouldNotDependOnApplicationServices`, 그리고 모듈 분리 후에는 `apiModuleMustNotContainApplicationLayer`가 이 모듈에 서비스가 다시 생기는 것 자체를 막는다), 조회 측 `ShopBusinessHourQueryService`는 `infrastructure:persistence`의 DAO가 아니라 `ShopQueryPort` 인터페이스를 주입한다.
 
@@ -1034,11 +1028,11 @@ reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `Not
 
 ## 앱 간 타입명 충돌 시 `Management`/`Owner` 한정어 상시 적용 규칙 (Result·Port·UseCase·Service·Command·협력 빈)
 
-**admin 전용 Result와 web(비-admin) Result가 같은 `port.out` 패키지에서 이름이 충돌하면, `Management` 한정어를 붙여 구별한다 — 이는 상황에 따른 선택이 아니라 상시 적용 규칙이다.** 조회 계약이 `com.tastyhouse.application.<ctx>.port.out` 한 패키지로 모였으므로(과거 `infrastructure:persistence`의 `<ctx>/query/`, 챕터 04로 이관) **admin/web Result는 이제 항상 같은 패키지에 공존**한다. 따라서 과거에 있었던 "모듈이 분리되면 충돌이 사라지니 한정어를 제거할 수 있다"는 여지는 **폐지한다** — 패키지가 같아지는 방향으로 구조가 확정됐으므로 한정어는 영구적이다.
+**admin 전용 Result와 web(비-admin) Result가 같은 `port.out` 패키지에서 이름이 충돌하면, `Management` 한정어를 붙여 구별한다 — 이는 상황에 따른 선택이 아니라 상시 적용 규칙이다.** 조회 계약이 `com.tastyhouse.application.<ctx>.port.out` 한 패키지로 모였고(과거 `infrastructure:persistence`의 `<ctx>/query/`, 읽기 경로 포트화로 이관), 챕터 02의 개명 확장과 챕터 04의 공유 계약 복귀를 거쳐 **이제 web·admin·ceo Result가 같은 패키지일 뿐 아니라 같은 모듈(`application`)에 공존**한다. 따라서 과거에 있었던 "모듈이 분리되면 충돌이 사라지니 한정어를 제거할 수 있다"는 여지는 **폐지한다** — 패키지가 같아지는 방향으로 구조가 확정됐으므로 한정어는 영구적이다.
 
 - **네이밍 형태**: `{도메인}Management{용도}Result`. `Management`는 "누가(관리자)"가 아니라 **"무엇을 위한 것인가(관리 화면 목록/상세)"** 를 표현하므로, [admin 전용 네이밍 규칙](#admin-전용-네이밍-규칙-메서드타입명에-admin-flavor-admin-접두접미중간어-금지)이 금지하는 역할 마커 `Admin`을 쓰지 않으면서 admin 성격을 이름에 담을 수 있다.
 - **충돌하지 않으면 순수명을 쓴다**: 비-admin 형제가 없으면 한정어 없이 순수 도메인명을 쓴다(예: `MemberListItemResult`, `BugReportListItemResult`). 한정어는 충돌 해소 수단이며 admin 여부의 표식이 아니다.
-- **필드 셋이 다른 admin/web Result는 통합하지 않는다**: 이름이 비슷하다고 두 Result를 하나로 합쳐 상위집합 필드를 갖게 만들지 않는다. admin 목록에만 필요한 필드(비노출 여부·내부 상태·감사 시각 등)를 web 응답 경로에도 흘려보내면 **과잉 노출**이 되고, 어느 필드가 어느 화면 계약인지 추적할 수 없게 된다. 필드 셋이 다르면 별도 record로 유지하고, 각각 자기 소비자가 실제 쓰는 필드만 갖는다([query DAO·QueryPort 소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-소비-앱이-소유-구현은-infrastructurepersistence)의 "실제 쓰는 필드만 이관"과 동일 취지).
+- **필드 셋이 다른 admin/web Result는 통합하지 않는다**: 이름이 비슷하다고 두 Result를 하나로 합쳐 상위집합 필드를 갖게 만들지 않는다. admin 목록에만 필요한 필드(비노출 여부·내부 상태·감사 시각 등)를 web 응답 경로에도 흘려보내면 **과잉 노출**이 되고, 어느 필드가 어느 화면 계약인지 추적할 수 없게 된다. 필드 셋이 다르면 별도 record로 유지하고, 각각 자기 소비자가 실제 쓰는 필드만 갖는다([query DAO·QueryPort 소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence)의 "실제 쓰는 필드만 이관"과 동일 취지).
 - **`SearchCondition`도 같은 원칙**: admin/web 검색 조건이 충돌하면 동일하게 `Management`로 구별하고, 조건 필드가 다르면 통합하지 않는다.
 - **적용 대상 확장 (챕터 02)**: 이 규칙은 `Result`·`SearchCondition`·`QueryPort`뿐 아니라 **인바운드 포트(`*UseCase`)·서비스(`*Service`)·명령(`*Command`)·협력 빈(`*Reader`·`*View`)까지** 적용한다. 근거는 **챕터 03으로 web·admin·ceo 세 앱의 타입이 같은 패키지·같은 모듈(`application`)에 공존**하므로, simple name이 앱 안에서만이 아니라 **앱 간에도 유일**해야 하기 때문이다. 과거 "패키지가 달라 충돌하지 않으니 같은 이름이어도 정상"이라던 여지는 평탄화로 사라졌다.
 - **앱별 한정어 배정**: **web은 순수명을 유지하고, admin은 `Management`, ceo는 `Owner`를 붙인다.** 충돌하는 앱 조합에 따라 다음과 같이 정해진다.
@@ -1060,21 +1054,12 @@ reference 구현: `com.tastyhouse.application.faq.port.out`(`FaqCategoryManageme
 - **`Management`는 여기서도 "무엇을 위한 것인가(관리 화면)"** 이지 "누가"가 아니다. 따라서 admin과 ceo 어느 쪽이든 관리 화면 계약이면 쓸 수 있다(선례: ceo의 `ShopReviewManagementQueryPort` vs admin의 `ReviewManagementQueryPort` — 도메인 접두로 구분).
 - **형제가 이미 `Management`를 점유했으면 `Owner`로 구별한다.** admin 계약이 `*ManagementResult`를 반환해 `Management`를 쓰고 있는데 ceo(점주 관리 화면) 계약도 필요하면, 소유 주체를 담은 `Owner`를 쓴다(예: `ShopNoticeManagementQueryPort`(admin) vs `ShopNoticeOwnerQueryPort`(ceo), `ProductManagementQueryPort`(admin) vs `ProductOwnerQueryPort`(ceo)). **`Admin`·`Ceo` 같은 역할 마커는 금지**가 그대로 유지된다.
 - **공유 메서드는 양쪽 인터페이스에 선언만 중복한다.** DAO 구현은 하나를 공유하므로 투영 코드가 복제되지 않으며, 유지비는 선언에 한정된다. 중복 선언에는 `/** 공유 메서드 — {@link 상대포트}에도 같은 시그니처로 선언돼 있다. */` 주석을 단다.
-- **겹침이 압도적이면 쪼개지 않는다.** 두 앱이 쓰는 메서드가 거의 같으면 쪼갠 인터페이스가 사실상 같아져 조회 하나를 고칠 때 두 파일을 고쳐야 한다. 이때는 **소유자를 앱이 아니게** 만든다 — 성격을 담은 이름의 공용 포트 하나로 두고 여러 앱이 함께 의존한다(예: `ShopBasicInfoQueryPort`, `ShopSearchManagementQueryPort`). 이런 공용 포트는 챕터 05에서 `domain-module`로 이동했다.
+- **겹침이 압도적이면 쪼개지 않는다.** 두 앱이 쓰는 메서드가 거의 같으면 쪼갠 인터페이스가 사실상 같아져 조회 하나를 고칠 때 두 파일을 고쳐야 한다. 이때는 **소유자를 앱이 아니게** 만든다 — 성격을 담은 이름의 공용 포트 하나로 두고 여러 앱이 함께 의존한다(예: `ShopBasicInfoQueryPort`, `ShopSearchManagementQueryPort`). 공용이든 단독이든 계약이 사는 모듈은 `application`으로 같다.
 - **구현이 서로 다른 DAO면 선언 중복 대신 공유분을 별도 포트로 뗀다.** 선언을 중복하면 그 계약을 구현하는 DAO마다 본문이 필요한데, 두 DAO가 서로 다른 빈이면 투영 코드가 복제된다(사례: `ReviewTagQueryPort` — admin이 태그 2건 때문에 회원 화면용 `ReviewQueryPort`를 통째로 주입하던 것을 해소).
 - **DAO는 분할된 포트를 전부 `implements`하며 본문은 바뀌지 않는다.** 분할 전후로 `@Override` 개수가 같아야 한다(`grep -c '@Override' {DAO}`로 대조). 메서드 누락은 `implements` 미구현으로 컴파일 에러가 나므로 기계적으로 드러난다.
 - **application 소비자가 없는 조회는 포트에 두지 않는다.** infra 내부에서만 쓰는 조회는 DAO의 평범한 public 메서드로 남긴다(사례: `ShopQueryDao#findShopName` — 유일한 소비처인 `ReviewOwnerReplyEventListener`가 같은 모듈에서 구체 타입으로 주입한다. `MemberReviewCountQueryPort` 선례와 같은 취급).
 
-**챕터 09 이후 — 이 규칙이 곧 계약의 소유 모듈을 정한다.** `application-common-module`이 해체되며 "포트를 쪼갠다"는 판정이 파일의 물리적 위치까지 결정하게 됐다.
-
-| 이 규칙의 판정 | 계약이 사는 곳 |
-|---|---|
-| 앱별로 쪼갠 단독 포트 | 그 앱의 `{앱}-application` |
-| "겹침이 압도적"이라 쪼개지 않은 공용 포트 | `domain-module` |
-
-따라서 **포트를 쪼갤지 말지는 이제 이름 문제가 아니라 모듈 배치 문제다.** 잘못 판정해 단독 계약을 `domain-module`에 두면 그 모듈이 표현 투영의 쓰레기통이 되고, 공유 계약을 한 앱 모듈에 두면 다른 앱이 그 모듈을 의존하는 **앱 간 수평 의존**이 생긴다. 새 계약을 추가하기 전에 **소비 앱 수를 먼저 센다**.
-
-**분할 후 남은 공유 포트는 의도적으로 남긴 것뿐이다** — `ShopBasicInfoQueryPort`(3앱)·`ShopDeliveryTipQueryPort`(web+ceo)·`ReviewTagQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`(각 2앱) 5개이며, 전부 위 "겹침이 압도적" 판정을 거쳤고 챕터 05에서 `domain-module`로 간다. **그 밖에 어떤 앱도 다른 앱의 계약을 주입하지 않는다.**
+**분할 후 남은 공유 포트는 의도적으로 남긴 것뿐이다** — `ShopBasicInfoQueryPort`(3앱)·`ShopDeliveryTipQueryPort`(web+ceo)·`ReviewTagQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`(각 2앱) 5개이며, 전부 위 "겹침이 압도적" 판정을 거쳤다. **그 밖에 어떤 앱도 다른 앱의 계약을 주입하지 않는다.**
 
 reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`ShopBasicInfoQueryPort`/`ShopManagementQueryPort`/`ShopOwnerQueryPort` — 35개 메서드를 4분할한 최대 사례), `com.tastyhouse.application.product.port.out`(`ProductQueryPort`/`ProductManagementQueryPort`/`ProductOwnerQueryPort`), `com.tastyhouse.application.review.port.out`(`ReviewTagQueryPort` — 구현 DAO가 달라 별도 포트로 뗀 사례).
 
@@ -1085,7 +1070,7 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 | 두어야 할 곳 | 기준 |
 |---|---|
 | `domain-module` | 도메인 모델·VO·write 포트·불변식(순수 POJO, 프레임워크-프리) |
-| `{web,admin,ceo,batch}-application` | 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 (**`response/`는 없다 — 3개 앱 전부 api 모듈 소유**). **infra를 컴파일 클래스패스에 두지 않는다** |
+| `application` | 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 + 읽기 계약 `<ctx>/port/out/` (**`response/`는 없다 — 3개 앱 전부 api 모듈 소유**). **infra를 컴파일 클래스패스에 두지 않는다** |
 | `{web,admin,ceo}-api` · `batch-module` | 인바운드 어댑터 — 컨트롤러/`@Scheduled` 트리거 + `request/` + config·security 정책 + 부트스트랩 |
 | `infrastructure:persistence` | domain write 포트의 JPA 어댑터 + `{Ctx}QueryPort` 구현 DAO + `<ctx>/listener` + 도메인 서비스 빈 등록 |
 | `infrastructure:redis` | Redis 연결·`StringRedisTemplate` + rate limiting. **domain조차 모른다**(포트가 없는 순수 기술) |

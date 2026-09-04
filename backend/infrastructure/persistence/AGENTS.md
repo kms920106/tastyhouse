@@ -8,7 +8,7 @@
 
 `domain-module`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
-**QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 계약 소유 모듈 5개(`{앱}-application` 4개 + `domain-module`)가 나눠 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
+**QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
 ## 패키지 구조
 
@@ -35,7 +35,7 @@ com.tastyhouse.infrastructure/
     └── listener/                         크로스커팅 도메인 이벤트 리스너(@TransactionalEventListener)
 ```
 
-**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐다(챕터 09 이후 소유 모듈은 소비 앱 수에 따라 `{앱}-application` 또는 `domain-module`). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
+**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐고, 소유 모듈은 `application` 하나다(챕터 04로 공유 계약까지 돌아와 단독 소유가 됐다). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
 
 현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`를 가진 도메인: `coupon`·`file`·`mail`·`member`·`payment`·`point`·`policy`·`product`·`sms`.
 
@@ -64,7 +64,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
-표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 소비 앱 수에 따라 갈린다)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
@@ -75,15 +75,16 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 - **소비 모듈은 web/admin/ceo-api만이 아니다**: `batch-module`도 이 DAO를 포트 인터페이스로 직접 소비한다(reference: `product` 도메인의 `ProductQueryPort#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). batch 역시 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다.
 - **Result record는 반드시 `public`이고 select 절과 생성자가 일치해야 한다**: `Projections.constructor`는 리플렉션으로 런타임에 생성자를 찾으므로, record가 package-private이거나 select 절 인자 개수·타입·순서가 생성자와 어긋나면 컴파일은 통과하고 **호출 시점에만 500**이 난다. `ProjectionConstructorMatchingTest`(이 모듈)가 select 절 인자 개수와 대상 record의 public 생성자 파라미터 개수 일치를 소스 스캔으로 검증한다. 전환·신규 작성한 쿼리는 반드시 한 번 호출해 확인한다.
 
-### 읽기 계약 가드 3종은 이 모듈이 소유한다 (챕터 09 — `application-common-module`에서 이관)
+### 읽기 계약 가드 2종은 이 모듈이 소유한다 (챕터 09 — `application-common-module`에서 이관)
 
-계약 자체는 5개 모듈로 흩어졌지만, **그 계약을 검증하는 가드는 이 모듈에 모여 있다** — 이 모듈이 4개 application 모듈을 `implementation`으로, `domain-module`을 `api`로 의존해 **계약 소유 모듈 5개가 전부 테스트 런타임 클래스패스에 올라오는 유일한 지점**이기 때문이다.
+계약은 `application` 모듈이 소유하지만, **그 계약을 검증하는 가드는 이 모듈에 있다** — 이 모듈이 `application`을 `implementation`으로 의존해 계약이 테스트 런타임 클래스패스에 올라오고, 동시에 그 계약을 투영하는 DAO 소스를 갖고 있기 때문이다.
+
+> **`ReadContractSingleOwnerTest`는 챕터 04에서 삭제됐다.** 같은 FQCN이 두 모듈에 정의되는 것을 막던 가드인데, 공유 계약 55개가 `domain-module`에서 `application`으로 돌아오며 split package 자체가 사라졌다. 이제 같은 모듈 안의 중복 정의는 컴파일 에러라 가드가 필요 없다.
 
 | 가드 | 무엇을 막나 | 컴파일러가 못 잡는 이유 |
 |---|---|---|
 | `QueryResultRecordVisibilityTest` | Result record가 package-private인 것 | `Projections.constructor`가 `Class<?>`를 받아 리플렉션으로 찾는다 |
 | `ProjectionConstructorMatchingTest` | select 절 인자 개수 ≠ 생성자 파라미터 개수 | 가변인자 `Expression<?>...`라 개수가 어긋나도 통과한다 |
-| `ReadContractSingleOwnerTest` | 같은 FQCN이 두 모듈에 정의되는 것 | split package라 중복 정의가 정상 컴파일된다 |
 
 **`public` record 강제의 근거는 실제 장애다.** `ShopRiderGuidePickupPresenceResult`가 "DAO 내부에서만 쓰는 중간 투영이니 노출을 좁힌다"는 의도로 package-private으로 선언되어, admin "라이더 안내 검수" 목록 조회(`GET /api/shops/v1/rider-guides`)가 **전부 500**으로 실패했다. 같은 패키지의 다른 Result record 30여 개는 모두 `public`이라 이 한 건만 어긋난 상태였고, 빌드·리뷰 어디에서도 걸리지 않아 브라우저 검증 단계에서야 발견됐다. 실패 형태는 아래와 같다.
 
@@ -200,7 +201,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ### Internal
 - `domain-module` (api) — 도메인 모델·write 포트·출력 포트·`shared/page`·`shared/event`·`shared/exception`·`exception` 참조
-- `{web,admin,ceo,batch}-application` (implementation) — 각 앱이 소유한 `{Ctx}QueryPort`·Result·SearchCondition을 구현·투영하기 위해 4개 모두 의존한다(QueryDao가 그 인터페이스를 `implements`). 다중 앱 공유 계약은 `domain-module` 소유라 위 `api project(':domain-module')`로 이미 보인다
+- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`

@@ -197,7 +197,7 @@ docs/       domain(도메인별 비즈니스 지식 문서) · oauth · pg
   - **application 계층 1개**: `application` — 4개 앱의 유스케이스(인바운드 포트 + CQRS 서비스)를 담는 단일 모듈이며 infrastructure를 컴파일 클래스패스에 두지 않습니다. 자바 패키지는 앱별로 남아 있습니다(`com.tastyhouse.{web|admin|ceo|batch}application..`). 앱별 모듈 4개를 여기로 합친 근거는 `backend/application/AGENTS.md`의 "과거 판단의 번복" 절에 있습니다.
   - **공유 모듈**: `domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `external-api`, `security-module`, `logging-module`, `api-common-module`.
 
-  읽기 계약(`com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`)을 담던 `application-common-module`은 계약이 전부 소유 모듈로 옮겨가며 **삭제됐습니다**(18 → 17개). 이후 앱별 application 모듈 4개를 `application` 하나로 합쳐 **14개**가 됐습니다. 지금은 한 앱만 쓰는 계약 271개를 `application`이, 2개 이상이 쓰는 공유 계약 55개를 `domain-module`이 소유합니다 — 패키지는 그대로라 한 최상위 패키지를 2개 모듈이 나눠 갖습니다.
+  읽기 계약(`com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`)을 담던 `application-common-module`은 계약이 전부 소유 모듈로 옮겨가며 **삭제됐습니다**(18 → 17개). 이후 앱별 application 모듈 4개를 `application` 하나로 합쳐 **14개**가 됐습니다. 읽기 계약은 전부 `application` 모듈이 소유합니다 — 공유 계약 55개를 잠시 `domain-module`이 갖고 있었으나 application 모듈 통합으로 그 근거(앱 간 수평 의존 회피)가 사라져 되돌렸고, 그 결과 `com.tastyhouse.application` 최상위 패키지를 한 모듈이 단독으로 갖습니다.
 
   `infrastructure`는 기술별로 나뉜 **중첩 프로젝트**입니다(디렉터리 `backend/infrastructure/{persistence,redis}/`, Gradle 좌표 `:infrastructure:persistence`·`:infrastructure:redis`). 자바 패키지는 `com.tastyhouse.infrastructure..`로 불변입니다. 모듈 지도와 배치 기준은 `backend/CLAUDE.md`의 "모듈 지도" 절을 참조합니다.
 - **작업 전 해당 영역 문서를 먼저 읽습니다.** backend 각 모듈과 frontend 각 앱의 `src/` 하위 디렉터리에는 그 영역의 최신 상세 가이드가 담긴 `AGENTS.md`가 있으므로, 이 파일의 요약에 의존하지 말고 해당 문서를 직접 확인합니다.

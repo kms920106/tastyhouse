@@ -11,12 +11,11 @@ import java.util.Map;
  * 못하면 나머지 쿼리를 아예 실행하지 않는 <b>순서 있는 판정</b>이 들어 있다. 표현 계약이 대신할 수
  * 없으므로 합친 결과를 나른다.
  *
- * <p><b>이름에 {@code Owner} 한정어가 붙은 이유</b>: 같은 계약 패키지({@code split package})에
- * web 소비용 {@code ShopReviewStatisticsOwnerResult}가 <b>이미 있고 필드 구성이 다르다</b>(게이트 플래그
- * 없음·월별 형태 다름). 같은 FQCN이 두 모듈에 중복 정의되면 컴파일은 통과하고 런타임 클래스패스
- * 순서가 어느 쪽이 로드될지 정한다 — {@code ReadContractSingleOwnerTest}가 이 사고를 잡는다.
- * 형제가 이미 순수명을 점유했으므로 소유 주체를 담은 {@code Owner}를 붙였다(리포 규약: admin이
- * {@code Management}를 점유했으면 ceo는 {@code Owner}).
+ * <p><b>이름에 {@code Owner} 한정어가 붙은 이유</b>: 같은 계약 패키지에 web 소비용
+ * {@code ShopReviewStatisticsResult}가 <b>이미 있고 필드 구성이 다르다</b>(게이트 플래그 없음·월별
+ * 형태 다름). 형제가 이미 순수명을 점유했으므로 소유 주체를 담은 {@code Owner}를 붙였다(리포 규약:
+ * admin이 {@code Management}를 점유했으면 ceo는 {@code Owner}). 챕터 04로 이 패키지는
+ * {@code application} 한 모듈이 단독 소유하므로, 이름이 겹치면 컴파일 에러로 즉시 드러난다.
  *
  * <p>{@code hasData}가 {@code false}면 나머지는 전부 비어 있다 — 최근 180일 리뷰가 0건이면 대시보드를
  * 노출하지 않는다는 원문 규격이며, 그 빈 형태는 {@code ShopReviewStatisticsResponse#empty}가 만든다.
