@@ -11,8 +11,8 @@
 |---------|-------------------|
 | `oauth/{kakao,naver,apple,facebook}` | 소셜 로그인 — OAuth 토큰 발급/검증, 사용자 정보 조회. Apple은 ES256(client_secret JWT) + RS256(id_token 검증) |
 | `payment/toss` | Toss 결제 API — 결제 승인/취소. domain 포트 `payment/port/PgPaymentGateway` 구현(반환 타입은 포트의 `port/dto/PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`). `payment/toss/dto/` 내 provider 요청/응답 DTO |
-| `mail/{javamail,ses}` | 메일 발송 — JavaMail SMTP(`JavaMailAdapter`) 또는 AWS SES(`AwsSesMailSender`). `mail/port/MailSender` 구현. 설정은 `MailProperties`(접두어 `mail`) |
-| `sms/{sns,solapi}` | SMS 발송 — AWS SNS 또는 Solapi. `sms/solapi/{request,response}` 패키지로 DTO 관리. `sms/port/SmsSender` 구현 |
+| `mail/{javamail,ses}` | 메일 발송 — JavaMail SMTP(`JavaMailAdapter`) 또는 AWS SES(`SesMailSender`). `mail/port/MailSender` 구현. 설정은 `MailProperties`(접두어 `mail`) |
+| `sms/{sns,solapi}` | SMS 발송 — AWS SNS(`SnsSmsSender`) 또는 Solapi(`SolapiSmsClient`). `sms/solapi/{request,response}` 패키지로 DTO 관리. `sms/port/SmsSender` 구현 |
 | `file/{s3,firebase}` | 파일 스토리지 — AWS S3 또는 Firebase Storage. domain 포트 `file/port/FileStoragePort` 구현, `FileStorageStrategy` 패턴 |
 | `crawling/bbq` | BBQ 치킨 가게 정보 크롤링 — `crawling/bbq/dto/` 내 응답 DTO 보유 |
 | `region/` | 행정동 경계 GeoJSON 원천(통계청 SGIS 파생, CC BY 4.0 / EPSG:4326) — batch-module의 행정동 마스터 동기화가 소비. 30MB대 단일 JSON이라 WebClient(`bodyToMono(String)`)가 아니라 `HttpClient` + Jackson **스트리밍** 파서로 읽고, `BoundedInputStream`으로 응답 크기 상한을 건다. 도메인 포트가 없어 `SocialOAuthClient` SPI처럼 자체 계약(`AdminDongBoundaryClient`/`AdminDongBoundaryResult`)을 소유한다 |
@@ -47,7 +47,7 @@
 ### External
 - **AWS SDK**: `software.amazon.awssdk:ses`, `software.amazon.awssdk:sns`, `io.awspring.cloud:spring-cloud-aws-s3`
 - **Firebase**: `com.google.firebase:firebase-admin:9.10.0`
-- **Spring Boot Starters**: `spring-boot-starter-mail`, `spring-boot-starter-web`, `spring-boot-starter-webflux`
-- **JWT**: `io.jsonwebtoken:jjwt-api:0.12.3`, `jjwt-impl`, `jjwt-jackson` (Apple 로그인용 ES256/RS256)
+- **Spring**: `spring-boot-starter-mail`, `spring-boot-starter-webflux`, `spring-web`(starter-web이 아니라 단일 좌표 — 서블릿 실사용이 `MultipartFile` 1종뿐)
+- **JWT**: `io.jsonwebtoken:jjwt-api:0.13.0`, `jjwt-impl`, `jjwt-jackson` (Apple 로그인용 ES256/RS256)
 
 <!-- MANUAL: -->

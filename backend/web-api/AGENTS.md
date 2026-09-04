@@ -13,7 +13,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `domain-module`·`application`·`infrastructure:persistence`·`external-api`·`security-module`·`logging-module`을 모두 `implementation`으로 의존 + web, webflux, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). QueryDSL 의존은 없다 |
+| `build.gradle` | `domain-module`·`application`·`infrastructure:persistence`·`infrastructure:external`·`security-module`·`logging-module`을 모두 `implementation`으로 의존 + web, webflux, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). QueryDSL 의존은 없다 |
 | `src/main/resources/` | `application.yml` 등 환경 설정 (로깅 설정은 logging-module의 `application-logging.yml`을 import) |
 
 ## Subdirectories
@@ -56,7 +56,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 - **`scanBasePackages`에 domain 엔트리 없음**: `WebApiApplication`의 `scanBasePackages`는 `com.tastyhouse.webapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에는 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다.
 - **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`CustomUserDetailsService`, `config/jwt/`의 `TokenService`·`RedisRepositoryConfig`.
 - **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET_WEB`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
-- 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `external-api`에 위임.
+- 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `infrastructure:external`에 위임.
 - 응답은 공통 래퍼로 일관화 — `ApiResponse`/`PaginationResponse`/`PageRequest`와 `FileService`는 이 모듈이 아니라 **`api-common-module`(`com.tastyhouse.apicommon`) 소유**다.
 - **`GlobalExceptionHandler`만은 이 모듈에 잔류**한다: web 전용 핸들러 4종(`ExternalApiException`·`NoHandlerFoundException`·`MissingServletRequestParameterException`·`MethodArgumentTypeMismatchException`)과 "필드명: 메시지" 형식의 검증 실패 응답이 admin/ceo와 다른 **응답 계약 차이**이기 때문이다. 그래서 `WebApiApplication`은 `com.tastyhouse.apicommon` 전체가 아니라 **`com.tastyhouse.apicommon.file`만** 스캔한다 — `exception` 패키지까지 스캔하면 `@RestControllerAdvice`가 2개가 된다.
 - **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: 소셜 서비스 4종은 `SocialOAuthClient`(`@Qualifier`로 제공자 지정)·`SocialProfile`만 알고 제공자별 wire DTO를 import하지 않는다. 제공자별 Redis 임시토큰 저장소·`*_TEMP_TOKEN_EXPIRED` ErrorCode는 제공자별로 유지한다(key prefix 변경 금지). ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제.
@@ -67,7 +67,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
 - `infrastructure:persistence` (implementation) — **`runtimeOnly`로 강등하지 않는다**: 소스 import는 0건이지만 부트스트랩이 `@Import(InfrastructureModuleConfig.class)`로 진입점 설정을 컴파일 타임에 참조한다(강등하면 실측상 4개 모듈 전부 "package does not exist"). 해소하려면 `@Import`를 문자열 `scanBasePackages`로 되돌려야 하는데 그것은 타입 세이프 조합이라는 설계 의도를 뒤집는다. 은닉은 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당한다
-- `external-api` — OAuth/결제/메시징/파일 어댑터
+- `infrastructure:external` — OAuth/결제/메시징/파일 어댑터
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소
 - `infrastructure:redis` — rate limit 카운터(`RedisRateLimitCounter`)와 `StringRedisTemplate` 빈. 부트스트랩이 `@Import(RedisModuleConfig.class)`로 참조한다. 챕터 02에서 `@RateLimit`·aspect는 `api-common-module`로 올라갔고 이 모듈에는 카운터만 남았다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`

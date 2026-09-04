@@ -2,11 +2,11 @@
 
 # infrastructure:persistence
 
-> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)·클래스명(`InfrastructureModuleConfig`·`InfrastructurePersistenceConfig`)·`application-infrastructure.yml`은 **전부 불변**이므로, 아래 본문의 패키지 경로는 그대로 유효하다. 형제 모듈 `infrastructure:redis`가 Redis를 소유한다(`../redis/AGENTS.md`).
+> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)·클래스명(`InfrastructureModuleConfig`·`InfrastructurePersistenceConfig`)·`application-infrastructure.yml`은 **전부 불변**이므로, 아래 본문의 패키지 경로는 그대로 유효하다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:external`이 외부 시스템 연동을(`../external/AGENTS.md`) 소유한다 — 셋 다 driven 어댑터다.
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
-`domain-module`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. `external-api`가 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain-module`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain-module`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. `infrastructure:external`이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
@@ -195,7 +195,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 
-이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, 도메인 모듈이 JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 `application-external.yml`(external-api 소유)·`application-security.yml`(security-module 소유)·`application-logging.yml`(logging-module 소유)과 동일한 패턴이다.
+이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, 도메인 모듈이 JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 `application-external.yml`(`infrastructure:external` 소유)·`application-security.yml`(security-module 소유)·`application-logging.yml`(logging-module 소유)과 동일한 패턴이다.
 
 ## Dependencies
 

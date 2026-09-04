@@ -1,7 +1,13 @@
-<!-- Parent: ../AGENTS.md -->
+<!-- Parent: ../../AGENTS.md -->
 <!-- Generated: 2026-06-02 | Updated: 2026-07-31 -->
 
-# external-api
+# infrastructure:external
+
+> **경로 이동 (챕터 01)**: 이 모듈은 `external-api/`에서 **`infrastructure/external/`로 이동**했고 Gradle 좌표는 `:infrastructure:external`(구 `:external-api`)이다. 자바 패키지 `com.tastyhouse.external..`·yml 파일명(`application-external.yml`)·빈 이름은 **전부 불변**이므로, 아래 본문의 패키지 경로는 그대로 유효하다. 형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 셋 다 driven(아웃바운드) 어댑터다.
+>
+> **패키지를 `com.tastyhouse.infrastructure.external`로 옮기지 않은 이유**는 `InfrastructureModuleConfig`가 `@ComponentScan("com.tastyhouse.infrastructure")`를 통째로 스캔하기 때문이다. 그 아래로 옮기면 `ExternalModuleConfig`의 OAuth REGEX 제외 필터가 우회돼 admin/ceo/batch가 OAuth 빈까지 스캔하고 `Could not resolve placeholder 'apple.team-id'`로 부팅이 깨진다. 모듈명≠패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
+>
+> 진입 설정 클래스는 **`ExternalModuleConfig`**(구 `ExternalApiConfig`, 챕터 02)로, 형제 `InfrastructureModuleConfig`·`RedisModuleConfig`·`LoggingModuleConfig`와 명명 규칙이 맞춰졌다.
 
 ## Purpose
 외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `domain-module`이 선언한 출력 포트(`<ctx>/port/` — `mail/`의 `MailSender`, `sms/`의 `SmsSender`, `FileStoragePort`·`PgPaymentGateway`·`ProductReviewStatisticsPort`·`MemberReviewCountPort`)를 구현하는 어댑터 역할을 한다.
@@ -9,7 +15,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + `domain-module`(implementation) + web/webflux, mail, AWS SES/SNS/S3, Firebase Admin, JJWT(Apple 로그인용). `bootJar` 비활성 |
+| `build.gradle` | `java-library` + `domain-module`·`application`(둘 다 implementation — `application`은 `..port.out` 계약만) + `spring-web`/webflux, mail, AWS SES/SNS/S3, Firebase Admin 9.10.0, JJWT 0.13.0(Apple 로그인용). `bootJar` 비활성 |
 | `src/main/resources/config/` | 외부 연동 설정 |
 
 ## Subdirectories
@@ -39,7 +45,7 @@
 
 ### Internal
 - `domain-module` (implementation) — 출력 포트 인터페이스(`<ctx>/port/`) 및 도메인 타입
-- `application` (implementation) — **의존 역전(챕터 04)**. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를 소유한 모듈에 의존한다(방향: adapter → port). web 앱의 소셜 로그인 SPI(`auth.port.out`), batch 앱의 BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입이 그것이다. **반대 방향(`application → external-api`)은 `application/build.gradle`에서 제거됐으므로 순환이 아니다** — 그 줄을 되살리면 빌드가 깨진다
+- `application` (implementation) — **의존 역전(챕터 04)**. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를 소유한 모듈에 의존한다(방향: adapter → port). web 앱의 소셜 로그인 SPI(`auth.port.out`), batch 앱의 BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입이 그것이다. **반대 방향(`application → infrastructure:external`)은 `application/build.gradle`에서 제거됐으므로 순환이 아니다** — 그 줄을 되살리면 빌드가 깨진다
 
 ### External
 - AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0

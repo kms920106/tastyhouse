@@ -4,7 +4,7 @@
 # webapi (presentation layer)
 
 ## Purpose
-사용자 대면 REST API 계층이자, 이 앱의 **application 계층**이다. HTTP 요청을 받아 도메인당 CQRS 서비스(`{도메인}CommandService`/`{도메인}QueryService`)를 호출하고 응답 DTO로 변환하여 반환한다(과거 `core-module`의 `application/` 계층이 하던 역할이 전환으로 이 패키지로 내려왔다). JWT 기반 인증, OAuth 소셜 로그인, 요청/응답 로깅, Rate Limiting, 중앙화된 예외 처리를 제공한다. Spring Security + JWT + Redis 기반의 stateless 아키텍처를 구현하며, 외부 API 연동은 external-api 모듈로 위임한다.
+사용자 대면 REST API 계층이자, 이 앱의 **application 계층**이다. HTTP 요청을 받아 도메인당 CQRS 서비스(`{도메인}CommandService`/`{도메인}QueryService`)를 호출하고 응답 DTO로 변환하여 반환한다(과거 `core-module`의 `application/` 계층이 하던 역할이 전환으로 이 패키지로 내려왔다). JWT 기반 인증, OAuth 소셜 로그인, 요청/응답 로깅, Rate Limiting, 중앙화된 예외 처리를 제공한다. Spring Security + JWT + Redis 기반의 stateless 아키텍처를 구현하며, 외부 API 연동은 `infrastructure:external` 모듈로 위임한다.
 
 ## Cross-cutting Packages
 | Package | Description |
@@ -24,14 +24,14 @@
 | `bug/` | 버그 리포트 제출 API |
 | `event/` | 이벤트 조회 API |
 | `faq/` | FAQ 조회 API |
-| `file/` | 파일 업로드/다운로드 (S3/Firebase 연동은 external-api로 위임) |
+| `file/` | 파일 업로드/다운로드 (S3/Firebase 연동은 `infrastructure:external`로 위임) |
 | `follow/` | 사용자 팔로우/언팔로우 관리 API |
 | `grade/` | 회원 등급 조회 API |
 | `member/` | 회원 프로필 조회, 회원 정보 수정, 탈퇴 등 회원 관리 API |
 | `notice/` | 공지사항 조회 API |
 | `order/` | 주문 생성, 조회, 취소, 배송 추적 API |
 | `partnership/` | 파트너십/제휴 관리 API |
-| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 external-api의 `payment/toss` 어댑터가 domain 포트 `PgPaymentGateway`를 구현 |
+| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 `infrastructure:external`의 `payment/toss` 어댑터가 domain 포트 `PgPaymentGateway`를 구현 |
 | `policy/` | 약관/정책 조회 API |
 | `product/` | 상품 조회, 검색, 필터링 API |
 | `rank/` | 순위/랭킹 조회 API |
@@ -56,7 +56,7 @@
   - **등록(POST)은 생성된 `Long` id만 반환**한다 — `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, 커밋 이후 QueryService로 재조회해 상세 DTO를 조립하지 않는다(과거 이 모듈만 등록 8종이 재조회 형태였으나 전면 전환됨). 생성 응답 전용 래퍼 record를 만들지 않고, 행을 생성하고도 `ApiResponse<Void>`를 반환하지 않는다. 상세가 필요한 클라이언트는 그 id로 GET 상세를 호출한다. 업로드·인증/토큰 발급·토글·상태전이·POST-as-query는 적용 제외. 상세는 루트 CLAUDE.md 참고. 수정(PUT)·상태전이(PATCH) 응답에서 상세 DTO가 필요하면 종전대로 QueryService 재조회로 조립한다.
   - 인증·회원·파일·등급·추천처럼 애그리거트 CRUD가 아닌 흐름 지향 서비스는 CQRS 쌍이 아닌 단일 서비스로 남아 있다(`auth/AuthCommandService`, `member/MemberService`, `grade/GradeQueryService`, `referral/ReferralQueryService` — 전부 `application` 소유이며 챕터 02에서 인바운드 포트를 갖게 됐다. `file/FileService`는 `api-common-module` 소유).
 - **도메인 enum은 컨트롤러/Request에 core 타입으로 노출하지 않는다** — HTTP 경계는 `String`(다중값 `List<String>`)으로 받고 `{도메인}CommandService`/`{도메인}QueryService`에서 domain enum의 `Enum.from(String)`으로 승격한다(ID를 `Long`으로 받아 `XxxId.of()`로 승격하는 것과 대칭). String 파라미터에는 `@Schema(allowableValues={...})`/`@Parameter(...)`로 Swagger 후보값을 명시하고, 변환 실패는 domain enum `from()`에서 `BusinessException(ErrorCode.XXX_TYPE_UNKNOWN)`으로 처리한다(reference: `event/EventQueryService`·`EventStatus`, `shop/ShopQueryService`·`FoodType`/`Amenity`). 상세는 루트 CLAUDE.md 참고.
-- **외부 API 호출은 external-api 모듈 어댑터로 위임** — OAuth, 결제, 파일 업로드, 크롤링 등.
+- **외부 API 호출은 `infrastructure:external` 모듈 어댑터로 위임** — OAuth, 결제, 파일 업로드, 크롤링 등.
 - **Spring Security + JWT 인증 흐름**: JwtAuthenticationFilter → JwtTokenProvider.validateToken() → CustomUserDetailsService → SecurityContext 설정.
 - **GlobalExceptionHandler로 모든 예외 통합 처리** — BusinessException이 담은 `ErrorCodeSpec`의 httpStatusCode로 HTTP 상태 결정. 인증 실패는 `ErrorCode.AUTH_*`(401)를 담은 BusinessException으로 던진다(전용 예외 타입을 새로 만들지 않는다).
 - **Rate Limiting은 `@RateLimit(keyType=IP|FIELD, limit=N, windowSeconds=...)`로 메서드 레벨 선언** — 이 모듈에는 `ratelimit/` 패키지가 없다. 애노테이션·aspect·예외는 `api-common-module`(`com.tastyhouse.apicommon.ratelimit`), Redis 카운터는 `infrastructure:redis`가 소유한다(챕터 02). 부트스트랩이 `ApiCommonRateLimitConfig`를 `@Import` 해야 aspect가 등록된다 — 빠지면 `@RateLimit`이 조용히 무시된다.
@@ -81,7 +81,7 @@
 ### Internal
 - `domain-module` — 도메인 모델·VO·write 포트·도메인 서비스, 도메인 예외 (BusinessException, ErrorCode), 페이징 계약 (PageQuery/PageResult).
 - `infrastructure-module` — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단).
-- `external-api` — OAuth 로그인, 결제, 이메일/SMS, 파일 업로드, 크롤링 어댑터.
+- `infrastructure:external` — OAuth 로그인, 결제, 이메일/SMS, 파일 업로드, 크롤링 어댑터.
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit.
 - `logging-module` — 요청/응답 로깅.
 

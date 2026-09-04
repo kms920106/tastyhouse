@@ -58,7 +58,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### Internal
 - `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
 - `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단
-- `external-api` (implementation) — `BbqApiClient`(크롤링 HTTP 클라이언트), `RemoteImageDownloader`. **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-external.yml`) 때문에 유지한다
+- `infrastructure:external` (implementation) — `BbqApiClient`(크롤링 HTTP 클라이언트), `RemoteImageDownloader`. **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-external.yml`) 때문에 유지한다
 - `logging-module` (implementation) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다
 - **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. web/admin/ceo와 달리 전이 경로도 없다(`application`이 `domain-module`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). 도메인 타입이 다시 필요해지면 여기에 직접 선언한다
 - `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03)
@@ -68,7 +68,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 빈 배선
 
-`BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalApiConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합한다(`scanBasePackages` 문자열 나열 대신 타입 세이프 조합 — `InfrastructureModuleConfig` 선례).
+`BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합한다(`scanBasePackages` 문자열 나열 대신 타입 세이프 조합 — `InfrastructureModuleConfig` 선례).
 
 > **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, `@Import`에서 모듈 하나를 빠뜨려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
 >
@@ -81,6 +81,6 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 설정 파일
 
-`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 `application-external.yml`(크롤링/S3, external-api 소유)을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 `application-external.yml`(크롤링/S3, `infrastructure:external` 소유)을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
 
 <!-- MANUAL: -->
