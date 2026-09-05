@@ -3,16 +3,10 @@ dependencies {
     implementation project(':security-module')
     implementation project(':api-common-module')
 
-    // 앱이 소유한 RedisRepositoryConfig가 StringRedisTemplate을 직접 참조한다(앱별 키 접두사 주입).
-    // infrastructure:redis를 runtimeOnly로 내리면서 전이로 받던 이 라이브러리 의존이 드러났으므로
-    // 명시 선언한다 — 어댑터 모듈을 implementation으로 되돌리는 것과 다르다(라이브러리 타입만 본다).
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // 라이브러리 모듈은 auto-configuration으로 자기 등록하므로 컴파일 참조가 없다.
-    // runtimeOnly로 내려 어댑터 클래스를 컴파일 시점에 보지 않게 한다(헥사고날 강제).
     runtimeOnly project(':infrastructure:persistence')
     runtimeOnly project(':infrastructure:redis')
-    // 파일 저장 기능. 벤더(Firebase/S3) 선택은 infrastructure/file-storage가 한다.
     runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':logging-module')
 

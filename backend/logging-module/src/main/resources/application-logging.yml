@@ -6,9 +6,6 @@ logging:
     # INFO: 메타 정보만 로깅 (운영 환경) / DEBUG: Request/Response Body 추가 로깅 (개발 환경)
     com.tastyhouse.logging: ${API_BODY_LOG_LEVEL:DEBUG}
 
-# p6spy SQL 로그 포맷 — 과거 각 모듈 spy.properties(appender=Slf4JLogger,
-# logMessageFormat=CustomLineFormat, customLogMessageFormat=%(sql))를 starter 프로퍼티로 흡수.
-# appender는 starter 기본값이 Slf4JLogger라 별도 선언 불필요, dateformat은 %(sql) 포맷에서 미사용.
 decorator:
   datasource:
     p6spy:

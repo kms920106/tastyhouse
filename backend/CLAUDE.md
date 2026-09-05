@@ -668,6 +668,30 @@ public static EmailVerifyTokenResponse from(String emailVerifyToken) {
 
 reference 구현: `admin-api`의 `auth/response/JwtResponse`, `coupon/response/CouponDetailResponse`(파라미터 15개, `return new`도 한 줄에 하나씩 — 시그니처·본문 통일의 기준 예시), `event/response/EventWinnerResponse`(파라미터 6개), `bug/response/BugReportDetailResponse`(과거 `return new` 인자가 여러 개씩 묶여 있던 것을 전환), `common/ApiResponse`(제네릭 `ApiResponse<>`도 동일 적용), `web-api`의 `notice/response/NoticeListItemResponse`(이미 줄바꿈된 다수파 예시), `member/response/MyReviewListItemResponse`(파라미터 2개로 줄바꿈 전환).
 
+## 설정·빌드 스크립트 주석 규칙 (`application*.yml` · `build.gradle`)
+
+**`application*.yml`과 `build.gradle`에는 근거·배경을 설명하는 여러 줄 주석을 쓰지 않는다. 그 자리는 해당 모듈의 `AGENTS.md`다.** 설정 파일을 여는 사람이 먼저 봐야 하는 것은 "값이 무엇인가"이고, "왜 그 값인가"는 그 모듈의 설계를 서술하는 문서가 소유한다. 같은 설명이 주석과 AGENTS.md 양쪽에 있으면 한쪽만 갱신돼 **두 벌이 갈라지는 것**이 실제 실패 양식이다.
+
+**유지하는 주석 — 가독성 도구는 대상이 아니다.**
+
+| 형태 | 예 |
+|---|---|
+| 단위·의미 라벨 | `accessTokenExpiration: 3600000 # 1시간 (ms)` |
+| 허용값 열거 | `provider: firebase # firebase \| s3`, `provider: javamail # ses \| javamail` |
+| 블록 제목 | `# 카카오 로그인`, `# 네이버 로그인` |
+| 섹션 구분 | `build.gradle` dependencies 안의 `// Test` |
+| 주석 처리된 비활성 설정 | `application-test.yml`의 `#spring: ... ddl-auto` — 주석이 아니라 **꺼둔 설정**이다 |
+
+**삭제하는 주석 — 근거·배경 서술.** 이관 절차는 "먼저 AGENTS.md에 쓰고, 그다음 주석을 지운다"이며 순서를 뒤집지 않는다(지우고 나면 무엇을 옮겨야 했는지 사라진다).
+
+- **포인터 주석도 남기지 않는다.** `# (자세한 근거는 .../AGENTS.md 참고)` 한 줄도 두지 않는다 — 파일이 옮겨지거나 절 제목이 바뀌면 그 포인터부터 썩고, 그것 역시 두 벌 관리의 시작이다. AGENTS.md가 그 모듈의 설정을 서술한다는 것은 이 규칙이 이미 보장한다.
+- **AGENTS.md가 주석을 가리키지 않는다.** "…판단 근거가 주석으로 함께 남아 있다" 같은 서술은 주석을 지우는 순간 **거짓말이 된다.** 문서가 내용을 직접 담는다. 실제 선례: `infrastructure/crawling/AGENTS.md`의 `application-crawling.yml` 절이 그렇게 적혀 있어, 경계 GeoJSON 원천의 버전 고정 URL·타임아웃·상한 근거를 문서 본문으로 옮겨 적으며 함께 고쳤다.
+- **주석이 유일한 출처였던 내용은 반드시 옮긴다.** 지우기 전에 그 내용이 AGENTS.md에 **동등 이상으로** 있는지 확인한다. 대부분은 이미 있지만(auto-configuration 배선·configtree·p6spy 등), `.env` 2경로 선언 근거나 `starter-data-redis` 명시 선언 근거처럼 주석에만 있던 것들이 실제로 있었다.
+
+**어느 AGENTS.md인가 — 설정을 소유한 모듈의 것이다.** 앱 `application.yml`의 값은 그 앱(`{web,admin,ceo}-api/AGENTS.md`의 §설정 파일), 모듈 yml(`application-redis.yml` 등)은 그 모듈(`infrastructure/redis/AGENTS.md`의 §yml), `build.gradle`의 의존 선언 근거는 그 모듈 AGENTS.md의 §Dependencies다. 루트 `build.gradle`의 전역 설정(BOM 프로퍼티 override 등)은 `backend/AGENTS.md`가 소유한다.
+
+reference: `backend/AGENTS.md`의 `ext['netty.version']`·`ext['jackson-bom.version']` 항목(CVE override 근거), `infrastructure/redis/AGENTS.md` §yml — `application-redis.yml`(설정 소유 근거), `web-api/AGENTS.md` §설정 파일(`.env` 2경로·Redis import), `batch-module/AGENTS.md` §`web-application-type: none`이 api-common auto-config 2개를 잠재우는 유일한 근거(가장 긴 근거 서술이 문서에만 사는 형태).
+
 ## 코딩 스타일 (import 순서)
 
 Spring Framework가 자기 코드베이스에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 동일한 규칙을 따릅니다. 모든 Java 파일의 import는 아래 4개 그룹 순서로 배치합니다. **그룹 사이에는 빈 줄 1개**, 그룹 내부는 **알파벳(ASCII) 오름차순** 정렬, 그룹 내부에는 빈 줄을 넣지 않습니다.

@@ -4,9 +4,6 @@ plugins {
 }
 
 dependencies {
-    // 파일 저장 기능 한 벌 — 코어 SPI(FileStoragePortAdapter·FileStorageStrategy) + 벤더 구현.
-    // 앱은 이 모듈만 runtimeOnly로 의존하고 벤더를 알지 않는다.
-    // 벤더 전환은 아래 firebase 한 줄과 application-file-storage.yml만 바꾼다(infrastructure/aws/AGENTS.md 참고).
     runtimeOnly project(':infrastructure:external')
     runtimeOnly project(':infrastructure:firebase')
 }

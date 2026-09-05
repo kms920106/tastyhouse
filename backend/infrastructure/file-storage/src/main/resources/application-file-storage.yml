@@ -1,9 +1,7 @@
-# 파일 저장 기능의 설정 진입점 — 앱은 이 파일 하나만 import 한다.
-# 벤더 선택(provider 값 + 벤더 yml import)은 여기서만 바꾼다. 앱 application.yml에는 벤더가 등장하지 않는다.
 spring:
   config:
     import:
       - classpath:application-firebase.yml
 
 file:
-  provider: firebase # firebase | s3 — s3로 바꾸면 위 import도 application-aws.yml로, build.gradle의 firebase도 aws로
+  provider: firebase # firebase | s3

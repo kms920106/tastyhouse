@@ -6,11 +6,6 @@ crawling:
 region:
   admin-dong:
     boundary:
-      # 행정동 경계 GeoJSON 원천 (통계청 SGIS 파생, CC BY 4.0 / EPSG:4326 WGS84).
-      # 원천은 버전 디렉터리 단위로 배포되어 "최신"을 가리키는 고정 URL이 없다 — 행정구역 개편이
-      # 반영된 새 버전이 나오면 이 URL의 ver 날짜를 올린다.
       source-url: ${ADMIN_DONG_BOUNDARY_SOURCE_URL:https://raw.githubusercontent.com/vuski/admdongkor/master/ver20260701/HangJeongDong_ver20260701.geojson}
-      # 30MB대 단일 파일이라 넉넉히 잡는다.
       timeout-seconds: ${ADMIN_DONG_BOUNDARY_TIMEOUT_SECONDS:180}
-      # 원천이 예상 밖으로 커졌을 때 힙을 지키는 상한(기본 128MB).
       max-bytes: ${ADMIN_DONG_BOUNDARY_MAX_BYTES:134217728}

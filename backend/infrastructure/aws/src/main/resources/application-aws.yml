@@ -1,5 +1,3 @@
-# 이 파일은 어느 앱도 import 하지 않는다 — AWS 경로로 전환할 때 앱 application.yml에 추가한다
-# (전환 절차는 infrastructure/aws/AGENTS.md).
 file:
   aws:
     s3:

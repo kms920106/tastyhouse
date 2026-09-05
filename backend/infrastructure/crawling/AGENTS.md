@@ -53,7 +53,13 @@ com.tastyhouse.external/
 
 ## yml — `application-crawling.yml`
 
-**batch-module만** `spring.config.import`로 로딩한다. `crawling.bbq.api.base-url`과 `region.admin-dong.boundary.*`(source-url·timeout-seconds·max-bytes)를 담으며, 위 절의 판단 근거가 주석으로 함께 남아 있다. 경계 수집 값 3개는 전부 환경변수로 덮어쓸 수 있다(`ADMIN_DONG_BOUNDARY_*`).
+**batch-module만** `spring.config.import`로 로딩한다. `crawling.bbq.api.base-url`과 `region.admin-dong.boundary.*`(source-url·timeout-seconds·max-bytes)를 담는다. 경계 수집 값 3개는 전부 환경변수로 덮어쓸 수 있다(`ADMIN_DONG_BOUNDARY_*`).
+
+**세 값의 판단 근거는 아래가 유일한 출처다**(과거에는 yml 주석에도 있었으나 중복을 없애려 이 문서로 일원화했다).
+
+- **`source-url` — 원천은 행정동 경계 GeoJSON(통계청 SGIS 파생, CC BY 4.0 / EPSG:4326 WGS84)이다.** 이 원천은 **버전 디렉터리 단위로 배포되어 "최신"을 가리키는 고정 URL이 없다**(`.../ver20260701/HangJeongDong_ver20260701.geojson`처럼 경로와 파일명에 버전 날짜가 박힌다). 따라서 행정구역 개편이 반영된 새 버전이 나오면 **이 URL의 ver 날짜를 사람이 올려야 한다** — 자동으로 최신을 따라가지 않으므로, 경계 데이터가 오래됐다는 신고가 들어오면 먼저 이 값을 확인한다.
+- **`timeout-seconds` 기본 180 — 30MB대 단일 파일이라 넉넉히 잡은 값이다.** 일반적인 API 호출 타임아웃 감각으로 줄이면 정상 수집이 중간에 끊긴다.
+- **`max-bytes` 기본 134217728(128MB) — 원천이 예상 밖으로 커졌을 때 힙을 지키는 상한이다.** 경계 파싱은 스트리밍이지만 상한이 없으면 원천 비대화가 곧 OOM이 되므로, 이 값은 성능 튜닝 노브가 아니라 **안전장치**다. 수집이 이 상한에 걸려 실패하면 값을 올리기 전에 원천 크기가 왜 늘었는지부터 확인한다.
 
 ## 테스트
 

@@ -26,6 +26,14 @@ com.tastyhouse.infrastructure.redis/
 
 `RedisRateLimitCounter`는 과거 `RateLimiterService`이며, Lua 스크립트와 키 취급이 그대로라 **기존 Redis 카운터 키와 호환**된다(키 접두사는 호출부의 `@RateLimit(keyPrefix=...)`가 결정한다).
 
+## yml — `application-redis.yml` (챕터 05 §5b)
+
+이 모듈은 Redis 관련 **코드**뿐 아니라 **연결 설정**도 소유한다. `spring.data.redis.{host,port,password}`를 담으며 셋 다 환경변수로 덮어쓸 수 있다(`REDIS_HOST`·`REDIS_PORT`·`REDIS_PASSWORD`, 기본값 `localhost:6379`/빈 비밀번호).
+
+**소유가 이 모듈로 온 근거는 소비 지점이다.** 이 설정으로 만들어지는 `RedisConnectionFactory`를 주입받는 것이 이 모듈의 `RedisConfig`(`StringRedisTemplate`)이므로, **"모듈이 소비하는 설정은 모듈이 소유한다"** 는 기존 컨벤션(`application-infrastructure.yml`·`application-file-storage.yml`의 선례)이 그대로 적용된다. 챕터 05 §5b에서 `security-module`의 `application-security.yml`에서 옮겨왔고, **그 파일은 이 블록만 담고 있어 파일째 이관되고 삭제됐다.**
+
+로딩은 web/admin/ceo-api 3개 앱의 `application.yml`이 `classpath:application-redis.yml`을 `spring.config.import`로 수행한다. batch-module은 대상이 아니다.
+
 ## Dependencies
 
 ### Internal
@@ -37,6 +45,7 @@ com.tastyhouse.infrastructure.redis/
 
 ### External
 - `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. 소비 모듈(`security-module`의 토큰 저장소 6종)의 시그니처에 `RedisTemplate`이 노출되므로 `api`로 둔다
+- **테스트용 `api-common-module` 별도 선언은 불필요하다** — `afterName` 문자열 가드 테스트가 `ApiCommonRateLimitAutoConfiguration`을 리플렉션으로 읽지만, 위 `implementation`은 테스트 컴파일 클래스패스에도 보이기 때문이다(`testImplementation` 중복 선언을 추가하지 않는 이유).
 - `spring-boot-starter-aop`·`spring-boot-starter-web`는 **선언하지 않는다** — `@Aspect`와 `HttpServletRequest` 기반 IP 해석이 전부 `api-common-module`로 이동했다(챕터 02). 남은 것은 Redis Lua 카운터뿐이라 이 모듈은 서블릿·AOP 스택을 알지 않는다.
 
 ## security-module과의 관계

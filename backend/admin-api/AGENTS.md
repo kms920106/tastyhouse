@@ -63,6 +63,16 @@
 - **`jwt.secret`은 web-api와 반드시 달라야 한다**(admin=`JWT_SECRET_ADMIN`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과하는 권한 상승이 발생한다 — 상세는 `security-module/AGENTS.md`. 시크릿 교체 시 기존 admin 세션은 전면 무효화되므로 배포 시 관리자 재로그인 안내가 필요하다.
 - **등록(POST) API는 생성된 `Long` id만 반환**한다: `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, 생성 응답 전용 래퍼 record를 만들거나 생성 직후 QueryService로 재조회해 상세 DTO를 반환하지 않는다. 행을 생성하고도 `ApiResponse<Void>`를 반환하지 않는다. 파일 업로드·인증/토큰 발급·토글/상태전이·POST-as-query·배치집계(`RankApiController#aggregate`, point `earn`/`deduct`)는 리소스 등록이 아니므로 적용 제외. reference: `ShopApiController`(등록 13개 전부 `Long`)·`NoticeApiController#createNotice`. 상세는 루트 CLAUDE.md 참고.
 
+
+## 설정 파일 (`src/main/resources/application.yml`)
+
+서버 포트 `8090`, CORS 허용 오리진(`CORS_ALLOWED_ORIGINS`, 기본 `http://localhost:3010`), JWT 만료(access 1시간 / refresh 7일 / 로그인 상태 유지 30일), multipart 상한 10MB를 담고, 공유 모듈의 설정을 `spring.config.import`로 끌어온다.
+
+- **Redis 연결 설정은 이 파일이 갖지 않는다** — 챕터 05 §5b에서 `infrastructure:redis` 모듈이 소유하게 됐고, 이 파일은 `classpath:application-redis.yml`을 import할 뿐이다. 그 설정만 담고 있던 `security-module`의 `application-security.yml`은 **파일째 이관되고 삭제됐다.** Redis 접속 정보를 바꿔야 하면 이 파일이 아니라 `infrastructure/redis/src/main/resources/application-redis.yml`을 본다.
+- **`.env`를 `optional:file:.env[.properties]`와 `optional:file:backend/.env[.properties]` 두 경로로 선언한다.** `spring.config.import`의 `file:` 상대경로는 **JVM 작업 디렉터리(CWD) 기준으로 해석**되므로, 한 경로만 선언하면 실행 위치에 따라 `.env`가 조용히 로드되지 않는다. 두 줄을 함께 두어 **모노레포 루트에서 실행하는 경우와 `backend`에서 실행하는 경우를 모두 지원**한다. `optional:` 접두어라 없는 쪽은 건너뛴다. 그 밖의 디렉터리에서 `java -jar`를 실행하면 두 경로 모두 빗나가 DB 접속 정보 같은 필수 환경변수가 비므로, 실행 디렉터리 규칙은 루트 `CLAUDE.md`의 "실행 디렉터리(CWD) 주의"를 따른다.
+- `jwt.secret`은 ``JWT_SECRET_ADMIN``를 읽는다(앱별로 반드시 달라야 하는 이유는 위 참고).
+- **최초 SUPER_ADMIN 시드(`admin.seed.*`)** — 이 서비스에는 관리자 공개 가입이 없으므로 **첫 관리자는 부팅 시 주입**한다. `admin.seed.password`가 기본 센티넬 `__UNSET__`이면 **신규 시드를 거부**하므로, 운영·최초 기동 시 `ADMIN_SEED_PASSWORD` 환경변수가 필수다(비밀번호 없는 관리자 계정이 조용히 생기는 것을 막는 fail-fast). `ADMIN_SEED_USERNAME`(기본 `admin`)·`ADMIN_SEED_NAME`(기본 `최고관리자`)은 선택이다.
+
 ## Dependencies
 
 ### Internal
@@ -86,5 +96,9 @@
 | jjwt-api (impl·jackson은 runtimeOnly 전이) | `security-module` → `security-core` |
 
 "직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 **의도된 계약**이라 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을 `implementation`으로 좁히면 여기서 **즉시 컴파일 에러**로 드러나므로 침묵 파손은 없다.
+
+**예외 — `spring-boot-starter-data-redis`는 직접 선언한다.** 이 앱이 소유한 `config/jwt/RedisRepositoryConfig`가 `StringRedisTemplate`을 **직접 참조**하기 때문이다(앱별 키 접두사를 주입한다). 챕터 02에서 `infrastructure:redis`를 `runtimeOnly`로 내리면서 그동안 전이로 받아 쓰던 이 라이브러리 의존이 드러났고, 그래서 명시 선언으로 메웠다.
+
+**이것은 어댑터 모듈을 `implementation`으로 되돌리는 것과 다르다.** 앱이 보는 것은 `StringRedisTemplate`이라는 **라이브러리 타입**뿐이고, `infrastructure:redis`의 어댑터 클래스(`RedisRateLimitCounter` 등)는 여전히 컴파일 타임에 보이지 않는다 — 헥사고날 은닉은 그대로다. 두 판단을 섞어 "전이가 끊겼으니 모듈을 다시 `implementation`으로" 되돌리지 않는다.
 
 <!-- MANUAL: -->

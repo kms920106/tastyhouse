@@ -8,20 +8,11 @@ spring:
   application:
     name: batch-module
   main:
-    # 챕터 02(auto-configuration) — 이 한 줄이 api-common-module의 두 auto-configuration
-    # (ApiCommonModuleAutoConfiguration#sharedGlobalExceptionHandler, ApiCommonRateLimitAutoConfiguration#rateLimitAspect)이
-    # 이 모듈에서 비발화하는 유일한 근거다. 둘 다 @ConditionalOnWebApplication(SERVLET)이며,
-    # 클래스패스에는 서블릿 스택(spring-webmvc·tomcat-embed-core)이 application → security-core →
-    # infrastructure:redis → api-common-module 전이로 실제 존재한다 — 없어서가 아니라 이 값이
-    # 애플리케이션 타입을 NONE으로 고정해서 비발화한다. 이 값을 지우거나 바꾸면 공용 예외 핸들러와
-    # rate limit aspect가 조용히 이 모듈에 올라온다(자세한 근거는 backend/batch-module/AGENTS.md 참고).
     web-application-type: none
   config:
     import:
       - classpath:application-infrastructure.yml
       - classpath:application-file-storage.yml
       - classpath:application-crawling.yml
-      # .env는 작업 디렉터리 기준 상대경로로 해석되므로, 모노레포 루트에서 실행하는 경우와
-      # backend에서 실행하는 경우를 모두 지원하도록 두 경로를 함께 선언한다.
       - optional:file:.env[.properties]
       - optional:file:backend/.env[.properties]
