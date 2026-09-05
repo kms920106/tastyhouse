@@ -1,53 +1,53 @@
 <!-- Parent: ../../../../../../AGENTS.md -->
-<!-- Generated: 2026-06-02 | Updated: 2026-07-31 -->
 
-# external (integration adapters)
+# external (코어 어댑터 패키지)
+
+`infrastructure:external` 코어 모듈의 자바 패키지 루트. **7모듈 분리(챕터 01) 이후 이 디렉터리에는 `config/`·`exception/`·`file/` 셋만 남는다.** 모듈 차원의 배경·분리 근거는 `../../../../../AGENTS.md`(= `infrastructure/external/AGENTS.md`) 참조.
 
 ## Purpose
-`domain-module`이 `<ctx>/port/`에 선언한 출력 포트(`mail/`의 `MailSender`, `sms/`의 `SmsSender`, `FileStoragePort`·`PgPaymentGateway` 등)를 구현하는 외부 시스템 연동 어댑터. 각 제공자(provider)별로 격리된 패키지 구조로 관심사를 분리하며, 외부 API 응답 DTO가 도메인 모델로 유입되지 않도록 차단한다.
+`domain-module`이 `file/port/`에 선언한 출력 포트 `FileStoragePort`를 구현하고, 7모듈 공통으로 쓰는 `WebClient` 빌더와 외부 연동 예외 계약을 소유한다. 벤더 구현(Firebase·S3)은 이 패키지에 두지 않는다.
 
-## Adapter Packages
-| Package | Provider / Purpose |
-|---------|-------------------|
-| `oauth/{kakao,naver,apple,facebook}` | 소셜 로그인 — OAuth 토큰 발급/검증, 사용자 정보 조회. Apple은 ES256(client_secret JWT) + RS256(id_token 검증) |
-| `payment/toss` | Toss 결제 API — 결제 승인/취소. domain 포트 `payment/port/PgPaymentGateway` 구현(반환 타입은 포트의 `port/dto/PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`). `payment/toss/dto/` 내 provider 요청/응답 DTO |
-| `mail/{javamail,ses}` | 메일 발송 — JavaMail SMTP(`JavaMailAdapter`) 또는 AWS SES(`SesMailSender`). `mail/port/MailSender` 구현. 설정은 `MailProperties`(접두어 `mail`) |
-| `sms/{sns,solapi}` | SMS 발송 — AWS SNS(`SnsSmsSender`) 또는 Solapi(`SolapiSmsClient`). `sms/solapi/{request,response}` 패키지로 DTO 관리. `sms/port/SmsSender` 구현 |
-| `file/{s3,firebase}` | 파일 스토리지 — AWS S3 또는 Firebase Storage. domain 포트 `file/port/FileStoragePort` 구현, `FileStorageStrategy` 패턴 |
-| `crawling/bbq` | BBQ 치킨 가게 정보 크롤링 — `crawling/bbq/dto/` 내 응답 DTO 보유 |
-| `region/` | 행정동 경계 GeoJSON 원천(통계청 SGIS 파생, CC BY 4.0 / EPSG:4326) — batch-module의 행정동 마스터 동기화가 소비. 30MB대 단일 JSON이라 WebClient(`bodyToMono(String)`)가 아니라 `HttpClient` + Jackson **스트리밍** 파서로 읽고, `BoundedInputStream`으로 응답 크기 상한을 건다. 도메인 포트가 없어 `SocialOAuthClient` SPI처럼 자체 계약(`AdminDongBoundaryClient`/`AdminDongBoundaryResult`)을 소유한다 |
-| `exception/` | 어댑터 전용 예외 — `ExternalApiException`, `ExternalApiErrorCode` |
+## Packages
+| Package | Purpose |
+|---------|---------|
+| `config/` | `ExternalModuleConfig`(진입 설정 — 스캔 범위는 `external.config`·`external.file` 두 패키지) · `WebClientConfig`(`WebClient.Builder` 빈) |
+| `exception/` | `ExternalApiException`(`BusinessException` 상속) · `ExternalApiErrorCode`(`ErrorCodeSpec` 구현). 7모듈 전부 이 예외로 실패를 표현한다 |
+| `file/` | 파일 저장 코어 SPI — `FileStorageStrategy`(벤더 전략 인터페이스, `byte[]` 기반) · `FileStoragePortAdapter`(도메인 포트 구현, 전략에 그대로 위임) · `FileStorageProperties`(`file.*`) |
+
+## 다른 모듈로 이동한 패키지
+아래는 과거 이 디렉터리에 있었고, 지금은 각 모듈이 소유한다. 패키지 이름이 바뀐 것은 표에 별도 표시했다(사유는 모듈 문서의 "벤더 패키지를 `external.file` 아래에 두지 않는다" 절).
+
+| 과거 패키지 | 현재 |
+|---|---|
+| `oauth/{kakao,naver,apple,facebook}` | → `infrastructure:oauth` (패키지 불변) |
+| `payment/toss` | → `infrastructure:payment` (패키지 불변) |
+| `mail/`, `mail/javamail`, `sms/`, `sms/solapi` | → `infrastructure:messaging` (패키지 불변) |
+| `mail/ses`, `sms/sns` | → `infrastructure:aws` (`external.aws.ses` · `external.aws.sns`로 **변경**) |
+| `file/firebase` | → `infrastructure:firebase` (`external.firebase`로 **변경**) |
+| `file/s3` | → `infrastructure:aws` (`external.aws.s3`로 **변경**) |
+| `crawling/bbq`, `region/` | → `infrastructure:crawling` (패키지 불변) |
+| `file/RemoteImageDownloader` | → `infrastructure:crawling` (`external.crawling`으로 **변경**) |
+| `file/ByteArrayMultipartFile` | **삭제** — `FileStorageStrategy`가 `byte[]`를 받게 되어 래퍼가 불필요해졌다 |
 
 ## For AI Agents
 
 ### Working In This Directory
-- **Provider 격리**: 각 제공자별 독립 패키지. 예: `oauth/kakao/`는 카카오 로직만, `oauth/apple/`은 Apple 로직만 포함.
-- **비밀키 관리**: 환경 변수(`.env`), JSON 파일(`json/`), 또는 설정에서만 주입. 코드에 하드코딩 금지.
-- **Port 구현**: `MailSender`(`mail/port/`), `SmsSender`(`sms/port/`) 등 `domain-module`의 `<ctx>/port/` 포트를 구현하되, 외부 응답 DTO를 도메인 모델로 직접 반환하지 않음. 포트는 프레임워크-프리이므로 WebClient/SDK 타입이 시그니처로 새어나가지 않게 한다.
-- **DTO 격리**: 외부 API 응답은 `dto/`, `request/`, `response/` 패키지로 분리하여 domain 계층과 경계 명확화.
+- **포트 구현 시 프레임워크 타입을 누출하지 않는다**: `FileStoragePort`는 프레임워크-프리이므로 `MultipartFile`·SDK 타입·`WebClient` 타입이 시그니처에 등장하면 안 된다. `FileStorageStrategy`가 `byte[]`를 받는 것이 그 원칙을 코어에서 관철한 결과이며, 이 전환으로 코어의 `spring-web` 의존이 사라졌다.
+- **벤더 구현을 `file/` 아래에 새로 만들지 않는다**: `ExternalModuleConfig`가 `com.tastyhouse.external.file`을 스캔하므로 하위 패키지가 동반 스캔된다. 새 저장소 전략은 별도 모듈(`infrastructure:{벤더}`)에 자기 패키지(`external.{벤더}`)로 둔다.
+- **예외는 `ExternalApiException`으로 던진다**: 새 예외 타입을 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하지 않는다(`BusinessException` 단일 계층 규칙).
+- **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`) 또는 configtree 시크릿(`SECRETS_DIR`)으로 주입한다.
 
 ### Testing Requirements
-- **외부 호출 모킹**: 단위 테스트에서 실제 외부 API 호출 금지. `WebClient` 등을 모킹.
-- **통합 테스트 격리**: `bbq` 크롤링 같은 실제 네트워크 호출은 별도 테스트 클래스로 격리(`@Disabled` 또는 환경 조건 적용).
-- **인증 정보 주입**: 테스트용 환경 변수 또는 프로파일 사용. 공개된 테스트 자격증명만 사용.
+- 외부 호출은 모킹한다. 실네트워크 테스트는 `@Disabled`로 빌드 게이트에서 제외한다(선례: crawling 모듈의 `BbqApiClientTest`).
 
 ### Common Patterns
-- **Provider DTO 폴더**: `payment/toss/dto/`, `sms/solapi/request/`, `sms/solapi/response/` 같이 provider별 DTO 그룹화.
-- **WebClient 사용**: HTTP 호출은 `WebClient` 기반. 동기 호출은 `.block()`, 비동기는 `Mono/Flux` 체이닝.
-- **Apple 로그인 JWT**:
-  - `client_secret` 생성: JJWT `ES256` 서명 (비공개키 PKCS8 포맷, Base64 인코딩 저장)
-  - `id_token` 검증: JJWT `RS256` 검증 (Apple JWKS에서 공개키 조회 후 RSA 검증)
-- **조건부 Component**: `@ConditionalOnProperty`로 provider 선택 (예: `mail.provider=javamail|ses`, `sms.provider=sns|solapi`).
+- HTTP 호출은 `WebClientConfig`가 제공하는 `WebClient.Builder`를 주입받아 구성한다. 대용량 응답은 예외이며 `HttpClient` + 스트리밍 파서를 쓴다(선례: crawling 모듈의 `AdminDongBoundaryClient`).
+- provider 선택은 구현 클래스의 `@ConditionalOnProperty`로 한다(`file.provider` 등).
 
 ## Dependencies
 
 ### Internal
-- `domain-module` — `<ctx>/port/`의 출력 포트 인터페이스 및 도메인 타입(`com.tastyhouse.domain.*`)
+- `domain-module` — `file/port/FileStoragePort`, `exception/`의 `ErrorCodeSpec`·`BusinessException`
 
 ### External
-- **AWS SDK**: `software.amazon.awssdk:ses`, `software.amazon.awssdk:sns`, `io.awspring.cloud:spring-cloud-aws-s3`
-- **Firebase**: `com.google.firebase:firebase-admin:9.10.0`
-- **Spring**: `spring-boot-starter-mail`, `spring-boot-starter-webflux`, `spring-web`(starter-web이 아니라 단일 좌표 — 서블릿 실사용이 `MultipartFile` 1종뿐)
-- **JWT**: `io.jsonwebtoken:jjwt-api:0.13.0`, `jjwt-impl`, `jjwt-jackson` (Apple 로그인용 ES256/RS256)
-
-<!-- MANUAL: -->
+- `spring-boot-starter-webflux` (`WebClient`). **이것 하나뿐이다** — AWS SDK·Firebase Admin·jjwt·starter-mail·spring-web은 전부 분리된 모듈이 소유한다.

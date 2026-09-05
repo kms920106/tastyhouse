@@ -148,8 +148,13 @@ class LayerRulesTest {
     }
 
     /**
-     * 소셜 로그인은 external-api의 SPI만 통해 쓴다. 제공자별 패키지의 wire DTO·클라이언트 구현에
-     * 직접 의존하지 않는다.
+     * 소셜 로그인은 application의 SPI({@code com.tastyhouse.application.auth.port.out})만 통해 쓴다.
+     * 제공자별 패키지의 wire DTO·클라이언트 구현에 직접 의존하지 않는다.
+     *
+     * <p>아래 제공자 패키지 4개는 FQN 문자열로 열거한다 — 소유 모듈이 external-api →
+     * infrastructure:external → infrastructure:oauth로 바뀌는 동안에도 자바 패키지가 불변이라
+     * 규칙은 그대로 유효했다. 반대로 <b>패키지를 바꾸면 이 규칙은 실패하는 대신 조용히
+     * 대상을 잃으므로</b>, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.
      */
     @Test
     void shouldDependOnOauthSpiOnlyNotProviderPackages() {

@@ -4,23 +4,9 @@ plugins {
 }
 
 dependencies {
-    // 이 모듈의 Gradle 좌표는 :infrastructure:external 이다(구 :external-api). 자바 패키지는
-    // com.tastyhouse.external 로 불변 — InfrastructureModuleConfig 가 com.tastyhouse.infrastructure 를
-    // 통째 스캔하므로 그 아래로 옮기면 OAuth 제외 필터가 우회돼 admin/ceo/batch 부팅이 깨진다.
     implementation project(':domain-module')
-    implementation project(':application')
 
-    implementation 'org.springframework:spring-web'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-    implementation 'software.amazon.awssdk:ses'
-    implementation 'software.amazon.awssdk:sns'
-    implementation 'io.awspring.cloud:spring-cloud-aws-s3'
-    implementation 'com.google.firebase:firebase-admin:9.10.0'
-    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

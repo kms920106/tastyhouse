@@ -14,8 +14,8 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 1개(`application` — 4개 앱 공통) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:external`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
-| `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인, AWS BOM) |
+| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 1개(`application` — 4개 앱 공통) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
+| `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인). **AWS BOM은 `infrastructure/aws/build.gradle`로 이관**됐다 — AWS SDK를 쓰는 모듈이 하나뿐이라 전 모듈 일괄 imports가 필요 없다 |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
 | `schema.sql` / `insert.sql` / `alter.sql` | 스키마 및 시드 데이터 (DDL은 `ddl-auto=validate` 전제) |
@@ -27,7 +27,13 @@
 | `domain-module/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain-module/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
-| `infrastructure/external/` | 외부 연동 어댑터 — OAuth, 결제(Toss), 이메일/SMS, 파일(S3/Firebase), 크롤링. Gradle 좌표 `:infrastructure:external`, 자바 패키지는 `com.tastyhouse.external..` 불변(모듈명≠패키지명) (see `infrastructure/external/AGENTS.md`) |
+| `infrastructure/external/` | **외부 연동 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`·파일 저장 SPI(`FileStorageStrategy`·`FileStoragePortAdapter`). 벤더·채널 구현은 아래 6모듈로 분리됐다 (see `infrastructure/external/AGENTS.md`) |
+| `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **4개 앱 전부 의존** (see `infrastructure/firebase/AGENTS.md`) |
+| `infrastructure/aws/` | S3·SES·SNS 어댑터. **어느 앱도 의존하지 않는다** — provider 기본값이 전부 비-AWS라 컴파일만 검증한다. 전환 절차는 (see `infrastructure/aws/AGENTS.md`) |
+| `infrastructure/oauth/` | 소셜 로그인 클라이언트 4종(kakao·naver·apple·facebook) + `oauth/spi/`. **web-api만 의존** (see `infrastructure/oauth/AGENTS.md`) |
+| `infrastructure/payment/` | Toss 결제 승인·취소(`PgPaymentGateway` 구현). **web-api만 의존** (see `infrastructure/payment/AGENTS.md`) |
+| `infrastructure/messaging/` | 메일(JavaMail)·SMS(Solapi) 발송 + **persistence에서 이관된 `MailDomainConfig`·`SmsDomainConfig`**. **web-api만 의존** (see `infrastructure/messaging/AGENTS.md`) |
+| `infrastructure/crawling/` | BBQ 메뉴 크롤링·행정동 경계 수집·원격 이미지 다운로드. **batch-module만 의존** (see `infrastructure/crawling/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `web-api/AGENTS.md`) |
 | `security-core/` | **(챕터 03 신설)** `security-module`에서 분리된 서블릿-프리 보안 코어 — `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종). `{web,admin,ceo,batch}-application`이 이 모듈만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제한다 (see `security-core/AGENTS.md`) |
 | `security-module/` | 공유 보안/인증 지원 라이브러리 — `security-core`를 `api`로 재노출하고, 서블릿 결합 타입(JWT 인증 필터·EntryPoint·AccessDeniedHandler)만 잔류한다. **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
@@ -66,10 +72,14 @@
 web-api ──┬─→ application (implementation)             ← 컨트롤러가 자기 앱의 UseCase 포트를 주입
           ├─→ domain-module (implementation)
           ├─→ infrastructure:persistence (implementation) ← DAO 구현체는 주입하지 않지만 빈 스캔 대상이라 필요
-          ├─→ infrastructure:external / security-module(→security-core 전이) / api-common-module / logging-module (implementation)
+          ├─→ infrastructure:{external,firebase,oauth,payment,messaging} (implementation) ← 실사용 어댑터만
+          ├─→ security-module(→security-core 전이) / api-common-module / logging-module (implementation)
 admin-api  ─(동일 패턴) ─→ application
 ceo-api    ─(동일 패턴) ─→ application
 batch-module ─(동일 패턴 — security-module·api-common-module 없음, logging-module은 p6spy exclude)
+             └→ infrastructure:{external,firebase,crawling}
+   ※ admin-api·ceo-api는 infrastructure:{external,firebase} 둘뿐이다 — 실사용이 파일 저장 하나여서
+     OAuth·결제·메일·SMS·크롤링과 그 SDK를 더 이상 받지 않는다(챕터 01 분리)
                         └→ application   ← 스케줄러가 잡 UseCase 포트를 주입
    ※ 4개 api 모듈이 같은 application 모듈을 의존하므로, "자기 앱의 UseCase만 주입"은 빌드가 아니라
      각 모듈 LayerRulesTest의 adaptersShouldOnlyUseOwnAppUseCases가 강제한다(챕터 01 신설)
@@ -82,8 +92,8 @@ application ─┬→ domain-module (implementation)   ← 공유 읽기 계약 
              ├→ spring-web (implementation)           ← web·admin·ceo MultipartFile 업로드 경계 타입 전용(starter-web 아님)
              ├→ jackson-databind (implementation)     ← ceo ShopStorePriceVerificationCommandService의 ObjectMapper
              └→ spring-tx (implementation)            ← @Transactional 전용, infra 제외로 드러난 의존
-   ※ infrastructure:external 의존 없음 — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약을 이 모듈이 소유하고
-     infrastructure:external이 그것을 구현한다(의존 역전). 되살리면 external-api ↔ application 순환이 되어 빌드가 깨진다
+   ※ infrastructure:* 의존 없음 — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약을 이 모듈이 소유하고
+     infrastructure:oauth·infrastructure:crawling이 그것을 구현한다(의존 역전). 되살리면 순환이 되어 빌드가 깨진다
    ※ api-common-module 의존 없음 — 챕터 11로 절단됐다(표현 계약 조립이 api 모듈로 승격 완료).
      빌드 그래프가 1차 방어선이고 applicationShouldNotDependOnApiCommon이 2차 방어선으로 휴면 상태로 남는다
    ※ infrastructure 의존 없음 — 계층 분리를 빌드 그래프가 강제한다
@@ -95,7 +105,16 @@ application ─┬→ domain-module (implementation)   ← 공유 읽기 계약 
 infrastructure:persistence ─┬→ domain-module (api)
                             └→ application (implementation) ← QueryDao가 앱 단독 {Ctx}QueryPort를 구현
 infrastructure:redis ─→ (내부 모듈 의존 없음)   ← domain에 포트가 없는 순수 기술이라 domain조차 모른다
-infrastructure:external ─→ domain-module (implementation)   ← domain <ctx>/port 구현
+infrastructure:external ─→ domain-module (implementation)   ← 코어: FileStoragePort 구현 + 파일 저장 SPI
+   ↑ 아래 6모듈이 전부 이 코어를 implementation으로 의존한다(SPI·예외·WebClient 재사용)
+infrastructure:firebase  ─→ infrastructure:external, domain-module        + firebase-admin
+infrastructure:aws       ─→ infrastructure:external, infrastructure:messaging(MailProperties), domain-module
+                                                                          + awssdk:ses/sns, spring-cloud-aws-s3(+BOM)
+infrastructure:oauth     ─→ infrastructure:external, application(auth SPI), domain-module + jjwt
+infrastructure:payment   ─→ infrastructure:external, domain-module        ← PgPaymentGateway 구현
+infrastructure:messaging ─→ infrastructure:external, domain-module        + starter-mail
+                            ← MailSender·SmsSender 구현 + 이 포트를 요구하는 도메인 서비스 빈 등록
+infrastructure:crawling  ─→ infrastructure:external, application(배치 포트), domain-module
 security-core ─┬→ domain-module (implementation)   ← ErrorCode(토큰 검증 실패 표현)
                ├→ infrastructure:redis (implementation) ← 토큰 저장소 6종이 StringRedisTemplate 사용
                └→ spring-security-core (api) + jjwt-api (api)/jjwt-impl·jjwt-jackson (runtimeOnly)
@@ -112,17 +131,17 @@ domain-module → 의존 없음 (production 의존 0개)
 - **application 모듈이 읽기 계약을 보는 경로 (개정 — 과거 "infra를 컴파일 타임에 본다"는 서술의 번복)**: `{도메인}QueryService`는 이제 infra DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입한다. 계약이 전부 자기 모듈에 있으므로 이를 위한 추가 의존 선언은 없다(챕터 04로 공유 계약까지 돌아왔다). api 모듈은 `com.tastyhouse.infrastructure..`를 **전혀 import하지 않는다** — 각 모듈 `LayerRulesTest`가 이를 강제한다. `infrastructure:persistence`는 여전히 빈 스캔 대상(`scanBasePackages`)이라 실행 모듈의 의존 그래프에는 남아 있지만, **소스 코드 레벨의 import 대상은 아니다.**
 - **`@QueryProjection` → `Projections.constructor` 전환**: Result record가 QueryDSL을 모르는 계약 모듈로 이동하며 그 record에 `@QueryProjection`을 달 수 없게 됐다. `infrastructure:persistence`의 QueryDao는 `Projections.constructor(XxxResult.class, ...)`로 리플렉션 기반 조립을 한다 — Result record가 `public`이 아니거나 생성자 시그니처가 select 절과 불일치하면 컴파일은 통과하고 **호출 시점에 500**이 나므로, 전환한 쿼리는 반드시 한 번 호출해 확인한다. 이 리플렉션 대상 일치는 `infrastructure:persistence`의 `ProjectionConstructorMatchingTest`가 소스 스캔으로 검증한다.
 - `querydsl-jpa`는 `infrastructure:persistence`에서 `implementation`으로 강등되어 소비 모듈 클래스패스로 전이되지 않는다. 전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 `infrastructure:persistence` 하나뿐이다.
-- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이며, **모듈 재편으로도 이 넷과 산출물 이름은 바뀌지 않았다**(라이브러리 모듈만 추가됐다). 나머지(`domain-module`/`application`/`infrastructure:persistence`/`infrastructure:redis`/`infrastructure:external`/`security-core`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
+- 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이며, **모듈 재편으로도 이 넷과 산출물 이름은 바뀌지 않았다**(라이브러리 모듈만 추가됐다). 나머지(`domain-module`/`application`/`infrastructure:persistence`/`infrastructure:redis`/`infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`/`security-core`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
   - **중첩 프로젝트 컨테이너 주의**: `include 'infrastructure:persistence'`는 소스가 없는 빈 프로젝트 `:infrastructure`를 함께 만든다. 루트 `build.gradle`의 `subprojects` 일괄 설정이 이 컨테이너에까지 `bootJar`를 걸면 빌드가 깨지므로, 일괄 설정 대상에서 제외되는지 확인한다.
 - **`application` 모듈은 infrastructure를 컴파일 클래스패스에 두지 않는다**: application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다 — `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다(`domain-module`의 프레임워크-프리 게이트와 같은 방식). 그 결과 이전에 infra의 `spring-boot-starter-data-jpa`를 타고 전이로 들어오던 `spring-tx`가 드러나, `@Transactional`만을 위해 명시 선언한다. ArchUnit 규칙(`shouldNotDependOnInfrastructure`)은 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선으로 유지한다.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
-  - **계층 축**: `domain-module`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`·`infrastructure:external` 셋이 아웃바운드(driven) 어댑터다.
+  - **계층 축**: `domain-module`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}` 7모듈이 아웃바운드(driven) 어댑터다.
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(같은 이름의 서비스가 여러 모듈에 공존하는 것이 정상).
-  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`은 외부 시스템 연동(OAuth·PG·메일·SMS·파일·크롤링) 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: `infrastructure:external`=`com.tastyhouse.external..`). domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
+  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`과 그 벤더·채널 6모듈(`firebase`·`aws`·`oauth`·`payment`·`messaging`·`crawling`)이 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 이 7모듈이 전부 `com.tastyhouse.external..`을 나눠 소유한다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
   - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain-module`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 **web-api는 `com.tastyhouse.apicommon.file`만 스캔**한다(자체 핸들러 유지).
-- **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain-module이 아니라 `infrastructure:external`이 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-externaloauthspi) 참고.
+- **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain-module이 아니라 `infrastructure:oauth`(분리 전 `infrastructure:external`)가 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
 
 ### Testing Requirements
 - 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. JPA 엔티티(`infrastructure:persistence`) 변경 시 `schema.sql`과 정합성 확인.

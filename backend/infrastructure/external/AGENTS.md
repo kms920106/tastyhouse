@@ -1,55 +1,104 @@
 <!-- Parent: ../../AGENTS.md -->
-<!-- Generated: 2026-06-02 | Updated: 2026-07-31 -->
 
-# infrastructure:external
+# infrastructure:external (코어)
 
-> **경로 이동 (챕터 01)**: 이 모듈은 `external-api/`에서 **`infrastructure/external/`로 이동**했고 Gradle 좌표는 `:infrastructure:external`(구 `:external-api`)이다. 자바 패키지 `com.tastyhouse.external..`·yml 파일명(`application-external.yml`)·빈 이름은 **전부 불변**이므로, 아래 본문의 패키지 경로는 그대로 유효하다. 형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 셋 다 driven(아웃바운드) 어댑터다.
->
-> **패키지를 `com.tastyhouse.infrastructure.external`로 옮기지 않은 이유**는 `InfrastructureModuleConfig`가 `@ComponentScan("com.tastyhouse.infrastructure")`를 통째로 스캔하기 때문이다. 그 아래로 옮기면 `ExternalModuleConfig`의 OAuth REGEX 제외 필터가 우회돼 admin/ceo/batch가 OAuth 빈까지 스캔하고 `Could not resolve placeholder 'apple.team-id'`로 부팅이 깨진다. 모듈명≠패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
->
-> 진입 설정 클래스는 **`ExternalModuleConfig`**(구 `ExternalApiConfig`, 챕터 02)로, 형제 `InfrastructureModuleConfig`·`RedisModuleConfig`·`LoggingModuleConfig`와 명명 규칙이 맞춰졌다.
+벤더 중립 공용 자산만 담는 코어 인프라 모듈(`java-library`). **7모듈 분리(챕터 01) 이후 이 모듈에 남은 것은 셋뿐이다** — `WebClient` 빌더, 외부 연동 예외 계약(`ExternalApiException`/`ExternalApiErrorCode`), 파일 저장 코어 SPI(`FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`).
 
-## Purpose
-외부 시스템 연동 어댑터 라이브러리 모듈(`java-library`). 소셜 로그인(OAuth), 결제(Toss), 이메일(JavaMail/AWS SES), SMS(AWS SNS/Solapi), 파일 스토리지(AWS S3/Firebase), 가게 정보 크롤링을 캡슐화한다. `domain-module`이 선언한 출력 포트(`<ctx>/port/` — `mail/`의 `MailSender`, `sms/`의 `SmsSender`, `FileStoragePort`·`PgPaymentGateway`·`ProductReviewStatisticsPort`·`MemberReviewCountPort`)를 구현하는 어댑터 역할을 한다.
+## 분리 배경 (챕터 01)
 
-## Key Files
-| File | Description |
-|------|-------------|
-| `build.gradle` | `java-library` + `domain-module`·`application`(둘 다 implementation — `application`은 `..port.out` 계약만) + `spring-web`/webflux, mail, AWS SES/SNS/S3, Firebase Admin 9.10.0, JJWT 0.13.0(Apple 로그인용). `bootJar` 비활성 |
-| `src/main/resources/config/` | 외부 연동 설정 |
+분리 전에는 이 한 모듈이 OAuth 4종·Toss 결제·메일(JavaMail/SES)·SMS(Solapi/SNS)·파일(Firebase/S3)·BBQ 크롤링·행정동 경계와 벤더 SDK 3종(AWS SES/SNS/S3, Firebase Admin)을 전부 품었고, **4개 앱이 그것을 통째로 받았다.** 실사용은 그렇지 않았다.
 
-## Subdirectories
-| Directory | Purpose |
-|-----------|---------|
-| `src/main/java/com/tastyhouse/external/` | 연동 어댑터 루트 (see `src/main/java/com/tastyhouse/external/AGENTS.md`) |
-| `src/test/` | 연동 테스트 (`bbq` 크롤링 등) |
+| 앱 | 실제로 쓰는 어댑터 |
+|---|---|
+| web-api | OAuth 4종 · Toss · Mail · SMS · File |
+| admin-api | **File만** |
+| ceo-api | **File만** |
+| batch-module | File(원격 이미지) · BBQ · 행정동 경계 |
 
-## For AI Agents
+즉 admin/ceo는 파일 저장 하나만 쓰면서 OAuth·Toss·메일·SMS·크롤링 코드와 무거운 SDK(AWS·Firebase)를 전부 클래스패스에 얹고 있었다. admin/ceo/batch가 메일·SMS 어댑터까지 강제로 들여와야 했던 직접 원인은 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`/`SmsSender` 빈을 무조건 요구한 것이며, 그 결합은 두 설정을 `infrastructure:messaging`으로 이관해 함께 끊었다(`../messaging/AGENTS.md`).
 
-### Working In This Directory
-- 각 연동은 제공자(provider)별 하위 패키지로 분리 (`oauth/kakao`, `payment/toss`, `sms/solapi` …).
-- 외부 비밀키/자격증명은 코드에 하드코딩하지 말고 환경 변수(`.env`)·`json/`·설정에서 주입.
-- `domain-module`의 출력 포트(`<ctx>/port/`)를 구현하되, 도메인 모델을 외부 응답 DTO로 오염시키지 않는다. 포트는 프레임워크-프리이므로 어댑터 쪽 DTO·WebClient 타입이 포트 시그니처로 새어나가지 않게 한다.
-- **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 과거 `oauth/kakao/KakaoUserInfoResponse`·`oauth/naver/NaverUserInfoResponse`가 편의 매퍼에서 도메인 enum `MemberGender`를 직접 반환해 external-api → domain-module 역결합이 있었다(소비 측은 곧바로 `.name()`으로 되돌리고 있어 결합이 아무 값도 사지 못했다). 지금은 상수명 문자열(`"MALE"`/`"FEMALE"`/`null`)을 반환하며, 도메인 enum 승격은 소비 측이 `MemberGender.from(String)`으로 수행한다.
-- **소셜 로그인은 이 모듈이 SPI를 소유한다 (`oauth/spi/`)**: `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입(`SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider`). 제공자별 클라이언트 4종이 이를 구현하고, web-api는 **SPI만** 의존한다(제공자 패키지 직접 import는 web-api의 ArchUnit 규칙이 금지). 이 SPI를 domain-module에 두지 않은 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 호출하는 포트가 아니기 때문이다 — 도메인 포트가 없는 공유 기술은 그 관심사를 쓰는 모듈이 소유한다는 모듈 경계 규칙(`security-module` 선례)을 따른다.
-- **제공자별 관심사는 어댑터가 갖는다**: 페이스북 app_id 검증(`${facebook.app-id}` + `debug_token`)과 애플 id_token 검증 예외 번역(`APPLE_ID_TOKEN_INVALID`)은 과거 web-api 서비스에 있었으나 `exchange()`/`fetchProfile()` 안으로 회수했다. 응답 계약(`SOCIAL_OAUTH_FAILED`·`APPLE_ID_TOKEN_INVALID`)은 무변경이다. 애플 `fetchProfile`은 호출마다 JWKS를 네트워크로 받아 서명을 재검증하므로 값싼 조회가 아니다.
+이 분리는 `backend/CLAUDE.md` "external을 infrastructure 아래로 들인 이유" 절의 **비채택 대안 (1) 기술별 추가 분할·(3) AWS 벤더 패키지 모으기를 명시적으로 번복**한 것이다. 번복 근거는 위 실사용 표(admin/ceo가 file 하나)와 무거운 SDK가 두 벤더에 국한된다는 점이다.
 
-### Testing Requirements
-- 외부 호출은 가능하면 모킹. 실제 네트워크 테스트는 `src/test/.../bbq` 처럼 격리.
+## 어디로 갔는지 (포인터)
 
-### Common Patterns
-- provider별 `dto/`로 요청/응답 매핑 (`payment/toss/dto`, `sms/solapi/request|response`).
-- Apple 로그인은 client_secret JWT(ES256) 생성 + id_token(RS256) 검증 → JJWT 사용.
+| 옮겨간 것 | 모듈 | 문서 |
+|---|---|---|
+| Firebase Storage 전략 | `infrastructure:firebase` | `../firebase/AGENTS.md` |
+| S3 · SES · SNS (AWS SDK 전부) | `infrastructure:aws` | `../aws/AGENTS.md` |
+| 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` | `../oauth/AGENTS.md` |
+| 토스페이먼츠 연동 | `infrastructure:payment` | `../payment/AGENTS.md` |
+| 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` | `../messaging/AGENTS.md` |
+| BBQ 크롤링 · 행정동 경계 · 원격 이미지 다운로드 | `infrastructure:crawling` | `../crawling/AGENTS.md` |
+
+형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 9개는 전부 driven(아웃바운드) 어댑터다.
+
+## 자바 패키지는 `com.tastyhouse.external..`로 유지한다
+
+**7모듈로 나뉜 뒤에도 패키지 루트는 전부 `com.tastyhouse.external..`이다.** `com.tastyhouse.infrastructure.external`로 옮기지 않는 이유는 persistence의 `InfrastructureModuleConfig`가 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문이다 — 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 `ExternalModuleConfig`의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). 모듈명 ≠ 패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
+
+## 패키지 구조
+
+```
+com.tastyhouse.external/
+├── config/
+│   ├── ExternalModuleConfig.java   진입점 — 쓰는 앱(4개 전부)이 @Import 한다
+│   └── WebClientConfig.java        WebClient.Builder 빈
+├── exception/
+│   ├── ExternalApiException.java   BusinessException 상속 (전용 핸들러를 두지 않는다)
+│   └── ExternalApiErrorCode.java   ErrorCodeSpec 구현
+└── file/
+    ├── FileStorageStrategy.java    저장소 전략 SPI — firebase·aws 모듈이 구현
+    ├── FileStoragePortAdapter.java 도메인 포트 FileStoragePort 구현 (전략에 그대로 위임)
+    └── FileStorageProperties.java  file.* 프로퍼티
+```
+
+`ExternalModuleConfig`의 `@ComponentScan`은 `com.tastyhouse.external.config`·`com.tastyhouse.external.file` 두 패키지뿐이고, `@EnableConfigurationProperties`는 `FileStorageProperties` 하나다. 분리 전에 있던 OAuth REGEX `excludeFilters`와 타 모듈 Properties 등록은 제거됐다 — **모듈 경계가 그 역할을 대신한다.**
+
+### 벤더 패키지를 `external.file` 아래에 두지 않는다 (패키지 예외 3건의 이유)
+
+위 스캔이 `com.tastyhouse.external.file`을 대상으로 하므로, **하위 패키지가 클래스패스에 있으면 동반 스캔된다.** 즉 `external.file.firebase`·`external.file.s3`를 그대로 뒀다면 코어를 import 한 것만으로 벤더 빈이 딸려 올라온다. 그래서 이동 시 아래 3건만 패키지를 바꿨다(그 외 이동 파일은 패키지 불변).
+
+| 원래 패키지 | 바뀐 패키지 | 소유 모듈 |
+|---|---|---|
+| `external.file.firebase` | `external.firebase` | firebase |
+| `external.file.s3` | `external.aws.s3` | aws |
+| `external.file.RemoteImageDownloader` | `external.crawling.RemoteImageDownloader` | crawling |
+
+같은 취지로 AWS 채널 어댑터도 `external.mail.ses` → `external.aws.ses`, `external.sms.sns` → `external.aws.sns`로 모았다(메시징 스캔에 딸려 오지 않게 하기 위함). split package는 없다 — `external.mail`(messaging) vs `external.aws.ses`(aws), `external.file`(코어) vs `external.firebase`/`external.aws.s3`가 각각 다른 모듈에 온전히 속한다.
+
+## `FileStorageStrategy`가 `byte[]`를 받는다 (코어에서 `spring-web` 소멸)
+
+```java
+String store(byte[] content, String storedFilename, String datePath, String contentType);
+```
+
+과거 시그니처는 `store(MultipartFile, ...)`였고, 도메인 포트 `FileStoragePort`(`byte[]`)와 형태가 달라 `FileStoragePortAdapter`가 `ByteArrayMultipartFile`이라는 어댑터 전용 래퍼로 감싸 넘겼다. 지금은 포트와 전략의 시그니처가 같아 **`FileStoragePortAdapter.store`가 래핑 없이 그대로 위임**하며, `ByteArrayMultipartFile`은 삭제됐다.
+
+그 결과 **코어에 `MultipartFile` 사용처가 0이 되어 `spring-web` 의존이 사라졌다.** 이 모듈의 외부 의존은 이제 `spring-boot-starter-webflux` 하나뿐이다.
 
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — 출력 포트 인터페이스(`<ctx>/port/`) 및 도메인 타입
-- `application` (implementation) — **의존 역전(챕터 04)**. 이 모듈은 driven adapter이므로 자신이 구현하는 아웃바운드 포트를 소유한 모듈에 의존한다(방향: adapter → port). web 앱의 소셜 로그인 SPI(`auth.port.out`), batch 앱의 BBQ 메뉴·원격 이미지·행정동 경계 포트와 그 계약 타입이 그것이다. **반대 방향(`application → infrastructure:external`)은 `application/build.gradle`에서 제거됐으므로 순환이 아니다** — 그 줄을 되살리면 빌드가 깨진다
+- `domain-module` (implementation) — `FileStoragePortAdapter`가 구현하는 `com.tastyhouse.domain.file.port.FileStoragePort`, `ExternalApiErrorCode`가 구현하는 `ErrorCodeSpec`, `ExternalApiException`이 상속하는 `BusinessException`.
+
+**`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application')`이 있었으나, 그 어댑터들이 전부 oauth·crawling 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
 
 ### External
-- AWS SDK (SES, SNS), spring-cloud-aws-s3, Firebase Admin 9.10.0
-- spring-boot-starter-mail, webflux(WebClient), JJWT 0.13.0 (Apple 로그인 — client_secret JWT 생성 ES256 + id_token 검증 RS256)
-- **`spring-web`만 선언하고 `starter-web`은 쓰지 않는다** — 서블릿 스택 실사용이 `MultipartFile` 1종뿐이라 tomcat+webmvc 전체를 들일 이유가 없다. Jackson은 `starter-webflux`가 전이로 제공하므로 별도 선언이 없다
+- `spring-boot-starter-webflux` — `WebClientConfig`의 `WebClient.Builder`. Jackson도 이것이 전이로 제공한다.
+- **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail`·`spring-web` 의존은 전부 제거됐다** — 각각 aws·firebase·oauth·messaging 모듈이 소유한다.
 
-<!-- MANUAL: -->
+## 어댑터 작성 규칙 (7모듈 공통)
+
+이 절은 코어뿐 아니라 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}` 전부에 적용된다.
+
+- **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`)는 프레임워크-프리이므로 `WebClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
+- **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 상세는 `../oauth/AGENTS.md`.
+- **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`)·configtree 시크릿(`SECRETS_DIR`, `../firebase/AGENTS.md`)으로 주입한다.
+- **provider 선택은 `@ConditionalOnProperty`로 한다**: `file.provider`·`mail.provider`·`sms.provider`. 조건 애노테이션은 스캔되는 구현 클래스에 붙어 있고, `{Xxx}ModuleConfig`는 조건을 갖지 않는다.
+- **에러는 `ExternalApiException`(`BusinessException` 상속)으로 던진다**: 모듈마다 예외 타입을 새로 만들고 전역 핸들러에 `@ExceptionHandler`를 추가하지 않는다.
+
+## 주의
+
+- **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 7모듈 전부 같다.
+- **빈 배선**: `ExternalModuleConfig`를 쓰는 앱이 `@Import` 한다(현재 4개 앱 전부). 파일 저장을 실제로 쓰려면 전략 구현이 필요하므로 `FirebaseModuleConfig`(또는 `AwsModuleConfig`)를 함께 import 해야 한다 — 코어만 import 하면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패한다.
+- **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/external/AGENTS.md`.

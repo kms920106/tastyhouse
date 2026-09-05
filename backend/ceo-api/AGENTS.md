@@ -27,7 +27,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | web + springdoc 의존, `domain-module`·**`application`**·`infrastructure:persistence`·`infrastructure:external`·`logging-module`·`security-module`·`api-common-module`을 `implementation`으로 참조 (admin-api와 동일 구성). QueryDSL 의존은 없다 |
+| `build.gradle` | web + springdoc 의존, **`application`**·`infrastructure:persistence`·`infrastructure:external`·`infrastructure:firebase`·`infrastructure:redis`·`logging-module`·`security-module`·`api-common-module`을 `implementation`으로 참조 (admin-api와 동일 구성). 외부 연동은 **코어(`external`)와 파일 저장 구현(`firebase`) 둘뿐**이며, OAuth·결제·메일/SMS 어댑터는 web-api 전용이라 이 모듈에 오지 않는다. QueryDSL 의존은 없다 |
 | `src/main/resources/application.yml` | 점주 앱 환경 설정 (포트 `8100`, CORS 기본 `http://localhost:3020`, `jwt.secret=${JWT_SECRET_CEO}`) |
 
 ## Subdirectories
@@ -68,7 +68,9 @@
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `CeoApplicationConfig`
 - `infrastructure:persistence` (implementation) — **`runtimeOnly`로 강등하지 않는다**: 소스 import는 0건이지만 부트스트랩이 `@Import(InfrastructureModuleConfig.class)`로 진입점 설정을 컴파일 타임에 참조한다(강등하면 실측상 4개 모듈 전부 "package does not exist"). 해소하려면 `@Import`를 문자열 `scanBasePackages`로 되돌려야 하는데 그것은 타입 세이프 조합이라는 설계 의도를 뒤집는다. 은닉은 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당한다
-- `infrastructure:external`, `logging-module`, `security-module`
+- `infrastructure:external` — 외부 연동 코어(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)
+- `infrastructure:firebase` — `FileStorageStrategy` 구현(파일 업로드). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
+- `logging-module`, `security-module`
 - `infrastructure:redis` — rate limit 카운터와 `StringRedisTemplate` 빈. 부트스트랩이 `@Import(RedisModuleConfig.class)`로 참조한다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
 - **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain-module')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).

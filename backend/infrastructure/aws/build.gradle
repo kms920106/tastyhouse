@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+}
+
+// spring-cloud-aws BOM은 이 모듈에서만 필요하다. 분리 전에는 루트 build.gradle의 subprojects
+// 클로저가 전 모듈에 imports 했으나, AWS SDK를 쓰는 모듈이 여기 하나뿐이라 이관했다.
+dependencyManagement {
+    imports {
+        mavenBom 'io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1'
+    }
+}
+
+dependencies {
+    implementation project(':infrastructure:external')
+    // MailProperties(sender-address) — SesMailSender가 발신자 주소를 읽는다.
+    implementation project(':infrastructure:messaging')
+    implementation project(':domain-module')
+
+    implementation 'software.amazon.awssdk:ses'
+    implementation 'software.amazon.awssdk:sns'
+    implementation 'io.awspring.cloud:spring-cloud-aws-s3'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}

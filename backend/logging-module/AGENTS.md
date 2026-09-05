@@ -1,6 +1,6 @@
 # logging-module
 
-`web-api`/`admin-api`/`ceo-api`/`batch-module` 네 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `infrastructure:external`이 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure-module`이 persistence·조회 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 domain/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
+`web-api`/`admin-api`/`ceo-api`/`batch-module` 네 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`이 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure:persistence`가 persistence·조회 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 domain/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
 
 ## 패키지 구조
 
@@ -32,7 +32,7 @@ dependencies {
 ## 규칙
 
 - **패키지 루트는 `com.tastyhouse.logging`** — `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지가 등록되어 있어야 `ApiLoggingFilter`/`ApiLoggingAspect`가 빈으로 인식된다.
-- **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain-module`/`infrastructure:persistence`/`infrastructure:external`/`security-module`과 동일한 라이브러리 모듈 패턴).
+- **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain-module`/`infrastructure:persistence`/`infrastructure:external`을 비롯한 외부 연동 모듈 7개/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
 - **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. 마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.
 - **`domain-module` 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 application 서비스에 의존하지 않는다(사내 모듈 의존이 0인 유일한 모듈).

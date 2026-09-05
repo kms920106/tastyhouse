@@ -2,6 +2,8 @@ dependencies {
     implementation project(':application')
     implementation project(':infrastructure:persistence')
     implementation project(':infrastructure:external')
+    implementation project(':infrastructure:firebase')
+    implementation project(':infrastructure:crawling')
     implementation(project(':logging-module')) {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
     }

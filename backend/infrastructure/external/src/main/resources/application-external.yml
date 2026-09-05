@@ -1,9 +1,2 @@
-spring:
-  config:
-    import:
-      - classpath:config/application-file.yml
-      - classpath:config/application-mail.yml
-      - classpath:config/application-sms.yml
-      - classpath:config/application-payment.yml
-      - classpath:config/application-crawling.yml
-      - classpath:config/application-region.yml
+file:
+  provider: firebase # firebase | s3

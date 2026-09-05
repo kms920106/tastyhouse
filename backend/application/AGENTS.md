@@ -139,7 +139,7 @@ com.tastyhouse.application/
 스펙은 "driven 클라이언트면 batch-module 잔류 + 인터페이스 분리"를 원칙으로 했으나, 확인 결과 **`crawling/bbq`는 driven 클라이언트가 아니라 application 계층 코드**였다.
 
 - `BbqProductSyncService`는 `@Service @Transactional`로 **트랜잭션 경계를 소유**하고, 저장 불변식은 도메인 서비스 `ProductRegistrationService`에 위임하며, 동기화 대상 탐색은 `ProductQueryPort`(읽기 포트)로 한다.
-- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:external`에 있다**(`external.crawling.bbq.BbqApiClient`·`external.file.RemoteImageDownloader`).
+- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:crawling`에 있다**(`external.crawling.bbq.BbqApiClient`·`external.crawling.RemoteImageDownloader`).
 - `BatchJobException`은 `BbqService`만 던지므로 함께 이동했다.
 
 batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`가 0개이고 잡 본문이 `*SchedulerService`에 담기며, 스케줄이 유일한 입력이라 Command record가 없고 인바운드 포트가 전부 `void foo()`다.
@@ -184,7 +184,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-core` (implementation) — `JwtTokenProvider`·Redis 토큰 저장소. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**
-- **`infrastructure:external` 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 이 줄을 되살리면 `external-api ↔ application` 순환이 되어 빌드가 깨진다
+- **외부 연동 모듈(`infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:crawling`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
 
 ### External

@@ -1,0 +1,22 @@
+# 이 파일은 어느 앱도 import 하지 않는다 — AWS 경로로 전환할 때 앱 application.yml에 추가한다
+# (전환 절차는 infrastructure/aws/AGENTS.md).
+file:
+  aws:
+    s3:
+      bucket-name: ${S3_BUCKET_NAME}
+      region: ap-northeast-2
+      base-url: https://cdn.tastyhouse.com
+
+mail:
+  aws:
+    ses:
+      access-key: ${AWS_SES_ACCESS_KEY}
+      secret-key: ${AWS_SES_SECRET_KEY}
+      region: ap-northeast-2
+
+sms:
+  aws:
+    sns:
+      access-key: ${AWS_SNS_ACCESS_KEY}
+      secret-key: ${AWS_SNS_SECRET_KEY}
+      region: ap-northeast-2

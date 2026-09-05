@@ -1,7 +1,6 @@
 package com.tastyhouse.external.file;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.domain.file.port.FileStoragePort;
 
@@ -16,8 +15,7 @@ public class FileStoragePortAdapter implements FileStoragePort {
 
     @Override
     public String store(byte[] content, String storedFilename, String datePath, String contentType) {
-        MultipartFile file = new ByteArrayMultipartFile(storedFilename, contentType, content);
-        return fileStorageStrategy.store(file, storedFilename, datePath);
+        return fileStorageStrategy.store(content, storedFilename, datePath, contentType);
     }
 
     @Override

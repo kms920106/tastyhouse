@@ -38,11 +38,11 @@ configure(subprojects.findAll { it.name != 'domain-module' && it.path != ':infra
 
     ext['commons-lang3.version'] = '3.18.0'
 
-    dependencyManagement {
-        imports {
-            mavenBom 'io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1'
-        }
-    }
+    // Spring Boot 3.2.4 BOM이 netty 4.1.107·jackson 2.15.4를 고정해, firebase-admin이 요구하는
+    // 더 새 버전을 오히려 취약 버전으로 끌어내린다(CVE-2025-58057/58056, CVE-2025-24970 등).
+    // commons-lang3와 동일하게 BOM 프로퍼티를 덮어써 해소한다.
+    ext['netty.version'] = '4.1.137.Final'
+    ext['jackson-bom.version'] = '2.17.3'
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'

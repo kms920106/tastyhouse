@@ -12,6 +12,7 @@ spring:
       - classpath:application-logging.yml
       - classpath:application-infrastructure.yml
       - classpath:application-external.yml
+      - classpath:application-firebase.yml
       # Redis 연결 설정은 챕터 05 §5b에서 infrastructure:redis 모듈이 소유하게 됐다.
       # (기존 application-security.yml은 이 블록만 담고 있어 파일째 이관)
       - classpath:application-redis.yml

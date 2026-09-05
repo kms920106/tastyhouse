@@ -1,0 +1,27 @@
+mail:
+  provider: javamail # ses | javamail
+  sender-address: ${MAIL_SENDER_ADDRESS}
+
+sms:
+  provider: solapi # solapi | sns
+  sender-number: ${SMS_SENDER_NUMBER}
+  solapi:
+    api-key: ${SOLAPI_API_KEY}
+    api-secret: ${SOLAPI_API_SECRET}
+    sender-number: ${SMS_SENDER_NUMBER}
+    base-url: https://api.solapi.com
+    send-many-path: /messages/v4/send-many/detail
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true

@@ -26,9 +26,9 @@
 ## For AI Agents
 
 ### Working In This Directory
-- 이 모듈이 domain 어댑터가 아니라 presentation 공유 유틸이기 때문에 `spring-boot-starter-web` 의존이 허용된다(`infrastructure:external`도 서블릿 타입 의존 선례 있음 — 다만 그쪽은 `MultipartFile` 1종 때문에 `starter-web`이 아니라 `spring-web` 단일 좌표만 쓴다).
+- 이 모듈이 domain 어댑터가 아니라 presentation 공유 유틸이기 때문에 `spring-boot-starter-web` 의존이 허용된다(외부 연동 모듈에는 이런 선례가 없다 — 코어 `infrastructure:external`이 한때 `MultipartFile` 1종 때문에 `spring-web` 단일 좌표를 썼으나, `FileStorageStrategy`가 `byte[]`를 받도록 바뀌며 그 의존이 사라졌다).
 - **이 모듈이 `domain-module`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건). 이 모듈에 도메인 타입을 새로 끌어들이는 확장은 지양한다.
-- 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 `infrastructure:external`(외부 연동). **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
+- 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 외부 연동 모듈 — 코어 계약(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)은 `infrastructure:external`, 실제 어댑터는 기술별로 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}`. **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
 - **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — 그것이 챕터 05에서 rate limiting을 내보낸 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
 - **`OncePerRequestFilter`·`jakarta.servlet`·`AuthenticationEntryPoint`/`AccessDeniedHandler` 등 서블릿 결합 타입을 새로 추가할 때만 이 모듈에 둔다.** 서블릿-프리 보안 로직(토큰 서명/파싱, 새 Redis 토큰 저장소 등)은 `security-core`로 보낸다 — application 4모듈의 컴파일 클래스패스를 서블릿 스택으로 오염시키지 않기 위해서다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고).
 
@@ -50,7 +50,7 @@
 
 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종)을 신설 모듈 `security-core`로 옮기고, `application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch 유스케이스는 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
 
-자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합-챕터-01) 참고.
+자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리) 참고.
 
 ## Redis 위임 (챕터 05)
 

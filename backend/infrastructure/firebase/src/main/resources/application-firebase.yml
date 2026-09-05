@@ -1,0 +1,14 @@
+# 시크릿 파일 로딩 (configtree)
+# SECRETS_DIR 디렉터리 트리의 각 파일이 "상대경로 = 프로퍼티 키, 파일 내용 = 값"으로 Environment에 흡수된다.
+# 예) {SECRETS_DIR}/firebase/service-account 파일 → firebase.service-account 프로퍼티 (JSON 원문 전체)
+# 파일 "경로"가 아니라 "내용"을 주입하므로 JVM 작업 디렉터리·실행 위치(java -jar CWD, systemd WorkingDirectory)에 의존하지 않는다.
+# optional: 접두어라 디렉터리가 없어도 부팅은 진행되며, 값 부재는 FirebaseStorageConfig가 명확한 메시지로 실패시킨다.
+spring:
+  config:
+    import: optional:configtree:${SECRETS_DIR:/etc/tastyhouse/secrets}/
+
+file:
+  firebase:
+    service-account-json: ${firebase.service-account:}
+    storage-bucket: ${FIREBASE_STORAGE_BUCKET}
+    base-url: https://firebasestorage.googleapis.com/v0/b/${FIREBASE_STORAGE_BUCKET}/o

@@ -13,7 +13,7 @@ package com.tastyhouse.application.auth.port.out;
  * domain-module에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
  *
  * <p>이 포트는 소비 앱이 web 하나뿐이므로 읽기 계약 소유 규칙(소비 앱 수가 소유 모듈을 정한다)에 따라
- * web-application이 소유하고, 어댑터(external-api)가 이 계약에 의존한다 — 의존 역전.
+ * web-application이 소유하고, 어댑터(infrastructure:oauth)가 이 계약에 의존한다 — 의존 역전.
  *
  * <p>제공자별 흐름 차이는 두 단계로 흡수한다 — 카카오·네이버·애플의 토큰 교환과 페이스북의 토큰 검증은
  * 모두 {@link #exchange}, 카카오·네이버·페이스북의 userinfo 조회와 애플의 id_token 검증·추출은 모두
