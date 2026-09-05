@@ -2,7 +2,7 @@
 #
 # RedisConfig(StringRedisTemplate)가 이 설정으로 만들어지는 RedisConnectionFactory를 주입받으므로,
 # "모듈이 소비하는 설정은 모듈이 소유한다"는 기존 패턴(application-infrastructure.yml·
-# application-external.yml)에 맞춰 security-module의 application-security.yml에서 옮겨왔다.
+# application-file-storage.yml)에 맞춰 security-module의 application-security.yml에서 옮겨왔다.
 # 챕터 05 §5b 결정 사항.
 spring:
   data:

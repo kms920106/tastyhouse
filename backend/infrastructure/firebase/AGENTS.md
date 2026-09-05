@@ -16,7 +16,7 @@ com.tastyhouse.external.firebase/
 
 ## 어느 앱이 의존하는가
 
-**4개 앱 전부**(web-api·admin-api·ceo-api·batch-module)가 `runtimeOnly project(':infrastructure:firebase')`를 선언한다(챕터 02 — `implementation`에서 강등). `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **분리된 6개 벤더·채널 모듈 중 전 앱이 쓰는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·messaging)이나 batch(crawling) 전용이다.
+**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·messaging)이나 batch(crawling) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
 
 ## 진입 설정과 스캔 범위
 
@@ -26,7 +26,7 @@ com.tastyhouse.external.firebase/
 
 ## yml — `application-firebase.yml` (configtree 시크릿 로딩)
 
-이 모듈의 `src/main/resources/application-firebase.yml`을 **4개 앱 전부**가 `spring.config.import`로 로딩한다.
+이 모듈의 `src/main/resources/application-firebase.yml`은 **앱이 아니라 스타터의 `application-file-storage.yml`이 중첩 `spring.config.import`로 로딩한다(챕터 03)** — 앱 `application.yml`에는 `classpath:application-file-storage.yml` 한 줄만 있고 벤더 yml이 등장하지 않는다. 결과적으로 4개 앱 전부에 로딩되는 것은 그대로다.
 
 ```yaml
 spring:
@@ -51,10 +51,10 @@ file:
 - `domain-module` (implementation) — 예외 계약(`BusinessException`·`ErrorCodeSpec`)의 뿌리
 
 ### External
-- `com.google.firebase:firebase-admin:9.10.0` — `FirebaseApp`·`Bucket`. **이 SDK를 클래스패스에 올리는 유일한 모듈이다**(분리 전에는 코어를 의존한 4개 앱이 자동으로 받았고, 지금도 4개 앱이 이 모듈을 의존하므로 결과는 같지만 이유가 명시적이다).
+- `com.google.firebase:firebase-admin:9.10.0` — `FirebaseApp`·`Bucket`. **이 SDK를 클래스패스에 올리는 유일한 모듈이다**(분리 전에는 코어를 의존한 4개 앱이 자동으로 받았고, 지금도 4개 앱이 스타터를 통해 이 모듈을 전이로 받으므로 결과는 같지만 이유가 명시적이다).
 
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선 (챕터 02 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 `build.gradle` 의존 선언(`runtimeOnly`)만 하면 되고 `@Import`는 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 전략도 아니면 **기동 시** `FileStorageStrategy` 빈 부재로 실패한다.
+- **빈 배선 (챕터 03 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 전략도 아니면 **기동 시** `FileStorageStrategy` 빈 부재로 실패한다.
 - **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FileStorageStrategy#getFileUrl`(Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. DB에는 URL이 아니라 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.

@@ -4,8 +4,8 @@ dependencies {
     // 라이브러리 모듈은 auto-configuration으로 자기 등록하므로 컴파일 참조가 없다.
     // runtimeOnly로 내려 어댑터 클래스를 컴파일 시점에 보지 않게 한다(헥사고날 강제).
     runtimeOnly project(':infrastructure:persistence')
-    runtimeOnly project(':infrastructure:external')
-    runtimeOnly project(':infrastructure:firebase')
+    // 파일 저장 기능. 벤더(Firebase/S3) 선택은 infrastructure/file-storage가 한다.
+    runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':infrastructure:crawling')
     runtimeOnly(project(':logging-module')) {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'

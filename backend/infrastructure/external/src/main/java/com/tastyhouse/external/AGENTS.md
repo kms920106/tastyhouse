@@ -12,7 +12,7 @@
 |---------|---------|
 | `config/` | `ExternalModuleAutoConfiguration`(진입 설정 — 챕터 02로 `ExternalModuleConfig`에서 리네임 + `@AutoConfiguration`, 스캔 범위는 `external.config`·`external.file` 두 패키지) · `WebClientConfig`(`WebClient.Builder` 빈) |
 | `exception/` | `ExternalApiException`(`BusinessException` 상속) · `ExternalApiErrorCode`(`ErrorCodeSpec` 구현). 7모듈 전부 이 예외로 실패를 표현한다 |
-| `file/` | 파일 저장 코어 SPI — `FileStorageStrategy`(벤더 전략 인터페이스, `byte[]` 기반) · `FileStoragePortAdapter`(도메인 포트 구현, 전략에 그대로 위임) · `FileStorageProperties`(`file.*`) |
+| `file/` | 파일 저장 코어 SPI — `FileStorageStrategy`(벤더 전략 인터페이스, `byte[]` 기반) · `FileStoragePortAdapter`(도메인 포트 구현, 전략에 그대로 위임) · `FileStorageProperties`(`file.*`). **바인딩 대상은 여기 있지만 `file.provider` 값의 출처는 챕터 03부터 `infrastructure:file-storage`의 `application-file-storage.yml`이다** — 이 모듈이 갖고 있던 `application-external.yml`은 그 한 줄만 담고 있어 삭제됐다 |
 
 ## 다른 모듈로 이동한 패키지
 아래는 과거 이 디렉터리에 있었고, 지금은 각 모듈이 소유한다. 패키지 이름이 바뀐 것은 표에 별도 표시했다(사유는 모듈 문서의 "벤더 패키지를 `external.file` 아래에 두지 않는다" 절).
@@ -42,7 +42,7 @@
 
 ### Common Patterns
 - HTTP 호출은 `WebClientConfig`가 제공하는 `WebClient.Builder`를 주입받아 구성한다. 대용량 응답은 예외이며 `HttpClient` + 스트리밍 파서를 쓴다(선례: crawling 모듈의 `AdminDongBoundaryClient`).
-- provider 선택은 구현 클래스의 `@ConditionalOnProperty`로 한다(`file.provider` 등).
+- provider 선택은 구현 클래스의 `@ConditionalOnProperty`로 한다(`file.provider` 등). 파일 저장의 `file.provider` 값은 스타터 `infrastructure:file-storage`가 소유하므로, 벤더를 바꿀 때 이 모듈은 손대지 않는다.
 
 ## Dependencies
 

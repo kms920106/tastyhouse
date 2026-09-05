@@ -27,7 +27,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | web + springdoc 의존, **`application`**·`infrastructure:persistence`·`infrastructure:external`·`infrastructure:firebase`·`infrastructure:redis`·`logging-module`·`security-module`·`api-common-module`을 `implementation`으로 참조 (admin-api와 동일 구성). 외부 연동은 **코어(`external`)와 파일 저장 구현(`firebase`) 둘뿐**이며, OAuth·결제·메일/SMS 어댑터는 web-api 전용이라 이 모듈에 오지 않는다. QueryDSL 의존은 없다 |
+| `build.gradle` | web + springdoc 의존, **`application`**·`security-module`·`api-common-module`을 `implementation`으로 참조하고, `infrastructure:persistence`·`infrastructure:file-storage`·`infrastructure:redis`·`logging-module`은 **챕터 02로 `runtimeOnly`**로 내려갔다 (admin-api와 동일 구성). 외부 연동은 **파일 저장 스타터 `infrastructure:file-storage` 하나뿐**이며(챕터 03 — 이전에는 코어 `external`과 구현 `firebase` 2줄이었다), OAuth·결제·메일/SMS 어댑터는 web-api 전용이라 이 모듈에 오지 않는다. QueryDSL 의존은 없다 |
 | `src/main/resources/application.yml` | 점주 앱 환경 설정 (포트 `8100`, CORS 기본 `http://localhost:3020`, `jwt.secret=${JWT_SECRET_CEO}`) |
 
 ## Subdirectories
@@ -68,8 +68,7 @@
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `CeoApplicationConfig`
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
-- `infrastructure:external` — 외부 연동 코어(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)
-- `infrastructure:firebase` — `FileStorageStrategy` 구현(파일 업로드). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:external`(코어 — `WebClientConfig`·`ExternalApiException`·파일 저장 SPI)과 `infrastructure:firebase`(`FileStorageStrategy` 구현 — 파일 업로드)를 묶어 전이로 공급하므로 **앱은 두 모듈을 직접 선언하지 않는다**. **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
 - `logging-module`, `security-module`
 - `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터와 `StringRedisTemplate` 빈. `RedisModuleAutoConfiguration`이 자기 등록하며(챕터 02) 부트스트랩은 `@Import`하지 않는다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`

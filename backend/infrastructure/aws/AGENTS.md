@@ -10,7 +10,7 @@ AWS 벤더 어댑터 3종(S3 파일 저장 · SES 메일 발송 · SNS SMS 발�
 
 | 프로퍼티 | 기본값 | 소유 yml |
 |---|---|---|
-| `file.provider` | `firebase` | `infrastructure:external`의 `application-external.yml` |
+| `file.provider` | `firebase` | `infrastructure:file-storage`의 `application-file-storage.yml` (챕터 03 — 이전에는 `infrastructure:external`의 `application-external.yml`이었고 그 파일은 삭제됐다) |
 | `mail.provider` | `javamail` | `infrastructure:messaging`의 `application-messaging.yml` |
 | `sms.provider` | `solapi` | `infrastructure:messaging`의 `application-messaging.yml` |
 
@@ -20,15 +20,39 @@ AWS 벤더 어댑터 3종(S3 파일 저장 · SES 메일 발송 · SNS SMS 발�
 
 SES·SNS·S3 어댑터에 대한 테스트가 없다. 따라서 이 모듈이 지켜지는 범위는 "컴파일이 깨지지 않는다"까지이며, **런타임 동작(SDK 호출 형태·자격증명 로딩·리전 설정)은 검증되지 않는다.** 이 한계는 사용자 결정으로 수용된 것이며, AWS로 전환할 때는 아래 절차를 밟은 뒤 실제 기동·발송을 직접 확인해야 한다.
 
-## AWS로 전환하는 절차 (챕터 02로 절차가 더 짧아짐)
+## AWS로 전환하는 절차 (챕터 03 — 파일 채널과 메일·SMS 채널의 경로가 갈린다)
 
-**과거에는 `@Import` 단계가 별도로 필요했다. 지금은 세 가지만 함께 하면 된다** — auto-configuration 전환으로 "의존을 추가하면 이미 등록된다"가 성립해, `{Xxx}Application.java`에 `@Import(AwsModuleConfig.class)`를 추가하는 단계가 사라졌다.
+**챕터 02의 auto-configuration 전환으로 `@Import` 단계가 사라졌고, 챕터 03의 스타터 신설로 파일 채널은 앱을 아예 건드리지 않게 됐다.** 채널마다 경로가 다르므로 아래 표에서 먼저 어느 쪽인지 확인한다.
 
-1. **앱 `build.gradle`에 의존 추가** — `runtimeOnly project(':infrastructure:aws')`
-2. **앱 `application.yml`의 `spring.config.import`에 `- classpath:application-aws.yml` 추가**
-3. **provider 값 변경** — `file.provider=s3` / `mail.provider=ses` / `sms.provider=sns` 중 전환할 채널만
+| 채널 | 전환 대상 파일 | 앱 수정 |
+|---|---|---|
+| **파일 저장 (S3)** | `infrastructure/file-storage/`의 **2파일뿐** | **없음** |
+| **메일 (SES) · SMS (SNS)** | web-api의 `build.gradle` + `application.yml` (기존 3단계) | 필요 |
 
-**모듈 없이 provider만 바꾸면 기동 시 실패한다 — 조용한 오동작은 없다.** 예컨대 `file.provider=s3`로만 바꾸면 firebase 전략은 `@ConditionalOnProperty`로 등록되지 않고 S3 전략은 클래스패스에 없으므로, 코어의 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 컨텍스트 로딩이 실패한다. 메일·SMS도 같다(`MailSender`/`SmsSender` 빈 부재 → `MailDomainConfig`/`SmsDomainConfig`의 도메인 서비스 빈 생성 실패). 이 "실패로 드러남"이 provider 전환의 안전장치다.
+### 파일 저장 → S3 (앱 무수정)
+
+파일 저장은 챕터 03에서 스타터 `infrastructure:file-storage`가 벤더 선택을 흡수했다. 4개 앱은 `runtimeOnly project(':infrastructure:file-storage')` 한 줄과 `classpath:application-file-storage.yml` 한 줄만 갖고 있으므로, **앱 4개는 손대지 않는다.**
+
+1. `infrastructure/file-storage/build.gradle`: `runtimeOnly project(':infrastructure:firebase')` → `runtimeOnly project(':infrastructure:aws')`
+2. `infrastructure/file-storage/src/main/resources/application-file-storage.yml`: `spring.config.import`를 `classpath:application-aws.yml`로, `file.provider`를 `s3`로
+
+상세는 `../file-storage/AGENTS.md`.
+
+### 메일 → SES · SMS → SNS (기존 3단계 유지)
+
+메일·SMS는 **web 전용 채널이라 스타터를 거치지 않는다.** 앱(web-api)이 `infrastructure:messaging`을 직접 의존하는 구조 그대로이므로 종전 절차를 밟는다.
+
+1. **web-api `build.gradle`에 의존 추가** — `runtimeOnly project(':infrastructure:aws')`
+2. **web-api `application.yml`의 `spring.config.import`에 `- classpath:application-aws.yml` 추가**
+3. **provider 값 변경** — `mail.provider=ses` / `sms.provider=sns` 중 전환할 채널만
+
+### 두 경로가 겹쳐도 충돌하지 않는다
+
+파일은 Firebase로 두고 메일만 SES로 바꾸는 조합처럼 한쪽만 전환하는 경우, `infrastructure:aws` jar가 web의 `runtimeClasspath`에 실리면서 S3 어댑터도 함께 올라온다. **그래도 문제되지 않는다** — `S3FileStorage`·`S3FileStorageConfig`는 `@ConditionalOnProperty(file.provider=s3)`를 달고 있고 스타터가 `file.provider: firebase`를 유지하므로 S3 전략은 등록되지 않는다. `FileStorageStrategy` 빈은 Firebase 구현 하나뿐이라 중복 주입도 없다.
+
+반대로 파일만 S3로 바꾸고 메일도 SES로 바꾼 경우에는 `application-aws.yml`이 **두 경로에서 import된다**(스타터의 중첩 import + web `application.yml`의 직접 import). 이것도 무해하다 — 같은 `classpath:` 리소스라 Spring이 같은 property source를 두 번 읽을 뿐 값이 달라지지 않는다.
+
+**모듈 없이 provider만 바꾸면 기동 시 실패한다 — 조용한 오동작은 없다.** 예컨대 `file.provider=s3`로만 바꾸고 스타터의 gradle 의존을 그대로 두면 firebase 전략은 `@ConditionalOnProperty`로 등록되지 않고 S3 전략은 클래스패스에 없으므로, 코어의 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 컨텍스트 로딩이 실패한다. 메일·SMS도 같다(`MailSender`/`SmsSender` 빈 부재 → `MailDomainConfig`/`SmsDomainConfig`의 도메인 서비스 빈 생성 실패). 이 "실패로 드러남"이 provider 전환의 안전장치다.
 
 ## 무엇을 소유하는가
 
@@ -78,4 +102,4 @@ com.tastyhouse.external.aws/
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **jar 실측으로 미포함을 확인한다**: 4개 앱 fat jar 어디에도 `aws-0.0.1-SNAPSHOT.jar`·`ses-`·`sns-`·`spring-cloud-aws-*`가 들어 있으면 안 된다. `unzip -l {앱}/build/libs/{앱}-0.0.1-SNAPSHOT.jar | grep BOOT-INF/lib/`로 확인한다.
-- **채널을 부분 전환할 수 있다**: 세 어댑터의 조건 프로퍼티가 각각 다르므로 메일만 SES로 바꾸고 파일은 Firebase에 두는 조합이 가능하다. 이때도 모듈 의존·yml import는 모듈 단위로 한 번만 하면 된다(`@Import`는 챕터 02로 불필요해졌다).
+- **채널을 부분 전환할 수 있다**: 세 어댑터의 조건 프로퍼티가 각각 다르므로 메일만 SES로 바꾸고 파일은 Firebase에 두는 조합이 가능하다. 다만 챕터 03 이후 **의존을 선언하는 위치가 채널별로 다르다** — 파일은 스타터 `infrastructure:file-storage`, 메일·SMS는 web-api다(위 전환 절차 표). 두 경로가 동시에 aws를 끌어와도 충돌하지 않는다(위 "두 경로가 겹쳐도 충돌하지 않는다").

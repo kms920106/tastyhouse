@@ -24,13 +24,16 @@
 | 옮겨간 것 | 모듈 | 문서 |
 |---|---|---|
 | Firebase Storage 전략 | `infrastructure:firebase` | `../firebase/AGENTS.md` |
+| `application-external.yml`의 `file.provider` (챕터 03) | `infrastructure:file-storage`의 `application-file-storage.yml` | `../file-storage/AGENTS.md` |
 | S3 · SES · SNS (AWS SDK 전부) | `infrastructure:aws` | `../aws/AGENTS.md` |
 | 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` | `../oauth/AGENTS.md` |
 | 토스페이먼츠 연동 | `infrastructure:payment` | `../payment/AGENTS.md` |
 | 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` | `../messaging/AGENTS.md` |
 | BBQ 크롤링 · 행정동 경계 · 원격 이미지 다운로드 | `infrastructure:crawling` | `../crawling/AGENTS.md` |
 
-형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 9개는 전부 driven(아웃바운드) 어댑터다.
+형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 9개는 전부 driven(아웃바운드) 어댑터다. 여기에 챕터 03에서 신설된 `infrastructure:file-storage`(`../file-storage/AGENTS.md`)가 더해져 `infrastructure` 아래는 10개가 됐는데, 이 하나만 어댑터가 아니라 **자바 코드 없는 조립 전용 스타터**다.
+
+**`application-external.yml`은 챕터 03에서 삭제됐다.** 담고 있던 것이 `file.provider` 한 줄뿐이었고, 그 값의 소유가 스타터 `infrastructure:file-storage`의 `application-file-storage.yml`로 옮겨갔기 때문이다. `FileStorageProperties`(`file.*`) 바인딩 대상은 그대로 이 모듈에 있다 — **값의 출처만 바뀌었다.**
 
 ## 자바 패키지는 `com.tastyhouse.external..`로 유지한다
 
@@ -41,7 +44,7 @@
 ```
 com.tastyhouse.external/
 ├── config/
-│   ├── ExternalModuleAutoConfiguration.java  진입점 — 챕터 02로 ExternalModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(의존하는 4개 앱 전부)
+│   ├── ExternalModuleAutoConfiguration.java  진입점 — 챕터 02로 ExternalModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(스타터를 통해 4개 앱 전부에 실린다)
 │   └── WebClientConfig.java        WebClient.Builder 빈
 ├── exception/
 │   ├── ExternalApiException.java   BusinessException 상속 (전용 핸들러를 두지 않는다)
@@ -99,6 +102,6 @@ String store(byte[] content, String storedFilename, String datePath, String cont
 
 ## 주의
 
-- **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 7모듈 전부 같다.
-- **빈 배선 (챕터 02 개정)**: `ExternalModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 `build.gradle` 의존 선언(`runtimeOnly`, 현재 4개 앱 전부)만 하면 되고 `@Import`는 없다. 파일 저장을 실제로 쓰려면 전략 구현이 필요하므로 `infrastructure:firebase`(또는 `infrastructure:aws`)에도 함께 의존해야 한다 — 코어만 의존하면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패한다.
+- **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 스타터 `file-storage`를 포함한 8모듈 전부 같다.
+- **빈 배선 (챕터 03 개정)**: `ExternalModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **다만 앱이 이 모듈을 직접 선언하지는 않는다** — 챕터 03부터 4개 앱은 스타터 `infrastructure:file-storage` 한 줄만 `runtimeOnly`로 갖고, 이 코어와 벤더 구현(`infrastructure:firebase`)이 그 스타터를 통해 `runtimeClasspath`에 전이로 실린다. 코어만 있고 전략 구현이 없으면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패하는데, 스타터가 둘을 항상 함께 묶으므로 그 조합 실수 자체가 사라졌다(이것이 스타터를 만든 이유다 — `../file-storage/AGENTS.md`).
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/external/AGENTS.md`.

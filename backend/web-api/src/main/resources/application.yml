@@ -11,8 +11,7 @@ spring:
     import:
       - classpath:application-logging.yml
       - classpath:application-infrastructure.yml
-      - classpath:application-external.yml
-      - classpath:application-firebase.yml
+      - classpath:application-file-storage.yml
       - classpath:application-payment.yml
       - classpath:application-messaging.yml
       # Redis 연결 설정은 챕터 05 §5b에서 infrastructure:redis 모듈이 소유하게 됐다.

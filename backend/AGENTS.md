@@ -14,7 +14,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 1개(`application` — 4개 앱 공통) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
+| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 1개(`application` — 4개 앱 공통) + 공유 모듈(`domain-module`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:{external,file-storage,firebase,aws,oauth,payment,messaging,crawling}`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인). **AWS BOM은 `infrastructure/aws/build.gradle`로 이관**됐다 — AWS SDK를 쓰는 모듈이 하나뿐이라 전 모듈 일괄 imports가 필요 없다 |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
@@ -27,8 +27,9 @@
 | `domain-module/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain-module/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
-| `infrastructure/external/` | **외부 연동 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`·파일 저장 SPI(`FileStorageStrategy`·`FileStoragePortAdapter`). 벤더·채널 구현은 아래 6모듈로 분리됐다 (see `infrastructure/external/AGENTS.md`) |
-| `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **4개 앱 전부 의존** (see `infrastructure/firebase/AGENTS.md`) |
+| `infrastructure/external/` | **외부 연동 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`·파일 저장 SPI(`FileStorageStrategy`·`FileStoragePortAdapter`). 벤더·채널 구현은 아래 6모듈로 분리됐다. **앱이 직접 의존하지 않는다** — 파일 저장은 `infrastructure/file-storage/` 스타터를 통해 전이로 실린다 (see `infrastructure/external/AGENTS.md`) |
+| `infrastructure/file-storage/` | **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:external`(코어 SPI) + `infrastructure:firebase`(벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
+| `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **앱이 직접 의존하지 않는다** — 스타터 `infrastructure:file-storage`가 의존하고 앱은 그 스타터만 본다 (see `infrastructure/firebase/AGENTS.md`) |
 | `infrastructure/aws/` | S3·SES·SNS 어댑터. **어느 앱도 의존하지 않는다** — provider 기본값이 전부 비-AWS라 컴파일만 검증한다. 전환 절차는 (see `infrastructure/aws/AGENTS.md`) |
 | `infrastructure/oauth/` | 소셜 로그인 클라이언트 4종(kakao·naver·apple·facebook) + `oauth/spi/`. **web-api만 의존** (see `infrastructure/oauth/AGENTS.md`) |
 | `infrastructure/payment/` | Toss 결제 승인·취소(`PgPaymentGateway` 구현). **web-api만 의존** (see `infrastructure/payment/AGENTS.md`) |
@@ -72,13 +73,14 @@
 web-api ──┬─→ application (implementation)             ← 컨트롤러가 자기 앱의 UseCase 포트를 주입
           ├─→ domain-module (implementation)
           ├─→ infrastructure:persistence (runtimeOnly) ← DAO 구현체는 주입하지 않고, 챕터 02로 빈 스캔용 컴파일 참조도 필요 없어졌다(auto-configuration)
-          ├─→ infrastructure:{external,firebase,oauth,payment,messaging} (runtimeOnly) ← 실사용 어댑터만
+          ├─→ infrastructure:{file-storage,oauth,payment,messaging} (runtimeOnly) ← 실사용 어댑터만
+          │     ※ file-storage가 external+firebase를 전이로 끌어온다 — 앱은 벤더를 모른다
           ├─→ security-module(→security-core 전이) / api-common-module (implementation) / logging-module (runtimeOnly)
 admin-api  ─(동일 패턴) ─→ application
 ceo-api    ─(동일 패턴) ─→ application
 batch-module ─(동일 패턴 — security-module·api-common-module 없음, logging-module은 p6spy exclude)
-             └→ infrastructure:{external,firebase,crawling} (runtimeOnly)
-   ※ admin-api·ceo-api는 infrastructure:{external,firebase} 둘뿐이다 — 실사용이 파일 저장 하나여서
+             └→ infrastructure:{file-storage,crawling} (runtimeOnly)
+   ※ admin-api·ceo-api는 infrastructure:file-storage 하나뿐이다 — 실사용이 파일 저장 하나여서
      OAuth·결제·메일·SMS·크롤링과 그 SDK를 더 이상 받지 않는다(챕터 01 분리)
                         └→ application   ← 스케줄러가 잡 UseCase 포트를 주입
    ※ 4개 api 모듈이 같은 application 모듈을 의존하므로, "자기 앱의 UseCase만 주입"은 빌드가 아니라
@@ -112,6 +114,9 @@ infrastructure:persistence ─┬→ domain-module (api)
 infrastructure:redis ─→ (내부 모듈 의존 없음)   ← domain에 포트가 없는 순수 기술이라 domain조차 모른다
 infrastructure:external ─→ domain-module (implementation)   ← 코어: FileStoragePort 구현 + 파일 저장 SPI
    ↑ 아래 6모듈이 전부 이 코어를 implementation으로 의존한다(SPI·예외·WebClient 재사용)
+infrastructure:file-storage ─→ infrastructure:external, infrastructure:firebase (둘 다 runtimeOnly)
+   ← (챕터 03 신설) 자바 코드 없는 조립 전용 스타터. 앱 4개가 의존하는 유일한 파일 저장 좌표이며,
+     external·firebase는 여기를 통해 앱 runtimeClasspath에 전이로 실린다(compileClasspath에는 없다)
 infrastructure:firebase  ─→ infrastructure:external, domain-module        + firebase-admin
 infrastructure:aws       ─→ infrastructure:external, infrastructure:messaging(MailProperties), domain-module
                                                                           + awssdk:ses/sns, spring-cloud-aws-s3(+BOM)
@@ -142,9 +147,9 @@ domain-module → 의존 없음 (production 의존 0개)
 - **모듈 등록은 `scanBasePackages`/`@Import` 조합이 아니라 auto-configuration이다 (챕터 02 개정)**: 과거 4개 앱의 `{Xxx}Application.java`는 `@Import({InfrastructureModuleConfig, RedisModuleConfig, ExternalModuleConfig, ...})`로 라이브러리 모듈 설정 클래스를 일일이 나열해 조합했다. 지금은 각 라이브러리 모듈이 `{Xxx}ModuleAutoConfiguration`(`@AutoConfiguration`) + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 **자기 자신을 등록**하고, 앱의 `@Import`는 그 앱 정체성인 `{App}ApplicationConfig` 하나만 남는다. "클래스패스 존재 = 활성화"가 새 원칙이며, 전이로 끌려온 앱에서도 안전하게 발화(또는 비발화)하도록 각 auto-configuration이 `@ConditionalOnWebApplication`·`@ConditionalOnBean`·`@ConditionalOnMissingBean` 등으로 스스로 답한다. 상세는 `backend/CLAUDE.md`의 모듈 등록 컨벤션 절 참고.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
-  - **계층 축**: `domain-module`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}` 7모듈이 아웃바운드(driven) 어댑터다.
+  - **계층 축**: `domain-module`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,file-storage,firebase,aws,oauth,payment,messaging,crawling}` 8모듈이 아웃바운드(driven) 어댑터다(`file-storage`만은 코드 없는 조립 스타터라 어댑터를 갖지 않고 external+firebase를 묶기만 한다).
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(같은 이름의 서비스가 여러 모듈에 공존하는 것이 정상).
-  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`과 그 벤더·채널 6모듈(`firebase`·`aws`·`oauth`·`payment`·`messaging`·`crawling`)이 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 이 7모듈이 전부 `com.tastyhouse.external..`을 나눠 소유한다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
+  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`과 그 벤더·채널 6모듈(`firebase`·`aws`·`oauth`·`payment`·`messaging`·`crawling`) + 조립 스타터 `file-storage`가 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 이 중 `file-storage`를 뺀 7모듈이 `com.tastyhouse.external..`을 나눠 소유한다 — `file-storage`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
   - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain-module`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 **web-api는 `com.tastyhouse.apicommon.file`만 스캔**한다(자체 핸들러 유지).
 - **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain-module이 아니라 `infrastructure:oauth`(분리 전 `infrastructure:external`)가 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
