@@ -71,18 +71,23 @@
 ── 실행 앱 4개 (thin adapter — 컨트롤러/트리거 + request/ + config + 부트스트랩) ──
 web-api ──┬─→ application (implementation)             ← 컨트롤러가 자기 앱의 UseCase 포트를 주입
           ├─→ domain-module (implementation)
-          ├─→ infrastructure:persistence (implementation) ← DAO 구현체는 주입하지 않지만 빈 스캔 대상이라 필요
-          ├─→ infrastructure:{external,firebase,oauth,payment,messaging} (implementation) ← 실사용 어댑터만
-          ├─→ security-module(→security-core 전이) / api-common-module / logging-module (implementation)
+          ├─→ infrastructure:persistence (runtimeOnly) ← DAO 구현체는 주입하지 않고, 챕터 02로 빈 스캔용 컴파일 참조도 필요 없어졌다(auto-configuration)
+          ├─→ infrastructure:{external,firebase,oauth,payment,messaging} (runtimeOnly) ← 실사용 어댑터만
+          ├─→ security-module(→security-core 전이) / api-common-module (implementation) / logging-module (runtimeOnly)
 admin-api  ─(동일 패턴) ─→ application
 ceo-api    ─(동일 패턴) ─→ application
 batch-module ─(동일 패턴 — security-module·api-common-module 없음, logging-module은 p6spy exclude)
-             └→ infrastructure:{external,firebase,crawling}
+             └→ infrastructure:{external,firebase,crawling} (runtimeOnly)
    ※ admin-api·ceo-api는 infrastructure:{external,firebase} 둘뿐이다 — 실사용이 파일 저장 하나여서
      OAuth·결제·메일·SMS·크롤링과 그 SDK를 더 이상 받지 않는다(챕터 01 분리)
                         └→ application   ← 스케줄러가 잡 UseCase 포트를 주입
    ※ 4개 api 모듈이 같은 application 모듈을 의존하므로, "자기 앱의 UseCase만 주입"은 빌드가 아니라
      각 모듈 LayerRulesTest의 adaptersShouldOnlyUseOwnAppUseCases가 강제한다(챕터 01 신설)
+   ※ 챕터 02(auto-configuration 전환)로 라이브러리 모듈 의존이 `implementation` → `runtimeOnly`로 내려갔다.
+     앱은 각 모듈의 `{Xxx}ModuleAutoConfiguration`을 `@Import`하지 않는다 — 모듈이
+     `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다.
+     `security-module`·`api-common-module`만 `implementation`으로 남는다 — 소비 측이 그 모듈의 구체 타입
+     (`TokenService`가 쓰는 `JwtTokenProvider`, api-common의 공용 record 등)을 컴파일 타임에 직접 참조하기 때문이다
 
 ── application 계층 1개 (infra 의존 없음이 핵심) ──
 application ─┬→ domain-module (implementation)   ← 공유 읽기 계약 55개도 여기 있다(앱 단독 271개는 이 모듈 소유)
@@ -134,6 +139,7 @@ domain-module → 의존 없음 (production 의존 0개)
 - 실행 가능한(bootJar) 모듈은 `web-api`/`admin-api`/`ceo-api`/`batch-module` 넷뿐이며, **모듈 재편으로도 이 넷과 산출물 이름은 바뀌지 않았다**(라이브러리 모듈만 추가됐다). 나머지(`domain-module`/`application`/`infrastructure:persistence`/`infrastructure:redis`/`infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`/`security-core`/`security-module`/`api-common-module`/`logging-module`)는 `bootJar` 비활성 + plain jar.
   - **중첩 프로젝트 컨테이너 주의**: `include 'infrastructure:persistence'`는 소스가 없는 빈 프로젝트 `:infrastructure`를 함께 만든다. 루트 `build.gradle`의 `subprojects` 일괄 설정이 이 컨테이너에까지 `bootJar`를 걸면 빌드가 깨지므로, 일괄 설정 대상에서 제외되는지 확인한다.
 - **`application` 모듈은 infrastructure를 컴파일 클래스패스에 두지 않는다**: application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **빌드 그래프가 1차로 강제**한다 — `import com.tastyhouse.infrastructure...` 한 줄이 실제 컴파일 에러가 된다(`domain-module`의 프레임워크-프리 게이트와 같은 방식). 그 결과 이전에 infra의 `spring-boot-starter-data-jpa`를 타고 전이로 들어오던 `spring-tx`가 드러나, `@Transactional`만을 위해 명시 선언한다. ArchUnit 규칙(`shouldNotDependOnInfrastructure`)은 누군가 build.gradle에 의존을 되돌리는 회귀를 막는 2차 방어선으로 유지한다.
+- **모듈 등록은 `scanBasePackages`/`@Import` 조합이 아니라 auto-configuration이다 (챕터 02 개정)**: 과거 4개 앱의 `{Xxx}Application.java`는 `@Import({InfrastructureModuleConfig, RedisModuleConfig, ExternalModuleConfig, ...})`로 라이브러리 모듈 설정 클래스를 일일이 나열해 조합했다. 지금은 각 라이브러리 모듈이 `{Xxx}ModuleAutoConfiguration`(`@AutoConfiguration`) + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 **자기 자신을 등록**하고, 앱의 `@Import`는 그 앱 정체성인 `{App}ApplicationConfig` 하나만 남는다. "클래스패스 존재 = 활성화"가 새 원칙이며, 전이로 끌려온 앱에서도 안전하게 발화(또는 비발화)하도록 각 auto-configuration이 `@ConditionalOnWebApplication`·`@ConditionalOnBean`·`@ConditionalOnMissingBean` 등으로 스스로 답한다. 상세는 `backend/CLAUDE.md`의 모듈 등록 컨벤션 절 참고.
 - **`scanBasePackages`에 domain 엔트리 없음**: `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없으므로(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`), 4개 앱의 `scanBasePackages`(및 admin/ceo의 `@ComponentScan basePackages`)에서 domain 패키지 엔트리를 제거했다. 남은 엔트리는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`이다.
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
   - **계층 축**: `domain-module`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}` 7모듈이 아웃바운드(driven) 어댑터다.

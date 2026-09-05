@@ -10,7 +10,7 @@
 ## Packages
 | Package | Purpose |
 |---------|---------|
-| `config/` | `ExternalModuleConfig`(진입 설정 — 스캔 범위는 `external.config`·`external.file` 두 패키지) · `WebClientConfig`(`WebClient.Builder` 빈) |
+| `config/` | `ExternalModuleAutoConfiguration`(진입 설정 — 챕터 02로 `ExternalModuleConfig`에서 리네임 + `@AutoConfiguration`, 스캔 범위는 `external.config`·`external.file` 두 패키지) · `WebClientConfig`(`WebClient.Builder` 빈) |
 | `exception/` | `ExternalApiException`(`BusinessException` 상속) · `ExternalApiErrorCode`(`ErrorCodeSpec` 구현). 7모듈 전부 이 예외로 실패를 표현한다 |
 | `file/` | 파일 저장 코어 SPI — `FileStorageStrategy`(벤더 전략 인터페이스, `byte[]` 기반) · `FileStoragePortAdapter`(도메인 포트 구현, 전략에 그대로 위임) · `FileStorageProperties`(`file.*`) |
 
@@ -33,7 +33,7 @@
 
 ### Working In This Directory
 - **포트 구현 시 프레임워크 타입을 누출하지 않는다**: `FileStoragePort`는 프레임워크-프리이므로 `MultipartFile`·SDK 타입·`WebClient` 타입이 시그니처에 등장하면 안 된다. `FileStorageStrategy`가 `byte[]`를 받는 것이 그 원칙을 코어에서 관철한 결과이며, 이 전환으로 코어의 `spring-web` 의존이 사라졌다.
-- **벤더 구현을 `file/` 아래에 새로 만들지 않는다**: `ExternalModuleConfig`가 `com.tastyhouse.external.file`을 스캔하므로 하위 패키지가 동반 스캔된다. 새 저장소 전략은 별도 모듈(`infrastructure:{벤더}`)에 자기 패키지(`external.{벤더}`)로 둔다.
+- **벤더 구현을 `file/` 아래에 새로 만들지 않는다**: `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔하므로 하위 패키지가 동반 스캔된다. 새 저장소 전략은 별도 모듈(`infrastructure:{벤더}`)에 자기 패키지(`external.{벤더}`)로 둔다.
 - **예외는 `ExternalApiException`으로 던진다**: 새 예외 타입을 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하지 않는다(`BusinessException` 단일 계층 규칙).
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`) 또는 configtree 시크릿(`SECRETS_DIR`)으로 주입한다.
 

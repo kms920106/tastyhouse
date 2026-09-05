@@ -16,7 +16,7 @@ Redis는 그동안 `security-module`이 들고 있었다. 그런데 Redis 자체
 
 ```
 com.tastyhouse.infrastructure.redis/
-├── RedisModuleConfig.java        @ComponentScan 진입점 — 쓰는 앱이 @Import 한다
+├── RedisModuleAutoConfiguration.java  @ComponentScan 진입점 — 챕터 02로 RedisModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 ├── RedisConfig.java              StringRedisTemplate 빈 (key/value StringRedisSerializer)
 └── ratelimit/
     └── RedisRateLimitCounter.java  RateLimitCounterPort 구현 — 순수 Redis Lua (INCR + PEXPIRE 원자 실행)
@@ -48,5 +48,5 @@ com.tastyhouse.infrastructure.redis/
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: `RedisModuleConfig`를 쓰는 앱이 `@Import` 한다. 이 설정은 이제 카운터 구현체만 등록하고, **aspect 빈 등록은 `api-common-module` 쪽**(`ApiCommonConfig` — admin·ceo / `ApiCommonRateLimitConfig` — web)이 담당한다. aspect 등록이 빠지면 `@RateLimit`이 컴파일·기동 모두 통과한 채 **조용히 무시**되므로, 이 경로를 건드렸으면 한도 초과 호출로 429를 실제 확인한다. 배선 누락은 빌드로 드러나지 않고 기동 시점 또는 첫 Redis 접근에서 드러나므로, 배선을 건드렸으면 실제로 띄워 `Started {Xxx}ApiApplication` 마커를 확인한다.
+- **빈 배선 (챕터 02 개정)**: `RedisModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되며, 의존하는 앱은 `@Import`하지 않는다(`build.gradle` 의존 선언 = 활성화). 이 설정은 카운터 구현체만 등록하고, **aspect 빈 등록은 `api-common-module`의 `ApiCommonRateLimitAutoConfiguration`이 담당**한다(`@ConditionalOnBean(RateLimitCounterPort.class)` + `afterName`으로 이 모듈 이후 평가). 조건부 등록으로 전환되어 "배선 누락으로 `@RateLimit`이 조용히 무시된다"는 실패 양식은 사라졌지만, 이 경로를 건드렸으면 여전히 한도 초과 호출로 429를 실제 확인한다.
 - **Redis를 쓰는 새 관심사는 `security-module`이 아니라 이 모듈을 의존한다.** 그것이 이 모듈을 나눈 이유다.

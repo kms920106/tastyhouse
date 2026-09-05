@@ -15,12 +15,12 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + `domain-module`(implementation — `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 ErrorCode 참조) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성 |
+| `build.gradle` | `java-library` + `domain-module`(implementation — `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 ErrorCode 참조) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성. **챕터 02** — `{web,admin,ceo}-api`는 이 모듈을 여전히 `implementation`으로 의존한다(`TokenService`가 `JwtTokenProvider`를 구체 타입으로 직접 주입하는 컴파일 타임 결합이 있어 `runtimeOnly`로 내릴 수 없다) |
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/security/` | `SecurityModuleConfig` — `@ComponentScan` 진입점(`com.tastyhouse.security` 전체를 스캔 — 패키지 불변 덕에 `security-core`로 이동한 `@Repository` 토큰 저장소 빈도 계속 잡힌다) |
+| `src/main/java/com/tastyhouse/security/` | `SecurityModuleAutoConfiguration`(챕터 02 — `SecurityModuleConfig`를 리네임 + `@AutoConfiguration(proxyBeanMethods = false)`) — `@ComponentScan` 진입점(`com.tastyhouse.security` 전체를 스캔 — 패키지 불변 덕에 `security-core`로 이동한 `@Repository` 토큰 저장소 빈도 계속 잡힌다). `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`에 FQCN 1줄로 자기 등록하며, `{web,admin,ceo}-api`는 더 이상 `@Import`하지 않는다 |
 | `src/main/java/com/tastyhouse/security/jwt/` | 서블릿 결합 JWT 인증 메커니즘만 잔류 — `JwtAuthenticationFilter`(POJO, `OncePerRequestFilter` 상속), `JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`(@Component). `JwtTokenProvider`·`JwtProperties`·`TokenType`·`JwtPrincipal`·`JwtPrincipalFactory`는 `security-core`로 이동(패키지는 동일하게 `com.tastyhouse.security.jwt`) |
 
 ## For AI Agents
@@ -31,6 +31,7 @@
 - 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 외부 연동 모듈 — 코어 계약(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)은 `infrastructure:external`, 실제 어댑터는 기술별로 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}`. **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
 - **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — 그것이 챕터 05에서 rate limiting을 내보낸 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
 - **`OncePerRequestFilter`·`jakarta.servlet`·`AuthenticationEntryPoint`/`AccessDeniedHandler` 등 서블릿 결합 타입을 새로 추가할 때만 이 모듈에 둔다.** 서블릿-프리 보안 로직(토큰 서명/파싱, 새 Redis 토큰 저장소 등)은 `security-core`로 보낸다 — application 4모듈의 컴파일 클래스패스를 서블릿 스택으로 오염시키지 않기 위해서다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고).
+- **`SecurityModuleAutoConfiguration`은 `@ConditionalOnWebApplication(type = SERVLET)`을 갖는다 (챕터 02)** — batch-module은 jar 자체가 없어 무관하지만, 혹시 이 모듈이 non-servlet 컨텍스트의 클래스패스에 실리는 경우에도 서블릿 필터·EntryPoint 빈이 조용히 발화하지 않도록 조건을 명시했다.
 
 ### `jwt/` JWT 인증 메커니즘 (web/admin/ceo 공유, 서블릿 결합 부분만 이 모듈)
 - **`JwtTokenProvider`는 `security-core`가 소유**하는 `@Component`가 아닌 파라미터형 POJO다. principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다. 각 API는 이 클래스를 상속한 얇은 `@Component` 하위 클래스로 자기 등록한다 — reference: `web-api`/`admin-api`의 `config/jwt/JwtTokenProvider`(`super(props, "memberId"|"adminId", CustomUserDetails::new)`). web은 여기에 검증용 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드를 **web 전용으로만** 추가한다(admin은 미사용). `key`/`parseClaims`/`jwtProperties`는 `protected`라 하위 클래스가 검증 토큰 발급에 재사용한다.

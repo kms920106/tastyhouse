@@ -1,10 +1,13 @@
 dependencies {
     implementation project(':application')
-    implementation project(':infrastructure:persistence')
-    implementation project(':infrastructure:external')
-    implementation project(':infrastructure:firebase')
-    implementation project(':infrastructure:crawling')
-    implementation(project(':logging-module')) {
+
+    // 라이브러리 모듈은 auto-configuration으로 자기 등록하므로 컴파일 참조가 없다.
+    // runtimeOnly로 내려 어댑터 클래스를 컴파일 시점에 보지 않게 한다(헥사고날 강제).
+    runtimeOnly project(':infrastructure:persistence')
+    runtimeOnly project(':infrastructure:external')
+    runtimeOnly project(':infrastructure:firebase')
+    runtimeOnly project(':infrastructure:crawling')
+    runtimeOnly(project(':logging-module')) {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
     }
 

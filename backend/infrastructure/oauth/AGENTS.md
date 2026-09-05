@@ -8,7 +8,7 @@
 
 ```
 com.tastyhouse.external.oauth/
-├── OAuthModuleConfig.java     진입점 — 구 ExternalOAuthConfig 를 리네임한 것
+├── OAuthModuleAutoConfiguration.java  진입점 — 챕터 01 ExternalOAuthConfig → OAuthModuleConfig 리네임, 챕터 02로 @AutoConfiguration 전환
 ├── kakao/    KakaoOAuthClient · KakaoTokenResponse · KakaoUserInfoResponse
 ├── naver/    NaverOAuthClient · NaverTokenResponse · NaverUserInfoResponse
 ├── apple/    AppleOAuthClient · AppleTokenResponse · AppleIdTokenPayload
@@ -19,13 +19,13 @@ com.tastyhouse.external.oauth/
 
 ## 어느 앱이 의존하는가
 
-**web-api 하나뿐이다.** admin-api·ceo-api·batch-module은 이 모듈을 의존하지도 `@Import` 하지도 않으므로 OAuth 빈이 그 컨텍스트에 아예 올라오지 않는다.
+**web-api 하나뿐이다.** admin-api·ceo-api·batch-module은 이 모듈을 의존하지 않으므로 OAuth 빈이 그 컨텍스트에 아예 올라오지 않는다(챕터 02 이후로는 의존 선언이 곧 활성화다).
 
-### ⚠️ 다른 앱이 이 설정을 import 하면 기동에 실패한다 (사고 기록)
+### ⚠️ 다른 앱이 이 모듈에 의존하면 기동에 실패한다 (사고 기록 — 챕터 02로 실패 조건이 바뀜)
 
-이 패키지의 빈들은 `kakao.*`·`naver.*`·`facebook.*`·`apple.*` 프로퍼티를 요구하고, 그 값은 **web-api의 `application.yml`에만** 있다. 다른 앱이 `OAuthModuleConfig`를 import 하면 컨텍스트 로딩 중 `Could not resolve placeholder 'apple.team-id'`로 **부팅이 깨진다.** 이것은 가정이 아니라 실제 이력이다 — batch-module이 이 실패를 냈다.
+이 패키지의 빈들은 `kakao.*`·`naver.*`·`facebook.*`·`apple.*` 프로퍼티를 요구하고, 그 값은 **web-api의 `application.yml`에만** 있다. **챕터 02 이후 이 모듈은 auto-configuration이라 "의존 선언 = 활성화"다** — 과거처럼 다른 앱이 `OAuthModuleConfig`를 `@Import`해야 발화하는 것이 아니라, `implementation`/`runtimeOnly`로 의존을 추가하는 순간 `OAuthModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록된다. 그 상태에서 다른 앱이 이 모듈에 의존하면 컨텍스트 로딩 중 `Could not resolve placeholder 'apple.team-id'`로 **부팅이 깨진다.** 이것은 가정이 아니라 실제 이력이다 — batch-module이 이 실패를 냈다.
 
-분리 전에는 코어 `ExternalModuleConfig`가 이 패키지를 REGEX `excludeFilters`로 제외해서 같은 효과를 냈고, admin/ceo/batch가 그 REGEX를 각자 복사해 유지해야 했다. **지금은 모듈 경계가 그 역할을 대신한다** — 의존하지 않는 앱에는 클래스 자체가 없으므로 제외 규칙이 필요 없다. 이 사고 기록을 남기는 이유는, 나중에 "설정을 한군데로 모으자"며 다른 앱에 이 import를 추가하는 시도가 반복되기 쉽기 때문이다.
+분리 전에는 코어 `ExternalModuleConfig`가 이 패키지를 REGEX `excludeFilters`로 제외해서 같은 효과를 냈고, admin/ceo/batch가 그 REGEX를 각자 복사해 유지해야 했다. **지금은 모듈 경계(= build.gradle 의존 선언)가 그 역할을 대신한다** — 의존하지 않는 앱에는 클래스 자체가 없으므로 제외 규칙이 필요 없다. 이 사고 기록을 남기는 이유는, 나중에 "설정을 한군데로 모으자"며 다른 앱에 이 의존을 추가하는 시도가 반복되기 쉽기 때문이다.
 
 ## SPI 규칙 — 계약은 `application`, 구현은 이 모듈
 
@@ -59,7 +59,7 @@ com.tastyhouse.external.oauth/
 
 ## 진입 설정과 스캔 범위
 
-`OAuthModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 `@ComponentScan("com.tastyhouse.external.oauth")`만 갖는다. **`@EnableConfigurationProperties`가 없다** — 이 모듈은 `@ConfigurationProperties` record를 쓰지 않고 제공자 설정값을 `@Value`로 직접 읽기 때문이다.
+`OAuthModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.external.oauth")`만 갖는다. **`@EnableConfigurationProperties`가 없다** — 이 모듈은 `@ConfigurationProperties` record를 쓰지 않고 제공자 설정값을 `@Value`로 직접 읽기 때문이다.
 
 ## yml — 없다
 
@@ -79,5 +79,5 @@ com.tastyhouse.external.oauth/
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: web-api만 `@Import(OAuthModuleConfig.class)` 한다. 다른 앱에 추가하지 않는다(위 사고 기록).
+- **빈 배선**: web-api만 `implementation project(':infrastructure:oauth')`를 선언한다(챕터 02 — `runtimeOnly`). `OAuthModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. 다른 앱에 의존을 추가하지 않는다(위 사고 기록).
 - **제공자 패키지 이름을 바꾸지 않는다** — web-api ArchUnit 규칙이 그 문자열을 참조한다.

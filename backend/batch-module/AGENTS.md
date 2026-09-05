@@ -57,20 +57,30 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ### Internal
 - `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
-- `infrastructure:persistence` (implementation) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단
-- `infrastructure:external` (implementation) — 외부 연동 코어(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI). 설정(`application-external.yml`)과 빈 스캔 때문에 유지한다
-- `infrastructure:firebase` (implementation) — `FileStorageStrategy` 구현(크롤링 이미지 저장)
-- `infrastructure:crawling` (implementation) — `external.crawling.bbq.BbqApiClient`(크롤링 HTTP 클라이언트)·`external.crawling.RemoteImageDownloader`·행정동 경계 클라이언트(`external.region`). **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-crawling.yml`) 때문에 유지한다
-- `logging-module` (implementation) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다
+- `infrastructure:persistence` (**runtimeOnly**, 챕터 02 개정) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단. auto-configuration 전환으로 `@Import`용 컴파일 타임 참조가 사라져 `implementation`에서 내려갔다
+- `infrastructure:external` (**runtimeOnly**) — 외부 연동 코어(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI). 설정(`application-external.yml`)과 빈 스캔 때문에 유지한다
+- `infrastructure:firebase` (**runtimeOnly**) — `FileStorageStrategy` 구현(크롤링 이미지 저장)
+- `infrastructure:crawling` (**runtimeOnly**) — `external.crawling.bbq.BbqApiClient`(크롤링 HTTP 클라이언트)·`external.crawling.RemoteImageDownloader`·행정동 경계 클라이언트(`external.region`). **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-crawling.yml`) 때문에 유지한다
+- `logging-module` (**runtimeOnly**) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다. `runtimeOnly`에 걸린 `exclude`도 동일하게 적용된다(Gradle의 `exclude`는 의존 스코프와 무관하게 동작)
 - **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. web/admin/ceo와 달리 전이 경로도 없다(`application`이 `domain-module`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). 도메인 타입이 다시 필요해지면 여기에 직접 선언한다
 - `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03)
 
 ### External
 - Spring Boot Starter(루트 `subprojects`가 부여) — `@Scheduled`/`@Transactional` 지원
 
-## 빈 배선
+## 빈 배선 (챕터 02 개정 — auto-configuration)
 
-`BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합한다(`scanBasePackages` 문자열 나열 대신 타입 세이프 조합 — `InfrastructureModuleConfig` 선례).
+**과거 `BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합했다. 지금은 `@Import(BatchApplicationConfig.class)` 하나만 남는다.** `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)·`FirebaseModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration`·`LoggingModuleAutoConfiguration`은 전부 각자 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 auto-configuration이 되어, "쓰는 앱이 `@Import`한다"는 배선 방식 자체가 사라졌다. `BatchApplicationConfig`만 여전히 `@Import`하는 이유는 그것이 batch **앱 자신의 정체성**(`@ComponentScan` + 마커 필터)이라 자동 등록 대상이 아니기 때문이다(`application` 모듈은 auto-configuration을 갖지 않는다 — 위 `backend/CLAUDE.md`의 모듈 등록 컨벤션 참고).
+
+**아래 §다음 절이 이 배선 변화의 핵심 — batch가 non-servlet인 이유를 이 문서가 유일하게 담보한다는 사실은 그대로 유효하다.**
+
+### `web-application-type: none`이 api-common auto-config 2개를 잠재우는 유일한 근거 (챕터 02 신설)
+
+`application.yml`의 `spring.main.web-application-type: none`은 단순한 설정값이 아니라, **`api-common-module`의 두 auto-configuration(`ApiCommonModuleAutoConfiguration#sharedGlobalExceptionHandler`, `ApiCommonRateLimitAutoConfiguration#rateLimitAspect`)이 이 모듈에서 비발화하는 유일한 근거**다. 둘 다 `@ConditionalOnWebApplication(type = SERVLET)`을 가지며, 이 조건은 (1) 클래스패스에 서블릿 스택이 있는지와 (2) 실제 애플리케이션 타입(`SERVLET`/`REACTIVE`/`NONE`)이 무엇인지를 함께 본다. **클래스패스에는 서블릿 스택(`spring-webmvc`·`tomcat-embed-core`)이 실제로 존재한다** — `application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 이 모듈의 runtimeClasspath에도 실려 있고, `api-common-module`이 `spring-boot-starter-web`을 `api`로 노출하기 때문이다. 즉 이 모듈이 두 빈을 갖지 않는 것은 "서블릿 스택이 없어서"가 **아니라** "이 yml 한 줄이 애플리케이션 타입을 `NONE`으로 고정해서"다.
+
+**이 한 줄을 지우면(또는 다른 값으로 바꾸면) batch에 공용 예외 핸들러(`sharedGlobalExceptionHandler`)와 rate limit aspect(`rateLimitAspect`)가 조용히 올라온다.** 컴파일은 깨지지 않고, `java -jar --debug` 기동의 `CONDITIONS EVALUATION REPORT`에서 두 auto-configuration이 Negative에서 Positive로 바뀌는 것으로만 드러난다. batch는 HTTP 요청이 없어 이 두 빈이 있어도 당장 오작동하지는 않지만(호출할 컨트롤러가 없다), 존재 자체가 "이 모듈은 서블릿 애플리케이션이 아니다"라는 설계 전제를 깨는 신호이므로, 이 yml 값을 건드릴 때는 반드시 재기동 후 `CONDITIONS EVALUATION REPORT`로 두 auto-configuration이 여전히 Negative인지 확인한다.
+
+Redis(`RedisModuleAutoConfiguration`)와 크롤링(`CrawlingModuleAutoConfiguration`)은 이 조건이 없어 batch에서도 발화한다 — Redis는 전이로 끌려온 의도치 않은(그러나 무해한) 발화이고, 크롤링은 이 모듈이 실제로 쓰는 의도된 발화다(§챕터 02 감사표, `docs/tasks/02-autoconfig/backend.md` §4 참고).
 
 > **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, `@Import`에서 모듈 하나를 빠뜨려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
 >

@@ -21,7 +21,7 @@
 | `src/main/java/com/tastyhouse/security/jwt/` | `JwtTokenProvider`(파라미터형 POJO, 서명/파싱), `JwtProperties`, `TokenType`, `JwtPrincipal`/`JwtPrincipalFactory`(앱별 principal 재구성 계약) |
 | `src/main/java/com/tastyhouse/security/token/` | `RefreshTokenRedisRepository`·`BlacklistRedisRepository`(접두사 생성자 주입형) + 소셜 임시토큰 4종(`Kakao`/`Naver`/`Apple`/`Facebook`TempTokenRedisRepository, 접두사 고정) |
 
-자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). `SecurityModuleConfig`(`security-module` 소유)의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕분에 이 모듈로 이동한 `@Repository` 빈들도 그대로 스캔한다.
+자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). `SecurityModuleAutoConfiguration`(`security-module` 소유, 챕터 02로 `SecurityModuleConfig`에서 리네임 + `@AutoConfiguration`)의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕분에 이 모듈로 이동한 `@Repository` 빈들도 그대로 스캔한다.
 
 ## For AI Agents
 

@@ -10,6 +10,8 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // afterName 문자열 가드가 ApiCommonRateLimitAutoConfiguration을 리플렉션으로 읽는다.
+    // implementation은 테스트 컴파일에도 보이므로 별도 선언은 불필요하다.
 }
 
 tasks.withType(JavaCompile).configureEach {

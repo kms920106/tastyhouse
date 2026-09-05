@@ -67,11 +67,11 @@
 
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `CeoApplicationConfig`
-- `infrastructure:persistence` (implementation) — **`runtimeOnly`로 강등하지 않는다**: 소스 import는 0건이지만 부트스트랩이 `@Import(InfrastructureModuleConfig.class)`로 진입점 설정을 컴파일 타임에 참조한다(강등하면 실측상 4개 모듈 전부 "package does not exist"). 해소하려면 `@Import`를 문자열 `scanBasePackages`로 되돌려야 하는데 그것은 타입 세이프 조합이라는 설계 의도를 뒤집는다. 은닉은 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당한다
+- `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
 - `infrastructure:external` — 외부 연동 코어(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)
 - `infrastructure:firebase` — `FileStorageStrategy` 구현(파일 업로드). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
 - `logging-module`, `security-module`
-- `infrastructure:redis` — rate limit 카운터와 `StringRedisTemplate` 빈. 부트스트랩이 `@Import(RedisModuleConfig.class)`로 참조한다
+- `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터와 `StringRedisTemplate` 빈. `RedisModuleAutoConfiguration`이 자기 등록하며(챕터 02) 부트스트랩은 `@Import`하지 않는다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
 - **`domain-module`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain-module')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).
 - `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03).

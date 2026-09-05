@@ -19,7 +19,7 @@ com.tastyhouse.external/
 │       ├── request/SolapiMessageRequest.java
 │       └── response/SolapiMessageResponse.java
 └── messaging/
-    ├── MessagingModuleConfig.java     진입점
+    ├── MessagingModuleAutoConfiguration.java  진입점 — 챕터 02로 MessagingModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
     └── config/
         ├── MailDomainConfig.java      ← persistence에서 이관
         └── SmsDomainConfig.java       ← persistence에서 이관
@@ -29,7 +29,7 @@ com.tastyhouse.external/
 
 ## 어느 앱이 의존하는가
 
-**web-api 하나뿐이다.** 메일·SMS 인증은 사용자 앱에서만 쓴다. admin-api·ceo-api·batch-module은 이 모듈을 의존하지도 `@Import` 하지도 않으며, `spring.mail.*`·`mail.*`·`sms.*` 설정도 더 이상 받지 않는다(그 값을 읽는 빈이 세 앱에 없다 — 소비자가 전부 `@WebApp`이다).
+**web-api 하나뿐이다.** 메일·SMS 인증은 사용자 앱에서만 쓴다. admin-api·ceo-api·batch-module은 이 모듈을 의존하지 않으며(챕터 02 이후로는 의존 선언이 곧 활성화다), `spring.mail.*`·`mail.*`·`sms.*` 설정도 더 이상 받지 않는다(그 값을 읽는 빈이 세 앱에 없다 — 소비자가 전부 `@WebApp`이다).
 
 ## `MailDomainConfig`·`SmsDomainConfig` 이관 — 컨벤션의 예외
 
@@ -53,7 +53,7 @@ com.tastyhouse.external/
 
 ## 진입 설정과 스캔 범위
 
-`MessagingModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 아래를 갖는다.
+`MessagingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 아래를 갖는다.
 
 - `@ComponentScan({"com.tastyhouse.external.mail", "com.tastyhouse.external.sms", "com.tastyhouse.external.messaging"})` — 채널 어댑터 두 패키지와 이관된 DomainConfig 패키지
 - `@EnableConfigurationProperties({MailProperties.class, SmsProperties.class, SolapiProperties.class})`
@@ -81,6 +81,6 @@ com.tastyhouse.external/
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: web-api만 `@Import(MessagingModuleConfig.class)` 한다. 빠뜨리면 `MailSender`/`SmsSender` 부재로 이관된 DomainConfig의 도메인 서비스 빈 생성이 실패해 **기동 시** 드러난다.
+- **빈 배선 (챕터 02 개정)**: web-api만 `runtimeOnly project(':infrastructure:messaging')`를 선언한다(챕터 02 — `implementation`에서 강등). `MessagingModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다 — 다른 앱이 실수로 이 모듈에 의존을 추가하면 `MailSender`/`SmsSender` 부재가 아니라 오히려 그 즉시 이관된 DomainConfig의 도메인 서비스 빈이 등록돼 버리므로(조건이 없다), 새로 의존을 추가할 앱이 없는지 신중히 확인한다.
 - **발송 실패는 인증 레코드 저장을 롤백시킨다** — 이 도메인에서는 그것이 올바른 의미다(발송되지 않은 인증코드는 존재 가치가 0). 상세는 `backend/CLAUDE.md`의 "인증코드 발송은 발급과 원자적으로 수행하는 규칙".
 - **`@RateLimit keyPrefix`는 개명하지 않는다** — Redis 카운터 키라 바꾸면 배포 시점에 발송 한도가 전원 리셋된다.

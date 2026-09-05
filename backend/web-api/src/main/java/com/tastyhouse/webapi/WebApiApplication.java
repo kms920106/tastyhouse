@@ -4,23 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
-import com.tastyhouse.apicommon.ratelimit.ApiCommonRateLimitConfig;
-import com.tastyhouse.external.config.ExternalModuleConfig;
-import com.tastyhouse.external.firebase.FirebaseModuleConfig;
-import com.tastyhouse.external.messaging.MessagingModuleConfig;
-import com.tastyhouse.external.oauth.OAuthModuleConfig;
-import com.tastyhouse.external.payment.PaymentModuleConfig;
-import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
-import com.tastyhouse.infrastructure.redis.RedisModuleConfig;
-import com.tastyhouse.logging.LoggingModuleConfig;
-import com.tastyhouse.security.SecurityModuleConfig;
 import com.tastyhouse.application.WebApplicationConfig;
 
 @SpringBootApplication
-@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, ExternalModuleConfig.class,
-         FirebaseModuleConfig.class, OAuthModuleConfig.class, PaymentModuleConfig.class,
-         MessagingModuleConfig.class, SecurityModuleConfig.class, LoggingModuleConfig.class,
-         ApiCommonRateLimitConfig.class, WebApplicationConfig.class})
+@Import(WebApplicationConfig.class)
 public class WebApiApplication {
 
     public static void main(String[] args) {

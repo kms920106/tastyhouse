@@ -31,7 +31,7 @@ dependencies {
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.logging`** — `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지가 등록되어 있어야 `ApiLoggingFilter`/`ApiLoggingAspect`가 빈으로 인식된다.
+- **패키지 루트는 `com.tastyhouse.logging`** — `LoggingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록, 조건 없음)이 이 패키지를 `@ComponentScan`해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. **과거에는 `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지를 직접 등록해야 했으나, auto-configuration 전환으로 그 등록이 필요 없어졌다** — `runtimeOnly` 의존 선언만으로 발화한다(batch-module도 조건 없이 발화한다 — 의도된 동작).
 - **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain-module`/`infrastructure:persistence`/`infrastructure:external`을 비롯한 외부 연동 모듈 7개/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
 - **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. 마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.

@@ -19,20 +19,34 @@
 | Directory | Purpose |
 |-----------|---------|
 | `src/main/java/com/tastyhouse/apicommon/common/` | `ApiResponse<T>`(성공 응답 + `Pagination`), `PaginationResponse<T>`(표준 4필드 페이징), `PageRequest`(`@ModelAttribute` 페이징 요청) |
-| `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler` — **admin-api·ceo-api 전용**. web-api는 자체 핸들러를 쓴다(아래 스캔 주의) |
-| `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`·계약 `RateLimitCounterPort`·부분 진입점 `ApiCommonRateLimitConfig`. 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
+| `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler` — **`@Bean("sharedGlobalExceptionHandler")`로 조건부 등록**(아래 "등록 방식" 절). web-api는 자체 핸들러가 있어 이 빈이 등록되지 않는다 |
+| `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`·계약 `RateLimitCounterPort`. 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
 | `src/main/java/com/tastyhouse/apicommon/file/` | `FileService` — `MultipartFile`을 도메인 `FileUploadCommand`로 바꾸는 얇은 업로드 어댑터(조회·URL 변환 책임 없음) |
 | `src/main/java/com/tastyhouse/apicommon/shop/response/` | admin↔ceo 바이트 동일이던 shop 응답 record 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`) |
 
-## 스캔 주의 (빈 등록 범위가 곧 동작)
-`GlobalExceptionHandler`(`@RestControllerAdvice`)와 `FileService`(`@Service`)는 빈이므로, 어느 앱이 이 모듈의 어느 패키지를 스캔하는지가 그대로 런타임 동작이 된다.
+## 등록 방식 — auto-configuration (챕터 02 개정, 전면 교체)
 
-| 앱 | 스캔 범위 | 이유 |
+**과거 이 절은 "부분 진입점 스캔"(`ApiCommonConfig` 전체 스캔 vs `ApiCommonFileConfig`+`ApiCommonRateLimitConfig` 부분 스캔) 구조를 다뤘다. 그 구조는 챕터 02로 완전히 사라졌다** — `ApiCommonConfig`·`ApiCommonRateLimitConfig` 두 `@Configuration` 진입점 클래스 자체가 **삭제**됐고, 대신 아래 두 `@AutoConfiguration` 클래스가 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다. 3개 api 모듈 어디에도 `@Import(ApiCommon...)`가 없다 — "클래스패스 존재 = 활성화"이며, 앱별 차이는 스캔 범위가 아니라 **`@Bean` 메서드의 조건**으로 표현한다.
+
+| 클래스 | 패키지 | 등록 방식 | 조건 |
+|---|---|---|---|
+| `ApiCommonModuleAutoConfiguration` | `com.tastyhouse.apicommon` | `@Bean("sharedGlobalExceptionHandler") GlobalExceptionHandler` — **스캔 없이 단일 `@Bean` 메서드로 등록**(과거 `@RestControllerAdvice` 컴포넌트 스캔 방식에서 전환) | `@ConditionalOnWebApplication(type = SERVLET)` + 메서드에 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)` |
+| `ApiCommonRateLimitAutoConfiguration` | `com.tastyhouse.apicommon.ratelimit` | `@Bean RateLimitAspect(RateLimitCounterPort, ClientIpResolver, ...)` — `RateLimitAspect`에서 `@Component`를 제거하고 `@Bean` 메서드 파라미터로 협력자를 주입 | `@ConditionalOnWebApplication(type = SERVLET)` + 메서드에 `@ConditionalOnBean(RateLimitCounterPort.class)` + `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")` |
+
+- **빈 이름을 `sharedGlobalExceptionHandler`로 지정하는 이유**: web-api의 자체 `GlobalExceptionHandler`와 단순 클래스명이 같아, 기본 빈 이름(`globalExceptionHandler`)을 쓰면 두 빈이 이름 충돌한다. 이름을 다르게 지어 공존시키고, `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`가 실제 등록 여부를 가른다 — web-api는 자체 `@RestControllerAdvice`가 이미 있으므로 이 빈이 **등록되지 않는다**(Negative), admin/ceo는 없으므로 **등록된다**(Positive).
+- **`RateLimitAspect`가 `RateLimitCounterPort` 존재를 조건으로 삼는 이유**: 카운터 빈은 `infrastructure:redis`의 `RedisModuleAutoConfiguration`이 등록한다. 클래스 리터럴(`@ConditionalOnBean(RedisRateLimitCounter.class)`)을 쓸 수 없는 이유는 의존 방향이 `infrastructure:redis → api-common`이라 이 모듈이 redis 모듈의 구체 타입을 컴파일 타임에 볼 수 없기 때문이다(순환 방지) — 그래서 도메인 포트 `RateLimitCounterPort`(이 모듈이 소유)로 조건을 건다. `afterName`으로 순서를 강제하는 이유는 스캔된 `RedisRateLimitCounter` 정의가 redis auto-configuration 처리 시점에 등록되므로, 그보다 먼저 이 조건을 평가하면 `@ConditionalOnBean`이 아직 없는 빈을 보고 거짓으로 판정하기 때문이다.
+- **과거 "부분 진입점을 쓰는 앱에 패키지를 추가할 때는 그 앱의 `@Import`도 함께 늘린다"는 함정은 이제 존재하지 않는다.** admin/ceo/web 어느 쪽도 `@Import`를 갖지 않으므로 배선 누락이라는 실패 양식 자체가 사라졌다 — 대신 위 조건이 앱별 차이를 자동으로 답한다.
+
+## 스캔 주의 (조건부 등록이 곧 동작 — 개정)
+`GlobalExceptionHandler`(`@RestControllerAdvice`)와 `RateLimitAspect`는 이제 컴포넌트 스캔이 아니라 **`@Bean` 메서드 + 조건**으로 등록되므로, "어느 앱이 어느 패키지를 스캔하는가"가 아니라 "어느 앱이 어떤 조건을 만족하는가"가 런타임 동작을 결정한다.
+
+| 앱 | `sharedGlobalExceptionHandler` | `rateLimitAspect` |
 |---|---|---|
-| `AdminApiApplication` / `CeoApiApplication` | `com.tastyhouse.apicommon` 전체(`ApiCommonConfig`) | 공용 핸들러·`FileService`·`RateLimitAspect`를 모두 사용 |
-| `WebApiApplication` | `.file` + `.ratelimit` **만**(`ApiCommonFileConfig` + `ApiCommonRateLimitConfig`) | web 전용 핸들러 4종(`ExternalApiException` 등)과 다른 검증 메시지 형식을 가진 자체 `GlobalExceptionHandler`를 쓴다. `exception` 패키지까지 스캔하면 핸들러가 2개가 되어 어느 쪽이 이기는지가 불확정해진다 |
+| `AdminApiApplication` / `CeoApiApplication` | **Positive** — 자체 advice 없음 | **Positive** — `RateLimitCounterPort` 빈 존재(redis) |
+| `WebApiApplication` | **Negative** — 자체 `webapi.exception.GlobalExceptionHandler` 존재 | **Positive** — 동일 |
+| `BatchApplication` | **Negative** — non-servlet(`spring.main.web-application-type: none`) | **Negative** — 동일. `FileService`(`@Service`, 조건 없음)는 batch도 필요 없어 원래도 안 씀 |
 
-**부분 진입점을 쓰는 앱에 패키지를 추가할 때는 그 앱의 `@Import`도 함께 늘린다.** 챕터 02에서 `ratelimit`을 이 모듈로 들여올 때 실제로 걸린 함정이다 — 이전에는 aspect가 `infrastructure:redis`(= 3개 앱이 모두 `@Import` 하는 `RedisModuleConfig`의 스캔 범위)에 있어 자동으로 등록됐는데, 이 모듈로 올라오면서 `ApiCommonConfig` 전체 스캔을 쓰지 않는 web-api에서만 aspect가 사라진다. 컴파일·기동 모두 통과하고 `@RateLimit`만 조용히 무시되므로 `ApiCommonRateLimitConfig`를 신설해 명시적으로 import 했다. `ApiCommonConfig`는 이 두 부분 진입점을 `excludeFilters`로 제외한다(중복 설정 빈 방지).
+`FileService`는 여전히 `@Service` 컴포넌트 스캔으로 등록된다(조건부 전환 대상이 아니다 — admin/ceo/web 전부 파일 업로드가 필요해 앱별 차이가 없다).
 
 ## 여기에 두면 안 되는 것
 - **모듈마다 내용이 다른 정책 파일** — `SecurityConfig`(필터체인·인가 정책), `PublicPaths`(공개 경로 목록: web 18줄 vs admin/ceo 3줄), `TokenService`/`AuthService`(인증 주체 `Admin`/`Ceo`와 JWT 시크릿이 분리되어야 함).

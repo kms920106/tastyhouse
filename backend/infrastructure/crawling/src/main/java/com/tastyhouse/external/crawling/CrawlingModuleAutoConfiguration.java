@@ -1,20 +1,20 @@
 package com.tastyhouse.external.crawling;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.external.crawling.bbq.BbqProperties;
 import com.tastyhouse.external.region.AdminDongBoundaryProperties;
 
 /**
- * infrastructure:crawling 모듈의 진입점 설정 — BBQ 메뉴 크롤링 · 행정동 경계 수집 · 원격 이미지 다운로드.
+ * infrastructure:crawling 모듈의 auto-configuration — BBQ 메뉴 크롤링 · 행정동 경계 수집 · 원격 이미지 다운로드.
  *
- * <p>전부 배치 작업에서만 쓰므로 batch-module만 이 모듈을 의존하고 import 한다.
- * {@link RemoteImageDownloader}는 persistence의 {@code FileDomainConfig}가 등록하는
+ * <p>전부 배치 작업에서만 쓰므로 batch-module만 이 모듈을 의존하고, 클래스패스 존재만으로
+ * 활성화된다. {@link RemoteImageDownloader}는 persistence의 {@code FileDomainConfig}가 등록하는
  * {@code FileUploadService} 빈에 런타임 의존한다.
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ComponentScan(basePackages = {
     "com.tastyhouse.external.crawling",
     "com.tastyhouse.external.region"
@@ -23,5 +23,5 @@ import com.tastyhouse.external.region.AdminDongBoundaryProperties;
     BbqProperties.class,
     AdminDongBoundaryProperties.class
 })
-public class CrawlingModuleConfig {
+public class CrawlingModuleAutoConfiguration {
 }

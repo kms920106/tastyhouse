@@ -9,7 +9,7 @@
 ```
 com.tastyhouse.external/
 ├── crawling/
-│   ├── CrawlingModuleConfig.java       진입점
+│   ├── CrawlingModuleAutoConfiguration.java  진입점 — 챕터 02로 CrawlingModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 │   ├── RemoteImageDownloader.java      ← external.file 에서 패키지 변경
 │   └── bbq/
 │       ├── BbqApiClient.java           BBQ 메뉴 API 호출 (WebClient)
@@ -26,13 +26,13 @@ com.tastyhouse.external/
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다.** 세 기능 전부 배치 작업에서만 쓰므로 web-api·admin-api·ceo-api는 이 모듈을 의존하지도 `@Import` 하지도 않는다.
+**batch-module 하나뿐이다.** 세 기능 전부 배치 작업에서만 쓰므로 web-api·admin-api·ceo-api는 이 모듈을 의존하지 않는다(챕터 02 이후로는 의존 선언이 곧 활성화이므로 `@Import` 여부는 무관하다).
 
 ## `RemoteImageDownloader`의 패키지가 바뀌었다
 
-`com.tastyhouse.external.file.RemoteImageDownloader` → **`com.tastyhouse.external.crawling.RemoteImageDownloader`**. 코어 `ExternalModuleConfig`가 `com.tastyhouse.external.file`을 스캔하므로, 그 자리에 남겨두면 파일 저장만 쓰는 admin/ceo에도 이 빈이 동반 스캔된다(`../external/AGENTS.md`의 패키지 예외 3건).
+`com.tastyhouse.external.file.RemoteImageDownloader` → **`com.tastyhouse.external.crawling.RemoteImageDownloader`**. 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔하므로, 그 자리에 남겨두면 파일 저장만 쓰는 admin/ceo에도 이 빈이 동반 스캔된다(`../external/AGENTS.md`의 패키지 예외 3건).
 
-**⚠️ 이 클래스는 persistence가 등록하는 빈에 런타임 의존한다.** 생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 import 하고 `InfrastructureModuleConfig`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 import 하므로 성립한다). 컴파일 의존은 `domain-module`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다.
+**⚠️ 이 클래스는 persistence가 등록하는 빈에 런타임 의존한다.** 생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 의존하고 `infrastructure:persistence`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 의존하므로 성립한다 — 챕터 02 이후로는 `runtimeOnly` 의존 선언만으로 `PersistenceModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration` 둘 다 자동 등록된다). 컴파일 의존은 `domain-module`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다.
 
 ## `region/` — 행정동 경계 수집
 
@@ -46,7 +46,7 @@ com.tastyhouse.external/
 
 ## 진입 설정과 스캔 범위
 
-`CrawlingModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 아래를 갖는다.
+`CrawlingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 아래를 갖는다.
 
 - `@ComponentScan({"com.tastyhouse.external.crawling", "com.tastyhouse.external.region"})`
 - `@EnableConfigurationProperties({BbqProperties.class, AdminDongBoundaryProperties.class})`
@@ -73,5 +73,5 @@ com.tastyhouse.external/
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: batch-module만 `@Import(CrawlingModuleConfig.class)` 한다. `InfrastructureModuleConfig`를 함께 import 해야 `RemoteImageDownloader`가 뜬다(위 런타임 의존).
+- **빈 배선 (챕터 02 개정)**: batch-module만 `runtimeOnly project(':infrastructure:crawling')`를 선언한다(챕터 02 — `implementation`에서 강등). `CrawlingModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. `infrastructure:persistence`에도 의존해야 `RemoteImageDownloader`가 뜬다(위 런타임 의존 — batch-module은 이미 둘 다 의존한다).
 - **크롤링 대상은 남의 서비스다** — `base-url`·응답 형태가 예고 없이 바뀔 수 있고, 그 실패는 빌드가 아니라 배치 실행에서 드러난다. 배치 잡은 실패를 잡아 로그로 남기고 다음 주기에 재실행하는 잡 단위 격리가 정상 설계다.

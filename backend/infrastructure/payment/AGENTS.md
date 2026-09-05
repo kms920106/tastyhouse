@@ -8,7 +8,7 @@
 
 ```
 com.tastyhouse.external.payment/
-├── PaymentModuleConfig.java          진입점 — 쓰는 앱이 @Import 한다
+├── PaymentModuleAutoConfiguration.java  진입점 — 챕터 02로 PaymentModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(의존 선언 = 활성화)
 └── toss/
     ├── TossPaymentGatewayAdapter.java  도메인 포트 PgPaymentGateway 구현
     ├── TossPaymentClient.java          결제 승인(confirmPayment)·취소(cancelPayment) HTTP 호출
@@ -24,11 +24,11 @@ com.tastyhouse.external.payment/
 
 ## 어느 앱이 의존하는가
 
-**web-api 하나뿐이다.** 결제는 사용자 앱에서만 일어나므로 admin-api·ceo-api·batch-module은 이 모듈을 의존하지도 `@Import` 하지도 않는다. 분리 전에는 세 앱 모두 토스 연동 코드를 클래스패스에 얹고 있었다.
+**web-api 하나뿐이다.** 결제는 사용자 앱에서만 일어나므로 admin-api·ceo-api·batch-module은 이 모듈을 의존하지 않는다(챕터 02 이후로는 의존 선언이 곧 활성화이므로 `@Import` 여부는 무관하다). 분리 전에는 세 앱 모두 토스 연동 코드를 클래스패스에 얹고 있었다.
 
 ## 진입 설정과 스캔 범위
 
-`PaymentModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 `@ComponentScan("com.tastyhouse.external.payment")` + `@EnableConfigurationProperties(TossPaymentProperties.class)`를 갖는다. **provider 조건(`@ConditionalOnProperty`)이 없다** — PG는 파일·메일·SMS와 달리 대안 구현이 없어 선택 축 자체가 존재하지 않는다.
+`PaymentModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.external.payment")` + `@EnableConfigurationProperties(TossPaymentProperties.class)`를 갖는다. **provider 조건(`@ConditionalOnProperty`)이 없다** — PG는 파일·메일·SMS와 달리 대안 구현이 없어 선택 축 자체가 존재하지 않는다.
 
 ## yml — `application-payment.yml`
 
@@ -58,5 +58,5 @@ payment:
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: web-api만 `@Import(PaymentModuleConfig.class)` 한다. 빠뜨리면 `PaymentCommandService`가 `PgPaymentGateway` 빈을 찾지 못해 **기동 시** 실패한다.
+- **빈 배선 (챕터 02 개정)**: web-api만 `implementation project(':infrastructure:payment')`를 선언한다(챕터 02 — `runtimeOnly`). `PaymentModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **의존 선언 자체가 활성화**이므로, 다른 앱에 실수로 의존을 추가하면 `PgPaymentGateway` 빈이 뜨는 것이 아니라(설정값이 web-api에만 있어) 오히려 그 앱에서 프로퍼티 바인딩 실패로 부팅이 깨질 수 있다.
 - **결제 실패는 `ExternalApiException`으로 던진다** — 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다. 응답 `code`는 wire 계약이므로 기존 값을 바꾸지 않는다.

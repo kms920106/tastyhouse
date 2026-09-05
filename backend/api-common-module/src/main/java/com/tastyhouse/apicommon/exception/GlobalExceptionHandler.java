@@ -31,9 +31,12 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitException;
  * {@code ", "}로 join하는 반면 여기서는 메시지만 공백 join하는 등 <b>응답 계약이 다르다.</b> 이는 우연한 차이가
  * 아니라 소비자별 계약 차이이므로 통합하지 않고 web-api가 자체 핸들러를 유지한다
  * ({@code com.tastyhouse.webapi.exception.GlobalExceptionHandler}). 그래서 {@code WebApiApplication}은
- * 이 패키지를 스캔하는 {@link com.tastyhouse.apicommon.ApiCommonConfig}를 import 하지 않고,
- * 필요한 부분 진입점({@link com.tastyhouse.apicommon.ratelimit.ApiCommonRateLimitConfig})만 import 한다.
  * 계약이 아니라 조립 로직인 {@link ProblemDetails}는 두 핸들러가 공유한다.
+ *
+ * <p><b>이 핸들러의 등록 주체는 {@link com.tastyhouse.apicommon.ApiCommonModuleAutoConfiguration}이다.</b>
+ * 컴포넌트 스캔이 아니라 {@code @Bean("sharedGlobalExceptionHandler")} + {@code @ConditionalOnMissingBean
+ * (annotation = RestControllerAdvice.class)}로 등록되므로, 자체 advice를 가진 web-api에서는 자동으로
+ * 물러난다. 앱이 {@code @Import}로 조립하던 시절과 달리 앱 쪽에 배선 코드가 없다.
  *
  * <p>{@code ExternalApiException}은 {@code BusinessException}을 상속하므로 아래
  * {@link #handleBusinessException} 하나로 처리된다(전용 핸들러 불필요).

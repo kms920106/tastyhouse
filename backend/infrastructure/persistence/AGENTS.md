@@ -2,7 +2,7 @@
 
 # infrastructure:persistence
 
-> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)·클래스명(`InfrastructureModuleConfig`·`InfrastructurePersistenceConfig`)·`application-infrastructure.yml`은 **전부 불변**이므로, 아래 본문의 패키지 경로는 그대로 유효하다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:external`이 외부 연동 코어를(`../external/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다.
+> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)와 `application-infrastructure.yml`은 **불변**이다. **클래스명은 챕터 02로 바뀌었다** — 모듈 진입점 `InfrastructureModuleConfig`는 **`PersistenceModuleAutoConfiguration`**으로 리네임 + `@AutoConfiguration(before = JpaRepositoriesAutoConfiguration.class)`로 전환됐고(`InfrastructurePersistenceConfig`는 이름 불변), `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록해 앱은 더 이상 `@Import`하지 않는다. 그 밖의 본문 패키지 경로는 그대로 유효하다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:external`이 외부 연동 코어를(`../external/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다.
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
@@ -54,11 +54,11 @@ com.tastyhouse.infrastructure/
 - **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
 - **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
   - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 그 포트를 구현하는 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`(`com.tastyhouse.external.messaging.config`)으로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. `file/config/FileDomainConfig`의 `FileStoragePort`는 4개 앱 전부가 구현을 가지므로 여기 잔류한다. 주입이 없는 `mail/listener/MailVerificationEventListener`·`sms/listener/SmsVerificationEventListener`도 잔류한다.
-  - 과거에는 모듈 루트의 `DomainServiceConfig` 하나가 17개 컨텍스트의 `@Bean` 55개를 전부 조립했으나(959줄), 모든 도메인 작업이 이 한 파일을 수정해 리포지토리에서 가장 충돌이 잦은 파일이 되어 컨텍스트별로 분할했다. `InfrastructureModuleConfig`가 `com.tastyhouse.infrastructure` 전체를 `@ComponentScan`하므로 앱 쪽 변경 없이 자동 등록된다.
+  - 과거에는 모듈 루트의 `DomainServiceConfig` 하나가 17개 컨텍스트의 `@Bean` 55개를 전부 조립했으나(959줄), 모든 도메인 작업이 이 한 파일을 수정해 리포지토리에서 가장 충돌이 잦은 파일이 되어 컨텍스트별로 분할했다. `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `com.tastyhouse.infrastructure` 전체를 `@ComponentScan`하므로(`com.tastyhouse.infrastructure.redis.*`는 REGEX로 제외 — 챕터 02) 앱 쪽 변경 없이 자동 등록된다.
   - **빈 이름(= `@Bean` 메서드명)은 바꾸지 않는다** — `@Qualifier` 참조가 깨질 수 있다.
   - **컨텍스트 분류가 애매한 빈**(여러 컨텍스트 서비스를 파라미터로 받는 것)은 **반환 타입이 속한 컨텍스트**의 config에 둔다.
   - member의 하위 컨텍스트(`follow`·`referral`) 빈은 `member/config/MemberDomainConfig`에 함께 둔다(별도 파일로 쪼개지 않음).
-  - **모듈 진입점인 `InfrastructureModuleConfig`·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(apps가 `@Import`하므로 경로 변경 금지). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
+  - **모듈 진입점인 `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지 — 앱의 `@Import` 때문이 아니라 챕터 02로 그 필요 자체가 사라졌다). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **이벤트 리스너는 `<ctx>/listener/`에 둔다**: 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 리스너가 없어 누락되므로, 크로스커팅 리스너는 모든 실행 모듈이 스캔하는 이 모듈에 둔다. 유실 위험과 리스너/Recorder 선택 기준은 아래 [도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너) 절을 따른다.
 
 reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).

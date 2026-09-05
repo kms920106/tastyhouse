@@ -34,14 +34,14 @@
 
 ## 자바 패키지는 `com.tastyhouse.external..`로 유지한다
 
-**7모듈로 나뉜 뒤에도 패키지 루트는 전부 `com.tastyhouse.external..`이다.** `com.tastyhouse.infrastructure.external`로 옮기지 않는 이유는 persistence의 `InfrastructureModuleConfig`가 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문이다 — 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 `ExternalModuleConfig`의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). 모듈명 ≠ 패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
+**7모듈로 나뉜 뒤에도 패키지 루트는 전부 `com.tastyhouse.external..`이다.** `com.tastyhouse.infrastructure.external`로 옮기지 않는 이유는 persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문이다 — 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). 모듈명 ≠ 패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
 
 ## 패키지 구조
 
 ```
 com.tastyhouse.external/
 ├── config/
-│   ├── ExternalModuleConfig.java   진입점 — 쓰는 앱(4개 전부)이 @Import 한다
+│   ├── ExternalModuleAutoConfiguration.java  진입점 — 챕터 02로 ExternalModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(의존하는 4개 앱 전부)
 │   └── WebClientConfig.java        WebClient.Builder 빈
 ├── exception/
 │   ├── ExternalApiException.java   BusinessException 상속 (전용 핸들러를 두지 않는다)
@@ -52,7 +52,7 @@ com.tastyhouse.external/
     └── FileStorageProperties.java  file.* 프로퍼티
 ```
 
-`ExternalModuleConfig`의 `@ComponentScan`은 `com.tastyhouse.external.config`·`com.tastyhouse.external.file` 두 패키지뿐이고, `@EnableConfigurationProperties`는 `FileStorageProperties` 하나다. 분리 전에 있던 OAuth REGEX `excludeFilters`와 타 모듈 Properties 등록은 제거됐다 — **모듈 경계가 그 역할을 대신한다.**
+`ExternalModuleAutoConfiguration`의 `@ComponentScan`은 `com.tastyhouse.external.config`·`com.tastyhouse.external.file` 두 패키지뿐이고, `@EnableConfigurationProperties`는 `FileStorageProperties` 하나다. 분리 전에 있던 OAuth REGEX `excludeFilters`와 타 모듈 Properties 등록은 제거됐다 — **모듈 경계(= 의존 선언)가 그 역할을 대신한다.**
 
 ### 벤더 패키지를 `external.file` 아래에 두지 않는다 (패키지 예외 3건의 이유)
 
@@ -100,5 +100,5 @@ String store(byte[] content, String storedFilename, String datePath, String cont
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 7모듈 전부 같다.
-- **빈 배선**: `ExternalModuleConfig`를 쓰는 앱이 `@Import` 한다(현재 4개 앱 전부). 파일 저장을 실제로 쓰려면 전략 구현이 필요하므로 `FirebaseModuleConfig`(또는 `AwsModuleConfig`)를 함께 import 해야 한다 — 코어만 import 하면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패한다.
+- **빈 배선 (챕터 02 개정)**: `ExternalModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 `build.gradle` 의존 선언(`runtimeOnly`, 현재 4개 앱 전부)만 하면 되고 `@Import`는 없다. 파일 저장을 실제로 쓰려면 전략 구현이 필요하므로 `infrastructure:firebase`(또는 `infrastructure:aws`)에도 함께 의존해야 한다 — 코어만 의존하면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패한다.
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/external/AGENTS.md`.

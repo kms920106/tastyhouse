@@ -59,7 +59,7 @@
 - **외부 API 호출은 외부 연동 모듈 어댑터로 위임** — OAuth는 `infrastructure:oauth`, 결제는 `infrastructure:payment`, 메일/SMS는 `infrastructure:messaging`, 파일 업로드는 `infrastructure:external`(SPI)+`infrastructure:firebase`(구현). 크롤링(`infrastructure:crawling`)은 batch-module 전용이라 이 모듈과 무관하다.
 - **Spring Security + JWT 인증 흐름**: JwtAuthenticationFilter → JwtTokenProvider.validateToken() → CustomUserDetailsService → SecurityContext 설정.
 - **GlobalExceptionHandler로 모든 예외 통합 처리** — BusinessException이 담은 `ErrorCodeSpec`의 httpStatusCode로 HTTP 상태 결정. 인증 실패는 `ErrorCode.AUTH_*`(401)를 담은 BusinessException으로 던진다(전용 예외 타입을 새로 만들지 않는다).
-- **Rate Limiting은 `@RateLimit(keyType=IP|FIELD, limit=N, windowSeconds=...)`로 메서드 레벨 선언** — 이 모듈에는 `ratelimit/` 패키지가 없다. 애노테이션·aspect·예외는 `api-common-module`(`com.tastyhouse.apicommon.ratelimit`), Redis 카운터는 `infrastructure:redis`가 소유한다(챕터 02). 부트스트랩이 `ApiCommonRateLimitConfig`를 `@Import` 해야 aspect가 등록된다 — 빠지면 `@RateLimit`이 조용히 무시된다.
+- **Rate Limiting은 `@RateLimit(keyType=IP|FIELD, limit=N, windowSeconds=...)`로 메서드 레벨 선언** — 이 모듈에는 `ratelimit/` 패키지가 없다. 애노테이션·aspect·예외는 `api-common-module`(`com.tastyhouse.apicommon.ratelimit`), Redis 카운터는 `infrastructure:redis`가 소유한다(챕터 02). **`ApiCommonRateLimitAutoConfiguration`이 `RateLimitCounterPort` 빈 존재(= `infrastructure:redis` 활성)를 조건으로 aspect를 자동 등록한다(챕터 02 개정)** — 부트스트랩은 이 설정을 `@Import`하지 않는다. 조건부 auto-configuration이 되면서 "배선을 빠뜨려 `@RateLimit`이 조용히 무시된다"는 실패 양식 자체가 사라졌다.
 - **API 로깅은 ApiLoggingFilter + ApiLoggingAspect로 자동 수행** — 민감정보는 SensitiveFieldMasker로 마스킹.
 
 ### Testing Requirements

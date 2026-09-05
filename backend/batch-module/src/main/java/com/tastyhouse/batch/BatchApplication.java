@@ -6,16 +6,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.tastyhouse.application.BatchApplicationConfig;
-import com.tastyhouse.external.config.ExternalModuleConfig;
-import com.tastyhouse.external.crawling.CrawlingModuleConfig;
-import com.tastyhouse.external.firebase.FirebaseModuleConfig;
-import com.tastyhouse.infrastructure.InfrastructureModuleConfig;
-import com.tastyhouse.logging.LoggingModuleConfig;
 
 @EnableScheduling
 @SpringBootApplication
-@Import({InfrastructureModuleConfig.class, ExternalModuleConfig.class, FirebaseModuleConfig.class,
-         CrawlingModuleConfig.class, LoggingModuleConfig.class, BatchApplicationConfig.class})
+@Import(BatchApplicationConfig.class)
 public class BatchApplication {
 
     public static void main(String[] args) {
