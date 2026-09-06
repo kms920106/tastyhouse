@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain-module')
+    implementation project(':domain')
     implementation project(':security-core')
 
     implementation 'org.springframework.security:spring-security-core'

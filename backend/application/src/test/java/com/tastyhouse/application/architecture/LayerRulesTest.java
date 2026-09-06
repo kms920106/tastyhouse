@@ -89,7 +89,7 @@ class LayerRulesTest {
     /**
      * CQRS 교차 주입 금지(조회 → 쓰기).
      *
-     * <p>{@code *QueryService}는 domain-module의 write 포트를 주입하지 않는다 — 조회 트랜잭션
+     * <p>{@code *QueryService}는 domain의 write 포트를 주입하지 않는다 — 조회 트랜잭션
      * ({@code readOnly = true})에서 쓰기 경로가 열리는 것을 구조적으로 막는다.
      *
      * <p><b>carve-out 3건은 각 앱에서 그대로 승계한 확정 판정</b>이며, 이관 대상이 아니다.

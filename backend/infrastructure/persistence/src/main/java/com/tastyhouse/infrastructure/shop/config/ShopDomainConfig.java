@@ -79,7 +79,7 @@ public class ShopDomainConfig {
     public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordRepository prohibitedWordRepository) {
         // 검증기는 텍스트 검증마다 findAll()을 호출하므로, 전량 로드가 매번 DB로 나가지 않도록 캐싱
         // 데코레이터로 감싼 포트를 주입한다. 금칙어는 SQL 시드 read-only 데이터라 정합성 리스크가 낮고,
-        // 캐싱을 어댑터 쪽에 두어 domain-module의 순수 POJO 검증기는 그대로 둔다.
+        // 캐싱을 어댑터 쪽에 두어 domain의 순수 POJO 검증기는 그대로 둔다.
         return new ProhibitedWordValidator(new CachingProhibitedWordRepository(prohibitedWordRepository));
     }
 

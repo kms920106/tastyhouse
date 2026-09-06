@@ -11,10 +11,10 @@
 |---------|-------------|
 | `auth/` | JWT 발급/검증, OAuth 로그인(Apple/Facebook/Kakao/Naver), 인증 정보 추출. `service/`는 AuthService(일반 로그인), PhoneLoginService, AuthPasswordResetService 포함. OAuth 각 제공자별 하위 디렉토리. request/response 구분 저장. |
 | `config/` | Spring 설정 — SecurityConfig(필터체인, CORS), AsyncConfig(비동기), RedisConfig, WebClientConfig, OpenApiConfig(Swagger). jwt/ 하위에 JwtTokenProvider(발급/검증), JwtAuthenticationFilter, JwtProperties, TokenType. security/ 하위에 JwtAuthenticationEntryPoint, JwtAccessDeniedHandler, CustomUserDetailsService(UserDetailsService 구현), CustomUserDetails(UserDetails 래퍼). PublicPaths 에서 인증 불필요 경로 관리. |
-| `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (domain-module `com.tastyhouse.domain.exception`, `ExternalApiException`도 이를 상속하므로 같은 핸들러가 처리), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 RFC7807 `ProblemDetail` + `errorCode` property로 응답(조립은 공용 `apicommon.exception.ProblemDetails`). 레거시 `UnauthorizedException`은 제거되고 `ErrorCode.AUTH_*`(401)로 흡수됨. |
+| `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (domain `com.tastyhouse.domain.exception`, `ExternalApiException`도 이를 상속하므로 같은 핸들러가 처리), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 RFC7807 `ProblemDetail` + `errorCode` property로 응답(조립은 공용 `apicommon.exception.ProblemDetails`). 레거시 `UnauthorizedException`은 제거되고 `ErrorCode.AUTH_*`(401)로 흡수됨. |
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
-| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PaginationResponse<T> (표준 4필드 페이징 응답 공용 제네릭 — 도메인별 `XxxPageResponse`를 만들지 않는다). 서비스가 `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)로부터 받는 `PageResult<T>`(domain-module `shared/page`)를 `PaginationResponse.from(...)`으로 변환한다. |
+| `common/` | 공통 유틸. ApiResponse (모든 응답의 상위 래퍼, success/error/data), PageRequest (페이징 요청), PaginationResponse<T> (표준 4필드 페이징 응답 공용 제네릭 — 도메인별 `XxxPageResponse`를 만들지 않는다). 서비스가 `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)로부터 받는 `PageResult<T>`(domain `shared/page`)를 `PaginationResponse.from(...)`으로 변환한다. |
 
 ## Feature Packages
 | Package | Purpose |
@@ -72,14 +72,14 @@
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.
 - **성공 응답은 `ApiResponse`, 에러 응답은 `ProblemDetail`**: `ApiResponse`는 `success(data)`·`success(data, page, size, totalElements)` 두 정적 팩토리만 갖는 **성공 전용** 타입이다(`error(...)`는 없다). 에러는 GlobalExceptionHandler가 RFC7807 `ProblemDetail`로 응답하며, `errorCode` property에 ErrorCode.code(예: `DUPLICATE_RESERVATION`)가 실려 프론트 분기에 사용된다.
-- **페이징**: `common/PageRequest`(size/page) → `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)가 `PageResult<T>`(domain-module `shared/page`) 반환 → 서비스가 `common/PaginationResponse.from(pageResult)`로 변환.
+- **페이징**: `common/PageRequest`(size/page) → `{Ctx}QueryPort`(`com.tastyhouse.application..port.out`)가 `PageResult<T>`(domain `shared/page`) 반환 → 서비스가 `common/PaginationResponse.from(pageResult)`로 변환.
 - **@CurrentUser** 커스텀 애노테이션으로 인증된 사용자 주입 — SecurityContextHolder 간접화.
-- **CQS**: 트랜잭션 경계를 이 패키지가 소유한다 — `{도메인}CommandService`는 `@Transactional`, `{도메인}QueryService`는 `@Transactional(readOnly = true)`. domain-module의 도메인 서비스는 POJO라 `@Transactional`을 갖지 않는다.
+- **CQS**: 트랜잭션 경계를 이 패키지가 소유한다 — `{도메인}CommandService`는 `@Transactional`, `{도메인}QueryService`는 `@Transactional(readOnly = true)`. domain의 도메인 서비스는 POJO라 `@Transactional`을 갖지 않는다.
 
 ## Dependencies
 
 ### Internal
-- `domain-module` — 도메인 모델·VO·write 포트·도메인 서비스, 도메인 예외 (BusinessException, ErrorCode), 페이징 계약 (PageQuery/PageResult).
+- `domain` — 도메인 모델·VO·write 포트·도메인 서비스, 도메인 예외 (BusinessException, ErrorCode), 페이징 계약 (PageQuery/PageResult).
 - `infrastructure-module` — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단).
 - `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). 외부 연동 코어 `infrastructure:external`(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)과 벤더 구현 `infrastructure:firebase`를 묶어 전이로 공급한다 — **앱 `build.gradle`에는 이 한 줄만 있다.** 코어는 나머지 어댑터 `infrastructure:oauth`(소셜 로그인)·`infrastructure:payment`(결제)·`infrastructure:messaging`(이메일/SMS)에도 전이로 딸려 온다.
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit.

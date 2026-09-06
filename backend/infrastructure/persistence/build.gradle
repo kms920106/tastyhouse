@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    api project(':domain-module')
+    api project(':domain')
     implementation project(':application')
 
     api 'org.springframework.boot:spring-boot-starter-data-jpa'

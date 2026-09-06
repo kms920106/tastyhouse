@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
  *
  * <p>{@code ProhibitedWordValidator}는 텍스트 검증 때마다 {@link ProhibitedWordRepository#findAll()}을
  * 호출하는데, 점주 입력(가게소개·찾아오는길 등) 저장 경로마다 금칙어 테이블을 통째로 다시 읽는 것이
- * 낭비다. 검증기는 domain-module의 순수 POJO라 스프링 {@code @Cacheable}을 붙일 수 없으므로, 캐싱을
+ * 낭비다. 검증기는 domain의 순수 POJO라 스프링 {@code @Cacheable}을 붙일 수 없으므로, 캐싱을
  * 도메인이 아니라 <b>어댑터 쪽</b>에 둔다 — 검증기·도메인 서비스 코드는 그대로 두고 빈 등록 지점
  * ({@code ShopDomainConfig})에서 이 데코레이터를 주입하는 것으로 끝난다.
  *

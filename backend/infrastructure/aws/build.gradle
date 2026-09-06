@@ -12,7 +12,7 @@ dependencyManagement {
 dependencies {
     implementation project(':infrastructure:external')
     implementation project(':infrastructure:messaging')
-    implementation project(':domain-module')
+    implementation project(':domain')
 
     implementation 'software.amazon.awssdk:ses'
     implementation 'software.amazon.awssdk:sns'

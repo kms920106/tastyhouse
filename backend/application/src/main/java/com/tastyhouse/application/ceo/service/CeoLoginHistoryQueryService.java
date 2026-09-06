@@ -24,7 +24,7 @@ import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
  *
  * <p>조회 기간 {@value #RETENTION_DAYS}일 제한을 <b>여기 한 곳에서</b> 강제한다.
  * <ul>
- *   <li>domain-module이 아닌 이유: 90일은 도메인 불변식이 아니라 조회 화면 정책이다. 90일이 지난 행도
+ *   <li>domain이 아닌 이유: 90일은 도메인 불변식이 아니라 조회 화면 정책이다. 90일이 지난 행도
  *       <b>삭제하지 않고 계속 보관</b>하며(고객센터 요청 시 최대 2년 조회 지원이 원 요구사항이다),
  *       조회 화면만 제한한다.</li>
  *   <li>Bean Validation만으로 불가능한 이유: "오늘 기준 -90일"이라는 상대 하한은 어노테이션으로

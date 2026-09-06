@@ -27,7 +27,7 @@ bootJar {
     enabled = false
 }
 
-configure(subprojects.findAll { it.name != 'domain-module' && it.path != ':infrastructure' }) {
+configure(subprojects.findAll { it.name != 'domain' && it.path != ':infrastructure' }) {
     apply plugin: 'java'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
@@ -51,7 +51,7 @@ configure(subprojects.findAll { it.name != 'domain-module' && it.path != ':infra
     }
 }
 
-project(':domain-module') {
+project(':domain') {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
 

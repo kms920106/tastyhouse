@@ -5,7 +5,7 @@
 `infrastructure:external` 코어 모듈의 자바 패키지 루트. **7모듈 분리(챕터 01) 이후 이 디렉터리에는 `config/`·`exception/`·`file/` 셋만 남는다.** 모듈 차원의 배경·분리 근거는 `../../../../../AGENTS.md`(= `infrastructure/external/AGENTS.md`) 참조.
 
 ## Purpose
-`domain-module`이 `file/port/`에 선언한 출력 포트 `FileStoragePort`를 구현하고, 7모듈 공통으로 쓰는 `WebClient` 빌더와 외부 연동 예외 계약을 소유한다. 벤더 구현(Firebase·S3)은 이 패키지에 두지 않는다.
+`domain`이 `file/port/`에 선언한 출력 포트 `FileStoragePort`를 구현하고, 7모듈 공통으로 쓰는 `WebClient` 빌더와 외부 연동 예외 계약을 소유한다. 벤더 구현(Firebase·S3)은 이 패키지에 두지 않는다.
 
 ## Packages
 | Package | Purpose |
@@ -47,7 +47,7 @@
 ## Dependencies
 
 ### Internal
-- `domain-module` — `file/port/FileStoragePort`, `exception/`의 `ErrorCodeSpec`·`BusinessException`
+- `domain` — `file/port/FileStoragePort`, `exception/`의 `ErrorCodeSpec`·`BusinessException`
 
 ### External
 - `spring-boot-starter-webflux` (`WebClient`). **이것 하나뿐이다** — AWS SDK·Firebase Admin·jjwt·starter-mail·spring-web은 전부 분리된 모듈이 소유한다.

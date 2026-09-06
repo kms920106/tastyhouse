@@ -82,7 +82,7 @@ String store(byte[] content, String storedFilename, String datePath, String cont
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — `FileStoragePortAdapter`가 구현하는 `com.tastyhouse.domain.file.port.FileStoragePort`, `ExternalApiErrorCode`가 구현하는 `ErrorCodeSpec`, `ExternalApiException`이 상속하는 `BusinessException`.
+- `domain` (implementation) — `FileStoragePortAdapter`가 구현하는 `com.tastyhouse.domain.file.port.FileStoragePort`, `ExternalApiErrorCode`가 구현하는 `ErrorCodeSpec`, `ExternalApiException`이 상속하는 `BusinessException`.
 
 **`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application')`이 있었으나, 그 어댑터들이 전부 oauth·crawling 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
 

@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.service.ShopRequestIndexRecorder;
  *
  * <p><b>이 어댑터가 존재하는 이유는 컨텍스트 경계다.</b> 매장 가격 인증 요청 애그리거트는 product
  * 컨텍스트 소유인데(승인이 하는 일의 본체가 {@code PRODUCT_PRICE}를 채우는 것이다) 통합 인덱스와
- * 그 기록자는 shop 컨텍스트 소유다. domain-module의 {@code ContextBoundaryTest}가 타 컨텍스트의
+ * 그 기록자는 shop 컨텍스트 소유다. domain의 {@code ContextBoundaryTest}가 타 컨텍스트의
  * {@code service}·{@code model} 직접 import를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은
  * 이 어댑터가 흡수한다.
  *

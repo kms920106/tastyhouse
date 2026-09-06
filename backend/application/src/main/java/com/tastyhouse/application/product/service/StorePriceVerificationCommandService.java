@@ -27,7 +27,7 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
  * <p><b>요청처리 현황 인덱스({@code SHOP_REQUEST_INDEX}) 동기화는 이 서비스가 하지 않는다.</b>
  * {@code ShopRequestIndexRecorder}의 공개 sync 메서드 중 {@code (ShopRequestType, Long,
  * ShopRequestStatus, String)} 조합을 받는 것이 없어({@code syncBlindRequestStatus}는 요청 유형이
- * {@code REVIEW_BLIND}로 고정) 이 유형을 반영할 방법이 없으며, 메서드 추가는 domain-module 변경이라
+ * {@code REVIEW_BLIND}로 고정) 이 유형을 반영할 방법이 없으며, 메서드 추가는 domain 변경이라
  * 이 작업 범위를 벗어난다. 상세는 작업 보고 참조 — <b>도메인 변경이 선행돼야 하는 미결 항목</b>이다.
  */
 @Service

@@ -54,7 +54,7 @@ public record NaverUserInfoResponse(
 
     // 네이버 gender: "M" → "MALE", "F" → "FEMALE", 그 외 → null
     // 도메인 enum(MemberGender)이 아니라 그 상수명 문자열을 반환한다 — 외부 응답 DTO가 도메인 타입을
-    // 보유하면 external-api → domain-module 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
+    // 보유하면 external-api → domain 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
     // 소비 측(web-api Service)이 MemberGender.from(String)으로 수행한다(도메인 enum 경계 규칙).
     // response.gender()는 사용자가 성별 제공에 동의하지 않으면 null이므로 반드시 가드한다(카카오 형제와 동일).
     public String getGender() {

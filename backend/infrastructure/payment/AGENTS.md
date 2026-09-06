@@ -48,7 +48,7 @@ payment:
 
 ### Internal
 - `infrastructure:external` (implementation) — `WebClient.Builder`(`WebClientConfig`), `ExternalApiException`/`ExternalApiErrorCode`
-- `domain-module` (implementation) — 구현하는 `PgPaymentGateway` 포트와 그 반환 타입(`payment/port/dto/`), 예외 계약
+- `domain` (implementation) — 구현하는 `PgPaymentGateway` 포트와 그 반환 타입(`payment/port/dto/`), 예외 계약
 
 ### External
 - `spring-boot-starter-webflux` — 토스 API 호출(`WebClient`). Jackson도 이것이 전이로 제공한다.

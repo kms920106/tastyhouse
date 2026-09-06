@@ -32,7 +32,7 @@ com.tastyhouse.external/
 
 `com.tastyhouse.external.file.RemoteImageDownloader` → **`com.tastyhouse.external.crawling.RemoteImageDownloader`**. 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔하므로, 그 자리에 남겨두면 파일 저장만 쓰는 admin/ceo에도 이 빈이 동반 스캔된다(`../external/AGENTS.md`의 패키지 예외 3건).
 
-**⚠️ 이 클래스는 persistence가 등록하는 빈에 런타임 의존한다.** 생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 의존하고 `infrastructure:persistence`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 의존하므로 성립한다 — 챕터 02 이후로는 `runtimeOnly` 의존 선언만으로 `PersistenceModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration` 둘 다 자동 등록된다). 컴파일 의존은 `domain-module`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다.
+**⚠️ 이 클래스는 persistence가 등록하는 빈에 런타임 의존한다.** 생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 의존하고 `infrastructure:persistence`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 의존하므로 성립한다 — 챕터 02 이후로는 `runtimeOnly` 의존 선언만으로 `PersistenceModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration` 둘 다 자동 등록된다). 컴파일 의존은 `domain`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다.
 
 ## `region/` — 행정동 경계 수집
 
@@ -70,7 +70,7 @@ com.tastyhouse.external/
 ### Internal
 - `infrastructure:external` (implementation) — `WebClient.Builder`, `ExternalApiException`/`ExternalApiErrorCode`
 - `application` (implementation) — 구현하는 아웃바운드 계약(`com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort`·`BbqMenuPort`, `com.tastyhouse.application.region.port.out.AdminDongBoundaryPort`)의 소유 모듈. adapter → port 방향이며 반대 방향 선언이 없어 순환이 아니다
-- `domain-module` (implementation) — `FileUploadService`·`FileUploadCommand`·`UploadedFileId`, `shared/geo`의 `GeoPoint`·`GeoRing`·`InteriorPoint`, 예외 계약
+- `domain` (implementation) — `FileUploadService`·`FileUploadCommand`·`UploadedFileId`, `shared/geo`의 `GeoPoint`·`GeoRing`·`InteriorPoint`, 예외 계약
 - **런타임 의존(빌드 그래프에 없음)**: `infrastructure:persistence`의 `FileDomainConfig`가 등록하는 `FileUploadService` 빈
 
 ### External

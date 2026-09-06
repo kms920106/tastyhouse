@@ -172,7 +172,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
         List<ProductOption> groupOptions =
             productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
 
-        // 판정식은 domain-module이 단독으로 소유한다 — 일괄 숨김(ProductAvailabilityService)과 같은
+        // 판정식은 domain이 단독으로 소유한다 — 일괄 숨김(ProductAvailabilityService)과 같은
         // 하한을 써야 "일괄로는 막히는 상태를 개별 삭제로는 만들 수 있는" 불일치가 생기지 않는다.
         ProductOptionSelectionRule.validateRemainingAfterBlocking(group, option, groupOptions);
 

@@ -36,7 +36,7 @@ com.tastyhouse.external.oauth/
 | 계약 — `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`application` 모듈**의 `com.tastyhouse.application.auth.port.out` |
 | 구현 — 제공자별 클라이언트 4종 | 이 모듈의 `external.oauth.{kakao,naver,apple,facebook}` |
 
-> **개정 이력**: 과거 이 SPI는 external 모듈 자신의 `external.oauth.spi` 패키지에 있었다(도메인 포트가 없는 공유 기술은 그 어댑터 모듈이 자기 SPI를 소유한다는 `security-module` 선례). 이후 읽기 경로 포트화·모듈 재편을 거치며 아웃바운드 계약이 전부 `application`의 `<ctx>/port/out`으로 모이면서 이 SPI도 그리로 옮겨갔고, 어댑터가 계약 소유 모듈을 의존하는 방향(adapter → port)이 됐다. **소셜 OAuth를 `domain-module`에 두지 않는 이유는 그대로 유효하다** — 호출부가 전부 표현·유스케이스 계층이라 도메인 서비스가 호출하는 포트가 아니므로, domain에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
+> **개정 이력**: 과거 이 SPI는 external 모듈 자신의 `external.oauth.spi` 패키지에 있었다(도메인 포트가 없는 공유 기술은 그 어댑터 모듈이 자기 SPI를 소유한다는 `security-module` 선례). 이후 읽기 경로 포트화·모듈 재편을 거치며 아웃바운드 계약이 전부 `application`의 `<ctx>/port/out`으로 모이면서 이 SPI도 그리로 옮겨갔고, 어댑터가 계약 소유 모듈을 의존하는 방향(adapter → port)이 됐다. **소셜 OAuth를 `domain`에 두지 않는 이유는 그대로 유효하다** — 호출부가 전부 표현·유스케이스 계층이라 도메인 서비스가 호출하는 포트가 아니므로, domain에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
 
 **web-api는 SPI만 의존하고 제공자 패키지를 직접 import 하지 않는다.** 이것은 규율이 아니라 빌드 게이트다 — web-api의 ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 `com.tastyhouse.external.oauth.{kakao,naver,facebook,apple}..` 의존을 금지한다. **이 규칙이 패키지 문자열로 대상을 지정하므로, 이 모듈의 제공자 패키지 이름을 바꾸면 규칙이 조용히 대상을 잃는다.**
 
@@ -70,7 +70,7 @@ com.tastyhouse.external.oauth/
 ### Internal
 - `infrastructure:external` (implementation) — `WebClient.Builder`, `ExternalApiException`/`ExternalApiErrorCode`
 - `application` (implementation) — **구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈.** driven adapter가 자신이 구현하는 아웃바운드 포트를 의존하는 정상 방향이다. 반대 방향(`application → infrastructure:oauth`)은 선언돼 있지 않으므로 순환이 아니다
-- `domain-module` (implementation) — 예외 계약과 도메인 타입
+- `domain` (implementation) — 예외 계약과 도메인 타입
 
 ### External
 - `spring-boot-starter-webflux` — 제공자 API 호출(`WebClient`)

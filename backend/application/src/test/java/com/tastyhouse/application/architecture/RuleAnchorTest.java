@@ -96,13 +96,13 @@ class RuleAnchorTest {
      * {@code readContractsShouldBeFrameworkFree}의 anchor.
      *
      * <p>하한 282는 통합 전 4개 앱의 합 227(web 85 + admin 79 + ceo 61 + batch 2)에 챕터 04로
-     * domain-module에서 돌아온 공유 읽기 계약 55개를 더한 값이다. 챕터 03으로 규칙 대상이 읽기
+     * domain에서 돌아온 공유 읽기 계약 55개를 더한 값이다. 챕터 03으로 규칙 대상이 읽기
      * 계약에서 {@code port.out} 전체(아웃바운드 SPI·Command 반환 record 포함)로 넓어졌으나, 하한은
      * 그 합계 그대로 둔다 — 넓어진 만큼 실측이 늘어 하한이 더 여유로워질 뿐이고, 이 anchor가 잡으려는
      * 것은 대량 소실이기 때문이다.
      *
      * <p><b>챕터 04로 소유 모듈 필터가 없어졌다.</b> 과거에는 소유 모듈 판별 헬퍼로 남의
-     * 모듈 계약을 걸러내야 했다 — domain-module의 공유 계약 55개가 split package로 함께 잡혔고, 그
+     * 모듈 계약을 걸러내야 했다 — domain의 공유 계약 55개가 split package로 함께 잡혔고, 그
      * 55개가 하한을 떠받쳐 주면 정작 이 모듈의 계약이 사라져도 anchor가 통과했기 때문이다. 그 55개가
      * 이 모듈로 돌아와 {@code com.tastyhouse.application}을 단독 소유하게 되면서 테스트 클래스패스에
      * 남의 모듈 계약이 더는 없고, 필터는 불필요해졌다.

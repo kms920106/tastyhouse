@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 /**
  * menureview 컨텍스트의 도메인 서비스(POJO) 빈 등록 설정.
  *
- * <p>domain-module에는 {@code @Service}가 0건이라 Spring이 스캔할 수 없으므로, 이 컨텍스트에 새 POJO
+ * <p>domain에는 {@code @Service}가 0건이라 Spring이 스캔할 수 없으므로, 이 컨텍스트에 새 POJO
  * 도메인 서비스를 추가하면 여기에 {@code @Bean}을 추가한다.
  */
 @Configuration(proxyBeanMethods = false)

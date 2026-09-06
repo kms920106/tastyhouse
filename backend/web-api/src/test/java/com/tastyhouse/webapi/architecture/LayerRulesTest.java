@@ -275,7 +275,7 @@ class LayerRulesTest {
      *
      * <p><b>carve-out 3종</b>.
      * {@code domain.exception..}은 계층 칸이 없는 <b>횡단 관심사</b>이고({@code api-common-module}이
-     * {@code api project(':domain-module')}로 공용 에러 계약을 전 모듈에 노출한다),
+     * {@code api project(':domain')}로 공용 에러 계약을 전 모듈에 노출한다),
      * {@code domain.shared.page..}는 챕터 06이 페이징 조립을 컨트롤러로 옮기며 <b>정상 경로</b>가 됐다
      * (application이 {@code PageResult}를 반환하고 컨트롤러가 {@code PaginationResponse.from(...)}으로
      * 감싼다). 세 번째가 아래 <b>도메인 enum</b>이다.
@@ -365,7 +365,7 @@ class LayerRulesTest {
      * 같은 패키지에 산다)를 고정하므로, 전제가 바뀌면 낡은 주석이 아니라 실패로 드러난다.
      *
      * <p>domain 클래스는 이 모듈 테스트 클래스패스에 있다 — {@code api-common-module}이
-     * {@code api project(':domain-module')}로 전이 노출한다.
+     * {@code api project(':domain')}로 전이 노출한다.
      */
     @Test
     void domainBoundaryPredicatesShouldStillBite() {

@@ -12,7 +12,7 @@ import com.tastyhouse.application.review.service.ReviewQueryService;
 /**
  * 회원 통계(리뷰 수·팔로잉 수·팔로워 수) 조회 전용 서비스.
  *
- * <p>팔로우 등록·해제 도메인 로직은 domain-module의
+ * <p>팔로우 등록·해제 도메인 로직은 domain의
  * {@code com.tastyhouse.domain.member.follow.service.MemberFollowService}가 담당하며,
  * 이 클래스는 표현용 집계 조회만 수행한다.
  */

@@ -48,7 +48,7 @@ file:
 
 ### Internal
 - `infrastructure:external` (implementation) — 구현하는 `FileStorageStrategy` SPI와 `ExternalApiException`/`ExternalApiErrorCode`의 소유 모듈
-- `domain-module` (implementation) — 예외 계약(`BusinessException`·`ErrorCodeSpec`)의 뿌리
+- `domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCodeSpec`)의 뿌리
 
 ### External
 - `com.google.firebase:firebase-admin:9.10.0` — `FirebaseApp`·`Bucket`. **이 SDK를 클래스패스에 올리는 유일한 모듈이다**(분리 전에는 코어를 의존한 4개 앱이 자동으로 받았고, 지금도 4개 앱이 스타터를 통해 이 모듈을 전이로 받으므로 결과는 같지만 이유가 명시적이다).

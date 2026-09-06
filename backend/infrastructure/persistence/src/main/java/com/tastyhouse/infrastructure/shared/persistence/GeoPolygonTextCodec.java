@@ -22,7 +22,7 @@ import com.tastyhouse.domain.shared.geo.GeoRing;
  * <p><b>MySQL {@code GEOMETRY}를 쓰지 않는 이유</b>: 공간 인덱스가 이득을 주는 질의가 설계상 없다
  * (폴리곤 조회는 항상 {@code WHERE shop_id = ?} 단건이다). 반면 {@code hibernate-spatial}+JTS 의존,
  * dialect 교체, SRID 4326 축순서 함정, 자기교차 도형에서의 {@code ST_Contains} 미정의 동작을 모두
- * 떠안게 된다. domain-module은 production 의존이 0개로 강제되어 JTS {@code Geometry}를 도메인에 둘 수도 없다.
+ * 떠안게 된다. domain은 production 의존이 0개로 강제되어 JTS {@code Geometry}를 도메인에 둘 수도 없다.
  *
  * <p><b>JSON을 쓰지 않는 이유</b>: infrastructure-module에 Jackson이 보장되지 않고 리포에 JSON 컬럼
  * 선례가 없다. {@code String.split}만으로 끝나는 형식이라 의존을 늘릴 이유가 없다.

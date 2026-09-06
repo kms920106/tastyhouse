@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':infrastructure:external')
-    implementation project(':domain-module')
+    implementation project(':domain')
 
     implementation 'com.google.firebase:firebase-admin:9.10.0'
 

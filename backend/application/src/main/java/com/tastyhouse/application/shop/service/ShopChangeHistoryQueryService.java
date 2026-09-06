@@ -25,7 +25,7 @@ import com.tastyhouse.application.shop.port.out.ShopChangeCategoryResult;
  *
  * <p>조회 기간 6개월 제한을 <b>여기 한 곳에서</b> 강제한다.
  * <ul>
- *   <li>domain-module이 아닌 이유: 6개월은 도메인 불변식이 아니라 조회 화면 정책이다. 6개월 지난 변경도
+ *   <li>domain이 아닌 이유: 6개월은 도메인 불변식이 아니라 조회 화면 정책이다. 6개월 지난 변경도
  *       유효하게 일어난 사실이므로 기록·저장은 제한하지 않는다.</li>
  *   <li>Bean Validation만으로 불가능한 이유: {@code @PastOrPresent}는 상한만 막고, "오늘 기준 -6개월"이라는
  *       상대 하한은 어노테이션으로 표현할 수 없다.</li>

@@ -70,7 +70,7 @@ com.tastyhouse.external/
 
 ### Internal
 - `infrastructure:external` (implementation) — `WebClient.Builder`(Solapi 호출), `ExternalApiException`/`ExternalApiErrorCode`
-- `domain-module` (implementation) — 구현하는 `MailSender`(`mail/port/`)·`SmsSender`(`sms/port/`) 포트, 그리고 **이관된 DomainConfig가 등록하는 도메인 서비스**(`MailVerificationService`·`SmsVerificationService`)와 그 생성자가 요구하는 리포지토리 포트·`DomainEventPublisher`
+- `domain` (implementation) — 구현하는 `MailSender`(`mail/port/`)·`SmsSender`(`sms/port/`) 포트, 그리고 **이관된 DomainConfig가 등록하는 도메인 서비스**(`MailVerificationService`·`SmsVerificationService`)와 그 생성자가 요구하는 리포지토리 포트·`DomainEventPublisher`
 
 ### External
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이며, 의존하는 앱은 web-api뿐이다**(분리 전에는 4개 앱 전부가 받았다)

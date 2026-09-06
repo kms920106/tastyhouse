@@ -3,7 +3,7 @@ package com.tastyhouse.apicommon.ratelimit;
 /**
  * 요청 횟수 제한 초과 예외.
  *
- * <p>rate limiting은 domain-module에 대응 개념이 없는 순수 보안 관심사이므로(모듈 경계 규칙),
+ * <p>rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므로(모듈 경계 규칙),
  * 이 예외는 {@code com.tastyhouse.domain.exception.ErrorCode}에 결합하지 않는다. 과거에는 생성자가
  * {@code ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()}로 메시지를 채웠으나, 실제 HTTP 응답은
  * 각 api 모듈의 {@code GlobalExceptionHandler}가 {@code ErrorCode.RATE_LIMIT_EXCEEDED}의

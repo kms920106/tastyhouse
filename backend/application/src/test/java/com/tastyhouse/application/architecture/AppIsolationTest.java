@@ -53,7 +53,7 @@ class AppIsolationTest {
     /**
      * 앱 간 수평 의존 금지 — 마커 4종의 4×3 조합 12개를 전부 검사한다.
      *
-     * <p>앱이 공유해도 되는 것은 domain-module과 읽기 계약({@code ..port.out..})뿐이다. 그 둘은
+     * <p>앱이 공유해도 되는 것은 domain과 읽기 계약({@code ..port.out..})뿐이다. 그 둘은
      * 마커를 달지 않으므로 이 규칙의 대상이 아니며, 공유되는 것이 맞다.
      *
      * <p>슬라이스 규칙이 아니라 12개 규칙을 명시적으로 도는 이유는 <b>공허 통과가 없기 때문</b>이다.
@@ -71,7 +71,7 @@ class AppIsolationTest {
                     .that().areAnnotatedWith(from)
                     .should().dependOnClassesThat().areAnnotatedWith(to)
                     .because(from.getSimpleName() + "는 " + to.getSimpleName() + "에 의존하지 않는다"
-                        + " — 앱이 공유하는 것은 domain-module과 읽기 계약뿐이다")
+                        + " — 앱이 공유하는 것은 domain과 읽기 계약뿐이다")
                     .check(classes);
             }
         }

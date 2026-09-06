@@ -15,7 +15,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + `domain-module`(implementation — `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 ErrorCode 참조) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성. **챕터 02** — `{web,admin,ceo}-api`는 이 모듈을 여전히 `implementation`으로 의존한다(`TokenService`가 `JwtTokenProvider`를 구체 타입으로 직접 주입하는 컴파일 타임 결합이 있어 `runtimeOnly`로 내릴 수 없다) |
+| `build.gradle` | `java-library` + `domain`(implementation — `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 ErrorCode 참조) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성. **챕터 02** — `{web,admin,ceo}-api`는 이 모듈을 여전히 `implementation`으로 의존한다(`TokenService`가 `JwtTokenProvider`를 구체 타입으로 직접 주입하는 컴파일 타임 결합이 있어 `runtimeOnly`로 내릴 수 없다) |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -27,7 +27,7 @@
 
 ### Working In This Directory
 - 이 모듈이 domain 어댑터가 아니라 presentation 공유 유틸이기 때문에 `spring-boot-starter-web` 의존이 허용된다(외부 연동 모듈에는 이런 선례가 없다 — 코어 `infrastructure:external`이 한때 `MultipartFile` 1종 때문에 `spring-web` 단일 좌표를 썼으나, `FileStorageStrategy`가 `byte[]`를 받도록 바뀌며 그 의존이 사라졌다).
-- **이 모듈이 `domain-module`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건). 이 모듈에 도메인 타입을 새로 끌어들이는 확장은 지양한다.
+- **이 모듈이 `domain`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건). 이 모듈에 도메인 타입을 새로 끌어들이는 확장은 지양한다.
 - 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 외부 연동 모듈 — 코어 계약(`WebClientConfig`·`ExternalApiException`·파일 저장 SPI)은 `infrastructure:external`, 실제 어댑터는 기술별로 `infrastructure:{firebase,aws,oauth,payment,messaging,crawling}`. **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
 - **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — 그것이 챕터 05에서 rate limiting을 내보낸 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
 - **`OncePerRequestFilter`·`jakarta.servlet`·`AuthenticationEntryPoint`/`AccessDeniedHandler` 등 서블릿 결합 타입을 새로 추가할 때만 이 모듈에 둔다.** 서블릿-프리 보안 로직(토큰 서명/파싱, 새 Redis 토큰 저장소 등)은 `security-core`로 보낸다 — application 4모듈의 컴파일 클래스패스를 서블릿 스택으로 오염시키지 않기 위해서다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고).
@@ -74,7 +74,7 @@
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — `com.tastyhouse.domain.exception.ErrorCode` 참조(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)
+- `domain` (implementation) — `com.tastyhouse.domain.exception.ErrorCode` 참조(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)
 - `security-core` (api) — (챕터 03) 서블릿-프리 보안 코어(`JwtTokenProvider`·Redis 토큰 저장소 6종·`JwtProperties` 등) 재노출. 이 모듈에 남은 서블릿 결합 타입이 그 타입들을 쓰고, api 3모듈도 이 좌표를 통해 전이로 수신
 
 ### External

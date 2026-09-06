@@ -55,7 +55,7 @@ public record KakaoUserInfoResponse(
 
     // 카카오 gender: "male" → "MALE", "female" → "FEMALE", 그 외 → null
     // 도메인 enum(MemberGender)이 아니라 그 상수명 문자열을 반환한다 — 외부 응답 DTO가 도메인 타입을
-    // 보유하면 external-api → domain-module 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
+    // 보유하면 external-api → domain 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면
     // 소비 측(web-api Service)이 MemberGender.from(String)으로 수행한다(도메인 enum 경계 규칙).
     public String getGender() {
     if (kakaoAccount == null || kakaoAccount.gender() == null) return null;

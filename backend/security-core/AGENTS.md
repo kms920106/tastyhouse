@@ -13,7 +13,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + `domain-module`(implementation — `ErrorCode`로 토큰 검증 실패 표현) (챕터 01에서 `infrastructure:redis` 의존 **삭제** — 토큰 저장소가 포트가 되어 Redis 타입을 보유하지 않는다) + `spring-security-core`(api — `JwtTokenProvider`가 `Authentication`·`UserDetails`·`GrantedAuthority`를 시그니처에 노출) + JJWT(`jjwt-api` api, `jjwt-impl`/`jjwt-jackson` runtimeOnly). **서블릿 스택(`starter-web`·`jakarta.servlet`) 의존이 없다** — 그것이 이 모듈 존재 이유다. `bootJar` 비활성 |
+| `build.gradle` | `java-library` + `domain`(implementation — `ErrorCode`로 토큰 검증 실패 표현) (챕터 01에서 `infrastructure:redis` 의존 **삭제** — 토큰 저장소가 포트가 되어 Redis 타입을 보유하지 않는다) + `spring-security-core`(api — `JwtTokenProvider`가 `Authentication`·`UserDetails`·`GrantedAuthority`를 시그니처에 노출) + JJWT(`jjwt-api` api, `jjwt-impl`/`jjwt-jackson` runtimeOnly). **서블릿 스택(`starter-web`·`jakarta.servlet`) 의존이 없다** — 그것이 이 모듈 존재 이유다. `bootJar` 비활성 |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -33,7 +33,7 @@
 - **`JwtTokenProvider`는 `@Component`가 아닌 파라미터형 POJO**다. principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다. 각 API는 이 클래스를 상속한 얇은 `@Component` 하위 클래스로 자기 등록한다 — reference: `web-api`/`admin-api`의 `config/jwt/JwtTokenProvider`(`super(props, "memberId"|"adminId", CustomUserDetails::new)`). web은 검증용 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드를 **web 전용으로만** 추가한다(admin은 미사용). `key`/`parseClaims`/`jwtProperties`는 `protected`라 하위 클래스가 재사용한다.
 - **`JwtPrincipal`/`JwtPrincipalFactory`는 앱별 principal 차이를 흡수하는 계약**이다. 각 API의 `CustomUserDetails`가 `JwtPrincipal`을 구현해 `getPrincipalId()`(web=memberId, admin=adminId)를 노출하고, `JwtPrincipalFactory`는 클레임에서 그 principal을 재구성한다.
 - **시크릿은 각 API의 `application.yml`이 소유**하며 web-api와 admin-api는 반드시 서로 다른 `jwt.secret`(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)을 써야 한다. 동일 시크릿이면 한쪽 access 토큰이 다른 쪽 인증을 통과해 권한 상승이 발생한다. 이는 `JwtProperties` Javadoc에도 명시되어 있다.
-- **이 모듈이 `domain-module`을 의존하는 이유**는 토큰 검증 실패를 `com.tastyhouse.domain.exception.ErrorCode`로 표현하기 위해서다(그 밖의 도메인 타입 참조 없음). 도메인 타입을 새로 끌어들이는 확장은 지양한다.
+- **이 모듈이 `domain`을 의존하는 이유**는 토큰 검증 실패를 `com.tastyhouse.domain.exception.ErrorCode`로 표현하기 위해서다(그 밖의 도메인 타입 참조 없음). 도메인 타입을 새로 끌어들이는 확장은 지양한다.
 - **Redis key prefix는 불변이다**(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등). 챕터 03 이관도, 챕터 01의 포트/어댑터 역전도 소유 모듈만 바꿨을 뿐 런타임 키 공간을 **바이트 단위로 건드리지 않았다** — 바뀌면 배포 시점에 기존 로그인 세션이 전부 무효화된다. 접두사 조합은 예외가 아니라 **조용한 무효화**로 드러나므로, `infrastructure:redis`의 고정값 단위 테스트가 그 유일한 자동 방어선이다.
 
 ### Testing Requirements
@@ -44,7 +44,7 @@
 ## Dependencies
 
 ### Internal
-- `domain-module` (implementation) — `com.tastyhouse.domain.exception.ErrorCode` 참조
+- `domain` (implementation) — `com.tastyhouse.domain.exception.ErrorCode` 참조
 
 **`infrastructure:redis` 의존은 챕터 01에서 삭제됐다**(방향 역전 — 이제 redis가 이 모듈을 의존한다).
 

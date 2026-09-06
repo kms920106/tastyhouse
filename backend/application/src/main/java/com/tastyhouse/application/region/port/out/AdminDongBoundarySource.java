@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shared.geo.GeoRing;
 /**
  * 원천에서 읽어 온 행정동 하나.
  *
- * <p>도메인 타입({@code GeoPoint}·{@code GeoRing})을 담는 것은 batch-application이 domain-module을
+ * <p>도메인 타입({@code GeoPoint}·{@code GeoRing})을 담는 것은 batch-application이 domain을
  * 의존하는 정상 방향이며, 좌표 검증(위경도 범위·링 최소 정점 수)을 도메인 VO에 맡겨 어댑터가 같은 규칙을
  * 다시 구현하지 않게 한다.
  *

@@ -7,10 +7,10 @@ package com.tastyhouse.application.auth.port.out;
  * 제공자별 wire DTO({@code KakaoUserInfoResponse}·{@code AppleIdTokenPayload} 등)와 HTTP 호출 방식은
  * 알지 않는다. 그래서 제공자 API 응답 스키마가 바뀌어도 파장이 이 모듈 안에서 멈춘다.
  *
- * <p><b>이 포트를 domain-module에 두지 않은 이유</b>: domain-module의 출력 포트
+ * <p><b>이 포트를 domain에 두지 않은 이유</b>: domain의 출력 포트
  * ({@code MailSender}·{@code FileStoragePort} 등)는 전부 <i>도메인 서비스가</i> 불변식을 만족시키려고
  * 호출하는 것들이다. 소셜 OAuth는 호출부가 전부 web-api(표현 계층)이고 도메인 서비스가 쓰는 곳이 없어,
- * domain-module에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
+ * domain에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
  *
  * <p>이 포트는 소비 앱이 web 하나뿐이므로 읽기 계약 소유 규칙(소비 앱 수가 소유 모듈을 정한다)에 따라
  * web-application이 소유하고, 어댑터(infrastructure:oauth)가 이 계약에 의존한다 — 의존 역전.

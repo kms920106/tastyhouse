@@ -92,7 +92,7 @@ com.tastyhouse.external.aws/
 ### Internal
 - `infrastructure:external` (implementation) — `FileStorageStrategy` SPI, `ExternalApiException`/`ExternalApiErrorCode`
 - `infrastructure:messaging` (implementation) — **`MailProperties`(`mail.sender-address`) 하나 때문이다.** `SesMailSender`가 발신자 주소를 그 record에서 읽는다. 채널 공통 설정(발신자 주소·발신 번호)은 벤더가 아니라 채널 모듈이 소유하므로, 벤더 모듈이 채널 모듈을 의존하는 이 방향이 정상이다
-- `domain-module` (implementation) — 구현하는 `MailSender`·`SmsSender` 포트와 예외 계약
+- `domain` (implementation) — 구현하는 `MailSender`·`SmsSender` 포트와 예외 계약
 
 ### External
 - `software.amazon.awssdk:ses` · `software.amazon.awssdk:sns` · `io.awspring.cloud:spring-cloud-aws-s3`

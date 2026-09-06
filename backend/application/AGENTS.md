@@ -9,7 +9,7 @@
 챕터 01~04(각각 batch·web·admin·ceo)로 앱마다 `{app}-application` 모듈을 하나씩 세웠던 것을, **이 챕터가 되돌려 하나로 합쳤다.** 앱 축 분리가 값을 못 했다는 판단이며 근거는 셋이다.
 
 - **컴파일 게이트가 사실상 없었다.** `infrastructure/persistence/build.gradle`이 4개 application 모듈을 전부 `implementation`으로 의존하므로 **모든 실행 jar에 4개 jar가 이미 들어 있었다**(admin-api fat jar `BOOT-INF/lib/` 실측). 앱 분할이 실제로 준 게이트는 application → application 한 방향뿐이었고, 그것은 ArchUnit이 패키지로 이미 막고 있었다.
-- **소유권 연쇄가 부채를 낳았다.** 읽기 계약을 앱 모듈이 소유하게 하면서 "한 앱이 소유하면 다른 앱이 그 모듈을 의존해야 한다"를 피하려고, 공유 계약을 `domain-module`로 올리고 `application-common-module`을 해체했다(챕터 05·07·09). 그 결과가 split package 5모듈과 가드 3종(`ReadContractSingleOwnerTest`·`ReadContractPurityTest`·`RuleAnchorTest`의 소유 모듈 필터)이다. **챕터 04에서 그 55개를 이 모듈로 되돌려 이 부채가 통째로 사라졌다.**
+- **소유권 연쇄가 부채를 낳았다.** 읽기 계약을 앱 모듈이 소유하게 하면서 "한 앱이 소유하면 다른 앱이 그 모듈을 의존해야 한다"를 피하려고, 공유 계약을 `domain`로 올리고 `application-common-module`을 해체했다(챕터 05·07·09). 그 결과가 split package 5모듈과 가드 3종(`ReadContractSingleOwnerTest`·`ReadContractPurityTest`·`RuleAnchorTest`의 소유 모듈 필터)이다. **챕터 04에서 그 55개를 이 모듈로 되돌려 이 부채가 통째로 사라졌다.**
 - **중복이 컸고 이득이 없었다.** web·admin·ceo의 `LayerRulesTest`는 규칙 16종이 이름·본문까지 동일했다(diff는 carve-out 이름과 `because` 문구뿐). `gradle.properties`가 비어 있어 병렬 빌드 이득도 없었다.
 
 **이 챕터의 범위는 Gradle 모듈만 4 → 1이다.** 자바 패키지는 그대로였다(`com.tastyhouse.{app}application` + `com.tastyhouse.application.<ctx>.port.out`). 뒤 챕터에서 동명 클래스 182건 개명(02) → **패키지 평탄화 + 앱 마커 애노테이션(03, 완료 — 아래 절)** → 공유 읽기 계약 55개 복귀(04, 완료)가 이어진다.
@@ -67,15 +67,15 @@ com.tastyhouse.application/
 
 **다만 이름까지 같게 두지는 않는다(챕터 02에서 개명 완료).** 챕터 03 평탄화로 세 앱의 타입이 같은 패키지에 공존하므로 simple name이 앱 간에도 유일해야 한다. `NoticeQueryService`(web) / `NoticeManagementQueryService`(admin), `ShopQueryService`(web) / `ShopManagementQueryService`(admin) / `ShopOwnerQueryService`(ceo), `MemberTokenService` / `AdminTokenService` / `CeoTokenService`처럼 **web은 순수명, admin은 `Management`, ceo는 `Owner`**(인증 타입은 주체명 접두)로 구별한다.
 
-공유되는 것은 `domain-module`의 도메인 모델·write 포트·도메인 서비스와, 이 모듈 안에서 여러 앱이 함께 쓰는 `{Ctx}QueryPort` 계약이다. 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
+공유되는 것은 `domain`의 도메인 모델·write 포트·도메인 서비스와, 이 모듈 안에서 여러 앱이 함께 쓰는 `{Ctx}QueryPort` 계약이다. 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
 
 **앱 간 타입명 충돌 시 `Management`/`Owner` 한정어**를 상시 적용한다 — `Result`·`QueryPort`뿐 아니라 `*UseCase`·`*Service`·`*Command`·협력 빈(`*Reader`·`*View`)까지가 대상이다(규칙 전문과 한정어 삽입 위치는 루트 `backend/CLAUDE.md` 참고). 동명 클래스 **182건의 일괄 개명은 챕터 02에서 완료**했다.
 
 ### 읽기 계약을 이 모듈이 소유한다
 
-**읽기 계약(`{Ctx}QueryPort`·`*Result`·`*SearchCondition`)은 전부 이 모듈에 있다** — `src/main/java/com/tastyhouse/application/<ctx>/port/out/`이다. 통합 전 4개 모듈이 나눠 갖던 271개를 같은 트리로 합쳤고(챕터 01, 파일명 충돌 0건), 챕터 04에서 `domain-module`이 갖고 있던 다중 앱 공유 계약 55개까지 돌아왔다.
+**읽기 계약(`{Ctx}QueryPort`·`*Result`·`*SearchCondition`)은 전부 이 모듈에 있다** — `src/main/java/com/tastyhouse/application/<ctx>/port/out/`이다. 통합 전 4개 모듈이 나눠 갖던 271개를 같은 트리로 합쳤고(챕터 01, 파일명 충돌 0건), 챕터 04에서 `domain`이 갖고 있던 다중 앱 공유 계약 55개까지 돌아왔다.
 
-**`com.tastyhouse.application`을 이 모듈이 단독 소유한다 — split package가 끝났다.** 공유 계약 55개를 `domain-module`에 두던 시기에는 한 패키지를 두 모듈이 나눠 가졌고, 그것을 지키는 가드가 3종 필요했다(`ReadContractSingleOwnerTest`·`ReadContractPurityTest`·`RuleAnchorTest`의 소유 모듈 필터). 챕터 04로 셋 다 사라졌다 — 같은 모듈 안의 FQCN 중복은 컴파일 에러이기 때문이다. 이동은 패키지 경로가 같아 `git mv`뿐이었고 소비 측 import는 0건 바뀌었다.
+**`com.tastyhouse.application`을 이 모듈이 단독 소유한다 — split package가 끝났다.** 공유 계약 55개를 `domain`에 두던 시기에는 한 패키지를 두 모듈이 나눠 가졌고, 그것을 지키는 가드가 3종 필요했다(`ReadContractSingleOwnerTest`·`ReadContractPurityTest`·`RuleAnchorTest`의 소유 모듈 필터). 챕터 04로 셋 다 사라졌다 — 같은 모듈 안의 FQCN 중복은 컴파일 에러이기 때문이다. 이동은 패키지 경로가 같아 `git mv`뿐이었고 소비 측 import는 0건 바뀌었다.
 
 - 구현은 `infrastructure:persistence`의 `<ctx>/query/` DAO다. 그 모듈이 `implementation project(':application')`으로 이 계약들을 본다.
 - **새 읽기 계약은 소비 앱 수를 따지지 않고 이 모듈에 둔다.** 소비 앱이 하나든 셋이든 자리가 같다 — 소유 모듈을 판정하던 절차는 챕터 04와 함께 폐기됐다.
@@ -182,7 +182,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 - **실행 모듈이 아니므로 `bootJar { enabled = false }` + `jar { enabled = true; archiveClassifier = '' }`** — plain jar만 만든다(`security-module` 선례). 아래 [주의](#주의) 참고.
 
 ### Internal
-- `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
+- `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
 - **외부 연동 모듈(`infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:crawling`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
