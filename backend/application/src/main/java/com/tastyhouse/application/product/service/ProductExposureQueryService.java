@@ -22,22 +22,11 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
-/**
- * 점주용 메뉴 노출기간 조회 서비스(CQRS query 측).
- *
- * <p>설정값(기간 축)은 query DAO 투영에서, 요일·시간대와 판정은 도메인 서비스
- * {@link ProductExposureService}에서 얻는다 — 판정은 순수 계산기가 소유해야 목록 SQL 술어와
- * 같은 규칙을 공유한다.
- *
- * <p><b>기준 시각은 이 서비스가 정한다</b> — 계산기는 시계도 타임존도 갖지 않으므로
- * 서비스 타임존({@code Asia/Seoul})의 현재 시각과 공휴일 판정을 여기서 해석해 넘긴다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)
 public class ProductExposureQueryService implements ProductExposureQueryUseCase {
 
-    /** 노출 판정 기준 타임존 — 목록 SQL 술어({@code ProductOwnerQueryPort})와 같은 값이어야 한다. */
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private final ProductExposureService productExposureService;
@@ -93,6 +82,5 @@ public class ProductExposureQueryService implements ProductExposureQueryUseCase 
             result.hiddenReason()
         );
     }
-
 
 }

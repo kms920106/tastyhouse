@@ -41,12 +41,6 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 관리자 상품 command 서비스. 트랜잭션 경계를 소유하고, 불변식·저장은 도메인 서비스
- * {@link ProductRegistrationService}에 위임한다. 조회는 {@link ProductManagementQueryService}가 담당한다.
- *
- * <p>HTTP 경계에서 받은 {@code Long} 식별자는 이 계층에서 {@code ProductId}로 승격한다.
- */
 @Service
 @AdminApp
 @Transactional
@@ -112,7 +106,7 @@ public class ProductManagementCommandService implements
             soldOut,
             visible,
             sort,
-            false, // 관리자 등록 화면은 아직 이 세 필드를 다루지 않는다(점주 경로에서만 설정)
+            false,
             null,
             false
         );
@@ -179,8 +173,7 @@ public class ProductManagementCommandService implements
         String groupType = command.groupType();
 
         ProductOptionGroupType resolvedGroupType = ProductOptionGroupType.from(groupType);
-        // 관리자 경로에도 같은 게이트를 적용한다 — 관리자가 대상 사업자 플래그를 먼저 켠 뒤 만들도록
-        // 강제해야, 규제 대상이 아닌 가게에 보증금 옵션이 생기는 경로가 남지 않는다.
+
         if (resolvedGroupType.isCupDeposit()) {
             loadShopOf(ProductId.of(id)).validateCupDepositEnabled();
         }
@@ -203,7 +196,6 @@ public class ProductManagementCommandService implements
         return optionGroup.getId();
     }
 
-    /** 보증금 대상 사업자 검증을 위해 메뉴가 속한 가게를 로드한다. */
     private Shop loadShopOf(ProductId productId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));

@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 가게 배달가능지역 행정동 일괄 추가 command.
- */
 public record ShopDeliveryAreaBulkCreateCommand(
     Long ceoId,
     Long shopId,

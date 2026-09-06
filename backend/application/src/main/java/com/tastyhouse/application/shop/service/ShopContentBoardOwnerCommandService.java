@@ -24,29 +24,11 @@ import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
 
-/**
- * 점주용 가게 콘텐츠보드 변경 서비스(CQRS command 측).
- *
- * <p>콘텐츠보드는 단일 애그리거트 연산(등록 개수 제한만 검증)이라 도메인 서비스로 하강하지 않고 이
- * 서비스가 write 포트로 직접 다룬다. 이미지 규격 검증은 presentation의
- * {@link ShopImageSpecValidator}가 업로드 전에 수행한다(core는 fileId만 받는다).
- *
- * <p><b>변경이력({@code CONTENT_BOARD})을 예외적으로 이 서비스가 남긴다.</b> 대응 도메인 서비스가 없고
- * 이 서비스가 {@link #loadOwnedContentBoard}로 <b>이미 애그리거트를 손에 들고</b> 있어 변경 전 값을 추가
- * 조회 없이 볼 수 있다({@code ShopMinOrderAmountCommandService}와 같은 형태). 기록만을 위해 도메인
- * 서비스를 새로 만들면 불변식이 없는 껍데기가 하나 늘어난다.
- *
- * <p>등록/수정/삭제가 각각 화면상 별개 조작이므로 <b>행 단위</b>로 {@code CREATE}/{@code UPDATE}/
- * {@code DELETE}를 남긴다.
- */
 @Service
 @CeoApp
 @Transactional
 public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwnerCommandUseCase {
 
-    /**
-     * 가게당 콘텐츠보드 등록 허용 건수.
-     */
     private static final long MAX_CONTENT_BOARD_COUNT = 4;
 
     private final ShopContentBoardRepository shopContentBoardRepository;
@@ -115,8 +97,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopContentBoard shopContentBoard = loadOwnedContentBoard(shopId, contentBoardId);
-        // 변경 전 요약을 update 호출 전에 확정한다 — 같은 인스턴스를 제자리에서 갱신하므로
-        // 나중에 읽으면 이미 변경 후 값이다.
+
         String previousValue = describeContentBoard(shopContentBoard);
 
         UploadedFileId imageFileId = file != null && !file.isEmpty()
@@ -158,13 +139,6 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         );
     }
 
-    /**
-     * 콘텐츠보드 1행을 한 줄로 요약한다(예: {@code "가게 소식/이미지: 신메뉴 출시했습니다"}).
-     *
-     * <p>주제와 콘텐츠 형식을 함께 적는다 — 한 가게에 최대 4건이 공존하므로 주제만으로는 이력 목록에서
-     * 어느 행이 바뀐 것인지 특정되지 않는다. 설명 문구는 자르지 않고 원문 그대로 담고, 비어 있으면
-     * 영상 URL로 폴백한다(영상 콘텐츠는 설명 없이 등록될 수 있다).
-     */
     private String describeContentBoard(ShopContentBoard shopContentBoard) {
         String label = shopContentBoard.getTopic().getDescription()
             + "/" + shopContentBoard.getContentType().getDescription();
@@ -175,9 +149,6 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         return body == null || body.isBlank() ? label : label + ": " + body;
     }
 
-    /**
-     * 콘텐츠보드를 로드하고 그것이 대상 가게 소속인지 확인한다.
-     */
     private ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
         ShopContentBoard shopContentBoard = shopContentBoardRepository.findById(contentBoardId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
@@ -187,9 +158,6 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         return shopContentBoard;
     }
 
-    /**
-     * 영상 콘텐츠는 파일 업로드가 없고, 이미지·GIF는 규격 검증 후 업로드한다.
-     */
     private UploadedFileId uploadIfImage(ShopContentType contentType, MultipartFile file) {
         if (contentType == ShopContentType.VIDEO) {
             return null;

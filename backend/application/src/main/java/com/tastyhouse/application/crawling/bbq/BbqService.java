@@ -94,7 +94,7 @@ public class BbqService {
                 }
 
                 if (categoryIndex < menuCategories.size() - 1) {
-                    // 외부 BBQ 서버 부하 방지를 위한 의도적인 요청 간 지연 (busy-wait 아님)
+
                     log.info("다음 카테고리 처리를 위해 10초 대기...");
                     //noinspection BusyWait
                     Thread.sleep(10000);

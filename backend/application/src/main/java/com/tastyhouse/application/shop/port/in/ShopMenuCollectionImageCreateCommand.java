@@ -3,9 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴모음컷 등록 command. 이미지 파일은 별도 {@code MultipartFile} 파라미터로 전달된다.
- */
 public record ShopMenuCollectionImageCreateCommand(
     Long ceoId,
     Long shopId

@@ -30,8 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // For simplicity, assigning a default role "USER".
-        // In a real application, you might derive roles from the Member entity.
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");
 
         return new MemberUserDetails(member, Collections.singleton(authority));

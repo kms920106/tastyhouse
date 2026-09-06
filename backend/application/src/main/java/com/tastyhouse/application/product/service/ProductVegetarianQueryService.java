@@ -18,12 +18,6 @@ import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
 
-/**
- * 점주용 메뉴 채식 설정 현황 조회 서비스(CQRS query 측).
- *
- * <p>현재 반영값({@code PRODUCT.vegetarian_type})과 요청 이력을 나눠 내려준다 — 승인 전 요청이 있어도
- * 반영값은 바뀌지 않으므로 두 축을 합치면 점주가 "이미 적용됐다"고 오해한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)
@@ -63,6 +57,5 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
 
         return new ProductVegetarianStatusResult(setting.vegetarianType(), requests, changeable);
     }
-
 
 }

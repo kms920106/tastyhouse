@@ -16,12 +16,6 @@ import com.tastyhouse.application.grade.port.out.GradeInfoResult;
 @Transactional(readOnly = true)
 public class GradeQueryService implements GradeQueryUseCase {
 
-    /**
-     * 전체 등급 세부 조건 목록 조회.
-     *
-     * <p>도메인 enum을 여기서 {@code name()}으로 강등해 넘긴다 — 인바운드 포트가 도메인 타입을
-     * 노출하지 않게 하는 것이 챕터 06~10의 경계 규칙이다.
-     */
     @Override
     public List<GradeInfoResult> getGradeInfoList() {
         return Arrays.stream(MemberGrade.values())

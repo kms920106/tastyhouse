@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 채식 인증 해제 command.
- */
 public record ProductVegetarianClearCommand(
     Long ceoId,
     Long shopId,

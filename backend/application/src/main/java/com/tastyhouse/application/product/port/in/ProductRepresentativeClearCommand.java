@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 대표메뉴 해제 command.
- */
 public record ProductRepresentativeClearCommand(
     Long ceoId,
     Long shopId,

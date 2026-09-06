@@ -20,17 +20,6 @@ import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
 import com.tastyhouse.application.order.port.out.OrderSearchCondition;
 import com.tastyhouse.application.order.port.in.OrderManagementQueryUseCase;
 
-/**
- * 주문 관리 조회 서비스(admin-api).
- *
- * <p>infra query DAO({@link OrderManagementQueryPort})만 주입해 조회한다. write 포트는 주입하지 않는다.
- *
- * <p>enum 후보값은 HTTP 경계에서 {@code String}으로 받아 여기서 {@code Enum.from(...)}으로 승격한다
- * (도메인 enum 경계 규칙). 관리자 조회는 회원 스코프가 없어 소유권 검증을 하지 않는다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)
@@ -42,9 +31,6 @@ public class OrderManagementQueryService implements OrderManagementQueryUseCase 
         this.orderManagementQueryPort = orderManagementQueryPort;
     }
 
-    /**
-     * 주문 관리 목록.
-     */
     @Override
     public PageResult<OrderManagementListItemResult> getOrders(
         Long shopId,
@@ -72,9 +58,6 @@ public class OrderManagementQueryService implements OrderManagementQueryUseCase 
         return orderManagementQueryPort.findOrders(condition, pageQuery);
     }
 
-    /**
-     * 주문 관리 상세.
-     */
     @Override
     public OrderDetailResult getOrder(Long id) {
         return orderManagementQueryPort.findOrderDetail(OrderId.of(id))

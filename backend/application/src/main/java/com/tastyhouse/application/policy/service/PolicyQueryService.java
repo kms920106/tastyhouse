@@ -15,16 +15,6 @@ import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
 import com.tastyhouse.application.policy.port.in.PolicyDetailQueryUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyVersionListQueryUseCase;
 
-/**
- * 약관·정책 조회 서비스.
- *
- * <p>회원 노출용 조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다(쓰기는 admin-api의
- * {@code PolicyCommandService}가 담당). 읽기 포트({@link PolicyQueryPort})를 주입해 읽기 계약을
- * 돌려주며, write 포트는 주입하지 않는다.
- *
- * <p>정책 유형은 약관 종류별 전용 엔드포인트로 고정되어 있어 HTTP 파라미터로 받지 않고 이 서비스가
- * 직접 core enum 상수를 지정한다.
- */
 @Service
 @WebApp
 @Transactional(readOnly = true)

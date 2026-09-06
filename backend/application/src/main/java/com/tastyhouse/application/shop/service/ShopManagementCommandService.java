@@ -116,17 +116,6 @@ import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
-/**
- * admin용 가게 관리 변경 서비스(CQRS command 측).
- *
- * <p>가게 생성·수정·폐업과 노출정지 차단, 영업시간·휴게시간·정기휴무 규격 검증 등 크로스 애그리거트
- * 불변식은 도메인 서비스({@link ShopLifecycleService}·{@link ShopBusinessHourService})가 담당하고,
- * 이 서비스는 트랜잭션 경계와 경계 타입 승격(Long → VO, String → core enum)을 담당한다.
- *
- * <p>카테고리·배정·배너·사진·태그·에디터 추천은 단일 애그리거트 연산이라 도메인 서비스로 하강하지 않고
- * write 포트로 직접 다룬다. 도메인 모델은 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로
- * {@code save}를 호출한다.
- */
 @Service
 @AdminApp
 @Transactional
@@ -195,13 +184,6 @@ public class ShopManagementCommandService implements
         this.tagRepository = tagRepository;
     }
 
-    /**
-     * 가게를 등록한다.
-     *
-     * <p>{@code ceoId}를 함께 지정하면 접근권한 부여 이력({@code GRANT})이 남으므로, 조치한 관리자
-     * 식별자({@code adminId})를 첫 파라미터로 받는다. 요청·응답 계약은 변하지 않는다 —
-     * {@code adminId}는 본문이 아니라 인증 주체에서 온다.
-     */
     @Override
     public Long createShop(ShopCreateCommand command) {
         Long adminId = command.adminId();
@@ -222,9 +204,6 @@ public class ShopManagementCommandService implements
         return shop.getId();
     }
 
-    /**
-     * 가게에 담당 점주를 배정한다. 다른 점주가 이미 배정돼 있으면 말소 후 부여로 2행이 남는다.
-     */
     @Override
     public void assignCeo(ShopCeoAssignCommand command) {
         Long adminId = command.adminId();
@@ -236,9 +215,6 @@ public class ShopManagementCommandService implements
         shopCeoAssignmentService.assign(shopId, targetCeoId, adminId);
     }
 
-    /**
-     * 가게의 담당 점주 배정을 해제한다.
-     */
     @Override
     public void revokeCeo(ShopCeoRevokeCommand command) {
         Long adminId = command.adminId();
@@ -274,12 +250,6 @@ public class ShopManagementCommandService implements
         shopLifecycleService.closeShop(shopId);
     }
 
-    /**
-     * 일회용컵 보증금제 대상 사업자 지정/해제를 토글한다.
-     *
-     * <p><b>admin 전용인 이유</b>: 이것은 점주의 영업 설정이 아니라 환경부·자원순환보증금관리센터가
-     * 정하는 외부 규제 사실이다. 점주가 스스로 켤 수 있으면 대상이 아닌 가게가 보증금을 부과하게 된다.
-     */
     @Override
     public void changeCupDepositEnabled(ShopCupDepositChangeCommand command) {
         Long id = command.shopId();
@@ -469,10 +439,6 @@ public class ShopManagementCommandService implements
         shopDetailRepository.saveFoodTypeCategory(foodTypeCategory);
     }
 
-    /**
-     * 가게에 편의시설을 배정한다. 카테고리 존재 검증과 변경이력({@code AMENITY}) 기록은 도메인 서비스가
-     * 담당한다.
-     */
     @Override
     public Long assignAmenity(ShopAmenityManagementAssignCommand command) {
         Long adminId = command.adminId();
@@ -483,9 +449,6 @@ public class ShopManagementCommandService implements
         return shopConvenienceInfoService.assignAmenity(id, amenityCategoryId, actor);
     }
 
-    /**
-     * 가게에 배정된 편의시설을 해제한다. 변경이력({@code AMENITY})은 도메인 서비스가 남긴다.
-     */
     @Override
     public void unassignAmenity(ShopAmenityManagementUnassignCommand command) {
         Long adminId = command.adminId();

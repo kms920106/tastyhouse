@@ -5,9 +5,6 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 가게 운영시간 수정 command. 경로 변수 {@code businessHourId}는 컨트롤러가 주입한다.
- */
 public record ShopBusinessHourOwnerUpdateCommand(
     Long ceoId,
     Long businessHourId,

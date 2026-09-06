@@ -18,12 +18,6 @@ import com.tastyhouse.application.crawling.bbq.BbqService;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.SubOptionItemDetailResponse;
 
-/**
- * 상품 옵션 동기화 스케줄 진입점.
- *
- * <p>외부 BBQ API 호출(느린 I/O)은 트랜잭션 밖에서 수행하고, 저장은 {@link BbqProductSyncService}의
- * 트랜잭션 경계 안에서 옵션 그룹 단위로 처리한다.
- */
 @Service
 @BatchApp
 public class ProductSchedulerService implements SyncProductOptionsUseCase {
@@ -49,7 +43,6 @@ public class ProductSchedulerService implements SyncProductOptionsUseCase {
         ProductBbqSyncTargetResult target = targetOpt.get();
         log.info("상품 옵션 크롤링 시작: productId={}, bbqMenuId={}", target.productId(), target.bbqMenuId());
 
-        // 외부 API 호출은 트랜잭션 밖에서 먼저 끝내고, 저장은 아래 한 트랜잭션에서 원자적으로 처리한다.
         List<BbqOptionGroupRegistration> optionGroups = crawlOptionGroups(target);
         bbqProductSyncService.syncOptions(target.productId(), optionGroups);
 

@@ -30,29 +30,11 @@ import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
 
-/**
- * 점주용 가게 공지(사장님 공지) 변경 서비스(CQRS command 측).
- *
- * <p>공지 본문은 단일 애그리거트 연산이라 write 포트로 직접 다루지만, <b>앱 노출 토글만은</b> "가게당 1건"
- * 집합 불변식이라 도메인 서비스 {@link ShopNoticeExposureService}에 위임한다. 이미지 규격 검증은
- * presentation의 {@link ShopImageSpecValidator}가 업로드 전에 수행한다(core는 fileId만 받는다).
- *
- * <p><b>이미지 교체는 replace-all이다.</b> 3장 제한·정렬순서가 집합 규칙이라 개별 행 CRUD를 열면 중간
- * 상태가 규칙을 위반하기 때문이다.
- *
- * <p>변경이력({@code NOTICE})은 {@code ShopContentBoardOwnerCommandService}와 동형으로 이 서비스가 남긴다 —
- * 대응 도메인 서비스가 노출 토글만 담당하고, 이 서비스가 {@link #loadOwnedNotice}로 이미 애그리거트를
- * 손에 들고 있어 변경 전 값을 추가 조회 없이 볼 수 있다. 등록/수정/삭제/노출토글이 각각 화면상 별개
- * 조작이므로 <b>행 단위</b>로 {@code CREATE}/{@code UPDATE}/{@code DELETE}를 남긴다.
- */
 @Service
 @CeoApp
 @Transactional
 public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseCase {
 
-    /**
-     * 공지 1건에 첨부할 수 있는 이미지 수.
-     */
     private static final int MAX_NOTICE_IMAGE_COUNT = 3;
 
     private final ShopNoticeRepository shopNoticeRepository;
@@ -127,8 +109,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         prohibitedWordValidator.validate(content);
 
         ShopNotice notice = loadOwnedNotice(shopId, noticeId);
-        // 변경 전 요약을 updateContent 호출 전에 확정한다 — 같은 인스턴스를 제자리에서 갱신하므로
-        // 나중에 읽으면 이미 변경 후 값이다.
+
         String previousValue = describeNotice(notice);
 
         if (!Boolean.TRUE.equals(keepExistingImages)) {
@@ -161,7 +142,6 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         ShopNotice notice = loadOwnedNotice(shopId, noticeId);
         String previousValue = describeNotice(notice);
 
-        // 업로드된 파일(UPLOADED_FILE)은 삭제하지 않는다 — 첨부 이력 보존 정책.
         shopNoticeImageRepository.deleteByShopNoticeId(noticeId);
         shopNoticeRepository.deleteById(noticeId);
 
@@ -175,12 +155,6 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         );
     }
 
-    /**
-     * 앱 노출을 토글한다. 켜는 경우 같은 가게의 기존 노출 공지는 도메인 서비스가 함께 내린다.
-     *
-     * <p>{@code hidden = true}인 공지도 토글 자체는 허용한다 — 게시중단이 풀리면 점주 의도대로 노출되어야
-     * 하기 때문이다(그동안 web에는 나오지 않는다).
-     */
     @Override
     public void changeExposure(ShopNoticeExposureChangeCommand command) {
         Long ceoId = command.ceoId();
@@ -208,20 +182,11 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         );
     }
 
-    /**
-     * 공지 1건을 한 줄로 요약한다(예: {@code "노출중: 이번 주 신메뉴 출시했습니다"}).
-     *
-     * <p>노출 상태를 함께 적는다 — 노출 토글도 {@code UPDATE}로 기록되므로 본문만으로는 이력 목록에서
-     * 무엇이 바뀐 것인지 구분되지 않는다.
-     */
     private String describeNotice(ShopNotice notice) {
         String label = notice.isExposed() ? "노출중" : "미노출";
         return label + ": " + notice.getContent();
     }
 
-    /**
-     * 공지를 로드하고 그것이 대상 가게 소속인지 확인한다.
-     */
     private ShopNotice loadOwnedNotice(Long shopId, Long noticeId) {
         ShopNotice notice = shopNoticeRepository.findById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND));
@@ -231,14 +196,6 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         return notice;
     }
 
-    /**
-     * 규격 검증을 통과한 이미지를 업로드해 요청 배열 순서대로 {@code sortOrder}를 매긴다.
-     *
-     * <p><b>전량 검증을 먼저 끝낸 뒤에 업로드한다.</b> 파일 단위로 검증·업로드를 교차하면, 뒤쪽 파일이
-     * 규격 위반일 때 앞쪽 파일은 이미 외부 스토리지에 올라간 상태가 된다. 트랜잭션 롤백은
-     * {@code UPLOADED_FILE} 행만 되돌리고 스토리지에 쓴 바이트는 되돌리지 못하므로, 실패 시도마다 고아
-     * 파일이 누적된다.
-     */
     private void saveImages(Long noticeId, List<MultipartFile> images) {
         if (images.isEmpty()) {
             return;
@@ -260,9 +217,6 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         }
     }
 
-    /**
-     * multipart 요청은 파일 파트가 없으면 null, 빈 파트가 하나 붙어 올 수도 있으므로 둘 다 걸러낸다.
-     */
     private List<MultipartFile> normalizeFiles(List<MultipartFile> files) {
         if (files == null) {
             return List.of();

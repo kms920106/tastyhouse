@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 분류 삭제 command.
- */
 public record ProductCategoryDeleteCommand(
     Long ceoId,
     Long productCategoryId,

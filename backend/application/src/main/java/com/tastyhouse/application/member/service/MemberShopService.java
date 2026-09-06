@@ -10,11 +10,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 
-/**
- * 회원의 즐겨찾기 가게 목록 조회 서비스.
- *
- * <p>CQRS 전환 후 core application 서비스 대신 infra query DAO를 직접 주입한다.
- */
 @Service
 @WebApp
 public class MemberShopService {

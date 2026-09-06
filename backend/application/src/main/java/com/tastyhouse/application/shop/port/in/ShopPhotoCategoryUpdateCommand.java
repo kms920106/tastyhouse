@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 포토 카테고리 수정 command. */
 public record ShopPhotoCategoryUpdateCommand(
     Long categoryId,
     String name

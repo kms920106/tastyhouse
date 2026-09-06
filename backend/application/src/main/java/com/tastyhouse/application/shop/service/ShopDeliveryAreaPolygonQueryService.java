@@ -33,25 +33,11 @@ import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 
-/**
- * 배달지역 도형 조회·미리보기 서비스(CQRS query 측).
- *
- * <p>미리보기는 HTTP 메서드가 {@code POST}지만(도형이 URL에 들어갈 수 없다) <b>의미는 조회</b>이므로
- * {@code @Transactional(readOnly = true)}인 이 클래스에 둔다. 저장하지 않고 "저장하면 무엇이 열리고
- * 무엇이 닫히는지"만 계산한다.
- *
- * <p>환산 판정은 도메인의 {@link DeliveryAreaProjection}을 그대로 쓴다 — 미리보기와 실제 저장이 다른
- * 알고리즘을 쓰면 보여준 결과와 저장 결과가 갈려 기능의 의미가 없어진다.
- *
- * <p>write 포트를 주입하지 않으며({@code queryServicesShouldNotDependOnWritePorts}), 소유권은 좌표 조회에
- * {@code ceoId} 조건을 함께 걸어 강제한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)
 public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQueryUseCase {
 
-    /** 후보 프리필터 박스를 넓히는 각도(약 5.5km). 도메인 저장 경로와 같은 값이어야 결과가 일치한다. */
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");
 
     private static final String BLOCKED_REASON_REGION_TIP = "REGION_TIP";
@@ -70,10 +56,6 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         this.geoRingsPort = geoRingsPort;
     }
 
-    /**
-     * 저장된 도형을 조회한다. <b>미설정은 404가 아니라 {@code exists: false}인 200</b>이다 — 도형 없이
-     * 행정동만 직접 등록한 가게가 정상적으로 존재한다.
-     */
     @Override
     public ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId) {
         ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
@@ -112,12 +94,6 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         );
     }
 
-    /**
-     * 도형을 환산해 결과를 미리 보여준다(저장하지 않음).
-     *
-     * <p>{@code blockedAdminDongs}를 함께 계산하므로 점주는 저장에서 409를 맞기 전에 배달팁을 정리할 수
-     * 있다 — 저장이 실패한 뒤에야 원인을 알려주면 도형을 다시 그려야 한다고 오해하기 쉽다.
-     */
     @Override
     public ShopDeliveryAreaPolygonPreviewResult previewPolygon(
         Long ceoId,
@@ -154,7 +130,6 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             .filter(candidate -> !registered.contains(candidate.adminDongId()))
             .toList();
 
-        // 닫히는 동 = 기존 도형 파생 행 중 새 환산 결과에 없는 것. 직접 등록분은 도형 저장이 건드리지 않는다.
         List<Long> closing = currentPolygonDongs.stream()
             .filter(adminDongId -> !projected.contains(adminDongId))
             .toList();
@@ -180,10 +155,6 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         );
     }
 
-    /**
-     * 조회 결과를 도메인 환산이 요구하는 형태로 승격한다. 저장 경로가 write 포트로 읽는 것과 같은 판정을
-     * 하도록 같은 도메인 타입으로 맞춘다.
-     */
     private List<AdminDong> toDomainCandidates(List<AdminDongCandidateResult> candidates) {
         List<AdminDong> domainCandidates = new ArrayList<>(candidates.size());
         for (AdminDongCandidateResult candidate : candidates) {

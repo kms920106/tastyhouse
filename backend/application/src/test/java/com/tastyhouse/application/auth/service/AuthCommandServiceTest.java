@@ -38,17 +38,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-/**
- * 점주 로그인 접속기록 배선 봉인 테스트.
- *
- * <p>이 테스트가 지키는 것은 네 가지다.
- * <ul>
- *   <li>성공·실패 양쪽 모두 이력을 남긴다(실패 이력이 인증 예외와 함께 사라지지 않는다).</li>
- *   <li>실패 시 <b>원래 인증 예외가 그대로 rethrow</b>된다 — 응답 계약이 바뀌지 않는다.</li>
- *   <li>존재하지 않는 username은 기록하지 않는다(계정 존재 여부 탐색 표면 방지).</li>
- *   <li>기록 실패 시 정책이 성공·실패 경로에서 <b>의도적으로 비대칭</b>이다.</li>
- * </ul>
- */
 class AuthCommandServiceTest {
 
     private static final String USERNAME = "ceo";

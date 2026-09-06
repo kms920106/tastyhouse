@@ -8,28 +8,8 @@ import org.junit.jupiter.api.Test;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link LayerRulesTest}의 각 규칙이 <b>공허하게 통과하지 않음</b>을 보장한다.
- *
- * <p>이 저장소는 {@code allowEmptyShould(true)}를 금지한다 — 규칙이 대상을 잃으면 지우거나 anchor를
- * 고친다는 원칙이다. 그런데 {@code noClasses().that()...} 형태는 대상이 0건이어도 조용히 통과하므로,
- * 원칙을 지켰는지가 사람 눈에만 의존한다. 이 테스트가 그 지점을 자동화한다.
- *
- * <p><b>챕터 03 개정 — anchor가 앱별에서 모듈 합계로 바뀌었다.</b> 과거에는 앱별 패키지
- * ({@code com.tastyhouse.{app}application})로 나눠 세어, 한 앱의 클래스가 통째로 사라져도 나머지 세
- * 앱이 합계 하한을 떠받치는 것을 막았다. 평탄화로 그 구분이 사라졌으므로 여기서는 모듈 합계만 세고,
- * <b>앱별 소실은 {@link AppIsolationTest}의 마커별 anchor</b>({@code markerBeanCounts}·
- * {@code markerUseCaseCounts})가 승계해 잡는다. 마커가 앱 소속의 새 근거이기 때문이다.
- *
- * <p>batch의 anchor는 {@link BatchSchedulerRulesTest}가 갖는다(규모가 작아 하한이 아니라 정확히 일치).
- *
- * <p>기대값은 <b>하한</b>으로 둔다. 컨텍스트가 늘어나는 것은 정상이므로 정확히 일치를 요구하면
- * 기능 추가마다 이 파일을 고쳐야 하고, 그러면 anchor가 규칙이 아니라 잡음이 된다. 반대로 대량
- * 소실은 하한으로 충분히 잡힌다.
- */
 class RuleAnchorTest {
 
-    /** {@link LayerRulesTest}가 쓰는 importer와 동일 범위(챕터 03 — 하나로 합쳐졌다). */
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.application");
@@ -38,12 +18,6 @@ class RuleAnchorTest {
         return classes.stream().filter(c -> c.getSimpleName().endsWith(suffix)).count();
     }
 
-    /**
-     * {@code commandServicesShouldNotDependOnQueryDaos} 등 CommandService 대상 규칙 4종의 anchor.
-     *
-     * <p>하한 91은 통합 전 3개 앱의 합이다(web 17 + admin 30 + ceo 44). batch는 CQRS를 쓰지 않아
-     * {@code *CommandService}가 0개이므로 대상이 아니다.
-     */
     @Test
     void commandServicesExist() {
         assertThat(countSuffix("CommandService"))
@@ -51,11 +25,6 @@ class RuleAnchorTest {
             .isGreaterThanOrEqualTo(91);
     }
 
-    /**
-     * {@code queryServicesShouldNotDependOnWritePorts} · {@code queryServicesShouldImplementUseCase}의 anchor.
-     *
-     * <p>하한 100은 통합 전 3개 앱의 합이다(web 29 + admin 28 + ceo 43).
-     */
     @Test
     void queryServicesExist() {
         assertThat(countSuffix("QueryService"))
@@ -63,11 +32,6 @@ class RuleAnchorTest {
             .isGreaterThanOrEqualTo(100);
     }
 
-    /**
-     * {@code commandRecordsShouldBeBoundaryTyped} · {@code portInShouldNotDependOnWebPlumbing} 등의 anchor.
-     *
-     * <p>하한 556은 통합 전 4개 앱의 합이다(web 99 + admin 228 + ceo 222 + batch 7).
-     */
     @Test
     void inboundPortsExist() {
         assertThat(classes.stream().filter(c -> resideInAPackage("..port.in..").test(c)).count())
@@ -75,16 +39,6 @@ class RuleAnchorTest {
             .isGreaterThanOrEqualTo(556);
     }
 
-    /**
-     * 모듈 전체를 대상으로 하는 규칙들({@code applicationMustBeServletFree} ·
-     * {@code applicationMustNotDependOnAdapters} · {@code shouldNotDependOnQuerydsl} ·
-     * {@code shouldNotDependOnInfrastructure} · {@code applicationShouldNotDependOnSwagger} ·
-     * {@code applicationShouldNotDependOnApiCommon})의 anchor.
-     *
-     * <p>하한 852는 통합 전 4개 앱의 합이다(web 200 + admin 290 + ceo 334 + batch 28). 각 값은
-     * Response 승격(챕터 06·09·10)으로 재기준된 뒤의 것이다. 이 합계가 한 앱의 소실을 못 잡는 것은
-     * 위 클래스 Javadoc대로 {@link AppIsolationTest}의 마커별 anchor가 보완한다.
-     */
     @Test
     void moduleIsNotEmpty() {
         assertThat(classes.size())
@@ -92,21 +46,6 @@ class RuleAnchorTest {
             .isGreaterThanOrEqualTo(852);
     }
 
-    /**
-     * {@code readContractsShouldBeFrameworkFree}의 anchor.
-     *
-     * <p>하한 282는 통합 전 4개 앱의 합 227(web 85 + admin 79 + ceo 61 + batch 2)에 챕터 04로
-     * domain에서 돌아온 공유 읽기 계약 55개를 더한 값이다. 챕터 03으로 규칙 대상이 읽기
-     * 계약에서 {@code port.out} 전체(아웃바운드 SPI·Command 반환 record 포함)로 넓어졌으나, 하한은
-     * 그 합계 그대로 둔다 — 넓어진 만큼 실측이 늘어 하한이 더 여유로워질 뿐이고, 이 anchor가 잡으려는
-     * 것은 대량 소실이기 때문이다.
-     *
-     * <p><b>챕터 04로 소유 모듈 필터가 없어졌다.</b> 과거에는 소유 모듈 판별 헬퍼로 남의
-     * 모듈 계약을 걸러내야 했다 — domain의 공유 계약 55개가 split package로 함께 잡혔고, 그
-     * 55개가 하한을 떠받쳐 주면 정작 이 모듈의 계약이 사라져도 anchor가 통과했기 때문이다. 그 55개가
-     * 이 모듈로 돌아와 {@code com.tastyhouse.application}을 단독 소유하게 되면서 테스트 클래스패스에
-     * 남의 모듈 계약이 더는 없고, 필터는 불필요해졌다.
-     */
     @Test
     void readContractsExist() {
         assertThat(classes.stream()

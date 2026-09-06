@@ -14,12 +14,6 @@ import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopImageStatusResult;
 
-/**
- * 점주용 가게 상표/대표이미지 상태 조회 서비스(CQRS query 측).
- *
- * <p>현재 적용된 이미지 URL은 소유권 검증이 반환한 도메인 모델에서, 진행 중·과거 변경요청 목록은
- * infra query DAO에서 얻어 함께 조립한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

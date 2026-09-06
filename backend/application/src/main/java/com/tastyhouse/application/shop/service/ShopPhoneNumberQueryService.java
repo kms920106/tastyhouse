@@ -10,9 +10,6 @@ import com.tastyhouse.application.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 
-/**
- * 점주용 가게 전화번호 조회 서비스(CQRS query 측).
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

@@ -330,3 +330,480 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 - **`items`가 JSON 문자열인 것은 요청 형식이 multipart이기 때문이다.** 가격표 이미지와 대상 목록은 한 트랜잭션에 함께 들어와야 한다 — 2단 요청으로 쪼개면 중간에서 끊긴 요청이 첨부만 있고 대상이 없는 고아 상태로 남고, 관리자 검수 큐에 검수할 수 없는 건이 쌓인다. multipart는 JSON 바디를 함께 실을 수 없으므로 목록만 문자열 파트로 받아 여기서 파싱한다.
 - **인덱스 기록이 도메인이 아니라 이 서비스에 있는 것은 컨텍스트 경계 때문이다.** 다른 요청 유형(`ShopImageApprovalService`·`ShopDeliveryAreaAdjustmentService`)은 shop 컨텍스트 소유라 도메인 서비스가 직접 `ShopRequestIndexRecorder`를 호출한다. 그러나 인증 요청 애그리거트는 **product** 컨텍스트 소유여서, 그 도메인 서비스가 `shop.service`를 호출하면 `ContextBoundaryTest` 위반이 되고 **봉인 목록은 늘릴 수 없다.** 두 컨텍스트를 한 트랜잭션에서 잇는 일은 표현 계층의 몫이다.
 - `MultipartFile`을 파라미터로 받는 것은 **파일 업로드 경계의 문서화된 예외**다 — 규격 검증이 업로드보다 앞서야 하고, 도메인은 통과분의 `fileId`만 받는다.
+
+### QueryDSL 투영 전용 생성자 3건 — "never used" 경고를 근거로 삭제하지 말 것
+
+**대상** (`backend/application/src/main/java/com/tastyhouse/application/review/port/out/`)
+
+| record | 좁은 시그니처가 제외하는 것 | 투영 호출부 |
+|---|---|---|
+| `ReviewDetailResult` | 1:N인 이미지·태그 | `ReviewQueryDao` |
+| `LatestReviewListItemResult` | 1:N인 이미지(`imageUrls`를 빈 목록으로 채운다) | `ReviewQueryDao`(6개 쿼리) |
+| `ReviewManagementDetailResult` | 1:N인 이미지·태그 | `ReviewManagementQueryDao#findReviewManagementDetail` |
+
+세 record는 canonical 생성자 외에 **QueryDSL 투영 전용 생성자**를 하나 더 갖는다. DAO가
+`Projections.constructor`로 **리플렉션 호출**하므로 정적 호출부가 0개이고, 그래서 **IDE가
+"never used"로 표시한다.** 그 경고를 근거로 지우면 **컴파일은 통과하고 그 쿼리가 실행되는 순간에만
+500이 난다.**
+
+- **파라미터 개수·타입·순서가 DAO의 select 인자와 정확히 일치해야 한다.** `Projections.constructor`는
+  `Class<?>`를 받아 런타임에 생성자를 찾으므로 불일치도 컴파일에 걸리지 않는다. `@QueryProjection`에서
+  전환하며 **컴파일 게이트가 사라졌고, 인자 개수 가드 테스트
+  (`infrastructure:persistence`의 `ProjectionConstructorMatchingTest`)가 유일한 방어선**이다.
+- record는 반드시 `public`이어야 한다 — package-private이면 `getConstructors()`가 찾지 못해
+  `ExpressionException: No constructor found`로 실패한다(`ShopRiderGuidePickupPresenceResult` 장애 선례).
+- **원문 주석 1건은 낡아 있었으므로 여기 옮기며 교정했다** — `ReviewManagementDetailResult`의 주석은
+  "제거하면 Q타입이 생성되지 않아 빌드가 깨진다"고 적혀 있었으나, `@QueryProjection` → `Projections.constructor`
+  전환으로 **`QReviewManagementDetailResult` Q타입은 더 이상 생성되지 않는다**(실측 0건). 실제 위험은
+  빌드 실패가 아니라 **런타임 투영 실패**다.
+
+### `//noinspection BusyWait` — 이 억제 마커는 정당하며 제거 대상이 아니다
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java`
+→ 카테고리 루프의 `Thread.sleep(10000)`
+
+**이 모듈에서 유일하게 남아 있는 주석 형태의 코드**다(챕터 04의 주석 전량 제거에서 의도적으로 제외).
+정적분석 도구가 읽는 억제 마커이므로 주석이 아니라 **코드로 취급한다.**
+
+억제가 정당한 이유는 **busy-wait가 아니라 외부 BBQ 서버 부하 방지를 위한 의도적인 요청 간
+지연**이기 때문이다. 루프 안의 `Thread.sleep`이라는 형태만 보고 "폴링을 이벤트 대기로 바꾸라"는
+지적으로 오인해 지연 자체를 없애면, 크롤링이 외부 서버를 연속 타격한다. 마커와 지연 둘 다 유지한다.
+
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+챕터 04에서 이 모듈의 java 주석 11,312줄을 전부 제거하며, 코드만 읽어서는 도달할 수 없는
+설계 근거를 여기로 옮겼다. 각 절은 **어느 코드 요소에 붙어 있던 서술인지**를 앵커로 밝힌다.
+
+### 트랜잭션 경계를 파사드가 아니라 하위 서비스가 갖는 이유 — read-then-write 판정
+
+**대상**: `application/src/main/java/com/tastyhouse/application/member/service/MemberService.java`,
+`auth/service/AuthPasswordResetService.java`, `auth/service/MemberAuthCommandService.java`
+
+화면 단위 흐름을 엮는 **파사드는 `@Transactional`을 갖지 않는다.** 파사드가 트랜잭션을 열면
+DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB 커넥션을 네트워크 지연만큼
+점유하게 되므로, 원자성이 실제로 필요한 구간만 하위 CommandService가 단일 트랜잭션으로 갖는다.
+
+판정 기준은 하나다 — **"이 단계가 DB에서 읽은 값에 근거해 DB를 쓰는가(read-then-write)?"**
+그렇다면 검증과 쓰기가 같은 트랜잭션·같은 로드 안에 있어야 하고(그렇지 않으면 검증 후 쓰기
+사이에 상태가 바뀌어 검사를 우회할 수 있다), 아니라면 묶지 않는다.
+
+| 유스케이스 | 판정 | 근거 |
+|---|---|---|
+| 개인정보 변경 | 묶지 않는다 | 두 토큰 검증이 **JWT 서명·클레임 검증만** 수행하고 DB를 읽지 않는다(토큰이 발급 시점의 인증 사실을 서명으로 담고 있다). read-then-write 경합이 성립하지 않으며, 실제 DB write는 `MemberCommandService#updatePersonalInfo` 한 번뿐이라 이미 단일 트랜잭션이다 |
+| 비밀번호 변경 | 묶었다(하강) | "새 비밀번호가 기존과 같은지" 검사가 **DB에서 읽은 현재 비밀번호**에 근거해 DB를 쓰는 read-then-write다. 과거에는 이 검사가 별도 readOnly 트랜잭션에 있어 검사와 변경이 두 트랜잭션·두 번의 회원 로드로 쪼개져 **검사 후 변경 사이에 비밀번호가 바뀌면 우회 가능**했다. `MemberCommandService#updatePassword` 안으로 내려 단일 트랜잭션·단일 로드로 원자화했다 |
+| 회원 탈퇴 | 묶지 않는다(묶으면 틀린다) | 탈퇴는 DB 변경이지만 토큰 무효화는 **Redis 블랙리스트 등록**이라 DB 트랜잭션과 무관하다. 오히려 **순서가 중요**하다 — 탈퇴가 커밋된 뒤 무효화해야 하며, 한 트랜잭션에 넣으면 Redis 등록이 커밋 전에 일어나 **탈퇴가 롤백돼도 토큰만 죽는** 불일치가 남는다 |
+| 인증코드 발송 | 묶었다 | "기존 미완료 인증 만료 + 새 인증 저장 + 발송"이 함께 성립해야 한다 |
+
+**비밀번호 변경의 검사 순서를 뒤집지 않는다** — 동일 여부(`MEMBER_PASSWORD_SAME_AS_OLD`) →
+확인값 불일치(`MEMBER_PASSWORD_CONFIRM_MISMATCH`) 순서를 유지해야 하며, 뒤집으면 두 조건을
+동시에 위반한 요청의 **응답 코드가 바뀐다**.
+
+### PG·외부 왕복은 트랜잭션 밖에 둔다 — 3단 구조와 보상 불가 지점
+
+**대상**: `payment/service/PaymentCommandService.java` · `payment/service/PaymentConfirmationExecutor.java`
+
+**클래스 레벨 `@Transactional`이 없는 것은 의도다.** 토스 승인·결제 취소는 PG사와의 HTTP 왕복을
+포함하는데, 그 왕복이 DB 트랜잭션 안에 있으면 (1) 커넥션과 결제·주문 행 락을 네트워크 지연만큼
+점유하고, (2) PG 처리가 성공한 뒤 커밋이 실패하면 **"PG는 승인/취소, DB는 미반영"이라는 보상 불가
+불일치**가 남는다.
+
+```
+① 사전 검증  : PaymentConfirmationExecutor#prepareInNewTx  (트랜잭션, readOnly)
+② PG 호출    : PgPaymentGateway                            (트랜잭션 없음)  ← 서비스가 직접
+③ 결과 반영  : PaymentConfirmationExecutor#applyInNewTx    (트랜잭션)
+```
+
+- **보상 장치**: ③이 실패하면 PG는 이미 처리됐으므로 자동 보상이 불가능하다. `PG_DB_MISMATCH`
+  마커와 PG 거래 식별자를 담은 `log.error`를 **수동 개입·대조 배치의 진입점**으로 삼는다(운영에서
+  이 마커로 알럿을 건다). 사용자에게는 실패를 그대로 전파해 "성공했지만 반영되지 않은" 상태를
+  성공으로 오인하게 하지 않는다.
+- **PG 호출 자체가 예외(타임아웃 등)면 상태를 바꾸지 않고 그대로 전파한다** — 승인 여부가 불확실한
+  상태에서 `FAILED`로 단정하면 PG는 승인인데 DB는 실패인 **반대 방향 불일치**를 만든다.
+- `failInNewTx`의 트랜잭션은 **커밋되어야 한다** — 실패 사실과 PG 응답 원본을 남기는 것이 목적이라
+  예외 변환은 커밋 이후 호출자가 수행한다.
+- PG 왕복을 포함하지 않는 명령(결제 개시·PG 콜백 반영·현장결제 완료·환불 요청)은 DB만 다루므로
+  메서드 단위 `@Transactional` 하나로 충분하다.
+
+### Executor를 별도 빈으로 분리하는 이유 — self-invocation은 프록시를 거치지 않는다
+
+**대상**: `payment/service/PaymentConfirmationExecutor.java` ·
+`reservation/service/ReservationBookingExecutor.java` ·
+`reviewblind/service/ReviewBlindExpirationExecutor.java` ·
+`productsoldout/service/ProductSoldOutReleaseExecutor.java` · `region/service/AdminDongSyncExecutor.java`
+
+**같은 빈의 메서드를 호출하면 Spring 프록시를 거치지 않아(self-invocation) `@Transactional`이
+적용되지 않는다.** 그래서 "재시도 루프·반복 처리는 트랜잭션 밖, 각 시도는 독립 트랜잭션"을
+표현하려면 두 구간이 **서로 다른 빈**에 있어야 한다. 오케스트레이션하는 쪽은 트랜잭션을 가질 수
+없고(외부 호출을 밖에 둬야 하므로), 도메인 서비스는 순수 POJO라 가질 수 없다 — 그 사이를 메우는
+얇은 위임 빈이 Executor다.
+
+- **낙관적 락 재시도**(`ReservationBookingExecutor`): 매 시도가 새 트랜잭션이어야 한다. 한 빈에
+  두면 첫 시도에서 **rollback-only로 표시된 트랜잭션을 그대로 재사용**해 재시도가 무의미해진다.
+- **건별 격리**(`ReviewBlindExpirationExecutor`·`ProductSoldOutReleaseExecutor`): 한 건이 실패해도
+  앞서 성공한 건들이 함께 말려 들어가지 않아야 한다. 그래서 **스케줄러 서비스에는 `@Transactional`을
+  붙이지 않는다** — 붙이면 전체가 한 트랜잭션이 되어 한 건의 실패가 전체를 되돌린다.
+  실패 요약은 예외가 아니라 **로그**로 남긴다(예외를 던지면 스케줄러가 삼켜 성공 건수까지 잃는다).
+- Executor는 `REQUIRES_NEW`가 아니라 기본 `REQUIRED`를 쓰되, **상위 트랜잭션이 없는 상태를 전제한
+  설계**임을 밝히려 전파 속성을 명시적으로 남긴다.
+
+### CQRS 교차 주입 금지가 실제로 강제하는 것
+
+**대상**: `**/service/*CommandService.java` · `**/service/*QueryService.java`
+
+`*CommandService`는 infra query DAO도 같은 모듈의 `*QueryService`도 주입하지 않고, `*QueryService`는
+domain의 write 포트를 주입하지 않는다. 그 결과 아래가 **구조로 강제**된다.
+
+- **모든 명령은 식별자만 반환하고, 응답 조립은 커밋 이후 컨트롤러가 QueryService로 재조회해 담당한다.**
+- 명령 경로에서 다른 애그리거트를 참조해야 하면 표현용 투영이 아니라 **write 포트의 단건 로드**를
+  쓴다 — 그 값이 화면 표시용이 아니라 **불변식 입력**이기 때문이다(예: 리뷰 등록 시 상품 → 가게
+  역조회는 "리뷰가 어느 가게에 속하는가"를 확정한다).
+- 조회 경로에서 소유권·인가 판정이 필요하면 write 포트 대신 **읽기 포트로 식별자만 조회해 대조**한다
+  (상태를 바꾸지 않는 화면 접근 판정이라 표현 목적 조회다).
+- 규칙을 우회하지 않으면서 인가 관심사를 다루려면 **write 포트를 감싼 협력 빈**에 가둔다
+  (`ShopOwnershipValidator`·`OwnedShopIdProvider`·`StorePriceVerificationReader`). 규칙의 의도는
+  "쓰기 경로가 표현용 조회를 끌어다 쓰는 것"을 막는 데 있고 소유권 판정은 그 범주가 아니다.
+
+**빈 순환 참조 회피**: 한 화면이 다른 컨텍스트의 데이터를 곁들여 보여줄 때 그쪽 QueryService를
+경유하지 않고 **QueryPort를 직접 주입**한다 — 서비스를 경유하면 상대 쪽이 이 서비스를 다시 주입해야
+해 순환이 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다(`ProductQueryService` ↔
+`ReviewQueryService`가 실제 사례).
+
+### 도메인 계산 입력은 표현용 투영으로 대체하지 않는다
+
+**대상**: `shop/service/ShopQueryService.java` → `findVisibleShopAggregate`
+
+표현용 단건 조회와 달리 **도메인 서비스에 넘길 도메인 모델이 필요한 조회는 write 포트를 쓴다.**
+계산기가 도메인 모델을 받으므로 표현용 Result를 도메인으로 되돌리는 역변환을 두지 않기 위함이며,
+이것이 `queryServicesShouldNotDependOnWritePorts` carve-out의 실질적 근거다(위 봉인 목록 참조).
+화면 표기용 목록(지역 이름 조립 등)만 infra query DAO에서 받는다.
+
+같은 이유로 **read model을 `reconstitute`로 도메인 모델까지 되짚어 올려** 도메인 정책의 술어를
+재사용하는 경로가 있다(`ShopPriceBadgeQueryService`·`ProductQueryService`). 규칙을 복제하면 표시
+가격과 결제 금액이 갈리거나, 요일 구분을 추가할 때 한쪽만 고쳐진다. `reconstitute`(검증 미수행)를
+쓰는 것은 **기존 데이터가 현행 규격을 위반해도 조회는 되어야 하기 때문**이다.
+
+### 시각·시계에 의존하는 계산은 application에 남는다
+
+**대상**: `coupon/port/out/MyCouponListItemResult.java` · `review/service/ShopReviewQueryService.java`
+→ `toReplyWindow` · `review/service/ReviewOwnerReplyCommandService.java` → `register`
+
+"오늘"을 읽어야 하는 판정은 표현 계약이 대신할 수 없다 — 표현 계약이 시계를 읽으면 **응답 조립이
+시점에 따라 값이 달라지는 순수하지 않은 함수**가 된다. 마감일 상수는 도메인 모델이 소유하므로
+api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도 함께 작용한다.
+
+반대 방향으로, **domain은 프레임워크-프리라 시계를 주입받을 수 없고** 도메인이 직접 `now()`를
+부르면 단위 테스트에서 기한을 고정할 수 없다. 그래서 기준 시각은 **이 계층이 해석해 도메인 서비스에
+넘긴다**.
+
+### 도메인 enum에 대한 `switch`를 api 모듈로 내리지 않는다
+
+**대상**: `review/service/ShopReviewQueryService.java` → `describeSortType` ·
+`shop/service/ShopRequestQueryService.java` → `toRequestStatus`
+
+도메인 enum에 대한 `switch`는 바이트코드에서 `ordinal()`·`values()` 호출이 되어 api 모듈에서는
+`apiModuleShouldOnlyReadDomainEnums`(읽기 accessor 3종만 허용)에 걸린다. 그래서 분기·표시 문구
+매핑은 이 계층에 남는다.
+
+**`valueOf`가 아니라 `switch`를 쓰는 것도 의도다** — 어느 한쪽에 상수가 추가되면 컴파일이 깨져
+매핑 누락이 드러난다. 값 이름이 그대로 대응하더라도 마찬가지다.
+
+### 표시 문구를 서버가 완성하는 기준
+
+**대상**: `shop/service/ShopQueryService.java` → `toShopDeliveryTipBreakdownItems`·`toTimeSlotLabel`
+
+프론트가 분기·상수를 복제하지 않도록 서버가 문구를 완성한다. **문구 안의 숫자는 천 단위 콤마까지
+서버가 넣는다** — 그 값은 응답의 금액 필드가 아니라 **이미 완성된 문장의 일부**라 프론트가 문자열을
+뜯어 다시 포맷할 수 없기 때문이다(금액 필드 자체의 표기 포맷은 그대로 프론트 담당이다).
+
+도메인 enum 승격이 필요한 표기(요일 표시명 등)도 여기서 끝낸다 — api 모듈이 호출할 수 없는
+도메인 enum 메서드이기 때문이다.
+
+### 컨텍스트 경계를 잇는 조립은 이 계층의 몫이다
+
+**대상**: `product/service/ProductAvailabilityCommandService.java` ·
+`product/service/ProductVegetarianCommandService.java` ·
+`menureview/service/MenuReviewCommandService.java` ·
+`shop/service/ShopStorePriceVerificationCommandService.java`
+
+한 유스케이스가 두 컨텍스트의 값을 함께 필요로 하면, 도메인 서비스가 상대 컨텍스트를 직접 참조하는
+대신 **이 계층이 각각 주입해 연결한다** — 도메인에서 참조하면 `ContextBoundaryTest` 위반이 되고
+**봉인 목록은 늘릴 수 없다.**
+
+정책과 계산을 가르는 기준도 함께 기록한다 — "오픈 시각을 정할 수 없다"(계산기)와 "그러면 얼마로
+할까"(정책)는 서로 다른 판단이므로, **순수 계산기가 정책을 삼키지 않도록** 폴백 정책은 이 계층에 둔다.
+
+### 소유권 역조회를 생략하지 않는다 — 실제 IDOR 사고의 근거
+
+**대상**: `product/service/ProductImageCommandService.java` → `deleteImage` ·
+`product/service/ProductOptionGroupOwnershipValidator.java` ·
+`shop/service/ShopDeliveryAreaCommandService.java` → `removeDeliveryArea`
+
+경로에 소유자 식별자가 없더라도 **대상 행에서 소유자를 역조회할 수 있으면 반드시 검증한다.**
+이 저장소는 배달가능지역 삭제에서 정확히 이 역조회를 빠뜨려 **아무 점주나 순번을 훑어 남의 가게
+배달가능지역을 삭제**할 수 있는 IDOR을 낸 전례가 있다(피해 가게는 배달 범위를 잃거나, 등록 건수가
+0이 되면 주문 접수의 지역 검사 자체가 비활성화됐다).
+
+- **"없음"과 "남의 것"은 같은 404로 합친다** — 코드가 갈리면 존재 여부가 새어 식별자 열거에 쓰인다.
+  403을 쓰면 그 리소스의 존재 자체가 드러난다.
+- **연결이 0건이면 소유자를 판정할 수 없으므로 접근 불가로 다룬다** — `null`을 "허용"으로 읽으면
+  곧 인가 우회다.
+- **N:M 전환 이후 소유권 판정은 동등 비교가 아니라 포함 관계다** — 한 메뉴가 여러 가게에 걸리므로
+  원본 가게만 인정하면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다.
+
+### 집합 규칙이 있는 교체는 전량 검증 후 업로드한다
+
+**대상**: `shop/service/ShopNoticeOwnerCommandService.java` → `saveImages`
+
+파일 단위로 검증·업로드를 교차하면 뒤쪽 파일이 규격 위반일 때 앞쪽은 **이미 외부 스토리지에 올라간**
+상태가 된다. 트랜잭션 롤백은 `UPLOADED_FILE` 행만 되돌릴 뿐 **스토리지 바이트는 되돌리지 못해**
+실패 시도마다 고아 파일이 누적된다. 그래서 전량 검증을 먼저 끝낸 뒤 업로드한다.
+
+변경 전 요약은 `updateContent` **호출 전에** 확정해야 한다 — 같은 인스턴스를 제자리에서 갱신하므로
+나중에 읽으면 이미 변경 후 값이다.
+
+### multipart 문자열 파트의 파싱 위치
+
+**대상**: `shop/service/ShopStorePriceVerificationCommandService.java` → `toItemSpecs`
+
+컨트롤러·Request record는 domain-free라 `BusinessException`을 던질 수 없고, 서비스는 `..request..`를
+알 수 없다(`commandServicesShouldNotDependOnRequestRecords`). 세 규칙을 모두 만족하는 유일한 형태는
+**Command가 원문을 경계 타입 `String`으로 담아 넘기고 서비스가 파싱하는 것**이다. 파싱 실패와 빈
+목록이 같은 `ErrorCode`로 나가던 계약도 이때 그대로 보존된다(둘 다 서비스가 던진다).
+
+실행 순서에도 의도가 있다 — **파싱을 업로드보다 앞에 둬야** 목록이 깨진 요청 때문에 쓸모없는
+파일이 업로드되지 않는다.
+
+### 조회 기간 상한을 이 계층에서 강제하는 이유
+
+**대상**: `ceo/service/CeoLoginHistoryQueryService.java`(90일) ·
+`ceo/service/CeoShopAccessHistoryQueryService.java`(5년) ·
+`shop/service/ShopChangeHistoryQueryService.java`(6개월)
+
+- **domain이 아닌 이유**: 기간 제한은 도메인 불변식이 아니라 **조회 화면 정책**이다. 기간이 지난
+  행도 삭제하지 않고 계속 보관하며(고객센터 요청 시 장기 조회가 원 요구사항), 기록·저장은 제한하지
+  않는다.
+- **Bean Validation만으로 불가능한 이유**: `@PastOrPresent`는 상한만 막고 **"오늘 기준 -N일"이라는
+  상대 하한**을 어노테이션으로 표현할 수 없다.
+- **DAO 단독이 아닌 이유**: DAO가 조용히 잘라내면 사용자에게 "왜 비었는지"가 보이지 않는다.
+- **기본값으로 파생된 경우에도 동일하게 검증한다** — 한쪽만 범위 밖으로 지정하면 나머지가 파생되어
+  함께 밖으로 나가므로 그 조합도 거부되어야 한다.
+
+**요청처리 현황에는 상한을 두지 않는다** — 변경이력의 6개월 제한을 대칭성을 이유로 복제하지 않는다.
+"내가 낸 요청의 결과"는 반려 사유 확인·재요청 시 과거 제출물 참조를 위해 오래된 건도 열람돼야 한다.
+
+### 접속기록은 인증 실패 경로에서도 남아야 한다
+
+**대상**: `auth/service/CeoAuthCommandService.java` · `ceo/service/CeoLoginHistoryCommandService.java`
+
+**이 클래스들에 `@Transactional`을 붙이지 않는다.** 로그인 실패는 Spring Security 예외로 전파되는데,
+트랜잭션이 걸려 있으면 **실패 이력이 예외와 함께 롤백되어 영구히 남지 않는다.** 호출부가 비트랜잭션이므로
+기록 서비스의 매 호출이 프록시를 거쳐 **독립 트랜잭션으로 즉시 커밋**되고, 따라서 `REQUIRES_NEW`가
+필요 없다.
+
+**기록 실패 시 정책은 성공·실패 경로가 의도적으로 비대칭이다**(봉인 목록의 carve-out과 짝).
+
+- 성공 경로는 기록 실패를 **그대로 전파한다** — 접속기록 없이 토큰이 발급되는 상태를 만들지 않으며,
+  개인정보처리시스템 접속기록은 법적 요구사항이라 남기지 못했다면 접속도 허용하지 않는 편이 옳다.
+- 실패 경로는 기록 실패를 catch·로깅하고 **원래 인증 예외를 rethrow한다** — 감사 쓰기 실패가 인증
+  실패 응답 계약(401)을 500으로 바꾸면 안 된다.
+
+`refresh`는 접속기록을 남기지 않는다 — 토큰 갱신은 새로운 개인정보 접속이 아니라 기존 세션의 연장이다.
+존재하지 않는 아이디도 기록하지 않는다 — 임의 username을 쌓으면 **계정 존재 여부를 탐색하는 표면**이 된다.
+
+### 인증 타입의 앱별 중복은 의도된 것이다
+
+**대상**: `auth/service/{Member,Admin,Ceo}AuthCommandService.java` · `auth/token/*TokenService.java`
+
+인증 주체(`Member`·`Admin`·`Ceo`), 앱별 `ErrorCode`, `JWT_SECRET_*` 분리 때문에 **통합하면 앱별 인증
+경계가 무너진다**(동일 시크릿이면 회원 토큰이 admin 인증을 통과하는 권한 상승). backend/CLAUDE.md의
+앱별 중복 허용 목록에 있는 항목이며, "중복 제거" 대상으로 보지 않는다.
+
+### 인바운드 포트의 도입 근거는 다형성이 아니다
+
+**대상**: `**/port/in/*UseCase.java`
+
+구현체가 하나뿐이고 소비자도 하나뿐이라 다형성·교체 가능성의 실익은 0에 가깝다. 도입 근거는
+**컴파일 게이트**(컨트롤러가 구체 서비스에 손대는 코드가 애초에 컴파일되지 않는다)와 **경계 계약의
+문서화**(그 애그리거트의 연산 계약을 한 파일이 고정한다)다.
+
+- **인자가 하나뿐인 연산은 Command로 묶지 않는다** — 이름 있는 record로 얻는 이득(같은 타입 인자
+  순서 착각 방지)이 인자 1개에는 존재하지 않는다.
+- **배치 잡 UseCase에는 Command record가 없다** — 스케줄이 유일한 입력이라 경계에서 받을 값이 없고,
+  파라미터 없는 연산에 빈 Command를 만드는 것은 형식만 맞추는 껍데기다.
+- `@Scheduled` 트리거가 이 인터페이스만 주입하고 구현을 알지 않아야 **잡 본문 교체·테스트 대역
+  주입**이 가능하다.
+
+### 앱 네임스페이스 Result와 공용 읽기 계약을 가르는 기준
+
+**대상**: `point/port/out/PointHistoryItemViewResult.java` · `coupon/port/out/MyCouponListItemResult.java` ·
+`payment/port/out/PaymentViewResult.java` · `order/port/out/OrderDetailViewResult.java` ·
+`grade/port/out/GradeInfoResult.java`
+
+공용 읽기 계약 패키지는 **포트 하나의 산출물**을 담는 자리다. 아래에 해당하면 그 자리에 형제로 둘 수
+없어 앱 네임스페이스에 별도 Result를 둔다.
+
+- **DB 값이 아니라 계산 결과인 필드**가 있다(포인트 사용 내역의 부호 반전 — 저장된 양수를 음수로
+  뒤집는 이 규칙은 표현 규칙이 아니라 회원 화면의 도메인 규칙이라 컨트롤러가 흉내낼 수 없다).
+- **조회 시각 기준 파생값**이 있다(남은 일수·만료 여부).
+- **VO 언랩·enum 강등**이 필요하다(금액이 `Money` VO라 `.value()`를 꺼내야 하는데 그것은 도메인
+  타입을 아는 일이다).
+- **다른 컨텍스트에 물어본 값이 합쳐진다**(주문상품의 리뷰 작성 여부).
+- **포트 자체가 없다**(등급 정책은 도메인 enum 상수에서 파생되는 정적 목록이라 DB를 읽지 않는다).
+
+**이 Result들은 어떤 금액도 계산하지 않는다** — 합계·할인 분해·최종금액 산출은 도메인과 DAO 투영이
+이미 끝냈고, 이 계약은 거처만 옮긴다.
+
+### 필드 셋이 다른 Result를 통합하지 않는다
+
+**대상**: `coupon/port/out/MemberCouponItemResult.java` · `order/port/out/OrderListItemResult.java` ·
+`product/port/out/ProductOptionGroupManagementResult.java` ·
+`review/port/out/ShopReviewManagementDetailResult.java`
+
+이름이 비슷하다고 상위집합 필드를 갖는 하나로 합치지 않는다 — 관리 화면에만 필요한 필드를 손님
+응답 경로로 흘리면 **과잉 노출**이 되고, 어느 필드가 어느 화면 계약인지 추적할 수 없게 된다.
+Result가 소비자별로 분리돼 있어 **실수로 새기 어렵다**는 것 자체가 이 배치의 이득이다(배달 평가가
+ceo 전용 Result에만 있는 것이 그 사례).
+
+### 관리 전용 조회가 별도 경로를 갖는 이유
+
+**대상**: `review/port/out/ReviewBlindNoticeResult.java` ·
+`review/service/ReviewBlindConsentQueryService.java`
+
+일반 리뷰 상세 조회는 `hidden.isFalse()` 필터에 걸려 게시중단 리뷰에 404를 낸다. 그 필터는
+**"게시중단은 정책 위반 제재"라는 판단이라 완화할 수 없으므로**, 작성자 본인에게만 열리는 전용
+경로를 따로 둔다. 인가가 핵심이라 투영 결과의 작성자와 인증 주체 일치를 **재검증**하고, 불일치·부재를
+모두 404로 응답한다.
+
+### 스냅샷은 재조회하지 않는다
+
+**대상**: `order/port/out/OrderProductResult.java`
+
+주문 시점 가격·가격명은 스냅샷이므로 상품에서 재조회하지 않는다 — 가격명을 바꿔도 **과거 주문
+전표가 변하지 않아야** 하기 때문이다.
+
+### 인덱스는 파생 읽기모델이고 진실원은 원본이다
+
+**대상**: `shop/service/ShopRequestQueryService.java` → `toStorePriceVerificationDetailResult`
+
+상세는 원칙적으로 원본 애그리거트를 다시 읽는다. 다만 인증 요청 유형은 원본이 **product 컨텍스트
+소유**(승인의 본체가 `PRODUCT_PRICE` 갱신)여서 상세를 투영하는 shop 조회 DAO가 없다. 인덱스 상태는
+접수·전이 시점마다 `ShopRequestIndexRecorder`가 동기화하므로 목록과 같은 값이고, 화면이 이 유형에서
+필요한 것은 진행 상태와 반려 사유뿐이라 인덱스 값을 그대로 쓴다.
+
+### 빈 상태·판정 불가를 예외로 만들지 않는다
+
+**대상**: `shop/service/ShopPriceBadgeQueryService.java` → `getPriceBadges` ·
+`shop/service/ShopQueryService.java` → `getShopNotice` ·
+`product/service/ProductQueryService.java` → `findProductById` ·
+`region/service/AdminDongQueryService.java` → `getAdminDongBoundaries`
+
+부가 표시(뱃지)는 판정 불가가 **가게 화면 전체를 깨서는 안 되므로** 예외 대신 `false`를 준다.
+공지가 없는 것은 에러가 아니라 `null`이다 — 대부분의 가게에 공지가 없으므로 404를 쓰면 프론트가
+정상 상태를 에러로 처리하게 된다. 가격 행이 없는 이관 이전 메뉴도 예외 대신 빈 목록을 준다(상세가
+500으로 막히면 그 메뉴는 아예 팔 수 없다). 지도 축소도 정상 조작이라 **400이 아니라 빈 배열 +
+`truncated: true`**로 응답한다.
+
+### N+1을 부르는 반복 조회는 호출부가 한 번에 읽는다
+
+**대상**: `review/service/ReviewQueryService.java` → `findReviewedProductIds` ·
+`product/service/ProductQueryService.java` → `findProductsBatch`
+
+주문 상세처럼 항목이 여러 건인 화면이 항목마다 단건 조회를 부르면 항목 수만큼 쿼리가 나간다.
+호출부가 **루프 전에 1회 조회**한 뒤 메모리에서 판정하거나, 가격 행을 한 번에 읽어 그룹핑한다.
+
+### 서버가 판정해 가리는 필드는 표현 계층에 맡길 수 없다
+
+**대상**: `review/port/out/ReviewDetailView.java` · `review/service/ReviewQueryService.java`
+→ `toReviewDetailView`
+
+배달 평가 3필드는 **뷰어가 작성자 본인일 때만** 채워진다(규격상 다른 고객에게 노출 금지, 본인은
+수정 폼 초깃값으로 필요). 판정이 컨트롤러로 새면 **다른 호출부가 그 가림을 빠뜨릴 수 있으므로**
+이 계약에 담긴 시점에 세 필드는 이미 "보여도 되는 값"이고 `null`이면 가려진 것이다.
+
+**수정 폼은 받은 값을 그대로 되돌려 보내야 한다** — 수정 API는 PUT(전체 교체) 의미라 받은 값을 조건
+없이 덮어쓴다. "값이 없으면 유지"를 서버에 넣지 않은 것은 그 순간 `null`이 "안 보냄"과 "지워줘" 두
+뜻을 갖게 되어 **배달 평가를 지울 방법이 사라지기** 때문이다.
+
+### 가시성 가드의 위치가 조회와 등록에서 다른 것은 의도다
+
+**대상**: `review/service/ReviewQueryService.java` → `requireVisibleReview`
+
+조회(GET)는 이 서비스 안에서 직접 가드를 걸지만, 등록(POST)은 컨트롤러가 가드를 호출한 뒤 command
+서비스를 부른다 — command 서비스가 query 서비스를 주입받는 것이 **CQRS 교차 주입 금지 위반**이기
+때문이다. **한쪽으로 통일하려다 중복 쿼리를 만들지 않는다.**
+
+### 하위 호환을 위한 정규화
+
+**대상**: `review/service/ReviewCommandService.java` → `createReview`·`validateDeliveryRating`
+
+기존 클라이언트가 보내지 않는 필드는 `null`로 오므로 박싱 타입으로 받아 정규화한다(미전송 시 공개).
+배달 평가도 **둘 다 null이면 검증 자체를 건너뛴다**. 새 필드를 추가할 때 이 형태를 따른다.
+
+### 앱 마커가 곧 스캔 포함 기준이다
+
+**대상**: `shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java` · `{App}ApplicationConfig.java`
+
+`useDefaultFilters = false` 스캔의 **유일한 포함 기준**이자 ArchUnit 앱 격리 규칙의 술어다. 새 빈과
+새 UseCase 인터페이스는 **반드시 마커 하나를 단다** — 마커가 없으면 어느 앱에도 뜨지 않고, **컴파일은
+통과하므로 실패는 기동 시점 `NoSuchBeanDefinitionException`으로만 드러난다.**
+
+- Command record에는 붙이지 않는다(소속은 `AppOwnership`이 유도한다).
+- `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
+- 라이브러리 모듈 13개는 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
+  application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
+  (4개 앱의 빈이 같은 jar에 있고 마커로만 갈린다).
+
+### 앱마다 얇은 래퍼를 두는 이유 — 트랜잭션 경계는 앱의 관심사다
+
+**대상**: `file/service/FileUpload*CommandService.java`
+
+업로드 규칙 본체(허용 확장자·용량 한도·저장 경로·이벤트 발행)는 도메인 서비스가 단독으로 갖고,
+이 클래스들은 `MultipartFile` 어댑팅과 `@Transactional` 경계 선언 둘만 한다. **세 벌은 로직 중복이
+아니라 경계 선언 3개다** — 과거 api-common의 `FileService` 한 벌이 겸했는데, 표현 모듈이
+`@Transactional` 유스케이스를 갖는 데다 application이 그것을 주입받아 **application → 표현 역방향
+의존**이 생겼다.
+
+### 조회 전용 컨텍스트에는 CommandService를 두지 않는다
+
+**대상**: `region/service/AdminDongQueryService.java` · `ceo/service/CeoManagementQueryService.java`
+
+`ADMIN_DONG`은 시드 SQL로만 관리하는 read-only 마스터다. 점주 계정의 생성·수정은 ceo-api가 담당하므로
+관리 조회 쪽에는 CommandService를 두지 않는다. **빈 CommandService를 형식으로 만들지 않는다.**
+
+### `QueryUseCase`에는 컨트롤러 표면만 올린다 — 협력용 public 메서드를 전사하지 않는다
+
+**대상**: `application/src/main/java/com/tastyhouse/application/**/port/in/*QueryUseCase.java`
+와 그 짝인 `**/service/*QueryService.java`
+
+챕터 03 스펙의 문언은 "`QueryService`의 public 메서드 전사"였지만, **그대로 하면 빌드가 깨진다.**
+`*QueryService`의 public 메서드에는 컨트롤러가 부르는 것과 **다른 서비스가 부르는 협력용**이 섞여
+있는데, 후자는 도메인 모델·infra `*Result`를 그대로 주고받기 때문이다. 이것을 인터페이스로 올리면
+`commandRecordsShouldBeBoundaryTyped`(`..port.in..`에서 `com.tastyhouse.domain..`·`infrastructure..`
+의존 금지)에 걸린다.
+
+실제로 걸리는 협력용 메서드는 **현재 9개**이며(챕터 03 시점에는 `MemberQueryService#getMember`를
+포함해 10개였으나, 그 경로가 `MemberAuthService`의 `memberRepository` 직접 로드로 바뀌어 사라졌다),
+**전부 컨트롤러가 아니라 다른 서비스가 호출한다.**
+
+| 메서드 | 반환 | 실제 호출부 |
+|---|---|---|
+| `AdminQueryService#findByUsername` | `Optional<Admin>` | `TokenService`·`UserDetailsService`·시더 |
+| `CeoOwnerQueryService#findByUsername` | `Optional<Ceo>` | 위와 동일 |
+| `ProductQueryService`의 `findPopularProducts`·`findShopProductCategories`·`findShopProducts`·`searchByKeyword` | `*Result`·`PageResult` | `ShopQueryService`·`SearchQueryService` |
+| `ReviewQueryService`의 `findMyReviews`·`findShopReviewStatistics`·`findShopReviewsByRating` | 위와 동일 | 상동 |
+
+**스펙 §3의 목적이 "컨트롤러 주입 타입 교체"이므로, 인터페이스에는 컨트롤러 표면만 올리고 협력용
+메서드는 구체 클래스에 그대로 둔다.** 이러면 조회 로직 diff 0을 유지하면서 두 ArchUnit 규칙을 모두
+만족한다. 이것은 규칙을 무르게 하는 것이 아니라, 인바운드 포트가 애초에 겨냥한 표면(컨트롤러 경계)에
+대상을 한정하는 것이다.
+
+**판별법 — `port/in` 인터페이스 파일에 `com.tastyhouse.domain.` 또는 `com.tastyhouse.infrastructure.`
+import가 생기면 잘못 올린 것이다.** 단 `domain.exception..`(에러 계약)과 `domain.shared.page..`
+(페이징 계약) 두 carve-out은 정상이므로 그 둘을 뺀 나머지가 판정 대상이다(실측: `port/in` 전체의
+domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 **그 밖은 0건**이다).
+
+**새 조회를 추가할 때**: 컨트롤러가 부르지 않는 메서드라면 `*QueryUseCase`에 올리지 말고
+`*QueryService`에만 둔다. 협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다.

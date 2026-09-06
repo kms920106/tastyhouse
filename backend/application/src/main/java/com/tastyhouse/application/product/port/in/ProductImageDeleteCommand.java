@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 이미지 삭제 command.
- */
 public record ProductImageDeleteCommand(
     Long ceoId,
     Long shopId,

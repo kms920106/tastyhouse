@@ -26,16 +26,6 @@ import com.tastyhouse.application.order.port.out.OrderPaymentSummaryResult;
 import com.tastyhouse.application.order.port.out.OrderProductViewResult;
 import com.tastyhouse.application.review.service.ReviewQueryService;
 
-/**
- * 회원 주문 조회 서비스(web-api).
- *
- * <p>infra query DAO({@link OrderQueryPort})만 주입해 조회하고, 읽기 계약 조립(private 매퍼)을
- * 담당한다(공통 지침 패턴 2·3). write 포트는 주입하지 않는다. 표현 계약({@code Order*Response})
- * 조립은 web-api가 담당한다(챕터 10).
- *
- * <p>주문 상세는 회원 스코프 조회이므로, DAO가 함께 투영한 {@code memberId}를 요청 회원과 대조해 남의
- * 주문 열람을 막는다(도메인 모델 {@code Order#validateOwnership}과 동일한 {@code ORDER_ACCESS_DENIED}).
- */
 @Service
 @WebApp
 @Transactional(readOnly = true)
@@ -49,17 +39,11 @@ public class OrderQueryService implements OrderQueryUseCase {
         this.reviewQueryService = reviewQueryService;
     }
 
-    /**
-     * 내 주문 목록.
-     */
     @Override
     public PageResult<OrderListItemResult> getOrderList(Long memberId, int page, int size) {
         return orderQueryPort.findOrders(MemberId.of(memberId), PageQuery.of(page, size));
     }
 
-    /**
-     * 내 주문 상세 — 요청 회원의 주문이 아니면 {@code ORDER_ACCESS_DENIED}.
-     */
     @Override
     public OrderDetailViewResult getOrderDetail(Long memberId, Long orderId) {
         OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId))
@@ -73,8 +57,7 @@ public class OrderQueryService implements OrderQueryUseCase {
     }
 
     private OrderDetailViewResult toOrderDetailViewResult(OrderDetailResult result, Long memberId) {
-        // 주문상품마다 리뷰 여부를 개별 조회하면 상품 수만큼 쿼리가 나가므로(N+1), 상품 식별자를 모아
-        // 한 번에 조회하고 아래 매핑 루프는 메모리에서 판정한다.
+
         List<Long> productIds = result.orderProducts().stream()
             .map(OrderProductResult::productId)
             .filter(Objects::nonNull)
@@ -86,9 +69,6 @@ public class OrderQueryService implements OrderQueryUseCase {
             .map(orderProduct -> toOrderProductViewResult(orderProduct, reviewedProductIds))
             .toList();
 
-        // 보증금은 결제(PAYMENT) 테이블이 아니라 주문에 저장된다 — PAYMENT.amount는 손님이 실제로 내는
-        // 돈(보증금 포함 final_amount)이고, 그중 얼마가 보증금인지는 주문이 안다. 그래서 결제 요약에
-        // 넣을 값도 주문에서 가져온다(PAYMENT 스키마·모델은 변경하지 않는다).
         OrderPaymentSummaryResult payment = result.payment() != null
             ? toOrderPaymentSummaryResult(result.payment(), result.cupDepositAmount())
             : null;
@@ -121,9 +101,6 @@ public class OrderQueryService implements OrderQueryUseCase {
         );
     }
 
-    /**
-     * 결제 상태 이름 — 결제가 없거나 상태가 비어 있으면 {@code null}(기존 동작 보존).
-     */
     private String toPaymentStatusName(OrderPaymentResult payment) {
         if (payment == null || payment.paymentStatus() == null) {
             return null;

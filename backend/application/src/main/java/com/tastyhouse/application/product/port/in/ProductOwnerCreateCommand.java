@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 등록 command. 연결 가게 목록은 중첩 command로 받는다.
- */
 public record ProductOwnerCreateCommand(
     Long ceoId,
     Long shopId,

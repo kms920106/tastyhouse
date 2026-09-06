@@ -5,9 +5,6 @@ import java.time.LocalDate;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 가게 임시 휴무 등록 command.
- */
 public record ShopTemporaryClosureCreateCommand(
     Long ceoId,
     Long shopId,

@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 가격 일괄 교체 command.
- */
 public record ProductPriceReplaceCommand(
     Long ceoId,
     Long shopId,

@@ -15,15 +15,6 @@ import com.tastyhouse.application.point.port.out.PointManagementQueryPort;
 import com.tastyhouse.application.point.port.out.PointSearchCondition;
 import com.tastyhouse.application.point.port.in.PointManagementQueryUseCase;
 
-/**
- * 포인트 관리 조회 서비스.
- *
- * <p>읽기 포트({@link PointManagementQueryPort})만 주입해 조회한다. write 포트·도메인 서비스를 주입하지
- * 않으며, 수동 적립·차감은 {@link PointCommandService}가 담당한다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

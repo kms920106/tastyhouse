@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 옵션 숨김 처리 command.
- */
 public record ProductOptionHideCommand(
     Long ceoId,
     Long shopId,

@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 내 옵션그룹 정렬 변경 command.
- */
 public record ProductOptionGroupOrderChangeCommand(
     Long ceoId,
     Long shopId,

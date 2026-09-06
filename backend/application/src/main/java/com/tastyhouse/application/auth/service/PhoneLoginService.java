@@ -34,8 +34,6 @@ public class PhoneLoginService {
         this.tokenService = tokenService;
     }
 
-    // smsVerifyToken을 검증하고, 해당 번호로 가입된 회원이 있으면 JWT 발급
-    // 없으면 needsSignUp=true 반환
     @Transactional(readOnly = true)
     public PhoneLoginResult login(String smsVerifyToken) {
         if (jwtTokenProvider.isInvalidSmsVerifyToken(smsVerifyToken)) {

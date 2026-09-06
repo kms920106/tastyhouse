@@ -15,19 +15,6 @@ import com.tastyhouse.application.banner.port.out.BannerManagementQueryPort;
 import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
 import com.tastyhouse.application.banner.port.in.BannerManagementQueryUseCase;
 
-/**
- * 배너 관리 조회 서비스.
- *
- * <p>읽기 포트({@link BannerManagementQueryPort})만 주입해 조회한다. write 포트를 주입하지 않으며,
- * 쓰기는 {@link BannerCommandService}가 담당한다.
- *
- * <p>HTTP 경계에서 {@code String}으로 받은 배너 유형은 여기서 {@code BannerType.from(String)}으로
- * 승격해 검색 조건에 담는다. 파일 정보는 DAO가 조인으로 함께 투영하고 표시용 URL까지 완성해 주므로,
- * 여기서는 파일을 다시 조회하지도 변환하지도 않는다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·{@code FileResponse}·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

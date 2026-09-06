@@ -13,14 +13,6 @@ import com.tastyhouse.application.shop.port.in.ShopThumbnailChangeRequestCommand
 import com.tastyhouse.application.shop.port.in.ShopTrademarkChangeRequestCommand;
 import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
 
-/**
- * 점주용 가게 상표/대표이미지 변경요청 서비스(CQRS command 측).
- *
- * <p>PENDING 중복 요청 차단 불변식과 변경이력({@code TRADEMARK_CHANGE_REQUEST}·
- * {@code THUMBNAIL_CHANGE_REQUEST}) 기록은 도메인 서비스 {@link ShopImageApprovalService}가 담당하고,
- * 이미지 규격 검증(형식·용량·해상도·비율)은 presentation의 {@link ShopImageSpecValidator}가
- * 업로드 전에 수행한다(core는 fileId만 받는다).
- */
 @Service
 @CeoApp
 @Transactional

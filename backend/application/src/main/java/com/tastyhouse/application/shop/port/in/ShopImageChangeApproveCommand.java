@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 가게 이미지 변경 요청 승인 command. */
 public record ShopImageChangeApproveCommand(
     Long requestId
 ) {

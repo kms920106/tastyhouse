@@ -27,15 +27,6 @@ import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 옵션그룹 합치기의 명령 측(합치기 실행 · 추천 제외).
- *
- * <p>불변식 본체는 {@link ProductOptionGroupMergeService}(도메인)가 소유하고, 이 서비스는 소유권
- * 검증과 트랜잭션 경계만 담당한다.
- *
- * <p><b>query DAO를 주입하지 않는다</b>(CQRS 교차 주입 금지) — 제외 요청의 서명 재계산도 DAO가 아니라
- * write 포트({@code ProductOptionRepository})에서 읽은 도메인 모델로 수행한다.
- */
 @Service
 @CeoApp
 @Transactional
@@ -61,12 +52,6 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
 
-    /**
-     * 합치기를 실행하고 <b>살아남은 기준 그룹 id</b>를 반환한다.
-     *
-     * <p>클라이언트는 이 id로 목록을 재조회한다 — 합치기는 여러 그룹·링크·옵션을 한꺼번에 바꾸므로
-     * 부분 응답으로는 화면 상태를 맞출 수 없다.
-     */
     @Override
     public Long mergeProductOptionGroups(ProductOptionGroupMergeCommand command) {
         Long ceoId = command.ceoId();
@@ -76,8 +61,7 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
         String entryType = command.entryType();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        // 경로의 기준 그룹이 이 가게 것인지 먼저 대조한다 — 도메인 서비스도 단일 가게 불변식을 다시
-        // 검증하지만, 남의 가게 그룹 id는 도메인에 닿기 전에 404로 끊는 편이 정보 노출이 적다.
+
         productOptionGroupOwnershipValidator.validateOptionGroupShop(shopId, baseOptionGroupId);
 
         return productOptionGroupMergeService.merge(
@@ -89,16 +73,6 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
         );
     }
 
-    /**
-     * 추천 묶음을 영구 제외하고 생성된(또는 기존) 제외 id를 반환한다.
-     *
-     * <p><b>클라이언트가 보낸 서명을 그대로 믿지 않는다</b> — 함께 받은 {@code optionGroupIds}로 서명을
-     * 재계산해 대조한다. 그러지 않으면 임의 문자열을 저장해 제외 테이블을 오염시킬 수 있고, 무엇보다
-     * 목록을 띄워 둔 사이 옵션이 수정된 <b>낡은 토큰</b>이 엉뚱한 묶음을 영구히 숨긴다.
-     *
-     * <p>재클릭은 멱등이다 — 기존 행이 있으면 그 id를 그대로 돌려준다
-     * ({@code UNIQUE (shop_id, group_signature)}가 최종 방어선).
-     */
     @Override
     public Long excludeMergeSuggestion(ProductOptionGroupMergeExclusionCreateCommand command) {
         Long ceoId = command.ceoId();
@@ -123,12 +97,6 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
             )).getId());
     }
 
-    /**
-     * 요청의 모든 그룹이 <b>같은 서명</b>을 갖고 그 값이 클라이언트가 보낸 것과 일치하는지 확인한다.
-     *
-     * <p>하나라도 어긋나면 목록이 최신 상태가 아니라는 뜻이므로
-     * {@code PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH}로 거부하고 새로고침을 안내한다.
-     */
     private void validateSignature(Long shopId, String signature, List<Long> optionGroupIds) {
         for (Long optionGroupId : optionGroupIds) {
             ProductOptionGroup group =

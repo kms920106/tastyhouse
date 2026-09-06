@@ -17,12 +17,6 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopOwnerDetailViewResult;
 
-/**
- * 점주용 가게 조회 서비스(CQRS query 측).
- *
- * <p>목록은 infra query DAO에서 Result를 받아 Response로 조립하고, 단건 상세는 소유권 검증이 반환한
- * 도메인 모델을 그대로 쓴다. 모든 조회는 로그인 점주(ceoId)의 소유 가게로 한정한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)
@@ -60,7 +54,6 @@ public class ShopOwnerQueryService implements ShopOwnerQueryUseCase {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return toShopDetailViewResult(shop);
     }
-
 
     private ShopOwnerDetailViewResult toShopDetailViewResult(Shop shop) {
         Optional<ShopImageUrlsResult> imageUrls = shopBasicInfoQueryPort.findShopImageUrls(shop.getId());

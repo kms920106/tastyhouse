@@ -13,12 +13,6 @@ import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationClearComma
 import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationOwnerUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateCommand;
 
-/**
- * 점주용 라이더 가게방문 안내 등록 서비스(CQRS command 측).
- *
- * <p>문구 등록 기준(금칙어·실주소 재기재·배차 특정)·좌표 범위·폐업 가게 차단 불변식은 도메인 서비스
- * {@link ShopRiderGuideService}가 담당하고, 여기서는 소유권 검증과 트랜잭션 경계만 책임진다.
- */
 @Service
 @CeoApp
 @Transactional
@@ -35,9 +29,6 @@ public class ShopRiderGuideOwnerCommandService implements ShopRiderGuideOwnerCom
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
-    /**
-     * 안내 문구를 등록·수정한다. 빈 값이면 문구를 삭제한다.
-     */
     @Override
     public void updateVisitGuide(ShopRiderVisitGuideUpdateCommand command) {
         Long ceoId = command.ceoId();
@@ -64,9 +55,6 @@ public class ShopRiderGuideOwnerCommandService implements ShopRiderGuideOwnerCom
         );
     }
 
-    /**
-     * 픽업 위치를 비워 가게 실주소로 폴백시킨다. 이미 미설정 상태에서 호출해도 정상 처리된다(멱등).
-     */
     @Override
     public void clearPickupLocation(ShopRiderPickupLocationClearCommand command) {
         Long ceoId = command.ceoId();

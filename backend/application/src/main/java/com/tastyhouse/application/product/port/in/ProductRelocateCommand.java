@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 분류 이동 command.
- */
 public record ProductRelocateCommand(
     Long ceoId,
     Long shopId,

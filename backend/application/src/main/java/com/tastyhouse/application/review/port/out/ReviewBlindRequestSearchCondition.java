@@ -5,9 +5,6 @@ import java.time.LocalDate;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 
-/**
- * 관리자 게시중단 요청 심사 목록 조회 조건.
- */
 public record ReviewBlindRequestSearchCondition(
     Long shopId,
     ReviewBlindStatus status,

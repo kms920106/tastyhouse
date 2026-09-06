@@ -6,9 +6,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 노출기간 교체 command. 요일·시간대는 중첩 command 목록으로 받는다.
- */
 public record ProductExposureReplaceCommand(
     Long ceoId,
     Long shopId,

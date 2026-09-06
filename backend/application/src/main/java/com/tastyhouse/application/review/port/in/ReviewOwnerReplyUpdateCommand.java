@@ -3,9 +3,6 @@ package com.tastyhouse.application.review.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 사장님 답변 수정 command.
- */
 public record ReviewOwnerReplyUpdateCommand(
     Long ceoId,
     Long shopId,

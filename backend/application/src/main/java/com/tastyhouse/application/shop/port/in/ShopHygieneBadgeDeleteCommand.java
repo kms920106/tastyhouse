@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 위생 인증 뱃지 삭제 command. */
 public record ShopHygieneBadgeDeleteCommand(
     Long hygieneBadgeId
 ) {

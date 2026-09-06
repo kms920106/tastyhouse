@@ -13,13 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 점주가 업로드하는 가게 이미지(상표/콘텐츠)의 규격(형식·용량·해상도·비율)을 검증한다.
- *
- * <p>상표 이미지는 JPG·900KB 이하·최소 560x560·1:1 비율만 허용하고, 콘텐츠보드 이미지는
- * IMAGE(JPG/PNG)·GIF 각각 다른 용량·해상도 기준을 적용한다. 위반 시 규격 불일치를 단일
- * {@link ErrorCode#SHOP_IMAGE_SPEC_INVALID}로 통일해 알린다.
- */
 @Component
 @CeoApp
 public class ShopImageSpecValidator {
@@ -63,13 +56,6 @@ public class ShopImageSpecValidator {
         }
     }
 
-    /**
-     * 점주 공지 첨부 이미지 규격을 검증한다.
-     *
-     * <p>권장 사이즈(1280x560)를 그대로 강제하지 않고 그 절반(640x280)을 최소 해상도로 잡는다 — 정확히
-     * 일치하는 이미지만 허용하면 등록 실패가 잦아지므로 지나치게 작은 이미지만 거르고 권장 사이즈는 프론트
-     * 안내 문구로 처리한다. 공지 이미지는 가로형이라 비율({@code validateSquareRatio})은 적용하지 않는다.
-     */
     public void validateNoticeImage(MultipartFile file) {
         validateNotEmpty(file);
         validateContentType(file, "image/jpeg", "image/png");

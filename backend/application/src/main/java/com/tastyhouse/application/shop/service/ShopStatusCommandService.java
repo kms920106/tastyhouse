@@ -10,15 +10,6 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopStatusCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStatusUpdateCommand;
 
-/**
- * 점주용 가게 노출 상태(노출정지) 변경 서비스(CQRS command 측).
- *
- * <p>진행 중 이미지 변경요청이 있으면 상태 변경을 차단하는 불변식은 도메인 서비스
- * {@link ShopLifecycleService}가 담당한다.
- *
- * <p><b>변경이력</b>: {@code SHOP_VISIBILITY} 기록은 변경 전 노출 상태를 추가 조회 없이 볼 수 있는
- * {@link ShopLifecycleService}가 담당하고, 이 서비스는 변경 주체({@link ShopChangeActor})만 만들어 전달한다.
- */
 @Service
 @CeoApp
 @Transactional

@@ -3,9 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 가게 정기 휴무 등록 command.
- */
 public record ShopClosedDayOwnerCreateCommand(
     Long ceoId,
     Long shopId,

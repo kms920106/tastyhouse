@@ -18,13 +18,6 @@ import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductSearchCondition;
 import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
 
-/**
- * 관리자 상품 조회 서비스. infrastructure의 read 어댑터 {@link ProductManagementQueryPort}만 주입한다.
- * 생성·수정은 {@link ProductManagementCommandService}가 담당한다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

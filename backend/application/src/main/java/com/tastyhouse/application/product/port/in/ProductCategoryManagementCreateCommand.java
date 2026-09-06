@@ -3,7 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 상품 카테고리 등록 command. */
 public record ProductCategoryManagementCreateCommand(
     Long shopId,
     String name,

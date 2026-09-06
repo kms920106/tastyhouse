@@ -3,9 +3,6 @@ package com.tastyhouse.application.faq.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * FAQ 항목 수정 command. 경로 변수 {@code id}는 컨트롤러가 {@code toCommand(id)}로 주입한다.
- */
 public record FaqUpdateCommand(
     Long faqId,
     Long faqCategoryId,

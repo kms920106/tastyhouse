@@ -13,13 +13,6 @@ import com.tastyhouse.application.point.port.in.PointQueryUseCase;
 import com.tastyhouse.application.point.port.out.PointHistoryItemViewResult;
 import com.tastyhouse.application.point.port.out.PointHistoryViewResult;
 
-/**
- * 내 포인트 조회 서비스.
- *
- * <p>읽기 포트({@link PointQueryPort})만 주입해 조회하고 조회 결과를 조립한다. Response 조립은
- * 챕터 10에서 컨트롤러(web-api)로 올라갔다. web-api에는 포인트 쓰기 경로가 없으므로(주문 결제 사용은
- * order 도메인 트랜잭션 안에서 도메인 서비스가 처리) CommandService를 두지 않는다.
- */
 @Service
 @WebApp
 @Transactional(readOnly = true)

@@ -35,15 +35,6 @@ import com.tastyhouse.application.shop.port.out.StationResult;
 import com.tastyhouse.application.shop.port.out.TagResult;
 import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 
-/**
- * admin용 가게 관리 조회 서비스(CQRS query 측).
- *
- * <p>표현 목적 조회는 전부 읽기 포트에서 Result를 받아 그대로 넘긴다. 가게 단건 관리 상세도
- * 마찬가지라 write 포트를 주입하지 않는다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)
@@ -83,10 +74,6 @@ public class ShopManagementQueryService implements ShopManagementQueryUseCase {
         return shopSearchManagementQueryPort.findShops(condition, PageQuery.of(page, size));
     }
 
-    /**
-     * 가게 상세와 썸네일 URL을 함께 조회한다. 썸네일은 다른 읽기 포트에 있어 조회가 두 번 필요하며,
-     * 이미지가 없으면 URL은 null이다.
-     */
     @Override
     public ShopDetail getShop(Long id) {
         ShopManagementDetailResult shop = shopManagementQueryPort.findManagementDetailById(id)

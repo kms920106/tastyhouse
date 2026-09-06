@@ -17,17 +17,6 @@ import com.tastyhouse.application.partnership.port.out.PartnershipRequestListIte
 import com.tastyhouse.application.partnership.port.out.PartnershipSearchCondition;
 import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
 
-/**
- * 제휴 신청 관리 조회 서비스.
- *
- * <p>읽기 포트({@link PartnershipQueryPort})만 주입해 조회한다. write 포트를 주입하지 않으며,
- * 쓰기는 {@link PartnershipManagementCommandService}가 담당한다.
- *
- * <p>HTTP 경계에서 받은 {@code String} 상태값은 여기서 {@code PartnershipStatus.from}으로 승격한다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

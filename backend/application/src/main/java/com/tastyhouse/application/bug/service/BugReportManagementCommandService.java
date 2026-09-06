@@ -19,16 +19,6 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
-/**
- * 버그 제보 관리 command 서비스.
- *
- * <p>상태 전이·분류·담당자 배정은 모두 제보 애그리거트 하나만 다루는 액터(admin) 특화 command이므로
- * 도메인 서비스로 하강시키지 않고 이 서비스가 직접 수행한다(공통 지침 패턴 2). domain write
- * 포트({@link BugReportRepository})만 주입하며, 조회는 {@code BugReportQueryService}가 담당한다.
- *
- * <p>{@code BugReport}는 순수 POJO라 더티 체킹이 없으므로 도메인 변경 후 명시적으로
- * {@code bugReportRepository.save(bugReport)}를 호출한다.
- */
 @Service
 @AdminApp
 @Transactional

@@ -25,19 +25,6 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
-/**
- * 이벤트 관리 명령 서비스(admin).
- *
- * <p>이벤트 CRUD·당첨자 등록/삭제·발표 등록/수정은 모두 단일 애그리거트({@code Event} /
- * {@code EventWinner} / {@code EventAnnouncement}) 조작이므로 write 포트를 직접 주입해 이 서비스가
- * 처리한다(분류 A). 세 포트를 함께 주입하지만 한 트랜잭션에서 두 종류 이상을 함께 save하는 경로는 없다 —
- * 당첨자·발표 생성 시의 {@code eventRepository.findById}는 "대상 이벤트가 존재하는가"를 확인하는 선행
- * 검증(로드만, save 없음)이므로 도메인 서비스로 하강시킬 원자 다중-save가 아니다.
- *
- * <p>세 도메인 모델은 순수 POJO라 더티 체킹이 없으므로 변경 후 명시적으로 {@code save}를 호출한다.
- * HTTP 경계에서 받은 {@code Long}·{@code String}은 이 계층에서 {@code EventId}·{@code EventStatus}로
- * 승격한다.
- */
 @Service
 @AdminApp
 @Transactional
@@ -107,9 +94,6 @@ public class EventCommandService implements EventCommandUseCase {
         eventRepository.save(event);
     }
 
-    /**
-     * 이벤트의 당첨자 발표를 등록한다. 이벤트당 1개만 허용하므로 중복 등록을 막는다.
-     */
     @Override
     public Long createAnnouncement(EventAnnouncementCreateCommand command) {
         EventId eventId = EventId.of(command.eventId());
@@ -144,10 +128,6 @@ public class EventCommandService implements EventCommandUseCase {
         return saved.getId();
     }
 
-    /**
-     * 당첨자를 삭제한다(soft delete). 당첨자 ID가 전역 유니크 PK라 이벤트 소속 검증 없이 단독으로
-     * 대상을 특정한다(컨트롤러 경로도 평탄화되어 있다).
-     */
     @Override
     public void deleteWinner(EventWinnerDeleteCommand command) {
         EventWinner winner = eventWinnerRepository.findById(command.winnerId())

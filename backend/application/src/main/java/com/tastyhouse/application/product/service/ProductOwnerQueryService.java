@@ -11,12 +11,6 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 
-/**
- * 점주용 메뉴 상세 조회 서비스(CQRS query 측).
- *
- * <p>{@code docs/tasks/backend.md}에 없던 단건 상세 GET을 이 서비스가 신설한다 — 프론트 S2(메뉴 상세) 화면
- * 전체가 이 조회에 의존한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

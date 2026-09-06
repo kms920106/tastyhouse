@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 주문안내 게시중단 command. */
 public record ShopOrderNoticeHideCommand(
     Long shopId,
     String reason

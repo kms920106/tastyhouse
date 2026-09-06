@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 노출기간 해제 command.
- */
 public record ProductExposureClearCommand(
     Long ceoId,
     Long shopId,

@@ -12,11 +12,6 @@ import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 
-/**
- * 점주용 가게 편의정보·편의시설 조회 서비스(CQRS query 측).
- *
- * <p>편의정보가 아직 등록되지 않은 가게는 빈 기본값 응답을 돌려준다(기존 동작 유지).
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

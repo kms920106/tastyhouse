@@ -20,18 +20,11 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 점주용 메뉴그룹(카테고리) 등록·변경·삭제 서비스(CQRS command 측).
- *
- * <p>정렬값은 클라이언트에서 받지 않는다 — 등록 시 서버가 가게의 현재 메뉴그룹 수로 채워 맨 뒤에 붙이고,
- * 위치 조정은 순서 변경 API({@code ProductSortApiController})가 담당한다.
- */
 @Service
 @CeoApp
 @Transactional
 public class ProductCategoryCommandService implements ProductCategoryCommandUseCase {
 
-    /** 등록 직후의 노출 상태 — 점주가 만든 그룹은 곧바로 메뉴판에 보인다. */
     private static final boolean DEFAULT_VISIBLE = true;
 
     private final ProductRegistrationService productRegistrationService;
@@ -54,7 +47,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
-    /** 메뉴그룹을 등록하고 생성된 id를 반환한다. */
     @Override
     public Long createProductCategory(ProductCategoryOwnerCreateCommand command) {
         Long ceoId = command.ceoId();
@@ -76,7 +68,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         return created.getId();
     }
 
-    /** 메뉴그룹명·설명을 변경한다. 정렬은 이 경로로 바꾸지 않는다(순서 변경 API의 몫). */
     @Override
     public void updateProductCategory(ProductCategoryUpdateCommand command) {
         Long ceoId = command.ceoId();
@@ -94,13 +85,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         productCategoryRepository.save(category);
     }
 
-    /**
-     * 메뉴그룹을 삭제한다.
-     *
-     * <p>소속 메뉴가 남아 있으면 {@code PRODUCT_CATEGORY_HAS_PRODUCTS}(400)로 거부한다 — 그룹만 지우면
-     * 메뉴들이 조용히 미분류로 떠내려가 점주가 의도하지 않은 메뉴판이 된다. 먼저 다른 그룹으로 옮기거나
-     * 메뉴를 삭제해야 한다.
-     */
     @Override
     public void deleteProductCategory(ProductCategoryDeleteCommand command) {
         Long ceoId = command.ceoId();
@@ -116,10 +100,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         productCategoryRepository.delete(category);
     }
 
-    /**
-     * 대상 메뉴그룹을 로드하면서 소유 가게까지 대조한다 — 가게 소유권만 검증하면 남의 가게 메뉴그룹 id를
-     * 실어 보내는 경로가 열린다. 미존재와 타 가게 소유는 같은 코드로 묶는다.
-     */
     private ProductCategory loadOwnedCategory(Long shopId, Long productCategoryId) {
         ProductCategory category = productCategoryRepository.findById(ProductCategoryId.of(productCategoryId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_CATEGORY_NOT_FOUND));
@@ -129,7 +109,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         return category;
     }
 
-    /** 가게의 현재 메뉴그룹 수를 다음 정렬값으로 쓴다(0-based라 곧 맨 뒤 인덱스다). */
     private Integer nextSort(Long shopId) {
         return productCategoryRepository.findAllByShopId(ShopId.of(shopId)).size();
     }

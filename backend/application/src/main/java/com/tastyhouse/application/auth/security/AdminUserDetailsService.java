@@ -30,7 +30,6 @@ public class AdminUserDetailsService implements UserDetailsService {
         Admin admin = adminQueryService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("관리자를 찾을 수 없습니다: " + username));
 
-        // 권한은 Admin.role 에서 파생 (예: SUPER_ADMIN -> ROLE_SUPER_ADMIN)
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + admin.getRole().name());
 
         return new AdminUserDetails(admin, Collections.singleton(authority));

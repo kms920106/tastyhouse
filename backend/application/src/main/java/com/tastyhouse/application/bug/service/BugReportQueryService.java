@@ -24,23 +24,6 @@ import com.tastyhouse.domain.shared.page.PageQuery;
 import com.tastyhouse.domain.shared.page.PageResult;
 import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 
-/**
- * 버그 제보 관리 조회 서비스.
- *
- * <p>읽기 포트({@link BugReportQueryPort})만 주입해 제보를 조회한다. write 포트를 주입하지 않으며,
- * 쓰기는 {@link BugReportManagementCommandService}가 담당한다.
- *
- * <p>제보자 요약 정보는 다른 컨텍스트(member)의 읽기 포트에서 가져와 이 서비스가 합성한다. 첨부
- * 이미지는 {@link BugReportQueryPort}가 이미 파일명·URL까지 join으로 함께 가져오므로 이 서비스는 추가
- * 파일 조회를 하지 않는다.
- *
- * <p>HTTP 경계에서 받은 {@code String} 필터값은 여기서 core enum으로 승격한다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로(또는 제보자와 합성한
- * {@code *WithMemberResult}로) 반환하고 Response로 변환하지 않는다. 표현 계약(@Schema 붙은
- * Response·{@code FileResponse}·PaginationResponse) 조립과 enum → {@code name()} 문자열 변환은
- * 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

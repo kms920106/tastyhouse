@@ -5,7 +5,6 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 운영시간 등록 command. */
 public record ShopBusinessHourManagementCreateCommand(
     Long adminId,
     Long shopId,

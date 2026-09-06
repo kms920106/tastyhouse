@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 옵션그룹 삭제 command.
- */
 public record ProductOptionGroupDeleteCommand(
     Long ceoId,
     Long optionGroupId,

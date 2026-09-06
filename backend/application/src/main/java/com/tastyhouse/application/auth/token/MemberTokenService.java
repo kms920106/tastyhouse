@@ -17,12 +17,6 @@ import com.tastyhouse.security.token.RefreshTokenRepository;
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 
-/**
- * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스
- * - MemberJwtTokenProvider: JWT 서명/파싱 전담
- * - RefreshTokenRepository: Refresh Token 저장소
- * - BlacklistRepository: 로그아웃된 Access Token 블랙리스트
- */
 @Service
 @WebApp
 public class MemberTokenService {
@@ -41,9 +35,6 @@ public class MemberTokenService {
         this.blacklistRepository = blacklistRepository;
     }
 
-    /**
-     * 소셜/휴대폰 로그인 등 Member 객체를 직접 사용하는 모든 로그인 경로의 단일 토큰 발급 진입점
-     */
     public MemberJwtResult issue(Member member, boolean rememberMe) {
         MemberUserDetails userDetails = new MemberUserDetails(
             member.getId(),
@@ -53,9 +44,6 @@ public class MemberTokenService {
         return issue(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()), rememberMe);
     }
 
-    /**
-     * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장
-     */
     public MemberJwtResult issue(Authentication authentication, boolean rememberMe) {
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication, rememberMe);
@@ -73,9 +61,6 @@ public class MemberTokenService {
         );
     }
 
-    /**
-     * Refresh Token으로 새 Access Token + Refresh Token 재발급 (Refresh Token Rotation)
-     */
     public MemberJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_INVALID);
@@ -100,9 +85,6 @@ public class MemberTokenService {
         );
     }
 
-    /**
-     * 로그아웃: Access Token 블랙리스트 등록 + Refresh Token 삭제
-     */
     public void revoke(String bearerToken) {
         String accessToken = extractToken(bearerToken);
 
@@ -112,9 +94,6 @@ public class MemberTokenService {
         }
     }
 
-    /**
-     * Access Token만 즉시 무효화 (Refresh Token 유지)
-     */
     public void invalidateAccessToken(String bearerToken) {
         if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
             return;

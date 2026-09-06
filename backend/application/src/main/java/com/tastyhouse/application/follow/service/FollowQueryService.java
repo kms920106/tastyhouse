@@ -14,18 +14,6 @@ import com.tastyhouse.application.member.port.out.MemberQueryPort;
 import com.tastyhouse.application.follow.port.out.FollowMemberSearchResult;
 import com.tastyhouse.application.follow.port.in.FollowQueryUseCase;
 
-/**
- * 팔로우 조회 서비스.
- *
- * <p>목록은 읽기 포트({@link MemberFollowQueryPort})가 뷰어의 팔로우 여부까지 함께 투영하므로 그 결과를
- * 그대로 내보내고, 닉네임 검색은 회원 읽기 포트({@link MemberQueryPort})의 결과에 팔로우 여부를 얹어
- * {@link FollowMemberSearchResult}로 합성한다. 단건 팔로우 여부·카운트도 표현용 조회이므로 write 포트가
- * 아니라 같은 읽기 포트가 답한다(CQRS 교차 주입 금지).
- *
- * <p>프로필 이미지는 DAO가 표시용 URL까지 변환해 담으므로, 이 서비스는 그 값을 그대로 전달한다.
- * 도메인 enum({@code MemberGrade})은 검색 합성 지점에서 상수명 문자열로 낮춘다 — 인바운드 포트가 도메인
- * 타입을 노출하지 않게 하려면 강등이 이 계층에서 끝나야 한다.
- */
 @Service
 @WebApp
 @Transactional(readOnly = true)

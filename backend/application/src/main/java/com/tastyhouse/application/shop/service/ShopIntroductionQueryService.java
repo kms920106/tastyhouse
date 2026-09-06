@@ -12,12 +12,6 @@ import com.tastyhouse.application.shop.port.out.ShopOwnerMessageResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopIntroductionValidationResult;
 
-/**
- * 점주용 가게소개(사장님 한마디) 조회·사전검증 서비스(CQRS query 측).
- *
- * <p>사전검증({@link #validateIntroduction})은 저장 없이 금칙어 위반 목록만 돌려주는 읽기 연산이므로
- * query 측에 둔다. 최신 사장님 한마디는 표현 목적 조회이므로 infra query DAO에서 Result를 받아 조립한다.
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

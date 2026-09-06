@@ -26,11 +26,7 @@ public record ReviewManagementDetailResult(
     List<String> imageUrls,
     List<String> tagNames
 ) {
-    /**
-     * QueryDSL 투영 전용 생성자 — 1:N인 이미지·태그를 제외한 좁은 시그니처다. 호출부는 생성된
-     * {@code QReviewManagementDetailResult}({@code ReviewManagementQueryDao#findReviewManagementDetail})이므로
-     * IDE가 "never used"로 경고하지만, 제거하면 Q타입이 생성되지 않아 빌드가 깨진다.
-     */
+
     public ReviewManagementDetailResult(
         Long id,
         Long shopId,

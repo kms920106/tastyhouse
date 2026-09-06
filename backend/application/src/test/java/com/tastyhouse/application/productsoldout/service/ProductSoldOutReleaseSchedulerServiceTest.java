@@ -24,12 +24,6 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-/**
- * 품절 자동해제 배치의 건별 격리 단위 테스트.
- *
- * <p>{@code @Transactional} 프록시 없이 executor를 직접 조립하므로 트랜잭션 경계 자체는 검증 대상이
- * 아니다 — 이 테스트가 지키는 것은 <b>한 건 실패가 다음 건 처리를 멈추지 않는다</b>는 계약이다.
- */
 class ProductSoldOutReleaseSchedulerServiceTest {
 
     private static final ShopId SHOP_ID = ShopId.of(1L);
@@ -41,7 +35,6 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         Product failing = soldOutProduct(10L, "실패메뉴");
         Product healthy = soldOutProduct(11L, "정상메뉴");
 
-        // id=10 저장 시에만 터지는 스텁 — 첫 건 실패가 두 번째 건을 막지 않아야 한다.
         ProductRepositoryStub productRepository =
             new ProductRepositoryStub(List.of(failing, healthy), 10L);
         Fixture fixture = new Fixture(productRepository,
@@ -49,7 +42,6 @@ class ProductSoldOutReleaseSchedulerServiceTest {
 
         assertThatCode(fixture.service::releaseExpiredSoldOut).doesNotThrowAnyException();
 
-        // 실패한 건은 저장되지 않았고, 뒤의 건은 해제·저장됐다.
         assertThat(productRepository.saved).containsExactly(healthy);
         assertThat(healthy.isSoldOut()).isFalse();
         assertThat(healthy.getSoldOutUntil()).isNull();
@@ -118,9 +110,6 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         return option;
     }
 
-    /**
-     * 스케줄러 서비스와 executor를 실제 조립대로 묶는 픽스처.
-     */
     private static final class Fixture {
 
         private final ProductSoldOutReleaseSchedulerService service;
@@ -143,9 +132,6 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         private final Long failingId;
         private final List<Product> saved = new ArrayList<>();
 
-        /**
-         * @param failingId 이 id를 저장할 때만 예외를 던진다({@code null}이면 모두 성공)
-         */
         private ProductRepositoryStub(List<Product> expired, Long failingId) {
             this.expired = expired;
             this.failingId = failingId;
@@ -182,8 +168,7 @@ class ProductSoldOutReleaseSchedulerServiceTest {
 
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
-            // 이 스케줄러는 대표 메뉴 개수 제한을 판정하지 않으므로 도달하지 않는다. 0을 돌려주면
-            // 나중에 대표 메뉴를 다루는 케이스가 생겼을 때 상한 검증이 조용히 항상 통과한다.
+
             throw new UnsupportedOperationException();
         }
 

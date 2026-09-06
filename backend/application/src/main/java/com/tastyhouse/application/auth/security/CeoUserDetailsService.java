@@ -30,7 +30,6 @@ public class CeoUserDetailsService implements UserDetailsService {
         Ceo ceo = ceoQueryService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("점주를 찾을 수 없습니다: " + username));
 
-        // 점주는 단일 역할이므로 고정 ROLE_CEO 권한을 부여한다.
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_CEO");
 
         return new CeoUserDetails(ceo, Collections.singleton(authority));

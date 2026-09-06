@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 라이더 방문안내 문구 삭제 command. */
 public record ShopRiderVisitGuideDeleteCommand(
     Long shopId,
     Long adminId,

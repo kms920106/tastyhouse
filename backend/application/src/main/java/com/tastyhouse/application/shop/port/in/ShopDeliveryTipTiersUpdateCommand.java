@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 구간별 기본 배달팁 일괄 교체 command(replace-all 의미 그대로).
- */
 public record ShopDeliveryTipTiersUpdateCommand(
     Long ceoId,
     Long shopId,

@@ -14,12 +14,6 @@ import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRepository;
 import com.tastyhouse.security.token.RefreshTokenRepository;
 
-/**
- * 점주 토큰 발급·갱신·무효화 비즈니스 로직
- * - CeoJwtTokenProvider: JWT 서명/파싱 전담
- * - RefreshTokenRepository: Refresh Token 저장소
- * - BlacklistRepository: 로그아웃된 Access Token 블랙리스트
- */
 @Service
 @CeoApp
 public class CeoTokenService {
@@ -41,9 +35,6 @@ public class CeoTokenService {
         this.ceoQueryService = ceoQueryService;
     }
 
-    /**
-     * 로그인 성공 시 Access Token + Refresh Token 발급 및 저장
-     */
     public CeoJwtResult issue(Authentication authentication, boolean rememberMe) {
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication, rememberMe);
@@ -57,9 +48,6 @@ public class CeoTokenService {
         return CeoJwtResult.of(accessToken, refreshToken, "Bearer");
     }
 
-    /**
-     * Refresh Token으로 새 Access Token + Refresh Token 재발급 (Refresh Token Rotation)
-     */
     public CeoJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
@@ -72,7 +60,6 @@ public class CeoTokenService {
             throw new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
-        // 토큰 발급 이후 계정이 비활성화/삭제되었을 수 있으므로 갱신 시점에 DB로 상태를 재검증한다.
         Ceo ceo = ceoQueryService.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "존재하지 않는 점주입니다."));
         if (!ceo.isActive()) {
@@ -89,14 +76,11 @@ public class CeoTokenService {
         return CeoJwtResult.of(newAccessToken, newRefreshToken, "Bearer");
     }
 
-    /**
-     * 로그아웃: Access Token 블랙리스트 등록 + Refresh Token 삭제
-     */
     public void revoke(String bearerToken) {
         String accessToken = extractToken(bearerToken);
 
         if (jwtTokenProvider.validateToken(accessToken)) {
-            // Refresh 토큰을 Authorization 헤더로 보내 로그아웃하는 오용 방지
+
             jwtTokenProvider.validateTokenType(accessToken, TokenType.ACCESS);
             blacklistRepository.add(accessToken, jwtTokenProvider.getExpirationMillis(accessToken));
             refreshTokenRepository.delete(jwtTokenProvider.getUsernameFromJWT(accessToken));

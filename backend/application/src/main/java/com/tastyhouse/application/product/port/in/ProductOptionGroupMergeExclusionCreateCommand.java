@@ -5,9 +5,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 옵션그룹 병합 제안 제외 command.
- */
 public record ProductOptionGroupMergeExclusionCreateCommand(
     Long ceoId,
     Long shopId,

@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴-옵션그룹 연결 command.
- */
 public record ProductOptionGroupLinkCommand(
     Long ceoId,
     Long shopId,

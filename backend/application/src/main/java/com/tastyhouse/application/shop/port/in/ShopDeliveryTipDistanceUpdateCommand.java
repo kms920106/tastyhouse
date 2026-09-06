@@ -3,9 +3,6 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 거리별 추가 배달팁 설정 command.
- */
 public record ShopDeliveryTipDistanceUpdateCommand(
     Long ceoId,
     Long shopId,

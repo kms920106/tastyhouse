@@ -11,14 +11,6 @@ import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
 
-/**
- * admin용 가게 콘텐츠보드 검수 조회 서비스(CQRS query 측).
- *
- * <p>소유권 검증 없이 전체 가게 콘텐츠보드를 가게·숨김여부·콘텐츠 유형으로 필터해 조회한다.
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)

@@ -5,9 +5,6 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 가게 운영시간 등록 command. 경로 변수 {@code shopId}와 principal의 {@code ceoId}는 컨트롤러가 주입한다.
- */
 public record ShopBusinessHourOwnerCreateCommand(
     Long ceoId,
     Long shopId,

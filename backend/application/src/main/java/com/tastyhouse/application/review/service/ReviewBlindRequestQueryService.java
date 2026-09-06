@@ -18,17 +18,6 @@ import com.tastyhouse.application.review.port.out.ReviewBlindRequestManagementQu
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
 
-/**
- * 리뷰 게시중단 요청 심사 조회 서비스(admin, CQRS query 측).
- *
- * <p>{@code status}/{@code reason}은 HTTP 경계에서 문자열로 받아 여기서 도메인 enum으로 승격한다 —
- * Request record는 domain-free 원칙에 따라 enum을 직접 다루지 않는다.
- *
- * <p>명령 동작은 {@link ReviewBlindRequestManagementCommandService}로 분리했다(CQRS).
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)
@@ -40,9 +29,6 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
         this.reviewBlindRequestManagementQueryPort = reviewBlindRequestManagementQueryPort;
     }
 
-    /**
-     * 게시중단 요청 목록 — 상점·상태·사유·기간으로 필터링한다.
-     */
     @Override
     public PageResult<ReviewBlindRequestListItemResult> getBlindRequests(
         Long shopId,
@@ -62,9 +48,6 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
         return reviewBlindRequestManagementQueryPort.findBlindRequestPage(condition, PageQuery.of(page, size));
     }
 
-    /**
-     * 게시중단 요청 심사 상세.
-     */
     @Override
     public ReviewBlindRequestDetailResult getBlindRequest(Long id) {
         return reviewBlindRequestManagementQueryPort.findBlindRequestDetail(id)

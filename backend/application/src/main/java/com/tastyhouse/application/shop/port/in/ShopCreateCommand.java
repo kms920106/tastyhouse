@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 가게 등록 command. {@code adminId}는 접근권한 부여 이력의 조치자라 principal에서 주입한다. */
 public record ShopCreateCommand(
     Long adminId,
     Long ceoId,

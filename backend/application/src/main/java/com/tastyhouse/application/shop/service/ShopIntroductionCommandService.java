@@ -9,12 +9,6 @@ import com.tastyhouse.domain.shop.service.ShopLifecycleService;
 import com.tastyhouse.application.shop.port.in.ShopIntroductionCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopIntroductionUpdateCommand;
 
-/**
- * 점주용 가게소개(사장님 한마디) 등록 서비스(CQRS command 측).
- *
- * <p>500자 제한·금칙어 검수 불변식과 변경이력({@code INTRODUCTION}) 기록은 도메인 서비스
- * {@link ShopLifecycleService}가 담당하고, 여기서는 소유권 검증과 변경 주체 전달만 책임진다.
- */
 @Service
 @CeoApp
 @Transactional

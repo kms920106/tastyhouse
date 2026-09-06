@@ -21,19 +21,6 @@ import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import com.tastyhouse.application.review.port.in.ReviewManagementQueryUseCase;
 
-/**
- * 리뷰 관리 조회 서비스(admin).
- *
- * <p>관리 화면은 숨김 리뷰·댓글·답글까지 모두 봐야 하므로 관리 전용 read 어댑터
- * ({@link ReviewManagementQueryPort})를 쓰고, 태그명처럼 web과 공유하는 조회만 {@link ReviewTagQueryPort}를
- * 쓴다. 파일 경로 → 표시용 URL 변환은 DAO가 담당하므로 이 계층은 이미 URL이 된 필드를 그대로 넘긴다.
- *
- * <p>명령 동작은 {@link ReviewManagementCommandService}로 분리했다(CQRS).
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이며, 댓글에 답글을
- * 중첩하는 조립도 {@code ReviewCommentListItemResponse.from(...)}이 담당한다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)
@@ -47,9 +34,6 @@ public class ReviewManagementQueryService implements ReviewManagementQueryUseCas
         this.reviewTagQueryPort = reviewTagQueryPort;
     }
 
-    /**
-     * 리뷰 목록(숨김 포함) — 검색 조건으로 필터링한다.
-     */
     @Override
     public PageResult<ReviewListItemResult> getReviews(
         Long shopId,
@@ -67,9 +51,6 @@ public class ReviewManagementQueryService implements ReviewManagementQueryUseCas
         return reviewManagementQueryPort.findReviews(condition, PageQuery.of(page, size));
     }
 
-    /**
-     * 리뷰 상세(숨김 포함) — 상세 본문 조회와 태그명 조회를 조합한다.
-     */
     @Override
     public ReviewManagementDetailResult getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
@@ -84,18 +65,12 @@ public class ReviewManagementQueryService implements ReviewManagementQueryUseCas
         return detail;
     }
 
-    /**
-     * 리뷰의 댓글 목록(숨김 포함).
-     */
     @Override
     public List<ReviewCommentListItemResult> getComments(Long id) {
         ReviewId reviewId = ReviewId.of(id);
         return reviewManagementQueryPort.findCommentsIncludingHidden(reviewId);
     }
 
-    /**
-     * 댓글들에 달린 답글 목록(숨김 포함) — 댓글별로 나눠 담는 것은 컨트롤러의 Response 조립이 한다.
-     */
     @Override
     public List<ReviewReplyListItemResult> getReplies(List<ReviewCommentListItemResult> comments) {
         List<ReviewCommentId> commentIds = comments.stream()

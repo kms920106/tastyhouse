@@ -14,11 +14,6 @@ import com.tastyhouse.security.jwt.JwtProperties;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 
-/**
- * 공용 {@link com.tastyhouse.security.jwt.JwtTokenProvider}(access/refresh 발급·검증 메커니즘)를 상속하고,
- * web-api 전용 검증용 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급·검증만 추가한다.
- * principal 식별자 클레임은 {@code memberId}, principal 재구성은 {@code MemberUserDetails}로 위임한다.
- */
 @Component
 @WebApp
 public class MemberJwtTokenProvider extends com.tastyhouse.security.jwt.JwtTokenProvider {
@@ -31,7 +26,7 @@ public class MemberJwtTokenProvider extends com.tastyhouse.security.jwt.JwtToken
 
     public String createPersonalInfoVerifyToken(Long memberId) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + 5 * 60 * 1000L); // 5분
+        Date expiry = new Date(now.getTime() + 5 * 60 * 1000L);
 
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
@@ -64,7 +59,7 @@ public class MemberJwtTokenProvider extends com.tastyhouse.security.jwt.JwtToken
 
     public String createSmsVerifyToken(String phoneNumber) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
+        Date expiry = new Date(now.getTime() + 10 * 60 * 1000L);
 
         return Jwts.builder()
                 .subject(phoneNumber)
@@ -108,7 +103,7 @@ public class MemberJwtTokenProvider extends com.tastyhouse.security.jwt.JwtToken
 
     public String createMailVerifyToken(String email) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + 10 * 60 * 1000L); // 10분
+        Date expiry = new Date(now.getTime() + 10 * 60 * 1000L);
 
         return Jwts.builder()
                 .subject(email)
@@ -141,7 +136,7 @@ public class MemberJwtTokenProvider extends com.tastyhouse.security.jwt.JwtToken
 
     public String createPasswordResetToken(String username) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + 15 * 60 * 1000L); // 15분
+        Date expiry = new Date(now.getTime() + 15 * 60 * 1000L);
 
         return Jwts.builder()
                 .subject(username)

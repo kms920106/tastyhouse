@@ -5,7 +5,6 @@ import java.time.LocalTime;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/** 브레이크타임 등록 command. */
 public record ShopBreakTimeManagementCreateCommand(
     Long adminId,
     Long shopId,

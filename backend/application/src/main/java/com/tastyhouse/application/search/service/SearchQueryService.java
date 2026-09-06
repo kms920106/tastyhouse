@@ -23,21 +23,6 @@ import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.application.product.service.ProductQueryService;
 import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
 
-/**
- * 검색 조회 서비스.
- *
- * <p>조회만 있는 도메인이라 command 서비스 없이 QueryService만 둔다. 인기·추천 검색어는 infra read
- * 어댑터({@link SearchQueryPort})를 주입해 조회하고, 결과를 그대로 반환한다 — 표현 계약(Response)
- * 조립은 web-api 컨트롤러의 책임이다.
- *
- * <p>가게·메뉴·리뷰 검색은 다른 도메인(product/review/shop)의 read model에 위임한다. 리뷰·가게는 각
- * 도메인의 infra query DAO({@link ReviewQueryPort}·{@link ShopSearchQueryPort})를 직접 주입하고, 메뉴 검색은
- * 같은 모듈의 {@link ProductQueryService}(내부적으로 product infra query DAO를 소비)에 위임한다 —
- * 상품 검색 결과 조립은 product 도메인 소관이므로 그 QueryService를 재사용한다.
- *
- * <p><b>챕터 10</b>에서 메뉴 검색의 {@code ProductSummaryResponse} 조립이 컨트롤러로 내려갔다 — 이제 이
- * 서비스는 어느 경로에서도 표현 계약을 만들지 않고 읽기 계약만 반환한다.
- */
 @Service
 @WebApp
 @Transactional(readOnly = true)
@@ -96,7 +81,6 @@ public class SearchQueryService implements SearchQueryUseCase {
         return shopSearchQueryPort.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery);
     }
 
-    /** 비로그인 검색 — 배송지를 알 수 없으므로 배달지역 필터를 걸지 않는다. */
     @Override
     public PageResult<ShopBookmarkedItemResult> searchShopsPublic(String query, int page, int size) {
         String keyword = validateKeyword(query);

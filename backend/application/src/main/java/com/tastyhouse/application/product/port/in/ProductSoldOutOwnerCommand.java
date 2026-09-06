@@ -6,9 +6,6 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 메뉴 품절 처리 command.
- */
 public record ProductSoldOutOwnerCommand(
     Long ceoId,
     Long shopId,

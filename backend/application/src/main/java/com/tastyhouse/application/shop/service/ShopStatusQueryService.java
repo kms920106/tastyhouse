@@ -8,9 +8,6 @@ import com.tastyhouse.application.shop.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.application.shop.port.out.ShopStatusResult;
 
-/**
- * 점주용 가게 노출 상태 조회 서비스(CQRS query 측).
- */
 @Service
 @CeoApp
 @Transactional(readOnly = true)

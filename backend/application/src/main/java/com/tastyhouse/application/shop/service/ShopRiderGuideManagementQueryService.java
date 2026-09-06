@@ -13,14 +13,6 @@ import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPor
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementQueryUseCase;
 
-/**
- * admin용 라이더 안내 검수 조회 서비스(CQRS query 측).
- *
- * <p>소유권 검증 없이 전체 가게의 라이더 안내를 조회한다(admin 무제한 원칙).
- *
- * <p><b>챕터 06</b> — 읽기 포트의 {@code *Result}를 그대로 반환하고 Response로 변환하지 않는다.
- * 표현 계약(@Schema 붙은 Response·PaginationResponse) 조립은 컨트롤러의 책임이다.
- */
 @Service
 @AdminApp
 @Transactional(readOnly = true)
