@@ -17,7 +17,7 @@ public class ShopDeliveryTipRegion {
     private final Long id;
     private final ShopId shopId;
     private final AdminDongId adminDongId;
-    private int tipAmount;
+    private final int tipAmount;
 
     private ShopDeliveryTipRegion(Long id, ShopId shopId, AdminDongId adminDongId, int tipAmount) {
         this.id = id;
@@ -38,13 +38,6 @@ public class ShopDeliveryTipRegion {
      */
     public static ShopDeliveryTipRegion reconstitute(Long id, ShopId shopId, AdminDongId adminDongId, int tipAmount) {
         return new ShopDeliveryTipRegion(id, shopId, adminDongId, tipAmount);
-    }
-
-    /** 금액을 변경한다 — 생성과 같은 범위 검증을 강제한다. */
-    public void changeTipAmount(int tipAmount) {
-        validateTipAmount(tipAmount);
-
-        this.tipAmount = tipAmount;
     }
 
     /** 이 행이 주어진 행정동을 가리키는지 판정한다(배달 목적지 행정동과의 매칭). */

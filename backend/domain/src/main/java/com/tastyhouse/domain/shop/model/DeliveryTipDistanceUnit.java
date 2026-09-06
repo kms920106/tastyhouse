@@ -34,14 +34,6 @@ public enum DeliveryTipDistanceUnit {
         return this.unitMeters;
     }
 
-    public int getMinAmount() {
-        return this.minAmount;
-    }
-
-    public int getMaxAmount() {
-        return this.maxAmount;
-    }
-
     /**
      * 이 단위에서 허용되는 할증 금액인지 검증한다. 범위를 벗어나면
      * {@link ErrorCode#SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE}로 거절한다.

@@ -39,7 +39,13 @@ configure(subprojects.findAll { it.name != 'domain' && it.path != ':infrastructu
     ext['commons-lang3.version'] = '3.18.0'
 
     ext['netty.version'] = '4.1.137.Final'
-    ext['jackson-bom.version'] = '2.17.3'
+
+    // firebase-admin이 끌어오는 jackson과 정렬하려고 두는 핀이다. 과거 2.17.3으로 두었다가
+    // Spring Boot BOM의 2.18.3까지 끌어내려 취약 버전(WS-2026-0003, CVSS 7.5)이 전 모듈에
+    // 깔렸으므로, 내릴 때가 아니라 올릴 때만 손댄다. Boot 버전을 올리면 이 핀이 오히려
+    // 버전을 낮추고 있지 않은지 `dependencies --configuration runtimeClasspath`로 확인할 것.
+    // 참고: jackson-annotations만 2.20부터 patch 자리를 뗀 '2.20'이 정상이다.
+    ext['jackson-bom.version'] = '2.20.0'
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'

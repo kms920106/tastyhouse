@@ -114,7 +114,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
 3앱의 `implementation` 열에 있던 `spring-boot-starter-data-redis`는 **챕터 01에서 삭제됐다** — 앱이 `StringRedisTemplate`을 직접 참조하던 `config/jwt/RedisRepositoryConfig`가 사라져 그 명시 선언의 근거가 소멸했기 때문이다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지)). `runtimeOnly` 열은 불변이다.
 
-`:infrastructure:external`·`:infrastructure:firebase`는 챕터 03부터 앱이 **직접 선언하지 않는다** — `:infrastructure:file-storage` 스타터가 둘을 `runtimeOnly`로 묶어 노출하므로 전이로 `runtimeClasspath`에만 실린다(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다--챕터-03) 참고).
+`:infrastructure:external`·`:infrastructure:firebase`는 챕터 03부터 앱이 **직접 선언하지 않는다** — `:infrastructure:file-storage` 스타터가 둘을 `runtimeOnly`로 묶어 노출하므로 전이로 `runtimeClasspath`에만 실린다(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03) 참고).
 
 4앱의 `compileClasspath`에는 이제 `infrastructure:*`·`logging-module`이 **없고**(실측), `runtimeClasspath`에는 있다. api 모듈은 라이브러리 모듈의 어댑터 클래스를 컴파일 시점에 아예 볼 수 없다(헥사고날 경계가 의존 스코프로 강제된다) — 남는 `@Import`는 `{App}ApplicationConfig` 하나뿐이며, 이것은 위 예외 4건의 `application` 모듈 케이스와 같은 것이다.
 
@@ -1268,7 +1268,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 ### 비채택 대안과 재고 조건
 
 - **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication` + `@Import` 두 줄뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때.
-- **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 7개 어댑터를 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다--챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 auto-config가 어느 앱에서 발화하는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
+- **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 7개 어댑터를 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 auto-config가 어느 앱에서 발화하는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
 
 ### [존재] 사례 해설 — `@RateLimit`의 앱 배선은 0줄이다
 

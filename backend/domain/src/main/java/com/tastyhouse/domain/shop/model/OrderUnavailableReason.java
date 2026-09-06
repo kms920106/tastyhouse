@@ -1,5 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
+import com.tastyhouse.domain.shared.model.OrderMethod;
+
 /**
  * 주문가능 상태가 "불가"일 때의 사유.
  *
