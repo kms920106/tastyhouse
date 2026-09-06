@@ -278,3 +278,28 @@ application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDepend
 - Command record 등은 소속 앱을 **유도**해 그 집합이 자기 앱 마커인지 본다(유도 규칙은 `AppOwnership` 참조).
 
 각 앱은 **자기 앱 마커가 붙은 application 슬라이스만** 의존한다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+이 절의 항목은 **코드의 특정 지점을 이렇게 바꾸지 말라는 금지 지시**다. 원문 주석은 챕터 02에서 제거되므로, 이 문서가 그 지시의 유일한 소재지다.
+
+### `ext['jackson-bom.version'] = '2.20.0'` — 내릴 때가 아니라 올릴 때만 손댄다
+
+**대상**: `backend/build.gradle`
+→ `configure(subprojects.findAll { ... })` 블록의 `ext['jackson-bom.version']`
+
+`firebase-admin`이 끌어오는 jackson과 정렬하려고 두는 핀이다. **Spring Boot BOM이 관리하니 불필요하다고 판단해 제거하면 안 된다** — BOM이 오히려 버전을 끌어내린다.
+
+과거 이 값을 `2.17.3`으로 두었더니 Spring Boot BOM이 `2.18.3`까지 끌어내려 **취약 버전(`WS-2026-0003`, CVSS **7.5**)이 전 모듈에 깔린 사고가 실제로 있었다.** 그래서 이 핀은 **내릴 때가 아니라 올릴 때만 손댄다.**
+
+**Boot 버전을 올릴 때의 검증 절차** — 이 핀이 오히려 버전을 낮추고 있지 않은지 확인한다.
+
+```bash
+cd backend && ./gradlew dependencies --configuration runtimeClasspath
+```
+
+**표기 주의**: `jackson-annotations`만 2.20부터 patch 자리를 뗀 `'2.20'`이 정상이다. **오타가 아니므로 `'2.20.0'`으로 "고치지" 않는다.**
+
+**인접 핀 2건**: 같은 블록의 `ext['commons-lang3.version']`·`ext['netty.version']`은 근거가 코드에 기록된 적이 없다. 성격이 같을 가능성은 있으나 **확인되지 않았으므로 여기에 추측을 적지 않는다.**

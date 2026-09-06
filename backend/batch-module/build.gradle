@@ -8,7 +8,6 @@ dependencies {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
     }
 
-    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testImplementation(testFixtures(project(':application')))

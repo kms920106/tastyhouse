@@ -10,7 +10,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-security'
 
-    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

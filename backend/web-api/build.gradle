@@ -12,7 +12,6 @@ dependencies {
     runtimeOnly project(':infrastructure:messaging')
     runtimeOnly project(':logging-module')
 
-    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'

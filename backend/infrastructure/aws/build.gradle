@@ -18,7 +18,6 @@ dependencies {
     implementation 'software.amazon.awssdk:sns'
     implementation 'io.awspring.cloud:spring-cloud-aws-s3'
 
-    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
