@@ -104,3 +104,26 @@
 **이것은 어댑터 모듈을 `implementation`으로 되돌리는 것과 다르다.** 앱이 보는 것은 `StringRedisTemplate`이라는 **라이브러리 타입**뿐이고, `infrastructure:redis`의 어댑터 클래스(`RedisRateLimitCounter` 등)는 여전히 컴파일 타임에 보이지 않는다 — 헥사고날 은닉은 그대로다. 두 판단을 섞어 "전이가 끊겼으니 모듈을 다시 `implementation`으로" 되돌리지 않는다.
 
 <!-- MANUAL: -->
+
+## 봉인·가드 목록
+
+<!-- 분류 A. admin-api 고유분. 3앱 공통분은 backend/AGENTS.md "계층 규칙 봉인 — api 앱 3종 공통" 참조 -->
+
+**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/LayerRulesTest.java`
+
+이 파일의 규칙 대부분은 web-api·다른 앱과 동일하며, 그 공통분은 [backend/AGENTS.md](../AGENTS.md)의 "계층 규칙 봉인 — api 앱 3종 공통"에 있다. **아래는 이 앱 고유의 차이다.**
+
+### `seedersShouldDependOnUseCasesOnly` — 이 앱에만 있는 규칙
+
+**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/LayerRulesTest.java`
+→ `seedersShouldDependOnUseCasesOnly()`
+
+부트스트랩(`..config..`)도 UseCase 인터페이스만 주입한다. 구체 서비스 주입은 금지다.
+
+`webAdaptersShouldNotDependOnApplicationServices`가 `..adapter.in.web..`로 대상을 좁히므로 **`config..`의 구체 서비스 주입은 무검사 사각지대였다.** 실제로 `UadminSeeder`가 인바운드 포트가 아니라 구체 클래스 `UadminQueryService`를 주입하고 있었고, 호출하던 연산(`existsByUsername`)은 이미 포트에 선언돼 있어 신규 코드 없이 교체됐다.
+
+**시더가 없는 web-api와 `config..`가 없는 batch-module에는 대상 0건이라 두지 않는다(공허 통과 회피).**
+
+### `shouldDependOnOauthSpiOnlyNotProviderPackages`는 이 모듈에 두지 않는다
+
+web-api에 있는 이 규칙을 **이 모듈에 복제하지 않는다** — admin에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다(전환 전 이 앱의 `LayerRulesTest`에도 없던 규칙이다).

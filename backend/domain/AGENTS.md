@@ -62,3 +62,158 @@
 
 <!-- MANUAL: -->
 
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+이 절의 항목은 **코드의 특정 지점을 이렇게 바꾸지 말라는 금지 지시**다. 원문 주석은 챕터 03에서 제거되므로, 이 문서가 그 지시의 유일한 소재지다.
+
+### `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND` 외 3건 — 이름과 상태코드 불일치 봉인
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`
+→ `NOT_FOUND_NAME_WITH_NON_404_STATUS`
+
+이름이 `*_NOT_FOUND`인데 404가 아닌 기존 상수들. 이미 프론트엔드가 분기하는 wire 계약(응답 status + code)이므로 지금 고치면 클라이언트가 깨진다. 교정 대상이 아니라 **봉인 대상**이다. **여기에 새 항목을 추가하지 말고, 신규 상수는 규약을 지킨다.**
+
+봉인 구성원 4개 — 코드를 열지 않고 대조할 수 있도록 전부 열거한다.
+
+- `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND`
+- `ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND`
+- `ErrorCode.REFERRAL_REFERRER_NOT_FOUND`
+- `ErrorCode.FOLLOW_NOT_FOUND`
+
+**짝 테스트(노후 감지)**: `ErrorCodeConventionTest.whitelistIsNotStale()` — 봉인 목록의 상수가 404로 고쳐졌으면 실패해서 목록에서 지우라고 알린다. 봉인이 영구 면죄부가 되지 않게 하는 장치다.
+
+### `ErrorCode` code 문자열이 상수명과 의도적으로 다른 6건 — 봉인
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`
+→ `CODE_INTENTIONALLY_DIFFERS_FROM_NAME`
+
+채널 도메인 어휘 통일(mail/sms)로 상수명은 `SMS_`·`MAIL_` 접두어로 대칭화했지만, 응답 `code` 문자열은 프론트가 분기하는 wire 계약이라 예전 값(`VERIFICATION_CODE_*`·`EMAIL_VERIFICATION_CODE_*`)을 유지했다. 루트 `CLAUDE.md`의 "채널 도메인 어휘 통일 규칙"에 명시된 **의도적 불일치이므로 교정 대상이 아니다.**
+
+봉인 구성원 6개.
+
+- `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND`
+- `ErrorCode.SMS_VERIFICATION_CODE_EXPIRED`
+- `ErrorCode.SMS_VERIFICATION_CODE_MISMATCH`
+- `ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND`
+- `ErrorCode.MAIL_VERIFICATION_CODE_EXPIRED`
+- `ErrorCode.MAIL_VERIFICATION_CODE_MISMATCH`
+
+### 컨텍스트 경계 위반 16건 — 현상 동결 봉인
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ContextBoundaryTest.java`
+→ `SEALED_VIOLATIONS`
+
+domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨텍스트 간 참조는 **ID VO(`<ctx>.vo..`)·도메인 이벤트(`<ctx>.event..`)·출력 포트(`<ctx>.port..`)** 셋으로만 허용하고, 타 컨텍스트의 `model..`/`repository..`/`service..` 직접 import는 금지한다. `shared..`·`exception..`은 컨텍스트가 아니라 전 컨텍스트 공용이므로 전면 허용한다.
+
+**기존 위반은 고치지 않고 봉인한다.** 이 단계의 목표는 전면 재설계가 아니라 "현상 동결 + 신규 위반 차단"이며, 실제 결합 해소는 후속 단계가 담당한다. **이 목록은 줄어들기만 해야 한다 — 항목을 추가하는 것은 새 위반을 승인하는 것이므로 금지한다.** 위반을 해소했다면 그 클래스를 목록에서 지운다.
+
+봉인 구성원 16개.
+
+- `com.tastyhouse.domain.mail.service.MailVerificationService`
+- `com.tastyhouse.domain.member.service.MemberDeliveryAddressService`
+- `com.tastyhouse.domain.order.service.OrderPlacementService`
+- `com.tastyhouse.domain.payment.service.PaymentCancellationService`
+- `com.tastyhouse.domain.payment.service.PaymentConfirmationService`
+- `com.tastyhouse.domain.reservation.service.ReservationBookingService`
+- `com.tastyhouse.domain.review.service.ReviewBlindRequestService`
+- `com.tastyhouse.domain.review.service.ReviewLifecycleService`
+- `com.tastyhouse.domain.review.service.ReviewOwnerReplyService`
+- `com.tastyhouse.domain.shop.service.DeliveryAreaProjection`
+- `com.tastyhouse.domain.shop.service.ShopCeoAssignmentService`
+- `com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService`
+- `com.tastyhouse.domain.shop.service.ShopDeliveryAreaRadiusService`
+- `com.tastyhouse.domain.shop.service.ShopDeliveryAreaService`
+- `com.tastyhouse.domain.shop.service.ShopDeliveryTipService`
+- `com.tastyhouse.domain.shop.service.ShopRequestCancelService`
+
+**짝 테스트 2종**.
+
+- `ContextBoundaryTest.sealedViolationsShouldNotBeStale()` — 목록에 있으나 더 이상 위반하지 않는 클래스가 있으면 실패해 지우라고 알린다.
+- `ContextBoundaryTest.sealedViolationListShouldNotBeEmpty()` — 목록이 비면 실패해서 **봉인 장치 자체(`SEALED_VIOLATIONS`·짝 테스트)를 제거하고 규칙을 순수 강제로 전환하라**고 알린다. 목록이 비면 위 짝 테스트가 검사 대상을 잃어 공허하게 통과하기 때문이다.
+
+**모든 규칙은 `allowEmptyShould(true)` 없이 선언한다**(공허 통과 금지 — `DomainPurityTest`·`LayerRulesTest` 개정 선례).
+
+### 컨텍스트 간 순환 성분 1건 — 현상 동결 봉인
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ContextBoundaryTest.java`
+→ `SEALED_CYCLES`
+
+봉인 구성원은 `"order,product,review,shop"` 1건이다.
+
+**쌍이 아니라 강결합 성분(SCC) 단위로 봉인한다.** `SliceRule#beFreeOfCycles`는 2노드 상호 참조뿐 아니라 `order → product → shop → order` 같은 *전이 순환*까지 잡으므로, 봉인 목록도 같은 단위여야 한다. 쌍으로 적으면 두 모델이 어긋나 "쌍 하나를 지우라"는 짝 테스트의 지시를 따랐을 때 정작 전이 순환이 드러나 규칙이 깨진다(실제로 `product`는 이 4-노드 성분에 속하는데 쌍 표기로는 이름이 등장하지 않았다). 항목 형태는 성분에 속한 컨텍스트를 알파벳 오름차순으로 이은 `"a,b,c"`다.
+
+**봉인 성분 "안쪽" 의존만 제외한다** — 양 끝이 모두 같은 성분에 속할 때만 무시하므로, 봉인 컨텍스트가 관여하더라도 성분 밖으로 나가는 의존(예: `order→member`)은 그대로 검사된다. 성분에 걸린 컨텍스트를 통째로 무시하면 무관한 신규 순환까지 함께 가려진다.
+
+**짝 테스트**: `ContextBoundaryTest.sealedCyclesShouldNotBeStale()` — 비교 단위가 `SliceRule`과 동일한 **SCC**여야 한다. 2노드 쌍으로 비교하면 전이 순환을 놓쳐, 봉인을 지우라고 지시해 놓고 정작 규칙은 깨지는 모순이 생긴다.
+
+### `ReplyPhraseTextValidator` — 포트 carve-out (금칙어 검증기를 직접 부르지 않는다)
+
+**대상**: `backend/domain/src/main/java/com/tastyhouse/domain/ceo/port/ReplyPhraseTextValidator.java`
+
+실제 검수 규칙(금칙어 목록 대조)은 shop 컨텍스트의 `ProhibitedWordValidator`가 소유하고, 이 포트의 어댑터가 그것을 그대로 호출한다 — **규칙을 복제하지 않는다.**
+
+**ceo 도메인이 `ProhibitedWordValidator`를 직접 부르지 않는 이유는 컨텍스트 경계다.** 컨텍스트 간 참조는 ID VO·도메인 이벤트·출력 포트로만 허용되고 타 컨텍스트의 `service` 직접 import는 금지되어 있다(`ContextBoundaryTest`). **기존에 같은 검증기를 직접 import하는 도메인 서비스들이 있으나 그것은 규칙 도입 이전 코드로 봉인된 것이라 선례로 삼지 않는다.**
+
+위반 시 `BusinessException(SHOP_TEXT_PROHIBITED_WORD)`(400)을 던진다.
+
+### `StorePriceVerificationPort` — CQRS write 포트 잔류 carve-out
+
+**대상**: `backend/domain/src/main/java/com/tastyhouse/domain/product/port/StorePriceVerificationPort.java`
+
+메뉴 가격 저장은 product 컨텍스트의 규칙이지만, "매장가·픽업가를 설정할 수 있는가"와 "배달가가 매장가를 넘어 인증을 내려야 하는가"는 **가게 단위 상태**다. 컨텍스트 경계 규칙(`ContextBoundaryTest`)이 타 컨텍스트의 `model`·`repository` 직접 import를 금지하므로, product는 이 포트로만 그 상태를 다룬다 — **`ShopRepository`를 직접 주입하면 신규 위반이 되고 봉인 목록은 늘릴 수 없다.**
+
+구현은 `StorePriceVerificationAdapter`가 `ShopRepository`에 위임한다.
+
+### `StorePriceVerificationService` — 애그리거트를 product가 소유하는 배치 (위 포트와 짝)
+
+**대상**: `backend/domain/src/main/java/com/tastyhouse/domain/product/service/StorePriceVerificationService.java`
+
+**왜 shop이 아니라 product 컨텍스트가 소유하는가**: 승인이 하는 일의 본체는 `PRODUCT_PRICE`의 매장가·픽업가를 채우는 것이다. 요청 애그리거트를 shop에 두면 그 승인 경로가 `product.model`·`product.repository`를 import해야 해 컨텍스트 경계 규칙(`ContextBoundaryTest`)을 위반하는데, **그 봉인 목록은 늘릴 수 없다.** 그래서 인증 요청 애그리거트 자체를 product가 소유하고, 가게 단위 상태인 인증 ON/OFF 플래그만 `StorePriceVerificationPort`로 다룬다 — **이 방향이 경계 위반 없이 성립하는 유일한 배치다.**
+
+함께 고정되는 제약.
+
+- 테이블명이 `SHOP_STORE_PRICE_VERIFICATION`인 것은 요청이 **가게 단위**로 접수되기 때문이며, 소유 컨텍스트와는 별개다.
+- **승인은 요청 시점의 매장가를 쓴다** — 항목(`StorePriceVerificationItem`)에 박제된 값이며, 승인 시점에 현재 가격을 다시 읽지 않는다. 그러지 않으면 검수자가 보지 않은 값이 승인된다.
+- **인증을 켜기 전에 항목을 먼저 반영한다.** 순서를 뒤집으면 반영 도중 실패했을 때 인증만 켜진 채 매장가가 비어 있는 상태가 남는다.
+- 상태 전이는 원본 전이와 **같은 트랜잭션**에서 인덱스에 동기 기록한다. **전이 메서드마다 이 호출을 넣는다** — 한 곳이라도 빠지면 점주 화면의 요청처리 현황이 원본과 영구히 어긋난다. **배선이 api 모듈이 아니라 이 도메인 서비스에 있는 것이 중요하다** — 승인·반려는 admin이, 취소는 ceo가 호출하므로 api 모듈에 두면 같은 전이가 두 모듈로 흩어져 한쪽이 반드시 빠진다.
+- 인증 상태 → 통합 상태 매핑을 product가 소유하는 이유도 컨텍스트 경계다 — shop이 `StorePriceVerificationStatus`(product 소유)를 알면 `ContextBoundaryTest`를 위반한다. 다섯 상태가 이름까지 대응하지만 `name()`을 그대로 흘려보내지 않고 **명시 매핑**을 두는 이유는, 어느 한쪽 enum에 상수가 추가되면 **컴파일 단계에서** 대응을 결정하도록 강제하기 위해서다.
+- 할인 중인 메뉴는 인증 요청 대상이 아니다(승인 시 매장가가 할인가와 뒤엉킨다). 판정식은 `ProductPriceService`와 같다 — 이 저장소에 할인 스케줄링이 없어 "할인가 존재"로 본다.
+- 가격 행이 정말 그 메뉴의 것인지 확인한다. **확인하지 않으면 남의 메뉴 가격 행에 매장가를 심을 수 있다.**
+
+### `ReviewBlindStatus` — 공용 `ApprovalStatus`에 상수를 추가하지 않는다
+
+**대상**: `backend/domain/src/main/java/com/tastyhouse/domain/review/model/ReviewBlindStatus.java`
+
+**공용 `ApprovalStatus`에 상수를 추가하지 않고 별도 enum을 둔다.** 그 enum은 `ShopImageChangeRequest`·`ShopDeliveryAreaAdjustmentRequest` 등이 공유하므로, 리뷰에만 의미가 있는 `EXPIRED`/`DELETED`를 넣으면 이미지 검수 코드가 도달 불가능한 분기를 갖게 된다. `ApprovalStatus` 문서의 *"도메인 특화 승인상태가 필요하면 그 도메인 enum에서 이 enum을 감싸거나 별도로 정의한다"* 가 이 경우다.
+
+앞의 네 상수는 `ApprovalStatus`와 이름·의미가 그대로 대응하고, 뒤의 둘은 승인 이후의 생애주기(30일 경과 재노출 / 고객 동의 삭제)를 나타낸다.
+
+### `ShopReviewDisplaySetting` — `Shop`에 컬럼을 추가하지 않는다
+
+**대상**: `backend/domain/src/main/java/com/tastyhouse/domain/review/model/ShopReviewDisplaySetting.java`
+
+**`Shop`에 컬럼을 추가하지 않는다** — 리뷰 표시 설정이 앞으로 늘어날 여지가 있고 `Shop`은 이미 필드가 19개다.
+
+- 설정 행이 없으면 `ReviewSortType.LATEST`로 간주한다. 행을 미리 만들지 않으므로 기존 가게에 대한 백필이 필요 없다.
+- 이 설정은 고객이 정렬을 직접 지정하지 **않았을 때만** 적용된다 — **점주 설정이 고객의 명시적 선택을 덮어써서는 안 된다.**
+- DB 재구성 팩토리는 영속 계층 전용이며, **불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만** 식별자·감사 시각을 주입한다.
+
+### 도메인 서비스 단위 테스트 10종 — 불변식 봉인 (테스트 스텁 carve-out)
+
+아래 테스트들은 **현재 동작을 봉인**하는 것이 목적이다. 리팩터링으로 테스트가 깨지면 테스트를 고치기 전에 **봉인된 불변식을 깼는지 먼저 확인한다.** 전부 write 포트·이벤트 발행 포트를 fake로 대체해 Spring/DB 없이 판정 로직만 검증하는 순수 단위 테스트다.
+
+| 대상 (`backend/domain/src/test/java/com/tastyhouse/domain/...`) | 봉인하는 불변식 |
+|---|---|
+| `menureview/service/MenuReviewLifecycleServiceTest.java` → `register_succeedsWithoutStoreReview` | **매장 리뷰가 없어도 메뉴 평가가 등록된다**(설계 원칙 1의 회귀 방어). 이 서비스가 `ReviewRepository`를 **아예 주입받지 않는 것 자체가** 그 원칙의 구조적 보증이며, 테스트는 그 상태를 봉인한다 |
+| `product/service/OrderProductValidationServiceTest.java` | 필수 옵션그룹을 비운 주문, 숨긴·품절 옵션을 실은 주문 차단. 전부 "프론트만 막고 서버는 통과시키던" 결함이다. 3단계 보증금이 도입되면 후자는 "보증금 옵션을 숨겨 보증금 없이 주문"하는 경로가 되므로, 이 테스트가 그 우회를 **영구히 봉인한다** |
+| `product/service/ProductRepresentativeApprovalServiceTest.java` | 세 제약(최대 6개 · 이미지 필수 · 최소 1개 유지). 특히 **최소 1개 유지가 기존 `PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE`를 재사용**하는 것이 핵심 — 새 코드로 갈라지면 같은 불변식에 프론트가 두 갈래를 분기해야 하고 일괄 숨김 경로와 하한이 어긋난다 |
+| `review/service/ReviewBlindRequestServiceTest.java` | 스펙의 세 규칙 — **1회 제한**(단 `CANCELED`는 예외) · **고객 동의 삭제** · **타인 리뷰 접근 차단**. 추가로 `IndexSync` 중첩 클래스가 신규 전이 2종(`EXPIRED`/`DELETED`)이 종결(`APPROVED`)로 접히는지 봉인한다 — 목록에 "재노출"·"삭제"라는 없는 통합 상태가 새어 나가면 안 된다. 원본→통합 상태 매핑은 컨텍스트 경계 때문에 recorder가 아니라 이 서비스가 소유한다 |
+| `review/service/ReviewOwnerReplyServiceTest.java` | **30일 작성 제한이 등록에만 걸리는지**를 봉인한다. 기한 판정 기준일을 파라미터로 받는 설계 덕에 시계 조작 없이 29·30·31일차를 지정할 수 있다 — **도메인이 `LocalDate.now()`를 직접 부르면 이 테스트 자체가 불가능하다** |
+| `shop/service/ShopCeoAssignmentServiceTest.java` | `ShopCeoAssignmentService`의 상태 규칙 표 전체. 특히 **재배정이 `REVOKE`+`GRANT` 2행**인 것을 봉인한다 — 한 행에 before/after를 담는 형태로 되돌아가면 "언제부터 언제까지 권한이 있었는가"를 읽을 수 없게 된다 |
+| `shop/service/ShopLifecycleServiceTest.java` | 가게 등록 시 접근권한 이력 기록. 등록에서 점주를 함께 배정하는 것도 접근권한 부여이므로 나중에 배정한 경우와 **구별 없이 `GRANT` 이력이 남아야** 하고, 반대로 점주 없이 등록하면 아무 행도 남지 않아야 한다 |
+| `shop/service/ShopMenuCollectionImageServiceTest.java` | 규칙이 전부 **행 하나만 보고는 판정할 수 없는 집합 차원**이라 애그리거트 단위 테스트로는 한 줄도 검증되지 않는다. **정원(최대 6개)은 상태를 가리지 않는다**(대기·반려 건도 슬롯을 차지한다), **순서 변경은 replace-all**(부분·초과·미지의 id 목록은 전부 거절 — 부분 목록을 받아주면 낡은 화면의 요청이 빠진 이미지를 목록 끝으로 밀어낸다). 가게 소유가 아닌 id는 존재를 알리지 않고 `SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND`로 합쳐 **IDOR을 막는 경로도 함께 봉인**한다 |
+| `shop/service/ShopRequestCancelServiceTest.java` | 세 규칙 — (1) `PENDING`만 취소된다, (2) `IN_PROGRESS`는 409로 거부된다(가맹본부에 자료가 전달된 뒤라 플랫폼이 일방 취소할 수 없다), (3) **취소는 원본 애그리거트의 상태를 바꾼다**. (3)이 핵심으로, 인덱스에만 `CANCELED`를 두면 원본이 `PENDING`으로 남아 중복 차단이 재요청을 계속 막고 관리자가 취소된 요청을 승인·반려할 수 있다 |
+| `shop/service/ShopRequestIndexRecorderTest.java` | 원본 → 통합 상태 **매핑 표를 전수** 봉인한다. 특히 조정 신청의 `COMPLETED → APPROVED`는 유일하게 값 이름이 어긋나는 매핑이라, 고정하지 않으면 목록에 "완료"라는 없는 상태가 새어 나가거나 매핑이 조용히 뒤집힌다. 게시중단만은 **통합 상태를 그대로 받는다** — 컨텍스트 경계 때문에 recorder가 `review.model.ReviewBlindStatus`를 import할 수 없어 매핑을 `ReviewBlindRequestService`가 소유하기 때문이다 |

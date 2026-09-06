@@ -220,3 +220,113 @@ public class WebApplicationConfig { }
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 앱을 띄우는 것은 각 api 모듈의 fat jar 4개이며, 그 **이름·경로·포트는 통합 후에도 불변**이다. jar 내용만 application jar 4개 → `application-0.0.1-SNAPSHOT.jar` 1개로 바뀐다.
 - **빈 배선 실수는 빌드로 드러나지 않는다** — `contextLoads` 테스트가 `@SpringBootTest` 없이 빈 껍데기라 `@Import` 누락 시 빌드는 green이고 jar만 조용히 깨진다. 배선을 건드렸으면 실제로 띄워 `Started {Xxx}Application` 마커를 확인한다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+원문 주석은 챕터 04에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
+
+### `queryServicesShouldNotDependOnWritePorts` carve-out 3건 — 목록에 새 항목을 추가하지 않는다
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
+→ `queryServicesShouldNotDependOnWritePorts()`
+
+`*QueryService`는 domain의 write 포트를 주입하지 않는다 — 조회 트랜잭션(`readOnly = true`)에서 쓰기 경로가 열리는 것을 구조적으로 막는다.
+
+**carve-out 3건은 각 앱에서 그대로 승계한 확정 판정이며, 이관 대상이 아니다.**
+
+| FQN | 근거 |
+|---|---|
+| `com.tastyhouse.application.shop.service.ShopQueryService` (web) | write 포트를 배달팁 계산 경로가 도메인 서비스에 넘길 애그리거트 로드에 쓴다. 표현용 투영이 아니라 **도메인 계산 입력**이다 |
+| `com.tastyhouse.application.admin.service.AdminQueryService` | 인증(UserDetails 로드)·시드 멱등성 확인에 쓰이며 표현 목적 read model이 없다. 엔티티/원시값 반환 + 불변식 검증 경로다 |
+| `com.tastyhouse.application.ceo.service.CeoOwnerQueryService` | 위 admin과 같은 인증 조회 경로다 |
+
+**판정 기준은 simple name이 아니라 FQN이다.** 4개 모듈이 하나로 합쳐지면서 동명 클래스가 한 importer에 들어왔기 때문이다 — 예컨대 `ShopQueryService`는 web·admin·ceo에 각각 존재했으므로 `haveSimpleNameNotEndingWith("ShopQueryService")`를 그대로 두면 **의도한 web 1개가 아니라 3개 전부가 면제**되어 admin·ceo의 위반이 조용히 통과했다. 이후 개명·평탄화로 simple name이 다시 유일해졌지만 **FQN을 유지한다** — 나중에 같은 접미어의 형제가 생겨도 면제 범위가 넓어지지 않기 때문이다.
+
+**이 목록에 새 항목을 추가하지 않는다.**
+
+### `commandRecordsShouldBeBoundaryTyped` carve-out 3건 — 느슨한 판을 batch에 적용하지 않는다
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
+→ `commandRecordsShouldBeBoundaryTyped()`
+
+Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유지**한다.
+
+1. `com.tastyhouse.domain.exception..` — `BusinessException`·`ErrorCode`는 애그리거트가 아니라 전 계층이 공유하는 **횡단 관심사(에러 계약)**이고, compact constructor의 구조적 가드가 이를 던져야 응답 코드가 나머지 경로와 같은 형태로 나간다.
+2. `org.springframework.web.multipart..`(`MultipartFile`) — 업로드를 받는 연산은 `method(XxxCommand, MultipartFile)`처럼 별도 파라미터로 두는 것이 규정된 형태이고, ArchUnit 의존 그래프는 같은 패키지 UseCase 인터페이스의 메서드 파라미터까지 함께 잡는다. Command **필드**로 실리는 것은 `commandRecordsShouldNotHoldMultipartFile`이 따로 막는다.
+3. `com.tastyhouse.domain.shared.page..` — 근거는 `MultipartFile` carve-out과 **동일한 구조**다. 이 규칙이 겨냥하는 것은 Command record가 **필드로** 도메인 모델을 싣는 것인데, ArchUnit은 같은 `..port.in..` 패키지에 사는 **QueryUseCase의 메서드 시그니처**까지 함께 잡는다. 목록 반환 타입이 `PaginationResponse`에서 `PageResult`로 바뀌면서 걸린 건들은 **전부 반환 타입이며 Command 필드는 한 건도 없다**(실측 확인).
+
+즉 이것은 규칙을 무르게 하는 것이 아니라, 규칙이 애초에 겨냥하지 않던 대상을 제외하는 것이다. 도메인 **모델**(`domain.{shop,order,member}.model..` 등)은 그대로 금지이며, Command가 실제로 도메인 타입을 필드로 실으면 여전히 걸린다.
+
+**batch 제외는 importer가 아니라 `@BatchApp` 마커로 표현한다.** batch에는 Command record가 없고 인바운드 포트가 `void foo()`뿐이라 carve-out이 `domain.exception..` 하나인 **엄격판**을 쓸 수 있으며, 그쪽은 `BatchSchedulerRulesTest.inboundPortsShouldBeBoundaryTyped()`가 맡는다. **batch를 이 규칙에 함께 넣으면 느슨한 3-carve-out 판에 얹혀 엄격함을 잃는다.**
+
+**`allowEmptyShould(true)`는 이 파일 어디에도 쓰지 않는다.** 규칙이 대상을 잃으면 공허하게 통과시키지 말고 규칙을 지우거나 anchor를 고친다(`RuleAnchorTest`가 자동 검증).
+
+### `inboundPortsShouldBeBoundaryTyped` — carve-out 1건뿐인 엄격판, 죽은 코드로 보고 지우지 말 것
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/BatchSchedulerRulesTest.java`
+→ `inboundPortsShouldBeBoundaryTyped()`
+
+`com.tastyhouse.domain.exception`만 carve-out으로 허용한다 — 예외는 횡단 관심사라 계층 칸이 없다. **web·admin·ceo가 쓰는 페이징·업로드 carve-out 2건은 여기 없다**: batch에는 목록 조회도 파일 업로드도 없어 느슨하게 할 이유가 없다. 이것이 이 규칙을 마커로 좁혀 둔 이유다.
+
+**주의 — 지금은 검사할 표면이 없다.** UseCase 7개가 전부 파라미터·반환값 없는 `void foo()` 하나뿐이라 의존 그래프에 잡힐 타입 자체가 0건이다(`inboundPortsExist`가 세는 것은 "인터페이스가 존재함"이지 "검사 대상이 있음"이 아니다). **규칙과 carve-out은 UseCase가 처음으로 파라미터를 갖는 시점을 위해 미리 세워 둔 것이므로, 지금 아무것도 걸리지 않는다는 이유로 carve-out을 죽은 코드로 보고 지우지 말 것.**
+
+같은 파일의 다른 고정 사항.
+
+- **대상은 importer가 아니라 `@BatchApp` 마커로 좁힌다.** 평탄화로 앱별 패키지가 사라졌기 때문이다. importer는 모듈 전체를 훑고 각 규칙이 마커로 대상을 좁힌다 — 다른 앱까지 대상에 들어오면 그 앱들이 정당하게 쓰는 페이징·업로드 타입에 걸려 실패한다.
+- **대상이 0건이 된 규칙은 `allowEmptyShould(true)`로 공허 통과를 열지 않고 삭제한다**는 것이 이 저장소의 방침이다(`responseRecordsShouldBeDomainAndInfraFree`와 그 anchor `responseRecordsExist`를 실제로 삭제한 선례).
+- anchor 2종은 batch가 규모가 작아 **정확히 일치**로 둔다(다른 앱은 하한). 잡이 늘거나 줄면 **이 숫자를 의식적으로 고치게 되는 것이 의도다.**
+
+### `DESERIALIZED_COMMANDS` — 고아 Command record 봉인, 새 항목을 추가하지 않는다
+
+**대상**: `backend/application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`
+→ `DESERIALIZED_COMMANDS`
+
+봉인 구성원 1개 — `com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationItemCommand` (`CeoApp`).
+
+`ShopStorePriceVerificationItemCommand`는 multipart의 **문자열 파트**로 들어온다. 컨트롤러도 Request record도 domain-free여야 해 파싱을 할 수 없으므로, Command가 원문을 `String items`로 담아 넘기고 `ShopStorePriceVerificationCommandService`가 `ObjectMapper`로 이 record 목록으로 역직렬화한다. 그래서 이 record는 어느 UseCase 시그니처에도, 어느 부모 Command의 컴포넌트로도 등장하지 않는다 — **유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다.**
+
+**이 목록에 새 항목을 추가하지 않는다.** 고아로 잡히는 record는 대개 진짜 죽은 코드이므로, 추가하기 전에 그 record를 **어디서 만드는지**를 먼저 찾는다. 여기 담을 수 있는 것은 "런타임 역직렬화로만 생성되어 정적 참조가 존재할 수 없는" 경우뿐이다.
+
+### `CeoAuthCommandService` — 기록 실패 정책의 의도적 비대칭 (인증 조회 carve-out)
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/auth/service/CeoAuthCommandService.java`
+
+**기록 실패 시 정책은 성공·실패 경로가 의도적으로 비대칭이다.**
+
+- **성공 경로**: 기록 실패를 그대로 전파한다. 접속기록 없이 토큰이 발급되는 상태를 만들지 않는다 — 개인정보처리시스템 접속기록은 법적 요구사항이므로, 남기지 못했다면 접속도 허용하지 않는 편이 옳다.
+- **실패 경로**: 기록 실패를 catch·로깅하고 원래 인증 예외를 rethrow한다. **감사 쓰기 실패가 인증 실패 응답 계약(401 `CEO_AUTHENTICATION_FAILED` 등)을 500으로 바꾸면 안 된다.**
+
+이 비대칭은 `AuthCommandServiceTest`가 봉인한다.
+
+### `AuthCommandServiceTest` — 점주 로그인 접속기록 배선 봉인 (소셜 4종 분기 carve-out)
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/auth/service/AuthCommandServiceTest.java`
+
+이 테스트가 지키는 것은 네 가지다.
+
+- 성공·실패 양쪽 모두 이력을 남긴다(실패 이력이 인증 예외와 함께 사라지지 않는다).
+- 실패 시 **원래 인증 예외가 그대로 rethrow**된다 — 응답 계약이 바뀌지 않는다.
+- 존재하지 않는 username은 기록하지 않는다(**계정 존재 여부 탐색 표면 방지**).
+- 기록 실패 시 정책이 성공·실패 경로에서 **의도적으로 비대칭**이다.
+
+### 읽기 계약 carve-out 5종 — 도메인 타입을 강등해 나르는 이유
+
+아래 record들은 전부 **api 모듈이 도메인 타입을 알 수 없다는 경계** 때문에 존재한다. "중복 DTO"로 보고 합치거나 도메인 타입을 그대로 실으면 ArchUnit 규칙이 깨진다.
+
+| 대상 (`backend/application/src/main/java/com/tastyhouse/application/...`) | 봉인 취지 |
+|---|---|
+| `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryDaos`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. `ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다 |
+| `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 `GeoRingsPort`가 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다. 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
+| `review/port/out/ReviewBlindReasonView.java` | 카탈로그는 도메인 enum의 `values()`를 훑어 만드는데 그 메서드는 api 모듈에 허용된 accessor가 아니므로(`apiModuleShouldOnlyReadDomainEnums`) 목록 구성이 application에 남는다. **도메인 enum을 그대로 담지 않고 문자열로 강등해 나른다** — 인바운드 포트의 반환 타입에 `com.tastyhouse.domain..`이 실리면 `commandRecordsShouldBeBoundaryTyped`(carve-out은 예외·페이징 계약뿐)에 걸린다. **목록 요소는 제네릭 타입 인자로도 잡힌다** |
+| `shop/port/out/GeoPointView.java` | 도형 계산은 도메인 기하 타입으로 수행하는데 api 모듈은 그 타입을 알 수 없다 — `apiModuleShouldBeDomainModelFree`의 carve-out은 `domain.exception..`·`domain.shared.page..`·도메인 enum뿐이고 **`domain.shared.geo..`는 포함되지 않는다.** 추가로 **컴포넌트 선언 순서는 알파벳순(`latitude` → `longitude`)이다** — 둘 다 `BigDecimal`이라 순서가 어긋나면 컴파일은 통과하고 **값만 조용히 뒤바뀐다** |
+| `shop/port/out/ShopStorePriceVerificationViewResult.java` | 세 출처를 합친다 — 최신 인증 요청(애그리거트), 인증 여부 플래그, 미충족 메뉴 목록(도메인 서비스). 앞의 둘은 애그리거트에서, 마지막은 도메인 서비스에서 나오므로 표현 계약이 직접 받을 수 없다(`apiModuleShouldBeDomainModelFree`). 미충족 사유는 `domain.product.service`의 `StorePriceUnverifiedItem`을 그대로 넘기지 않고 `UnverifiedItem`으로 옮겨 담는다 — 그 타입은 도메인 **서비스** 패키지에 있어 api 모듈의 carve-out 어디에도 들어가지 않는다. 사유 enum 자체는 carve-out 대상이라 그대로 나르고, 문자열 강등은 표현 계약이 수행한다 |
+
+### `ShopStorePriceVerificationCommandService` — 인덱스 기록이 도메인이 아니라 이 서비스에 있는 이유
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopStorePriceVerificationCommandService.java`
+
+- **`items`가 JSON 문자열인 것은 요청 형식이 multipart이기 때문이다.** 가격표 이미지와 대상 목록은 한 트랜잭션에 함께 들어와야 한다 — 2단 요청으로 쪼개면 중간에서 끊긴 요청이 첨부만 있고 대상이 없는 고아 상태로 남고, 관리자 검수 큐에 검수할 수 없는 건이 쌓인다. multipart는 JSON 바디를 함께 실을 수 없으므로 목록만 문자열 파트로 받아 여기서 파싱한다.
+- **인덱스 기록이 도메인이 아니라 이 서비스에 있는 것은 컨텍스트 경계 때문이다.** 다른 요청 유형(`ShopImageApprovalService`·`ShopDeliveryAreaAdjustmentService`)은 shop 컨텍스트 소유라 도메인 서비스가 직접 `ShopRequestIndexRecorder`를 호출한다. 그러나 인증 요청 애그리거트는 **product** 컨텍스트 소유여서, 그 도메인 서비스가 `shop.service`를 호출하면 `ContextBoundaryTest` 위반이 되고 **봉인 목록은 늘릴 수 없다.** 두 컨텍스트를 한 트랜잭션에서 잇는 일은 표현 계층의 몫이다.
+- `MultipartFile`을 파라미터로 받는 것은 **파일 업로드 경계의 문서화된 예외**다 — 규격 검증이 업로드보다 앞서야 하고, 도메인은 통과분의 `fileId`만 받는다.

@@ -199,3 +199,82 @@ domain → 의존 없음 (production 의존 0개)
 - p6spy (SQL 로깅 — logging-module이 api로 노출하고 SQL 로그 포맷을 `application-logging.yml`에서 소유)
 
 <!-- MANUAL: 수동 메모는 이 라인 아래에 추가하면 재생성 시 보존됩니다 -->
+
+## 계층 규칙 봉인 — api 앱 3종 공통
+
+<!-- 분류 A. web-api·admin-api·ceo-api의 architecture/LayerRulesTest.java 공통분 -->
+
+`web-api`·`admin-api`·`ceo-api`의 `src/test/java/com/tastyhouse/{web,admin,ceo}api/architecture/LayerRulesTest.java` **세 파일은 내용이 거의 동일하다.** 공통분을 여기에 한 번만 쓰고, 앱별 차이는 각 앱 `AGENTS.md`의 "봉인·가드 목록"에 적는다. 원문 주석은 챕터 06에서 제거되므로 이 절이 그 금지 지시의 유일한 소재지다.
+
+### `ALLOWED_DOMAIN_ENUM_ACCESSORS` — 항목을 추가하지 않는다
+
+**대상**: 각 앱 `src/test/java/com/tastyhouse/{web,admin,ceo}api/architecture/LayerRulesTest.java`
+→ `ALLOWED_DOMAIN_ENUM_ACCESSORS`
+
+api 모듈이 도메인 enum에 호출할 수 있는 읽기 전용 accessor. 봉인 구성원 3개 — `name` · `getDescription` · `getDisplayName`.
+
+바이트코드 그래프 실측에서 도출했다(admin-api 기준 `name` 57 · `getDescription` 8 · `getDisplayName` 1이 전부이고 `ordinal`·`toString`·`values`는 0건).
+
+**항목을 추가하지 않는다** — 이 목록이 커지는 것은 api 모듈이 도메인 로직을 수행하기 시작했다는 신호이므로, **목록을 늘리지 말고 그 호출을 application으로 옮긴다.**
+
+### `apiModuleShouldBeDomainModelFree` — carve-out 3종과 그 술어 형태
+
+**대상**: 각 앱의 `LayerRulesTest.java` → `apiModuleShouldBeDomainModelFree()`
+
+기존 `controllersShouldBeDomainFree`는 `*ApiController` 접미어로, `requestRecordsShouldBeDomainAndInfraFree`는 `..request..` 패키지로 대상을 좁히므로 `config..`·`security..`·`exception..`이 **무검사 사각지대**였다 — 이 규칙이 그 지점을 모듈 전역으로 봉인한다.
+
+**carve-out 3종**.
+
+1. `domain.exception..` — 계층 칸이 없는 **횡단 관심사**다(`api-common-module`이 `api project(':domain')`로 공용 에러 계약을 전 모듈에 노출한다).
+2. `domain.shared.page..` — 페이징 조립을 컨트롤러로 옮기며 **정상 경로**가 됐다(application이 `PageResult`를 반환하고 컨트롤러가 `PaginationResponse.from(...)`으로 감싼다).
+3. **도메인 enum** — 아래 참조.
+
+**도메인 enum의 읽기 전용 accessor는 위반이 아니다(타입 성격 술어).** Response 조립을 컨트롤러로 올리면서 읽기 계약 `*Result`가 품은 도메인 enum을 `result.type().name()`으로 읽는 것이 **설계상 필연**이 됐다. 규칙의 원래 의도는 **승격 방향**(String·Long → 도메인 타입)을 막는 것인데 옮겨진 것은 **강등 방향**(도메인 타입 → String)이고, ArchUnit 의존 그래프는 두 방향을 구분하지 못한다. 실측 위반 67건은 전부 읽기 전용 accessor였고 도메인 객체 생성·상태 변경·리포지토리 접근은 0건이었다.
+
+**패키지 술어를 쓸 수 없다**: 도메인 enum 76개는 전부 `com.tastyhouse.domain.<ctx>.model`에 **애그리거트 루트와 같은 자리**에 있다. carve-out을 `resideInAPackage("..model..")`로 쓰면 `Shop`·`Order`까지 함께 열려 **규칙이 무력해진다**(패키지 술어 예외는 대상이 전부 그 패키지에 살면 규칙을 삼킨다). 그래서 위치가 아니라 **타입 성격**(`JavaClass#isEnum()`)으로 좁히고, `DOMAIN_ROOT` 패키지 조건을 함께 걸어 domain 밖 enum까지 열리지 않게 한다.
+
+**타입 수준 carve-out만으로는 이빨이 빠진다** — 도메인 enum은 무행위 값 집합이 아니다. 76개 중 13개가 비즈니스 로직을 노출하며(`MemberGrade#fromReviewCount` 등급 배정 규칙, `OrderStatus#canTransitionTo` 상태 전이 가드), 이 규칙만 두면 컨트롤러가 그것을 호출해도 빌드가 통과한다. 짝 규칙 `apiModuleShouldOnlyReadDomainEnums`가 호출 가능 메서드를 accessor로 제한해 그 구멍을 막는다.
+
+**⚠️ 위반은 `import`로 보이지 않는다**: ArchUnit은 import 문이 아니라 바이트코드 상수 풀을 읽으므로, 이 모듈에 `import com.tastyhouse.domain..`이 0건이어도 `*Result` 컴포넌트를 통한 **전이 의존**으로 잡힌다. 그때 대상은 `java.lang.Enum`이 아니라 **구체 enum**이다(javac가 메서드 참조 소유자로 정적 수신 타입을 기록한다). **따라서 grep으로 검증하면 "위반 0건"으로 오판한다 — 검증은 반드시 이 테스트로 한다.**
+
+### `domainEnum()` 술어 — `domain.exception..`을 제외하는 이유
+
+**대상**: 각 앱의 `LayerRulesTest.java` → `domainEnum()`
+
+`isEnum()`에 `DOMAIN_ROOT` 패키지 조건을 함께 거는 이유는, 그냥 `isEnum()`이면 domain 밖 enum까지 대상이 되어 술어의 의미가 흐려지기 때문이다.
+
+**`domain.exception..`은 제외한다** — `ErrorCode`가 enum이라서 그냥 두면 짝 규칙 `apiModuleShouldOnlyReadDomainEnums`이 전역 예외 핸들러의 `getCode()`·`getDefaultMessage()` 호출을 잡는다(web-api에서 실측 2건). 에러 계약은 클래스 수준 규칙에서도 carve-out된 **횡단 관심사**이므로 **두 규칙이 같은 예외를 공유해야 한다** — 이 술어를 두 규칙이 함께 쓰는 이유이기도 하다.
+
+### `domainBoundaryPredicatesShouldStillBite` — 규칙 무력화를 잡는 영구 증명
+
+**대상**: 각 앱의 `LayerRulesTest.java` → `domainBoundaryPredicatesShouldStillBite()`
+
+위 두 규칙은 현재 위반 0건이므로, carve-out을 잘못 넓혀(예: `isEnum()` 대신 `..model..` 패키지 술어로 되돌려) **규칙이 무력해져도 그대로 통과한다.** 그 무력화를 잡는 것이 이 테스트다. "일부러 위반 코드를 넣어 확인 후 되돌린다"는 한 번 확인하고 사라지므로, 동일 술어를 조립해 판별력 자체를 상시 단정한다.
+
+네 항목을 단정하며, **(4)가 특히 중요하다** — 술어를 `isEnum()`으로 좁힌 **이유 자체**(enum과 애그리거트 루트가 같은 패키지에 산다)를 고정하므로, 전제가 바뀌면 낡은 주석이 아니라 실패로 드러난다.
+
+1. 애그리거트 루트 `Shop`은 여전히 금지 — **carve-out을 패키지 술어로 되돌리면 여기서 실패한다.**
+2. 도메인 enum `MemberGrade`는 carve-out 대상이다.
+3. 짝 규칙이 막아야 할 대상(`MemberGrade#fromReviewCount` 같은 로직 메서드)이 허용 목록 밖에 실재한다.
+4. enum과 애그리거트 루트가 같은 패키지에 산다는 전제가 유지된다.
+
+### 공허 통과 금지 — `allowEmptyShould(true)`를 쓰지 않는다
+
+**대상**: 각 앱의 `LayerRulesTest.java` (파일 전체)
+
+**`allowEmptyShould(true)`는 이 파일 어디에도 쓰지 않는다.** 대상이 0건이 된 규칙은 공허 통과를 여는 대신 **삭제하거나 다른 모듈로 옮긴다.**
+
+application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDependOnQueryDaos` · `queryServicesShouldNotDependOnWritePorts` · `*ShouldImplementUseCase` · `commandRecords*` · `portIn*` · `commandServicesShouldNotDependOnRequestRecords` · `applicationServicesShouldNotDependOnWebLayer`)은 전부 `application` 모듈의 동명 테스트로 이동했다 — **이 모듈에 남겨 두면 대상 0건으로 공허하게 통과하기 때문이다.**
+
+`restControllersShouldResideInWebAdapterPackage`가 `classes()` 형태인 것은 **컨트롤러 실존에 anchor** 하기 위해서다 — 컨트롤러가 0건이 되면 곧바로 실패한다. `apiModuleShouldBeDomainModelFree`는 anchor가 모듈 전체(`noClasses()`)라 클래스가 존재하는 한 **대상 0건이 될 수 없다.**
+
+### 인바운드 어댑터의 앱 격리 — 마커로 판정한다
+
+**대상**: 각 앱의 `LayerRulesTest.java` (앱 격리 규칙)
+
+앱 소속은 `@WebApp`·`@AdminApp`·`@CeoApp` 등 **마커 애노테이션**이므로 규칙도 마커로 판정한다.
+
+- 인바운드 포트(UseCase 인터페이스)는 자기 앱 마커를 직접 달고 있어야 한다.
+- Command record 등은 소속 앱을 **유도**해 그 집합이 자기 앱 마커인지 본다(유도 규칙은 `AppOwnership` 참조).
+
+각 앱은 **자기 앱 마커가 붙은 application 슬라이스만** 의존한다.

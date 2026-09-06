@@ -209,3 +209,99 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (**implementation** — 소비 모듈 전이 차단. OpenFeign 포크는 CVE-2024-49203 대응이며 패키지명 `com.querydsl.*` 유지, 6.x부터 jpa는 `:jakarta` classifier 없이 jakarta 기본·apt만 `:jakarta` 유지) + `querydsl-apt` annotationProcessor
 
 <!-- MANUAL: -->
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
+
+### `SEALED_PERSISTENCE_TO_QUERY` 3건 — read→write 단방향 위반 봉인
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/LayerRulesTest.java`
+→ `SEALED_PERSISTENCE_TO_QUERY` · `persistenceShouldNotDependOnQuery()`
+
+`..persistence..`(write 어댑터)는 `..query..`(read 모델)를 의존하지 않는다. **반대 방향(`..query..` → `..persistence..`)은 정상이다** — DAO가 같은 모듈의 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태다. 금지하는 것은 그 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
+
+봉인 구성원 3개 — 전부 *도메인 출력 포트 어댑터*다.
+
+- `com.tastyhouse.infrastructure.product.persistence.ProductReviewStatisticsAdapter`
+- `com.tastyhouse.infrastructure.rank.persistence.MemberReviewCountAdapter`
+- `com.tastyhouse.infrastructure.search.persistence.KeywordCountAdapter`
+
+이들은 도메인이 선언한 포트를 구현하면서 그 데이터의 소유 도메인이 이미 갖고 있는 read model을 재사용한다(예: 랭킹 집계용 리뷰 수는 리뷰 도메인 소유라 `review/query/`에 있고, 랭킹 포트 어댑터가 그것을 도메인 값 타입으로 옮겨 담는다). write 경로가 아니라 *포트 구현*이므로 위 위험에 해당하지 않지만, 패키지 위치(`..persistence..`)가 규칙의 표현과 어긋나 잡힌다. **규칙 전체를 끄지 않고 클래스명(FQN)으로 명시 제외하며, 목록은 줄어들기만 해야 한다 — 새 항목 추가는 새 위반을 승인하는 것이다.** 해소 방향은 이 어댑터들을 `..persistence..`가 아닌 별도 위치로 옮기는 것이다.
+
+**짝 테스트 2종**.
+
+- `LayerRulesTest.sealedPersistenceToQueryShouldNotBeStale()` — 목록의 클래스가 더 이상 위반하지 않으면(이관·삭제됐으면) 실패시켜, 낡은 항목이 조용히 남아 다른 위반을 가리는 것을 막는다.
+- `LayerRulesTest.sealedPersistenceToQueryListShouldNotBeEmpty()` — 목록이 비면 **봉인 장치 자체를 제거하고 순수 강제로 전환하라**고 알린다.
+
+### `INFRA_OWNED_QUERY_PORTS` 1건 — infra 자체 소유 읽기 계약 봉인
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/LayerRulesTest.java`
+→ `INFRA_OWNED_QUERY_PORTS` · `queryDaosShouldImplementQueryPorts()`
+
+봉인 구성원 1개 — `com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryPort`.
+
+읽기 계약은 원칙적으로 응용 계층이 소유하지만, *application 소비자가 하나도 없고* infra 어댑터·DAO만 소비하는 내부 투영 계약은 계약 모듈을 부풀릴 뿐이므로 infra가 자체 소유한다(`ShopNoticeRow` 선례).
+
+**패키지 술어가 아니라 클래스명으로 봉인하는 이유**: 모든 QueryDao가 이미 `com.tastyhouse.infrastructure.<ctx>.query` 패키지에 살기 때문에, 예외를 `resideInAPackage("com.tastyhouse.infrastructure..query..")`로 표현하면 **DAO가 자기 패키지에 인터페이스를 하나 선언하기만 해도 통과한다** — 이 규칙이 원래 잡아야 할 위반("application이 소유해야 할 계약을 infra가 몰래 자기 패키지에 만드는 것")이 그대로 허용 범위가 되어 규칙이 무력해진다. 그래서 FQN으로 명시 제외하며, **목록은 줄어들기만 해야 한다.**
+
+**짝 테스트 2종**: `infraOwnedQueryPortListShouldNotBeStale()`(계약이 사라졌거나 application으로 되돌아갔으면 실패) · `infraOwnedQueryPortListShouldNotBeEmpty()`(목록이 비면 봉인 장치를 제거하고 `queryDaosShouldImplementQueryPorts`를 순수 강제로 되돌리라고 알림).
+
+### `MemberGradeReviewCountAdapter` — 봉인 목록을 늘리는 대신 패키지를 옮긴 선례
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/member/adapter/MemberGradeReviewCountAdapter.java`
+
+**패키지가 `..persistence..`가 아니라 `..adapter..`인 이유**: 이 클래스는 write 어댑터가 아니라 *도메인 출력 포트 구현*이라 read model(`review/query/`)을 재사용하는 것이 정상이다. `..persistence..`에 두면 `LayerRulesTest#persistenceShouldNotDependOnQuery`에 걸리는데, **그 봉인 목록은 "줄어들기만 해야" 하므로 새 항목을 추가하지 않고** 그 규칙이 제시한 해소 방향(포트 어댑터를 `..persistence..` 밖으로)을 따랐다.
+
+**클래스명에 `Grade`가 붙은 이유**: rank 쪽 어댑터와 단순 클래스명이 같으면 스프링이 유도하는 기본 빈 이름(`memberReviewCountAdapter`)이 충돌해 컴포넌트 스캔이 `ConflictingBeanDefinitionException`으로 거부하고 **앱이 부팅하지 못한다.**
+
+### `ProductReviewStatisticsAdapter` — 위치·이름을 그대로 두어 봉인 목록을 늘리지 않는다
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/persistence/ProductReviewStatisticsAdapter.java`
+
+위임 대상이 `ReviewStatisticsQueryDao` → `MenuReviewStatisticsQueryDao`로 바뀌었다(`PRODUCT.rating`의 근거가 REVIEW에서 MENU_REVIEW로 이관됐기 때문). **클래스 위치·이름은 그대로 두므로 `LayerRulesTest`의 `persistenceShouldNotDependOnQuery` 봉인 목록에 항목이 늘지 않는다.**
+
+### `EventQueryDao` — 삭제 필터링은 이관 이전 동작을 그대로 보존한다
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/event/query/EventQueryDao.java`
+
+**삭제 필터링은 이관 이전 동작을 그대로 보존한다** — admin 관리 목록/상세와 당첨자 목록은 soft delete 분을 제외하고, **web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.**
+
+썸네일·배너 파일 경로는 `UploadedFileJpaEntity`를 **left join**해 얻는다(파일 미등록 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). `Projections.constructor`는 record 생성자로 직접 투영하므로 URL 변환을 투영식에 끼울 수 없어 fetch 직후 재조립한다.
+
+### 이벤트 리스너 단위 테스트 12종 — 현재 동작 봉인 (공통 규칙)
+
+리스너 테스트는 **리스너의 현재 동작을 봉인하는 순수 단위 테스트**다. 아래가 12개 파일 전부에 적용되는 공통 규칙이며, 개별 항목은 이 규칙에서 벗어나는 것만 아래에 따로 적는다.
+
+- **스프링 컨텍스트 없이 리스너를 직접 생성해 핸들러를 호출한다** — `AFTER_COMMIT` 발화 자체는 프레임워크 몫이라 검증 대상이 아니다. 스프링 배선을 검증하려고 `@SpringBootTest`를 붙이지 않는다.
+- 협력자 없이 기록만 하는 리스너는 **무엇이 기록되는지**를 `ListenerLogCapture`로 확인한다.
+
+**공통 유틸**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/shared/listener/ListenerLogCapture.java`
+
+인프라 리스너 9개 중 6개는 협력자 없이 `log.info(...)`만 수행한다. 이런 리스너에서 "무엇을 하는지"는 곧 "무엇을 기록하는지"이므로, **로그를 관측하지 않으면 핸들러 본문을 통째로 지워도 통과하는 공허한 테스트만 남는다.** 그래서 Logback `ListAppender`를 대상 로거에 직접 붙여, 이벤트의 어떤 값이 기록에 반영되는지까지 봉인한다. **사용 후에는 반드시 `detach()`를 호출한다**(JUnit `@AfterEach`) — 떼지 않으면 같은 로거를 쓰는 다른 테스트가 실행될 때 이벤트가 계속 쌓인다.
+
+공통 규칙만 적용되는 파일 — `coupon/listener/CouponEventListenerTest.java` · `member/listener/MemberEventListenerTest.java`(가입·탈퇴는 web-api와 admin-api 양쪽에서 트리거되지만 리스너 자체는 발행 경로를 알지 않는다) · `policy/listener/PolicyActivatedEventListenerTest.java`.
+
+#### 개별 예외 — 공통 규칙 위에 추가로 봉인하는 것
+
+| 대상 (`backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/...`) | 추가로 봉인하는 것 |
+|---|---|
+| `file/listener/FileUploadedEventListenerTest.java` | 기록되는 것은 **저장 경로**이지 표시용 URL이 아니다 — URL 변환은 조회 시점에 query DAO가 `FileUrlResolver`로 수행하므로 리스너가 경로를 그대로 남기는 것이 정상이다 |
+| `mail/listener/MailVerificationEventListenerTest.java` | **이 리스너가 메일을 발송하지 않는 것이 정상**이라는 점을 함께 고정한다 — 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로, 발송은 `MailVerificationService#issue`가 발급과 원자적으로 수행한다 |
+| `sms/listener/SmsVerificationEventListenerTest.java` | 위와 동일한 이유로 **발송하지 않음**을 고정한다 — 발송은 `SmsVerificationService#issue`가 발급과 원자적으로 수행한다 |
+| `point/listener/PointEventListenerTest.java` | **이 리스너가 잔액을 건드리지 않는 것이 정상**임을 고정한다 — 포인트 증감은 `PointLedgerService`가 이벤트 발행 **이전에** 이미 수행했고 리스너는 기록만 한다. **협력자를 주입받지 않는 생성자가 그 증거이며, 여기에 원장 서비스가 추가되면 이중 정산이 된다** |
+| `member/listener/ReferralRegisteredEventListenerTest.java` | referral↔point 두 컨텍스트를 잇는 지점이라 검증 대상이 로깅이 아니라 **적립 2건과 보상 완료 전이가 모두, 그리고 그 순서대로 일어나는가**이다 |
+| `notification/listener/ReviewOwnerReplyEventListenerTest.java` | review↔notification을 잇는 지점이라 검증 대상은 **답변 등록 이벤트가 리뷰 작성자 앞으로 알림을 적재하는가**이다. 수신자가 `reviewerMemberId`(작성자)여야 하고 이동 대상이 그 리뷰여야 한다. 가게명은 `ShopQueryDao`로 조회하므로 **조회가 비어 있는 경우까지 함께 봉인한다** — 알림 본문에 "null 사장님"이 새는 것을 막기 위함이다 |
+| `payment/listener/PaymentEventListenerTest.java` | 로그만 남기는 다른 리스너와 달리 **실제 금전 효과**(포인트 증감)를 낸다. 따라서 "무엇을 기록하는가"가 아니라 **"어떤 조건에서 원장 서비스를 호출/미호출하는가"**를 검증한다 — 조건 분기가 잘못되면 적립이 이중으로 되거나 환급이 누락되며, `AFTER_COMMIT`이라 실패해도 재시도가 없다. 특히 **환불 요청 접수 시점에는 아무것도 하지 않는 것이 이 핸들러의 계약이다** — 접수 시점에 포인트가 움직이면 이후 취소가 확정될 때 `PaymentCancelledEvent`가 같은 금액을 다시 반영해 **이중 정산**이 된다 |
+| `product/listener/ProductMenuReviewEventListenerTest.java` | 상품 평점·평가 수라는 **영속 상태**를 갱신하므로 "어떤 상품 id로 통계 갱신을 호출하는가"를 검증한다. **이벤트 3종 모두가 같은 재집계를 트리거해야 한다** — 하나라도 빠지면 `PRODUCT.rating`이 조용히 낡는다 |
+
+### `MemberReviewCountQueryDaoTest` — 합산·병합·정렬 규칙 봉인
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/review/query/MemberReviewCountQueryDaoTest.java`
+→ `MemberReviewCountQueryDao#mergeAndSort`
+
+**이 테스트가 필수인 이유**: 이 DAO를 소비하는 `RankSettlementService`·`GradeSettlementService` 테스트는 포트를 fake로 주입하는 순수 단위 테스트라 DAO의 합산·병합·정렬 변경을 **전혀 잡지 못한다.** 병합·정렬을 쿼리에서 분리해 둔 것도 DB 없이 이 규칙을 검증하기 위해서다.
+
+정렬 규칙: 건수 내림차순 → 마지막 작성 이른 순 → 회원 ID 오름차순.

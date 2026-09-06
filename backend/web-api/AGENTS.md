@@ -108,3 +108,33 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 
 
 <!-- MANUAL: -->
+
+## 봉인·가드 목록
+
+<!-- 분류 A. web-api 고유분. 3앱 공통분은 backend/AGENTS.md "계층 규칙 봉인 — api 앱 3종 공통" 참조 -->
+
+**대상**: `backend/web-api/src/test/java/com/tastyhouse/webapi/architecture/LayerRulesTest.java`
+
+이 파일의 규칙 대부분은 admin-api·ceo-api와 동일하며, 그 공통분은 [backend/AGENTS.md](../AGENTS.md)의 "계층 규칙 봉인 — api 앱 3종 공통"에 있다. **아래는 web-api에만 있는 것이다.**
+
+### `shouldDependOnOauthSpiOnlyNotProviderPackages` — 3앱 중 web-api에만 있다
+
+**대상**: `backend/web-api/src/test/java/com/tastyhouse/webapi/architecture/LayerRulesTest.java`
+→ `shouldDependOnOauthSpiOnlyNotProviderPackages()`
+
+소셜 로그인은 application의 SPI(`com.tastyhouse.application.auth.port.out`)만 통해 쓴다. 제공자별 패키지의 wire DTO·클라이언트 구현에 직접 의존하지 않는다.
+
+금지 대상 제공자 패키지 4개를 FQN 문자열로 열거한다.
+
+- `com.tastyhouse.external.oauth.kakao..`
+- `com.tastyhouse.external.oauth.naver..`
+- `com.tastyhouse.external.oauth.facebook..`
+- `com.tastyhouse.external.oauth.apple..`
+
+소유 모듈이 external-api → `infrastructure:external` → `infrastructure:oauth`로 바뀌는 동안에도 자바 패키지가 불변이라 규칙은 그대로 유효했다. 반대로 **패키지를 바꾸면 이 규칙은 실패하는 대신 조용히 대상을 잃으므로, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.**
+
+**이 규칙을 admin-api·ceo-api에 복제하지 않는다** — 두 앱에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다.
+
+### `seedersShouldDependOnUseCasesOnly`는 이 모듈에 두지 않는다
+
+web-api에는 시더가 없어 대상 0건이므로(**공허 통과 회피**) admin-api·ceo-api에만 있는 규칙이다.
