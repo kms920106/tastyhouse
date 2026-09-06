@@ -40,7 +40,7 @@ configure(subprojects.findAll { it.name != 'domain' && it.path != ':infrastructu
 
     ext['netty.version'] = '4.1.137.Final'
 
-    ext['jackson-bom.version'] = '2.20.0'
+    ext['jackson-bom.version'] = '2.21.6'
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'
