@@ -214,7 +214,7 @@ public class WebApplicationConfig { }
 
 `useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 `WebApplicationConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
 
-각 부트스트랩의 `@Import` 대상 클래스는 챕터 01 이후 그대로다 — 그래서 이 챕터의 부트스트랩(api 모듈) 소스 변경은 **0건**이다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이다(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례).
+각 부트스트랩의 `@Import` 대상 클래스는 챕터 01 이후 그대로다 — 그래서 이 챕터의 부트스트랩(api 모듈) 소스 변경은 **0건**이다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이었고(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례), **auto-configuration 전환(챕터 02) 이후로는 `scanBasePackages` 나열 자체가 4개 앱에서 사라져 `@Import({App}ApplicationConfig)` 한 줄만 남았다.**
 
 ## 주의
 

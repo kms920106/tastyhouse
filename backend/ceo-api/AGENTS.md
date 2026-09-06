@@ -22,7 +22,7 @@
 
 **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다).
 
-**`scanBasePackages`에 domain 엔트리 없음**: `CeoApiApplication`의 `scanBasePackages`(및 `@ComponentScan basePackages`)는 `com.tastyhouse.ceoapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개이며, **`application`은 스캔 문자열이 아니라 `CeoApplicationConfig`를 `@Import`해 배선한다**(타입 세이프 조합이 이 저장소의 표준). `domain-module`에 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다. 기존 `excludeFilters`(`com.tastyhouse.external.oauth.*` 제외)는 그대로 유지된다.
+**부트스트랩에 `scanBasePackages`가 없다 (챕터 02)**: `CeoApiApplication`은 `@SpringBootApplication` + `@Import(CeoApplicationConfig.class)` + `@EnableConfigurationProperties(CeoSeedProperties.class)` 셋만 갖는다 — 과거의 `scanBasePackages`/`@ComponentScan basePackages` 나열(`com.tastyhouse.ceoapi`·`infrastructure`·`external`·`security`·`logging`)도, 그 `excludeFilters`도 **전부 사라졌다**. 라이브러리 모듈이 각자의 `{Xxx}ModuleAutoConfiguration`으로 자기 자신을 등록하고, 이 앱에 실리지 않는 모듈은 애초에 클래스패스에 없어(예: `infrastructure:oauth`는 web 전용) 제외 필터가 필요 없기 때문이다. `application`은 여전히 `CeoApplicationConfig`를 `@Import`해 배선하며, `domain-module`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
 
 ## Key Files
 | File | Description |

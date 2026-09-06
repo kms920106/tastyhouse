@@ -38,13 +38,13 @@
 - **`JwtAuthenticationFilter`는 이 모듈 소유 POJO**다(`@Component` 아님, 서블릿 `OncePerRequestFilter` 상속이라 이 모듈에 잔류). `JwtTokenProvider`(security-core) + `BlacklistRepository`(security-core 포트) + `ObjectMapper`를 받아 **`SecurityModuleAutoConfiguration`이 빈 등록**한다(챕터 02). 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 앱 마커로 걸러진 하위 클래스 하나뿐이라 타입 주입이 모호하지 않다. `@ConditionalOnMissingBean(JwtAuthenticationFilter.class)`가 붙어 있어, 앱이 자기 필터를 등록하면 이 기본 등록은 물러난다(현재 그런 앱은 없다). 블랙리스트 검사는 저장소를 직접 호출한다(과거 web이 `TokenService.isBlacklisted`를 경유하던 단순 위임을 필터 안으로 흡수).
 
 - **필터 빈은 서블릿 컨테이너에도 `/*`로 자동 등록된다**(Spring Boot가 `Filter` 타입 빈을 `ServletContextInitializerBeans`로 자동 매핑). 즉 시큐리티 체인 안(`addFilterBefore`)과 컨테이너 레벨 양쪽에 걸린다. **챕터 02 이전부터 그랬고**(과거 `JwtConfig`도 `Filter` 타입 빈을 만들었다) 챕터 02가 바꾼 것이 아니다 — 두 시점의 기동 로그 `Mapping filters:` 줄이 동일함을 실측했다. `OncePerRequestFilter`라 요청당 실제 실행은 1회이고, 잘못된 토큰의 401 응답에도 CORS 헤더가 정상적으로 붙는 것을 확인했으므로(`Access-Control-Allow-Origin` 존재) 현재 실害는 없다. 굳이 컨테이너 등록을 끊으려면 `FilterRegistrationBean.setEnabled(false)`를 추가하면 되지만, 동작 변경이라 별도 작업으로 다룬다.
-- **`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`는 이 모듈 소유 `@Component`**다. 세 API의 `scanBasePackages`에 `com.tastyhouse.security`가 포함되어 자동 스캔되므로 별도 빈 등록이 불필요하다. `SecurityConfig`는 타입으로 주입만 받는다.
+- **`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`는 이 모듈 소유 `@Component`**다. **챕터 02 이후 앱의 `scanBasePackages`가 아니라 `SecurityModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.security")`가 스캔**하므로 앱에는 빈 등록 코드가 없다. `SecurityConfig`는 타입으로 주입만 받는다.
 - **`CustomUserDetails`는 각 API에 잔류**하되 `JwtPrincipal`(security-core 소유 계약)을 구현해 `getPrincipalId()`(web=memberId, admin=adminId)를 노출한다. 공용 provider가 이 계약으로 식별자를 클레임에 싣고 재구성한다.
 - **시크릿은 각 API의 `application.yml`이 소유하며 web-api와 admin-api는 반드시 서로 다른 `jwt.secret`(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)을 써야 한다.** 동일 시크릿이면 한쪽 access 토큰이 다른 쪽 인증을 통과해 권한 상승이 발생한다. 이는 `JwtProperties` Javadoc에도 명시되어 있다.
 - **의존성**: 이 모듈의 서블릿 결합 타입이 Spring Security web·jjwt(전이) 타입에 의존하므로 `build.gradle`에 `spring-boot-starter-security`(api)를 둔다. jjwt 3줄(`jjwt-api`/`jjwt-impl`/`jjwt-jackson`)은 챕터 03에서 `security-core`로 이관되어 이 모듈에서 제거됐고, `api project(':security-core')`를 통해 전이로 수신한다.
 
 ### Testing Requirements
-- 접두사 주입형 저장소는 각 API의 빈 등록(`RedisRepositoryConfig`)이 올바른 접두사를 넘기는지 통합 테스트로 확인한다(뒤바뀌면 로그인 세션이 조용히 무효화됨).
+- 접두사는 **챕터 01 이후 생성자 인자가 아니라 프로퍼티**(`security.token-store.key-prefix` — web `""`, admin `"admin:"`, ceo `"ceo:"`)다. 앱별 `RedisRepositoryConfig`는 삭제됐고, 어댑터가 `RedisTokenStoreProperties`를 주입받는다. 앱별 yml 값이 올바른지는 여전히 확인 대상이다 — 뒤바뀌면 로그인 세션이 조용히 무효화된다.
 - **JWT 시크릿 분리 회귀 방지**: web에서 발급한 access 토큰을 admin API에 제시하면 401(서명 불일치)이 되어야 한다. 두 앱이 같은 시크릿을 쓰지 않는지 통합 테스트/배포 체크로 확인한다.
 
 ## security-core 분리 (챕터 03)
