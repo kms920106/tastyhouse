@@ -2,7 +2,7 @@
 
 # infrastructure:redis
 
-Redis 연결·템플릿과 **rate limit 카운터**를 소유하는 인프라 모듈(`java-library`). 챕터 05에서 `infrastructure`를 기술별로 재편하며 신설됐고, 챕터 02에서 rate limit의 표현 관심사를 `api-common-module`로 내보냈다.
+Redis 연결·템플릿과 **rate limit 카운터**, **토큰 저장소 어댑터 6종**을 소유하는 인프라 모듈(`java-library`). 챕터 05에서 `infrastructure`를 기술별로 재편하며 신설됐고, 챕터 02에서 rate limit의 표현 관심사를 `api-common-module`로 내보냈다.
 
 ## 신설 배경 (챕터 05)
 
@@ -18,9 +18,30 @@ Redis는 그동안 `security-module`이 들고 있었다. 그런데 Redis 자체
 com.tastyhouse.infrastructure.redis/
 ├── RedisModuleAutoConfiguration.java  @ComponentScan 진입점 — 챕터 02로 RedisModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 ├── RedisConfig.java              StringRedisTemplate 빈 (key/value StringRedisSerializer)
-└── ratelimit/
-    └── RedisRateLimitCounter.java  RateLimitCounterPort 구현 — 순수 Redis Lua (INCR + PEXPIRE 원자 실행)
+├── ratelimit/
+│   └── RedisRateLimitCounter.java  RateLimitCounterPort 구현 — 순수 Redis Lua (INCR + PEXPIRE 원자 실행)
+└── token/                          챕터 01 신설 — security-core의 토큰 저장소 포트 6종 구현
+    ├── RedisTokenStoreProperties.java   @ConfigurationProperties("security.token-store") — keyPrefix
+    ├── RedisRefreshTokenRepository.java  {keyPrefix}rt:{username}
+    ├── RedisBlacklistRepository.java     {keyPrefix}bl:{accessToken}
+    └── Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository.java  접두사 고정 (kakao_temp: 등)
 ```
+
+**`token` 패키지는 챕터 01에서 `security-core`로부터 넘어왔다.** 과거에는 구체 Redis 저장소 6종이 `security-core`에 있어 그 모듈이 `implementation project(':infrastructure:redis')`를 의존했는데, "core가 구체 인프라를 의존하는" 역방향 간선이었다. 지금은 계약이 `security-core`, 구현이 여기 있다 — `RedisRateLimitCounter`가 `api-common-module`의 `RateLimitCounterPort`를 구현하는 것과 **동형**이다.
+
+이 간선을 끊은 실익은 전이 사슬 제거다. `application → security-core → infrastructure:redis → api-common-module`이 4앱 runtimeClasspath에 실려 Redis를 쓰지 않는 batch-module에서도 `RedisModuleAutoConfiguration`이 발화하고 springdoc·starter-web이 배포 산출물에 들어갔다. 지금 batch runtimeClasspath에는 redis·api-common·springdoc이 **없다**.
+
+### 키 접두사 프로퍼티
+
+| 앱 | `security.token-store.key-prefix` | refresh 키 | blacklist 키 |
+|---|---|---|---|
+| web-api | `""` (기본값, yml 생략) | `rt:{username}` | `bl:{accessToken}` |
+| admin-api | `admin:` | `admin:rt:{username}` | `admin:bl:{accessToken}` |
+| ceo-api | `ceo:` | `ceo:rt:{username}` | `ceo:bl:{accessToken}` |
+
+**"모듈이 소비하는 설정은 모듈이 소유한다"** 컨벤션에 따라 `RedisTokenStoreProperties`가 이 모듈에 있고, `RedisModuleAutoConfiguration`이 `@EnableConfigurationProperties`로 등록한다. 값은 각 앱 `application.yml`이 준다.
+
+**이 표는 불변 계약이다.** 접두사가 어긋나도 예외가 나지 않고 기존 세션만 조용히 무효화되므로(콜론 누락 `admin` → `adminrt:`), `RedisRefreshTokenRepositoryTest`·`RedisBlacklistRepositoryTest`의 고정값 단정이 유일한 자동 방어선이다. 소셜 임시토큰 4종은 앱 간 공유되지 않아 접두사가 고정이며 프로퍼티를 받지 않는다.
 
 **챕터 02에서 이 패키지는 카운터 하나만 남았다.** `@RateLimit`·`RateLimitAspect`·`RateLimitKeyType`·`RateLimitException`과 신설 계약 `RateLimitCounterPort`는 `com.tastyhouse.apicommon.ratelimit`로 이동했다. 키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사인데 그것을 인프라가 들고 있느라 이 모듈이 서블릿 스택을 의존했고, 반대로 표현 모듈인 `api-common-module`이 `RateLimitException` 처리를 위해 이 인프라 모듈을 의존하는 역방향이 생겼기 때문이다. 지금은 **`infrastructure:redis` → `api-common-module`**(어댑터 → 계약) 한 방향뿐이다.
 
@@ -43,19 +64,27 @@ com.tastyhouse.infrastructure.redis/
 
 이것이 `infrastructure:persistence`와의 결정적 차이다 — persistence는 domain 포트의 어댑터라 `domain-module`을 `api`로 노출하지만, redis는 domain 포트가 없는 기술이라 domain을 아예 모른다.
 
+- `security-core` (implementation) — 챕터 01 신설 간선. `token` 패키지가 구현하는 토큰 저장소 포트 6종(`RefreshTokenRepository` 등)의 소유 모듈. 위 `api-common-module`과 같은 어댑터 → 계약 방향이다.
+
 ### External
-- `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. 소비 모듈(`security-module`의 토큰 저장소 6종)의 시그니처에 `RedisTemplate`이 노출되므로 `api`로 둔다
+- `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. `api`로 두는 이유는 이제 소비 모듈의 시그니처 노출이 아니라 **이 모듈의 어댑터가 그 타입을 쓰기 때문**이다. 챕터 01로 앱과 `security-core`의 compileClasspath에서 Redis 타입이 사라졌고, `runtimeOnly project(':infrastructure:redis')`가 4앱 중 3앱의 **유일한** Redis 선언이 됐다(batch는 선언 자체가 없다)
 - **테스트용 `api-common-module` 별도 선언은 불필요하다** — `afterName` 문자열 가드 테스트가 `ApiCommonRateLimitAutoConfiguration`을 리플렉션으로 읽지만, 위 `implementation`은 테스트 컴파일 클래스패스에도 보이기 때문이다(`testImplementation` 중복 선언을 추가하지 않는 이유).
 - `spring-boot-starter-aop`·`spring-boot-starter-web`는 **선언하지 않는다** — `@Aspect`와 `HttpServletRequest` 기반 IP 해석이 전부 `api-common-module`로 이동했다(챕터 02). 남은 것은 Redis Lua 카운터뿐이라 이 모듈은 서블릿·AOP 스택을 알지 않는다.
 
-## security-module과의 관계
+## security-core / security-module과의 관계
 
-**토큰 저장소 6종**(`RefreshToken`·`Blacklist`·소셜 임시토큰 4종)은 **`security-module`에 잔류**한다. 그것들은 보안 관심사이고, Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:`)도 불변이다. 이 모듈이 넘겨받은 것은 **연결 설정과 템플릿 빈, 그리고 rate limiting**뿐이다.
+> **번복 기록 (챕터 01)**: 이 절은 원래 *"토큰 저장소 6종은 `security-module`에 잔류한다"*였다(이후 챕터 03에서 `security-core`로 이동). **그 판단은 뒤집혔다** — 저장소 6종의 **구현**은 지금 이 모듈의 `token` 패키지에 있다.
+>
+> 당시 근거는 "그것들은 보안 관심사다"였고 그 자체는 지금도 맞다. 뒤집힌 이유는 **관심사의 귀속과 기술 구현의 귀속이 다른 층위**이기 때문이다. 보안 관심사인 것은 *계약*(무엇을 저장하고 언제 무효화하는가)이고, `StringRedisTemplate`으로 키를 조립하는 것은 *구현*이다. 계약을 `security-core`에 남기고 구현을 여기로 내리면 두 귀속이 모두 지켜지며, 그 대가로 `security-core → infrastructure:redis` 역방향 간선이 사라진다.
+>
+> Redis key prefix는 이 번복에도 **바이트 단위로 불변**이다(`rt:`/`bl:`/`admin:rt:`/`admin:bl:`/`kakao_temp:` 등).
 
-따라서 `security-module`은 `implementation project(':infrastructure:redis')`를 선언하고 `data-redis` 타입을 직접 선언하지 않는다 — 이 모듈이 그것을 `api`로 노출하기 때문이다.
+- `security-core` — 이 모듈이 `implementation`으로 의존한다(어댑터 → 계약). 토큰 저장소 포트 6종의 소유자.
+- `security-module` — 여전히 `implementation project(':infrastructure:redis')`를 선언하지 않는다. 서블릿 결합 타입만 남았고, `JwtAuthenticationFilter`는 `security-core`의 `BlacklistRepository` **포트**를 받으므로 Redis 타입을 알지 않는다.
 
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선 (챕터 02 개정)**: `RedisModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되며, 의존하는 앱은 `@Import`하지 않는다(`build.gradle` 의존 선언 = 활성화). 이 설정은 카운터 구현체만 등록하고, **aspect 빈 등록은 `api-common-module`의 `ApiCommonRateLimitAutoConfiguration`이 담당**한다(`@ConditionalOnBean(RateLimitCounterPort.class)` + `afterName`으로 이 모듈 이후 평가). 조건부 등록으로 전환되어 "배선 누락으로 `@RateLimit`이 조용히 무시된다"는 실패 양식은 사라졌지만, 이 경로를 건드렸으면 여전히 한도 초과 호출로 429를 실제 확인한다.
 - **Redis를 쓰는 새 관심사는 `security-module`이 아니라 이 모듈을 의존한다.** 그것이 이 모듈을 나눈 이유다.
+- **다른 모듈의 계약을 구현할 때는 그 모듈을 이 모듈이 의존한다**(어댑터 → 계약). 반대로 계약 소유 모듈이 이 모듈을 의존하게 만들면 챕터 01이 끊은 역방향 간선이 되살아난다 — 그 회귀는 컴파일·기동 모두 성공하고 **batch 배포 산출물이 조용히 불어나는** 형태로만 드러난다.

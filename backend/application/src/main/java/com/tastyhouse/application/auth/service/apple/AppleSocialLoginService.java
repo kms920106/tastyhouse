@@ -19,7 +19,7 @@ import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.security.token.AppleTempTokenRedisRepository;
+import com.tastyhouse.security.token.AppleTempTokenRepository;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
@@ -43,7 +43,7 @@ public class AppleSocialLoginService {
     private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final AppleTempTokenRedisRepository appleTempTokenRedisRepository;
+    private final AppleTempTokenRepository appleTempTokenRepository;
 
     public AppleSocialLoginService(
         @Qualifier("appleOAuthClient") SocialOAuthClient appleOAuthClient,
@@ -52,7 +52,7 @@ public class AppleSocialLoginService {
         MemberSocialAccountRepository memberSocialAccountRepository,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
-        AppleTempTokenRedisRepository appleTempTokenRedisRepository
+        AppleTempTokenRepository appleTempTokenRepository
     ) {
         this.appleOAuthClient = appleOAuthClient;
         this.memberCommandService = memberCommandService;
@@ -60,7 +60,7 @@ public class AppleSocialLoginService {
         this.memberSocialAccountRepository = memberSocialAccountRepository;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.appleTempTokenRedisRepository = appleTempTokenRedisRepository;
+        this.appleTempTokenRepository = appleTempTokenRepository;
     }
 
     // 인가 코드로 Apple 로그인 처리
@@ -116,7 +116,7 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        String appleIdToken = appleTempTokenRedisRepository.findAppleIdToken(appleTempToken);
+        String appleIdToken = appleTempTokenRepository.findAppleIdToken(appleTempToken);
         if (appleIdToken == null) {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
@@ -165,7 +165,7 @@ public class AppleSocialLoginService {
             )
         );
 
-        appleTempTokenRedisRepository.delete(appleTempToken);
+        appleTempTokenRepository.delete(appleTempToken);
 
         return SocialLinkResult.ofLogin(issueJwt(member));
     }
@@ -187,7 +187,7 @@ public class AppleSocialLoginService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        String appleIdToken = appleTempTokenRedisRepository.findAppleIdToken(appleTempToken);
+        String appleIdToken = appleTempTokenRepository.findAppleIdToken(appleTempToken);
         if (appleIdToken == null) {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
@@ -215,14 +215,14 @@ public class AppleSocialLoginService {
             )
         );
 
-        appleTempTokenRedisRepository.delete(appleTempToken);
+        appleTempTokenRepository.delete(appleTempToken);
 
         return issueJwt(savedMember);
     }
 
     private String issueTempToken(String appleIdToken) {
         String appleTempToken = UUID.randomUUID().toString();
-        appleTempTokenRedisRepository.save(appleTempToken, appleIdToken);
+        appleTempTokenRepository.save(appleTempToken, appleIdToken);
         return appleTempToken;
     }
 

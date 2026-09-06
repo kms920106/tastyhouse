@@ -61,7 +61,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 **auto-configuration은 imports 파일이 클래스패스에 있으면 무조건 로딩을 시도한다.** `@Import` 시절에는 "누가 그 설정 클래스를 명시적으로 나열했는가"가 활성화 여부였지만, 지금은 **의존 선언(`implementation`/`runtimeOnly`) 자체가 활성화 신호**다. 그 라이브러리를 앱이 실제로 쓰든 안 쓰든, 클래스패스에 있으면 그 auto-configuration은 로딩을 시도하고 `@Conditional*`로 스스로 발화 여부를 결정한다.
 
 - **함의 — oauth 모듈 사례**: `@Import` 시절에는 `infrastructure:oauth`를 어떤 앱의 `build.gradle`에 `implementation`으로 추가해도, 그 앱의 `*Application.java`가 `OAuthModuleConfig`를 `@Import`하지 않으면 아무 빈도 뜨지 않았다(의존 선언만으로는 발화하지 않음). 지금은 의존 선언 자체가 활성화이므로, 예컨대 이 모듈을 실수로 `admin-api`의 `build.gradle`에 추가하면 `OAuthModuleAutoConfiguration`이 즉시 로딩을 시도하고 `apple.team-id` 같은 web 전용 설정값을 요구해 **`Could not resolve placeholder 'apple.team-id'`로 admin-api 기동이 실패**한다. "의존을 추가했지만 아직 안 쓴다"는 상태가 더 이상 안전하지 않다는 뜻이다.
-- **각 auto-configuration은 전이로 끌려온 앱에서 발화해도 안전한지를 스스로 조건으로 답해야 한다.** 이 원칙이 실제로 강제하는 설계가 아래 §4 감사표다 — `application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 batch를 포함한 4앱 전부의 runtimeClasspath에 있으므로, `ApiCommonModuleAutoConfiguration`·`ApiCommonRateLimitAutoConfiguration`은 `@ConditionalOnWebApplication(SERVLET)`으로 non-servlet인 batch에서 스스로 발화를 거른다.
+- **각 auto-configuration은 전이로 끌려온 앱에서 발화해도 안전한지를 스스로 조건으로 답해야 한다.** 이 원칙이 실제로 강제하는 설계가 아래 §4 감사표다 — 과거 `application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 batch를 포함한 4앱 전부의 runtimeClasspath에 있었고, `ApiCommonModuleAutoConfiguration`·`ApiCommonRateLimitAutoConfiguration`은 `@ConditionalOnWebApplication(SERVLET)`으로 non-servlet인 batch에서 스스로 발화를 걸렀다. **토큰 저장소 포트/어댑터 역전(챕터 01)으로 그 사슬은 끊겼고**, 지금 두 조건은 batch에서 잠재울 대상이 없는 **재유입 방어선**이다 — 조건을 지우지 않는 이유가 여기 있다.
 - **새 라이브러리 모듈을 만들 때 스스로에게 물을 질문**: "이 모듈이 어느 앱에도 의도치 않게 전이로 끌려갈 수 있는가? 끌려간다면 그 앱에서 안전하게 비활성화되는 조건이 있는가?" 답이 "없다"면 조건을 추가하거나, 그 모듈이 전이 경로에 놓이지 않도록 의존 그래프를 재검토한다.
 
 ### 모듈별 auto-configuration 인벤토리
@@ -80,12 +80,19 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
 ### 앱별 runtimeClasspath 감사표 (§4 — 어떤 auto-config가 어느 앱에서 발화하는가)
 
-`application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 4앱 전부의 runtimeClasspath에 있다(`./gradlew :batch-module:dependencies --configuration runtimeClasspath`로 확인 가능).
+~~`application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 4앱 전부의 runtimeClasspath에 있다~~ **(챕터 01에서 끊김)**. `security-core`의 토큰 저장소 6종이 포트가 되고 구현이 `infrastructure:redis`로 내려가면서 `security-core → infrastructure:redis` 간선이 사라졌다. 지금은 **web·admin·ceo만 `runtimeOnly project(':infrastructure:redis')`로 직접 선언**해 Redis를 받고, `application`과 `batch-module`의 runtimeClasspath에는 `infrastructure:redis`·`api-common-module`·springdoc이 **없다**.
+
+```bash
+./gradlew :application:dependencies  --configuration runtimeClasspath | grep -c 'infrastructure:redis\|project :api-common-module'   # 0
+./gradlew :batch-module:dependencies --configuration runtimeClasspath | grep -c 'infrastructure:redis\|project :api-common-module\|springdoc'  # 0
+```
+
+> `grep -c 'api-common'`처럼 느슨하게 세면 Firebase가 끌고 오는 **`com.google.api:api-common`**(무관한 서드파티)이 batch에서 7건 잡힌다. 우리 모듈은 `project :api-common-module`로 표기되므로 그렇게 좁혀서 센다.
 
 | auto-config | web | admin/ceo | batch | 조건 | batch 결과(실측) |
 |---|---|---|---|---|---|
 | Persistence | ● | ● | ● | `before = JpaRepositoriesAutoConfiguration` | 발화(의도) |
-| Redis | ● | ● | ●(전이) | 없음 | 발화. batch는 `RedisModuleAutoConfiguration`이 전이로 발화하는 것이 현행 유지다(코드·`@BatchApp` 서비스에 Redis 주입 0건이라도 안전) |
+| Redis | ● | ● | **—** | 없음 | **챕터 01 개정** — batch는 클래스패스에 없어 발화 대상 자체가 없다(과거에는 전이로 발화했다). web·admin·ceo는 `runtimeOnly` 직접 선언으로 발화하며, 토큰 저장소 어댑터 6종도 이 설정이 등록한다 |
 | ApiCommon(예외 핸들러) | ●→조건부 Negative | ● Positive | ●(전이)→Negative | `@ConditionalOnWebApplication(SERVLET)` + `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)` | 비발화(non-servlet) |
 | ApiCommonRateLimit | ● Positive | ● Positive | ●(전이)→Negative | `@ConditionalOnWebApplication(SERVLET)` + `@ConditionalOnBean(RateLimitCounterPort.class)` | 비발화 |
 | Security | ● | ● | — | `@ConditionalOnWebApplication(SERVLET)` | jar 없음 |
@@ -1197,7 +1204,7 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 | `security-module` | 여러 앱이 공유하는 **서블릿 결합 보안** 관심사 — JWT 인증 필터·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`. `security-core`를 `api`로 재노출 |
 | `api-common-module` | 여러 앱이 공유하는 **HTTP 플럼빙** — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService` |
 
-- **infrastructure를 기술별로 나눈 이유 (챕터 05)**: `infrastructure:persistence` 하나가 "infrastructure = DB"라는 암묵 전제를 만들고 있었다. Redis는 보안 관심사가 아니라 인프라 기술인데 `security-module`이 연결·템플릿까지 들고 있어서, Redis를 쓰려는 다른 관심사가 전부 보안 모듈을 의존해야 했다. 이제 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, `security-module`에 남는 기준은 "Redis를 쓰는가"가 아니라 **"보안 관심사인가"**다(토큰 저장소는 잔류, rate limiting은 이관).
+- **infrastructure를 기술별로 나눈 이유 (챕터 05)**: `infrastructure:persistence` 하나가 "infrastructure = DB"라는 암묵 전제를 만들고 있었다. Redis는 보안 관심사가 아니라 인프라 기술인데 `security-module`이 연결·템플릿까지 들고 있어서, Redis를 쓰려는 다른 관심사가 전부 보안 모듈을 의존해야 했다. 이제 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, `security-module`에 남는 기준은 "Redis를 쓰는가"가 아니라 **"보안 관심사인가"**다(rate limiting은 이관). **토큰 저장소는 챕터 01에서 계약/구현이 갈렸다** — 보안 관심사인 *계약*(포트 6종)은 `security-core`에 남고, `StringRedisTemplate`으로 키를 조립하는 *구현*은 `infrastructure:redis`의 `token` 패키지가 갖는다. 관심사의 귀속과 기술 구현의 귀속은 다른 층위라는 것이 그 근거다.
 - **external을 infrastructure 아래로 들인 이유 (챕터 01)**: 챕터 05의 재편은 redis만 편입하고 `external-api`를 남겨 미완이었다. 이 저장소에서 `-api` 접미어는 인바운드 어댑터(`web-api`·`admin-api`·`ceo-api`)를 뜻하는데 `external-api`는 정반대로 아웃바운드 클라이언트 모음이라, **이름이 역할을 거꾸로 가리키고** 있었다. 위 표의 기준("순수 인프라 기술이면 `infrastructure:{기술}`")대로면 external도 그 아래여야 한다. 편입으로 driven(아웃바운드) 어댑터 3형제 `persistence`(DB)·`redis`(Redis)·`external`(외부 시스템)이 `infrastructure` 컨테이너 아래 나란히 놓였다. **컨벤션**: driven adapter는 `infrastructure:{기술}` 아래에 둔다 — DB·Redis뿐 아니라 외부 시스템 연동도 포함하며, **모듈명과 자바 패키지명은 다를 수 있다**.
   - **패키지는 옮기지 않는다 — 옮기면 부팅이 깨진다.** `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 통째 스캔하므로, external 빈을 `com.tastyhouse.infrastructure.external`로 옮기면 `ExternalModuleAutoConfiguration`(챕터 02로 `ExternalModuleConfig`에서 리네임)의 OAuth REGEX 제외 필터가 우회돼 admin/ceo/batch가 OAuth 빈까지 스캔하고 `Could not resolve placeholder 'apple.team-id'`로 뜨지 않는다. **챕터 02 이후 이 위험은 "스캔 범위 밖에 있어야 한다"에서 "클래스패스에 있으면 발화한다"로 성격이 바뀌었다** — 자세한 원칙은 아래 [모듈 등록 컨벤션](#모듈-등록-컨벤션-auto-configuration--챕터-02) 참고.
   - **~~비채택 대안 (1) 기술별 추가 분할~~ → 채택으로 번복 (external 분리)**: 당시 판단은 "3~7파일짜리 모듈 6~7개와 `build.gradle` 보일러플레이트 복제, 공통 자산(`WebClientConfig`·`ExternalApiException`) 분리 비용이 이득을 넘는다"였다. **번복 근거는 앱별 실사용 실측이다** — application 마커로 재보니 admin-api·ceo-api가 실제로 쓰는 어댑터는 **파일 저장 하나뿐**인데 OAuth 4종·Toss·메일·SMS·크롤링과 Firebase Admin·AWS SDK 3종을 통째로 받고 있었다. 공통 자산은 코어 `infrastructure:external`에 남기고 6모듈이 그것을 의존하므로 "분리 비용"으로 본 것은 실재하지 않았다. `build.gradle` 보일러플레이트 복제는 그대로지만(7벌), 앱이 안 쓰는 SDK를 배포 산출물에서 빼는 이득이 그것을 넘는다.

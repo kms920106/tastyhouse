@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':api-common-module')
+    implementation project(':security-core')
 
     api 'org.springframework.boot:spring-boot-starter-data-redis'
 

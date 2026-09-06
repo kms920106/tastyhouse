@@ -290,7 +290,7 @@ class LayerRulesTest {
      * 게이트이기도 하다: {@code TokenService}·{@code JwtTokenProvider}·{@code CustomUserDetails}·
      * {@code AdminUserDetailsService}·{@code CeoUserDetailsService}는 Spring Security core와 JWT
      * 타입만 쓰는 <b>서블릿-프리</b> 타입이라 여기 있고, 서블릿 결합 타입(필터·EntryPoint·
-     * {@code JwtConfig}·{@code RedisRepositoryConfig}·{@code PublicPaths}·{@code SecurityConfig})은
+     * {@code JwtConfig}·{@code PublicPaths}·{@code SecurityConfig})은
      * 각 api 모듈에 남았다.
      *
      * <p>ceo는 이 예외가 특히 실질적이다 — 가게 이미지 변경·콘텐츠보드·메뉴 이미지 서비스와 규격

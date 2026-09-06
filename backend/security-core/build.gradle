@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     implementation project(':domain-module')
-    implementation project(':infrastructure:redis')
 
     api 'org.springframework.security:spring-security-core'
 

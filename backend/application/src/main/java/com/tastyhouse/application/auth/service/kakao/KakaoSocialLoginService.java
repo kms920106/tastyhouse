@@ -19,7 +19,7 @@ import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.security.token.KakaoTempTokenRedisRepository;
+import com.tastyhouse.security.token.KakaoTempTokenRepository;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
@@ -43,7 +43,7 @@ public class KakaoSocialLoginService {
     private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final KakaoTempTokenRedisRepository kakaoTempTokenRedisRepository;
+    private final KakaoTempTokenRepository kakaoTempTokenRepository;
 
     public KakaoSocialLoginService(
         @Qualifier("kakaoOAuthClient") SocialOAuthClient kakaoOAuthClient,
@@ -52,7 +52,7 @@ public class KakaoSocialLoginService {
         MemberSocialAccountRepository memberSocialAccountRepository,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
-        KakaoTempTokenRedisRepository kakaoTempTokenRedisRepository
+        KakaoTempTokenRepository kakaoTempTokenRepository
     ) {
         this.kakaoOAuthClient = kakaoOAuthClient;
         this.memberCommandService = memberCommandService;
@@ -60,7 +60,7 @@ public class KakaoSocialLoginService {
         this.memberSocialAccountRepository = memberSocialAccountRepository;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.kakaoTempTokenRedisRepository = kakaoTempTokenRedisRepository;
+        this.kakaoTempTokenRepository = kakaoTempTokenRepository;
     }
 
     // 인가 코드로 카카오 로그인 처리
@@ -110,7 +110,7 @@ public class KakaoSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        String kakaoAccessToken = kakaoTempTokenRedisRepository.findKakaoAccessToken(kakaoTempToken);
+        String kakaoAccessToken = kakaoTempTokenRepository.findKakaoAccessToken(kakaoTempToken);
         if (kakaoAccessToken == null) {
             throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
@@ -154,7 +154,7 @@ public class KakaoSocialLoginService {
             )
         );
 
-        kakaoTempTokenRedisRepository.delete(kakaoTempToken);
+        kakaoTempTokenRepository.delete(kakaoTempToken);
 
         return SocialLinkResult.ofLogin(issueJwt(member));
     }
@@ -176,7 +176,7 @@ public class KakaoSocialLoginService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        String kakaoAccessToken = kakaoTempTokenRedisRepository.findKakaoAccessToken(kakaoTempToken);
+        String kakaoAccessToken = kakaoTempTokenRepository.findKakaoAccessToken(kakaoTempToken);
         if (kakaoAccessToken == null) {
             throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
@@ -204,14 +204,14 @@ public class KakaoSocialLoginService {
             )
         );
 
-        kakaoTempTokenRedisRepository.delete(kakaoTempToken);
+        kakaoTempTokenRepository.delete(kakaoTempToken);
 
         return issueJwt(savedMember);
     }
 
     private String issueTempToken(String kakaoAccessToken) {
         String kakaoTempToken = UUID.randomUUID().toString();
-        kakaoTempTokenRedisRepository.save(kakaoTempToken, kakaoAccessToken);
+        kakaoTempTokenRepository.save(kakaoTempToken, kakaoAccessToken);
         return kakaoTempToken;
     }
 

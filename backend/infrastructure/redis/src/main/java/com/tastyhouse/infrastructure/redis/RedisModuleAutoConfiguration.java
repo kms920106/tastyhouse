@@ -2,20 +2,24 @@ package com.tastyhouse.infrastructure.redis;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 
+import com.tastyhouse.infrastructure.redis.token.RedisTokenStoreProperties;
+
 /**
- * infrastructure:redis 모듈의 auto-configuration — Redis 연결 템플릿과 레이트 리밋 카운터.
+ * infrastructure:redis 모듈의 auto-configuration — Redis 연결 템플릿·레이트 리밋 카운터·토큰 저장소.
  *
  * <p>{@link RedisConfig}(StringRedisTemplate)와 {@code ratelimit} 패키지의
- * {@code RedisRateLimitCounter}를 등록한다. rate limit의 표현 관심사
+ * {@code RedisRateLimitCounter}, {@code token} 패키지의 토큰 저장소 어댑터 6종을 등록한다.
+ * 토큰 저장소 계약({@code RefreshTokenRepository} 등)은 security-core가 소유하고 이 모듈이 구현한다.
+ *
+ * <p>rate limit의 표현 관심사
  * ({@code @RateLimit}·{@code RateLimitAspect}·{@code RateLimitException})는 api-common-module에 있고,
  * aspect 빈은 {@code ApiCommonRateLimitAutoConfiguration}이 이 카운터 빈의 존재를 조건으로 등록한다.
  *
- * <p>클래스패스 존재만으로 활성화된다. batch-module은 Redis를 직접 쓰지 않지만
- * {@code application → security-core → infrastructure:redis} 전이 의존으로 이 모듈을 갖고 있어
- * 여기 빈들이 함께 뜬다. 전환 전에도 {@code InfrastructureModuleConfig}의
- * {@code com.tastyhouse.infrastructure} 통째 스캔이 같은 빈을 올리고 있었으므로 빈 집합은 동일하다.
+ * <p>클래스패스 존재만으로 활성화된다. 앱이 {@code runtimeOnly project(':infrastructure:redis')}로
+ * 직접 선언할 때만 실린다 — batch-module은 이 모듈을 클래스패스에 두지 않으므로 발화 대상 자체가 없다.
  *
  * <p><b>{@code before = RedisAutoConfiguration}</b> — {@link RedisConfig}의
  * {@code stringRedisTemplate}은 Boot {@code RedisAutoConfiguration}의 동명 빈과 이름이 겹친다.
@@ -40,5 +44,6 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @AutoConfiguration(before = RedisAutoConfiguration.class)
 @ComponentScan("com.tastyhouse.infrastructure.redis")
+@EnableConfigurationProperties(RedisTokenStoreProperties.class)
 public class RedisModuleAutoConfiguration {
 }

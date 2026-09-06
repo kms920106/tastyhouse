@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.security.jwt.JwtAuthenticationFilter;
-import com.tastyhouse.security.token.BlacklistRedisRepository;
+import com.tastyhouse.security.token.BlacklistRepository;
 
 /**
  * security-module의 접두사 주입형/파라미터형 공용 JWT 컴포넌트를 web-api 전용 협력자로 빈 등록한다.
@@ -18,7 +18,7 @@ public class JwtConfig {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
         MemberJwtTokenProvider jwtTokenProvider,
-        BlacklistRedisRepository blacklistRepository,
+        BlacklistRepository blacklistRepository,
         ObjectMapper objectMapper
     ) {
         return new JwtAuthenticationFilter(jwtTokenProvider, blacklistRepository, objectMapper);

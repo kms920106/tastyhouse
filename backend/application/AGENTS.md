@@ -120,8 +120,8 @@ com.tastyhouse.application/
 | 앱 | 인증 방식 | 이 모듈에 있는 것 | api 모듈에 남은 것 |
 |---|---|---|---|
 | web | 소셜 로그인 SPI + JWT | `JwtTokenProvider` · `TokenService` · `CustomUserDetails(Service)` · `AuthCommandService` | `JwtConfig` · `SecurityConfig` · `PublicPaths` |
-| admin | `spring-security-core` + JWT | 위 + `AdminUserDetailsService` | 위 + `RedisRepositoryConfig` |
-| ceo | `spring-security-core` + JWT | 위 + `CeoUserDetailsService` | 위 + `RedisRepositoryConfig` |
+| admin | `spring-security-core` + JWT | 위 + `AdminUserDetailsService` | 위 (`RedisRepositoryConfig`는 챕터 01에서 삭제 — 키 접두사는 `security.token-store.key-prefix` 프로퍼티) |
+| ceo | `spring-security-core` + JWT | 위 + `CeoUserDetailsService` | 위 (동일) |
 | batch | 없음 | — | — |
 
 **결합의 실체는 서블릿이 아니라 Spring Security core였다**(챕터 02 판단 기록). auth 컨텍스트 전체에 `jakarta.servlet`·`org.springframework.web` import가 **0건**이었고 — 컨트롤러가 이미 원시값(Bearer 토큰 문자열·인가 코드)만 넘기고 있었다 — 실제 blocker이던 `JwtTokenProvider`·`TokenService`·`CustomUserDetails(Service)`는 `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`·JWT만 쓰는 **서블릿-프리** 타입이라 함께 이동할 수 있었다. 서블릿 결합 타입(필터·EntryPoint·`JwtConfig`·`SecurityConfig`)만 api에 남았고, `applicationMustBeServletFree`가 그 경계를 강제한다.
@@ -183,7 +183,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ### Internal
 - `domain-module` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
-- `security-core` (implementation) — `JwtTokenProvider`·Redis 토큰 저장소. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**
+- `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
 - **외부 연동 모듈(`infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:crawling`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
 

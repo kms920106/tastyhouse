@@ -19,7 +19,7 @@ import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.security.token.NaverTempTokenRedisRepository;
+import com.tastyhouse.security.token.NaverTempTokenRepository;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
@@ -43,7 +43,7 @@ public class NaverSocialLoginService {
     private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final NaverTempTokenRedisRepository naverTempTokenRedisRepository;
+    private final NaverTempTokenRepository naverTempTokenRepository;
 
     public NaverSocialLoginService(
         @Qualifier("naverOAuthClient") SocialOAuthClient naverOAuthClient,
@@ -52,7 +52,7 @@ public class NaverSocialLoginService {
         MemberSocialAccountRepository memberSocialAccountRepository,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
-        NaverTempTokenRedisRepository naverTempTokenRedisRepository
+        NaverTempTokenRepository naverTempTokenRepository
     ) {
         this.naverOAuthClient = naverOAuthClient;
         this.memberCommandService = memberCommandService;
@@ -60,7 +60,7 @@ public class NaverSocialLoginService {
         this.memberSocialAccountRepository = memberSocialAccountRepository;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.naverTempTokenRedisRepository = naverTempTokenRedisRepository;
+        this.naverTempTokenRepository = naverTempTokenRepository;
     }
 
     // 인가 코드와 state로 네이버 로그인 처리
@@ -110,7 +110,7 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        String naverAccessToken = naverTempTokenRedisRepository.findNaverAccessToken(naverTempToken);
+        String naverAccessToken = naverTempTokenRepository.findNaverAccessToken(naverTempToken);
         if (naverAccessToken == null) {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
@@ -154,7 +154,7 @@ public class NaverSocialLoginService {
             )
         );
 
-        naverTempTokenRedisRepository.delete(naverTempToken);
+        naverTempTokenRepository.delete(naverTempToken);
 
         return SocialLinkResult.ofLogin(issueJwt(member));
     }
@@ -167,7 +167,7 @@ public class NaverSocialLoginService {
                               MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
-        String naverAccessToken = naverTempTokenRedisRepository.findNaverAccessToken(naverTempToken);
+        String naverAccessToken = naverTempTokenRepository.findNaverAccessToken(naverTempToken);
         if (naverAccessToken == null) {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
@@ -191,14 +191,14 @@ public class NaverSocialLoginService {
             )
         );
 
-        naverTempTokenRedisRepository.delete(naverTempToken);
+        naverTempTokenRepository.delete(naverTempToken);
 
         return issueJwt(savedMember);
     }
 
     private String issueTempToken(String naverAccessToken) {
         String naverTempToken = UUID.randomUUID().toString();
-        naverTempTokenRedisRepository.save(naverTempToken, naverAccessToken);
+        naverTempTokenRepository.save(naverTempToken, naverAccessToken);
         return naverTempToken;
     }
 

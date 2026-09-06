@@ -54,7 +54,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### Common Patterns
 - **JWT 인증 메커니즘(access/refresh 발급·검증·필터·EntryPoint·AccessDeniedHandler)은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. web-api의 `config/jwt/JwtTokenProvider`는 그 공용 provider를 상속해 `memberId` 클레임·`CustomUserDetails` 재구성을 주입하고, **web 전용 검증 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드만 추가**한다. 공용 필터는 `config/jwt/JwtConfig`가 web 전용 블랙리스트 저장소로 빈 등록한다.
 - **`scanBasePackages`에 domain 엔트리 없음**: `WebApiApplication`의 `scanBasePackages`는 `com.tastyhouse.webapi`·`com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`·`com.tastyhouse.logging` 다섯 개다. `domain-module`에는 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 스캔 엔트리를 제거했다.
-- **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`CustomUserDetailsService`, `config/jwt/`의 `TokenService`·`RedisRepositoryConfig`.
+- **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`·`CustomUserDetails`(`JwtPrincipal` 구현)·`CustomUserDetailsService`, `config/jwt/`의 `TokenService`. (`RedisRepositoryConfig`는 챕터 01에서 삭제 — 아래 참고.)
 - **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET_WEB`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
 - 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `infrastructure:oauth`에 위임.
 - 응답은 공통 래퍼로 일관화 — `ApiResponse`/`PaginationResponse`/`PageRequest`와 `FileService`는 이 모듈이 아니라 **`api-common-module`(`com.tastyhouse.apicommon`) 소유**다.
@@ -100,7 +100,9 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 
 "직접 쓰는 것은 직접 선언"하는 Gradle 관례와는 상충하나, 위 노출은 **의도된 계약**이라 소비 측 중복 선언을 노이즈로 판단해 걷어냈다. 공유 모듈이 노출을 `implementation`으로 좁히면 여기서 **즉시 컴파일 에러**로 드러나므로 침묵 파손은 없다.
 
-**예외 — `spring-boot-starter-data-redis`는 직접 선언한다.** 이 앱이 소유한 `config/jwt/RedisRepositoryConfig`가 `StringRedisTemplate`을 **직접 참조**하기 때문이다(앱별 키 접두사를 주입한다). 챕터 02에서 `infrastructure:redis`를 `runtimeOnly`로 내리면서 그동안 전이로 받아 쓰던 이 라이브러리 의존이 드러났고, 그래서 명시 선언으로 메웠다.
+**~~예외 — `spring-boot-starter-data-redis`는 직접 선언한다~~ (챕터 01에서 소멸).** 이 앱은 더 이상 Redis 타입을 참조하지 않으므로 그 선언이 **삭제**됐고, `runtimeOnly project(':infrastructure:redis')`가 유일한 Redis 선언이다. 근거: 접두사를 생성자로 주입하려고 `StringRedisTemplate`을 직접 참조하던 `config/jwt/RedisRepositoryConfig`가 사라졌다 — 토큰 저장소가 포트/어댑터로 역전되며 접두사가 프로퍼티가 됐기 때문이다.
+
+**키 접두사 (불변 계약)**: 이 앱은 기본값 `""`를 쓰므로 `application.yml`에 `security.token-store.key-prefix`를 **선언하지 않는다**. 결과 키는 `rt:{username}`·`bl:{accessToken}`이다. 값을 넣으면 기존 로그인 세션이 전부 무효화된다.
 
 **이것은 어댑터 모듈을 `implementation`으로 되돌리는 것과 다르다.** 앱이 보는 것은 `StringRedisTemplate`이라는 **라이브러리 타입**뿐이고, `infrastructure:redis`의 어댑터 클래스(`RedisRateLimitCounter` 등)는 여전히 컴파일 타임에 보이지 않는다 — 헥사고날 은닉은 그대로다. 두 판단을 섞어 "전이가 끊겼으니 모듈을 다시 `implementation`으로" 되돌리지 않는다.
 

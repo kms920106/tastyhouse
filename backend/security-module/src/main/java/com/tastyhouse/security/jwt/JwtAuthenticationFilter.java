@@ -17,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.tastyhouse.security.token.BlacklistRedisRepository;
+import com.tastyhouse.security.token.BlacklistRepository;
 
 /**
  * Access Token을 검증해 SecurityContext에 인증을 주입하는 공용 필터.
@@ -41,12 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final BlacklistRedisRepository blacklistRepository;
+    private final BlacklistRepository blacklistRepository;
     private final ObjectMapper objectMapper;
 
     public JwtAuthenticationFilter(
         JwtTokenProvider jwtTokenProvider,
-        BlacklistRedisRepository blacklistRepository,
+        BlacklistRepository blacklistRepository,
         ObjectMapper objectMapper
     ) {
         this.jwtTokenProvider = jwtTokenProvider;

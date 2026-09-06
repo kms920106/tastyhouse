@@ -73,13 +73,17 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 **아래 §다음 절이 이 배선 변화의 핵심 — batch가 non-servlet인 이유를 이 문서가 유일하게 담보한다는 사실은 그대로 유효하다.**
 
-### `web-application-type: none`이 api-common auto-config 2개를 잠재우는 유일한 근거 (챕터 02 신설)
+### `web-application-type: none`은 이제 **재유입 방어선**이다 (챕터 02 신설 → 챕터 01 개정)
 
-`application.yml`의 `spring.main.web-application-type: none`은 단순한 설정값이 아니라, **`api-common-module`의 두 auto-configuration(`ApiCommonModuleAutoConfiguration#sharedGlobalExceptionHandler`, `ApiCommonRateLimitAutoConfiguration#rateLimitAspect`)이 이 모듈에서 비발화하는 유일한 근거**다. 둘 다 `@ConditionalOnWebApplication(type = SERVLET)`을 가지며, 이 조건은 (1) 클래스패스에 서블릿 스택이 있는지와 (2) 실제 애플리케이션 타입(`SERVLET`/`REACTIVE`/`NONE`)이 무엇인지를 함께 본다. **클래스패스에는 서블릿 스택(`spring-webmvc`·`tomcat-embed-core`)이 실제로 존재한다** — `application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 이 모듈의 runtimeClasspath에도 실려 있고, `api-common-module`이 `spring-boot-starter-web`을 `api`로 노출하기 때문이다. 즉 이 모듈이 두 빈을 갖지 않는 것은 "서블릿 스택이 없어서"가 **아니라** "이 yml 한 줄이 애플리케이션 타입을 `NONE`으로 고정해서"다.
+> **개정 (챕터 01 — 토큰 저장소 포트/어댑터 역전)**: 이 절은 원래 *"이 yml 한 줄이 api-common auto-config 2개를 잠재우는 **유일한 근거**"*였고, 그 전제는 **"클래스패스에는 서블릿 스택이 실제로 존재한다"**였다. **그 전제가 사라졌다** — `security-core → infrastructure:redis` 간선이 끊기면서 `application → security-core → infrastructure:redis → api-common-module` 전이 사슬 자체가 없어졌기 때문이다. 지금 이 모듈의 runtimeClasspath에는 `api-common-module`도, `infrastructure:redis`도, springdoc도, 서블릿 스택도 **없다**. 발화할 대상이 아예 없으므로 조건이 잠재울 것도 없다.
 
-**이 한 줄을 지우면(또는 다른 값으로 바꾸면) batch에 공용 예외 핸들러(`sharedGlobalExceptionHandler`)와 rate limit aspect(`rateLimitAspect`)가 조용히 올라온다.** 컴파일은 깨지지 않고, `java -jar --debug` 기동의 `CONDITIONS EVALUATION REPORT`에서 두 auto-configuration이 Negative에서 Positive로 바뀌는 것으로만 드러난다. batch는 HTTP 요청이 없어 이 두 빈이 있어도 당장 오작동하지는 않지만(호출할 컨트롤러가 없다), 존재 자체가 "이 모듈은 서블릿 애플리케이션이 아니다"라는 설계 전제를 깨는 신호이므로, 이 yml 값을 건드릴 때는 반드시 재기동 후 `CONDITIONS EVALUATION REPORT`로 두 auto-configuration이 여전히 Negative인지 확인한다.
+`application.yml`의 `spring.main.web-application-type: none`은 그래서 이제 **일차 방어선이 아니라 재유입 방어선**이다. 일차 방어선은 **빌드 그래프**다 — 어떤 모듈도 `api-common-module`을 batch로 끌고 오지 않는다.
 
-Redis(`RedisModuleAutoConfiguration`)와 크롤링(`CrawlingModuleAutoConfiguration`)은 이 조건이 없어 batch에서도 발화한다 — Redis는 전이로 끌려온 의도치 않은(그러나 무해한) 발화이고, 크롤링은 이 모듈이 실제로 쓰는 의도된 발화다(§챕터 02 감사표, `docs/tasks/02-autoconfig/backend.md` §4 참고).
+**두 방어선의 역할이 다르다.** 누군가 `api-common-module`(또는 그것을 `api`로 노출하는 모듈)을 이 모듈의 의존에 다시 추가하면 서블릿 스택이 클래스패스로 돌아오고, 그 순간 `@ConditionalOnWebApplication(type = SERVLET)`이 다시 실질적인 판정을 하게 된다. 그때 이 yml 한 줄이 없으면 공용 예외 핸들러(`sharedGlobalExceptionHandler`)와 rate limit aspect(`rateLimitAspect`)가 조용히 올라온다. **따라서 이 줄을 "이제 불필요하다"며 지우지 않는다** — 지금 무해한 이유는 그 줄이 필요 없어서가 아니라 방어 대상이 일시적으로 부재해서다.
+
+확인 방법은 그대로다: 배선을 건드렸으면 `java -jar --debug` 기동의 `CONDITIONS EVALUATION REPORT`를 본다. 다만 지금은 두 auto-configuration이 Negative로 **평가되는 것이 아니라 보고서에 아예 등장하지 않는 것**이 정상이다(클래스패스에 없으므로 후보에도 오르지 않는다).
+
+크롤링(`CrawlingModuleAutoConfiguration`)은 이 모듈이 실제로 쓰는 의도된 발화다. **Redis(`RedisModuleAutoConfiguration`)는 챕터 01부터 이 모듈에서 발화하지 않는다** — 과거 "전이로 끌려온 의도치 않은(그러나 무해한) 발화"였던 것이 전이 경로 소멸로 사라졌다(§챕터 02 감사표의 batch 행은 이 개정으로 갱신 대상이다).
 
 > **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, `@Import`에서 모듈 하나를 빠뜨려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
 >

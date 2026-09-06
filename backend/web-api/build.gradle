@@ -3,7 +3,6 @@ dependencies {
     implementation project(':security-module')
     implementation project(':api-common-module')
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     runtimeOnly project(':infrastructure:persistence')
     runtimeOnly project(':infrastructure:redis')

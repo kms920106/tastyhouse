@@ -19,7 +19,7 @@ import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.security.token.FacebookTempTokenRedisRepository;
+import com.tastyhouse.security.token.FacebookTempTokenRepository;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
@@ -43,7 +43,7 @@ public class FacebookSocialLoginService {
     private final MemberSocialAccountRepository memberSocialAccountRepository;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final FacebookTempTokenRedisRepository facebookTempTokenRedisRepository;
+    private final FacebookTempTokenRepository facebookTempTokenRepository;
 
     public FacebookSocialLoginService(
         @Qualifier("facebookOAuthClient") SocialOAuthClient facebookOAuthClient,
@@ -52,7 +52,7 @@ public class FacebookSocialLoginService {
         MemberSocialAccountRepository memberSocialAccountRepository,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
-        FacebookTempTokenRedisRepository facebookTempTokenRedisRepository
+        FacebookTempTokenRepository facebookTempTokenRepository
     ) {
         this.facebookOAuthClient = facebookOAuthClient;
         this.memberCommandService = memberCommandService;
@@ -60,7 +60,7 @@ public class FacebookSocialLoginService {
         this.memberSocialAccountRepository = memberSocialAccountRepository;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.facebookTempTokenRedisRepository = facebookTempTokenRedisRepository;
+        this.facebookTempTokenRepository = facebookTempTokenRepository;
     }
 
     // JS SDK 액세스 토큰으로 페이스북 로그인 처리
@@ -111,7 +111,7 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
-        String facebookAccessToken = facebookTempTokenRedisRepository.findFacebookAccessToken(facebookTempToken);
+        String facebookAccessToken = facebookTempTokenRepository.findFacebookAccessToken(facebookTempToken);
         if (facebookAccessToken == null) {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
@@ -155,7 +155,7 @@ public class FacebookSocialLoginService {
             )
         );
 
-        facebookTempTokenRedisRepository.delete(facebookTempToken);
+        facebookTempTokenRepository.delete(facebookTempToken);
 
         return SocialLinkResult.ofLogin(issueJwt(member));
     }
@@ -168,7 +168,7 @@ public class FacebookSocialLoginService {
                               MemberGender gender, Integer birthDate, String phoneNumber,
                               boolean pushNotificationEnabled, boolean marketingInfoEnabled,
                               boolean eventInfoEnabled, String referrerNickname) {
-        String facebookAccessToken = facebookTempTokenRedisRepository.findFacebookAccessToken(facebookTempToken);
+        String facebookAccessToken = facebookTempTokenRepository.findFacebookAccessToken(facebookTempToken);
         if (facebookAccessToken == null) {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
@@ -192,14 +192,14 @@ public class FacebookSocialLoginService {
             )
         );
 
-        facebookTempTokenRedisRepository.delete(facebookTempToken);
+        facebookTempTokenRepository.delete(facebookTempToken);
 
         return issueJwt(savedMember);
     }
 
     private String issueTempToken(String facebookAccessToken) {
         String facebookTempToken = UUID.randomUUID().toString();
-        facebookTempTokenRedisRepository.save(facebookTempToken, facebookAccessToken);
+        facebookTempTokenRepository.save(facebookTempToken, facebookAccessToken);
         return facebookTempToken;
     }
 

@@ -1,29 +1,31 @@
-package com.tastyhouse.security.token;
+package com.tastyhouse.infrastructure.redis.token;
 
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
+
+import com.tastyhouse.security.token.NaverTempTokenRepository;
 
 /**
- * 네이버 임시 토큰 Redis 저장소
+ * {@link NaverTempTokenRepository}의 Redis 구현 — security-core가 소유한 계약을 인프라가 구현한다.
  *
- * <p>Key: "naver_temp:{tempToken}" → naverAccessToken (TTL: 10분)
- * - NEEDS_SIGN_UP / NEEDS_LINKING 응답 시 발급
- * - 회원가입(/signup/naver) 또는 계정 연동(/link/naver) 완료 시 삭제 (1회용)
+ * <p>Key: {@code "naver_temp:{tempToken}"} → naverAccessToken (TTL: 10분)
+ * 소셜 임시 토큰은 앱 간 공유되지 않으므로 키 접두사 설정을 받지 않는다.
  */
-@Repository
-public class NaverTempTokenRedisRepository {
+@Component
+public class RedisNaverTempTokenRepository implements NaverTempTokenRepository {
 
     private static final String PREFIX = "naver_temp:";
     private static final long TTL_MINUTES = 10;
 
     private final StringRedisTemplate redisTemplate;
 
-    public NaverTempTokenRedisRepository(StringRedisTemplate redisTemplate) {
+    public RedisNaverTempTokenRepository(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
+    @Override
     public void save(String naverTempToken, String naverAccessToken) {
         redisTemplate.opsForValue().set(
             PREFIX + naverTempToken,
@@ -33,10 +35,12 @@ public class NaverTempTokenRedisRepository {
         );
     }
 
+    @Override
     public String findNaverAccessToken(String naverTempToken) {
         return redisTemplate.opsForValue().get(PREFIX + naverTempToken);
     }
 
+    @Override
     public void delete(String naverTempToken) {
         redisTemplate.delete(PREFIX + naverTempToken);
     }

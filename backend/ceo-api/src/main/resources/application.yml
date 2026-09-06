@@ -26,6 +26,10 @@ jwt:
   refreshTokenExpiration: 604800000 # 7일 (ms) - 일반 로그인
   rememberMeRefreshTokenExpiration: 2592000000 # 30일 (ms) - 로그인 상태 유지
 
+security:
+  token-store:
+    key-prefix: "ceo:"
+
 ceo:
   seed:
     username: ${CEO_SEED_USERNAME:ceo}

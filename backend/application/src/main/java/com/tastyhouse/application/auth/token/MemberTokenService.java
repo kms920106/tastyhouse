@@ -12,29 +12,29 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.security.token.BlacklistRedisRepository;
-import com.tastyhouse.security.token.RefreshTokenRedisRepository;
+import com.tastyhouse.security.token.BlacklistRepository;
+import com.tastyhouse.security.token.RefreshTokenRepository;
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 
 /**
  * 토큰 발급·갱신·무효화 비즈니스 로직을 담당하는 서비스
  * - MemberJwtTokenProvider: JWT 서명/파싱 전담
- * - RefreshTokenRedisRepository: Refresh Token 저장소
- * - BlacklistRedisRepository: 로그아웃된 Access Token 블랙리스트
+ * - RefreshTokenRepository: Refresh Token 저장소
+ * - BlacklistRepository: 로그아웃된 Access Token 블랙리스트
  */
 @Service
 @WebApp
 public class MemberTokenService {
 
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRedisRepository refreshTokenRepository;
-    private final BlacklistRedisRepository blacklistRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
 
     public MemberTokenService(
         MemberJwtTokenProvider jwtTokenProvider,
-        RefreshTokenRedisRepository refreshTokenRepository,
-        BlacklistRedisRepository blacklistRepository
+        RefreshTokenRepository refreshTokenRepository,
+        BlacklistRepository blacklistRepository
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;

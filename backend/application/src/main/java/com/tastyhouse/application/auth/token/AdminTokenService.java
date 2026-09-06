@@ -9,30 +9,30 @@ import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.security.jwt.TokenType;
-import com.tastyhouse.security.token.BlacklistRedisRepository;
-import com.tastyhouse.security.token.RefreshTokenRedisRepository;
+import com.tastyhouse.security.token.BlacklistRepository;
+import com.tastyhouse.security.token.RefreshTokenRepository;
 import com.tastyhouse.application.admin.service.AdminQueryService;
 import com.tastyhouse.application.auth.port.out.AdminJwtResult;
 
 /**
  * 관리자 토큰 발급·갱신·무효화 비즈니스 로직
  * - AdminJwtTokenProvider: JWT 서명/파싱 전담
- * - RefreshTokenRedisRepository: Refresh Token 저장소
- * - BlacklistRedisRepository: 로그아웃된 Access Token 블랙리스트
+ * - RefreshTokenRepository: Refresh Token 저장소
+ * - BlacklistRepository: 로그아웃된 Access Token 블랙리스트
  */
 @Service
 @AdminApp
 public class AdminTokenService {
 
     private final AdminJwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRedisRepository refreshTokenRepository;
-    private final BlacklistRedisRepository blacklistRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistRepository blacklistRepository;
     private final AdminQueryService adminQueryService;
 
     public AdminTokenService(
         AdminJwtTokenProvider jwtTokenProvider,
-        RefreshTokenRedisRepository refreshTokenRepository,
-        BlacklistRedisRepository blacklistRepository,
+        RefreshTokenRepository refreshTokenRepository,
+        BlacklistRepository blacklistRepository,
         AdminQueryService adminQueryService
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
