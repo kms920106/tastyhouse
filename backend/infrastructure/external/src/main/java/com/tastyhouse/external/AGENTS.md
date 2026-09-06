@@ -51,3 +51,36 @@
 
 ### External
 - `spring-boot-starter-webflux` (`WebClient`). **이것 하나뿐이다** — AWS SDK·Firebase Admin·jjwt·starter-mail·spring-web은 전부 분리된 모듈이 소유한다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 이 패키지 루트를 `com.tastyhouse.infrastructure` 아래로 옮기지 않는다
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/` (디렉터리 자체)
+
+`infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하므로, 이 패키지를 그 아래로 옮기면 **의존하지 않은 어댑터까지 스캔 대상이 되어 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 이름(`infrastructure:external`)과 패키지 이름(`com.tastyhouse.external`)이 어긋나 보이는 것은 의도된 것이며, 외부 연동 7모듈 전부에 동일하게 적용된다. 모듈 차원의 서술은 `../../../../../AGENTS.md`.
+
+### `file/` 아래에 벤더 구현을 추가하지 않는다
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/file/`
+→ 스캔 주체는 `config/ExternalModuleAutoConfiguration`의 `@ComponentScan`
+
+`com.tastyhouse.external.file`이 스캔 대상이라 하위 패키지가 동반 스캔된다. 새 저장소 전략은 이 디렉터리가 아니라 별도 모듈(`infrastructure:{벤더}`)에 자기 패키지(`external.{벤더}`)로 둔다. 위 "Working In This Directory"의 같은 항목과 동일한 제약이며, 여기서는 **가드로서** 다시 못박는다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `exception/`의 예외가 502를 지키는 방식
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/exception/ExternalApiException.java`
+
+`BusinessException` 상속이라 각 api 모듈의 기존 `BusinessException` 핸들러가 그대로 처리한다. 독립 예외였던 시절에는 admin-api·ceo-api에 전용 핸들러가 없어 **502로 의도된 외부 연동 실패가 `Exception` 폴백을 타고 500으로 나가는 결함**이 있었다. `ExternalApiErrorCode`는 SMS·Mail·Region 세 갈래로 상수를 묶어 선언한다.
+
+### `file/FileStorageStrategy`의 `byte[]` 시그니처
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/file/FileStorageStrategy.java`
+
+도메인 포트 `FileStoragePort`와 형태를 맞춘 것이며, 코어가 `spring-web`(`MultipartFile`)을 의존하지 않게 하는 것이 목적이다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고, 전체 URL 조립은 `getFileUrl`이 별도로 맡는다.

@@ -28,7 +28,6 @@ public class RemoteImageDownloader implements RemoteImagePort {
         this.fileUploadService = fileUploadService;
     }
 
-    // 외부 URL에서 이미지를 다운로드하여 업로드하고 파일 ID를 반환한다.
     @Override
     public Long uploadFromUrl(String imageUrl) {
         try (HttpClient httpClient = HttpClient.newHttpClient()) {

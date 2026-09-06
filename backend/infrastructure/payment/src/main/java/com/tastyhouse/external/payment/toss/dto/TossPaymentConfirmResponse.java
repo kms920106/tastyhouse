@@ -39,7 +39,6 @@ public class TossPaymentConfirmResponse {
     private String type;
     private java.util.List<Cancel> cancels;
 
-    // 에러 응답
     private String code;
     private String message;
 

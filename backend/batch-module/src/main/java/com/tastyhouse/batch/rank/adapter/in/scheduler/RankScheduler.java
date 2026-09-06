@@ -17,8 +17,7 @@ public class RankScheduler {
         this.aggregateRanksUseCase = aggregateRanksUseCase;
     }
 
-//    @Scheduled(cron = "0 * * * * *") // 1분마다 실행 (테스트용)
-    @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시 실행 (운영용)
+    @Scheduled(cron = "0 0 3 * * *")
     public void aggregateRanks() {
         log.info("=== 랭킹 집계 스케줄러 시작 ===");
 

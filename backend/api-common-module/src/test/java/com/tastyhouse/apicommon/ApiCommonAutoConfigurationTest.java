@@ -1,6 +1,5 @@
 package com.tastyhouse.apicommon;
 
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,16 +19,6 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitCounterPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * api-common-module auto-configuration의 조건 검증.
- *
- * <p>이 모듈의 두 빈은 앱마다 켜지고 꺼지는 것이 다르다 — 공용 예외 핸들러는 자체 advice가 없는
- * 앱(admin·ceo)에서만, rate limit aspect는 카운터 구현이 있는 서블릿 앱에서만 등록된다.
- * 그 조건이 의도대로 동작하는지를 컨텍스트를 실제로 띄우지 않고 검증한다.
- *
- * <p>이 테스트는 단위 수준 근거이고, 실제 회귀 방지는 4개 앱 기동 후의 조건 리포트·
- * 로그인 rate limit 실측이 담당한다(챕터 02 문서 §9).
- */
 class ApiCommonAutoConfigurationTest {
 
     private static final AutoConfigurations AUTO_CONFIGURATIONS = AutoConfigurations.of(
@@ -81,7 +70,6 @@ class ApiCommonAutoConfigurationTest {
     @DisplayName("비-서블릿 앱 (batch-module)")
     class NonServletApplication {
 
-        /** ApplicationContextRunner 기본값이 비-웹 컨텍스트다 — batch의 {@code web-application-type: none}에 해당. */
         private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AUTO_CONFIGURATIONS);
 
@@ -104,7 +92,6 @@ class ApiCommonAutoConfigurationTest {
         }
     }
 
-    /** web-api의 {@code com.tastyhouse.webapi.exception.GlobalExceptionHandler} 역할. */
     @RestControllerAdvice
     static class OwnGlobalExceptionHandler {
         @ExceptionHandler(RuntimeException.class)

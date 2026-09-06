@@ -59,3 +59,73 @@
 - `security-module` — `api project(':security-core')`로 재노출(잔류한 서블릿 결합 타입이 이 모듈의 `JwtTokenProvider`·토큰 저장소 포트를 쓴다. `JwtAuthenticationFilter`가 `BlacklistRepository`를 받는다)
 - `infrastructure:redis` — `implementation project(':security-core')`(챕터 01 신설 간선). 토큰 저장소 포트 6종의 **구현**을 갖는다
 - `{web,admin,ceo}-api` — `security-module`을 통해 전이로 수신(기존 좌표 그대로, 직접 의존 선언 없음)
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### `JwtProperties.secret` — 앱 간 동일 시크릿 금지
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/jwt/JwtProperties.java`
+→ record 선언 / `secret`
+
+값은 각 API 모듈의 `application.yml`이 소유하며, web-api와 admin-api는 반드시 서로 다른 `jwt.secret`
+(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`)을 써야 한다. **동일 시크릿을 쓰면 한쪽 토큰이 다른 쪽 인증을
+통과하는 권한 상승이 발생한다.** (같은 규칙이 위 [Working In This Directory](#working-in-this-directory)
+에도 있다 — 여기서는 원 주석의 앵커를 보존한다.)
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `JwtPrincipal` / `JwtPrincipalFactory` — 앱별 principal 차이 흡수 계약
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/jwt/JwtPrincipal.java`
+→ `getPrincipalId()`
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/jwt/JwtPrincipalFactory.java`
+→ `create(Long, String, Collection)`
+
+`JwtPrincipal`은 공용 `JwtTokenProvider`가 principal 식별자(memberId/adminId 등)를 **클레임에 실을 때**
+쓰는 계약이고, `JwtPrincipalFactory`는 **토큰 파싱 후 principal(UserDetails)을 재구성**하는 팩토리다.
+각 API의 `CustomUserDetails`가 전자를 구현하고, 후자로는 그 생성자 참조(`CustomUserDetails::new`)를
+넘긴다.
+
+### `JwtTokenProvider`가 빈이 아닌 이유
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/jwt/JwtTokenProvider.java`
+→ 클래스 선언 / 생성자
+
+principal 식별자 클레임명과 principal 재구성 팩토리를 **생성자로 주입받아 앱별 차이를 흡수**하므로 이
+클래스 자체는 빈이 아니다. 앱별 하위 클래스가 자신의 클레임명·팩토리를 주입해 `@Component`로 등록하며,
+web-api는 이 클래스를 상속해 검증용 토큰(휴대폰/이메일/비밀번호 재설정 등) 발급 메서드를 추가한다.
+
+### `TokenType` — web 전용 값을 공유해도 무해한 이유
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/jwt/TokenType.java`
+→ enum 상수 목록
+
+`ACCESS`/`REFRESH`는 양 API 공통이고, 그 외 검증용 토큰 타입(`PHONE_VERIFY`·`EMAIL_VERIFY`·
+`PERSONAL_INFO_VERIFY`·`PASSWORD_RESET`)은 web-api 전용이다. admin-api는 사용하지 않지만 **상수를
+공유해도 무해하므로** 앱별로 쪼개지 않는다.
+
+### 소셜 임시토큰 저장소 4종 — 1회용 토큰의 수명
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/token/`
+→ `KakaoTempTokenRepository` · `NaverTempTokenRepository` · `AppleTempTokenRepository` ·
+`FacebookTempTokenRepository`
+
+`NEEDS_SIGN_UP` / `NEEDS_LINKING` 응답 시 발급되고, **회원가입·계정 연동 완료 시 삭제되는 1회용
+토큰**이다. 구현은 `infrastructure:redis`의 `token` 패키지에 있으며 키 접두사·TTL 정책은 어댑터가
+소유한다.
+
+**Apple만 저장 대상이 다르다** — Apple은 UserInfo 엔드포인트가 없으므로 accessToken이 아닌
+`id_token`을 저장한다(`AppleTempTokenRepository.save(appleTempToken, appleIdToken)`). 이 id_token은
+이미 서버에서 검증 완료된 상태이며, sub/email 재추출 시 재파싱된다.
+
+### `RefreshTokenRepository.isInvalid`가 default 메서드인 이유
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/token/RefreshTokenRepository.java`
+→ `isInvalid(String, String)`
+
+저장된 값과의 단순 비교라 어댑터마다 다를 여지가 없어 계약 쪽에 default로 둔다. `BlacklistRepository`와
+함께 앱별 키 접두사는 `security.token-store.key-prefix`가 결정한다.

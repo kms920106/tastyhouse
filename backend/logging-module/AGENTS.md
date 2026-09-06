@@ -13,7 +13,7 @@ com.tastyhouse.logging/
 
 - `ApiLoggingFilter`는 `@Order(Ordered.HIGHEST_PRECEDENCE)`로 필터 체인 최상단에서 동작하며, `requestId`를 MDC에 등록해 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동으로 첨부되게 한다.
 - `ApiLoggingAspect`는 `@RestController`가 붙은 모든 클래스에 AOP로 적용되며, Filter 레이어에서 처리되는 401/403 등은 컨트롤러에 도달하지 않으므로 별도 로깅되지 않는다.
-- `SensitiveFieldMasker`는 현재 `ApiLoggingAspect`에서 실사용이 주석 처리된 상태로 남아 있다(`SENSITIVE_FIELDS`에 정의된 필드명 기준 마스킹 로직 자체는 완성돼 있음) — 활성화하려면 `ApiLoggingAspect`의 주석 처리된 `masker` 필드·호출부를 복원한다.
+- **`SensitiveFieldMasker`는 미배선 상태이며, 즉 마스킹이 실제로는 전혀 동작하지 않는다.** 클래스는 `@Component`로 실재하고 `SENSITIVE_FIELDS` 기준 마스킹 로직도 완성돼 있지만, **어디에서도 주입·호출되지 않는다**(그래서 `@SuppressWarnings("unused")`가 붙어 있다). 과거 `ApiLoggingAspect`에 주석 처리된 `masker` 필드·호출부가 남아 있었으나 주석 이관 작업(챕터 07)에서 삭제됐다. 활성화하려면 `ApiLoggingAspect`에 `SensitiveFieldMasker`를 생성자 주입하고, `logControllerExecution`의 `[BODY]` 로깅에서 각 요청 바디를 `masker.mask(...)`로 변환한 뒤 출력하도록 되살린다. **그때까지 `[BODY]` 로그에는 비밀번호·토큰이 마스킹 없이 그대로 남는다** — 아래 "바디 로깅은 DEBUG 레벨에서만" 안전장치가 현재 유일한 방어선이다.
 
 ## 왜 `web`/`aop`/`security` starter를 `api`로 노출하는가
 
@@ -56,5 +56,72 @@ dependencies {
 - `spring-boot-starter-aop` (api) — `@Aspect`/`@Around`/`@Before`
 - `spring-boot-starter-security` (api) — `SecurityContextHolder`/`Authentication`
 - `p6spy-spring-boot-starter` 1.12.1 (api) — datasource 데코레이션으로 SQL 로깅. 소비 모듈(web/admin/ceo-api)이 별도 선언하지 않도록 `api`로 노출하며, SQL 로그 포맷은 `application-logging.yml`이 소유한다. (batch-module은 `exclude`로 전이 차단 — 위 "로깅 설정 소유" 참고)
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### `ApiLoggingFilter` — `copyBodyToResponse()`를 제거하지 않는다
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingFilter.java`
+→ `doFilterInternal`의 `finally` 블록
+
+`ContentCachingResponseWrapper`는 응답 본문을 내부에 캐싱하므로, **실제 클라이언트에게 응답을
+전달하려면 반드시 `wrappedResponse.copyBodyToResponse()`를 호출해야 한다.** 이 줄을 지우면 모든 응답
+본문이 빈 채로 나가며, 상태 코드는 정상이라 원인 추적이 어렵다.
+
+### `SensitiveFieldMasker`의 `@SuppressWarnings("unused")`는 미배선 상태의 표식이다
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/SensitiveFieldMasker.java`
+→ 클래스 선언
+
+**미사용이라는 이유로 클래스를 삭제하지 않는다.** 마스킹 로직 자체는 완성돼 있고 활성화만 남은
+상태이며, 이 어노테이션은 그 사실의 표식이다. 반대로 실제 배선을 되살렸다면 이 어노테이션은
+제거한다 — 위 [패키지 구조](#패키지-구조) 절의 미배선 항목 참고.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `ApiLoggingAspect`의 적용 범위 — 컨트롤러에 도달한 요청만
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingAspect.java`
+→ 클래스 선언 / `logControllerExecution` / `resolveAuthenticatedUser`
+
+`@Around("within(@RestController *)")`이므로 **필터 레이어에서 처리되는 401/403 등은 별도 로깅되지
+않는다** — 컨트롤러까지 도달한 요청에 대해서만 동작한다. 인증 사용자는 `SecurityContextHolder`에서
+꺼내며, 인증되지 않은 요청은 `"anonymous"`로 기록한다(그리고 바디가 없으면 `[BODY]` 줄 자체를 남기지
+않는다). `@RequestBody` 인자 추출이 실패해도 DEBUG 로그만 남기고 요청은 그대로 진행한다 — **로깅이
+요청을 막지 않는다**는 것이 이 클래스의 불변이다.
+
+### `ApiLoggingFilter`가 로깅하는 것과 그 레벨 정책
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingFilter.java`
+→ 클래스 선언 / `MAX_BODY_LOG_SIZE` / `logResponse`
+
+로깅 항목은 requestId·Method·Path·Client IP·Status Code·처리 시간(ms)이다. `requestId`는 MDC에 등록되어
+같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동 첨부된다. 바디 로깅은 DEBUG 레벨에서만 켜지며
+(`application-dev.yml`은 `com.tastyhouse.logging: DEBUG`, `application-prod.yml`은 기본값 `INFO`),
+`MAX_BODY_LOG_SIZE`(2048자)를 넘으면 truncate한다. 응답 로그 레벨은 상태 코드로 갈린다 — 500 이상
+`error`, 400 이상 `warn`, 그 외 `info`.
+
+### `resolveClientIp` 중복은 의도적이다
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingFilter.java`
+→ `resolveClientIp(HttpServletRequest)`
+(대응 사본: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/common/ClientIpResolver.java` → `resolve`)
+
+프록시·로드밸런서 뒤에서는 `getRemoteAddr()`가 프록시의 IP를 돌려주므로 `X-Forwarded-For`의 첫
+값(원 클라이언트)을 우선한다. `api-common-module`의 `ClientIpResolver`와 **로직이 같지만 통합하지
+않는다** — 이 모듈은 `api-common-module`을 의존하지 않고, 의존을 추가하면 방향이 뒤집힌다(로깅은 api
+계층 아래에 있는 횡단 관심사다). 중복을 감수하는 쪽이 의도된 선택이다.
+
+### `LoggingModuleAutoConfiguration`을 끄는 방법
+
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/LoggingModuleAutoConfiguration.java`
+→ 클래스 선언
+
+이 모듈이 앱의 runtimeClasspath에 있으면 **자동으로 활성화되며**(조건 없음), 앱은 `runtimeOnly`로만
+의존한다(4개 앱 전부). 끄려면 `spring.autoconfigure.exclude`를 쓴다.
 
 <!-- MANUAL: -->

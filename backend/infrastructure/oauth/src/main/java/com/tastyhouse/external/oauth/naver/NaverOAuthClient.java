@@ -40,7 +40,6 @@ public class NaverOAuthClient implements SocialOAuthClient {
         return SocialProvider.NAVER;
     }
 
-    // 네이버만 state를 함께 넘겨 CSRF를 방어한다.
     @Override
     public SocialCredential exchange(SocialAuthorization authorization) {
         return SocialCredential.of(
@@ -65,7 +64,6 @@ public class NaverOAuthClient implements SocialOAuthClient {
         );
     }
 
-    // 인가 코드와 state로 네이버 액세스 토큰을 발급
     public NaverTokenResponse fetchToken(String authorizationCode, String state) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
@@ -84,7 +82,6 @@ public class NaverOAuthClient implements SocialOAuthClient {
             .block();
     }
 
-    // 네이버 액세스 토큰으로 사용자 정보를 조회
     public NaverUserInfoResponse fetchUserInfo(String naverAccessToken) {
         return webClient.get()
             .uri(NAPI_BASE_URL + "/v1/nid/me")

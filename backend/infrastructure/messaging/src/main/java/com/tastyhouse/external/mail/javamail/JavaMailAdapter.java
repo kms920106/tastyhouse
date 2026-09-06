@@ -14,12 +14,6 @@ import com.tastyhouse.external.exception.ExternalApiErrorCode;
 import com.tastyhouse.external.exception.ExternalApiException;
 import com.tastyhouse.external.mail.MailProperties;
 
-/**
- * JavaMail(SMTP) 기반 메일 발송 어댑터 — 도메인 포트 {@link MailSender}의 기본 구현.
- *
- * <p>클래스명이 {@code JavaMailMailSender}가 아닌 이유: 이 어댑터가 주입받는 Spring의
- * {@link JavaMailSender}와 타입명이 혼동되기 때문에 {@code Adapter} 접미어로 구분한다.
- */
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
 public class JavaMailAdapter implements MailSender {

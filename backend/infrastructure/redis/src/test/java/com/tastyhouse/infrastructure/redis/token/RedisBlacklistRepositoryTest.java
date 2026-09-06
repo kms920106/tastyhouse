@@ -17,12 +17,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * 블랙리스트 키가 {@code {keyPrefix}bl:{accessToken}}으로 조립되는지 고정값으로 단정한다.
- *
- * <p>{@link RedisRefreshTokenRepositoryTest}와 같은 이유로 존재한다 — 접두사가 어긋나면
- * 로그아웃한 토큰이 블랙리스트에 걸리지 않아 <b>예외 없이 계속 통과</b>한다.
- */
 class RedisBlacklistRepositoryTest {
 
     @Test

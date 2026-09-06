@@ -28,13 +28,6 @@ import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
-/**
- * Apple OAuth 클라이언트
- * <p>
- * Apple 로그인은 표준 OAuth 인가 코드 흐름과 달리 두 가지 특이점이 있다:
- * 1. client_secret이 ES256 서명된 JWT 형태여야 한다 (일반 shared secret 미지원)
- * 2. UserInfo 엔드포인트가 없으며, id_token(RS256 JWT)에서 직접 사용자 정보를 추출한다
- */
 @Component
 public class AppleOAuthClient implements SocialOAuthClient {
 
@@ -55,7 +48,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
     @Value("${apple.redirect-uri}")
     private String redirectUri;
 
-    // .p8 파일 내용을 개행 제거한 Base64 문자열 (-----BEGIN/END PRIVATE KEY----- 헤더 제외)
     @Value("${apple.private-key}")
     private String privateKeyBase64;
 
@@ -70,8 +62,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         return SocialProvider.APPLE;
     }
 
-    // Apple은 UserInfo 엔드포인트가 없어 id_token 자체가 프로필 소스다. 따라서 자격증명으로 액세스
-    // 토큰이 아닌 id_token을 반환하고, 여기서 한 번 검증해 잘못된 토큰이 Redis에 저장되지 않게 한다.
     @Override
     public SocialCredential exchange(SocialAuthorization authorization) {
         String idToken = fetchToken(authorization.code()).idToken();
@@ -79,7 +69,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         return SocialCredential.of(idToken);
     }
 
-    // JWKS를 네트워크로 받아 서명을 매번 재검증하므로 값싼 조회가 아니다(호출 빈도에 주의).
     @Override
     public SocialProfile fetchProfile(SocialCredential credential) {
         AppleIdTokenPayload payload = verifyIdToken(credential.value());
@@ -97,9 +86,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         );
     }
 
-    // verifyAndExtractIdToken의 bare RuntimeException을 도메인 의미의 예외로 번역한다.
-    // 과거 web-api의 AppleSocialLoginService 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것으로,
-    // 응답 계약(APPLE_ID_TOKEN_INVALID)은 그대로다.
     private AppleIdTokenPayload verifyIdToken(String idToken) {
         try {
             return verifyAndExtractIdToken(idToken);
@@ -108,7 +94,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         }
     }
 
-    // 인가 코드로 Apple 토큰(id_token 포함)을 발급
     public AppleTokenResponse fetchToken(String authorizationCode) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("client_id", clientId);
@@ -127,16 +112,13 @@ public class AppleOAuthClient implements SocialOAuthClient {
             .block();
     }
 
-    // id_token(JWT)을 Apple 공개키(JWKS)로 RS256 검증 후 payload claims 반환
     public AppleIdTokenPayload verifyAndExtractIdToken(String idToken) {
         try {
-            // id_token header에서 kid 추출
             String[] parts = idToken.split("\\.");
             String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]));
             JsonNode header = new ObjectMapper().readTree(headerJson);
             String tokenKid = header.get("kid").asText();
 
-            // Apple JWKS에서 kid가 일치하는 공개키 선택
             java.security.PublicKey publicKey = fetchApplePublicKey(tokenKid);
 
             Claims claims = Jwts.parser()
@@ -158,7 +140,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         }
     }
 
-    // Apple JWKS 엔드포인트에서 공개키 목록을 조회하고 kid가 일치하는 RSA 공개키 반환
     private java.security.PublicKey fetchApplePublicKey(String kid) {
         try {
             JsonNode jwks = webClient.get()
@@ -192,7 +173,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         }
     }
 
-    // iss, aud, exp 클레임 검증
     private void validateClaims(Claims claims) {
         if (!APPLE_ISSUER.equals(claims.getIssuer())) {
             throw new RuntimeException("Apple id_token iss 불일치: " + claims.getIssuer());
@@ -205,9 +185,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         }
     }
 
-    // Apple client_secret: ES256 서명된 JWT 생성
-    // - iss: Team ID, sub: Services ID(client_id), aud: https://appleid.apple.com
-    // - 유효기간 최대 6개월 (여기서는 180일로 설정)
     private String generateClientSecret() {
         try {
             ECPrivateKey privateKey = loadPrivateKey();
@@ -228,7 +205,6 @@ public class AppleOAuthClient implements SocialOAuthClient {
         }
     }
 
-    // application.yml에 설정된 Base64 인코딩된 .p8 개인키를 ECPrivateKey로 변환
     private ECPrivateKey loadPrivateKey() throws Exception {
         byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);

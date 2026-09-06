@@ -105,3 +105,53 @@ String store(byte[] content, String storedFilename, String datePath, String cont
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 스타터 `file-storage`를 포함한 8모듈 전부 같다.
 - **빈 배선 (챕터 03 개정)**: `ExternalModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **다만 앱이 이 모듈을 직접 선언하지는 않는다** — 챕터 03부터 4개 앱은 스타터 `infrastructure:file-storage` 한 줄만 `runtimeOnly`로 갖고, 이 코어와 벤더 구현(`infrastructure:firebase`)이 그 스타터를 통해 `runtimeClasspath`에 전이로 실린다. 코어만 있고 전략 구현이 없으면 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 **기동 시** 실패하는데, 스타터가 둘을 항상 함께 묶으므로 그 조합 실수 자체가 사라졌다(이것이 스타터를 만든 이유다 — `../file-storage/AGENTS.md`).
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/external/AGENTS.md`.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 자바 패키지 `com.tastyhouse.external..` 봉인 (외부 연동 7모듈 공통)
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/` 및 형제 모듈 6개의 같은 패키지 루트
+
+위 "자바 패키지는 `com.tastyhouse.external..`로 유지한다" 절과 같은 사실을, **가드로서** 다시 못박는다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.
+
+### `external.file` 하위에 벤더 패키지를 두지 않는다
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/ExternalModuleAutoConfiguration.java` → `@ComponentScan`
+
+스캔 범위가 `com.tastyhouse.external.config`·`com.tastyhouse.external.file` 두 패키지이므로, **하위 패키지가 클래스패스에 있으면 동반 스캔된다.** 그래서 Firebase는 `external.firebase`, S3는 `external.aws.s3`로 옮겼다. 새 저장소 전략을 `external.file` 아래에 만들지 않는다 — 코어를 받은 앱 전부에 그 벤더 빈이 딸려 올라온다. 분리 전에는 OAuth를 REGEX `excludeFilters`로 제외했으나, 지금은 모듈 경계가 그 역할을 대신하므로 제외 규칙이 필요 없다.
+
+### `@ConfigurationProperties` record는 명시 등록한다
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/ExternalModuleAutoConfiguration.java` → `@EnableConfigurationProperties`
+
+`@ConfigurationPropertiesScan`을 쓰지 않는 것이 이 저장소의 방침이다. Properties record는 컴포넌트 스캔에 맡기지 말고 진입 설정의 `@EnableConfigurationProperties`에 명시한다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### 코어 auto-configuration의 발화 조건과 형제 모듈의 자기 등록
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/ExternalModuleAutoConfiguration.java`
+
+이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 `build.gradle`에서 `runtimeOnly`로만 의존하고 이 클래스를 `@Import` 하지 않는다. 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·크롤링은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsModuleAutoConfiguration`·`OAuthModuleAutoConfiguration`·`PaymentModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
+
+### `ExternalApiException`이 `BusinessException`을 상속하는 이유 (결함 이력)
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/exception/ExternalApiException.java`
+
+`BusinessException`을 상속하므로 **각 api 모듈의 `BusinessException` 핸들러가 그대로 처리한다.** 과거에는 독립 예외라 모듈별 전용 핸들러가 필요했고, admin-api·ceo-api가 그 핸들러를 갖지 않아 **502로 의도된 발송 실패가 `Exception` 폴백을 타고 500으로 응답되는 결함**이 있었다. 새 예외 타입을 만들어 전역 핸들러에 `@ExceptionHandler`를 추가하지 않는 규칙의 근거가 이 이력이다.
+
+### `WebClient` 빌더를 코어가 소유하는 이유와 버퍼 한도
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/WebClientConfig.java`
+
+비동기·논블로킹 HTTP 클라이언트(타임아웃·연결 풀 포함)를 코어가 등록한다. OAuth·결제 등 외부 연동 클라이언트가 `WebClient`를 주입받으므로, 이 설정을 코어에 두어 코어를 받는 모든 앱에서 빈이 등록되게 한다. **`maxInMemorySize`는 2MB(`2 * 1024 * 1024`)** 이며, 이보다 큰 응답을 다루는 어댑터는 `WebClient`가 아니라 `HttpClient` + 스트리밍 파서를 쓴다(선례: crawling 모듈의 `AdminDongBoundaryClient`).
+
+### `FileStorageStrategy`가 `byte[]`를 받는 이유
+
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/file/FileStorageStrategy.java`
+
+로컬 파일 시스템·S3·Firebase 등 저장소 구현을 갈아끼우기 위한 전략 인터페이스이며, **시그니처는 도메인 포트 `FileStoragePort`와 동일한 `byte[]` 형태다.** 코어 external 모듈이 `spring-web`(`MultipartFile`)에 의존하지 않게 하기 위함이고, 그 덕에 `FileStoragePortAdapter`는 변환 없이 그대로 위임한다. 저장 결과로 돌려주는 것은 상대 경로(예: `2025/02/16/uuid.jpg`)이며 전체 URL은 `getFileUrl`이 따로 조립한다.

@@ -84,3 +84,49 @@ com.tastyhouse.external/
 - **빈 배선 (챕터 02 개정)**: web-api만 `runtimeOnly project(':infrastructure:messaging')`를 선언한다(챕터 02 — `implementation`에서 강등). `MessagingModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다 — 다른 앱이 실수로 이 모듈에 의존을 추가하면 `MailSender`/`SmsSender` 부재가 아니라 오히려 그 즉시 이관된 DomainConfig의 도메인 서비스 빈이 등록돼 버리므로(조건이 없다), 새로 의존을 추가할 앱이 없는지 신중히 확인한다.
 - **발송 실패는 인증 레코드 저장을 롤백시킨다** — 이 도메인에서는 그것이 올바른 의미다(발송되지 않은 인증코드는 존재 가치가 0). 상세는 `backend/CLAUDE.md`의 "인증코드 발송은 발급과 원자적으로 수행하는 규칙".
 - **`@RateLimit keyPrefix`는 개명하지 않는다** — Redis 카운터 키라 바꾸면 배포 시점에 발송 한도가 전원 리셋된다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### `MailProperties`를 Spring Boot의 동명 타입과 한 파일에서 함께 import 하지 않는다
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/mail/MailProperties.java`
+
+Spring Boot 자동설정의 `org.springframework.boot.autoconfigure.mail.MailProperties`와 **단순 클래스명이 같다.** 두 타입을 한 파일에서 함께 import하지 않는다(하나는 FQN으로 쓰거나 import를 나눈다). 바인딩 접두어는 서로 달라 충돌하지 않는다 — 이 클래스는 최상위 `mail.*`, Spring 쪽은 `spring.mail.*`이다. 이름이 겹친다는 이유로 이 클래스를 개명하지 않는다(프로퍼티 접두어 `mail`이 wire 계약이자 yml 계약이다).
+
+### 자바 패키지 `com.tastyhouse.external.mail..`·`external.sms..` 봉인
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/{mail,sms,messaging}/`
+
+외부 연동 7모듈 공통 규칙으로, 패키지 루트를 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 상세는 `../external/AGENTS.md`.
+
+### 새 POJO 도메인 서비스는 `@Bean`을 손으로 추가한다
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/config/MailDomainConfig.java`
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/config/SmsDomainConfig.java`
+
+도메인 서비스는 `@Service` 없는 순수 POJO라 Spring이 스캔할 수 없다. mail·sms 컨텍스트에 POJO 도메인 서비스를 추가하면 **이 두 설정 클래스에 `@Bean` 메서드를 함께 추가해야 한다.** 빠뜨리면 컴파일은 통과하고 주입 시점에 빈 부재로 실패한다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `JavaMailAdapter`가 `JavaMailMailSender`가 아닌 이유
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/mail/javamail/JavaMailAdapter.java`
+
+도메인 포트 `MailSender`의 기본 구현(JavaMail/SMTP)이다. 클래스명이 `JavaMailMailSender`가 아닌 것은 이 어댑터가 **주입받는 Spring의 `JavaMailSender`와 타입명이 혼동되기 때문**이며, `Adapter` 접미어로 구분한다. 포트 구현체 이름을 포트명에 맞춰 정리하려는 시도가 이 지점에서 되돌아오기 쉽다.
+
+### 인증 발급이 발송까지 원자적인 이유 (도메인 서비스가 포트를 직접 든다)
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/config/MailDomainConfig.java` → `MailVerificationService` 빈
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/config/SmsDomainConfig.java` → `SmsVerificationService` 빈
+
+두 도메인 서비스는 **같은 이메일/같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식**을 갖는다. `MailSender`·`SmsSender`는 이 모듈(`infrastructure:messaging`)의 어댑터가 구현하며, **발급이 발송까지 원자적으로 수행되도록 그 포트를 도메인 서비스에 직접 주입한다**(발송 누락 방지). 이것이 위 "생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 그 포트를 구현하는 모듈이 도메인 서비스 빈을 등록한다"는 예외가 성립하는 전제다.
+
+### AWS 구현의 소재
+
+**대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/MessagingModuleAutoConfiguration.java`
+
+메일·SMS 인증은 사용자 앱에서만 쓰므로 web-api만 이 모듈을 의존하며, **클래스패스 존재만으로 활성화된다.** 분리 전에는 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`·`SmsSender` 빈을 무조건 요구해 admin/ceo/batch도 발송 어댑터를 강제로 들여와야 했고, 두 설정을 이 모듈로 이관해 그 결합을 끊었다. AWS SES·SNS 구현은 이 모듈이 아니라 `infrastructure:aws`에 있다(`../aws/AGENTS.md`).

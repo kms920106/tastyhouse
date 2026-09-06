@@ -13,11 +13,6 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 
-/**
- * 권한이 부족한 요청(필터 단계)을 403 {@link ProblemDetail}로 응답한다.
- *
- * <p>{@code errorCode} property를 함께 담아 전역 예외 핸들러(advice 단계)의 403 응답과 스키마를 일치시킨다.
- */
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 

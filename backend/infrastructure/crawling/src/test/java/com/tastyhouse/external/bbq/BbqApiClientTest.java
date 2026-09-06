@@ -18,10 +18,6 @@ import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * BBQ API 실제 호출 테스트
- * 실제 네트워크 호출을 통해 응답 값을 검증합니다.
- */
 @Disabled("실네트워크(bbq.co.kr) 호출 — 빌드 게이트에서 제외")
 @SpringBootTest(classes = BbqApiClientTest.TestConfig.class)
 class BbqApiClientTest {
@@ -33,12 +29,9 @@ class BbqApiClientTest {
 
     @Test
     void getMenuCategories() {
-        // given
 
-        // when
         List<BbqMenuCategoryResponse> categories = bbqApiClient.getMenuCategoriesSync();
 
-        // then
         assertThat(categories).isNotNull();
         assertThat(categories).isNotEmpty();
 

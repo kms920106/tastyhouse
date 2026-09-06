@@ -81,3 +81,74 @@ com.tastyhouse.external.oauth/
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선**: web-api만 `implementation project(':infrastructure:oauth')`를 선언한다(챕터 02 — `runtimeOnly`). `OAuthModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. 다른 앱에 의존을 추가하지 않는다(위 사고 기록).
 - **제공자 패키지 이름을 바꾸지 않는다** — web-api ArchUnit 규칙이 그 문자열을 참조한다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 자바 패키지 `com.tastyhouse.external.oauth..` 봉인
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/` 이하 전 패키지
+
+이 모듈을 포함한 외부 연동 7모듈은 자바 패키지 루트를 `com.tastyhouse.external..`로 유지한다. `com.tastyhouse.infrastructure` 아래로 옮기면 `infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째로 스캔하므로, **의존하지도 않은 어댑터까지 빈 스캔 범위에 들어와 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리 이름과 자바 패키지가 어긋나 보인다는 이유로 정리하지 않는다. 제공자 하위 패키지(`kakao`·`naver`·`apple`·`facebook`) 이름도 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로 함께 봉인 대상이다.
+
+### 다른 앱에 이 모듈 의존을 추가하지 않는다
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/OAuthModuleAutoConfiguration.java`
+
+이 패키지의 빈들은 `apple`·`kakao`·`naver`·`facebook` 프로퍼티를 요구하고 그 값은 web-api `application.yml`에만 있다. `@Import` 시절에는 의존 선언만으로 발화하지 않았으나 **지금은 의존 선언 자체가 활성화**이므로, 다른 앱의 `build.gradle`에 이 모듈을 추가하면 `Could not resolve placeholder 'apple.team-id'`로 기동에 실패한다(batch-module 실패 이력). 위 "다른 앱이 이 모듈에 의존하면 기동에 실패한다" 절과 같은 사실이며, 코드 주석 쪽에서도 같은 강도로 못박고 있었다.
+
+### 외부 응답 DTO는 도메인 enum을 반환하지 않는다
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/kakao/KakaoUserInfoResponse.java` → `gender()` 정규화 매퍼
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/naver/NaverUserInfoResponse.java` → `gender()` 정규화 매퍼
+
+두 DTO의 gender 매퍼는 도메인 enum `MemberGender`가 아니라 **그 상수명 문자열**(`"MALE"`/`"FEMALE"`/`null`)을 반환한다. 외부 응답 DTO가 도메인 타입을 보유하면 어댑터 → domain 역방향 결합이 생기기 때문이다. 도메인 enum 승격이 필요하면 소비 측(web-api 서비스)이 `MemberGender.from(String)`으로 수행한다. 편의를 이유로 여기서 enum을 반환하도록 되돌리지 않는다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### Apple id_token payload claim의 의미
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/apple/AppleIdTokenPayload.java`
+
+Apple id_token JWT payload의 claim 해석 규약이다.
+
+| claim | 의미 |
+|---|---|
+| `sub` | Apple 사용자 고유 식별자. **앱별 고정값(pairwise)** 이므로 앱이 다르면 같은 사용자라도 값이 다르다 |
+| `email` | 실제 이메일 또는 Private Relay 주소(`@privaterelay.appleid.com`) |
+| `emailVerified` | 항상 `true`(Apple은 검증된 이메일만 반환). **wire 타입이 `String` 또는 `Boolean` 둘 다 올 수 있다** |
+| `isPrivateEmail` | 이메일이 프라이빗 릴레이 주소인지 여부 |
+
+### Apple 로그인이 표준 OAuth와 다른 두 지점
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/apple/AppleOAuthClient.java`
+
+1. **`client_secret`이 shared secret이 아니라 ES256 서명된 JWT여야 한다.** 일반 shared secret은 미지원이다. 생성 규약은 `iss` = Team ID, `sub` = Services ID(= client_id), `aud` = `https://appleid.apple.com`이며 유효기간은 최대 6개월(현재 구현은 180일).
+2. **UserInfo 엔드포인트가 없다.** id_token(RS256 JWT) 자체가 유일한 프로필 소스다. 그래서 `exchange()`가 액세스 토큰이 아니라 id_token을 자격증명으로 반환하며, **그 시점에 한 번 검증해 잘못된 토큰이 Redis 임시토큰 저장소에 들어가지 않게 한다.**
+
+`fetchProfile()`은 호출마다 Apple JWKS를 네트워크로 받아 서명을 재검증하므로 값싼 조회가 아니다(호출 빈도에 주의). 또한 검증 실패의 bare `RuntimeException`을 도메인 의미의 예외(`APPLE_ID_TOKEN_INVALID`)로 번역하는 것은 이 어댑터의 책임이다 — 과거 web-api `AppleSocialLoginService` 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것이며, 응답 계약은 무변경이다.
+
+`.p8` 개인키는 **개행을 제거한 Base64 문자열**로 설정에 담는다(`-----BEGIN/END PRIVATE KEY-----` 헤더 제외). 어댑터가 이것을 `ECPrivateKey`로 복원한다.
+
+### 페이스북은 토큰 교환 단계가 없다
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/facebook/FacebookOAuthClient.java` → `exchange()`
+
+페이스북은 JS SDK가 클라이언트에서 이미 액세스 토큰을 발급하므로 교환할 것이 없다. 그래서 `exchange()`는 교환 대신 **Facebook 공식 문서가 요구하는 서버측 검증**(`debug_token`으로 토큰의 `app_id`가 우리 앱과 일치하는지 확인)을 수행하고 토큰을 그대로 돌려준다. 이 검증은 과거 web-api `FacebookSocialLoginService#validateToken`에 있었으나, `app_id` 설정값과 `debug_token` 호출은 어댑터의 관심사이므로 이 모듈로 회수했다.
+
+### 네이버만 `state`를 쓴다 (CSRF 방어)
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/naver/NaverOAuthClient.java`
+
+4개 제공자 중 네이버만 인가 요청·토큰 교환에 `state`를 함께 넘겨 CSRF를 방어한다. 나머지 3종은 `SocialAuthorization`의 `state`가 `null`이다. 이 비대칭은 제공자 사양 차이이며 통일 대상이 아니다.
+
+### 네이버 응답의 결측·형식 처리
+
+**대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/naver/NaverUserInfoResponse.java`
+
+- 프로필 응답(`GET https://openapi.naver.com/v1/nid/me`)은 사용자 정보를 **최상위 `response` 객체 안에 중첩**해 돌려준다. 다른 3종과 달리 한 겹 더 벗겨야 한다.
+- `response.gender()`는 **사용자가 성별 제공에 동의하지 않으면 `null`** 이므로 반드시 가드한다(카카오 형제와 동일한 이유).
+- `birthday`는 `"MM-DD"` 형식이라 월·일을 각각 잘라 쓰며, **선행 0을 제거**해 반환한다(`"01"` → `"1"`, `"05"` → `"5"`).

@@ -2,7 +2,6 @@ package com.tastyhouse.external.oauth.facebook;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-// Facebook Graph API 토큰 디버그 응답 (GET https://graph.facebook.com/debug_token)
 public record FacebookTokenDebugResponse(
     @JsonProperty("data") TokenData data
 ) {

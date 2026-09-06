@@ -14,9 +14,6 @@ import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
 
-/**
- * BBQ API 클라이언트
- */
 @Component
 public class BbqApiClient {
 
@@ -34,9 +31,6 @@ public class BbqApiClient {
         return webClientBuilder.build();
     }
 
-    /**
-     * BBQ 메뉴 카테고리 목록 조회
-     */
     public Mono<List<BbqMenuCategoryResponse>> getMenuCategories() {
         String url = bbqProperties.baseUrl() + "/api/delivery/menu/category";
 
@@ -53,17 +47,11 @@ public class BbqApiClient {
         );
     }
 
-    /**
-     * BBQ 메뉴 카테고리 목록 조회 (동기 방식)
-     */
     public List<BbqMenuCategoryResponse> getMenuCategoriesSync() {
         return getMenuCategories()
                 .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
     }
 
-    /**
-     * BBQ 카테고리별 메뉴 목록 조회
-     */
     public Mono<List<BbqMenuResponse>> getMenusByCategoryId(Long categoryId) {
         String url = bbqProperties.baseUrl() + "/api/delivery/menu/" + categoryId;
 
@@ -80,17 +68,11 @@ public class BbqApiClient {
         );
     }
 
-    /**
-     * BBQ 카테고리별 메뉴 목록 조회 (동기 방식)
-     */
     public List<BbqMenuResponse> getMenusByCategoryIdSync(Long categoryId) {
         return getMenusByCategoryId(categoryId)
                 .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
     }
 
-    /**
-     * BBQ 메뉴 상세 조회
-     */
     public Mono<BbqMenuResponse> getMenuDetail(Long menuId) {
         String url = bbqProperties.baseUrl() + "/api/delivery/menu/detail/" + menuId;
 
@@ -106,17 +88,11 @@ public class BbqApiClient {
         );
     }
 
-    /**
-     * BBQ 메뉴 상세 조회 (동기 방식)
-     */
     public BbqMenuResponse getMenuDetailSync(Long menuId) {
         return getMenuDetail(menuId)
                 .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
     }
 
-    /**
-     * BBQ 메뉴 서브 옵션 조회
-     */
     public Mono<List<BbqMenuSubOptionResponse>> getMenuSubOptions(Long menuId) {
         String url = bbqProperties.baseUrl() + "/api/delivery/menu/sub-option/" + menuId;
 
@@ -133,9 +109,6 @@ public class BbqApiClient {
         );
     }
 
-    /**
-     * BBQ 메뉴 서브 옵션 조회 (동기 방식)
-     */
     public List<BbqMenuSubOptionResponse> getMenuSubOptionsSync(Long menuId) {
         return getMenuSubOptions(menuId)
                 .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));

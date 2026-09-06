@@ -19,24 +19,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.tastyhouse.security.token.BlacklistRepository;
 
-/**
- * Access Token을 검증해 SecurityContext에 인증을 주입하는 공용 필터.
- * 토큰이 없으면 그냥 통과시키고, 인가(permitAll/authenticated)는 Spring Security가 최종 결정한다.
- *
- * <p>{@code @Component}가 아니며(POJO), {@code SecurityModuleAutoConfiguration}이 앱의
- * {@code JwtTokenProvider} 빈과 {@code BlacklistRepository} 포트로 등록한다.
- *
- * <p>[사용 금지] shouldNotFilter()로 공개 경로를 처리하면 안 되는 이유:
- * <ol>
- *   <li>경로 패턴이 HTTP 메서드를 구분하지 않아 PUT/DELETE 같은 인증 필요 요청도 필터가 skip됨.
- *       예) PublicPaths에 "/api/members/v1/*&#47;profile" 패턴이 있으면 GET(공개 조회)뿐 아니라
- *       PUT /api/members/v1/me/profile(인증 필요한 수정)도 skip되어 @CurrentUser가 null이 됨.</li>
- *   <li>인가(공개/비공개) 결정은 SecurityConfig의 authorizeHttpRequests에서 단일 관리해야 한다.
- *       shouldNotFilter는 보안 제어 수단이 아닌 성능 최적화 목적의 기능임.</li>
- *   <li>이 필터는 인증(Authentication)만 담당한다. 토큰이 없으면 다음 필터로 통과시키고,
- *       인가는 Spring Security의 AuthorizationFilter가 최종 결정한다.</li>
- * </ol>
- */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);

@@ -14,14 +14,6 @@ import com.tastyhouse.apicommon.ratelimit.ApiCommonRateLimitAutoConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-/**
- * infrastructure:redis auto-configuration의 계약 검증.
- *
- * <p>이 테스트가 redis 모듈에 있는 이유는 <b>가드 대상이 두 모듈에 걸쳐 있기 때문</b>이다 —
- * {@link ApiCommonRateLimitAutoConfiguration}의 순서 선언이 이 모듈의 클래스를 문자열로 가리키는데,
- * api-common은 의존 방향(redis → api-common)상 redis 타입을 볼 수 없어 자기 모듈에서는 검증할 수 없다.
- * 반대로 이 모듈은 api-common을 의존하므로 양쪽을 다 볼 수 있다.
- */
 class RedisModuleAutoConfigurationTest {
 
     @Test

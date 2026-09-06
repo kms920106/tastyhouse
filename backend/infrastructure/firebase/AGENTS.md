@@ -58,3 +58,29 @@ file:
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선 (챕터 03 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 전략도 아니면 **기동 시** `FileStorageStrategy` 빈 부재로 실패한다.
 - **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FileStorageStrategy#getFileUrl`(Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. DB에는 URL이 아니라 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 서비스 계정 키를 "경로"로 되돌리지 않는다
+
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/FirebaseStorageConfig.java` → `FirebaseApp` 빈 초기화
+
+서비스 계정 키는 파일 **경로**가 아니라 configtree로 주입된 JSON **내용**(`firebase.service-account` 프로퍼티)을 그대로 읽는다. 경로 기반 로딩(`file:` 상대경로 + `ResourceLoader`)으로 되돌리지 않는다 — 상대경로는 JVM 작업 디렉터리 기준으로 해석되어 **실행 위치마다 성패가 갈렸다**(`gradle -p` 실행 · `java -jar`의 CWD · systemd `WorkingDirectory`). 내용 주입 방식은 CWD와 완전히 무관하며 Kubernetes/Docker secret 마운트 패턴과 코드가 동일하다. 시크릿 디렉터리 규약은 위 "yml — `application-firebase.yml`" 절과 `application-firebase.yml`의 configtree import 선언을 참조한다.
+
+### 자바 패키지 `com.tastyhouse.external.firebase` 봉인
+
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/`
+
+`external.file.firebase`로 되돌리면 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되고, `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 양쪽 모두 이동 금지 대상이다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### 클래스패스 존재 = 활성화, 다만 provider 조건이 한 겹 더 있다
+
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/FirebaseModuleAutoConfiguration.java`
+
+이 auto-configuration은 클래스패스 존재만으로 활성화되고, 현재 4개 앱 전부가 (스타터를 통해) 이 모듈을 `runtimeOnly`로 받는다. 다만 `FirebaseFileStorage`는 `@ConditionalOnProperty(file.provider=firebase)`이므로 **모듈이 클래스패스에 있어도 provider가 다르면 빈이 등록되지 않는다.** 즉 "기동에 성공했다"는 사실이 이 전략이 선택됐다는 증거가 아니다 — 조건부 전략 배선은 틀린 provider 값으로 **실패를 확인하는 반증 테스트**로 검증한다.

@@ -81,3 +81,67 @@
 - `spring-boot-starter-web` (implementation)
 - `spring-boot-starter-security` (api) — 서블릿 결합 JWT 필터/EntryPoint/AccessDeniedHandler/UserDetails 타입. `spring-security-core`는 `security-core`가 이미 `api`로 노출
 - `jjwt-api`/`jjwt-impl`/`jjwt-jackson` — 직접 선언 없음(챕터 03으로 `security-core`로 이관), `api project(':security-core')`를 통해 전이로 수신
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### [사용 금지] `shouldNotFilter()`로 공개 경로를 처리하지 않는다
+
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/jwt/JwtAuthenticationFilter.java`
+→ 클래스 선언 / `doFilterInternal`
+
+`OncePerRequestFilter.shouldNotFilter()`를 오버라이드해 `PublicPaths` 같은 공개 경로 목록을 skip하도록
+만들지 않는다. 세 가지 이유가 있다.
+
+1. **경로 패턴이 HTTP 메서드를 구분하지 않는다.** 예를 들어 `PublicPaths`에
+   `/api/members/v1/*/profile` 패턴이 있으면 GET(공개 조회)뿐 아니라
+   `PUT /api/members/v1/me/profile`(인증 필요한 수정)까지 skip되어 `@CurrentUser`가 **null이 된다.**
+2. **인가(공개/비공개) 결정은 `SecurityConfig`의 `authorizeHttpRequests`에서 단일 관리해야 한다.**
+   `shouldNotFilter`는 보안 제어 수단이 아니라 성능 최적화 목적의 기능이다.
+3. **이 필터는 인증(Authentication)만 담당한다.** 토큰이 없으면 다음 필터로 통과시키고, 인가는 Spring
+   Security의 `AuthorizationFilter`가 최종 결정한다.
+
+### `@ConditionalOnMissingBean(JwtAuthenticationFilter.class)`는 provider 모호성을 막아주지 못한다
+
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/SecurityModuleAutoConfiguration.java`
+→ `jwtAuthenticationFilter(JwtTokenProvider, BlacklistRepository, ObjectMapper)`
+
+이 조건은 어떤 앱이 자기 필터를 등록해 덮어야 할 때의 **escape hatch**다(현재 그런 앱은 없다). 앱의
+`@Configuration`이 먼저 파싱되므로 앱이 자기 필터 빈을 정의하면 이 기본 등록은 물러난다.
+
+**단, `JwtTokenProvider` 빈이 둘 이상 생기는 경우의 해법은 `@Primary`(또는 한정자)뿐이다** — 이 조건은
+`JwtAuthenticationFilter` **타입**만 보므로 provider가 모호해도 조건은 그대로 통과하고, 빈 메서드를
+실제로 호출하는 시점에 `NoUniqueBeanDefinitionException`으로 기동이 실패한다. 즉 **필터 재정의로
+provider 모호성을 우회하려는 시도는 실패한다.**
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `SecurityModuleAutoConfiguration`의 조건과 등록 방식
+
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/SecurityModuleAutoConfiguration.java`
+→ 클래스 선언
+
+클래스패스 존재만으로 활성화되므로 이 모듈에 의존하는 앱(web-api·admin-api·ceo-api)에서만 발화한다.
+batch-module은 이 모듈을 의존하지 않아 **jar 자체가 클래스패스에 없다.** 그럼에도
+`@ConditionalOnWebApplication(SERVLET)`을 명시하는 것은, 전이로 끌려오더라도 서블릿 웹 앱이 아니면
+발화하지 않게 하기 위함이다 — 이 모듈의 빈은 **서블릿 필터 체인 전제**이기 때문이다.
+
+`@ConfigurationProperties` record(`JwtProperties`)는 컴포넌트 스캔 대신
+`@EnableConfigurationProperties`로 여기서 명시 등록한다. `JwtAuthenticationFilter`는 POJO라 스캔 대상이
+아니므로 `@Bean` 메서드로 등록하며, 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 정확히 하나(앱
+마커로 걸러진 하위 클래스)여서 타입 주입이 모호하지 않다.
+
+### `JwtAuthenticationEntryPoint` / `JwtAccessDeniedHandler` — 필터 단계 응답의 스키마 일치
+
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/jwt/JwtAuthenticationEntryPoint.java`
+→ `commence(...)`
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/jwt/JwtAccessDeniedHandler.java`
+→ `handle(...)`
+
+각각 인증되지 않은 요청을 401, 권한이 부족한 요청을 403 `ProblemDetail`로 응답한다. **`errorCode`
+property를 함께 담는 이유는 전역 예외 핸들러(advice 단계)의 401/403 응답과 스키마를 일치시키기
+위해서다** — 필터 단계는 advice를 타지 않아 응답을 직접 직렬화하지만, 클라이언트가 보는 계약은 같아야
+한다. 이 property를 빼면 프론트의 에러 분기가 필터 단계 응답에서만 조용히 실패한다.

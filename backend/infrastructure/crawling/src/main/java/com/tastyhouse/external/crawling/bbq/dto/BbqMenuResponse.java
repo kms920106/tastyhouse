@@ -4,9 +4,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * BBQ 메뉴 응답 DTO
- */
 public class BbqMenuResponse {
 
     @JsonProperty("id")

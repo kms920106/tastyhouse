@@ -37,7 +37,6 @@ public class KakaoOAuthClient implements SocialOAuthClient {
         return SocialProvider.KAKAO;
     }
 
-    // 인가 코드를 액세스 토큰으로 교환한다.
     @Override
     public SocialCredential exchange(SocialAuthorization authorization) {
         return SocialCredential.of(fetchToken(authorization.code()).accessToken());
@@ -60,7 +59,6 @@ public class KakaoOAuthClient implements SocialOAuthClient {
         );
     }
 
-    // 인가 코드로 카카오 액세스 토큰을 발급
     public KakaoTokenResponse fetchToken(String authorizationCode) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
@@ -77,7 +75,6 @@ public class KakaoOAuthClient implements SocialOAuthClient {
             .block();
     }
 
-    // 카카오 액세스 토큰으로 사용자 정보를 조회
     public KakaoUserInfoResponse fetchUserInfo(String kakaoAccessToken) {
         return webClient.get()
             .uri(KAPI_BASE_URL + "/v2/user/me")

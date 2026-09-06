@@ -7,12 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.security.token.BlacklistRepository;
 
-/**
- * {@link BlacklistRepository}의 Redis 구현 — security-core가 소유한 계약을 인프라가 구현한다.
- *
- * <p>Key: {@code "{keyPrefix}bl:{accessToken}"} → "logout" (TTL: 토큰 잔여 만료 시간)
- * 토큰이 만료되면 Redis TTL에 의해 자동 제거되므로 메모리 낭비 없음.
- */
 @Component
 public class RedisBlacklistRepository implements BlacklistRepository {
 

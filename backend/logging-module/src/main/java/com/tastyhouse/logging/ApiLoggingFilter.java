@@ -20,14 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-/**
- * API 요청/응답 메타 정보 로깅 필터
- * 로깅 항목: requestId, Method, Path, Client IP, Status Code, 처리 시간(ms)
- * requestId는 MDC에 등록되어 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동 첨부됨
- * Body 로깅: DEBUG 레벨 (개발 환경에서만 활성화)
- * - application-dev.yml: com.tastyhouse.logging: DEBUG
- * - application-prod.yml: com.tastyhouse.logging: INFO (기본값 유지)
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ApiLoggingFilter extends OncePerRequestFilter {
@@ -37,7 +29,6 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
     private static final String X_FORWARDED_FOR = "X-Forwarded-For";
     private static final String REQUEST_START_TIME_ATTR = "requestStartTime";
 
-    // Body 로그 최대 출력 크기 (초과 시 truncate)
     private static final int MAX_BODY_LOG_SIZE = 2048;
 
     @Override
@@ -48,7 +39,6 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
         MDC.put(MDC_REQUEST_ID, requestId);
         request.setAttribute(REQUEST_START_TIME_ATTR, System.currentTimeMillis());
 
-        // Body 로깅이 필요한 경우에만 Wrapper로 감싸서 스트림 재사용 가능하게 함
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
 
@@ -64,7 +54,6 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
             long elapsed = System.currentTimeMillis() - (long) request.getAttribute(REQUEST_START_TIME_ATTR);
             int status = wrappedResponse.getStatus();
 
-            // DEBUG 레벨일 때만 Body 로깅 (개발 환경)
             if (log.isDebugEnabled()) {
                 logRequestBody(wrappedRequest);
                 logResponseBody(wrappedResponse);
@@ -72,8 +61,6 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
 
             logResponse(wrappedRequest.getMethod(), wrappedRequest.getRequestURI(), status, elapsed);
 
-            // ContentCachingResponseWrapper는 응답 본문을 내부에 캐싱하므로
-            // 실제 클라이언트에게 응답을 전달하려면 반드시 copyBodyToResponse() 호출 필요
             wrappedResponse.copyBodyToResponse();
 
             MDC.remove(MDC_REQUEST_ID);
@@ -115,13 +102,6 @@ public class ApiLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * 클라이언트 IP를 판별한다.
-     *
-     * <p><b>api-common-module의 {@code ClientIpResolver}와 로직이 같지만 통합하지 않는다</b> — 이 모듈은
-     * api-common-module을 의존하지 않고, 의존을 추가하면 방향이 뒤집힌다(로깅은 api 계층 아래에 있는
-     * 횡단 관심사다). 중복을 감수하는 대신 양쪽에 이 사유를 주석으로 남긴다.
-     */
     private String resolveClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader(X_FORWARDED_FOR);
         if (StringUtils.hasText(xForwardedFor)) {

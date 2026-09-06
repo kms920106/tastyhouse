@@ -469,3 +469,17 @@ domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨�
 4. **가장 넓은** 구간의 중점을 대표점으로 삼는다 — 가장 좁은 목을 피해 경계에서 멀어진다
 
 스캔라인이 꼭짓점을 정확히 지나면 같은 교차점이 두 번 잡혀 짝이 어긋날 수 있는데, 2단계의 부등호를 `(y1 > y) != (y2 > y)`로 두어 **한쪽 끝점만** 세도록 해 이 경우를 배제한다(ray casting의 표준 처리).
+
+### 리뷰 부가 리포지토리 Fake 2종 — 보관하지 않는 것이 의도다
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/review/service/FakeReviewTagRepository.java`
+→ 클래스 선언 / `saveAll(List<ReviewTag>)` · `deleteByReviewId(ReviewId)`
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/review/service/FakeReviewImageRepository.java`
+→ 클래스 선언 / `saveAll(List<ReviewImage>)` · `deleteByReviewId(ReviewId)`
+
+`ReviewTagRepository`·`ReviewImageRepository`에는 **조회 메서드가 없다.** 저장한 태그·이미지를
+되읽어 검증할 수단이 계약에 없으므로, 이 Fake들은 보관용 컬렉션을 두지 않고 호출을 삼키기만 한다 —
+협력 객체를 채우는 용도의 스텁이다.
+
+**빈 메서드 본문을 "미구현"으로 오인해 채우지 않는다.** 보관 컬렉션을 추가해도 그것을 읽어 단언할
+포트 메서드가 없어 검증에 쓰이지 못하며, 조회 계약이 실제로 생기면 그때 함께 채운다.

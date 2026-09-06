@@ -12,13 +12,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * refresh 토큰 키가 {@code {keyPrefix}rt:{username}}으로 조립되는지 고정값으로 단정한다.
- *
- * <p>접두사 조합이 어긋나도 컴파일·기동은 성공하고 <b>기존 세션만 조용히 무효화</b>되므로,
- * 이 단언이 그 유일한 자동 방어선이다. 여기 적힌 문자열은 운영 Redis에 실재하는 키 공간이며
- * 앱별 접두사({@code ""}/{@code "admin:"}/{@code "ceo:"})는 불변 계약이다.
- */
 class RedisRefreshTokenRepositoryTest {
 
     private static final long TTL_MILLIS = 604_800_000L;

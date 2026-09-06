@@ -67,3 +67,136 @@
 - `spring-boot-starter-aop` (**implementation** — 의도적) — `RateLimitAspect`의 `@Aspect`/`@Before`. 소비 앱이 컴파일에 필요한 것은 `@RateLimit` 애노테이션(이 모듈 소유)뿐이고, 런타임 AOP 활성화(aspectjweaver → `AopAutoConfiguration`)는 `logging-module`이 `starter-aop`를 `api`로 노출해 이미 3개 앱 클래스패스에 올려준다. **그 노출이 `implementation`으로 좁아지면 이 선언을 `api`로 승격해야 한다** — 그때 앱은 계속 컴파일되지만 aspect가 프록시되지 않아 `@RateLimit`이 조용히 무시된다
 
 **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례).
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### rate limit aspect에 프로퍼티 스위치를 두지 않는다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
+→ 클래스 선언 / `rateLimitAspect(RateLimitCounterPort)`
+
+web-api뿐 아니라 admin-api·ceo-api의 로그인 엔드포인트도 `@RateLimit(IP, 10회/60초)`로 이 aspect에
+의존한다. **앱별 on/off 프로퍼티는 그 보호를 조용히 제거하는 보안 회귀**가 되므로 추가하지 않는다.
+등록 조건은 "카운터 빈이 있는 서블릿 앱"뿐이다.
+
+### `@ConditionalOnWebApplication(SERVLET)` 두 건 — 재유입 방어선이므로 제거하지 않는다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`,
+`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
+→ 두 클래스의 `@ConditionalOnWebApplication(type = SERVLET)`
+
+과거 batch-module은 이 모듈을 직접 의존하지 않으면서도
+`application → security-core → infrastructure:redis → api-common-module` **전이 사슬**로 클래스패스에
+갖고 있었고, batch의 `spring.main.web-application-type: none`이 이 조건을 Negative로 만드는 유일한
+근거였다. **토큰 저장소 포트/어댑터 역전으로 그 사슬은 끊겼다** — 지금 batch의 runtimeClasspath에는
+이 jar 자체가 없다. 따라서 이 조건은 지금 잠재울 대상이 있어서가 아니라, **재유입**(누군가 이 모듈을
+non-servlet 앱의 클래스패스에 다시 올리는 경우)에 대한 방어선으로 남긴 것이다. "batch에 없으니 불필요"
+라는 이유로 지우지 않는다.
+
+> 위 [스캔 주의](#스캔-주의-조건부-등록이-곧-동작--개정) 표의 `BatchApplication` 행은 이 사슬이
+> 살아 있던 시점의 판정이다. 지금은 jar 자체가 없어 조건 평가에 도달하지도 않는다.
+
+### 빈 이름 `sharedGlobalExceptionHandler`를 기본 이름으로 되돌리지 않는다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`
+→ `@Bean("sharedGlobalExceptionHandler")`
+
+web-api의 자체 핸들러와 단순명이 같아 기본 빈 이름 `globalExceptionHandler`는 충돌한다. 이름을 다르게
+둔 덕분에, 조건이 어떤 이유로 우회되더라도 `allow-bean-definition-overriding=false`로 **기동이 실패해
+조용히 덮이지 않는다.**
+
+### `RateLimitException`을 `ErrorCode`에 다시 결합하지 않는다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitException.java`
+→ `DEFAULT_MESSAGE` / 기본 생성자
+
+rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므로(모듈 경계 규칙) 이 예외는
+`com.tastyhouse.domain.exception.ErrorCode`에 결합하지 않는다. 과거 생성자가
+`ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()`로 메시지를 채웠으나, 실제 HTTP 응답은
+`GlobalExceptionHandler`가 `ErrorCode.RATE_LIMIT_EXCEEDED`의 code·message로 직접 조립하고 이 예외의
+메시지는 읽지 않는다. 결합을 끊어도 응답 계약(429 + `RATE_LIMIT_EXCEEDED`)은 그대로다.
+
+### `ClientIpResolver`와 `ApiLoggingFilter#resolveClientIp`의 중복은 의도적이다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/common/ClientIpResolver.java`
+→ `resolve(HttpServletRequest)`
+(대응 사본: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingFilter.java` → `resolveClientIp`)
+
+로직이 같지만 **통합하지 않는다** — `logging-module`은 `api-common-module`을 의존하지 않고, 의존을
+추가하면 방향이 뒤집힌다(로깅은 api 계층 아래에 있는 횡단 관심사다). 중복을 감수하는 쪽을 택한 것이며,
+"DRY 위반"으로 보고 합치지 않는다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### `ApiCommonModuleAutoConfiguration`이 컴포넌트 스캔을 쓰지 않는 이유
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`
+→ 클래스 선언
+
+이 모듈의 나머지 공용 자산(`ApiResponse`·`PageRequest`·`ClientIpResolver` 등)은 **빈이 아니라 타입**이라
+등록할 것이 없다. 앱별로 켜고 꺼야 하는 빈만 조건부 `@Bean`으로 등록한다.
+
+### `afterName`에 클래스 리터럴을 쓸 수 없는 이유 (순환 회피)
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
+→ `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")`
+
+의존 방향이 `infrastructure:redis → api-common-module`이라 api-common은 redis 모듈의 타입을 **컴파일
+시점에 볼 수 없다**(참조하면 순환). 그래서 문자열 FQCN으로 순서만 선언한다. 스캔된
+`RedisRateLimitCounter` 정의는 redis auto-config 처리 시점에 등록되므로, 이 순서가
+`@ConditionalOnBean(RateLimitCounterPort.class)`의 가시성을 보장한다.
+
+### `GlobalExceptionHandler` — web-api가 이 핸들러를 쓰지 않는 이유
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/GlobalExceptionHandler.java`
+→ 클래스 선언 / `handleBusinessException`
+
+검증 실패 메시지 형식이 다르다 — web-api는 `"필드명: 메시지"`를 `", "`로 join하는 반면 여기서는
+메시지만 공백으로 join한다. 이는 우연한 차이가 아니라 **소비자별 응답 계약 차이**이므로 통합하지 않고
+web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 유지한다.
+
+`ExternalApiException`은 `BusinessException`을 상속하므로 `handleBusinessException` 하나로 처리된다
+(전용 핸들러가 없는 것은 누락이 아니다).
+
+### `ProblemDetails`가 static 유틸인 이유
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ProblemDetails.java`
+→ 클래스 선언 / `of(int, String, String)`
+
+web-api와 admin·ceo-api는 응답 계약이 달라 전역 핸들러를 각자 유지하지만, **RFC7807 조립 로직만은 두
+핸들러에 바이트 단위로 동일하게 복제**돼 있었다. 계약 차이는 메시지를 만드는 쪽에 있고 조립 자체에는
+없으므로 이 유틸 하나로 통합했다. `@Component`가 아니라 static 유틸이므로 **컴포넌트 스캔 범위와
+무관하다**(web-api는 이 패키지를 스캔하지 않아 여기의 핸들러 빈을 등록하지 않는다).
+
+### `RateLimitCounterPort`를 표현 계층에 둔 이유
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitCounterPort.java`
+→ 인터페이스 선언 / `isLimitExceeded`
+
+이전에는 api-common-module이 `RateLimitException` 처리를 위해 `infrastructure:redis`를 의존했고, 그
+인프라 모듈이 `HttpServletRequest`로 클라이언트 IP를 해석하느라 **서블릿 스택까지 끌어왔다.** 웹
+관심사를 표현으로 올리고 카운터만 인프라에 남기면서 의존 방향이 바로잡혔다. 카운팅 방식은 Fixed
+Window이고, 카운터를 어디에 저장하는지는 이 계약의 관심사가 아니다.
+
+### `RateLimitAspect`의 책임 경계
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitAspect.java`
+→ 클래스 선언 / `buildKey` / `resolveFieldValue`
+
+키 조립(클라이언트 IP·요청 필드 해석)은 **HTTP 어댑터 관심사이므로 이 표현 모듈이 소유**하고, 실제
+카운팅만 `RateLimitCounterPort` 구현체(인프라)에 위임한다. `keyType=FIELD`의 필드 추출은 리플렉션으로
+**레코드 컴포넌트 접근자(`phoneNumber()`) → getter(`getPhoneNumber()`)** 순으로 시도하며, 찾지 못하면
+예외 대신 `"unknown"` 식별자로 폴백한다(요청을 막지 않는다).
+
+### `ApiCommonAutoConfigurationTest`가 증명하는 것과 증명하지 못하는 것
+
+**대상**: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/ApiCommonAutoConfigurationTest.java`
+→ 클래스 선언 / `NonServletApplication`
+
+`ApplicationContextRunner` 기본값이 비-웹 컨텍스트라 batch의 `web-application-type: none`에 해당한다.
+이 테스트는 **단위 수준 근거**일 뿐이고, 실제 회귀 방지는 4개 앱 기동 후의 조건 리포트·로그인 rate
+limit 실측이 담당한다.

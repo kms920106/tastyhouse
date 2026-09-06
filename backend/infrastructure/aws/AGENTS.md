@@ -103,3 +103,35 @@ com.tastyhouse.external.aws/
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **jar 실측으로 미포함을 확인한다**: 4개 앱 fat jar 어디에도 `aws-0.0.1-SNAPSHOT.jar`·`ses-`·`sns-`·`spring-cloud-aws-*`가 들어 있으면 안 된다. `unzip -l {앱}/build/libs/{앱}-0.0.1-SNAPSHOT.jar | grep BOOT-INF/lib/`로 확인한다.
 - **채널을 부분 전환할 수 있다**: 세 어댑터의 조건 프로퍼티가 각각 다르므로 메일만 SES로 바꾸고 파일은 Firebase에 두는 조합이 가능하다. 다만 챕터 03 이후 **의존을 선언하는 위치가 채널별로 다르다** — 파일은 스타터 `infrastructure:file-storage`, 메일·SMS는 web-api다(위 전환 절차 표). 두 경로가 동시에 aws를 끌어와도 충돌하지 않는다(위 "두 경로가 겹쳐도 충돌하지 않는다").
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 자바 패키지 `com.tastyhouse.external.aws..` 봉인
+
+**대상**: `backend/infrastructure/aws/src/main/java/com/tastyhouse/external/aws/{s3,ses,sns}/`
+
+원래 패키지(`external.file.s3`·`external.mail.ses`·`external.sms.sns`)로 되돌리면 코어·메시징의 `@ComponentScan`에 **동반 스캔되어 그 모듈을 받은 앱에 AWS 빈이 딸려 올라온다.** 반대로 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin-api·ceo-api·batch-module의 부팅이 깨진다. 위 "패키지가 바뀐 이유" 절의 배치는 스캔 격리를 위한 것이므로 정리 대상이 아니다.
+
+### 위 "AWS로 전환하는 절차"는 이 모듈의 유일한 활성화 경로다
+
+**대상**: `backend/infrastructure/aws/src/main/java/com/tastyhouse/external/aws/AwsModuleAutoConfiguration.java`
+
+**현재 어느 앱도 이 모듈을 의존하지 않는다.** 기본 provider가 전부 비-AWS(`file.provider=firebase` · `mail.provider=javamail` · `sms.provider=solapi`)라 AWS 경로가 활성화되지 않으며, `settings.gradle` 포함으로 **컴파일만 검증**한다. jar가 클래스패스에 없으므로 이 auto-configuration도 발화하지 않는다. 활성화가 필요하면 임의로 앱 `build.gradle`에 의존을 추가하지 말고 **위 "AWS로 전환하는 절차" 표의 채널별 경로를 따른다**(파일 저장은 스타터 2파일, 메일·SMS는 web-api 3단계).
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### S3 클라이언트 빈은 직접 만들지 않는다
+
+**대상**: `backend/infrastructure/aws/src/main/java/com/tastyhouse/external/aws/s3/S3FileStorageConfig.java`
+
+`spring-cloud-aws-autoconfigure`가 `S3Operations`·`S3Client` 빈을 자동 등록하므로, 이 설정 클래스가 그 둘을 손수 정의하지 않는다. 이 클래스가 담당하는 것은 `@ConditionalOnProperty(file.provider=s3)` 조건 아래의 나머지 배선뿐이다.
+
+### 조건부 전략 배선은 반증 테스트로 확인한다
+
+**대상**: `backend/infrastructure/aws/src/main/java/com/tastyhouse/external/aws/s3/S3FileStorage.java` · `ses/SesConfig.java` · `sns/SnsConfig.java` (전부 `@ConditionalOnProperty`)
+
+`@ConditionalOnProperty`가 걸린 배선은 **기동 성공이 곧 그 전략이 선택됐다는 증거가 아니다** — 조건이 거짓이면 빈이 조용히 등록되지 않은 채로도 앱은 뜬다. 그래서 전환 후 검증은 "떴다"가 아니라 **틀린 provider 값으로 실패를 확인**하는 반증 방향으로 한다(위 "모듈 없이 provider만 바꾸면 기동 시 실패한다" 절이 그 실패 양식이다). 이 모듈은 테스트가 없어(위 "한계 — 부패 방지 수단이 컴파일뿐이다") 이 확인이 더 중요하다.

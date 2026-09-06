@@ -23,13 +23,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/**
- * web-api·admin-api가 공유하는 JWT 발급/검증 메커니즘. principal 식별자 클레임명(memberId/adminId)과
- * principal 재구성 팩토리를 생성자로 주입받아 앱별 차이를 흡수한다.
- *
- * <p>이 클래스 자체는 빈이 아니며, 앱별 하위 클래스가 자신의 클레임명·팩토리를 주입해 {@code @Component}로 등록한다.
- * web-api는 이 클래스를 상속해 검증용 토큰(휴대폰/이메일/비밀번호 재설정 등) 발급 메서드를 추가한다.
- */
 public class JwtTokenProvider {
 
     private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);

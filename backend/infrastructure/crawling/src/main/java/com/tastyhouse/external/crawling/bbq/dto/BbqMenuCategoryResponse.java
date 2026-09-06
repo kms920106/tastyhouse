@@ -2,9 +2,6 @@ package com.tastyhouse.external.crawling.bbq.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * BBQ 메뉴 카테고리 응답 DTO
- */
 public class BbqMenuCategoryResponse {
 
     @JsonProperty("id")

@@ -14,15 +14,6 @@ import com.tastyhouse.external.crawling.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuResponse;
 import com.tastyhouse.external.crawling.bbq.dto.BbqMenuSubOptionResponse;
 
-/**
- * {@link BbqMenuPort}의 infrastructure:crawling 구현 — BBQ wire DTO를 application 계약 타입으로 변환한다.
- *
- * <p>변환 로직은 이전에 {@code BbqService}가 갖고 있던 {@code convertToProduct*} 메서드를 그대로
- * 옮긴 것이다. 값 매핑(널 Boolean → primitive 기본값 등)은 동작을 바꾸지 않도록 원본과 동일하다.
- *
- * <p>{@link BbqApiClient}는 이 어댑터의 내부 협력자로 남는다 — WebClient·{@code Mono} 같은 반응형
- * 타입이 시그니처에 드러나므로 포트 계약에 올릴 수 없다.
- */
 @Component
 public class BbqMenuAdapter implements BbqMenuPort {
 

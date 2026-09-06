@@ -15,19 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * Controller 메서드의 Request Body 및 인증 사용자 정보를 로깅하는 Aspect
- * 로깅 항목: 인증 사용자(username), Request Body (민감 필드 마스킹 적용)
- * Filter 레이어에서 처리되는 401/403 등은 별도 로깅되지 않으며,
- * Controller까지 도달한 요청에 대해서만 동작합니다.
- */
 @Aspect
 @Component
 public class ApiLoggingAspect {
 
     private static final Logger log = LoggerFactory.getLogger(ApiLoggingAspect.class);
-
-//    private final SensitiveFieldMasker masker;
 
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object logControllerExecution(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -35,10 +27,6 @@ public class ApiLoggingAspect {
         List<Object> requestBodies = extractRequestBodies(joinPoint);
 
         if (!requestBodies.isEmpty()) {
-//            List<String> maskedBodies = requestBodies.stream()
-//                    .map(masker::mask)
-//                    .toList();
-//            log.info("[BODY] user={} | body={}", caller, maskedBodies.size() == 1 ? maskedBodies.get(0) : maskedBodies);
             log.info("[BODY] user={} | body={}", caller, requestBodies.size() == 1 ? requestBodies.getFirst() : requestBodies);
         } else if (!caller.equals("anonymous")) {
             log.info("[BODY] user={}", caller);
@@ -47,10 +35,6 @@ public class ApiLoggingAspect {
         return joinPoint.proceed();
     }
 
-    /**
-     * SecurityContext에서 인증된 사용자의 username을 추출합니다.
-     * 인증되지 않은 요청은 "anonymous"를 반환합니다.
-     */
     private String resolveAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
@@ -60,9 +44,6 @@ public class ApiLoggingAspect {
         return "anonymous";
     }
 
-    /**
-     * Controller 메서드 파라미터 중 @RequestBody 어노테이션이 붙은 인자를 추출합니다.
-     */
     private List<Object> extractRequestBodies(ProceedingJoinPoint joinPoint) {
         List<Object> bodies = new ArrayList<>();
         try {

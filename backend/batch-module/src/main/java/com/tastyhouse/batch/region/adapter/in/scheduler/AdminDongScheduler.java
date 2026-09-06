@@ -6,12 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * 행정동 마스터 동기화 트리거.
- *
- * <p>행정구역 개편은 연 몇 회 수준이라 잦은 실행이 의미 없고, 원천도 그 주기로만 갱신된다. 매월 1일
- * 새벽에 한 번만 돌려 개편을 뒤늦게라도 따라잡게 한다(다른 배치와 겹치지 않는 04시대).
- */
 @Component
 public class AdminDongScheduler {
 

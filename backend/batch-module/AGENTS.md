@@ -32,7 +32,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 |---|---|---|---|
 | `region` | `SynchronizeAdminDongsUseCase` | `AdminDongScheduler`(매월 1일 04시) | `AdminDongSchedulerService`(다운로드, 트랜잭션 밖) + `AdminDongSyncExecutor`(저장, 트랜잭션) + `AdminDongSyncRunner`(수동 1회 실행, 기본 비활성) |
 | `grade` | `SettleMemberGradesUseCase` | `GradeScheduler` | `GradeSchedulerService`가 등급 계산·확정 전담 |
-| `product` | `SyncProductOptionsUseCase` | `ProductScheduler`(`@Scheduled` 주석 처리된 비활성 상태 유지) | `ProductSchedulerService`가 BBQ 옵션 크롤링 저장 |
+| `product` | `SyncProductOptionsUseCase` | `ProductScheduler`(**비활성 — `@Scheduled` 없음, 자동 실행되지 않는다.** 아래 §스케줄러 활성 상태 참조) | `ProductSchedulerService`가 BBQ 옵션 크롤링 저장 |
 | `productsoldout` | `ReleaseExpiredSoldOutUseCase` | `ProductSoldOutReleaseScheduler` | `ProductSoldOutReleaseSchedulerService` + `ProductSoldOutReleaseExecutor`(트랜잭션 경계 분리) |
 | `rank` | `AggregateRanksUseCase` | `RankScheduler` | `RankSchedulerService`가 랭킹 집계 로직 전담 |
 | `reviewblind` | `ExpireBlindedReviewsUseCase` | `ReviewBlindScheduler` | `ReviewBlindSchedulerService` + `ReviewBlindExpirationExecutor`(트랜잭션 경계 분리) |
@@ -97,5 +97,115 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ## 설정 파일
 
 `src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 두 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-crawling.yml`(크롤링, `infrastructure:crawling` 소유) — 을 `classpath:` import한다(챕터 03 이전에는 `application-external.yml`·`application-firebase.yml` 두 줄이었다) — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+
+## 스케줄러 활성 상태 (트리거 7종 중 1종이 비활성)
+
+**이 절은 코드에 근거가 남지 않는 사실을 담는다.** 과거에는 `ProductScheduler`의 비활성 상태가 주석 처리된 `@Scheduled` 줄로 표시돼 있었으나, 주석 전면 이관(챕터 07)으로 그 줄이 삭제됐다. 지금 코드만 읽으면 "왜 이 스케줄러만 `@Scheduled`가 없는가"를 알 수 없으므로 여기가 유일한 출처다.
+
+| 트리거 | 상태 | 운영 cron |
+|---|---|---|
+| `AdminDongScheduler` | 활성 | `0 0 4 1 * *` — 매월 1일 04시 |
+| `GradeScheduler` | 활성 | `0 30 3 * * *` — 매일 새벽 3시 30분 |
+| `ProductScheduler` | **비활성** | 없음 |
+| `ProductSoldOutReleaseScheduler` | 활성 | `${product.sold-out-release.cron:0 */10 * * * *}` — 기본 10분 주기(프로퍼티로 조정 가능) |
+| `RankScheduler` | 활성 | `0 0 3 * * *` — 매일 새벽 3시 |
+| `ReviewBlindScheduler` | 활성 | `0 0 4 * * *` — 매일 새벽 4시 |
+| `SearchKeywordScheduler` | 활성 | `0 0 3 * * *` + `0 30 3 * * *` — 트리거 메서드 2개 |
+
+### `ProductScheduler`는 비활성이다 — 자동 실행되지 않는다
+
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/product/adapter/in/scheduler/ProductScheduler.java`
+→ 클래스 · `crawlAndSaveProductOptions()`
+
+이 트리거에는 **활성 `@Scheduled`가 하나도 없다.** 따라서 `crawlAndSaveProductOptions()`(BBQ 상품 옵션 크롤링 저장)는 배치 앱이 떠 있어도 **자동으로 실행되지 않는다.** 클래스와 메서드에 붙은 `@SuppressWarnings("unused")` 두 개가 그 증거다 — 호출부가 없어 미사용으로 잡히는 것을 의도적으로 억제한 것이지, 실수로 남은 억제가 아니다.
+
+**활성화하려면 두 가지를 되살린다.**
+
+1. 메서드에 `@Scheduled(fixedDelay = 10000)` — 과거 주석으로 보존돼 있던 값(10초 고정 지연)
+2. `import org.springframework.scheduling.annotation.Scheduled;` — 이 import도 함께 주석 처리돼 있었으므로 복구해야 한다
+
+활성화한 뒤에는 `@SuppressWarnings("unused")` 두 개를 제거한다 — `@Scheduled`가 붙으면 더 이상 미사용이 아니다. 크롤링 대상이 남의 서비스이므로(`../infrastructure/crawling/AGENTS.md`), 켜기 전에 그 주기(10초)가 상대 서비스에 과한 부하인지부터 판단한다.
+
+### `GradeScheduler`·`RankScheduler`는 활성이다 — "비활성"으로 오해하지 말 것
+
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{grade,rank}/adapter/in/scheduler/{GradeScheduler,RankScheduler}.java`
+→ `settleMemberGrades()` · 랭킹 집계 트리거
+
+두 트리거에는 운영 cron이 **살아 있다** — `GradeScheduler`는 `@Scheduled(cron = "0 30 3 * * *")`(매일 새벽 3시 30분, 랭킹 집계 이후에 도는 순서), `RankScheduler`는 `@Scheduled(cron = "0 0 3 * * *")`(매일 새벽 3시)다.
+
+과거 이 두 파일에는 `//    @Scheduled(cron = "0 * * * * *") // 1분마다 실행 (테스트용)`이 각각 한 줄씩 주석으로 남아 있었다. **그것은 비활성 상태를 나타내는 정보가 아니라 버려진 테스트용 cron 변형**(1분 주기)이며, 되살릴 대상이 아니다. 운영에서 1분마다 등급 정산·랭킹 집계를 돌리면 안 된다. 챕터 07에서 그 두 줄을 삭제했고, 이 문단이 "삭제된 것이 무엇이었는지"의 기록이다.
+
+`GradeScheduler`의 등급 산정 규칙(리뷰 개수 기준)은 `docs/domain/`의 등급 문서가 소유하며, 이 트리거는 시각만 정한다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### `ProductScheduler`의 `@SuppressWarnings("unused")` 2개 — 제거 조건이 있다
+
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/product/adapter/in/scheduler/ProductScheduler.java`
+→ 클래스 선언 · `crawlAndSaveProductOptions()`
+
+"미사용 억제가 남아 있다"고 정리 대상으로 지우지 않는다. 이 두 어노테이션은 위 §`ProductScheduler`는 비활성이다의 상태를 표현하는 유일한 코드상 흔적이며, **`@Scheduled`를 되살리는 것과 한 벌로만** 제거한다.
+
+### `allowEmptyShould(true)`를 쓰지 않는다 — 규칙이 대상을 잃으면 지우거나 anchor를 고친다
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
+→ 클래스 전체
+
+규칙이 대상을 잃으면 **공허 통과를 여는 대신 규칙을 지우거나 anchor를 고친다.** 챕터 01로 application 계층이 떠나면서 이 모듈에서 규칙 4종(`applicationServicesShouldNotDependOnWebLayer`·`shouldNotDependOnQuerydsl`·`requestResponseRecordsShouldBeDomainAndInfraFree`·`schedulerServicesShouldImplementUseCase`)을 삭제하고 `application` 모듈의 같은 이름 테스트로 옮긴 것이 그 선례다 — 대상 클래스가 전부 이 모듈을 떠났으므로 남겨 두면 공허하게 통과한다.
+
+### `schedulersShouldDependOnUseCasesOnly`의 대상은 **클래스명이 아니라 패키지**다
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
+→ `schedulersShouldDependOnUseCasesOnly`
+
+챕터 01로 잡 서비스가 `application`으로 떠나면서, 이 규칙은 "모듈 안의 구체 클래스"가 아니라 **모듈 경계를 넘는 구체 클래스**를 막는 규칙이 됐다. 그래서 클래스 이름(`*SchedulerService`)이 아니라 **패키지**(`com.tastyhouse.application..service..`)로 대상을 잡는다 — 이렇게 해야 `*Executor`(예: `ProductSoldOutReleaseExecutor`)처럼 `SchedulerService`로 끝나지 않는 내부 구현까지 함께 막힌다. **이름 기준으로 되돌리지 않는다.** 정방향인 `..port.in..`의 UseCase 인터페이스 주입은 이 규칙에 걸리지 않으며, 실존 스케줄러 7종에 anchor하므로 공허하지 않다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### 트리거는 로깅·예외격리만 담당한다 (전 스케줄러 공통형)
+
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{productsoldout,reviewblind}/adapter/in/scheduler/`
+→ `ProductSoldOutReleaseScheduler` · `ReviewBlindScheduler`
+
+두 트리거의 클래스 주석이 명시하던 것으로, 이 모듈 트리거 7종 전부의 공통형이다 — **스케줄러는 로깅·예외격리만** 담당하고 잡 본문은 `application`의 UseCase(`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase` 등)에 둔다. `RankScheduler`가 그 최초 형태이고 나머지가 그 패턴을 그대로 따랐다.
+
+### 잡 주기가 다른 이유 (cron 값의 근거)
+
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{productsoldout,reviewblind,region}/adapter/in/scheduler/`
+→ `ProductSoldOutReleaseScheduler` · `ReviewBlindScheduler` · `AdminDongScheduler`
+
+세 트리거의 메서드·클래스 주석이 담고 있던 판단 근거다. **cron 값을 바꾸기 전에 이 근거를 확인한다.**
+
+- **`ProductSoldOutReleaseScheduler` — 10분 주기.** 다른 배치가 하루 1회 새벽에 도는 것과 성격이 다르다. **"익일 가게 오픈 시간까지 품절"이 오픈 직후에 풀려야** 의미가 있고, 품절 기간 입력 단위가 10분이라 그보다 촘촘하게 돌 필요가 없다. 하루 1회로 두면 오전에 오픈한 가게가 다음 날 새벽까지 품절로 남는다.
+- **`ReviewBlindScheduler` — 매일 새벽 4시.** 랭킹 집계(3시)와 시간대를 분리해 두 잡이 겹치지 않게 한다.
+- **`AdminDongScheduler` — 매월 1일 04시.** 행정구역 개편은 연 몇 회 수준이라 잦은 실행이 의미 없고, **원천도 그 주기로만 갱신된다**(`../infrastructure/crawling/AGENTS.md` §region). 매월 1일 새벽에 한 번만 돌려 개편을 뒤늦게라도 따라잡게 하며, 다른 배치와 겹치지 않는 04시대를 쓴다.
+
+### `adaptersShouldOnlyUseOwnAppUseCases`는 컴파일 게이트의 대체다
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
+→ `adaptersShouldOnlyUseOwnAppUseCases`
+
+**이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.** 그전까지 이 모듈의 어댑터가 다른 앱의 UseCase를 주입하는 것은 **빌드가** 막았다 — `build.gradle`에 자기 앱의 application 모듈 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예 없었다. 챕터 01이 4개 application 모듈을 `:application` 하나로 합치면서 4개 앱의 클래스가 **전부 이 모듈의 컴파일 클래스패스에 들어왔다.**
+
+**챕터 03 재작성 — 판정 근거가 패키지에서 마커로 바뀌었다.** 챕터 01의 원본은 자기를 뺀 3개 앱 패키지를 열거해 금지했는데, 평탄화로 그 패키지들이 사라졌다. 이제 소속의 근거는 `BatchApp` 등 마커 애노테이션이므로 규칙도 마커로 판정한다. 세 갈래로 나눠 검사한다.
+
+- **(a) UseCase 인터페이스** — `..port.in..`의 인터페이스에 의존한다면 그것이 `BatchApp`을 달고 있어야 한다. 마커를 인터페이스가 직접 가지므로 술어가 단순하다.
+- **(b) Command record** — record에는 마커가 없다. 소속을 `AppOwnership#derive`로 **유도**해 그 집합이 `BatchApp`인지 본다(유도 규칙은 그 클래스 Javadoc 참조).
+- **(c) 구체 서비스** — `@Service`/`@Component` 클래스 의존은 앱을 가릴 것도 없이 전부 금지이며, 이미 `com.tastyhouse.application..service..` 패키지를 막는 기존 규칙(`schedulersShouldDependOnUseCasesOnly`)이 맡는다. 여기서 중복하지 않는다.
+
+**짝이 되는 규칙**은 `application` 모듈의 `AppIsolationTest#appsShouldNotDependOnEachOther`다 — 그쪽이 application 계층끼리의 수평 의존을, 이쪽이 어댑터 → 남의 application 의존을 막는다.
+
+### 이 모듈에 남은 규칙이 3개뿐인 이유
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
+→ 클래스 전체
+
+챕터 01로 application 계층이 물리 분리된 뒤, 이 모듈에 남은 것은 **driving adapter**(`<job>/adapter/in/scheduler`의 `@Scheduled` 트리거 7종)와 부트스트랩(`BatchApplication`)뿐이다. 그래서 규칙도 "어댑터가 지켜야 할 것"만 남는다 — `shouldNotDependOnInfrastructurePersistence`·`schedulersShouldDependOnUseCasesOnly`·`adaptersShouldOnlyUseOwnAppUseCases` 3개다.
+
+`shouldNotDependOnInfrastructurePersistence`는 **스케줄러가 잡 UseCase만 주입하므로 현재 위반이 없고**, 트리거가 `JpaRepository`를 직접 주입해 "잡 로직 한 줄"을 어댑터에 적는 회귀를 막는다. 대상은 이 모듈의 전 클래스라 공허하지 않다.
 
 <!-- MANUAL: -->

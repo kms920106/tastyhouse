@@ -60,3 +60,29 @@ payment:
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선 (챕터 02 개정)**: web-api만 `implementation project(':infrastructure:payment')`를 선언한다(챕터 02 — `runtimeOnly`). `PaymentModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **의존 선언 자체가 활성화**이므로, 다른 앱에 실수로 의존을 추가하면 `PgPaymentGateway` 빈이 뜨는 것이 아니라(설정값이 web-api에만 있어) 오히려 그 앱에서 프로퍼티 바인딩 실패로 부팅이 깨질 수 있다.
 - **결제 실패는 `ExternalApiException`으로 던진다** — 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다. 응답 `code`는 wire 계약이므로 기존 값을 바꾸지 않는다.
+
+## 봉인·가드 목록
+
+<!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 자바 패키지 `com.tastyhouse.external.payment..` 봉인
+
+**대상**: `backend/infrastructure/payment/src/main/java/com/tastyhouse/external/payment/`
+
+외부 연동 7모듈 공통 규칙이다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다. 상세는 `../external/AGENTS.md`.
+
+### 다른 앱에 이 모듈 의존을 추가하지 않는다
+
+**대상**: `backend/infrastructure/payment/src/main/java/com/tastyhouse/external/payment/PaymentModuleAutoConfiguration.java`
+
+결제는 사용자 앱에서만 일어나므로 web-api만 이 모듈을 의존한다. **클래스패스 존재만으로 활성화되므로, 다른 앱에 의존을 추가하면 그 앱에도 PG 빈이 올라온다**(설정값은 web-api에만 있어 프로퍼티 바인딩 실패로 부팅이 깨질 수 있다). 위 "빈 배선" 항목과 같은 사실이며, 여기서는 가드로서 다시 못박는다.
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### 토스 승인 응답의 에러 필드는 성공 응답과 한 타입에 담긴다
+
+**대상**: `backend/infrastructure/payment/src/main/java/com/tastyhouse/external/payment/toss/dto/TossPaymentConfirmResponse.java`
+
+승인 응답 wire DTO 안에 **에러 응답 필드가 함께 선언돼 있다.** 토스가 성공·실패를 같은 엔드포인트에서 돌려주기 때문이며, 실패 판별과 `ExternalApiException` 번역은 `TossPaymentGatewayAdapter`가 수행한다. 이 필드들을 별도 DTO로 떼어내면 어댑터가 응답 본문을 두 번 역직렬화해야 하므로 분리 대상이 아니다.

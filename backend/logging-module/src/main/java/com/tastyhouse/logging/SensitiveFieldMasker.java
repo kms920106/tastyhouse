@@ -9,10 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * 로그 출력 전 민감 필드를 마스킹 처리하는 컴포넌트
- * 마스킹 대상: 비밀번호, 토큰, 인증코드, 카드 정보 등
- */
 @SuppressWarnings("unused")
 @Component
 public class SensitiveFieldMasker {
@@ -33,9 +29,6 @@ public class SensitiveFieldMasker {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * 객체를 JSON 문자열로 변환하면서 민감 필드를 마스킹합니다.
-     */
     public String mask(Object target) {
         if (target == null) {
             return "null";

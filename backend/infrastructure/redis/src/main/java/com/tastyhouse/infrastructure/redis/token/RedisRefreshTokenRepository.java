@@ -7,11 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.security.token.RefreshTokenRepository;
 
-/**
- * {@link RefreshTokenRepository}의 Redis 구현 — security-core가 소유한 계약을 인프라가 구현한다.
- *
- * <p>Key: {@code "{keyPrefix}rt:{username}"} → refreshToken 값 (TTL: refreshTokenExpiration)
- */
 @Component
 public class RedisRefreshTokenRepository implements RefreshTokenRepository {
 
