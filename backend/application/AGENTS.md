@@ -119,12 +119,12 @@ com.tastyhouse.application/
 
 | 앱 | 인증 방식 | 이 모듈에 있는 것 | api 모듈에 남은 것 |
 |---|---|---|---|
-| web | 소셜 로그인 SPI + JWT | `JwtTokenProvider` · `TokenService` · `CustomUserDetails(Service)` · `AuthCommandService` | `JwtConfig` · `SecurityConfig` · `PublicPaths` |
+| web | 소셜 로그인 SPI + JWT | `JwtTokenProvider` · `TokenService` · `CustomUserDetails(Service)` · `AuthCommandService` | `SecurityConfig` · `PublicPaths` (`JwtConfig`는 챕터 02에서 삭제 — 필터 빈은 `SecurityModuleAutoConfiguration`이 등록) |
 | admin | `spring-security-core` + JWT | 위 + `AdminUserDetailsService` | 위 (`RedisRepositoryConfig`는 챕터 01에서 삭제 — 키 접두사는 `security.token-store.key-prefix` 프로퍼티) |
 | ceo | `spring-security-core` + JWT | 위 + `CeoUserDetailsService` | 위 (동일) |
 | batch | 없음 | — | — |
 
-**결합의 실체는 서블릿이 아니라 Spring Security core였다**(챕터 02 판단 기록). auth 컨텍스트 전체에 `jakarta.servlet`·`org.springframework.web` import가 **0건**이었고 — 컨트롤러가 이미 원시값(Bearer 토큰 문자열·인가 코드)만 넘기고 있었다 — 실제 blocker이던 `JwtTokenProvider`·`TokenService`·`CustomUserDetails(Service)`는 `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`·JWT만 쓰는 **서블릿-프리** 타입이라 함께 이동할 수 있었다. 서블릿 결합 타입(필터·EntryPoint·`JwtConfig`·`SecurityConfig`)만 api에 남았고, `applicationMustBeServletFree`가 그 경계를 강제한다.
+**결합의 실체는 서블릿이 아니라 Spring Security core였다**(챕터 02 판단 기록). auth 컨텍스트 전체에 `jakarta.servlet`·`org.springframework.web` import가 **0건**이었고 — 컨트롤러가 이미 원시값(Bearer 토큰 문자열·인가 코드)만 넘기고 있었다 — 실제 blocker이던 `JwtTokenProvider`·`TokenService`·`CustomUserDetails(Service)`는 `AuthenticationManager`·`SecurityContextHolder`·`UserDetails`·JWT만 쓰는 **서블릿-프리** 타입이라 함께 이동할 수 있었다. 서블릿 결합 타입만 밖에 남았고 — 필터·EntryPoint는 `security-module`이, `SecurityConfig`·`PublicPaths`는 각 api 모듈이 갖는다 — `applicationMustBeServletFree`가 그 경계를 강제한다.
 
 **소셜 로그인은 web에만 있다** — admin·ceo에는 없다.
 

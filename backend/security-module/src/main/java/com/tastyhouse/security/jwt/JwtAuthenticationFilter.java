@@ -23,7 +23,8 @@ import com.tastyhouse.security.token.BlacklistRepository;
  * Access Token을 검증해 SecurityContext에 인증을 주입하는 공용 필터.
  * 토큰이 없으면 그냥 통과시키고, 인가(permitAll/authenticated)는 Spring Security가 최종 결정한다.
  *
- * <p>{@code @Component}가 아니며(POJO), 각 API의 {@code JwtConfig}가 자신의 저장소 빈으로 등록한다.
+ * <p>{@code @Component}가 아니며(POJO), {@code SecurityModuleAutoConfiguration}이 앱의
+ * {@code JwtTokenProvider} 빈과 {@code BlacklistRepository} 포트로 등록한다.
  *
  * <p>[사용 금지] shouldNotFilter()로 공개 경로를 처리하면 안 되는 이유:
  * <ol>

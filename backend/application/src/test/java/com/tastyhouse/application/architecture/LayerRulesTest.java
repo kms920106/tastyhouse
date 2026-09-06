@@ -289,9 +289,9 @@ class LayerRulesTest {
      * UseCase 메서드의 경계 파라미터로 존치한다. 이 예외가 auth 컨텍스트가 이 모듈에 있을 수 있는
      * 게이트이기도 하다: {@code TokenService}·{@code JwtTokenProvider}·{@code CustomUserDetails}·
      * {@code AdminUserDetailsService}·{@code CeoUserDetailsService}는 Spring Security core와 JWT
-     * 타입만 쓰는 <b>서블릿-프리</b> 타입이라 여기 있고, 서블릿 결합 타입(필터·EntryPoint·
-     * {@code JwtConfig}·{@code PublicPaths}·{@code SecurityConfig})은
-     * 각 api 모듈에 남았다.
+     * 타입만 쓰는 <b>서블릿-프리</b> 타입이라 여기 있고, 서블릿 결합 타입은 밖에 남았다 —
+     * 필터({@code JwtAuthenticationFilter})·EntryPoint는 {@code security-module}이,
+     * {@code PublicPaths}·{@code SecurityConfig}는 각 api 모듈이 갖는다.
      *
      * <p>ceo는 이 예외가 특히 실질적이다 — 가게 이미지 변경·콘텐츠보드·메뉴 이미지 서비스와 규격
      * 검증기({@code ShopImageSpecValidator}·{@code ProductImageSpecValidator})가 업로드를 정당하게
