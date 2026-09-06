@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 
-/**
- * 메뉴 채식 설정 요청의 검수 상태.
- */
 @Schema(description = "메뉴 채식 설정 요청")
 public record ProductVegetarianRequestResponse(
     @Schema(description = "요청 ID", example = "7")
@@ -29,7 +26,6 @@ public record ProductVegetarianRequestResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "액젓이 포함되어 비건에 해당하지 않습니다.")
     String rejectReason
 ) {
-
     public static ProductVegetarianRequestResponse from(ProductVegetarianRequestResult result) {
         return new ProductVegetarianRequestResponse(
             result.id(),

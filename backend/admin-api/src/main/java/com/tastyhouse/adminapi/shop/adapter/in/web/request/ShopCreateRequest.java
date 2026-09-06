@@ -41,7 +41,6 @@ public record ShopCreateRequest(
     @Schema(description = "썸네일 이미지 파일 ID", example = "10")
     Long thumbnailImageFileId
 ) {
-
     public ShopCreateCommand toCommand(Long adminId) {
         return new ShopCreateCommand(
             adminId, ceoId, stationId, name, latitude, longitude,

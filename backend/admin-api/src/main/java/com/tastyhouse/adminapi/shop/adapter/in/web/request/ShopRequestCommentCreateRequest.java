@@ -6,9 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * 요청건 담당자 답변 작성 요청.
- */
 @Schema(description = "요청건 담당자 답변 작성 요청")
 public record ShopRequestCommentCreateRequest(
 
@@ -21,7 +18,6 @@ public record ShopRequestCommentCreateRequest(
     )
     String content
 ) {
-
     public ShopRequestCommentManagementCreateCommand toCommand(Long requestId, Long adminId) {
         return new ShopRequestCommentManagementCreateCommand(requestId, adminId, content);
     }

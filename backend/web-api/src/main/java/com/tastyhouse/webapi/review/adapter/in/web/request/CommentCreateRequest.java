@@ -11,10 +11,6 @@ public record CommentCreateRequest(
     @Schema(description = "댓글 내용", example = "맛있어 보이네요!")
     String content
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code reviewId}를 주입받아 command로 변환한다.
-     */
     public ReviewCommentCreateCommand toCommand(Long memberId, Long reviewId) {
         return new ReviewCommentCreateCommand(
             memberId,

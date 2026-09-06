@@ -279,6 +279,91 @@ application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDepend
 
 각 앱은 **자기 앱 마커가 붙은 application 슬라이스만** 의존한다.
 
+### 3층 구조 봉인 — 컨트롤러·Request의 경계 규칙
+
+**대상**: 각 앱 `src/test/java/com/tastyhouse/{web,admin,ceo}api/architecture/LayerRulesTest.java`
+→ `controllersShouldBeDomainFree()` · `requestRecordsShouldBeDomainAndInfraFree()` · `controllersShouldDependOnUseCasesOnly()` · `webAdaptersShouldNotDependOnApplicationServices()`
+
+**컨트롤러는 domain-free다.** HTTP 경계는 식별자를 `Long`, 도메인 enum을 `String`으로 받고 승격은 Service가 담당하므로, 컨트롤러가 `com.tastyhouse.domain..`을 알 이유가 없다. carve-out은 위 `apiModuleShouldBeDomainModelFree`와 동일하다(`domain.shared.page..` 페이징 조립은 정상 경로, 도메인 enum은 짝 규칙이 accessor로 제한).
+
+**Request record는 domain-free·infra-free 순수 데이터 홀더다**(검증 + Swagger 스키마). **문자열→enum 승격을 Request에서 하지 않는다.** `response/`는 각 api 모듈로 승격돼 이 모듈이 소유하지만, `..request..`에 대한 이 금지는 그대로다.
+
+이 domain-free 제약의 실무적 귀결이 하나 있다 — **multipart 문자열 파트를 컨트롤러에서 파싱할 수 없다.** 컨트롤러·Request가 도메인 타입을 모르므로, `Command`가 `String`으로 넘기고 **서비스가 파싱한다.**
+
+**컨트롤러·인바운드 어댑터는 UseCase 인터페이스만 주입한다.** 구체 서비스(`*CommandService`·`*QueryService`) 주입은 금지다. 두 규칙이 겹쳐 보이지만 잡는 축이 다르다.
+
+- `controllersShouldDependOnUseCasesOnly` — **접미어** 기준. 구체 서비스가 `application`으로 이동한 지금 이 위반은 애초에 컴파일되지 않지만, **누군가 구체 서비스를 api 모듈로 되돌리는 시도가 곧바로 드러나게** 하려고 남긴다.
+- `webAdaptersShouldNotDependOnApplicationServices` — **위치**(`com.tastyhouse.application..service..`) 기준. 접미어가 아니라 위치로 잡으므로 `MemberService` 같은 **비표준 접미어 파사드까지 걸린다** — 실제로 이 규칙이 `MemberApiController`/`MemberMeApiController`의 파사드 직접 주입을 잡아냈고, `MemberScreenUseCase` 포트를 신설해 해소했다.
+
+### `apiModuleMustNotContainApplicationLayer` — 물리 분리가 되돌려지지 않았음을 고정한다
+
+**대상**: 각 앱의 `LayerRulesTest.java`
+→ `apiModuleMustNotContainApplicationLayer()` · `restControllersShouldResideInWebAdapterPackage()`
+
+**api 모듈에 `@Service` 빈을 두지 않는다** — application 계층은 `application` 모듈이 소유한다.
+
+위의 "컨트롤러가 무엇을 주입하는가" 규칙들은 **누군가 api 모듈 안에 `@Service` 빈을 새로 만들어 application 로직을 되살리는 것은 잡지 못한다.** 그 구멍을 막는 것이 이 규칙이다.
+
+짝 규칙 `restControllersShouldResideInWebAdapterPackage`(`@RestController`는 `..adapter.in.web..`에만)와 함께 3층 구조를 지킨다. 짝이 `classes()` 형태라 **컨트롤러 실존에 anchor** 하므로 두 규칙이 함께 공허해지지 않는다.
+
+### 기술 스택 격리 — QueryDSL·persistence 어댑터를 알지 않는다
+
+**대상**: 각 앱의 `LayerRulesTest.java`
+→ `shouldNotDependOnQuerydsl()` · `shouldNotDependOnInfrastructurePersistence()` · `controllersShouldNotDependOnRepositories()` · `controllersShouldNotDependOnQueryDaos()`
+
+api 모듈은 `com.querydsl..`과 `..infrastructure..persistence..`(JpaEntity·Mapper·JpaRepository·RepositoryImpl)에 **직접 의존하지 않는다.** 컨트롤러가 리포지토리·QueryDAO를 직접 주입하는 것도 같은 이유로 금지다 — 읽기·쓰기 모두 포트를 거친다.
+
+### api 모듈에서 도메인 enum `switch`를 쓰지 않는다
+
+**대상**: 각 앱의 `LayerRulesTest.java` → `apiModuleShouldOnlyReadDomainEnums()`
+
+`switch`는 컴파일 시 `ordinal()`/`values()` 호출로 낮아지는데, 그 둘은 `ALLOWED_DOMAIN_ENUM_ACCESSORS` 밖이라 **ArchUnit 위반이 된다.** 소스에 `switch`만 보이고 위반 메서드명이 소스에 없으므로 원인을 찾기 어렵다.
+
+**분기 판정은 `application`에서 한다.** api 모듈은 이미 결정된 값을 읽어 표현만 한다.
+
+### 인가는 `SecurityConfig`가 소유한다 — 컨트롤러에 `@PreAuthorize`가 없는 것은 누락이 아니다
+
+**대상**: 각 앱 `src/main/java/com/tastyhouse/{web,admin,ceo}api/config/security/SecurityConfig.java`
+→ `securityFilterChain(HttpSecurity)`, `PublicPaths.PATTERNS`
+
+인가 계층은 세 앱 모두 같은 형태로 선언한다.
+
+1. **공개 경로는 `PublicPaths.PATTERNS`에서 중앙 관리한다** — 컨트롤러마다 흩어 놓지 않는다. **경로를 옮기거나 바꿀 때 이 목록을 함께 고치지 않으면**, 컴파일·테스트는 그대로 통과하고 **비로그인 사용자에게 401이 나가는 형태로만** 드러난다.
+2. **로그아웃(`/api/auth/v1/logout`)은 인증만 요구하고 역할을 요구하지 않는다** — 임의 토큰이 블랙리스트에 등록되는 것을 막기 위해서다.
+3. **나머지 API의 게이트는 `anyRequest()` 한 줄이 소유한다.** 그래서 개별 컨트롤러에 `@PreAuthorize`가 없는 것은 **누락이 아니다.**
+
+**단, 3번의 강도는 앱마다 다르다** — 아래를 서로 복사하지 않는다.
+
+| 앱 | `anyRequest()` | 성격 |
+|---|---|---|
+| `web-api` | `.authenticated()` | 손님 앱이라 역할 구분이 없다 |
+| `admin-api` | `.hasAnyRole("ADMIN", "SUPER_ADMIN")` | 심층 방어 — `authenticated()`로 낮추지 않는다 |
+| `ceo-api` | `.hasRole("CEO")` | 심층 방어 — 점주 전용 |
+
+`admin`·`ceo`의 역할 요구는 **잘못 발급·유출된 비-관리자 토큰이 `authenticated()`만으로 통과하는 것을 차단**하는 심층 방어다. "어차피 로그인했으니 충분하다"는 판단으로 `authenticated()`로 완화하지 않는다.
+
+### 도메인 enum은 HTTP 경계에서 `String`으로 받는다 — `allowableValues`는 수동 동기화 대상이다
+
+**대상**: 3앱의 `..adapter.in.web.request..` 검색 조건 record 다수 (`status`·`category`·`changeType`·`requestType`·`result`·`actionType` 등)
+
+도메인 enum 경계 규칙에 따라 HTTP 경계는 enum이 아니라 `String`으로 받고, 승격은 서비스가 `from(String)`으로 수행한다. api 모듈이 domain-free여야 하고, enum `switch`가 `ordinal()`/`values()`로 컴파일돼 ArchUnit 위반을 내기 때문이다(위 "api 모듈에서 도메인 enum `switch`를 쓰지 않는다" 참조).
+
+**부작용이 하나 있다** — `String` 파라미터는 Swagger가 enum 스키마를 자동 생성하지 못하므로 후보값을 `@Parameter(schema = @Schema(allowableValues = ...))`로 **수동 명시**한다(3앱 합계 140여 파일). **이 수동 목록은 enum과 자동으로 동기화되지 않는다.** enum에 상수를 추가·삭제하면 이 목록도 함께 고쳐야 하며, 어긋나도 빌드는 통과하고 Swagger 문서만 조용히 거짓말을 한다.
+
+### 조회 파라미터는 `@RequestParam` 나열이 아니라 Request record로 감싼다
+
+**대상**: 3앱의 `..adapter.in.web.request..`의 `*SearchRequest` record
+
+필터가 적더라도 `@RequestParam`을 나열하지 않고 Request record로 감싼다. 파라미터가 늘어날 때 시그니처가 아니라 record가 자라고, 검증·정규화·Swagger 스키마가 한자리에 모인다.
+
+### JWT·인증 쿠키 접두어 — backend에는 이 개념이 없다
+
+**대상**: `frontend/{web,admin,ceo}/src/lib/auth-config.ts` → `ACCESS_TOKEN`·`REFRESH_TOKEN`·`REMEMBER_ME`
+
+세 앱은 인증 쿠키를 `th_web_`·`th_admin_`·`th_ceo_` 접두어로 분리한다. 같은 호스트에서 포트만 달리 뜨는 개발 환경에서 **브라우저 쿠키가 앱끼리 덮어쓰는 것을 막기 위한 이름 공간 분리**다.
+
+**이 접두어는 frontend 전용이며 backend java·yml에는 등장하지 않는다**(실측 0건). 세 api 앱은 `Authorization` 헤더로 받은 토큰을 검증할 뿐 쿠키 이름을 알지 않으므로, **backend 코드에서 이 접두어를 찾지 말 것.** 접두어를 바꿔야 하면 고칠 곳은 위 frontend 3파일뿐이다.
+
 ## 봉인·가드 목록
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->

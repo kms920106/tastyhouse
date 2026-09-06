@@ -14,7 +14,6 @@ public record ReviewHiddenUpdateRequest(
     @Schema(description = "숨김 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean hidden
 ) {
-
     public ReviewHiddenChangeCommand toReviewCommand(Long reviewId) {
         return new ReviewHiddenChangeCommand(reviewId, hidden);
     }

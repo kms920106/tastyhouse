@@ -11,7 +11,6 @@ public record ShopDeliveryAreaCreateRequest(
     @Schema(description = "행정동 ID", example = "1101053", requiredMode = Schema.RequiredMode.REQUIRED)
     Long adminDongId
 ) {
-
     public ShopDeliveryAreaCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaCreateCommand(ceoId, shopId, adminDongId());
     }

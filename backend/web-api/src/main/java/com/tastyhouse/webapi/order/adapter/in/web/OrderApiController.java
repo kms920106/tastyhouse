@@ -30,7 +30,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/orders")
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
-
     private final OrderCommandUseCase orderCommandUseCase;
     private final OrderQueryUseCase orderQueryService;
 

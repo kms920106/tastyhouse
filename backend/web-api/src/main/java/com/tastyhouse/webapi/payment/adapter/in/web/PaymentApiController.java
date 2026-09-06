@@ -31,18 +31,10 @@ import com.tastyhouse.application.payment.port.in.PaymentRefundRequestCommand;
 import com.tastyhouse.application.payment.port.in.TossPaymentConfirmCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
-/**
- * 회원 결제 API.
- *
- * <p>command(생성·승인·취소·현장완료·환불)와 조회를 CQRS로 분리한 두 서비스를 각각 주입한다
- * (공통 지침 패턴 2). command 서비스는 식별자만 돌려주므로, 커밋 이후 조회 서비스로 재조회해 응답을
- * 조립한다.
- */
 @RestController
 @RequestMapping("/api/payments")
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
-
     private final PaymentCommandUseCase paymentCommandUseCase;
     private final PaymentQueryUseCase paymentQueryService;
 

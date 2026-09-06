@@ -16,7 +16,6 @@ public record MemberWithdrawRequest(
     @Schema(description = "탈퇴 사유 상세(관리자 메모)", example = "약관 위반으로 인한 관리자 강제 탈퇴")
     String reasonDetail
 ) {
-
     public MemberManagementWithdrawCommand toCommand(Long memberId) {
         return new MemberManagementWithdrawCommand(memberId, reason(), reasonDetail());
     }

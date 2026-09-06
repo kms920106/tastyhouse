@@ -9,7 +9,6 @@ public record SearchRecommendedKeywordResponse(
     @Schema(description = "추천 검색어", example = "마라탕")
     String keyword
 ) {
-
     public static SearchRecommendedKeywordResponse from(RecommendedKeywordResult result) {
         return new SearchRecommendedKeywordResponse(result.keyword());
     }

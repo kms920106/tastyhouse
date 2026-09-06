@@ -16,7 +16,6 @@ public record BugReportStatusUpdateRequest(
     @Schema(description = "처리 결과/반려 사유 (RESOLVED·REJECTED 시 기록)", example = "3.2.1 버전에서 수정 완료했습니다.")
     String answer
 ) {
-
     public BugReportStatusChangeCommand toCommand(Long bugReportId) {
         return new BugReportStatusChangeCommand(bugReportId, status(), answer());
     }

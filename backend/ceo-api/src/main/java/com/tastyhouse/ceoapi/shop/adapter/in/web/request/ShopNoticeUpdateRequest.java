@@ -23,7 +23,6 @@ public record ShopNoticeUpdateRequest(
     @Schema(description = "기존 이미지를 그대로 둘지 여부 (기본 false). true면 files를 무시하고 본문만 수정합니다.", example = "false")
     Boolean keepExistingImages
 ) {
-
     public ShopNoticeUpdateCommand toCommand(Long ceoId, Long shopId, Long noticeId) {
         return new ShopNoticeUpdateCommand(ceoId, shopId, noticeId, content(), keepExistingImages());
     }

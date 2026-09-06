@@ -49,11 +49,6 @@ public record ShopConvenienceInfoResponse(
         );
     }
 
-    /**
-     * 편의정보를 아직 등록하지 않은 가게의 응답. 미등록을 {@code data: null}이 아니라 전 항목이 꺼진
-     * 객체로 내려, 프론트가 두 가지 빈 상태(미등록 / 응답 없음)를 구분하지 않게 한다
-     * (챕터 09에서 QueryService의 기본값 조립을 이 표현 계약으로 옮겼다).
-     */
     public static ShopConvenienceInfoResponse empty(Long shopId) {
         return new ShopConvenienceInfoResponse(
             null,

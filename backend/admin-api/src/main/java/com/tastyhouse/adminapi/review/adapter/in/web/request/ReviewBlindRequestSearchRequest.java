@@ -5,13 +5,6 @@ import java.time.LocalDate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
-/**
- * 리뷰 게시중단 요청 심사 목록 조회 조건.
- *
- * <p>{@code status}/{@code reason}은 도메인 enum 경계 규칙에 따라 HTTP 경계에서 {@code String}으로 받고
- * Service에서 승격한다. String 파라미터는 Swagger가 enum 스키마를 자동 생성하지 못하므로 후보값을
- * {@code allowableValues}로 수동 명시한다.
- */
 @Schema(description = "리뷰 게시중단 요청 심사 목록 조회 조건")
 public record ReviewBlindRequestSearchRequest(
     @Schema(description = "상점 ID", example = "1")

@@ -24,23 +24,10 @@ import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
 
-/**
- * 점주 메뉴 노출기간 관리 API.
- *
- * <p>노출 = {@code visible} AND 기간 AND 요일·시간대다. 품절은 직교하므로 이 API가 다루지 않는다 —
- * 품절 메뉴는 목록에 남은 채 '품절' 뱃지만 붙는다.
- *
- * <p>기간·요일·시간대는 <b>replace-all</b>(PUT)로만 바꾼다 — 요일 묶음과 개별 요일의 혼용 금지가
- * 집합 전체를 봐야 판정되는 규칙이라, 행 단위 CRUD를 열면 중간 상태가 반드시 규칙을 위반한다.
- *
- * <p>모든 핸들러가 body 또는 query의 {@code shopId}로 소유권을 검증한다.
- * 역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당한다.
- */
 @Tag(name = "Ceo Product Exposure", description = "점주 메뉴 노출기간 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductExposureApiController {
-
     private final ProductExposureQueryUseCase productExposureQueryService;
     private final ProductExposureCommandUseCase productExposureCommandUseCase;
 
@@ -89,5 +76,4 @@ public class ProductExposureApiController {
         productExposureCommandUseCase.clearExposure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
 }

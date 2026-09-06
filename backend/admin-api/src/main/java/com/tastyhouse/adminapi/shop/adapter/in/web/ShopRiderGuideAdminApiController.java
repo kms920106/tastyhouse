@@ -40,7 +40,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRiderGuideAdminApiController {
-
     private final ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase;
 

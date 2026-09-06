@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
 
-/**
- * 요청처리 현황 상세의 이미지 변경요청 부분. {@code requestType}이 이미지 변경일 때만 채워진다.
- */
 @Schema(description = "이미지 변경요청 상세")
 public record ShopRequestImageChangeResponse(
 
@@ -19,7 +16,6 @@ public record ShopRequestImageChangeResponse(
     @Schema(description = "요청한 이미지 URL", example = "https://storage.example.com/2026/08/trademark.png")
     String imageUrl
 ) {
-
     public static ShopRequestImageChangeResponse from(ShopRequestImageChangeDetailResult result) {
         return new ShopRequestImageChangeResponse(
             result.imageType().name(),

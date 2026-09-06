@@ -7,12 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 
-/**
- * 가게 상세에 노출되는 점주 공지 응답.
- *
- * <p>ceo 응답과 달리 {@code exposed}·{@code hidden}·{@code updatedAt}을 담지 않는다 — 사용자 화면이 쓰지
- * 않는 내부 상태이므로 과잉 노출을 피한다("실제 쓰는 필드만" 원칙).
- */
 @Schema(description = "가게 점주 공지 응답")
 public record ShopNoticeResponse(
     @Schema(description = "공지 ID", example = "12")

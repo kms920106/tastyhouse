@@ -26,7 +26,6 @@ public record ProductSoldOutUntilRequest(
         example = "2026-08-18T09:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDateTime soldOutUntil
 ) {
-
     public ProductSoldOutUntilChangeCommand toCommand(Long ceoId) {
         return new ProductSoldOutUntilChangeCommand(ceoId, shopId, productIds, soldOutUntil);
     }

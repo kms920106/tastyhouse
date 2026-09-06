@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 
-/** 구간별 배달팁 한 행 — 팝업의 "주문금액별 배달팁" 표를 그린다. */
 @Schema(description = "주문금액 구간별 배달팁")
 public record ShopDeliveryTipTierItem(
     @Schema(description = "이 구간이 적용되는 최소 주문금액(원)", example = "15000")

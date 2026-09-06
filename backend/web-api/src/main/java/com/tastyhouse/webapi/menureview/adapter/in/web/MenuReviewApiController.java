@@ -32,17 +32,10 @@ import com.tastyhouse.application.menureview.port.in.MenuReviewQueryUseCase;
 import com.tastyhouse.application.menureview.port.in.MenuReviewUpdateCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
-/**
- * 메뉴 평가 API — 매장 리뷰({@code /api/reviews})와 <b>독립된 축</b>이다.
- *
- * <p>매장 리뷰를 쓰지 않아도 메뉴 평가만 남길 수 있고 그 반대도 가능하다. 그래서 두 API 사이에 호출
- * 순서 제약이 없다.
- */
 @RestController
 @RequestMapping("/api/menu-reviews")
 @Tag(name = "MenuReview", description = "메뉴 평가 API")
 public class MenuReviewApiController {
-
     private final MenuReviewCommandUseCase menuReviewCommandUseCase;
     private final MenuReviewQueryUseCase menuReviewQueryService;
 

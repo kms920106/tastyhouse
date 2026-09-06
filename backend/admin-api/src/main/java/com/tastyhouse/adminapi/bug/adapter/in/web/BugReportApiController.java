@@ -35,7 +35,6 @@ import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 @RestController
 @RequestMapping("/api/bug-reports")
 public class BugReportApiController {
-
     private final BugReportManagementCommandUseCase bugReportCommandUseCase;
     private final BugReportQueryUseCase bugReportQueryUseCase;
 

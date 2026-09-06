@@ -60,7 +60,6 @@ public record ProductCreateRequest(
         + "지정하면 본인 소유 가게여야 하고 각 가게의 메뉴그룹이 필수다.")
     List<ProductShopLinkItemRequest> links
 ) {
-
     public ProductOwnerCreateCommand toCommand(Long ceoId) {
         return new ProductOwnerCreateCommand(
             ceoId,

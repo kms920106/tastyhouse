@@ -4,13 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 
-/**
- * 사장님 추천(대표 메뉴) 지정 요청 검수 목록 항목.
- *
- * <p>{@code imageUrl}을 목록에 함께 담는다 — 대표 메뉴는 가게 상단에 사진으로 노출되므로 사진이
- * 검수의 실질적 근거이고, 검수자가 상세를 다시 열지 않고 판정할 수 있어야 한다(채식 요청이 재료를
- * 목록에 담는 것과 같은 이유).
- */
 @Schema(description = "사장님 추천 메뉴 지정 요청 목록 항목")
 public record ProductRepresentativeRequestItemResponse(
     @Schema(description = "요청 ID", example = "7")
@@ -39,7 +32,6 @@ public record ProductRepresentativeRequestItemResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "메뉴가 잘 보이지 않습니다.")
     String rejectReason
 ) {
-
     public static ProductRepresentativeRequestItemResponse from(ProductRepresentativeRequestResult result) {
         return new ProductRepresentativeRequestItemResponse(
             result.id(),

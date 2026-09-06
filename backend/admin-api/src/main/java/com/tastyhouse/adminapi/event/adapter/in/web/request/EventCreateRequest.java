@@ -45,7 +45,6 @@ public record EventCreateRequest(
     @Schema(description = "종료 일시", example = "2026-01-31T23:59:59", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDateTime endAt
 ) {
-
     public EventCreateCommand toCommand() {
         return new EventCreateCommand(
             name(),

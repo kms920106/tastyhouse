@@ -50,7 +50,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/reviews")
 @Tag(name = "Review", description = "리뷰 관리 API")
 public class ReviewApiController {
-
     private final ReviewCommandUseCase reviewCommandUseCase;
     private final ReviewQueryUseCase reviewQueryService;
 
@@ -243,11 +242,6 @@ public class ReviewApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 선택적 인증 — {@code /api/reviews/**}는 permitAll이라 비로그인 접근이 가능하므로
-     * {@code @CurrentUser}가 {@code null}로 들어올 수 있다. 사장님만보기 리뷰의 본인 판정에 쓰인다
-     * ({@code ShopApiController}의 동명 헬퍼와 같은 형태).
-     */
     private Long memberIdOrNull(MemberUserDetails userDetails) {
         return userDetails == null ? null : userDetails.getMemberId();
     }

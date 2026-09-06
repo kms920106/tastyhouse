@@ -120,10 +120,310 @@
 
 부트스트랩(`..config..`)도 UseCase 인터페이스만 주입한다. 구체 서비스 주입은 금지다.
 
-`webAdaptersShouldNotDependOnApplicationServices`가 `..adapter.in.web..`로 대상을 좁히므로 **`config..`의 구체 서비스 주입은 무검사 사각지대였다.** 실제로 `UadminSeeder`가 인바운드 포트가 아니라 구체 클래스 `UadminQueryService`를 주입하고 있었고, 호출하던 연산(`existsByUsername`)은 이미 포트에 선언돼 있어 신규 코드 없이 교체됐다.
+`webAdaptersShouldNotDependOnApplicationServices`가 `..adapter.in.web..`로 대상을 좁히므로 **`config..`의 구체 서비스 주입은 무검사 사각지대였다.** 실제로 `AdminSeeder`가 인바운드 포트가 아니라 구체 클래스 `AdminQueryService`를 주입하고 있었고, 호출하던 연산(`existsByUsername`)은 이미 포트에 선언돼 있어 신규 코드 없이 교체됐다.
 
 **시더가 없는 web-api와 `config..`가 없는 batch-module에는 대상 0건이라 두지 않는다(공허 통과 회피).**
 
 ### `shouldDependOnOauthSpiOnlyNotProviderPackages`는 이 모듈에 두지 않는다
 
 web-api에 있는 이 규칙을 **이 모듈에 복제하지 않는다** — admin에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다(전환 전 이 앱의 `LayerRulesTest`에도 없던 규칙이다).
+
+### 이하 — 챕터 06에서 코드 주석으로부터 이관된 가드
+
+<!-- 분류 A. 원문 주석은 챕터 06에서 제거됐으므로 이 절이 그 금지 지시의 유일한 소재지다 -->
+
+### `AdminSeeder.seedSuperAdmin` — 시더는 도메인 enum을 참조하지 않는다 (검출 시점이 늦춰지는 대가 포함)
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/config/AdminSeeder.java`
+→ 클래스 `AdminSeeder`, `seedSuperAdmin(...)`
+
+`role`은 도메인 enum이 아니라 **문자열**(`"SUPER_ADMIN"`)로 넘긴다. HTTP 경계가 도메인 enum을 `String`으로 받고 승격은 서비스가 `Enum.from(String)`으로 수행한다는 도메인 enum 경계 규칙(`backend/CLAUDE.md`)을 **부트스트랩에도 동일하게** 적용한 것이며, `AdminCreateRequest`가 `allowableValues`로 같은 문자열을 쓰는 것과 대칭이다. 덕분에 이 모듈은 `com.tastyhouse.domain..`를 알지 않는다(`apiModuleShouldBeDomainModelFree`). **여기에 도메인 enum 참조를 되살리지 말 것.**
+
+대가는 명확히 기록한다. 승격·검증은 `AdminCommandService`의 `AdminRole.from(command.role())`이 담당하므로 **상수명이 어긋나면 `BusinessException(ErrorCode.ADMIN_ROLE_UNKNOWN)`으로 신규 시드 경로에서 부팅이 실패**한다. 다만 이 검증은 멱등성 체크(`existsByUsername`) **이후**에 있어 이미 시드된 DB에서는 시드가 생략되어 드러나지 않는다 — enum 참조를 뗀 대가로 잃은 것은 컴파일 게이트가 아니라 **검출 시점**이다(빈 DB 최초 기동까지 지연).
+
+### `AdminSeeder.seedSuperAdmin` — 기본(취약) 비밀번호 시드 차단 가드
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/config/AdminSeeder.java`
+→ `seedSuperAdmin(...)` 내 `seedProperties.isDefaultPassword()` 분기
+
+기본(취약) 비밀번호로 운영에 시드되는 것을 방지한다 — **신규 시드 시에는 외부 주입 비밀번호를 강제**하며, 미주입이면 `IllegalStateException`으로 **부팅을 실패시킨다**. 이 fail-fast를 완화하거나 기본값 시드를 허용하도록 바꾸지 말 것. (위 role 가드와 부팅 실패라는 점은 같으나 예외 타입이 다르다 — 이쪽은 `IllegalStateException`, 저쪽은 `BusinessException`.)
+
+### `AdminSeedProperties.UNSET_PASSWORD` — 센티넬 값 봉인
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/config/AdminSeedProperties.java`
+→ `UNSET_PASSWORD`, `isDefaultPassword()`
+
+`ADMIN_SEED_PASSWORD` 미설정 시의 센티넬 값(`__UNSET__`)이다. **이 값이면 시드를 거부(fail-fast)한다.** 센티넬을 실제 사용 가능한 기본 비밀번호로 바꾸면 위 가드가 무력화된다.
+
+### `SecurityConfig.securityFilterChain` — `anyRequest().hasAnyRole("ADMIN","SUPER_ADMIN")`는 심층 방어이므로 `authenticated()`로 완화하지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/config/security/SecurityConfig.java`
+→ `securityFilterChain(HttpSecurity)`
+
+- 공개 경로는 `PublicPaths.PATTERNS`에서 **중앙 관리**한다(여기에 개별 경로를 흩어 놓지 말 것).
+- 로그아웃(`/api/auth/v1/logout`)은 **인증만** 필요하다 — 특정 역할을 요구하지 않는 이유는 임의 토큰이 블랙리스트에 등록되는 것을 막기 위함이다.
+- 나머지 API는 **관리자 역할 필수**다. 이것은 심층 방어로, 잘못 발급·유출된 비-관리자 토큰이 `authenticated()`만으로 통과하는 것을 차단한다. **`authenticated()`로 낮추지 말 것.**
+
+### `ShopBusinessHourResponse` / `ShopBreakTimeResponse` / `ShopHygieneBadgeResponse` — 필드가 같아도 ceo·공유 모듈로 통합하지 않는다
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopBusinessHourResponse.java` → 클래스 `ShopBusinessHourResponse`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopBreakTimeResponse.java` → 클래스 `ShopBreakTimeResponse`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopHygieneBadgeResponse.java` → 클래스 `ShopHygieneBadgeResponse`
+
+과거에는 admin·ceo가 바이트 동일하다는 이유로 `api-common-module`이 `ShopBusinessHourResponse`를 단독 소유했으나, 그 위치는 **표현 계약을 공유 웹 어댑터 모듈이 갖는** 배치라 application 계층이 그것을 조립하려면 api-common에 의존해야 했다. **지금은 앱별로 각자 소유한다.** admin·ceo가 같은 필드 구성을 갖는 것은 중복이 아니라 **우연히 일치한 앱별 응답 계약**이며, 한쪽 화면 요구가 바뀌면 다른 쪽을 건드리지 않고 갈라질 수 있어야 한다. **"똑같으니 합치자"로 되돌리지 말 것.** `ShopBreakTimeResponse`·`ShopHygieneBadgeResponse`도 같은 이유로 이 모듈이 소유한다.
+
+### `ShopRequestCommentResponse` — ceo-api 동명 record와 통합 금지
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopRequestCommentResponse.java`
+→ 클래스 `ShopRequestCommentResponse`
+
+ceo-api의 동명 record와 필드가 같지만 **통합하지 않는다** — 각 모듈이 자기 응답 계약을 소유하는 이 저장소의 관례이고, 담당자 화면에서 작성자 표기가 갈릴 여지가 있다. 작성자 실명·식별자는 **양쪽 모두 노출하지 않는다.**
+
+### `ShopOrderNoticeResponse` — 점주용 동명 record와 통합 금지
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopOrderNoticeResponse.java`
+→ 클래스 `ShopOrderNoticeResponse`
+
+점주용(`ceoapi.shop.response.ShopOrderNoticeResponse`)과 필드 구성이 같지만 **소비자가 다른 응답이라 각 모듈이 자기 사본을 소유한다.** admin/web Result 충돌 시 통합 금지 원칙과 동일한 취지로, 화면 계약이 갈릴 여지를 남긴다.
+
+### `StorePriceVerificationSearchRequest` — `ProductApprovalSearchRequest`와 합치지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/request/StorePriceVerificationSearchRequest.java`
+→ 클래스 `StorePriceVerificationSearchRequest`
+
+`ProductApprovalSearchRequest`를 재사용하지 않는 이유는 **상태 집합이 다르기 때문**이다 — 인증 요청은 `IN_PROGRESS`(검수 착수)를 갖는다. 한 record를 공유하면 Swagger의 `allowableValues`가 어느 한쪽에 대해 **거짓말을 하게 된다.** 중복처럼 보여도 합치지 말 것.
+
+### `ProductOptionCreateRequest.cupCount` — `@Min`/`@Max`를 붙이지 말 것
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/request/ProductOptionCreateRequest.java`
+→ 컴포넌트 `cupCount`
+
+범위(1~10) 검증은 Bean Validation이 아니라 **도메인 계층(`CupDepositPolicy#validateCupCount`)이 소유한다.** 여기에 `@Min`/`@Max`를 다시 붙이면 경계별로 다른 문구가 나가 `ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID`의 통합 메시지("1개 이상 10개 이하")와 어긋난다.
+
+### `ShopRiderPickupLocationUpdateRequest` — 좌표 범위 판정을 Request로 끌어올리지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopRiderPickupLocationUpdateRequest.java`
+→ 클래스 `ShopRiderPickupLocationUpdateRequest`
+
+좌표 범위 판정은 도메인(`ShopRiderGuide`)이 담당한다 — **점주 경로(ceo-api)와 같은 게이트가 적용되어야 하므로 Request로 끌어올리지 않는다.** Bean Validation으로 옮기면 admin 경로만 다른 게이트를 갖게 된다.
+
+### `ShopAmenityCategoryUpdateRequest` / `ShopFoodTypeCategoryUpdateRequest` — 식별 키는 수정 요청에 포함하지 않는다
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopAmenityCategoryUpdateRequest.java` → 클래스 `ShopAmenityCategoryUpdateRequest`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopFoodTypeCategoryUpdateRequest.java` → 클래스 `ShopFoodTypeCategoryUpdateRequest`
+
+편의시설 유형(`amenity`)·음식 유형(`foodType`)은 카테고리를 식별하는 키라 **생성 이후 변경할 수 없다**(도메인 `ShopAmenityCategory.amenity`·`ShopFoodTypeCategory.foodType`이 `final`). 따라서 수정 요청 record에 **포함하지 않는다.** 지정은 등록 시에만 한다 — `ShopAmenityCategoryCreateRequest`·`ShopFoodTypeCategoryCreateRequest`.
+
+### `ShopRiderVisitGuideDeleteRequest` — 사유를 쿼리 파라미터로 옮기지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopRiderVisitGuideDeleteRequest.java`
+→ 클래스 `ShopRiderVisitGuideDeleteRequest`
+
+부적합 라이더 안내 문구 삭제 조치 요청. 사유를 쿼리 파라미터가 아니라 **바디로 받는 이유는 한글 사유가 URL에 그대로 로깅되는 것을 피하기 위함**이다. `DELETE`인데 바디가 있다는 이유로 쿼리 파라미터로 되돌리지 말 것.
+
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 구조와 그 근거 (챕터 06 이관) -->
+
+### `AdminSeeder` — 최초 SUPER_ADMIN 시드를 부트스트랩에 두는 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/config/AdminSeeder.java`
+→ 클래스 `AdminSeeder`, `seedSuperAdmin(AdminQueryUseCase, AdminCommandUseCase, AdminSeedProperties)`
+
+admin 앱에는 **공개 회원가입이 없으므로** 첫 관리자는 부팅 시 **멱등하게**(`existsByUsername` 선행 체크) 주입한다. 초기 자격증명은 `application.yml`의 `admin.seed.*`(`AdminSeedProperties`)에서 주입한다.
+
+이 시더는 `admin-api`·`ceo-api`에만 있는 ArchUnit 규칙 **`seedersShouldDependOnUseCasesOnly`의 앵커**다(`web-api`에는 이 규칙이 없다). 규칙은 `..config..` 패키지가 `com.tastyhouse.application..service..`에 의존하는 것을 금지하며, `.because("부트스트랩 시더도 UseCase 인터페이스만 주입한다(구체 서비스 금지)")`. 그래서 `AdminSeeder`는 `AdminCommandService`가 아니라 `AdminCommandUseCase`·`AdminQueryUseCase` **인바운드 포트만** 주입받는다.
+
+### `FileResponse` — 4개 컨텍스트가 공유하므로 `common`에 둔다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/common/response/FileResponse.java`
+→ 클래스 `FileResponse`
+
+업로드 파일 정보 응답(중첩 표현 계약). 배너·이벤트·버그리포트·랭크 **4개 컨텍스트**의 Response에 중첩되므로 특정 컨텍스트가 아니라 `common`에 둔다(챕터 06). 각 컨텍스트의 `*Result`는 파일 식별자·파일명·URL을 **평면으로 투영**하므로, 컨트롤러가 그 세 값으로 이 record를 조립한다 — **파일을 다시 조회하지 않는다.**
+
+### `ShopBusinessHourResponse.from` — 도메인 enum 파생 표시명은 웹 어댑터가 푼다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopBusinessHourResponse.java`
+→ `from(ShopBusinessHourResult)`
+
+챕터 06 — 요일 표시명(`description`)처럼 **도메인 enum에서 파생되는 값**은 이 record의 `from(ShopBusinessHourResult)`가 풀어 담는다. 표현 계약 조립이 웹 어댑터로 내려왔으므로 QueryService는 `ShopBusinessHourResult`를 그대로 반환한다.
+
+### `ShopOrderNoticeAdminApiController` — 승인 엔드포인트가 없고 경로에 가게 ID를 남긴 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/ShopOrderNoticeAdminApiController.java`
+→ 클래스 `ShopOrderNoticeAdminApiController`
+
+주문안내 검수 관리자 API. **승인/반려 엔드포인트가 없다** — 주문안내는 승인 절차 없이 즉시 반영되므로 검수 대기 상태가 존재하지 않고, 관리자가 할 수 있는 것은 사후 게시중단과 그 해제뿐이다.
+
+경로에 가게 ID를 그대로 둔다(`ShopNoticeAdminApiController`는 전역 `noticeId`로 평탄화했다). 주문안내는 **가게당 1건**이라 `shopId` 자체가 자원 식별자이므로 평탄화할 것이 없고, ceo·web 경로와 같은 형태를 유지해 세 앱의 URL을 대조하기 쉽게 한다.
+
+### `ShopNoticeAdminApiController` — 경로 평탄화와 IDOR 위험 부재
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/ShopNoticeAdminApiController.java`
+→ 클래스 `ShopNoticeAdminApiController`
+
+점주 공지 검수 관리자 API. **경로에 가게 ID가 없다** — 관리자는 전체 공지를 가로질러 검수하므로 `noticeId`(전역 유니크 PK) 단독으로 대상을 특정한다("컨트롤러 미사용 `@PathVariable` 경로 평탄화 규칙"). 소유권 검증 자체가 관리자에게는 적용되지 않으므로, **평탄화가 검증 생략으로 이어지는 IDOR 위험도 없다.**
+
+### `ShopMenuCollectionImageAdminApiController` — `ProductApprovalApiController`와 같은 형태를 유지
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/ShopMenuCollectionImageAdminApiController.java`
+→ 클래스 `ShopMenuCollectionImageAdminApiController`
+
+메뉴모음컷 검수 관리자 API. 점주가 올린 메뉴모음컷을 승인·반려한다. 승인하면 그 즉시 손님 화면 최상단에 노출되므로 **검수 대상은 이미지의 내용**이다 — 순서 변경·삭제는 점주가 승인 없이 즉시 수행하며 이 API를 타지 않는다.
+
+`ProductApprovalApiController`와 **같은 형태**(상태 필터 목록 + `PATCH approve`/`reject`)를 유지한다 — 관리자 검수 화면이 탭만 바꿔 같은 조작을 하기 때문이다.
+
+### `ProductApprovalApiController` — 승인요청 3종이 컨트롤러 하나를 공유하는 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/ProductApprovalApiController.java`
+→ 클래스 `ProductApprovalApiController`
+
+메뉴 이미지·채식·사장님 추천 승인요청 검수 API. **승인요청 3종이 컨트롤러 하나를 공유한다.** 검수 유형마다 컨트롤러를 새로 만들면 관리자 검수 화면이 탭마다 다른 곳을 호출해야 하고, 공통 요청·응답 계약(상태 필터·반려 사유·페이징)이 유형별로 갈리기 시작한다.
+
+### `StorePriceVerificationAdminApiController` — HTTP 경로(`shops`)와 자바 패키지(`product`)가 갈리는 것은 의도
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/StorePriceVerificationAdminApiController.java`
+→ 클래스 `StorePriceVerificationAdminApiController`
+
+경로가 `/api/shops`인 이유는 요청이 **가게 단위로 접수**되기 때문이다(테이블명 `SHOP_STORE_PRICE_VERIFICATION`과 같은 근거). 반면 **자바 패키지는 `product`**다 — 애그리거트·도메인 서비스·query DAO가 모두 product 컨텍스트 소유이고, 승인이 실제로 쓰는 대상이 `PRODUCT_PRICE`이기 때문이다. **경로와 패키지가 갈리는 것은 의도된 것**이며, 분기 근거는 `StorePriceVerificationService`의 Javadoc이 상세히 설명한다.
+
+**목록과 상세가 모두 필요하다.** 검수의 실질은 가격표 이미지 한 장과 신고된 매장가 N건을 한 줄씩 맞춰 보는 **대조**이며, 요청 1건에 메뉴가 N건 달려 목록에 펼치면 페이징이 깨진다. 목록은 판정 전 훑어보기(가게·상태·항목 수·가격표 이미지)를, 상세는 판정 근거(메뉴별 앱 가격 대 신고 매장가)를 담당한다.
+
+### `StorePriceVerificationDetailResponse` — 상세를 목록과 분리한 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/StorePriceVerificationDetailResponse.java`
+→ 클래스 `StorePriceVerificationDetailResponse`, 컴포넌트 `items`
+
+검수 판정에 필요한 모든 근거를 한 응답에 담는다. 상세가 목록과 별도로 필요한 이유는 검수의 실질이 **메뉴별 대조**라는 데 있다 — 이 대조표 없이는 승인 버튼을 누를 근거가 없다. 목록에 항목을 펼치면 요청 1건이 N행으로 부풀어 페이징이 깨지므로 상세로 분리했다. `items`는 **접수 순서를 유지한다** — 점주가 가격표에 적은 순서와 같아 대조가 쉽다.
+
+### `StorePriceVerificationListItemResponse` — 목록이 담는 것과 담지 않는 것
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/StorePriceVerificationListItemResponse.java`
+→ 컴포넌트 `priceListFileUrl`, `itemCount`
+
+`priceListFileUrl`을 목록에 담는다 — 가격표 이미지가 검수의 유일한 근거이므로 검수자가 목록에서 곧바로 열어볼 수 있어야 한다(사장님 추천 요청이 메뉴 이미지를 목록에 담는 것과 같은 이유). `itemCount`만 담고 항목 자체는 담지 않는다 — 요청 1건에 메뉴가 N건 달려 목록에 펼치면 페이징이 무의미해진다. 메뉴별 대조는 상세 조회의 몫이다.
+
+### `ProductImageChangeRequestItemResponse` / `ShopMenuCollectionImageRequestItemResponse` — fileId가 아니라 URL을 담는 이유
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/ProductImageChangeRequestItemResponse.java` → 클래스 `ProductImageChangeRequestItemResponse`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopMenuCollectionImageRequestItemResponse.java` → 클래스 `ShopMenuCollectionImageRequestItemResponse`, 컴포넌트 `shopName`
+
+파일 식별자 대신 **표시용 URL**을 담는다 — 검수자가 이미지를 눈으로 확인해야 하고, 프론트엔드가 `fileId`로 URL을 조립할 공식 경로가 없다. 메뉴모음컷 쪽이 `shopName`을 함께 담는 이유는 가게 식별자만으로는 검수자가 어느 가게 요청인지 판단할 수 없기 때문이다.
+
+### `ProductVegetarianRequestItemResponse` / `ProductRepresentativeRequestItemResponse` — 목록에서 판정 가능해야 한다
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/ProductVegetarianRequestItemResponse.java` → 컴포넌트 `ingredients`, `description`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/ProductRepresentativeRequestItemResponse.java` → 컴포넌트 `imageUrl`
+
+채식 요청은 `ingredients`·`description`을 목록에 함께 담는다 — 그것이 검수의 유일한 근거이므로 검수자가 상세를 다시 열지 않고 판정할 수 있어야 한다. 사장님 추천 요청은 같은 이유로 `imageUrl`을 담는다 — 대표 메뉴는 가게 상단에 사진으로 노출되므로 사진이 검수의 실질적 근거다.
+
+### `StorePriceVerificationItemResponse` — 대조표 한 줄의 구성과 두 가격의 성격 차이
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/response/StorePriceVerificationItemResponse.java`
+→ 컴포넌트 `deliveryPrice`, `storePrice`
+
+`deliveryPrice`(현재 앱 노출가)와 `storePrice`(점주가 신고한 매장가)를 **나란히** 담는 것이 이 record의 존재 이유다. 검수자는 가격표 이미지의 금액이 `storePrice`와 맞는지, 그리고 그 값이 앱 가격과 비교해 타당한지를 함께 본다.
+
+`deliveryPrice`는 **조회 시점의 현재 값**이라 요청 접수 시점과 다를 수 있다. 반면 `storePrice`는 **요청 시점에 박제된 값**이며 승인 시 그대로 반영된다 — 검수자가 보지 않은 값이 승인되지 않게 하려는 설계다.
+
+### `ShopDeliveryAreaAdjustmentListItemResponse` — 목록에 중첩 근거를 담지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopDeliveryAreaAdjustmentListItemResponse.java`
+→ 클래스 `ShopDeliveryAreaAdjustmentListItemResponse`
+
+배달지역 조정 신청 목록 항목(검수 화면). 중첩 사유·동의서는 담지 않는다 — 상세 조회에서 본다.
+
+### `ShopDetailResponse.from` — 팩토리가 Result 외에 URL을 별도로 받는 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopDetailResponse.java`
+→ `from(ShopManagementDetailResult, String thumbnailImageUrl)`
+
+썸네일 URL은 `ShopManagementDetailResult`에 없다 — **가게 상세와 이미지가 서로 다른 읽기 포트에 있어** QueryService가 두 번 조회해 합친다. 그래서 이 팩토리만 Result 한 개가 아니라 조회된 URL을 별도 인자로 받는다(미등록이면 `null`).
+
+### `ShopRiderGuideDetailResponse.from` — 중첩 응답 조립 위치
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopRiderGuideDetailResponse.java`
+→ 클래스 `ShopRiderGuideDetailResponse`, `from(...)`
+
+관리자 검수 화면용 라이더 안내 단건 조회 응답. 문구·픽업 위치와 함께 **최근 변경 이력**을 내려준다. 중첩 응답(픽업 위치·변경 이력)은 이 팩토리에서 조립한다 — 픽업 위치는 미설정이면 `null`이 되며, 이력은 **별도 조회 결과라 인자로 받는다.**
+
+### `ShopRiderPickupLocationResponse.from` — null이 폴백 상태의 판정 신호다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/response/ShopRiderPickupLocationResponse.java`
+→ `from(ShopRiderGuideResult)`
+
+픽업 위치가 미설정이면 `null`을 반환해, 프론트가 **"가게 실주소로 폴백" 상태임을 한 필드로 판정**하게 한다. 빈 객체나 기본 좌표로 채우면 이 판정이 불가능해진다.
+
+### `EventDetailResponse.toFileResponse` — join 결과로 조립하되 참조 무결성 깨짐은 기존 동작 보존
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/event/adapter/in/web/response/EventDetailResponse.java`
+→ `toFileResponse(Long fileId, String fileName, String imageUrl)`
+
+상세용 — DAO가 join으로 함께 가져온 파일명·URL로 조립한다(**추가 조회 없음**). `fileId`가 없으면(파일 미등록) `null`을 그대로 반환하되, **`fileId`는 있는데 left join이 URL을 못 찾았다면(참조 무결성 깨짐) 과거 `fileService.findFileResponse` 호출 시의 `FILE_NOT_FOUND` 동작을 그대로 보존한다** — 썸네일·배너는 필수 자산이므로 조용히 `null`을 내려보내지 않는다.
+
+### `EventListItemResponse.toFileResponse` / `BugReportDetailResponse.toFileResponses` — 목록은 추가 조회 없이 join 결과로 조립
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/event/adapter/in/web/response/EventListItemResponse.java` → `toFileResponse(Long, String, String)`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/bug/adapter/in/web/response/BugReportDetailResponse.java` → `toFileResponses(List<BugReportImageResult>)`
+
+DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음). 목록용 이벤트는 `fileId`가 없으면 `null`을 그대로 반환한다(상세와 달리 `FILE_NOT_FOUND` 보존 대상이 아니다).
+
+### `OrderDetailResponse.toPaymentStatusName` — 승격 이전 동작(null) 보존
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/order/adapter/in/web/response/OrderDetailResponse.java`
+→ `toPaymentStatusName(OrderPaymentResult)`
+
+결제 상태 이름 — 결제가 없거나 상태가 비어 있으면 `null`이다. Response 승격 이전 서비스 동작을 그대로 보존한 것으로, 빈 문자열이나 기본 상태명으로 바꾸면 프론트 분기가 달라진다.
+
+### `MemberSummaryResponse.from` — 제보자 미조회 시 null 보존
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/bug/adapter/in/web/response/MemberSummaryResponse.java`
+→ `from(MemberWithProfileImageResult)`
+
+제보자 회원이 조회되지 않으면 `null`을 그대로 반환한다(Response 승격 이전 서비스 동작 보존).
+
+### `ShopApiController.createShop` / `assignCeo` / `revokeCeo` — 등록 POST 규칙 예외와 인증 주체 전달
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/ShopApiController.java`
+→ `createShop(...)`, `assignCeo(...)`, `revokeCeo(...)`
+
+- `createShop`: `ceoId`를 함께 지정하면 **접근권한 부여 이력이 남으므로** 조치한 관리자를 인증 주체(`AdminUserDetails`)에서 얻어 함께 넘긴다 — 요청·응답 계약은 변하지 않는다.
+- `assignCeo`: 리소스 등록이 아니라 **관계 설정(상태전이)**이므로 등록 POST의 "생성된 id 반환" 규칙 적용 대상이 아니며 `Void`를 반환한다.
+- `revokeCeo`: 해제 이후 그 점주의 해당 가게 관리 호출은 **전부 403**이 된다.
+
+### `ShopCeoAssignRequest` — 배정에는 본문이 있고 해제에는 없는 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopCeoAssignRequest.java`
+→ 클래스 `ShopCeoAssignRequest`
+
+배정은 **개인정보처리시스템 접근권한 부여**이므로 대상 점주가 반드시 지정돼야 한다. 해제는 대상이 "현재 배정된 점주"로 이미 정해져 있어 본문이 없다(별도 `DELETE` 엔드포인트).
+
+### `ShopMenuCollectionImageSearchRequest` / `ProductApprovalSearchRequest` / `StorePriceVerificationSearchRequest` — 상태 필터는 `String`으로 받는다
+
+**대상**:
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopMenuCollectionImageSearchRequest.java` → 컴포넌트 `status`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/request/ProductApprovalSearchRequest.java` → 컴포넌트 `status`
+`backend/admin-api/src/main/java/com/tastyhouse/adminapi/product/adapter/in/web/request/StorePriceVerificationSearchRequest.java` → 컴포넌트 `status`
+
+`status`는 도메인 enum 경계 규칙에 따라 HTTP 경계에서 `String`으로 받고 **Service가 승격**한다. **지정하지 않으면 상태 무관 전체를 조회**한다.
+
+### `ReviewBlindRequestSearchRequest` — `allowableValues`를 수동 명시하는 이유
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/review/adapter/in/web/request/ReviewBlindRequestSearchRequest.java`
+→ 컴포넌트 `status`, `reason`
+
+`status`/`reason`은 도메인 enum 경계 규칙에 따라 HTTP 경계에서 `String`으로 받고 Service에서 승격한다. **`String` 파라미터는 Swagger가 enum 스키마를 자동 생성하지 못하므로 후보값을 `allowableValues`로 수동 명시한다.**
+
+### `ShopRiderVisitGuideRevisionRequest` — 수정 요청 조치는 문구를 바꾸지 않는다
+
+**대상**: `backend/admin-api/src/main/java/com/tastyhouse/adminapi/shop/adapter/in/web/request/ShopRiderVisitGuideRevisionRequest.java`
+→ 클래스 `ShopRiderVisitGuideRevisionRequest`
+
+라이더 안내 문구 수정 요청 조치. **문구는 그대로 두고 이력만 남긴다** — 삭제 조치(`ShopRiderVisitGuideDeleteRequest`)와 달리 문구 자체는 유지된다.
+

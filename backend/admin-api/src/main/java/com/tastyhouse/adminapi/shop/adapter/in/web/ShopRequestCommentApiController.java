@@ -27,7 +27,6 @@ import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRequestCommentApiController {
-
     private final ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase;
     private final ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase;
 

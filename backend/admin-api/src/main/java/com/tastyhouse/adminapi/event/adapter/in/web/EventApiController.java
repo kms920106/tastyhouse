@@ -45,7 +45,6 @@ import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/events")
 public class EventApiController {
-
     private final EventCommandUseCase eventCommandUseCase;
     private final EventManagementQueryUseCase eventQueryUseCase;
 

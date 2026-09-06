@@ -8,14 +8,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 
-/**
- * 옵션그룹 등록 요청.
- *
- * <p>{@code productId}가 필수인 이유: {@code PRODUCT_OPTION_GROUP.product_id}가 1단계 배포 동안
- * {@code NOT NULL}로 남아 있고({@code product-menu-management.sql} STEP 6에서 제거 예정),
- * 무엇보다 <b>연결이 0건인 그룹은 어느 화면에서도 보이지 않는 고아</b>가 된다. 등록 시 이 메뉴에
- * 곧바로 연결해 그룹이 항상 소유 가게로 역조회되도록 보장한다.
- */
 @Schema(description = "옵션그룹 등록 요청")
 public record ProductOptionGroupCreateRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -60,7 +52,6 @@ public record ProductOptionGroupCreateRequest(
         example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
     String groupType
 ) {
-
     public ProductOptionGroupOwnerCreateCommand toCommand(Long ceoId) {
         return new ProductOptionGroupOwnerCreateCommand(
             ceoId,

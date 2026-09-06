@@ -23,20 +23,10 @@ import com.tastyhouse.application.product.port.in.ProductRepresentativeClearComm
 import com.tastyhouse.application.product.port.in.ProductRepresentativeCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestCommand;
 
-/**
- * 점주 사장님 추천(대표 메뉴) API.
- *
- * <p><b>지정은 승인을 거치고 해제는 즉시 반영된다.</b> 검수의 목적이 부적합한 메뉴가 가게 상단에
- * 노출되는 것을 막는 데 있어, 해제 방향에는 그 위험이 없기 때문이다(메뉴 이미지 등록/순서변경,
- * 채식 설정/해제와 같은 판단).
- *
- * <p>등록 기준(PDF): 가게당 최대 6개 · 이미지가 등록된 메뉴만 · 최소 1개는 유지.
- */
 @Tag(name = "Ceo Product Representative", description = "점주 사장님 추천(대표 메뉴) API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductRepresentativeApiController {
-
     private final ProductRepresentativeCommandUseCase productRepresentativeCommandUseCase;
 
     public ProductRepresentativeApiController(

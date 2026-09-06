@@ -25,17 +25,10 @@ import com.tastyhouse.application.notification.port.in.NotificationMarkAsReadCom
 import com.tastyhouse.application.notification.port.in.NotificationQueryUseCase;
 import com.tastyhouse.webapi.security.CurrentUser;
 
-/**
- * 인앱 알림함 API(web).
- *
- * <p>전 엔드포인트가 로그인 필수다 — 모든 조회·전이가 "내 알림"으로 스코프되며, 대상 회원은 경로/바디가
- * 아니라 <b>토큰에서만</b> 얻는다. 회원 식별자를 요청으로 받으면 그 자체가 IDOR 입구가 된다.
- */
 @RestController
 @RequestMapping("/api/notifications")
 @Tag(name = "Notification", description = "인앱 알림함 API")
 public class NotificationApiController {
-
     private final NotificationQueryUseCase notificationQueryService;
     private final NotificationCommandUseCase notificationCommandUseCase;
 

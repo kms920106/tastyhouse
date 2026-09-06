@@ -46,19 +46,10 @@ import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeUseCa
 import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerUseCase;
 import com.tastyhouse.application.product.port.in.ProductAvailabilityQueryUseCase;
 
-/**
- * 점주 메뉴·옵션 품절·숨김 관리 API.
- *
- * <p>모든 핸들러가 body 또는 query의 {@code shopId}로 소유권을 검증한다 — 일괄 API가 {@code shopId}를
- * 필수로 받게 해 "경로에 shopId가 없어 검증을 생략"하는 IDOR 형태를 구조적으로 없앤다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Availability", description = "점주 메뉴·옵션 품절·숨김 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductAvailabilityApiController {
-
     private final ProductAvailabilityQueryUseCase productAvailabilityQueryService;
     private final ProductSoldOutOwnerUseCase productSoldOutUseCase;
     private final ProductHideUseCase productHideUseCase;
@@ -91,8 +82,6 @@ public class ProductAvailabilityApiController {
         this.productOptionSoldOutUntilChangeUseCase = productOptionSoldOutUntilChangeUseCase;
     }
 
-    // ── 조회 ────────────────────────────────────────────────────────────────────────
-
     @Operation(summary = "품절·숨김 관리 메뉴 목록 조회",
         description = "메뉴그룹(카테고리) 단위로 묶어 반환합니다. 품절·숨김 항목도 포함하며 페이징이 없습니다. "
             + "품절보기·숨김보기를 함께 지정하면 OR로 동작합니다.")
@@ -120,8 +109,6 @@ public class ProductAvailabilityApiController {
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-
-    // ── 메뉴 일괄 처리 ──────────────────────────────────────────────────────────────
 
     @Operation(summary = "메뉴 일괄 품절",
         description = "품절 기간을 지정하지 않으면 서버가 다음 영업일 오픈 시각으로 채웁니다. "
@@ -173,8 +160,6 @@ public class ProductAvailabilityApiController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // ── 옵션 일괄 처리 ──────────────────────────────────────────────────────────────
-
     @Operation(summary = "옵션 일괄 품절",
         description = "옵션그룹별로 최소 선택 개수만큼은 판매 중이어야 합니다. 제약에 걸린 옵션은 failed에 담깁니다.")
     @PatchMapping("/v1/availability/options/sold-out")
@@ -220,5 +205,4 @@ public class ProductAvailabilityApiController {
         ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productOptionSoldOutUntilChangeUseCase.changeOptionsSoldOutUntil(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-
 }

@@ -65,12 +65,6 @@ public record EventDetailResponse(
         );
     }
 
-    /**
-     * 상세용 — DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음). fileId가 없으면(파일
-     * 미등록) {@code null}을 그대로 반환하되, fileId는 있는데 left join이 URL을 못 찾았다면(참조 무결성
-     * 깨짐) 과거 {@code fileService.findFileResponse} 호출 시의 {@code FILE_NOT_FOUND} 동작을 그대로
-     * 보존한다 — 썸네일·배너는 필수 자산이므로 조용히 null을 내려보내지 않는다.
-     */
     private static FileResponse toFileResponse(Long fileId, String fileName, String imageUrl) {
         if (fileId == null) {
             return null;

@@ -184,3 +184,22 @@
 - 자기 가게의 리뷰 평점 통계와 월별 추이를 본다.
 
 점주가 답변을 등록하면 그 리뷰를 쓴 회원에게 **인앱 알림**이 간다(알림 도메인 참고). 수정·삭제에는 알림이 가지 않는다 — 같은 답변으로 알림이 반복되면 회원에게 스팸이 되기 때문이다.
+
+## 점주 화면이 드러내는 규칙 (챕터 06 이관)
+
+<!-- 분류 C. ceo-api 코드 주석에서 이관. 역참조 앵커는 각 항목의 '대상' 참조 -->
+
+### 리뷰 게시중단 요청 · 사장님 답변 · 리뷰 통계
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/review/adapter/in/web/request/ReviewBlindRequestCreateRequest.java` → record 컴포넌트 `reason`, `detailReason`, `attachments`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/review/adapter/in/web/response/ShopReviewListItemResponse.java` → record 컴포넌트 `replyDeadline`, `replyable`, 상수 `REVIEW_NUMBER_LENGTH`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/review/adapter/in/web/response/ShopReviewStatisticsResponse.java` → record 컴포넌트 `hasData`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopRequestReviewBlindResponse.java` → record 전체
+
+- 게시중단 요청은 `reason=ETC`일 때 `detailReason`이 **필수**다(`REVIEW_BLIND_DETAIL_REASON_REQUIRED`) — 사유별 필수 여부는 도메인 규칙이다.
+- **첨부 개수 상한은 3개**이며 이것은 스키마가 아니라 **정책**이다.
+- 표시용 리뷰 번호는 리뷰 ID를 **16자리 0-pad**한 값이다(원문 ② 규격).
+- 사장님 답변에는 **답변 기한(`replyDeadline`)과 답변 가능 여부(`replyable`)**가 있다. 답변 등록과 수정은 같은 필드 셋이다.
+- **최근 180일 리뷰가 0건이면 통계 대시보드를 노출하지 않는다**(원문 규정) — `hasData=false`이고 나머지는 전부 `null`·빈 값이다.
+- 통합 요청처리 화면의 게시중단 서브 객체는 **대상 리뷰의 내용을 함께 담는다** — "무엇의 게시중단을 요청했는지"를 리뷰 관리 화면으로 이동하지 않고 확인할 수 있어야 한다.

@@ -28,7 +28,6 @@ public record ProductOptionReleaseRequest(
         allowableValues = {"SOLD_OUT", "HIDDEN", "ALL"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String target
 ) {
-
     public ProductOptionReleaseCommand toCommand(Long ceoId) {
         return new ProductOptionReleaseCommand(
             ceoId,

@@ -37,7 +37,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/reservations")
 @Tag(name = "Reservation", description = "예약 API")
 public class ReservationApiController {
-
     private final ReservationCommandUseCase reservationCommandUseCase;
     private final ReservationQueryUseCase reservationQueryService;
 
@@ -122,7 +121,6 @@ public class ReservationApiController {
     @Operation(summary = "예약 승인(점주)", description = "점주가 예약을 승인합니다. (PENDING -> CONFIRMED)")
     @PatchMapping("/v1/{id}/confirm")
     public ResponseEntity<ApiResponse<ReservationResponse>> confirm(@PathVariable Long id) {
-        // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationConfirmCommand command = ReservationConfirmCommand.of(id);
         reservationCommandUseCase.confirmReservation(command);
         ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
@@ -132,7 +130,6 @@ public class ReservationApiController {
     @Operation(summary = "예약 거절(점주)", description = "점주가 예약을 거절합니다. (PENDING -> REJECTED, 정원 반납)")
     @PatchMapping("/v1/{id}/reject")
     public ResponseEntity<ApiResponse<ReservationResponse>> reject(@PathVariable Long id) {
-        // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationRejectCommand command = ReservationRejectCommand.of(id);
         reservationCommandUseCase.rejectReservation(command);
         ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
@@ -142,7 +139,6 @@ public class ReservationApiController {
     @Operation(summary = "방문 완료(점주)", description = "점주가 방문 완료 처리합니다. (CONFIRMED -> COMPLETED)")
     @PatchMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable Long id) {
-        // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         ReservationCompleteCommand command = ReservationCompleteCommand.of(id);
         reservationCommandUseCase.completeReservation(command);
         ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
@@ -152,7 +148,6 @@ public class ReservationApiController {
     @Operation(summary = "가게별 예약 목록 조회(점주)", description = "특정 가게의 예약 목록을 조회합니다.")
     @GetMapping("/v1/shops/{shopId}")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getShopReservations(@PathVariable Long shopId) {
-        // TODO(보안): Shop-owner 연결 후 점주 본인 검증 추가 필요
         List<ReservationResponse> responses = reservationQueryService.getShopReservations(shopId).stream()
             .map(ReservationResponse::from)
             .toList();

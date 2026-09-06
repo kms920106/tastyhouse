@@ -6,16 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
 
-/**
- * 요청처리 현황 목록 항목 응답.
- *
- * <p>코드와 한글 라벨을 함께 내려준다 — 코드는 프론트 분기용, 라벨은 표시용이다. 라벨을 서버가 내려주면
- * 프론트에 유형·상태 라벨 상수를 복제하지 않아 표기 변경이 서버 배포만으로 반영된다.
- *
- * <p>{@code requestId}는 <b>요청의 유일한 대외 식별자</b>다 — 상세·취소·댓글 URL이 모두 이 값 하나만 쓴다.
- *
- * <p>첨부는 존재 여부만 내려주고 URL은 상세에서 준다(목록에서 파일 join·URL 조립 비용을 치르지 않는다).
- */
 @Schema(description = "요청처리 현황 목록 항목")
 public record ShopRequestListItemResponse(
 
@@ -63,7 +53,6 @@ public record ShopRequestListItemResponse(
     @Schema(description = "최근 처리 일시. 접수 직후면 null", example = "2026-08-12T09:12:44")
     LocalDateTime processedAt
 ) {
-
     public static ShopRequestListItemResponse from(ShopRequestListItemViewResult result) {
         return new ShopRequestListItemResponse(
             result.requestId(),

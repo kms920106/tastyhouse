@@ -7,9 +7,6 @@ import jakarta.validation.constraints.Size;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
 
-/**
- * 자주 쓰는 문구 등록·수정 요청. 등록과 수정이 같은 필드 셋이라 한 record를 공용한다.
- */
 @Schema(description = "자주 쓰는 문구 등록·수정 요청")
 public record CeoReplyPhraseCreateRequest(
 
@@ -29,7 +26,6 @@ public record CeoReplyPhraseCreateRequest(
     )
     String content
 ) {
-
     public CeoReplyPhraseCreateCommand toCommand(Long ceoId) {
         return new CeoReplyPhraseCreateCommand(ceoId, name, content);
     }

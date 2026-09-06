@@ -33,7 +33,6 @@ import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
 @RestController
 @RequestMapping("/api/partnership-requests")
 public class PartnershipApiController {
-
     private final PartnershipManagementCommandUseCase partnershipCommandUseCase;
     private final PartnershipQueryUseCase partnershipQueryUseCase;
 

@@ -57,7 +57,6 @@ public record ProductUpdateRequest(
         + "기존 값이 null로 덮인다(이 API는 전체 교체다).", example = "조리 전 총 중량 1,200g")
     String weightText
 ) {
-
     public ProductOwnerUpdateCommand toCommand(Long ceoId, Long productId) {
         return new ProductOwnerUpdateCommand(
             ceoId,

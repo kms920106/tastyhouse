@@ -56,7 +56,6 @@ import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/products")
 public class ProductApiController {
-
     private final ProductManagementCreateUseCase productCreateUseCase;
     private final ProductManagementUpdateUseCase productUpdateUseCase;
     private final ProductSoldOutManagementUseCase productSoldOutUseCase;

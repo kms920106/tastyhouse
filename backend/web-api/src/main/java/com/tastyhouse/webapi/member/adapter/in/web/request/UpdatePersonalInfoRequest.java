@@ -33,13 +33,6 @@ public record UpdatePersonalInfoRequest(
     @Schema(description = "이벤트 정보 수신 동의", example = "true")
     boolean eventInfoEnabled
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     *
-     * <p>{@code fullName}·{@code phoneNumber} 두 {@code String}과 알림 동의 3종이 각각 연달아 있어
-     * 위치 기반 전달은 조용히 뒤바뀌므로, 아래는 이름 기반 접근자로 각 값을 짚어 넘긴다.
-     */
     public MemberPersonalInfoUpdateCommand toCommand(Long memberId) {
         return new MemberPersonalInfoUpdateCommand(
             memberId,

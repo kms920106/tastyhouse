@@ -6,15 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 
-/**
- * 매장 가격 인증 요청 검수 목록 항목.
- *
- * <p>{@code priceListFileUrl}을 목록에 담는다 — 가격표 이미지가 검수의 유일한 근거이므로 검수자가
- * 목록에서 곧바로 열어볼 수 있어야 한다(사장님 추천 요청이 메뉴 이미지를 목록에 담는 것과 같은 이유).
- *
- * <p>{@code itemCount}만 담고 항목 자체는 담지 않는다 — 요청 1건에 메뉴가 N건 달려 목록에 펼치면
- * 페이징이 무의미해진다. 메뉴별 앱 가격 대 신고 매장가 대조는 상세 조회의 몫이다.
- */
 @Schema(description = "매장 가격 인증 요청 검수 목록 항목")
 public record StorePriceVerificationListItemResponse(
     @Schema(description = "인증 요청 ID", example = "12")
@@ -48,7 +39,6 @@ public record StorePriceVerificationListItemResponse(
         example = "2026-08-21T09:10:00")
     LocalDateTime processedAt
 ) {
-
     public static StorePriceVerificationListItemResponse from(StorePriceVerificationListItemResult result) {
         return new StorePriceVerificationListItemResponse(
             result.id(),

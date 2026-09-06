@@ -7,13 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.region.port.out.AdminDongBoundaryViewResult;
 
-/**
- * 행정동 경계 한 건.
- *
- * <p><b>경계 미보유는 404가 아니라 {@code rings: null}인 200이다.</b> 시드가 코드·좌표 먼저, 경계는 나중에
- * 들어오므로 "좌표는 있고 경계는 없는" 상태가 정상이다. 그런 동을 목록에서 빼면 화면이 "이 지역에 행정동이
- * 없다"로 오해하게 된다.
- */
 @Schema(description = "행정동 경계 한 건")
 public record AdminDongBoundaryItemResponse(
     @Schema(description = "행정동 ID", example = "1101053")
@@ -31,7 +24,6 @@ public record AdminDongBoundaryItemResponse(
     @Schema(description = "경계 폴리곤(링 배열). 경계 미보유 시 null")
     List<List<AdminDongPointResponse>> rings
 ) {
-
     public static AdminDongBoundaryItemResponse from(AdminDongBoundaryViewResult result) {
         List<List<AdminDongBoundaryViewResult.Point>> rings = result.rings();
         return new AdminDongBoundaryItemResponse(

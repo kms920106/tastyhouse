@@ -24,20 +24,10 @@ import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCas
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
 
-/**
- * 점주 메뉴 채식 설정 API.
- *
- * <p><b>점주가 직접 켤 수 없다.</b> 재료를 근거로 신청만 하고 관리자가 판정해야 반영된다 — 채식 표기는
- * 알레르기·신념과 직결돼 오표기의 대가가 크다. 반대로 <b>해제는 승인 없이 즉시</b> 반영된다(잘못된 표기를
- * 즉시 내릴 수 있어야 하고, 그 방향에는 오표기 위험이 없다).
- *
- * <p>채식 메뉴를 등록할 수 없는 가게 카테고리(돈까스/회/일식, 고기/구이 등)는 신청 자체를 거부한다.
- */
 @Tag(name = "Ceo Product Vegetarian", description = "점주 메뉴 채식 설정 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductVegetarianApiController {
-
     private final ProductVegetarianQueryUseCase productVegetarianQueryService;
     private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;
 

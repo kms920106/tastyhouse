@@ -30,18 +30,10 @@ import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
-/**
- * 점주 공지 검수 관리자 API.
- *
- * <p>경로에 가게 ID가 없다 — 관리자는 전체 공지를 가로질러 검수하므로 {@code noticeId}(전역 유니크 PK)
- * 단독으로 대상을 특정한다("컨트롤러 미사용 {@code @PathVariable} 경로 평탄화 규칙"). 소유권 검증 자체가
- * 관리자에게는 적용되지 않으므로, 평탄화가 검증 생략으로 이어지는 IDOR 위험도 없다.
- */
 @Tag(name = "Shop Notice Admin", description = "점주 공지 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopNoticeAdminApiController {
-
     private final ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase;
     private final ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase;
 

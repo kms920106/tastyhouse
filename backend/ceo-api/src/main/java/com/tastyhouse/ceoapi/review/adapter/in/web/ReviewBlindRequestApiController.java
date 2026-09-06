@@ -23,7 +23,6 @@ import com.tastyhouse.application.review.port.in.ReviewBlindRequestCreateCommand
 @RestController
 @RequestMapping("/api/shops")
 public class ReviewBlindRequestApiController {
-
     private final ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase;
 
     public ReviewBlindRequestApiController(ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase) {

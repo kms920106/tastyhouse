@@ -28,7 +28,6 @@ public record FaqUpdateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean visible
 ) {
-
     public FaqUpdateCommand toCommand(Long faqId) {
         return new FaqUpdateCommand(faqId, faqCategoryId, question, answer, sort, visible);
     }

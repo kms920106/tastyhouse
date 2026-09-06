@@ -35,7 +35,6 @@ import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 @RequestMapping("/api/products")
 @Tag(name = "Product", description = "상품 관리 API")
 public class ProductApiController {
-
     private final ProductQueryUseCase productQueryService;
 
     public ProductApiController(ProductQueryUseCase productQueryService) {

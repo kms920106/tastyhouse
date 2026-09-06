@@ -30,7 +30,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/search")
 @Tag(name = "Search", description = "검색 API")
 public class SearchApiController {
-
     private final SearchQueryUseCase searchQueryService;
 
     public SearchApiController(SearchQueryUseCase searchQueryService) {

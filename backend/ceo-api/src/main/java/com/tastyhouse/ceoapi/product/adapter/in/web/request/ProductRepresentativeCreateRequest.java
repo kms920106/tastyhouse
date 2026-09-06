@@ -8,18 +8,6 @@ import jakarta.validation.constraints.NotNull;
 
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestCommand;
 
-/**
- * 사장님 추천(대표 메뉴) 지정 요청.
- *
- * <p>여러 메뉴를 한 번에 신청하는 이유는 <b>개수 제한이 집합 단위 불변식</b>이기 때문이다 — 최대 6개
- * 판정은 요청 전체를 반영한 뒤의 최종 상태를 봐야 하고, 한 건씩 받으면 어느 건이 통과할지가 호출
- * 순서에 좌우된다.
- *
- * <p>개수 상한은 Bean Validation으로 가로채지 않는다({@code @Size(max = 6)}을 붙이지 않는다) —
- * "6개 초과"가 400 검증 오류로 걸리고 "이미 5개 있는데 2개 추가"는 도메인 에러코드로 내려가면 같은
- * 개수 위반이 상황에 따라 다른 {@code code}로 응답되어 프론트 분기가 갈린다. 판정은 도메인 한 곳
- * ({@code PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED})에 맡긴다.
- */
 @Schema(description = "사장님 추천 메뉴 지정 요청")
 public record ProductRepresentativeCreateRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -31,7 +19,6 @@ public record ProductRepresentativeCreateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
-
     public ProductRepresentativeRequestCommand toCommand(Long ceoId) {
         return new ProductRepresentativeRequestCommand(ceoId, shopId, productIds);
     }

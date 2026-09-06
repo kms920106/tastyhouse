@@ -37,7 +37,6 @@ public record PolicyCreateRequest(
     @Schema(description = "작성자", example = "admin")
     String createdBy
 ) {
-
     public PolicyCreateCommand toCommand() {
         return new PolicyCreateCommand(type, version, title, content, mandatory, effectiveDate, createdBy);
     }

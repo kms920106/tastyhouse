@@ -41,10 +41,6 @@ public record ReservationCreateRequest(
     @Schema(description = "필수 약관 동의 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean agreedRequiredTerms
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다. 각 값은 이름 기반 접근자로 짚어 넘긴다.
-     */
     public ReservationCreateCommand toCommand(Long memberId) {
         return new ReservationCreateCommand(
             memberId,

@@ -30,21 +30,10 @@ import com.tastyhouse.application.product.port.in.ProductCategoryDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryQueryUseCase;
 
-/**
- * 점주 메뉴그룹(카테고리) 관리 API.
- *
- * <p>{@code shopId}는 경로가 아니라 query 또는 body로 받아 소유권을 검증한다. 삭제도 body로 받는다 —
- * 메뉴 일괄 삭제({@link ProductApiController#deleteProducts})와 동일한 컨벤션이며, 프론트엔드
- * {@code ApiClient#delete}가 DELETE 요청 본문에 JSON으로 {@code shopId}를 담아 보낸다.
- *
- * <p>순서 변경은 이 컨트롤러가 아니라 {@link ProductSortApiController}가 소유한다 — 그룹 이동이 두 그룹의
- * 정렬 집합을 한 트랜잭션에서 함께 바꾸므로 순서 관심사를 한곳에 모은다.
- */
 @Tag(name = "Ceo Product Category", description = "점주 메뉴그룹 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductCategoryApiController {
-
     private final ProductCategoryQueryUseCase productCategoryQueryService;
     private final ProductCategoryCommandUseCase productCategoryCommandUseCase;
 

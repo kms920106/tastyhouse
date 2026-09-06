@@ -12,7 +12,6 @@ public record ShopIntroductionUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String message
 ) {
-
     public ShopIntroductionUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopIntroductionUpdateCommand(ceoId, shopId, message());
     }

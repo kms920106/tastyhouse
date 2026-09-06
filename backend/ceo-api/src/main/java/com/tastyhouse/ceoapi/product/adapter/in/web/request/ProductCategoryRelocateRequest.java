@@ -8,12 +8,6 @@ import jakarta.validation.constraints.NotNull;
 
 import com.tastyhouse.application.product.port.in.ProductRelocateCommand;
 
-/**
- * 메뉴 그룹 이동 요청.
- *
- * <p>{@code targetOrderedProductIds}까지 받는 이유는 드래그로 다른 그룹에 놓을 때 <b>"어느 위치에"</b>
- * 놓았는지가 함께 결정되기 때문이다. 출발 그룹의 {@code sort}도 서버가 함께 재정규화한다.
- */
 @Schema(description = "메뉴 그룹 이동 요청")
 public record ProductCategoryRelocateRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -33,7 +27,6 @@ public record ProductCategoryRelocateRequest(
         + "빠짐없이 포함되어야 한다.", example = "[2, 5, 6, 9]", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> targetOrderedProductIds
 ) {
-
     public ProductRelocateCommand toCommand(Long ceoId) {
         return new ProductRelocateCommand(ceoId, shopId, targetProductCategoryId, productIds, targetOrderedProductIds);
     }

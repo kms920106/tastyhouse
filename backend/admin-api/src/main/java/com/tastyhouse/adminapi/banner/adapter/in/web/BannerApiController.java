@@ -36,7 +36,6 @@ import com.tastyhouse.application.banner.port.in.BannerManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/banners")
 public class BannerApiController {
-
     private final BannerCommandUseCase bannerCommandUseCase;
     private final BannerManagementQueryUseCase bannerQueryUseCase;
 

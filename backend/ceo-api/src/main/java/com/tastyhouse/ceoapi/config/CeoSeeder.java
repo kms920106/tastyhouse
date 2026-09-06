@@ -12,18 +12,8 @@ import com.tastyhouse.application.ceo.port.in.CeoCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoCreateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoOwnerQueryUseCase;
 
-/**
- * 최초 점주 계정 시드.
- * 공개 회원가입이 없으므로 첫 점주 계정은 부팅 시 멱등하게 주입한다.
- * 초기 자격증명은 application.yml(ceo.seed.*)에서 주입한다.
- *
- * <p>조회는 구체 서비스가 아니라 인바운드 포트({@code CeoOwnerQueryUseCase})를 주입한다
- * ({@code seedersShouldDependOnUseCasesOnly}). {@code AdminSeeder}와 달리 role 개념이 없어
- * ({@code CeoCreateCommand}에 role 필드가 없다) 이 모듈은 원래부터 domain-free다.
- */
 @Configuration
 public class CeoSeeder {
-
     private static final Logger log = LoggerFactory.getLogger(CeoSeeder.class);
 
     @Bean
@@ -39,7 +29,7 @@ public class CeoSeeder {
                 log.info("[CeoSeeder] 점주 '{}' 이미 존재 - 시드 생략", username);
                 return;
             }
-            // 기본(취약) 비밀번호로 운영에 시드되는 것을 방지: 신규 시드 시에는 외부 주입 비밀번호를 강제한다.
+
             if (seedProperties.isDefaultPassword()) {
                 throw new IllegalStateException(
                     "최초 점주 계정을 생성하려면 CEO_SEED_PASSWORD 환경변수로 안전한 비밀번호를 지정해야 합니다.");

@@ -18,7 +18,6 @@ public record ShopDeliveryTipTierItemRequest(
     @Schema(description = "이 구간의 배달팁(원). 5,000원 미만", example = "2000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer tipAmount
 ) {
-
     public ShopDeliveryTipTierCommand toCommand() {
         return new ShopDeliveryTipTierCommand(minOrderAmount(), tipAmount());
     }

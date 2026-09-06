@@ -20,7 +20,6 @@ public record ProductDeleteRequest(
     @Schema(description = "삭제할 메뉴 ID 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
-
     public ProductDeleteCommand toCommand(Long ceoId) {
         return new ProductDeleteCommand(ceoId, shopId, productIds);
     }

@@ -32,7 +32,6 @@ import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopConvenienceInfoApiController {
-
     private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryService;
     private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;
 

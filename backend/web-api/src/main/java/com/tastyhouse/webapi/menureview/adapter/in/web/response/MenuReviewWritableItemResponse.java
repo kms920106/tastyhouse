@@ -27,7 +27,6 @@ public record MenuReviewWritableItemResponse(
     @Schema(description = "이미 평가했으면 그 코멘트, 아니면 null", example = "양념이 딱 좋았어요")
     String comment
 ) {
-
     public static MenuReviewWritableItemResponse from(MenuReviewWritableItemResult result) {
         return new MenuReviewWritableItemResponse(
             result.orderProductId(),

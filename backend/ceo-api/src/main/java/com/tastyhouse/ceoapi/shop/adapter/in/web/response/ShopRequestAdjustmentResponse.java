@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
 
-/**
- * 요청처리 현황 상세의 배달지역 조정 신청 부분. {@code requestType}이 조정 신청일 때만 채워진다.
- */
 @Schema(description = "배달지역 조정 신청 상세")
 public record ShopRequestAdjustmentResponse(
 
@@ -25,7 +22,6 @@ public record ShopRequestAdjustmentResponse(
     @Schema(description = "정보제공 동의서 URL", example = "https://storage.example.com/2026/08/consent.pdf")
     String consentFileUrl
 ) {
-
     public static ShopRequestAdjustmentResponse from(ShopRequestAdjustmentDetailResult result) {
         return new ShopRequestAdjustmentResponse(
             result.counterpartShopName(),

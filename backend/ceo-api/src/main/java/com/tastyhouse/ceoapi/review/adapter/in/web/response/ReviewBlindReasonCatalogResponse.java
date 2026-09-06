@@ -12,7 +12,6 @@ public record ReviewBlindReasonCatalogResponse(
     @Schema(description = "사유 한글명", example = "욕설·비방")
     String description
 ) {
-
     public static ReviewBlindReasonCatalogResponse from(ReviewBlindReasonView view) {
         return new ReviewBlindReasonCatalogResponse(
             view.code(),

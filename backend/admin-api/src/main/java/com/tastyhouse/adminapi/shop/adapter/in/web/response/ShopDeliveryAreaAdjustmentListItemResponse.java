@@ -6,11 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 
-/**
- * 배달지역 조정 신청 목록 항목(검수 화면).
- *
- * <p>중첩 사유·동의서는 담지 않는다 — 상세 조회에서 본다.
- */
 @Schema(description = "배달지역 조정 신청 목록 항목")
 public record ShopDeliveryAreaAdjustmentListItemResponse(
     @Schema(description = "신청 ID", example = "1")
@@ -34,7 +29,6 @@ public record ShopDeliveryAreaAdjustmentListItemResponse(
     @Schema(description = "접수 일시", example = "2026-08-09T10:00:00")
     LocalDateTime createdAt
 ) {
-
     public static ShopDeliveryAreaAdjustmentListItemResponse from(ShopDeliveryAreaAdjustmentListItemResult result) {
         return new ShopDeliveryAreaAdjustmentListItemResponse(
             result.id(),

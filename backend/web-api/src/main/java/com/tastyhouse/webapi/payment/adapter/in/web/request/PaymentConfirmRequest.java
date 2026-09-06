@@ -35,14 +35,6 @@ public record PaymentConfirmRequest(
     @Schema(description = "영수증 URL", example = "https://receipt.example.com/abc123")
     String receiptUrl
 ) {
-
-    /**
-     * command로 변환한다.
-     *
-     * <p><b>{@code paymentId}는 본문 필드다</b> — 이 엔드포인트는 경로에 식별자를 두지 않으므로 주입
-     * 파라미터가 없다. {@code cardCompany}·{@code cardNumber}·{@code receiptUrl}이 같은 {@code String}
-     * 이라 위치 기반 전달은 조용히 뒤바뀌므로, 아래는 이름 기반 접근자로 각 값을 짚어 넘긴다.
-     */
     public PaymentConfirmCommand toCommand() {
         return new PaymentConfirmCommand(
             paymentId,

@@ -33,7 +33,6 @@ import com.tastyhouse.application.point.port.in.PointManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/points")
 public class PointApiController {
-
     private final PointCommandUseCase pointCommandUseCase;
     private final PointManagementQueryUseCase pointQueryUseCase;
 

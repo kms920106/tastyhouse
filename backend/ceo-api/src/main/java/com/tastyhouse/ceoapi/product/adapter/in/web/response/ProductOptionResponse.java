@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
 
-/**
- * 옵션그룹 관리 화면의 개별 옵션.
- *
- * <p>품절 여부를 담지 않는다 — 품절·숨김 조작은 별도 화면(품절·숨김 관리)의 관심사이고, 그 화면은
- * {@code ProductOptionAvailabilityItemResponse}를 쓴다.
- */
 @Schema(description = "옵션")
 public record ProductOptionResponse(
     @Schema(description = "옵션 ID", example = "5")
@@ -39,7 +33,6 @@ public record ProductOptionResponse(
     @Schema(description = "개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 null이다.", example = "300")
     Integer personalCupDiscountAmount
 ) {
-
     public static ProductOptionResponse from(ProductOptionGroupViewResult.Option option) {
         return new ProductOptionResponse(
             option.id(),

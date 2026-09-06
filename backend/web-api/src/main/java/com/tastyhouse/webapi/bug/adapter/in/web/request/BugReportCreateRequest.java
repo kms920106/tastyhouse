@@ -39,7 +39,6 @@ public record BugReportCreateRequest(
     @Schema(description = "첨부 이미지 파일 ID 목록 (최대 5장)", example = "[1, 2, 3]")
     List<Long> uploadedFileIds
 ) {
-
     public BugReportCreateCommand toCommand(Long reporterId) {
         return new BugReportCreateCommand(reporterId, device, title, content, appVersion, platform, osVersion, uploadedFileIds);
     }

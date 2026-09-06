@@ -17,7 +17,6 @@ public record RankAggregateRequest(
     @Schema(description = "집계 상위 개수 (type 지정 시에만 사용)", example = "10")
     Integer limit
 ) {
-
     public RankAggregateRequest {
         if (limit == null) {
             limit = 10;

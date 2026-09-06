@@ -38,7 +38,6 @@ public record PolicyDetailResponse(
     @Schema(description = "수정 일시", example = "2025-12-15T09:30:00")
     LocalDateTime updatedAt
 ) {
-
     public static PolicyDetailResponse from(PolicyDocumentResult result) {
         return new PolicyDetailResponse(
             result.id(),

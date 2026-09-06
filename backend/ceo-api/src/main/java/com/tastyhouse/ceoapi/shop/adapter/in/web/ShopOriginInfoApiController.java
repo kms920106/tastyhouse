@@ -20,23 +20,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoUpdateCommand;
 
-/**
- * 점주 가게 원산지 표시 관리 API.
- *
- * <p>원산지는 <b>메뉴 단위가 아니라 가게 단위</b>로 한 번 작성한다 — 표시 지침이 "모든 음식에 같으면
- * 일괄 표시"처럼 하나의 문장 안에서 표현되기 때문이다. 그래서 경로도 메뉴가 아니라 가게에 달린다.
- *
- * <p>손님 앱(web-api)에 같은 경로의 조회가 따로 있다. 앱이 다르므로 충돌하지 않으며, 응답 형태는
- * 의도적으로 다르다 — 점주는 {@code updatedAt}을 받고 손님은 받지 않으며, 미설정일 때 점주는 빈 폼용
- * 기본값을, 손님은 {@code null}을 받는다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Shop Origin Info", description = "점주 가게 원산지 표시 관리 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
-
     private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryService;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
 

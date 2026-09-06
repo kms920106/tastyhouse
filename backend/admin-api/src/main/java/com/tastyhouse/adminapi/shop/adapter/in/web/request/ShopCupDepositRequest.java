@@ -12,7 +12,6 @@ public record ShopCupDepositRequest(
         example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean enabled
 ) {
-
     public ShopCupDepositChangeCommand toCommand(Long shopId) {
         return new ShopCupDepositChangeCommand(shopId, enabled);
     }

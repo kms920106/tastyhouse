@@ -27,7 +27,6 @@ import com.tastyhouse.application.shop.port.in.ShopIntroductionUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
-
     private final ShopIntroductionQueryUseCase shopIntroductionQueryService;
     private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;
 

@@ -1,7 +1,6 @@
 package com.tastyhouse.ceoapi.config.security;
 
 public final class PublicPaths {
-
     private PublicPaths() {}
 
     public static final String[] PATTERNS = {

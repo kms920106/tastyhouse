@@ -41,7 +41,6 @@ import com.tastyhouse.application.review.port.in.ReviewManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewApiController {
-
     private final ReviewManagementCommandUseCase reviewCommandUseCase;
     private final ReviewManagementQueryUseCase reviewQueryUseCase;
 

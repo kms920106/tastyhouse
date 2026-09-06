@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 
 import com.tastyhouse.application.review.port.in.ShopReviewSortTypeChangeCommand;
 
-/**
- * 리뷰 정렬 설정 저장 요청.
- */
 @Schema(description = "리뷰 정렬 설정 저장 요청")
 public record ShopReviewSortTypeUpdateRequest(
     @NotBlank(message = "정렬 방식은 필수입니다.")
@@ -19,7 +16,6 @@ public record ShopReviewSortTypeUpdateRequest(
     )
     String sortType
 ) {
-
     public ShopReviewSortTypeChangeCommand toCommand(Long ceoId, Long shopId) {
         return new ShopReviewSortTypeChangeCommand(ceoId, shopId, sortType);
     }

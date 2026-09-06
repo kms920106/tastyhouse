@@ -27,7 +27,6 @@ public record ShopContentBoardCreateRequest(
     @Schema(description = "설명 (최대 50자)", example = "매장 외부 전경입니다.")
     String description
 ) {
-
     public ShopContentBoardCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopContentBoardCreateCommand(ceoId, shopId, contentType(), topic(), youtubeUrl(), description());
     }

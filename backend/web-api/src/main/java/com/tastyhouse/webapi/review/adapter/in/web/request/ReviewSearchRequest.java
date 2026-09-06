@@ -7,7 +7,6 @@ public record ReviewSearchRequest(
     @Schema(description = "조회 타입 (ALL: 전체, FOLLOWING: 팔로잉)", example = "ALL", allowableValues = {"ALL", "FOLLOWING"})
     String type
 ) {
-
     public ReviewSearchRequest {
         if (type == null) {
             type = "ALL";

@@ -35,22 +35,10 @@ import com.tastyhouse.application.product.port.in.ProductVegetarianApproveComman
 import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
 import com.tastyhouse.application.product.port.in.ProductApprovalQueryUseCase;
 
-/**
- * 메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API.
- *
- * <p>점주가 낸 요청을 승인·반려한다. 승인 시 이미지는 그 메뉴의 이미지 목록 <b>맨 뒤</b>에 추가되고
- * (대표 이미지가 의도치 않게 바뀌지 않도록), 채식은 {@code Product.vegetarianType}에, 사장님 추천은
- * {@code Product.representative}에 반영된다.
- *
- * <p><b>승인요청 3종이 컨트롤러 하나를 공유한다.</b> 검수 유형마다 컨트롤러를 새로 만들면 관리자
- * 검수 화면이 탭마다 다른 곳을 호출해야 하고, 공통 요청·응답 계약(상태 필터·반려 사유·페이징)이
- * 유형별로 갈리기 시작한다.
- */
 @Tag(name = "Product Approval Admin", description = "메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductApprovalApiController {
-
     private final ProductApprovalQueryUseCase productApprovalQueryUseCase;
     private final ProductApprovalCommandUseCase productApprovalCommandUseCase;
 

@@ -8,12 +8,6 @@ import jakarta.validation.constraints.NotNull;
 
 import com.tastyhouse.application.product.port.in.ProductReorderCommand;
 
-/**
- * 그룹 내 메뉴 순서 변경 요청(replace-all).
- *
- * <p>{@code productCategoryId}에 {@code @NotNull}을 붙이지 않는다 — 미분류({@code null}) 메뉴 목록도
- * 정당한 재정렬 대상이다.
- */
 @Schema(description = "그룹 내 메뉴 순서 변경 요청")
 public record ProductOrderRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -28,7 +22,6 @@ public record ProductOrderRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
-
     public ProductReorderCommand toCommand(Long ceoId) {
         return new ProductReorderCommand(ceoId, shopId, productCategoryId, productIds);
     }

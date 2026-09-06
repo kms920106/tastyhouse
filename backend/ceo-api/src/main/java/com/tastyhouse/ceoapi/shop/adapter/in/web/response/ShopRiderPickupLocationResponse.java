@@ -23,12 +23,6 @@ public record ShopRiderPickupLocationResponse(
     @Schema(description = "픽업 경도", example = "127.027621")
     BigDecimal longitude
 ) {
-
-    /**
-     * 픽업 위치가 미설정이면 {@code null}을 반환해, 프론트가 "가게 실주소로 폴백" 상태임을 한 필드로
-     * 판정하게 한다(챕터 09에서 QueryService의 private 매퍼를 이 표현 계약으로 옮겼다 — 세 값이 모두
-     * 있어야 위치로 성립한다는 것은 표현 규칙이다).
-     */
     public static ShopRiderPickupLocationResponse from(ShopRiderGuideResult result) {
         String roadAddress = result.pickupRoadAddress();
         BigDecimal latitude = result.pickupLatitude();

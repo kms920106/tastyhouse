@@ -6,15 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
-/**
- * 점주 리뷰 목록 조회 조건.
- *
- * <p>{@code startDate}/{@code endDate}의 <b>상·하한 관계</b>는 Bean Validation이 아니라 서비스가 판정한다 —
- * 두 필드에 걸친 하나의 규칙이라 어노테이션으로 쪼개면 같은 규칙 위반인데 응답 계약이 갈린다
- * ({@code ShopRequestSearchRequest} 선례와 같은 판단).
- *
- * <p>enum 후보는 도메인 enum 경계 규칙대로 {@code String}으로 받고 서비스가 승격한다.
- */
 @Schema(description = "점주 리뷰 목록 조회 요청")
 public record ShopReviewSearchRequest(
     @Schema(

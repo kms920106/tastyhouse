@@ -15,7 +15,6 @@ public record AuthJwtResponse(
     @Schema(description = "토큰 타입", example = "Bearer")
     String tokenType
 ) {
-
     public static AuthJwtResponse from(MemberJwtResult result) {
         return new AuthJwtResponse(
             result.accessToken(),

@@ -15,7 +15,6 @@ public record ProductOptionGroupMergeSuggestionOptionResponse(
     @Schema(description = "추가 금액(원)", example = "1000")
     Integer additionalPrice
 ) {
-
     public static ProductOptionGroupMergeSuggestionOptionResponse from(
         ProductOptionGroupMergeSuggestionResult.Option option
     ) {

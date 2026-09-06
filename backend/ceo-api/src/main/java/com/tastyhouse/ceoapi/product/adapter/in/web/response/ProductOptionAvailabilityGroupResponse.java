@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
 
-/**
- * 옵션그룹 단위로 묶은 품절·숨김 관리 목록.
- *
- * <p>일반 옵션그룹과 공통 옵션그룹을 <b>하나의 목록으로 합쳐</b> 내려주고, 각 그룹이 어느 갈래인지
- * {@code optionType}으로 표시한다(손님 화면 옵션 조회가 두 갈래를 합쳐 내려주는 것과 같은 방식).
- */
 @Schema(description = "품절·숨김 관리 옵션그룹")
 public record ProductOptionAvailabilityGroupResponse(
     @Schema(description = "옵션그룹 ID", example = "20")
@@ -41,7 +35,6 @@ public record ProductOptionAvailabilityGroupResponse(
     @Schema(description = "이 그룹에 속한 옵션 목록")
     List<ProductOptionAvailabilityItemResponse> options
 ) {
-
     public static ProductOptionAvailabilityGroupResponse from(ProductOptionAvailabilityGroupResult group) {
         return new ProductOptionAvailabilityGroupResponse(
             group.optionGroupId(),

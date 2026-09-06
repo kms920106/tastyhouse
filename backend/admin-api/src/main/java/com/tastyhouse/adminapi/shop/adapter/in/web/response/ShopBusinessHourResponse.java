@@ -6,19 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 
-/**
- * 가게 운영시간 응답.
- *
- * <p>과거에는 admin·ceo가 바이트 동일하다는 이유로 api-common-module이 이 record를 단독 소유했으나,
- * 그 위치는 <b>표현 계약을 공유 웹 어댑터 모듈이 갖는</b> 배치라 application 계층이 그것을 조립하려면
- * api-common에 의존해야 했다. 지금은 앱별 application이 각자 소유한다 — admin·ceo가 같은 필드
- * 구성을 갖는 것은 중복이 아니라 <b>우연히 일치한 앱별 응답 계약</b>이며, 한쪽 화면 요구가 바뀌면
- * 다른 쪽을 건드리지 않고 갈라질 수 있어야 한다.
- *
- * <p><b>챕터 06</b> — 요일 표시명({@code description})처럼 도메인 enum에서 파생되는 값은 이 record의
- * {@code from(ShopBusinessHourResult)}가 풀어 담는다. 표현 계약 조립이 웹 어댑터로 내려왔으므로
- * QueryService는 {@code ShopBusinessHourResult}를 그대로 반환한다.
- */
 @Schema(description = "가게 운영시간 응답")
 public record ShopBusinessHourResponse(
     @Schema(description = "운영시간 ID", example = "1")

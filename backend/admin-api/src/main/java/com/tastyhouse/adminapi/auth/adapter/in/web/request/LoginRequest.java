@@ -18,7 +18,6 @@ public record LoginRequest(
     @Schema(description = "로그인 상태 유지 여부 (true: 30일, false: 7일)", example = "false", defaultValue = "false")
     boolean rememberMe
 ) {
-
     public AdminAuthLoginCommand toCommand() {
         return AdminAuthLoginCommand.of(username, password, rememberMe);
     }

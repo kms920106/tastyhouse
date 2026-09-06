@@ -43,7 +43,6 @@ import com.tastyhouse.application.faq.port.in.FaqManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/faqs")
 public class FaqApiController {
-
     private final FaqCommandUseCase faqCommandUseCase;
     private final FaqCategoryCommandUseCase faqCategoryCommandUseCase;
     private final FaqManagementQueryUseCase faqQueryUseCase;

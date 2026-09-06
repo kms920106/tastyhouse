@@ -24,7 +24,6 @@ import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenR
 @RequestMapping("/api/mail-verifications")
 @Tag(name = "Mail Verification", description = "메일(이메일 주소) 인증 API")
 public class MailVerificationApiController {
-
     private final MailVerificationCommandUseCase mailVerificationCommandUseCase;
     private final MemberJwtTokenProvider jwtTokenProvider;
 
@@ -40,9 +39,7 @@ public class MailVerificationApiController {
         summary = "인증번호 발송",
         description = "입력한 이메일로 6자리 인증번호를 발송합니다. 기존 미완료 인증은 자동 만료됩니다."
     )
-    // keyPrefix는 Redis 카운터 키라 도메인 개명(email→mail)에 맞춰 바꾸지 않는다 — 바꾸는 순간
-    // 기존 카운터가 버려져 배포 시점에 발송 한도가 전원 리셋된다(브루트포스 한도 초기화).
-    // sms 쪽은 원래부터 rate_limit:sms_verification이라 접두어가 대칭이 아닌 것이 정상이다.
+
     @RateLimit(limit = 5, windowSeconds = 86400, keyType = RateLimitKeyType.FIELD, keyField = "email", keyPrefix = "rate_limit:email_verification")
     @PostMapping("/v1/send")
     public ResponseEntity<ApiResponse<Void>> sendVerificationCode(

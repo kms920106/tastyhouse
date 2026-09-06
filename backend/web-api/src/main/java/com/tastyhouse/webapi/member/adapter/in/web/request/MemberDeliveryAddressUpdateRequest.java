@@ -9,13 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressUpdateCommand;
 
-/**
- * 배달 주소 수정 요청.
- *
- * <p>등록과 같은 필드 구성이며 좌표도 동일하게 필수다 — 생성만 막고 수정을 열어두면 좌표 없는 주소가
- * 뒷문으로 들어온다. 기본 배송지 지정은 이 요청이 아니라 전용 엔드포인트
- * ({@code PATCH /v1/me/delivery-addresses/{id}/default})가 담당하므로 {@code isDefault}가 없다.
- */
 @Schema(description = "배달 주소 수정 요청")
 public record MemberDeliveryAddressUpdateRequest(
     @Size(max = 50, message = "주소 별칭은 최대 50자까지 입력 가능합니다.")
@@ -43,13 +36,6 @@ public record MemberDeliveryAddressUpdateRequest(
     @Schema(description = "경도. 주소 검색 API가 내려준 값을 그대로 보냅니다.", example = "127.039876", requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code addressId}를 주입받아 command로 변환한다.
-     *
-     * <p>주소 {@code String} 4개와 좌표 {@code BigDecimal} 2개가 각각 연달아 있어 위치 기반 전달은
-     * 조용히 뒤바뀌므로, 아래는 이름 기반 접근자로 각 값을 짚어 넘긴다.
-     */
     public MemberDeliveryAddressUpdateCommand toCommand(Long memberId, Long addressId) {
         return new MemberDeliveryAddressUpdateCommand(
             memberId,

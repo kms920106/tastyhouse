@@ -25,7 +25,6 @@ public record ProductOptionGroupMergeRequest(
         allowableValues = {"RECOMMENDED", "MANUAL"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String entryType
 ) {
-
     public ProductOptionGroupMergeCommand toCommand(Long ceoId, Long baseOptionGroupId) {
         return new ProductOptionGroupMergeCommand(ceoId, shopId, baseOptionGroupId, optionGroupIds, entryType);
     }

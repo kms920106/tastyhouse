@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestReviewBlindDetailResult;
 
-/**
- * 요청처리 현황 상세의 리뷰 게시중단 요청 서브 객체.
- *
- * <p>대상 리뷰의 내용을 함께 담는다 — 통합 요청처리 화면에서 "무엇의 게시중단을 요청했는지"를 리뷰 관리
- * 화면으로 이동하지 않고 확인할 수 있어야 한다.
- */
 @Schema(description = "리뷰 게시중단 요청 상세")
 public record ShopRequestReviewBlindResponse(
 
@@ -35,7 +29,6 @@ public record ShopRequestReviewBlindResponse(
     @Schema(description = "대상 리뷰 종합 평점", example = "1.0")
     Double reviewTotalRating
 ) {
-
     public static ShopRequestReviewBlindResponse from(ShopRequestReviewBlindDetailResult result) {
         return new ShopRequestReviewBlindResponse(
             result.reviewId(),

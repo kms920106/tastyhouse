@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 
-/**
- * 요청건 문의 스레드 항목 응답.
- *
- * <p>작성자 실명·식별자는 노출하지 않는다 — 관리자 실명 노출을 피하고, 화면은 작성자 유형 라벨
- * ("점주"/"담당자")로 구성한다.
- */
 @Schema(description = "요청건 문의 스레드 항목")
 public record ShopRequestCommentResponse(
 
@@ -30,7 +24,6 @@ public record ShopRequestCommentResponse(
     @Schema(description = "작성 일시", example = "2026-08-12T09:20:11")
     LocalDateTime createdAt
 ) {
-
     public static ShopRequestCommentResponse from(ShopRequestCommentResult result) {
         return new ShopRequestCommentResponse(
             result.commentId(),

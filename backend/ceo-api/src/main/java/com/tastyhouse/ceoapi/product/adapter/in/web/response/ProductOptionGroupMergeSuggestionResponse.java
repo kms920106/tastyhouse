@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
 
-/**
- * 합치기 추천 묶음 1건(= 화면의 카드 1장).
- *
- * <p>{@code signature}는 프론트가 해석하지 않고 <b>제외([X]) 요청에 그대로 실어 보내는 불투명
- * 토큰</b>이다. 서버는 함께 받은 {@code optionGroupIds}로 서명을 재계산해 위조·낡은 토큰을 거부한다.
- */
 @Schema(description = "옵션그룹 합치기 추천 묶음")
 public record ProductOptionGroupMergeSuggestionResponse(
     @Schema(description = "동일성 서명(불투명 토큰). 제외 요청에 그대로 실어 보냅니다.",
@@ -39,7 +33,6 @@ public record ProductOptionGroupMergeSuggestionResponse(
     @Schema(description = "이 묶음에 속한 옵션그룹들")
     List<ProductOptionGroupMergeSuggestionGroupResponse> groups
 ) {
-
     public static ProductOptionGroupMergeSuggestionResponse from(ProductOptionGroupMergeSuggestionResult result) {
         return new ProductOptionGroupMergeSuggestionResponse(
             result.signature(),

@@ -30,26 +30,10 @@ import com.tastyhouse.application.product.port.in.ProductShopLinkDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductShopLinkReplaceCommand;
 import com.tastyhouse.application.product.port.in.ProductShopLinkQueryUseCase;
 
-/**
- * 점주 메뉴-가게 연결 관리 API — 하나의 메뉴를 여러 가게 메뉴판에 노출한다.
- *
- * <p><b>메뉴가 삭제되는 것이 아니라 노출 범위만 바뀐다.</b> 연결을 해제해도 메뉴 자체와 그 메뉴의
- * 가격·옵션·리뷰는 그대로 남고, 그 가게 메뉴판에서만 사라진다.
- *
- * <p><b>진입 축이 두 개다.</b> {@code PUT /v1/{id}/shops}는 <b>메뉴 기준</b>(이 메뉴를 어느 가게들에
- * 노출할지 한 번에 정한다)이고, {@code POST·DELETE /v1/{id}/shops/{targetShopId}}는 <b>가게 기준</b>
- * (이 가게 메뉴판에 메뉴를 불러오거나 뺀다)이다. 화면 진입 경로가 달라 둘 다 필요하다.
- *
- * <p>가격은 연결된 가게끼리 <b>공유</b>된다 — 가게별로 다른 가격이 필요하면 메뉴를 따로 만든다.
- * 옵션그룹은 원본 소유 가게가 계속 소유하며 연결된 가게는 읽기만 한다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Shop Link", description = "점주 메뉴-가게 연결 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductShopLinkApiController {
-
     private final ProductShopLinkQueryUseCase productShopLinkQueryService;
     private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;
 

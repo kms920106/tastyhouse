@@ -21,10 +21,6 @@ public record MenuReviewUpdateRequest(
     @Schema(description = "짧은 코멘트 (선택)", example = "조금 짰어요")
     String comment
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code menuReviewId}를 주입받아 command로 변환한다.
-     */
     public MenuReviewUpdateCommand toCommand(Long memberId, Long menuReviewId) {
         return new MenuReviewUpdateCommand(
             memberId,

@@ -6,13 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressItemResult;
 
-/**
- * 배달 주소 목록 항목 응답.
- *
- * <p>회원 도메인 응답 record는 최상위 응답에 {@code Response} 접미를 쓰므로({@code MyProfileResponse}
- * 등) 목록 항목도 {@code ItemResponse}로 둔다 — web-api {@code shop/response/}의 {@code Item} 접미는
- * 다른 응답 안에 중첩되는 <b>요소</b> record의 관행이고, 이 record는 응답 본문의 최상위 요소다.
- */
 @Schema(description = "배달 주소 목록 항목")
 public record MemberDeliveryAddressItemResponse(
     @Schema(description = "배달 주소 ID(PK)", example = "12")
@@ -45,7 +38,6 @@ public record MemberDeliveryAddressItemResponse(
     @Schema(description = "기본 배송지 여부", example = "true")
     boolean defaultAddress
 ) {
-
     public static MemberDeliveryAddressItemResponse from(MemberDeliveryAddressItemResult result) {
         return new MemberDeliveryAddressItemResponse(
             result.id(),

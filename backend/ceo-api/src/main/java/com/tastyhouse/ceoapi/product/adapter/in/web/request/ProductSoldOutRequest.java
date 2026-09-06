@@ -25,7 +25,6 @@ public record ProductSoldOutRequest(
         + "지정 시 현재+30분 ~ 현재+7일 범위여야 한다.", example = "2026-08-18T09:00:00")
     LocalDateTime soldOutUntil
 ) {
-
     public ProductSoldOutOwnerCommand toCommand(Long ceoId) {
         return new ProductSoldOutOwnerCommand(ceoId, shopId, productIds, soldOutUntil);
     }

@@ -18,7 +18,6 @@ public record PointDeductRequest(
     @Schema(description = "차감 사유", example = "부정 적립 회수", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public PointDeductCommand toCommand(Long memberId) {
         return new PointDeductCommand(memberId, amount(), reason());
     }

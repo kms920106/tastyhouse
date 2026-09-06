@@ -21,7 +21,6 @@ public record ShopReviewSortTypeResponse(
     @Schema(description = "설정 최종 변경일시. 한 번도 설정하지 않았으면 null입니다.", example = "2026-06-18T11:20:00")
     LocalDateTime updatedAt
 ) {
-
     public static ShopReviewSortTypeResponse from(ShopReviewSortTypeView view) {
         return new ShopReviewSortTypeResponse(
             view.sortType(),

@@ -24,7 +24,6 @@ public record ShopRiderGuideListItemResponse(
     @Schema(description = "라이더 안내 정보(문구·픽업 위치) 최종 수정 일시", example = "2026-08-08T21:02:00")
     LocalDateTime updatedAt
 ) {
-
     public static ShopRiderGuideListItemResponse from(ShopRiderGuideListItemResult result) {
         return new ShopRiderGuideListItemResponse(
             result.shopId(),

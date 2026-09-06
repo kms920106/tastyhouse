@@ -17,13 +17,6 @@ public record UpdatePasswordRequest(
     @Schema(description = "새 비밀번호 확인", example = "newPassword123!", requiredMode = Schema.RequiredMode.REQUIRED)
     String newPasswordConfirm
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     *
-     * <p>두 {@code String}이 연달아 있고 뒤바뀌어도 확인값 일치 검사는 대칭이라 통과해버리므로,
-     * 아래는 이름 기반 접근자로 각 값을 짚어 넘긴다.
-     */
     public MemberPasswordUpdateCommand toCommand(Long memberId) {
         return new MemberPasswordUpdateCommand(
             memberId,

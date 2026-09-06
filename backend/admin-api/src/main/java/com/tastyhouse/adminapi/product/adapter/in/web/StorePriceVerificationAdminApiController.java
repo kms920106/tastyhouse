@@ -29,31 +29,10 @@ import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectCo
 import com.tastyhouse.application.product.port.in.StorePriceVerificationStartReviewCommand;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
 
-/**
- * 매장 가격 인증 요청 검수 관리자 API.
- *
- * <p>점주가 매장 가격표 이미지를 근거로 낸 "매장가 인증" 요청을 검수해 승인·반려한다. 승인하면 요청에
- * 담긴 매장가가 해당 메뉴들의 {@code PRODUCT_PRICE}에 반영되고 가게의 인증 표시가 켜진다.
- *
- * <p><b>경로가 {@code /api/shops}인 이유</b>는 요청이 <b>가게 단위</b>로 접수되기 때문이다(테이블명
- * {@code SHOP_STORE_PRICE_VERIFICATION}과 같은 근거). 반면 <b>자바 패키지는 {@code product}</b>다 —
- * 애그리거트·도메인 서비스·query DAO가 모두 product 컨텍스트 소유이고, 승인이 실제로 쓰는 대상이
- * {@code PRODUCT_PRICE}이기 때문이다. 경로와 패키지가 갈리는 것은 의도된 것이며, 이 분기 근거는
- * {@code StorePriceVerificationService}의 Javadoc이 상세히 설명한다.
- *
- * <p><b>검수 3단 상태를 그대로 노출한다</b>({@code PENDING} → {@code IN_PROGRESS} → 승인/반려).
- * {@code IN_PROGRESS}는 검수자가 항목을 선점했음을 뜻해, 여러 관리자가 같은 요청을 중복 검수하는 것을
- * 막고 점주 화면에 "검수 중"을 보여주기 위해 존재한다.
- *
- * <p><b>목록과 상세가 모두 필요하다.</b> 검수의 실질은 가격표 이미지 한 장과 신고된 매장가 N건을 한 줄씩
- * 맞춰 보는 <b>대조</b>이며, 요청 1건에 메뉴가 N건 달려 목록에 펼치면 페이징이 깨진다. 목록은 판정 전
- * 훑어보기(가게·상태·항목 수·가격표 이미지)를, 상세는 판정 근거(메뉴별 앱 가격 대 신고 매장가)를 담당한다.
- */
 @Tag(name = "Store Price Verification Admin", description = "매장 가격 인증 요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class StorePriceVerificationAdminApiController {
-
     private final StorePriceVerificationQueryUseCase storePriceVerificationQueryUseCase;
     private final StorePriceVerificationCommandUseCase storePriceVerificationCommandUseCase;
 

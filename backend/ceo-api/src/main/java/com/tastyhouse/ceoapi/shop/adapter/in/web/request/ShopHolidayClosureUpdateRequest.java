@@ -11,7 +11,6 @@ public record ShopHolidayClosureUpdateRequest(
     @Schema(description = "공휴일 휴무 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean closedOnPublicHolidays
 ) {
-
     public ShopHolidayClosureUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopHolidayClosureUpdateCommand(ceoId, shopId, closedOnPublicHolidays());
     }

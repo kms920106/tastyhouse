@@ -27,7 +27,6 @@ import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeManagementQueryUs
 @RestController
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeAdminApiController {
-
     private final ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeQueryUseCase;
     private final ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase;
 

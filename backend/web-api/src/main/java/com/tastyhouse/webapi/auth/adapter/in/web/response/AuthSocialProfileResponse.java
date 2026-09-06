@@ -5,15 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 
-/**
- * 소셜 로그인 계정 연동 시 회원가입 폼 자동 매핑용 공통 프로필.
- * 소셜 플랫폼마다 제공 가능한 필드가 다르므로 미제공 항목은 null로 반환된다.
- * 플랫폼별 제공 필드:
- * - 카카오: providerId, email, nickname, profileImageUrl, name(동의 시), phoneNumber(동의 시), gender(동의 시)
- * - 네이버: providerId, email, nickname, profileImageUrl, name, phoneNumber, gender, birthYear, birthMonth, birthDay
- * - 페이스북: providerId, email, name, profileImageUrl
- * - 애플: providerId, email
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "소셜 프로필 정보. 플랫폼마다 제공 가능한 필드가 달라 미제공 항목은 null로 반환됩니다.")
 public record AuthSocialProfileResponse(
@@ -48,7 +39,6 @@ public record AuthSocialProfileResponse(
     @Schema(description = "출생 일 (예: \"5\", \"31\"). 네이버에서 제공")
     String birthDay
 ) {
-
     public static AuthSocialProfileResponse from(SocialProfileResult result) {
         return new AuthSocialProfileResponse(
             result.providerId(),

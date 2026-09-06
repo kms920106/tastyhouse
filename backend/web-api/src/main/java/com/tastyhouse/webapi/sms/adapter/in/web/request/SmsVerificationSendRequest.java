@@ -13,7 +13,6 @@ public record SmsVerificationSendRequest(
     @Schema(description = "휴대폰번호", example = "01012345678", requiredMode = Schema.RequiredMode.REQUIRED)
     String phoneNumber
 ) {
-
     public SmsVerificationSendCommand toCommand() {
         return new SmsVerificationSendCommand(phoneNumber);
     }

@@ -9,16 +9,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonViewResult;
 import com.tastyhouse.application.shop.port.out.GeoPointView;
 
-/**
- * 저장된 배달지역 도형 조회 결과.
- *
- * <p><b>도형 미설정은 404가 아니라 {@code exists: false}인 200이다.</b> 도형을 그리지 않고 행정동만
- * 직접 등록한 가게가 정상적으로 존재하므로, 미설정은 오류가 아니라 상태다. 404로 응답하면 화면이 정상
- * 상태를 에러로 처리하게 된다.
- *
- * <p>{@code centerMovedMeters}가 {@code 0}보다 크면 저장 이후 가게 주소가 이전된 것이다 — 7km 상한의
- * 기준점이 달라졌으므로 화면이 재설정을 안내해야 한다.
- */
 @Schema(description = "배달지역 도형 조회 결과")
 public record ShopDeliveryAreaPolygonResponse(
     @Schema(description = "도형이 설정돼 있는지", example = "true")
@@ -63,7 +53,6 @@ public record ShopDeliveryAreaPolygonResponse(
     @Schema(description = "도형 최종 수정 일시. 미설정 시 null", example = "2026-08-09T12:00:00")
     LocalDateTime updatedAt
 ) {
-
     public static ShopDeliveryAreaPolygonResponse from(ShopDeliveryAreaPolygonViewResult result) {
         List<List<GeoPointView>> rings = result.rings();
         return new ShopDeliveryAreaPolygonResponse(

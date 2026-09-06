@@ -49,7 +49,6 @@ public record ProductUpdateRequest(
     @Schema(description = "정렬 순서", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer sort
 ) {
-
     public ProductManagementUpdateCommand toCommand(Long productId) {
         return new ProductManagementUpdateCommand(
             productId, productCategoryId, name, description,

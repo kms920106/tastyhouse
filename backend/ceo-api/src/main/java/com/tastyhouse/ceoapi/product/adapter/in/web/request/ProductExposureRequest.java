@@ -9,14 +9,6 @@ import jakarta.validation.constraints.NotNull;
 
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
 
-/**
- * 메뉴 노출기간 전체 치환 요청.
- *
- * <p>기간·요일·시간대를 <b>replace-all</b>로 교체한다 — "요일 묶음과 개별 요일 혼용 금지"가 집합 전체를
- * 봐야 판정되는 규칙이라, 행 단위로 열면 중간 상태가 반드시 규칙을 위반한다.
- *
- * <p>{@code hours}를 빈 배열로 보내면 요일·시간 제약이 사라진다(기간 축만 남는다).
- */
 @Schema(description = "메뉴 노출기간 설정 요청")
 public record ProductExposureRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -35,7 +27,6 @@ public record ProductExposureRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<ProductExposureHourRequest> hours
 ) {
-
     public ProductExposureReplaceCommand toCommand(Long ceoId, Long productId) {
         return new ProductExposureReplaceCommand(
             ceoId,

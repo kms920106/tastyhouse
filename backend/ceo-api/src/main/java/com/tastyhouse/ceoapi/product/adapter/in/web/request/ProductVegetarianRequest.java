@@ -7,12 +7,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
 
-/**
- * 메뉴 채식 설정 요청.
- *
- * <p>{@code ingredients}가 필수인 이유는 그것이 관리자 검수의 유일한 근거이기 때문이다 — 재료를
- * 보지 않고는 이 메뉴가 정말 그 채식 단계인지 판정할 수 없다.
- */
 @Schema(description = "메뉴 채식 설정 요청")
 public record ProductVegetarianRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -35,7 +29,6 @@ public record ProductVegetarianRequest(
     @Schema(description = "검수 참고용 메뉴 설명", example = "동물성 재료를 전혀 쓰지 않는 비건 비빔밥입니다.")
     String description
 ) {
-
     public ProductVegetarianRequestCommand toCommand(Long ceoId, Long productId) {
         return new ProductVegetarianRequestCommand(ceoId, shopId, productId, vegetarianType, ingredients, description);
     }

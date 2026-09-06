@@ -16,7 +16,6 @@ public record MailVerificationSendRequest(
     @Schema(description = "인증코드를 받을 이메일 주소", example = "user@tastyhouse.com", requiredMode = Schema.RequiredMode.REQUIRED)
     String email
 ) {
-
     public MailVerificationSendCommand toCommand() {
         return new MailVerificationSendCommand(email);
     }

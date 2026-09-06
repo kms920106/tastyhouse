@@ -20,7 +20,6 @@ import com.tastyhouse.application.auth.security.CeoUserDetails;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeApiController {
-
     private final ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryService;
 
     public ShopHygieneBadgeApiController(ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryService) {

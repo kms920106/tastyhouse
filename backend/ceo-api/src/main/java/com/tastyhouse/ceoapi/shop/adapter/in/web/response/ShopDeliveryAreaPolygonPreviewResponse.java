@@ -6,15 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
 
-/**
- * 도형 환산 미리보기 결과(저장하지 않음).
- *
- * <p>저장 전에 <b>무엇이 열리고 무엇이 닫히는지</b>를 모두 보여주는 것이 이 응답의 목적이다. 배달지역은
- * 주문 접수 가능 범위를 직접 바꾸므로, 점주가 결과를 모른 채 저장하면 매출에 바로 영향이 간다.
- *
- * <p>{@code blockedAdminDongs}가 비어 있지 않으면 저장이 409로 실패한다 — 미리 알려주므로 점주는 배달팁을
- * 먼저 정리할 수 있다.
- */
 @Schema(description = "도형 환산 미리보기 결과")
 public record ShopDeliveryAreaPolygonPreviewResponse(
     @Schema(description = "기준점에서 최원거리 정점까지의 거리(m)", example = "3800")
@@ -38,7 +29,6 @@ public record ShopDeliveryAreaPolygonPreviewResponse(
     @Schema(description = "좌표·경계 미보유로 판정하지 못한 행정동 수", example = "0")
     int unresolvedCount
 ) {
-
     public static ShopDeliveryAreaPolygonPreviewResponse from(ShopDeliveryAreaPolygonPreviewResult result) {
         return new ShopDeliveryAreaPolygonPreviewResponse(
             result.maxRadiusMeters(),

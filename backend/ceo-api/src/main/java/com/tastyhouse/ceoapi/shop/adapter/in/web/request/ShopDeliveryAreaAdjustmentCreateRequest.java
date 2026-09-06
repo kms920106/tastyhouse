@@ -7,12 +7,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 
-/**
- * 배달지역 조정 신청 접수 요청.
- *
- * <p>동의서 파일({@code file})은 이 record가 아니라 컨트롤러가 {@code MultipartFile} 파라미터로 별도
- * 수신한다 — {@code multipart/form-data}의 텍스트 파트만 여기서 검증·문서화한다.
- */
 @Schema(description = "배달지역 조정 신청 요청")
 public record ShopDeliveryAreaAdjustmentCreateRequest(
     @NotBlank(message = "상대 가맹점 상호명은 필수입니다.")
@@ -35,7 +29,6 @@ public record ShopDeliveryAreaAdjustmentCreateRequest(
     @Schema(description = "배달지역 중첩 사유", example = "역삼1동 전역이 중첩되어 주문이 분산됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public ShopDeliveryAreaAdjustmentCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaAdjustmentCreateCommand(
             ceoId,

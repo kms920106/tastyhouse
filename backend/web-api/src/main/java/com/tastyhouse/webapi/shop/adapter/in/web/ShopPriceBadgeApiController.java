@@ -12,23 +12,10 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.shop.port.in.ShopPriceBadgeQueryUseCase;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse;
 
-/**
- * 손님용 가게 매장가격 뱃지 조회 API.
- *
- * <p><b>인증이 필요하지 않다.</b> 뱃지는 로그인 없이 가게를 둘러보는 손님이 가격 신뢰도를 판단하는
- * 표시이므로, 가게 정보·공지·원산지와 같이 {@code PublicPaths}에 등록된다
- * ({@code /api/shops/v1/*&#47;price-badges}). 등록을 빠뜨리면 비로그인 손님에게 401이 나가면서 뱃지가
- * 사라지므로, 이 컨트롤러를 옮기거나 경로를 바꿀 때 그 목록을 함께 고친다.
- *
- * <p><b>메뉴 상세의 가격과 다른 층위다.</b> 메뉴마다 매장가를 내리지 않고 가게 단위 플래그 2개로만
- * 표현한다 — 매장가는 결제에 쓰이지 않는 표시 전용 값이라 손님 계약에 노출할 것이 아니고, 뱃지 조건
- * 자체가 가게의 전체 메뉴를 함께 봐야 성립한다(커버리지 80%).
- */
 @Tag(name = "Shop Price Badge", description = "가게 매장가격 뱃지 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPriceBadgeApiController {
-
     private final ShopPriceBadgeQueryUseCase shopPriceBadgeQueryService;
 
     public ShopPriceBadgeApiController(ShopPriceBadgeQueryUseCase shopPriceBadgeQueryService) {

@@ -6,9 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * 라이더 안내 문구 수정 요청 조치. 문구는 그대로 두고 이력만 남긴다.
- */
 @Schema(description = "라이더 안내 문구 수정 요청 조치")
 public record ShopRiderVisitGuideRevisionRequest(
     @NotBlank(message = "수정 요청 사유는 필수입니다.")
@@ -17,7 +14,6 @@ public record ShopRiderVisitGuideRevisionRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public ShopRiderVisitGuideRevisionCommand toCommand(Long shopId, Long adminId) {
         return new ShopRiderVisitGuideRevisionCommand(shopId, adminId, reason);
     }

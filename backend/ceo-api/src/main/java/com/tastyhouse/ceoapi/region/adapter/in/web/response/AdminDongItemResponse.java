@@ -15,7 +15,6 @@ public record AdminDongItemResponse(
     @Schema(description = "표시용 전체 지역명(서버가 조립)", example = "서울특별시 강남구 역삼1동")
     String regionName
 ) {
-
     public static AdminDongItemResponse from(AdminDongItemResult result) {
         return new AdminDongItemResponse(
             result.id(),

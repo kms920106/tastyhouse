@@ -34,7 +34,6 @@ public record ShopConvenienceInfoUpdateRequest(
     @Schema(description = "노출 위치 경도 (가게 실제 위치 기준 1km 이내)", example = "127.027621")
     BigDecimal displayLongitude
 ) {
-
     public ShopConvenienceInfoUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopConvenienceInfoUpdateCommand(
             ceoId,

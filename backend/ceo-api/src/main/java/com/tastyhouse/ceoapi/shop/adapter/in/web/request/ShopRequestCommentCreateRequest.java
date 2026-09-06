@@ -6,9 +6,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentOwnerCreateCommand;
 
-/**
- * 요청건 문의 작성 요청(점주).
- */
 @Schema(description = "요청건 문의 작성 요청")
 public record ShopRequestCommentCreateRequest(
 
@@ -21,7 +18,6 @@ public record ShopRequestCommentCreateRequest(
     )
     String content
 ) {
-
     public ShopRequestCommentOwnerCreateCommand toCommand(Long ceoId, Long shopId, Long requestId) {
         return new ShopRequestCommentOwnerCreateCommand(ceoId, shopId, requestId, content());
     }

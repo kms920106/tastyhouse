@@ -59,7 +59,6 @@ public record CouponCreateRequest(
     @Schema(description = "노출 여부 (미지정 시 미노출)", example = "true", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     boolean visible
 ) {
-
     public CouponCreateCommand toCommand() {
         return new CouponCreateCommand(
             name(),

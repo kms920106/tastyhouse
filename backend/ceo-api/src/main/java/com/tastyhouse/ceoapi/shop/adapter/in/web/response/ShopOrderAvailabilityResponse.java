@@ -21,7 +21,6 @@ public record ShopOrderAvailabilityResponse(
     @Schema(description = "배정된 주문유형별 상태. 배정이 없으면 빈 배열")
     List<ShopOrderMethodAvailabilityResponse> orderMethods
 ) {
-
     public static ShopOrderAvailabilityResponse from(ShopOrderAvailabilityViewResult result) {
         OrderUnavailableReason reason = result.unavailableReason();
         return new ShopOrderAvailabilityResponse(

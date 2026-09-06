@@ -18,7 +18,6 @@ public record BannerListItemResponse(
     @Schema(description = "클릭 시 이동할 링크 URL", example = "https://tastyhouse.com/event/1")
     String linkUrl
 ) {
-
     public static BannerListItemResponse from(BannerListItemResult result) {
         return new BannerListItemResponse(
             result.id(),

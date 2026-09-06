@@ -20,21 +20,10 @@ import com.tastyhouse.application.product.port.in.ProductRelocateCommand;
 import com.tastyhouse.application.product.port.in.ProductReorderCommand;
 import com.tastyhouse.application.product.port.in.ProductSortCommandUseCase;
 
-/**
- * 점주 메뉴그룹·메뉴 순서 변경 API(replace-all {@code PUT}).
- *
- * <p><b>세 엔드포인트를 한 컨트롤러가 소유한다</b> — 그룹 이동이 출발·도착 두 그룹의 정렬 집합을 동시에
- * 바꾸므로 한 트랜잭션이어야 하고, 순서 관심사가 메뉴 컨트롤러와 메뉴그룹 컨트롤러로 흩어지면 그 규칙이
- * 두 곳으로 갈라진다.
- *
- * <p><b>{@code sort} 값을 받지 않는다</b> — 순서 있는 id 배열만 받고 서버가 배열 인덱스로
- * {@code 0..N-1}을 부여한다.
- */
 @Tag(name = "Ceo Product Sort", description = "점주 메뉴그룹·메뉴 순서 변경 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductSortApiController {
-
     private final ProductSortCommandUseCase productSortCommandUseCase;
 
     public ProductSortApiController(ProductSortCommandUseCase productSortCommandUseCase) {

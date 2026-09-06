@@ -25,7 +25,6 @@ public record EventAnnouncementUpdateRequest(
     @Schema(description = "발표 일시", example = "2026-02-01T10:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDateTime announcedAt
 ) {
-
     public EventAnnouncementUpdateCommand toCommand(Long eventId) {
         return new EventAnnouncementUpdateCommand(eventId, name(), content(), announcedAt());
     }

@@ -390,6 +390,16 @@
 
 가게에 딸린 정보를 다룰 때도 그것이 정말 그 가게 소속인지 함께 확인한다. 다른 가게의 콘텐츠보드나 임시중지 식별자를 넣어도 찾을 수 없다는 응답을 받는다.
 
+### 매장가격 뱃지 2종은 서로 독립이다
+
+뱃지 판정은 **가게 단위**다 — 조건 자체가 가게의 전체 메뉴를 함께 봐야 성립하며 **커버리지 80%** 기준을 쓴다. 두 뱃지는 **서로 독립**이라 조건이 달라 한쪽만 켜지는 경우가 정상이다(정책 소유: `StorePriceBadgePolicy`).
+
+응답은 **판정 결과 플래그만 담고 판정 근거는 담지 않는다.**
+
+### 인기 메뉴의 사장님 추천 자리
+
+가게 상세 상단 "가장 인기 있는 메뉴"에서 `representative`가 `true`인 항목은 **사장님 추천으로 채워진 자리**다. **판매량과 무관하게 우선 채워지므로 `salesQuantity`가 0일 수 있다** — 화면은 이 값으로 추천 뱃지를 붙인다.
+
 ## 다른 도메인과의 관계
 
 ### 이 도메인이 참조하는 정보
@@ -597,3 +607,109 @@
 - **처리 상태와 무관하게 작성할 수 있다.** 반려·취소·승인 이후에도 쓸 수 있어야 하는데, 반려 사유를 확인한 뒤 되묻는 것이 이 기능의 주된 쓰임이다.
 - 수정·삭제가 없다.
 - 작성자 **실명은 노출하지 않는다.** 화면은 "점주"/"담당자" 라벨만 보여준다.
+
+## 점주 화면이 드러내는 규칙 (챕터 06 이관)
+
+<!-- 분류 C. ceo-api 코드 주석에서 이관. 역참조 앵커는 각 항목의 '대상' 참조 -->
+
+### 배달팁 구간 불변식
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/ShopDeliveryTipApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopDeliveryTipTiersUpdateRequest.java` → record 컴포넌트 `tiers`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryTipSettingResponse.java` → record 전체, 상수 `EXTRA_TIP_TYPE_NONE`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryTipDistanceResponse.java` → record 전체, 상수 `EXTRA_TIP_TYPE_DISTANCE`
+
+- **구간별 기본 배달팁 규격: 3개 이하 + 주문금액 오름차순 + 팁 내림차순.** 개수 위반은 `SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED`(1~3개)로 판정한다. 이 불변식은 **집합 전체를 봐야** 판정된다 — 두 구간의 금액을 맞바꾸려면 반드시 단조성이 깨진 상태를 한 번 거친다.
+- **거리별과 지역별 추가팁은 상호 배타**다: 지역별이 하나라도 있으면 거리별을 설정할 수 없고, 그 반대도 같다. 지역별을 **전부 비워야** 거리별로 전환할 수 있다.
+- 추가팁 유형(`extraTipType`) 기본값은 `"NONE"`이며, 거리별 설정 3필드는 `extraTipType == "DISTANCE"`일 때만 값이 성립한다.
+- **배달팁을 한 번도 설정하지 않은 가게의 값**: `extraTipType="NONE"` · `distance=null` · 목록 3종은 빈 배열 · `holidayTipAmount=0`.
+- 대비: `ShopBusinessHour`가 개별 CRUD인 것은 **요일 간에 이런 관계가 없어** 행 하나만 보고 판정할 수 있기 때문이다.
+
+### 배달가능지역 · 도형 · 반경
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopDeliveryAreaPolygonSaveRequest.java` → record 컴포넌트 `rings`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopDeliveryAreaRadiusRequest.java` → record 컴포넌트 `replace`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaPolygonResponse.java` → record 컴포넌트 `exists`, `centerMovedMeters`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaBlockedResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaBulkDeleteResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaBulkResponse.java` → record 컴포넌트 `skippedCount`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaCandidateResponse.java` → record 컴포넌트 `alreadyRegistered`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaPolygonPreviewResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopDeliveryAreaRadiusPreviewResponse.java` → record 컴포넌트 `circle`, `unresolvedCount`
+
+- **도형은 링의 배열**이다 — 링이 여럿이면 떨어진 두 구역이나 **구멍(배달 제외 구역)**을 표현한다. 어느 쪽인지는 클라이언트가 표시하지 않고 **서버가 위상(even-odd)으로 판정**한다.
+- 링 개수·정점 개수 상한은 도메인 정책 `ShopDeliveryAreaPolicy`가 저장 가능성 관점에서 판정한다.
+- **도형에는 가게 좌표 기준 7km 상한이 있다.** `centerMovedMeters`가 `0`보다 크면 저장 이후 가게 주소가 이전된 것이므로 기준점이 달라졌고, 화면이 재설정을 안내해야 한다.
+- **지역별 배달팁이 참조하는 행정동은 배달지역에서 뺄 수 없다**(배달팁이 배달 불가 지역을 가리키게 되므로). 저장 시 409. 미리보기가 `blockedAdminDongs`로 먼저 알려주므로 점주는 배달팁을 먼저 정리할 수 있다. 일괄 삭제도 **참조 동이 하나라도 섞이면 한 건도 지우지 않고 409**로 끝난다(부분 삭제 없음).
+- **일괄 추가는 이미 등록된 동을 실패가 아니라 건너뛰기로 처리한다**(`skippedCount`). 요청 개수와 실제 반영 개수가 다를 수 있다.
+- **반경 적용의 `replace` 기본값은 `false`(더하기)**이며, `true`면 반경 밖의 기존 행정동 직접 등록분을 닫고 교체한다.
+- 반경 판정 원은 **72각형 근사**이며 **경도 보정(`1/cos φ`)**을 적용한다. 좌표·경계를 보유하지 않아 판정하지 못한 동은 `unresolvedCount`로 노출한다.
+- 도형을 그리지 않고 **행정동만 직접 등록한 가게가 정상적으로 존재**한다(도형 미설정 = `exists: false`인 200).
+- 배달지역은 **주문 접수 가능 범위를 직접 바꾸므로** 저장 전에 무엇이 열리고 닫히는지 모두 보여준다 — 결과를 모른 채 저장하면 매출에 바로 영향이 간다.
+
+### 매장 가격 인증
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/ShopStorePriceVerificationApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopStorePriceVerificationResponse.java` → record 컴포넌트 `verified`, `status`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopStorePriceUnverifiedItemResponse.java` → record 컴포넌트 `reason`
+
+- 매장 가격 인증은 손님에게 **'매장과 같은 가격' 뱃지**를 보여줄 자격을 얻는 절차다.
+- **승인 후에도 배달가가 매장가를 넘어서면 인증이 자동 해제된다.** 그래서 최근 요청이 `APPROVED`인데 `verified=false`인 상태가 **정상적으로 존재**하며, `verified`와 `status`는 서로 다른 축이다.
+- 미충족 사유는 코드로 분기되며 사유별 조치가 다르다: **미등록 → 매장가 입력**, **배달가 초과 → 배달가 인하**.
+- 한 번도 요청하지 않은 가게는 `id`·`status`·`rejectReason`이 `null`이고 `verified`만 유효하다(미요청은 별도 상태값이 아니다).
+- 등록 요청은 가격표 이미지와 대상 목록이 **한 요청(multipart)에 함께** 와야 한다 — 쪼개면 첨부만 있고 대상이 없는 고아 건이 관리자 검수 큐에 쌓인다.
+- 요청 취소는 통합 요청처리 현황이, 검수(승인·반려)는 `admin-api`가 담당한다.
+
+### 원산지 표시는 가게 단위
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/ShopOriginInfoApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopOriginInfoUpdateRequest.java` → record 컴포넌트 `sourceType`, `content`, `url`
+
+원산지는 **메뉴 단위가 아니라 가게 단위**로 한 번 작성한다 — 표시 지침이 "모든 음식에 같으면 일괄 표시"처럼 하나의 문장 안에서 표현되기 때문이다. 그래서 경로도 메뉴가 아니라 가게에 달린다. `content`·`url`의 필수 여부는 **`sourceType`에 따라 갈리는 조건부 제약**이며 도메인(`ShopOriginInfo`)이 `SHOP_ORIGIN_CONTENT_REQUIRED` 등으로 판정한다. 미설정 기본 출처 유형은 `DIRECT`다.
+
+### 라이더 안내(방문 문구 · 픽업 위치)
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopRiderVisitGuideUpdateRequest.java` → record 컴포넌트 `content`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopRiderPickupLocationUpdateRequest.java` → record 컴포넌트 `latitude`, `longitude`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopRiderGuideResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopRiderPickupLocationResponse.java` → record 전체
+
+- 방문 안내 문구의 **금칙어·실주소 노출 금지·배차 어휘 금지**와 픽업 위치의 좌표 범위 판정은 도메인(`ShopRiderGuide`)이 소유한다 — 관리자 교정 경로(`admin-api`)에서도 같은 게이트가 적용되어야 하기 때문이다.
+- 문구는 **빈 문자열을 허용**하며 "빈 값 PUT = 삭제"로 통일한다.
+- **픽업 위치가 미설정이면 가게 실주소로 폴백**한다. 주소·위도·경도 **세 값이 모두 있어야** 위치로 성립한다.
+- 사전 검수는 위반이 있어도 예외가 아니라 200으로 사유 목록을 반환한다.
+
+### 행정동 마스터의 시드 순서와 계층
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/region/adapter/in/web/request/AdminDongTreeRequest.java` → record 컴포넌트 `sidoName`, `sigunguName`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/region/adapter/in/web/request/AdminDongBoundarySearchRequest.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/region/adapter/in/web/response/AdminDongTreeItemResponse.java` → record 컴포넌트 `adminDongId`, `code`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/region/adapter/in/web/response/AdminDongBoundaryItemResponse.java` → record 컴포넌트 `rings`
+
+- 행정동 계층은 **시도 → 시군구 → 행정동 3단**이며 한 요청 형태로 3단을 모두 표현한다(둘 다 비면 시도, `sidoName`만 있으면 시군구, 둘 다 있으면 행정동).
+- **`sigunguName` 단독 요청은 성립하지 않는다** — 같은 이름의 시군구가 여러 시도에 존재한다(예: "중구").
+- `adminDongId`·`code`는 **`DONG` 레벨에서만 채워진다** — 시도·시군구는 그룹핑 이름일 뿐 마스터 테이블에 자기 행이 없다.
+- 경계 조회는 **지도 영역(bbox)과 식별자 지정이 배타적**이며 둘 다 비면 전국 요청이 되어 거절한다.
+- **시드는 코드·좌표가 먼저, 경계는 나중에 들어온다** — "좌표는 있고 경계는 없는" 상태가 정상이다.
+- 전국 규모는 **약 3,600개 동**이며, 전국 줌 레벨에서 전체 경계를 전송하면 응답이 수십 MB가 된다.
+
+### 주문안내 · 요청처리 현황
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/ShopOrderNoticeApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopOrderNoticeResponse.java` → `empty()`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopRequestTypeResponse.java` → record 컴포넌트 `contractAmending`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/response/ShopRequestDetailResponse.java` → record 컴포넌트 `status`
+
+- **주문안내는 가게당 1건**(메뉴판 최상단 안내 문구)이라 `PUT`이 전체교체(upsert) 의미론을 갖는다. **게시중단(hide/unhide)은 관리자 권한이며 등록된 문구에만 걸린다** — 미등록 가게는 항상 게시중이다. 문구 내용 규칙 위반은 `SHOP_ORDER_NOTICE_CONTENT_*`로 응답한다.
+- 반면 **사장님 공지는 여러 건을 등록해 그중 1건만 노출**하는 목록형 자원이다.
+- 요청 유형에는 **`contractAmending`(계약서가 수정되는 요청)** 축이 있다.
+- 요청처리 현황 상세의 `status`·`rejectReason`은 **원본 애그리거트 값**이고, 인덱스 행은 파생 읽기모델이라 진실원이 아니다.
+
+---

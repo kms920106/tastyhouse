@@ -31,7 +31,6 @@ import static com.tastyhouse.adminapi.config.security.PublicPaths.PATTERNS;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
@@ -80,12 +79,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // 공개 경로 (PublicPaths.PATTERNS에서 중앙 관리)
+
                 .requestMatchers(PATTERNS).permitAll()
-                // 로그아웃은 인증만 필요 (특정 역할 불요, 임의 토큰 블랙리스트 등록 방지)
+
                 .requestMatchers("/api/auth/v1/logout").authenticated()
-                // 나머지 API는 관리자 역할 필수 (심층 방어: 잘못 발급·유출된 비-관리자 토큰이
-                // authenticated()만으로 통과하는 것을 차단)
+
                 .anyRequest().hasAnyRole("ADMIN", "SUPER_ADMIN")
             )
             .exceptionHandling(ex -> ex

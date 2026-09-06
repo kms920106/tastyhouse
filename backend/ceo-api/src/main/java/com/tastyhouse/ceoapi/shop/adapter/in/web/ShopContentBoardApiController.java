@@ -32,7 +32,6 @@ import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
-
     private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryService;
     private final ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase;
 

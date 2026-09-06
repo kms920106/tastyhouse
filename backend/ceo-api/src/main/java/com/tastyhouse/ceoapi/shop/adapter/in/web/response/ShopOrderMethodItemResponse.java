@@ -16,7 +16,6 @@ public record ShopOrderMethodItemResponse(
     @Schema(description = "주문유형 한글명", example = "배달")
     String orderMethodName
 ) {
-
     public static ShopOrderMethodItemResponse from(ShopOrderMethodResult result) {
         return new ShopOrderMethodItemResponse(
             result.id(),

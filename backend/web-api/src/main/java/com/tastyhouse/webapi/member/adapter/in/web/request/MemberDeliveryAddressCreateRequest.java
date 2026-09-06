@@ -9,13 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressCreateCommand;
 
-/**
- * 배달 주소 등록 요청.
- *
- * <p>좌표는 클라이언트가 주소 검색 API에서 받은 값을 그대로 보낸다. 좌표가 없으면 거리별 배달팁을
- * 산출할 수 없어 할증이 0원이 되므로 <b>필수</b>다. 행정동은 서버가 주소 문자열로 매칭해 채우므로
- * 요청 필드에 없다.
- */
 @Schema(description = "배달 주소 등록 요청")
 public record MemberDeliveryAddressCreateRequest(
     @Size(max = 50, message = "주소 별칭은 최대 50자까지 입력 가능합니다.")
@@ -46,14 +39,6 @@ public record MemberDeliveryAddressCreateRequest(
     @Schema(description = "기본 배송지 여부. true면 기존 기본 배송지는 자동으로 해제됩니다.", example = "true")
     Boolean isDefault
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     *
-     * <p>주소 {@code String} 4개와 좌표 {@code BigDecimal} 2개가 각각 연달아 있어 위치 기반 전달은
-     * 조용히 뒤바뀐다(위경도가 뒤바뀌면 배달팁이 엉뚱하게 산출된다) — 아래는 이름 기반 접근자로
-     * 각 값을 짚어 넘긴다.
-     */
     public MemberDeliveryAddressCreateCommand toCommand(Long memberId) {
         return new MemberDeliveryAddressCreateCommand(
             memberId,

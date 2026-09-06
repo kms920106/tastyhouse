@@ -33,7 +33,6 @@ import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewBlindRequestApiController {
-
     private final ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase;
     private final ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase;
 

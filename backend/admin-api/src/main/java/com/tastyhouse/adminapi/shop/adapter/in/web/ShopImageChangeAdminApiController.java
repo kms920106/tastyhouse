@@ -32,7 +32,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopImageChangeAdminApiController {
-
     private final ShopImageChangeQueryUseCase shopImageChangeQueryUseCase;
     private final ShopImageChangeCommandUseCase shopImageChangeCommandUseCase;
 

@@ -58,13 +58,6 @@ public record ReviewUpdateRequest(
     @Schema(description = "배달 평가 내용 (선택, 점주 전용 노출)", example = "빠르게 잘 받았어요")
     String deliveryComment
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code reviewId}를 주입받아 command로 변환한다.
-     *
-     * <p>평점 3종이 같은 {@code Integer}라 위치 기반 전달은 조용히 뒤바뀌므로, 아래는 이름 기반
-     * 접근자로 각 값을 짚어 넘긴다.
-     */
     public ReviewUpdateCommand toCommand(Long memberId, Long reviewId) {
         return new ReviewUpdateCommand(
             memberId,

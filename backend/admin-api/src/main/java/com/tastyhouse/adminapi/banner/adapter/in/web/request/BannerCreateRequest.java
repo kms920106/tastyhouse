@@ -40,7 +40,6 @@ public record BannerCreateRequest(
     @Schema(description = "노출 여부 (미지정 시 노출)", example = "true", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     boolean visible
 ) {
-
     public BannerCreateCommand toCommand() {
         return new BannerCreateCommand(type, title, imageFileId, linkUrl, startDate, endDate, sort, visible);
     }

@@ -28,7 +28,6 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopApiController {
-
     private final ShopOwnerQueryUseCase shopQueryService;
 
     public ShopApiController(ShopOwnerQueryUseCase shopQueryService) {

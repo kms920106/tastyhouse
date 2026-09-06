@@ -26,10 +26,6 @@ public record ShopEditorChoiceResponse(
     @Schema(description = "추천 상품 목록")
     List<ShopEditorChoiceProductItem> products
 ) {
-    /**
-     * {@code products}가 {@code null}이면 빈 배열로 내린다 — 추천 상품이 없는 초이스도 목록에 나와야
-     * 하므로 응답 계약이 빈 배열이고, 이는 값을 만들지 않는 순수 null 기본값이다.
-     */
     public static ShopEditorChoiceResponse from(EditorChoiceResult result) {
         return new ShopEditorChoiceResponse(
             result.id(),

@@ -9,18 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.product.port.in.ProductNutritionUpdateCommand;
 
-/**
- * 메뉴 영양성분·알레르기 등록/수정 요청.
- *
- * <p><b>필수 5종에 {@code @NotNull}을 붙이지 않는다.</b> "전부 채우거나 전부 비우기"는 필드 하나로
- * 판정할 수 없는 집합 제약이고, 개별 {@code @NotNull}을 걸면 "전부 비우기"(영양성분 미표시)라는 정상
- * 요청이 400으로 막힌다. 판정은 도메인({@code ProductNutrition})이 한 곳에서 수행해
- * {@code PRODUCT_NUTRITION_REQUIRED_FIELD_MISSING}으로 응답한다.
- *
- * <p>음수 금지는 {@code @Min(0)}과 도메인 검증에 <b>이중</b>으로 있다. 도메인 쪽이 계약상의
- * {@code code}({@code PRODUCT_NUTRITION_VALUE_NEGATIVE})를 보장하는 단일 소유자이고, 여기의
- * {@code @Min}은 그 앞단에서 같은 값을 걸러 내는 방어다.
- */
 @Schema(description = "메뉴 영양성분·알레르기 등록/수정 요청")
 public record ProductNutritionUpdateRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -91,11 +79,6 @@ public record ProductNutritionUpdateRequest(
         example = "[\"MILK\", \"PEANUT\"]")
     List<String> allergens
 ) {
-
-    /**
-     * 같은 타입의 영양성분 필드가 11개 연달아 있어 위치 기반 조립은 뒤바뀜을 컴파일러가 잡지 못한다.
-     * 반드시 이름 기반 접근자로 조립한다.
-     */
     public ProductNutritionUpdateCommand toCommand(Long ceoId, Long productId) {
         return new ProductNutritionUpdateCommand(
             ceoId,

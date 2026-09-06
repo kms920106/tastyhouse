@@ -16,10 +16,6 @@ public record PaymentCreateRequest(
     @Schema(description = "결제 방법", example = "CREDIT_CARD", allowableValues = {"CASH_ON_SITE", "CARD_ON_SITE", "CREDIT_CARD", "MOBILE", "KAKAO_PAY", "ZERO_PAY"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String paymentMethod
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     */
     public PaymentCreateCommand toCommand(Long memberId) {
         return new PaymentCreateCommand(
             memberId,

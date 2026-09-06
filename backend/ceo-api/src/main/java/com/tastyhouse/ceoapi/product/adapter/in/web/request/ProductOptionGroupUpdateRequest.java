@@ -8,13 +8,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
 
-/**
- * 옵션그룹 변경 요청.
- *
- * <p>등록 요청과 달리 {@code productId}를 받지 않는다 — 그룹이 어느 메뉴에 연결되는지는 연결 API
- * ({@code ProductOptionGroupLinkApiController})의 관심사이고, 이 경로로 바꾸면 연결 집합이 두 곳에서
- * 변경돼 단일 가게 불변식 검증이 흩어진다. 순서도 마찬가지로 이 경로로 바꾸지 않는다.
- */
 @Schema(description = "옵션그룹 변경 요청")
 public record ProductOptionGroupUpdateRequest(
     @NotNull(message = "가게 ID는 필수입니다.")
@@ -46,7 +39,6 @@ public record ProductOptionGroupUpdateRequest(
     @Schema(description = "최대 선택 개수. null이면 미지정(무제한)", example = "3")
     Integer maxSelect
 ) {
-
     public ProductOptionGroupUpdateCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionGroupUpdateCommand(
             ceoId,

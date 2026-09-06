@@ -28,20 +28,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
 
-/**
- * 점주 옵션그룹 <b>합치기</b> API.
- *
- * <p>{@link ProductOptionGroupApiController}에 넣지 않고 컨트롤러를 분리한 이유는, 합치기가
- * 추천·제외·미리보기·실행 4개 워크플로를 갖는 독립 기능이어서 그 클래스가 두 배가 되기 때문이다.
- *
- * <p><b>분리(unmerge) 엔드포인트는 없다</b> — 합치기는 비가역이며, 그 사실을 라우트의 부재로
- * 표현한다({@code ProductOptionGroup}이 un-hide 메서드를 의도적으로 두지 않은 것과 같은 형태).
- */
 @Tag(name = "Ceo Product Option Group Merge", description = "점주 옵션그룹 합치기 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupMergeApiController {
-
     private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryService;
     private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;
 

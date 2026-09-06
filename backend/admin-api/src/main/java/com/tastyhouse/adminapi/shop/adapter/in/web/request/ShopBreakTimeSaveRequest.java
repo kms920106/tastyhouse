@@ -23,7 +23,6 @@ public record ShopBreakTimeSaveRequest(
     @Schema(description = "브레이크타임 종료 시각", example = "17:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalTime endTime
 ) {
-
     public ShopBreakTimeManagementCreateCommand toCreateCommand(Long adminId, Long shopId) {
         return new ShopBreakTimeManagementCreateCommand(adminId, shopId, dayType, startTime, endTime);
     }

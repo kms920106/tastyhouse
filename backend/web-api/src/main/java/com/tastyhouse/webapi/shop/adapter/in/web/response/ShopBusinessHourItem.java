@@ -27,7 +27,6 @@ public record ShopBusinessHourItem(
     @Schema(description = "24시간 영업 여부", example = "false")
     boolean is24Hours
 ) {
-    /** 시각 표기 — 같은 모듈의 휴게시간·시간대별 배달팁 응답과 같은 형태여야 프론트가 파싱을 한 벌만 갖는다. */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     public static ShopBusinessHourItem from(ShopBusinessHourResult result) {

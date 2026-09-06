@@ -9,12 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationOwnerUpdateCommand;
 
-/**
- * 라이더 픽업 위치 등록·수정 요청.
- *
- * <p>좌표 범위 판정은 도메인({@code ShopRiderGuide})이 담당한다 — 관리자 교정 경로(admin-api)에서도 같은
- * 규칙이 적용되어야 하므로 Request로 끌어올리지 않는다.
- */
 @Schema(description = "라이더 픽업 위치 등록 요청")
 public record ShopRiderPickupLocationUpdateRequest(
     @NotBlank(message = "픽업 도로명주소는 필수입니다.")
@@ -41,7 +35,6 @@ public record ShopRiderPickupLocationUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
-
     public ShopRiderPickupLocationOwnerUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopRiderPickupLocationOwnerUpdateCommand(
             ceoId,

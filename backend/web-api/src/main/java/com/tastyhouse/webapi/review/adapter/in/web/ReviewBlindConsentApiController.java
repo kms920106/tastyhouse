@@ -19,22 +19,10 @@ import com.tastyhouse.application.review.port.in.ReviewBlindRejectCommand;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 
-/**
- * 게시중단된 내 리뷰의 삭제 동의·거부 API.
- *
- * <p>이미 비대해진 {@code ReviewApiController}에 얹지 않고 별도 컨트롤러로 두는 이유는, 이 두 경로가
- * "게시중단 생애주기"라는 다른 관심사이고 인가 규칙(작성자 본인 + 게시중단 상태)도 리뷰 CRUD와 다르기
- * 때문이다.
- *
- * <p><b>응답 코드가 ceo 경로와 갈린다</b> — 대상이 이미 게시중단된 비공개 리뷰이므로 타인 리뷰 접근을
- * 403이 아니라 404({@code REVIEW_NOT_FOUND})로 응답해 존재 자체를 숨긴다. 판단 근거는 도메인 서비스의
- * Javadoc에 있다.
- */
 @RestController
 @RequestMapping("/api/reviews")
 @Tag(name = "Review Blind Consent", description = "게시중단 리뷰 삭제 동의 API")
 public class ReviewBlindConsentApiController {
-
     private final ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase;
     private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryService;
 

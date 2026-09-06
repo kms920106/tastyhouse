@@ -87,3 +87,24 @@
 **관리자** — 가게에 담당 점주를 배정할 때 점주 선택 목록을 사용한다. 이 목록에서 점주의 이름, 사업자등록번호, 계정 상태를 함께 확인할 수 있다.
 
 **일반 회원(웹)** — 접점이 없다. 회원은 가게 정보를 볼 뿐이고 그 가게를 누가 관리하는지 알 필요가 없다.
+
+## 점주 화면이 드러내는 규칙 (챕터 06 이관)
+
+<!-- 분류 C. ceo-api 코드 주석에서 이관. 역참조 앵커는 각 항목의 '대상' 참조 -->
+
+### 점주 이력 조회 보관 기간
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/ceo/adapter/in/web/request/CeoLoginHistorySearchRequest.java` → record 컴포넌트 `startDate`/`endDate`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/ceo/adapter/in/web/request/CeoShopAccessHistorySearchRequest.java` → record 컴포넌트 `startDate`/`endDate`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopChangeHistorySearchRequest.java` → record 컴포넌트 `changedDate`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopRequestSearchRequest.java` → record 컴포넌트 `startDate`/`endDate`
+
+| 이력 | 조회 가능 기간 | 위반 시 `ErrorCode` |
+|---|---|---|
+| 내 로그인 이력 | **최근 90일** (미래 금지 + 90일 초과 금지) | `CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE` |
+| 내 시스템 접근권한 이력 | 보관 기간 내 (미래 금지) | `CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE` |
+| 가게 변경이력 | **최근 6개월** (과거~오늘) | `SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE` |
+| 요청처리 현황 | **상한 없음**, `startDate <= endDate`만 | `SHOP_REQUEST_DATE_RANGE_INVALID` |
+
+각 경우 상한과 하한은 **하나의 규칙**이며 서비스가 통째로 판정해 하나의 `ErrorCode`로 응답한다. 로그인은 성공·실패 모두 **개인정보처리시스템 접속기록**으로 남는다.

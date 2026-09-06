@@ -18,7 +18,6 @@ import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 @RestController
 @RequestMapping("/api/files")
 public class FileApiController {
-
     private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
 
     public FileApiController(FileUploadOwnerCommandUseCase fileUploadCommandUseCase) {

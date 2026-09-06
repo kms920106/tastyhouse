@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePreviewResult;
 
-/**
- * 미리보기의 옵션그룹 1건(기준 또는 후보).
- *
- * <p>{@code *Differs} 플래그는 <b>기준 그룹 기준</b>이다 — 기준 자신은 항상 {@code false}다.
- * 합치면 기준값이 이기므로, 이 플래그가 켜진 항목이 곧 "합치면 바뀌는 것"이다.
- */
 @Schema(description = "합치기 미리보기 옵션그룹")
 public record ProductOptionGroupMergePreviewGroupResponse(
     @Schema(description = "옵션그룹 ID", example = "10")
@@ -50,7 +44,6 @@ public record ProductOptionGroupMergePreviewGroupResponse(
     @Schema(description = "옵션 목록")
     List<ProductOptionGroupMergePreviewOptionResponse> options
 ) {
-
     public static ProductOptionGroupMergePreviewGroupResponse from(
         ProductOptionGroupMergePreviewResult.Group group
     ) {

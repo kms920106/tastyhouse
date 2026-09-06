@@ -29,7 +29,6 @@ public record PolicyUpdateRequest(
     @Schema(description = "수정자", example = "admin")
     String updatedBy
 ) {
-
     public PolicyUpdateCommand toCommand(Long policyDocumentId) {
         return new PolicyUpdateCommand(policyDocumentId, title, content, mandatory, effectiveDate, updatedBy);
     }

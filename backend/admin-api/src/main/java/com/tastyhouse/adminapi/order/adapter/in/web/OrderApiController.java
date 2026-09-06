@@ -33,7 +33,6 @@ import com.tastyhouse.application.order.port.in.OrderManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/orders")
 public class OrderApiController {
-
     private final OrderManagementCommandUseCase orderCommandUseCase;
     private final OrderManagementQueryUseCase orderQueryUseCase;
 

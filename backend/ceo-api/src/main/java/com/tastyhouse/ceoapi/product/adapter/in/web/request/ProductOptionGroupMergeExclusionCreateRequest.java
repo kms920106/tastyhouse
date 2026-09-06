@@ -25,7 +25,6 @@ public record ProductOptionGroupMergeExclusionCreateRequest(
         + "위조·낡은 토큰을 거부합니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> optionGroupIds
 ) {
-
     public ProductOptionGroupMergeExclusionCreateCommand toCommand(Long ceoId) {
         return new ProductOptionGroupMergeExclusionCreateCommand(ceoId, shopId, signature, optionGroupIds);
     }

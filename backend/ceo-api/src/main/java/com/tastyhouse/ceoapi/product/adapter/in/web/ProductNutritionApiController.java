@@ -27,23 +27,10 @@ import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductNutritionUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductNutritionOwnerQueryUseCase;
 
-/**
- * 점주 메뉴 영양성분·알레르기 관리 API.
- *
- * <p>영양성분과 알레르기를 한 컨트롤러가 소유한다 — 한 화면에서 함께 저장·삭제되는 한 벌이라, 나누면
- * 두 리소스에 걸친 교체가 두 요청으로 갈라져 중간 상태(영양성분만 갱신되고 알레르기는 이전 값)가
- * 손님 화면에 잘못된 알레르기 표시로 노출된다.
- *
- * <p>모든 핸들러가 {@code shopId}로 소유권을 검증하고 <b>그 메뉴가 정말 그 가게 것인지</b>까지 대조한다 —
- * 가게 소유권만 확인하면 남의 가게 메뉴 id를 실어 보내는 경로가 열린다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Nutrition", description = "점주 메뉴 영양성분·알레르기 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
-
     private final ProductNutritionOwnerQueryUseCase productNutritionQueryService;
     private final ProductNutritionCommandUseCase productNutritionCommandUseCase;
 

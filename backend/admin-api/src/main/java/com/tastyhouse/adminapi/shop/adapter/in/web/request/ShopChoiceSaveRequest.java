@@ -14,7 +14,6 @@ public record ShopChoiceSaveRequest(
     @Schema(description = "내용", example = "상세 설명 내용...")
     String content
 ) {
-
     public ShopChoiceUpdateCommand toCommand(Long choiceId) {
         return new ShopChoiceUpdateCommand(choiceId, title, content);
     }

@@ -6,11 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 
-/**
- * 가게 브레이크타임 응답.
- *
- * <p>{@link ShopBusinessHourResponse}와 같은 이유로 이 모듈이 소유한다.
- */
 @Schema(description = "가게 브레이크타임 응답")
 public record ShopBreakTimeResponse(
     @Schema(description = "브레이크타임 ID", example = "1")

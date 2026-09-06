@@ -41,7 +41,6 @@ public record BannerUpdateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean visible
 ) {
-
     public BannerUpdateCommand toCommand(Long bannerId) {
         return new BannerUpdateCommand(bannerId, type, title, imageFileId, linkUrl, startDate, endDate, sort, visible);
     }

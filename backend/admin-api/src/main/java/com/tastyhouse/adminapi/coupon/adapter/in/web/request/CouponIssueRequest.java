@@ -13,7 +13,6 @@ public record CouponIssueRequest(
     @Schema(description = "발급 대상 회원 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long memberId
 ) {
-
     public CouponIssueCommand toCommand(Long couponId) {
         return new CouponIssueCommand(couponId, memberId());
     }

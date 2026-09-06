@@ -6,11 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
 
-/**
- * 메뉴그룹(카테고리) 단위로 묶은 품절·숨김 관리 목록.
- *
- * <p>앱에 노출되는 순서와 동일하게 메뉴그룹 단위로 정렬된다.
- */
 @Schema(description = "품절·숨김 관리 메뉴그룹")
 public record ProductAvailabilityGroupResponse(
     @Schema(description = "카테고리 ID. 카테고리 미지정 메뉴는 null", example = "5")
@@ -25,7 +20,6 @@ public record ProductAvailabilityGroupResponse(
     @Schema(description = "이 카테고리에 속한 메뉴 목록")
     List<ProductAvailabilityItemResponse> products
 ) {
-
     public static ProductAvailabilityGroupResponse from(ProductAvailabilityGroupResult group) {
         return new ProductAvailabilityGroupResponse(
             group.categoryId(),

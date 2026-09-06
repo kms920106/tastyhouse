@@ -16,10 +16,6 @@ public record WithdrawMemberRequest(
     @Schema(description = "탈퇴 상세 사유 (선택)", example = "서비스를 자주 이용하지 않게 되었습니다.")
     String reasonDetail
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     */
     public MemberWithdrawCommand toCommand(Long memberId) {
         return new MemberWithdrawCommand(
             memberId,

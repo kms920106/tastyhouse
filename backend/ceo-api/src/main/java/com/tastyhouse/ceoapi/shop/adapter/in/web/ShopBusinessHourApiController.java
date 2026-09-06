@@ -35,7 +35,6 @@ import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateComman
 @RestController
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
-
     private final ShopBusinessHourQueryUseCase shopBusinessHourQueryService;
     private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;
 

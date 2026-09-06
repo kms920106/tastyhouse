@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
 
-/**
- * 메뉴그룹(점주 관리 화면).
- *
- * <p>손님 메뉴판과 달리 <b>숨긴 그룹도 포함</b>해 내려온다 — 이 화면이 숨김 상태 자체를 조작하기
- * 때문에 필터를 걸면 숨긴 그룹을 되살릴 방법이 없어진다.
- */
 @Schema(description = "메뉴그룹")
 public record ProductCategoryResponse(
     @Schema(description = "메뉴그룹 ID", example = "10")
@@ -31,7 +25,6 @@ public record ProductCategoryResponse(
         example = "5")
     Long productCount
 ) {
-
     public static ProductCategoryResponse from(ProductCategoryManagementResult result) {
         return new ProductCategoryResponse(
             result.id(),

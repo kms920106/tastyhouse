@@ -30,26 +30,10 @@ import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageCreateComm
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCommand;
 
-/**
- * 점주 메뉴모음컷 관리 API — 손님이 가게를 열었을 때 가장 먼저, 가장 상단에서 보는 이미지.
- *
- * <p>이미지 <b>등록</b>만 관리자 검수를 거치고, <b>순서 변경·삭제는 즉시 반영</b>된다 — 검수 대상은
- * 새 이미지의 내용이지 배치가 아니다. 등록 정원은 6개이며 대기·반려 건도 그 정원을 차지한다.
- *
- * <p>모든 핸들러가 경로의 {@code shopId}로 소유권을 검증한다. 삭제는 이미지 id가 경로에 있지만 가게
- * 범위 안에서 대상을 찾으므로, 남의 가게 이미지 id는 소유권 검증을 통과했더라도 404로 떨어진다.
- *
- * <p>목록 조회 경로가 web-api의 손님용 엔드포인트와 <b>같은 URL</b>인 것은 의도된 것이다 — 앱은 서로
- * 다른 호스트·포트로 서비스되고, 응답 계약이 달라(점주는 {@code status}·{@code rejectReason} 포함)
- * 각 모듈이 자기 버전을 소유한다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Shop Menu Collection Image", description = "점주 메뉴모음컷 관리 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
-
     private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryService;
     private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;
 

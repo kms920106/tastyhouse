@@ -21,28 +21,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequestCommand;
 
-/**
- * 점주 매장 가격 인증 관리 API — 손님에게 '매장과 같은 가격' 뱃지를 보여줄 자격을 얻는 절차다.
- *
- * <p><b>등록이 multipart인 것은 가격표 이미지와 대상 목록이 한 요청에 함께 와야 하기 때문</b>이다.
- * 두 요청으로 쪼개면 중간에서 끊긴 건이 첨부만 있고 대상이 없는 고아 상태로 남아, 관리자 검수 큐에
- * 검수할 수 없는 건이 쌓인다. multipart는 JSON 바디를 함께 실을 수 없어 대상 목록만
- * {@code items} 문자열 파트로 받아 command에 그대로 실어 넘기고, 파싱은 서비스가 한다.
- *
- * <p><b>조회는 {@code verified}와 {@code status}를 함께 내려주며 둘은 서로 다른 축이다.</b> 승인 후에도
- * 배달가가 매장가를 넘어서면 인증이 자동 해제되므로, 최근 요청이 승인인데 인증이 꺼진 상태가 정상적으로
- * 존재한다. 화면은 매장가·픽업가 입력 가능 여부를 {@code verified}로 판단한다.
- *
- * <p>요청 취소·관리자 검수(승인·반려)는 이 컨트롤러에 없다 — 취소는 통합 요청처리 현황
- * ({@code ShopRequestApiController})이, 검수는 admin-api가 담당한다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Shop Store Price Verification", description = "점주 매장 가격 인증 관리 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopStorePriceVerificationApiController {
-
     private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryService;
     private final ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase;
 

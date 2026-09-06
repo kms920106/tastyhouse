@@ -23,7 +23,6 @@ public record ShopNoticeCreateRequest(
     @Schema(description = "등록과 동시에 앱에 반영할지 여부 (기본 false)", example = "false")
     Boolean exposed
 ) {
-
     public ShopNoticeCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopNoticeCreateCommand(ceoId, shopId, content(), exposed());
     }

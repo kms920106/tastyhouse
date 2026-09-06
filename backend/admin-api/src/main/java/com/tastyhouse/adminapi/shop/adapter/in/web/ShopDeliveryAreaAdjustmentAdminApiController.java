@@ -34,7 +34,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentAdminApiController {
-
     private final ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
     private final ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 

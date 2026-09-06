@@ -26,7 +26,6 @@ import com.tastyhouse.application.auth.security.CeoUserDetails;
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoShopAccessHistoryApiController {
-
     private final CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryService;
 
     public CeoShopAccessHistoryApiController(
@@ -35,10 +34,6 @@ public class CeoShopAccessHistoryApiController {
         this.ceoShopAccessHistoryQueryService = ceoShopAccessHistoryQueryService;
     }
 
-    /**
-     * {@code shopId}는 필터일 뿐 인가 대상이 아니다 — 토큰의 {@code ceoId}로 함께 필터하므로 남의 가게
-     * id를 넣으면 빈 목록이 되고, 가게 존재 여부가 새지 않는다.
-     */
     @Operation(
         summary = "내 시스템 접근권한 이력 조회",
         description = "로그인한 점주 본인의 가게 접근권한 부여·말소 이력을 최신순으로 조회합니다. 조치 유형·가게·기간으로 필터할 수 있으며, 조회 가능 기간은 최근 5년입니다."

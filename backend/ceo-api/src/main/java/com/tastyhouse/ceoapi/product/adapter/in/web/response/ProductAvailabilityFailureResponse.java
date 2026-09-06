@@ -19,7 +19,6 @@ public record ProductAvailabilityFailureResponse(
     @Schema(description = "사용자 노출 문구", example = "최소 선택 개수만큼의 옵션은 판매 중이어야 합니다.")
     String message
 ) {
-
     public static ProductAvailabilityFailureResponse from(ProductAvailabilityChangeView.Failure failure) {
         ErrorCode errorCode = failure.errorCode();
         return new ProductAvailabilityFailureResponse(

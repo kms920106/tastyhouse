@@ -15,7 +15,6 @@ public record ShopScheduledOrderUpdateRequest(
     )
     Boolean enabled
 ) {
-
     public ShopScheduledOrderUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopScheduledOrderUpdateCommand(ceoId, shopId, enabled());
     }

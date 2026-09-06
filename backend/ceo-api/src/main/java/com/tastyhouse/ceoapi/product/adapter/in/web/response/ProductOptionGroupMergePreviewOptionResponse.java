@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePreviewResult;
 
-/**
- * 미리보기의 옵션 1건.
- *
- * <p>{@code diffType}이 이 화면의 본질이다 — 합치기는 되돌릴 수 없으므로, 점주가 "무엇이 남고 무엇이
- * 사라지는지"를 수락한 상태에서만 실행돼야 한다.
- */
 @Schema(description = "합치기 미리보기 옵션")
 public record ProductOptionGroupMergePreviewOptionResponse(
     @Schema(description = "옵션 ID", example = "100")
@@ -33,7 +27,6 @@ public record ProductOptionGroupMergePreviewOptionResponse(
         allowableValues = {"SAME", "ONLY_IN_BASE", "ONLY_IN_CANDIDATE", "PRICE_DIFFERS"})
     String diffType
 ) {
-
     public static ProductOptionGroupMergePreviewOptionResponse from(
         ProductOptionGroupMergePreviewResult.Option option
     ) {

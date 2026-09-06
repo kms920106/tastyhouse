@@ -11,7 +11,6 @@ public record ProductOptionGroupDeleteRequest(
     @Schema(description = "대상 가게 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long shopId
 ) {
-
     public ProductOptionGroupDeleteCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionGroupDeleteCommand(ceoId, optionGroupId, shopId);
     }

@@ -22,7 +22,6 @@ public record ProductCategoryCreateRequest(
     @Schema(description = "메뉴그룹 설명", example = "사장님이 가장 추천하는 메뉴들입니다.")
     String description
 ) {
-
     public ProductCategoryOwnerCreateCommand toCommand(Long ceoId) {
         return new ProductCategoryOwnerCreateCommand(ceoId, shopId, name, description);
     }

@@ -19,7 +19,6 @@ public record ProductImageCreateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
-
     public ProductImageCreateCommand toCommand(Long productId) {
         return new ProductImageCreateCommand(productId, imageFileId, sort, visible);
     }

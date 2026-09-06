@@ -33,7 +33,6 @@ import com.tastyhouse.domain.shared.page.PageResult;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardAdminApiController {
-
     private final ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase;
 

@@ -6,15 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
 
-/**
- * 옵션그룹(점주 관리 화면).
- *
- * <p>메뉴그룹 목록과 마찬가지로 <b>감춘 그룹·옵션도 포함</b>해 내려온다 — 이 화면이 감추기(소프트
- * 삭제)를 수행하므로 필터를 걸면 감춘 항목을 되살릴 방법이 없어진다.
- *
- * <p>일반 옵션그룹만 담는다 — 공통 옵션그룹은 점주 CRUD 대상이 아니며, 두 테이블의 id 공간이
- * 독립적이라 한 목록에 섞으면 후속 요청의 id가 어느 갈래인지 알 수 없어진다.
- */
 @Schema(description = "옵션그룹")
 public record ProductOptionGroupResponse(
     @Schema(description = "옵션그룹 ID", example = "3")
@@ -57,7 +48,6 @@ public record ProductOptionGroupResponse(
     @Schema(description = "이 그룹에 속한 옵션 목록(순서 오름차순)")
     List<ProductOptionResponse> options
 ) {
-
     public static ProductOptionGroupResponse from(ProductOptionGroupViewResult result) {
         return new ProductOptionGroupResponse(
             result.id(),

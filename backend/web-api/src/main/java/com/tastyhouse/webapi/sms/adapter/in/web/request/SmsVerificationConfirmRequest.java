@@ -18,7 +18,6 @@ public record SmsVerificationConfirmRequest(
     @Schema(description = "인증번호", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     String verificationCode
 ) {
-
     public SmsVerificationConfirmCommand toCommand() {
         return new SmsVerificationConfirmCommand(phoneNumber, verificationCode);
     }

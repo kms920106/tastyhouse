@@ -29,24 +29,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupOrderChangeC
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
 
-/**
- * 점주 메뉴-옵션그룹 연결 API.
- *
- * <p>연결·해제·순서를 <b>한 컨트롤러가 소유</b>한다 — 셋 모두 같은 링크 집합을 다루고, 특히 해제와
- * 순서는 남은 연결의 {@code sort}를 함께 재정규화하므로 관심사를 흩어놓으면 불변식이 두 곳으로 나뉜다.
- *
- * <p><b>핵심 불변식 — 옵션그룹은 단일 가게에만 속한다.</b> 다른 가게 메뉴에 연결하려 하면
- * {@code PRODUCT_OPTION_GROUP_SHOP_MISMATCH}(400)로 거부된다. 이 불변식 덕분에 소유권 판정에서
- * ANY/ALL 구분이 사라져 "연결된 아무 메뉴 하나"로 판정할 수 있다.
- *
- * <p><b>마지막 연결 해제는 막힌다</b>({@code PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK}) — 연결이
- * 0건이면 어디서도 보이지 않는 고아 그룹이 된다. 그룹 자체를 없애려면 옵션그룹 삭제 API를 쓴다.
- */
 @Tag(name = "Ceo Product Option Group Link", description = "점주 메뉴-옵션그룹 연결 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupLinkApiController {
-
     private final ProductOptionGroupQueryUseCase productOptionGroupQueryService;
     private final ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase;
 

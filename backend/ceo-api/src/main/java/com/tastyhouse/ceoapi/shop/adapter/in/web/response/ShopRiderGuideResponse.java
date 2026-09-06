@@ -7,12 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 
-/**
- * 라이더 안내 통합 조회 응답. 화면이 한 탭에서 문구와 픽업 위치를 함께 표시하므로 왕복을 나누지 않는다.
- *
- * <p>가게 실주소·좌표를 함께 내려주는 것은 픽업 위치 미설정 시의 폴백 안내와 "실주소와 동일하게 설정"
- * 버튼의 참고값 용도다.
- */
 @Schema(description = "라이더 가게방문 안내 조회 응답")
 public record ShopRiderGuideResponse(
     @Schema(description = "라이더 가게방문 안내 문구 (미등록 시 null)",
@@ -38,7 +32,6 @@ public record ShopRiderGuideResponse(
         example = "2026-08-08T21:02:00")
     LocalDateTime updatedAt
 ) {
-
     public static ShopRiderGuideResponse from(ShopRiderGuideResult result) {
         return new ShopRiderGuideResponse(
             result.visitGuide(),

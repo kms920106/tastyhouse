@@ -52,11 +52,6 @@ public record ShopDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-02T00:00:00")
     LocalDateTime updatedAt
 ) {
-    /**
-     * <p>썸네일 URL은 {@code ShopManagementDetailResult}에 없다 — 가게 상세와 이미지가 서로 다른 읽기
-     * 포트에 있어 QueryService가 두 번 조회해 합친다. 그래서 이 팩토리만 Result 한 개가 아니라
-     * 조회된 URL을 별도 인자로 받는다(미등록이면 {@code null}).
-     */
     public static ShopDetailResponse from(ShopManagementDetailResult result, String thumbnailImageUrl) {
         return new ShopDetailResponse(
             result.id(),

@@ -7,9 +7,6 @@ import jakarta.validation.constraints.Size;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyUpdateCommand;
 
-/**
- * 사장님 답변 등록·수정 요청. 등록과 수정이 같은 필드 셋이라 한 record를 공용한다.
- */
 @Schema(description = "사장님 답변 등록·수정 요청")
 public record ReviewOwnerReplyCreateRequest(
     @NotBlank(message = "답변 내용은 필수입니다.")
@@ -21,7 +18,6 @@ public record ReviewOwnerReplyCreateRequest(
     )
     String content
 ) {
-
     public ReviewOwnerReplyCreateCommand toCommand(Long ceoId, Long shopId, Long reviewId) {
         return new ReviewOwnerReplyCreateCommand(ceoId, shopId, reviewId, content);
     }

@@ -15,7 +15,6 @@ public record ShopReviewMonthlyStatResponse(
     @Schema(description = "월 리뷰 수", example = "12")
     Long reviewCount
 ) {
-
     public static ShopReviewMonthlyStatResponse from(ShopReviewMonthlyStatResult result) {
         return new ShopReviewMonthlyStatResponse(
             result.yearMonth(),

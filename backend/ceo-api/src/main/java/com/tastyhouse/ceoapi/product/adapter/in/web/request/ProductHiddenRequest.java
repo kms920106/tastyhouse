@@ -20,7 +20,6 @@ public record ProductHiddenRequest(
     @Schema(description = "숨김 처리할 메뉴 ID 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
-
     public ProductHideCommand toCommand(Long ceoId) {
         return new ProductHideCommand(ceoId, shopId, productIds);
     }

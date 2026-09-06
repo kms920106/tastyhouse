@@ -17,7 +17,6 @@ public record ReservationSlot(
     @Schema(description = "예약 가능 여부 (잔여>0 && 미과거)", example = "true")
     boolean available
 ) {
-
     public static ReservationSlot from(ReservationSlotResult result) {
         return new ReservationSlot(
             result.time(),

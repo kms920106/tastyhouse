@@ -17,7 +17,6 @@ public record ShopDeliveryTipRegionItemRequest(
     @Schema(description = "이 행정동의 추가 배달팁(원). 10,000원 이하", example = "1000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer tipAmount
 ) {
-
     public ShopDeliveryTipRegionCommand toCommand() {
         return new ShopDeliveryTipRegionCommand(adminDongId(), tipAmount());
     }

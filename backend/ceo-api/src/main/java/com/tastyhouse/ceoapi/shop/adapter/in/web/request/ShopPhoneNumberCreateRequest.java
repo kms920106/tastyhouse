@@ -16,7 +16,6 @@ public record ShopPhoneNumberCreateRequest(
     @Schema(description = "가상번호 여부", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean virtual
 ) {
-
     public ShopPhoneNumberCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopPhoneNumberCreateCommand(ceoId, shopId, phoneNumber(), virtual());
     }

@@ -40,7 +40,6 @@ public record PartnershipRequestCreateRequest(
     @Schema(description = "상담 신청 희망 시간", example = "2026-03-01T14:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDateTime consultationRequestedAt
 ) {
-
     public PartnershipRequestCreateCommand toCommand() {
         return new PartnershipRequestCreateCommand(businessName, address, addressDetail, contactName, contactPhone, consultationRequestedAt);
     }

@@ -24,7 +24,6 @@ public record ShopHygieneBadgeCreateRequest(
     @Schema(description = "세스코 최근 점검월 (\"2026-03\" 형태, nullable)", example = "2026-03")
     String lastInspectionMonth
 ) {
-
     public ShopHygieneBadgeCreateCommand toCommand(Long shopId) {
         return new ShopHygieneBadgeCreateCommand(shopId, badgeType, certifiedDate, lastInspectionMonth);
     }

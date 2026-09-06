@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
 
-/**
- * 지역별 추가 배달팁 한 행.
- *
- * <p>{@code regionName}은 서버가 행정동 마스터를 조인해 완성한 전체 이름이다 — 프론트가 시도·시군구·
- * 동을 조립하지 않는다.
- */
 @Schema(description = "지역별 추가 배달팁")
 public record ShopDeliveryTipRegionItem(
     @Schema(description = "행정동 전체 이름", example = "서울특별시 강남구 역삼1동")

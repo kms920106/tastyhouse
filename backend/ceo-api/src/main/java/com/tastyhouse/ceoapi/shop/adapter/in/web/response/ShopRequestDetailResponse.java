@@ -6,16 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestDetailViewResult;
 
-/**
- * 요청처리 현황 상세 응답. 목록 항목의 전 필드에 첨부 정보와 유형별 서브 객체를 더한 형태다.
- *
- * <p>다형 응답({@code oneOf})이나 {@code Map<String,Object>} 대신 <b>nullable 서브 객체</b>를 쓴다 —
- * OpenAPI로 그대로 표현되고, 프론트 분기가 {@code requestType} 하나로 결정되며, 유형이 추가될 때 필드
- * 추가만으로 끝난다.
- *
- * <p>{@code status}·{@code rejectReason}은 <b>원본 애그리거트 값</b>이다. 인덱스 행은 파생 읽기모델이라
- * 진실원이 아니므로, drift가 생겨도 영향 범위가 목록 배지 하나로 좁혀진다.
- */
 @Schema(description = "요청처리 현황 상세")
 public record ShopRequestDetailResponse(
 
@@ -78,7 +68,6 @@ public record ShopRequestDetailResponse(
     @Schema(description = "리뷰 게시중단 요청 상세. 요청 유형이 리뷰 게시중단일 때만 채워진다")
     ShopRequestReviewBlindResponse reviewBlind
 ) {
-
     public static ShopRequestDetailResponse from(ShopRequestDetailViewResult result) {
         return new ShopRequestDetailResponse(
             result.requestId(),

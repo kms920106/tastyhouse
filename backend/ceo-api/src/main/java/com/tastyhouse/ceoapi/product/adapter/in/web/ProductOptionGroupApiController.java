@@ -30,25 +30,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteComman
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
 
-/**
- * 점주 옵션그룹 관리 API.
- *
- * <p>옵션그룹은 <b>여러 메뉴에 연결될 수 있으므로 가게 단위 리소스</b>다 — 그래서 목록·등록이 메뉴
- * 하위 경로가 아니라 {@code /option-groups}에 있다. 어느 메뉴에 연결하느냐는 별도 관심사이며
- * {@link ProductOptionGroupLinkApiController}가 소유한다.
- *
- * <p>{@code shopId}는 경로가 아니라 query 또는 body로 받아 소유권을 검증한다. 삭제도 body로 받는다 —
- * 메뉴 일괄 삭제({@link ProductApiController#deleteProducts})와 동일한 컨벤션이며, 프론트엔드
- * {@code ApiClient#delete}가 DELETE 요청 본문에 JSON으로 {@code shopId}를 담아 보낸다.
- *
- * <p>경로 식별자가 옵션그룹인 엔드포인트는 가게 소유권만으로는 부족하다 — 그룹의 소유 가게를
- * 역조회해 대조한다({@code ProductOptionGroupOwnershipValidator}).
- */
 @Tag(name = "Ceo Product Option Group", description = "점주 옵션그룹 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupApiController {
-
     private final ProductOptionGroupQueryUseCase productOptionGroupQueryService;
     private final ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase;
 

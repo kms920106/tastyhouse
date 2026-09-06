@@ -25,7 +25,6 @@ import com.tastyhouse.application.review.port.in.ReviewOwnerReplyUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ReviewOwnerReplyApiController {
-
     private final ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase;
 
     public ReviewOwnerReplyApiController(ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase) {

@@ -31,19 +31,10 @@ import com.tastyhouse.application.product.port.in.ProductOwnerUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOwnerUpdateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOwnerQueryUseCase;
 
-/**
- * 점주 메뉴 CRUD API.
- *
- * <p>모든 핸들러가 body의 {@code shopId}로 소유권을 검증한다 — 경로에 shopId가 없다는 이유로 검증을
- * 생략하면 IDOR가 된다(이 저장소의 배달가능지역 삭제 선례).
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product", description = "점주 메뉴 CRUD API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductApiController {
-
     private final ProductOwnerQueryUseCase productQueryService;
     private final ProductOwnerCreateUseCase productCreateUseCase;
     private final ProductOwnerUpdateUseCase productUpdateUseCase;

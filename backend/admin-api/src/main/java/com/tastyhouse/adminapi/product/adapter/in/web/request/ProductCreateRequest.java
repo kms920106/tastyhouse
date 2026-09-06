@@ -59,7 +59,6 @@ public record ProductCreateRequest(
     @Schema(description = "정렬 순서", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer sort
 ) {
-
     public ProductManagementCreateCommand toCommand() {
         return new ProductManagementCreateCommand(
             shopId, productCategoryId, name, description,

@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
 
-/**
- * 내 시스템 접근권한 이력 목록 항목 응답.
- *
- * <p>{@code actorAdminId}는 노출하지 않는다 — 내부 식별자이며, {@code ShopChangeHistoryListItemResponse}가
- * {@code actorType}/{@code actorId}를 감춘 선례를 따른다.
- */
 @Schema(description = "점주 시스템 접근권한 이력 목록 항목")
 public record CeoShopAccessHistoryListItemResponse(
 
@@ -33,7 +27,6 @@ public record CeoShopAccessHistoryListItemResponse(
     @Schema(description = "조치 시각", example = "2026-08-14T09:12:41")
     LocalDateTime occurredAt
 ) {
-
     public static CeoShopAccessHistoryListItemResponse from(ShopCeoAssignmentHistoryResult result) {
         return new CeoShopAccessHistoryListItemResponse(
             result.id(),

@@ -27,7 +27,6 @@ public record AdminCreateRequest(
     @Schema(description = "관리자 권한", example = "ADMIN", allowableValues = {"SUPER_ADMIN", "ADMIN"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String role
 ) {
-
     public AdminCreateCommand toCommand() {
         return new AdminCreateCommand(username(), password(), name(), role());
     }

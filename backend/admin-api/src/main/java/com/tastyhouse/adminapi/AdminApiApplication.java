@@ -12,7 +12,6 @@ import com.tastyhouse.application.AdminApplicationConfig;
 @Import(AdminApplicationConfig.class)
 @EnableConfigurationProperties(AdminSeedProperties.class)
 public class AdminApiApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(AdminApiApplication.class, args);
     }

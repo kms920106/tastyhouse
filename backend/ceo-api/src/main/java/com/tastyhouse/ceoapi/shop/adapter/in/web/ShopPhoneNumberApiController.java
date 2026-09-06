@@ -30,7 +30,6 @@ import com.tastyhouse.application.shop.port.in.ShopPhoneNumberPrimaryDesignateCo
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
-
     private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryService;
     private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;
 

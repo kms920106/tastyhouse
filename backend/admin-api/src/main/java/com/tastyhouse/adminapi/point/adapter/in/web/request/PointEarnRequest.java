@@ -18,7 +18,6 @@ public record PointEarnRequest(
     @Schema(description = "적립 사유", example = "이벤트 보상 지급", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public PointEarnCommand toCommand(Long memberId) {
         return new PointEarnCommand(memberId, amount(), reason());
     }

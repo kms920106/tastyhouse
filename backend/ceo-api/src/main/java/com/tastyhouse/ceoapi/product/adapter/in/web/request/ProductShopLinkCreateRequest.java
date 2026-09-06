@@ -5,11 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 import com.tastyhouse.application.product.port.in.ProductShopLinkCreateCommand;
 
-/**
- * 가게 메뉴판으로 메뉴를 불러올 때의 요청 — 그 가게에서 노출될 메뉴그룹을 지정한다.
- *
- * <p>대상 가게는 경로({@code /shops/{targetShopId}})로 받으므로 본문에 담지 않는다.
- */
 @Schema(description = "메뉴 불러오기 요청")
 public record ProductShopLinkCreateRequest(
 
@@ -18,7 +13,6 @@ public record ProductShopLinkCreateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     Long productCategoryId
 ) {
-
     public ProductShopLinkCreateCommand toCommand(Long ceoId, Long productId, Long targetShopId) {
         return new ProductShopLinkCreateCommand(ceoId, productId, targetShopId, productCategoryId);
     }

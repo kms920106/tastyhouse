@@ -85,14 +85,6 @@ public record OrderCreateRequest(
     )
     LocalDateTime scheduledAt
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     *
-     * <p><b>이 record의 필드 선언 순서는 {@link OrderCreateCommand}와 다르다</b> —
-     * 여기서는 {@code deliveryAddressId}가 {@code usePoint}보다 먼저 선언돼 있다. 그래서 아래는
-     * 반드시 이름 기반 접근자로 각 값을 짚어 넘긴다(위치 기반으로 옮기면 두 값이 조용히 뒤바뀐다).
-     */
     public OrderCreateCommand toCommand(Long memberId) {
         List<OrderLineCommand> orderLineCommands = orderProducts == null ? null :
             orderProducts.stream()

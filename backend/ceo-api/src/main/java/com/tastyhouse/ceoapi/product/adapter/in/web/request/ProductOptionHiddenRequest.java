@@ -22,7 +22,6 @@ public record ProductOptionHiddenRequest(
     @Schema(description = "숨김 처리할 옵션 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ProductOptionTargetRequest> options
 ) {
-
     public ProductOptionHideCommand toCommand(Long ceoId) {
         return new ProductOptionHideCommand(
             ceoId,

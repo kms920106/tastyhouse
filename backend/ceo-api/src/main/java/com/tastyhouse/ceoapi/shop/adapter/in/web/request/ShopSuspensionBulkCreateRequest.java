@@ -33,7 +33,6 @@ public record ShopSuspensionBulkCreateRequest(
     @Schema(description = "중지 종료 시각", example = "2026-07-25T18:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDateTime endAt
 ) {
-
     public ShopSuspensionBulkCreateCommand toCommand(Long ceoId) {
         return new ShopSuspensionBulkCreateCommand(ceoId, shopIds(), reason(), orderMethods(), startAt(), endAt());
     }

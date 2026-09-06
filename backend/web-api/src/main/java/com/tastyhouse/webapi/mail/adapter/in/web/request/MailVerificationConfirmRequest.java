@@ -21,7 +21,6 @@ public record MailVerificationConfirmRequest(
     @Schema(description = "메일로 발송된 6자리 인증번호", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
     String verificationCode
 ) {
-
     public MailVerificationConfirmCommand toCommand() {
         return new MailVerificationConfirmCommand(email, verificationCode);
     }

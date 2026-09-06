@@ -22,7 +22,6 @@ public record ProductCategoryUpdateRequest(
     @Schema(description = "메뉴그룹 설명", example = "사장님이 가장 추천하는 메뉴들입니다.")
     String description
 ) {
-
     public ProductCategoryUpdateCommand toCommand(Long ceoId, Long productCategoryId) {
         return new ProductCategoryUpdateCommand(ceoId, productCategoryId, shopId, name, description);
     }

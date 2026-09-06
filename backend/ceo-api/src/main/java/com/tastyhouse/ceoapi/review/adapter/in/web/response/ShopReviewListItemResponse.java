@@ -75,8 +75,6 @@ public record ShopReviewListItemResponse(
     @Schema(description = "오늘 기준 신규 답변 등록 가능 여부. 이미 답변이 있으면 이 값과 무관하게 수정·삭제할 수 있습니다.", example = "true")
     boolean replyable
 ) {
-
-    /** 표시용 리뷰 번호 자릿수(0-pad). 원문 ②의 16자리 규격. */
     private static final int REVIEW_NUMBER_LENGTH = 16;
 
     public static ShopReviewListItemResponse from(ShopReviewListItemViewResult view) {
@@ -105,12 +103,6 @@ public record ShopReviewListItemResponse(
         );
     }
 
-    /**
-     * 리뷰 ID를 {@value #REVIEW_NUMBER_LENGTH}자리 0-pad 표시용 번호로 만든다(원문 ②).
-     *
-     * <p>챕터 09에서 QueryService의 private 헬퍼를 이 표현 계약으로 옮겼다 — 0-pad 자릿수는 화면 표기
-     * 규칙이지 도메인 불변식이 아니다.
-     */
     static String toReviewNumber(Long reviewId) {
         return String.format("%0" + REVIEW_NUMBER_LENGTH + "d", reviewId);
     }

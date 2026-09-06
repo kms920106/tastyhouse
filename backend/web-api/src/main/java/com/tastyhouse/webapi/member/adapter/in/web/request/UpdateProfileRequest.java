@@ -18,10 +18,6 @@ public record UpdateProfileRequest(
     @Schema(description = "프로필 이미지 파일 ID", example = "42")
     Long profileImageFileId
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     */
     public MemberProfileUpdateCommand toCommand(Long memberId) {
         return new MemberProfileUpdateCommand(
             memberId,

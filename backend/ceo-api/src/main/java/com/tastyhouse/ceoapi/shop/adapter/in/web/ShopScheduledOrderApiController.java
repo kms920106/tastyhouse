@@ -17,18 +17,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdat
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateCommand;
 
-/**
- * 점주 가게 예약주문 설정 API.
- *
- * <p>조회 전용 엔드포인트를 따로 두지 않는다({@code ShopMinOrderAmountApiController}와 같은 이유) —
- * 현재 값은 가게 상세 조회({@code GET /api/shops/v1/{id}})의 {@code scheduledOrderEnabled} 필드로 이미
- * 내려가고, 점주 대시보드가 가게 정보를 한 덩어리로 받아 설정 행들을 렌더하므로 별도 조회가 왕복만 늘린다.
- */
 @Tag(name = "Ceo Shop Scheduled Order", description = "점주 가게 예약주문 설정 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopScheduledOrderApiController {
-
     private final ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase;
 
     public ShopScheduledOrderApiController(ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase) {

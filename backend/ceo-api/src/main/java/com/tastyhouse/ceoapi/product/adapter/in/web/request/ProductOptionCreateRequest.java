@@ -25,9 +25,6 @@ public record ProductOptionCreateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     Integer additionalPrice,
 
-    // 범위(1~10) 검증은 Bean Validation이 아니라 도메인 계층(CupDepositPolicy#validateCupCount)이 소유한다.
-    // 여기에 @Min/@Max를 다시 붙이면 경계별로 다른 문구가 나가, ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID의
-    // 통합 메시지("1개 이상 10개 이하")와 어긋난다.
     @Schema(description = "일회용컵 제공 개수(1~10). 보증금 옵션그룹의 옵션만 값을 갖습니다. "
         + "보증금액은 개수 × 300원으로 서버가 계산하므로 금액을 직접 보내지 않습니다.",
         example = "1")
@@ -39,11 +36,6 @@ public record ProductOptionCreateRequest(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
-
-    /**
-     * 같은 타입의 금액·수량 필드가 연달아 있어 위치 기반 조립은 뒤바뀜을 컴파일러가 잡지 못한다.
-     * 반드시 이름 기반 접근자로 조립한다.
-     */
     public ProductOptionOwnerCreateCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionOwnerCreateCommand(
             ceoId,

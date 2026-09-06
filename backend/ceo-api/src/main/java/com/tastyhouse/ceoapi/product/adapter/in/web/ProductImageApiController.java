@@ -30,23 +30,10 @@ import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
 import com.tastyhouse.application.product.port.in.ProductImageQueryUseCase;
 
-/**
- * 점주 메뉴 이미지 관리 API.
- *
- * <p>이미지 <b>등록</b>만 관리자 검수를 거치고, <b>순서 변경·삭제는 즉시 반영</b>된다 — 검수 대상은
- * 새 이미지의 내용이지 배치가 아니다.
- *
- * <p>모든 핸들러가 query 또는 body의 {@code shopId}로 소유권을 검증한다. 특히 이미지 삭제는 경로에
- * 메뉴·가게 식별자가 없어 서비스가 이미지 → 메뉴 → 가게로 역조회해 대조한다 — 이 저장소는 그 역조회를
- * 생략했다가 IDOR 사고를 낸 전례가 있다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Image", description = "점주 메뉴 이미지 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductImageApiController {
-
     private final ProductImageQueryUseCase productImageQueryService;
     private final ProductImageCommandUseCase productImageCommandUseCase;
 

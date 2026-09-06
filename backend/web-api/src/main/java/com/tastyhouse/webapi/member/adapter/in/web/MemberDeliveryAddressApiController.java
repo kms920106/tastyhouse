@@ -33,7 +33,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/members")
 @Tag(name = "Member Delivery Address", description = "회원 배달 주소록 API")
 public class MemberDeliveryAddressApiController {
-
     private final MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase;
     private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryService;
 

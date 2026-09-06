@@ -138,3 +138,135 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### `seedersShouldDependOnUseCasesOnly`는 이 모듈에 두지 않는다
 
 web-api에는 시더가 없어 대상 0건이므로(**공허 통과 회피**) admin-api·ceo-api에만 있는 규칙이다.
+
+### 이하 — 챕터 06에서 코드 주석으로부터 이관된 가드
+
+<!-- 분류 A. 원문 주석은 챕터 06에서 제거됐으므로 이 절이 그 금지 지시의 유일한 소재지다 -->
+
+### `keyPrefix = "rate_limit:email_verification"` — 도메인 개명(email→mail)에 맞춰 바꾸지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/mail/adapter/in/web/MailVerificationApiController.java`
+→ `sendVerificationCode()`의 `@RateLimit(keyPrefix = ...)`
+
+`keyPrefix`는 Redis 카운터 키다. 패키지·클래스가 `email`에서 `mail`로 개명됐어도 이 문자열은 **바꾸지 않는다** — 바꾸는 순간 기존 카운터가 통째로 버려져 배포 시점에 발송 한도가 전원 리셋된다(브루트포스 한도 초기화). `sms` 쪽은 원래부터 `rate_limit:sms_verification`이라 두 접두어가 대칭이 아닌 것이 **정상**이며, 대칭을 맞추려는 교정 대상이 아니다.
+### `ShopOrderMethodItemResponse.code` / `.name` — wire 계약이므로 개명하지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/response/ShopOrderMethodItemResponse.java`
+→ `code`, `name`
+
+프론트가 이미 소비 중인 wire 계약이라 `orderMethod`/`orderMethodName`으로 **개명하지 않는다**. 주문가능 여부 3필드는 additive로 추가된 것이다(기존 필드를 건드리지 않은 확장).
+### `ProductReviewsByRatingPageResponse` — 공용 `PaginationResponse<T>`로 대체하지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/product/adapter/in/web/response/ProductReviewsByRatingPageResponse.java`
+→ 타입 전체
+
+4필드 표준 페이징 래퍼가 아니라 중첩 `response`와 `totalElements`만 갖는 자체 형태다. "페이징은 공용 제네릭을 쓴다"는 모듈 규칙의 **예외로 봉인**한다 — 표준 형태로 바꾸면 응답 JSON이 달라져 클라이언트가 깨진다.
+### `PublicPaths` 등록을 빠뜨리면 비로그인 손님에게 401이 나간다 — 경로 변경 시 목록을 함께 고친다
+
+**대상**: 아래 4개 컨트롤러 (공통 가드 1건으로 묶어 기재)
+
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopOrderNoticeApiController.java` → 타입
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopOriginInfoApiController.java` → 타입
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopPriceBadgeApiController.java` → 타입
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopMenuCollectionImageApiController.java` → 타입
+
+주문안내·원산지·매장가격 뱃지·메뉴모음컷은 로그인 없이 가게를 둘러보는 손님도 봐야 하는 정보이므로 `PublicPaths`에 등록돼 있다(`/api/shops/v1/*/order-notice`, `/api/shops/v1/*/origin`, `/api/shops/v1/*/price-badges`). **이 컨트롤러를 옮기거나 경로를 바꿀 때는 `PublicPaths` 목록을 반드시 함께 고친다** — 등록을 빠뜨려도 컴파일·테스트는 통과하고, 비로그인 손님에게 401이 나가면서 메뉴판 최상단·원산지 영역·뱃지가 통째로 비는 형태로만 드러난다. 원산지는 법령이 요구하는 표시 정보라 특히 그렇다.
+### `Request` record → `Command` 변환은 반드시 이름 기반 접근자로 짚어 넘긴다
+
+**대상**: 아래 record들의 `toCommand(...)` (공통 가드 1건)
+
+- `member/.../request/MemberDeliveryAddressCreateRequest.java` → `toCommand(Long)`
+- `member/.../request/MemberDeliveryAddressUpdateRequest.java` → `toCommand(Long, Long)`
+- `member/.../request/UpdatePasswordRequest.java` → `toCommand(Long)`
+- `member/.../request/UpdatePersonalInfoRequest.java` → `toCommand(Long)`
+- `order/.../request/OrderCreateRequest.java` → `toCommand(Long)`
+- `payment/.../request/PaymentConfirmRequest.java` → `toCommand()`
+- `payment/.../request/RefundRequest.java` → `toCommand(Long, Long)`
+- `payment/.../request/TossPaymentConfirmApiRequest.java` → `toCommand(Long)`
+- `review/.../request/ReplyCreateRequest.java` → `toCommand(Long, Long)`
+- `review/.../request/ReviewCreateRequest.java` → `toCommand(Long)`
+- `review/.../request/ReviewUpdateRequest.java` → `toCommand(Long, Long)`
+- `reservation/.../request/ReservationCreateRequest.java` → `toCommand(Long)`
+
+(경로 접두사는 모두 `backend/web-api/src/main/java/com/tastyhouse/webapi/`)
+
+같은 타입의 값이 연달아 선언돼 있어 **위치 기반 전달은 조용히 뒤바뀐다.** 컴파일러가 잡지 못하고 런타임에도 예외가 나지 않으므로 위치 기반 조립으로 바꾸지 않는다. 구체적 피해는 각각 다르다.
+
+- 주소 `String` 4개 + 좌표 `BigDecimal` 2개 — 위경도가 뒤바뀌면 배달팁이 엉뚱하게 산출된다
+- `UpdatePasswordRequest` — 두 `String`이 뒤바뀌어도 확인값 일치 검사는 **대칭이라 그대로 통과한다**
+- `ReplyCreateRequest` — `memberId`·`commentId`·`replyToMemberId` 세 `Long`이 연달아 있어 작성자와 답글 대상이 뒤바뀐다
+- 평점 3종(`Integer`)·`cardCompany`/`cardNumber`/`receiptUrl`(`String`)·`paymentKey`/`pgOrderId`(`String`) 동종 연속
+### `OrderCreateRequest`의 필드 선언 순서는 `OrderCreateCommand`와 다르다 (봉인)
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/order/adapter/in/web/request/OrderCreateRequest.java`
+→ `toCommand(Long)`
+
+이 record는 `deliveryAddressId`가 `usePoint`보다 먼저 선언돼 있어 `OrderCreateCommand`와 순서가 **일치하지 않는다.** 위치 기반 전달로 옮기면 두 값이 조용히 뒤바뀐다. 순서를 "맞추는" 리팩터링도 wire 계약(요청 JSON 필드 순서와 Swagger 스키마)에 영향을 주므로 하지 않고, 이름 기반 접근자 조립을 유지한다.
+### `PaymentConfirmRequest.paymentId`는 본문 필드다 — 경로 변수로 옮기지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/payment/adapter/in/web/request/PaymentConfirmRequest.java`
+→ `paymentId`, `toCommand()`
+
+이 엔드포인트는 경로에 식별자를 두지 않으므로 `toCommand()`에 주입 파라미터가 없다. 다른 결제 요청 record(`PaymentCancelRequest`·`RefundRequest`)와 시그니처가 다른 것이 정상이며, 대칭을 맞추려고 경로 변수로 승격하지 않는다.
+### `TODO(보안)` 4건 — 점주 본인 검증 미구현 (실코드 결함, 제거 시 소실 주의)
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/reservation/adapter/in/web/ReservationApiController.java`
+→ `confirm(Long)`, `reject(Long)`, `complete(Long)`, `getShopReservations(Long)`
+
+Shop-owner 연결 후 **점주 본인 검증을 추가해야 한다.** 현재 이 4개 엔드포인트는 예약 id·가게 id만으로 상태 전이(`PENDING→CONFIRMED`/`REJECTED`, `CONFIRMED→COMPLETED`)와 목록 조회를 허용하므로, 남의 가게 예약을 조작·열람할 수 있는 **미해결 IDOR**다. 주석을 지우면 이 결함의 유일한 기록이 사라지므로 반드시 문서로 옮긴다.
+### `ShopApiController`·`ReviewApiController`의 `@CurrentUser`는 `null`일 수 있다 — 비-null 가정으로 바꾸지 않는다
+
+**대상**:
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopApiController.java` → `memberIdOrNull(MemberUserDetails)`, `getBestShops(...)`, `getDeliveryTip(...)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/review/adapter/in/web/ReviewApiController.java` → 동명 헬퍼
+
+`/api/shops/**`·`/api/reviews/**`는 `PublicPaths`의 공개 경로라 비로그인 접근이 가능하고, 그때 principal이 `null`로 들어온다. `@CurrentUser`를 필수로 취급하거나 NPE 방어를 걷어내면 비로그인 손님 경로가 500으로 깨진다. 비로그인 시 배달지역 필터를 걸지 않고, 배달팁은 확정 계산 대신 **범위 모드**로 떨어뜨리며, 사장님만보기 리뷰는 본인 판정을 하지 않는다.
+### `ProductBatchRequest.orderMethod` — 화면이 배달가/픽업가를 고르게 하지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/product/adapter/in/web/request/ProductBatchRequest.java`
+→ `orderMethod`
+
+어느 채널 가격을 쓸지는 **서버가 주문유형으로 단독 결정한다**(`ProductPrice#resolvePrice`). 배치 조회도 상세 조회와 같은 파라미터를 받아 이미 해석된 단일 가격만 내려준다. **화면이 배달가/픽업가를 고르게 만들면 주문 접수의 `validateAmounts()`와 어긋나 전 주문이 거절된다.**
+### `ProductPriceResponse` — 채널별 가격 세 벌·매장가를 내려주지 않는다
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/product/adapter/in/web/response/ProductPriceResponse.java`
+→ 타입 전체
+
+**채널별 가격 세 벌을 내려주지 않는다** — 화면이 배달가·픽업가 중에서 고르게 하면 클라이언트가 픽업가를 주장해 배달을 싸게 사는 우회가 생기고, 주문 금액 검증과 표시 가격이 갈린다. **매장가(`storePrice`)도 이 응답에 없다** — 결제에 쓰이지 않는 표시 전용 값이고 그 쓰임은 가게 단위 뱃지(`GET /api/shops/v1/{id}/price-badges`)뿐이다. 메뉴마다 매장가를 함께 내리면 계약에 없는 오프라인 가격표가 손님 앱으로 새어 나간다.
+### `ShopPriceBadgeResponse` — 판정 근거를 담지 않는다 (플래그만)
+
+**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/response/ShopPriceBadgeResponse.java`
+→ 타입 전체
+
+**플래그 2개만 내려주고 판정 근거(매장가·픽업가·커버리지 비율)는 담지 않는다.** 근거를 함께 내리면 손님 앱이 자체 판정을 시도할 수 있고, 매장가는 결제에 쓰이지 않는 표시 전용 값이라 손님 계약에 노출할 것이 아니다.
+
+---
+
+## 코드 주석에서 이관된 설계 근거
+
+<!-- 분류 B. 모듈 경계·앱 간 대조 (챕터 06 이관). 컨트롤러/Request/Response 작성 관례는 src/main/java/com/tastyhouse/webapi/AGENTS.md -->
+
+### 손님 응답과 점주(ceo) 응답은 같은 경로여도 계약이 다르다 — 공용화하지 않는다 → **web-api/AGENTS.md** (앱 간 대조라 모듈 루트)
+
+**대상**:
+- `shop/adapter/in/web/ShopMenuCollectionImageApiController.java` → 타입
+- `shop/adapter/in/web/response/ShopMenuCollectionImageResponse.java` → 타입
+- `shop/adapter/in/web/ShopOrderNoticeApiController.java` → 타입
+- `shop/adapter/in/web/response/ShopOrderNoticeResponse.java` → 타입
+- `shop/adapter/in/web/ShopOriginInfoApiController.java` → 타입
+- `shop/adapter/in/web/response/ShopOriginInfoResponse.java` → 타입
+- `shop/adapter/in/web/response/ShopNoticeResponse.java` → 타입
+
+ceo-api에 **URL 경로가 같은** 점주용 조회가 따로 있다. 두 앱은 서로 다른 호스트·포트로 서비스되므로 충돌하지 않으며, **응답 계약이 의도적으로 다르므로 각 모듈이 자기 버전을 소유하는 것이 맞다**("실제 쓰는 필드만" 원칙). 공용 record로 합치지 않는다.
+
+| 응답 | 손님(web)에 없는 필드 | 이유 |
+|---|---|---|
+| 메뉴모음컷 | `status`, `rejectReason` | 손님에게는 승인된 것만 내려가 상태 필드가 무의미하고, 반려 사유는 점주 내부 정보 |
+| 주문안내 | `hidden`, `hiddenReason`, 식별자 | 게시중단된 문구는 응답이 아예 만들어지지 않고 `data: null`. 관리자 조치 사유를 손님에게 노출하지 않는다. 가게당 1건이라 손님이 개별 조작할 대상이 아니다 |
+| 원산지 | `updatedAt`, 미설정 시 빈 폼 기본값 | 손님에게 최종 수정 시각은 의미가 없고, 미설정이면 `data: null`로 화면이 영역을 통째로 감춘다(점주는 반대로 빈 폼 기본값을 받는다) |
+| 가게 공지 | `exposed`, `hidden`, `updatedAt` | 사용자 화면이 쓰지 않는 내부 상태이므로 과잉 노출을 피한다 |
+
+### 게시중단 리뷰 접근은 403이 아니라 404 — ceo 경로와 갈린다
+**대상**: `review/adapter/in/web/ReviewBlindConsentApiController.java` → 타입
+
+대상이 이미 게시중단된 비공개 리뷰이므로, 타인 리뷰 접근을 403이 아니라 **404(`REVIEW_NOT_FOUND`)로 응답해 존재 자체를 숨긴다.** ceo 경로와 응답 코드가 갈리는 것이 정상이다. 판단 근거는 도메인 서비스에 있다.

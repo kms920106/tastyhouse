@@ -7,13 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
 
-/**
- * 점주 리뷰 통계 대시보드 응답.
- *
- * <p>{@code hasData}가 {@code false}면(최근 180일 리뷰 0건) 나머지는 전부 {@code null}·빈 값이다 —
- * 원문이 "180일간 리뷰가 없으면 대시보드를 노출하지 않는다"로 규정하므로, 0으로 채운 그래프를 보여주는
- * 대신 화면이 통째로 빈 상태를 렌더링할 수 있게 한다.
- */
 @Schema(description = "점주 리뷰 통계")
 public record ShopReviewStatisticsResponse(
     @Schema(
@@ -58,7 +51,6 @@ public record ShopReviewStatisticsResponse(
     @Schema(description = "최근 6개월 월별 통계. 정확히 6개이며 오래된 달에서 최신 달 순입니다.")
     List<ShopReviewMonthlyStatResponse> monthlyStats
 ) {
-
     public static ShopReviewStatisticsResponse from(ShopReviewStatisticsOwnerResult result) {
         if (!result.hasData()) {
             return empty();

@@ -26,17 +26,10 @@ import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseQueryUseCase;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 
-/**
- * 자주 쓰는 문구 API.
- *
- * <p>가게 식별자를 받지 않는다 — 문구는 점주 계정 단위라 가게에 종속되지 않고, 인가는 토큰의
- * {@code ceoId}와 문구의 {@code ceoId} 일치로 수행한다.
- */
 @Tag(name = "Ceo Reply Phrase", description = "점주 자주 쓰는 문구 API")
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoReplyPhraseApiController {
-
     private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
     private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryService;
 

@@ -23,7 +23,6 @@ public record RankPrizeCreateRequest(
     @Schema(description = "업로드된 이미지 파일 ID", example = "55")
     Long imageFileId
 ) {
-
     public RankPrizeCreateCommand toCommand(Long rankPeriodId) {
         return new RankPrizeCreateCommand(rankPeriodId, prizeRank(), name(), brand(), imageFileId());
     }

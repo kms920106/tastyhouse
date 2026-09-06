@@ -7,13 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 
-/**
- * 내 로그인 이력 목록 항목 응답.
- *
- * <p>코드와 한글 라벨을 함께 내려준다 — 코드는 프론트 분기용, 라벨은 표시용이다. 라벨을 서버가
- * 내려주면 프론트에 라벨 상수를 복제하지 않아 표기 변경이 서버 배포만으로 반영된다
- * ({@code ShopChangeHistoryListItemResponse} 선례).
- */
 @Schema(description = "점주 로그인 이력 목록 항목")
 public record CeoLoginHistoryListItemResponse(
 
@@ -45,7 +38,6 @@ public record CeoLoginHistoryListItemResponse(
     @Schema(description = "로그인 시각", example = "2026-08-14T09:12:41")
     LocalDateTime loggedInAt
 ) {
-
     public static CeoLoginHistoryListItemResponse from(CeoLoginHistoryResult result) {
         CeoLoginFailureReason failureReason = result.failureReason();
         return new CeoLoginHistoryListItemResponse(

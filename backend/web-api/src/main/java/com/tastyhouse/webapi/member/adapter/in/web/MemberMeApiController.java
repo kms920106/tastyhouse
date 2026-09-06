@@ -45,7 +45,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/members")
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 public class MemberMeApiController {
-
     private final MemberScreenUseCase memberService;
 
     public MemberMeApiController(MemberScreenUseCase memberService) {

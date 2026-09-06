@@ -30,7 +30,6 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateC
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentApiController {
-
     private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryService;
     private final ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 

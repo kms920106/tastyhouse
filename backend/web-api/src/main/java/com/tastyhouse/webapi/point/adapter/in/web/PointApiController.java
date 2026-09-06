@@ -19,7 +19,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/members")
 @Tag(name = "Point", description = "내 포인트 조회 API")
 public class PointApiController {
-
     private final PointQueryUseCase pointQueryService;
 
     public PointApiController(PointQueryUseCase pointQueryService) {

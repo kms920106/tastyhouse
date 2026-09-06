@@ -25,10 +25,6 @@ public record MenuReviewCreateRequest(
     @Schema(description = "짧은 코멘트 (선택)", example = "양념이 딱 좋았어요")
     String comment
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     */
     public MenuReviewCreateCommand toCommand(Long memberId) {
         return new MenuReviewCreateCommand(
             memberId,

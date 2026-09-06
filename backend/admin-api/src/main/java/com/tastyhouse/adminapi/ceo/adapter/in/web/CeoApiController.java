@@ -17,7 +17,6 @@ import com.tastyhouse.application.ceo.port.in.CeoManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoApiController {
-
     private final CeoManagementQueryUseCase ceoQueryUseCase;
 
     public CeoApiController(CeoManagementQueryUseCase ceoQueryUseCase) {

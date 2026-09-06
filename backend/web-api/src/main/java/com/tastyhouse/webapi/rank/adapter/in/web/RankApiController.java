@@ -24,7 +24,6 @@ import com.tastyhouse.webapi.security.CurrentUser;
 @RequestMapping("/api/ranks")
 @Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
-
     private final RankQueryUseCase rankQueryService;
 
     public RankApiController(RankQueryUseCase rankQueryService) {

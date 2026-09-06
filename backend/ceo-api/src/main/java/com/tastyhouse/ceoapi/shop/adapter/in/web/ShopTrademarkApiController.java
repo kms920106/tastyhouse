@@ -26,7 +26,6 @@ import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopTrademarkApiController {
-
     private final ShopTrademarkQueryUseCase shopTrademarkQueryService;
     private final ShopTrademarkCommandUseCase shopTrademarkCommandUseCase;
 

@@ -31,7 +31,6 @@ import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRiderGuideApiController {
-
     private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryService;
     private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;
 

@@ -6,15 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
 
-/**
- * 가게 변경이력 목록 항목 응답.
- *
- * <p>코드와 한글 라벨을 함께 내려준다 — 코드는 프론트 분기용, 라벨은 표시용이다. 라벨을 서버가 내려주면
- * 프론트에 29개 중분류 라벨 상수를 복제하지 않아, 표기 변경이 서버 배포만으로 반영된다.
- *
- * <p>{@code actorType}/{@code actorId}는 노출하지 않는다 — 점주는 자기 가게 이력만 보므로 행위자 정보가
- * 필요 없고, {@code actorId}는 내부 식별자다.
- */
 @Schema(description = "가게 변경이력 목록 항목")
 public record ShopChangeHistoryListItemResponse(
 
@@ -48,7 +39,6 @@ public record ShopChangeHistoryListItemResponse(
     @Schema(description = "변경 일시", example = "2026-08-11T19:46:03")
     LocalDateTime changedAt
 ) {
-
     public static ShopChangeHistoryListItemResponse from(ShopChangeHistoryResult result) {
         return new ShopChangeHistoryListItemResponse(
             result.id(),

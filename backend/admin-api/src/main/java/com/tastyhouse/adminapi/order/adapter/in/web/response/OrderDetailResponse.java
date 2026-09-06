@@ -111,9 +111,6 @@ public record OrderDetailResponse(
         );
     }
 
-    /**
-     * 결제 상태 이름 — 결제가 없거나 상태가 비어 있으면 {@code null}(기존 동작 보존).
-     */
     private static String toPaymentStatusName(OrderPaymentResult payment) {
         if (payment == null || payment.paymentStatus() == null) {
             return null;

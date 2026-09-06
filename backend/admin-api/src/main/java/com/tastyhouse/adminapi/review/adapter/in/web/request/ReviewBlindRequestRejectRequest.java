@@ -14,7 +14,6 @@ public record ReviewBlindRequestRejectRequest(
     @Schema(description = "반려 사유", example = "게시 기준 위반 사실이 확인되지 않습니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String rejectReason
 ) {
-
     public ReviewBlindRequestRejectCommand toCommand(Long requestId) {
         return new ReviewBlindRequestRejectCommand(requestId, rejectReason);
     }

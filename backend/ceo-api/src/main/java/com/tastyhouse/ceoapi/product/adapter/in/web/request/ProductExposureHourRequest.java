@@ -7,12 +7,6 @@ import jakarta.validation.constraints.NotBlank;
 
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 
-/**
- * 메뉴 노출 요일·시간대 한 줄.
- *
- * <p>{@code startTime}·{@code endTime}을 모두 비우면 그 요일 <b>종일</b> 노출이다.
- * {@code endTime}이 {@code startTime}보다 이르면 자정을 넘긴다(예: 22:00~02:00 야식).
- */
 @Schema(description = "메뉴 노출 요일·시간대")
 public record ProductExposureHourRequest(
     @NotBlank(message = "요일 구분은 필수입니다.")
@@ -28,7 +22,6 @@ public record ProductExposureHourRequest(
     @Schema(description = "노출 종료 시각. 시작보다 이르면 자정을 넘깁니다.", example = "14:00")
     LocalTime endTime
 ) {
-
     public ProductExposureHourCommand toCommand() {
         return new ProductExposureHourCommand(dayType, startTime, endTime);
     }

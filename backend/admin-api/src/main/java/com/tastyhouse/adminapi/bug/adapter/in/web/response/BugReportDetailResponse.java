@@ -64,7 +64,6 @@ public record BugReportDetailResponse(
     @Schema(description = "수정 일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
-
     public static BugReportDetailResponse from(BugReportDetailWithMemberResult result) {
         BugReportDetailResult bugReport = result.bugReport();
         return new BugReportDetailResponse(
@@ -88,9 +87,6 @@ public record BugReportDetailResponse(
         );
     }
 
-    /**
-     * DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음).
-     */
     private static List<FileResponse> toFileResponses(List<BugReportImageResult> images) {
         if (images == null || images.isEmpty()) {
             return List.of();

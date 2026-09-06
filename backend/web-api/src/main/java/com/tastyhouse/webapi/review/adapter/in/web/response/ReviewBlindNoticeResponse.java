@@ -40,7 +40,6 @@ public record ReviewBlindNoticeResponse(
     @Schema(description = "재노출 예정일시 — 삭제에 동의하지 않으면 이 시각 이후 다시 노출됩니다.", example = "2026-09-16T14:30:00")
     LocalDateTime blindUntil
 ) {
-
     public static ReviewBlindNoticeResponse from(ReviewBlindNoticeResult result) {
         return new ReviewBlindNoticeResponse(
             result.reviewId(),

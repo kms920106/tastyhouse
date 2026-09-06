@@ -20,11 +20,6 @@ public record AuthSocialLoginResponse(
 ) {
     public enum Status {LOGIN, NEEDS_SIGN_UP, NEEDS_LINKING}
 
-    /**
-     * 분기 판정은 서비스가 끝냈다 — 여기서는 읽기 계약을 표현 계약으로 옮겨 담기만 한다.
-     * {@code jwt}는 LOGIN일 때만 채워지므로 null을 그대로 통과시킨다({@code @JsonInclude(NON_NULL)}이
-     * 직렬화에서 생략하는 것이 계약이다).
-     */
     public static AuthSocialLoginResponse from(SocialLoginResult result) {
         return new AuthSocialLoginResponse(
             Status.valueOf(result.status().name()),

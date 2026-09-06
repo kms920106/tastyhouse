@@ -26,7 +26,6 @@ public record ShopBusinessHourSaveRequest(
     @Schema(description = "24시간 영업 여부", example = "false")
     Boolean is24Hours
 ) {
-
     public ShopBusinessHourOwnerCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopBusinessHourOwnerCreateCommand(ceoId, shopId, dayType(), openTime(), closeTime(), isClosed(), is24Hours());
     }

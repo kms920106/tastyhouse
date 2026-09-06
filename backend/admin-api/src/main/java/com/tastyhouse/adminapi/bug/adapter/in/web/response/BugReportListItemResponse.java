@@ -36,7 +36,6 @@ public record BugReportListItemResponse(
     @Schema(description = "제보 등록 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
-
     public static BugReportListItemResponse from(BugReportListItemWithMemberResult result) {
         BugReportListItemResult bugReport = result.bugReport();
         return new BugReportListItemResponse(

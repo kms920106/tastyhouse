@@ -9,12 +9,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * 라이더 픽업 위치 교정 요청(라이더 제보 반영).
- *
- * <p>좌표 범위 판정은 도메인({@code ShopRiderGuide})이 담당한다 — 점주 경로(ceo-api)와 같은 게이트가
- * 적용되어야 하므로 Request로 끌어올리지 않는다.
- */
 @Schema(description = "라이더 픽업 위치 교정 요청")
 public record ShopRiderPickupLocationUpdateRequest(
     @NotBlank(message = "픽업 도로명주소는 필수입니다.")
@@ -41,7 +35,6 @@ public record ShopRiderPickupLocationUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
-
     public ShopRiderPickupLocationManagementUpdateCommand toCommand(Long shopId, Long adminId) {
         return new ShopRiderPickupLocationManagementUpdateCommand(
             shopId, adminId, roadAddress, lotAddress, detailAddress, latitude, longitude

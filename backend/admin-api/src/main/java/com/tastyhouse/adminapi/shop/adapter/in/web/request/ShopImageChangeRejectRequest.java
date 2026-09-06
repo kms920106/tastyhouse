@@ -12,7 +12,6 @@ public record ShopImageChangeRejectRequest(
     @Schema(description = "반려 사유", example = "이미지 해상도가 기준에 미달합니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public ShopImageChangeRejectCommand toCommand(Long requestId) {
         return new ShopImageChangeRejectCommand(requestId, reason);
     }

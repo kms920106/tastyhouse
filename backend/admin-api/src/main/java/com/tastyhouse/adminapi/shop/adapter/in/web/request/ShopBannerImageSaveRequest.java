@@ -14,7 +14,6 @@ public record ShopBannerImageSaveRequest(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
-
     public ShopBannerImageCreateCommand toCommand(Long shopId) {
         return new ShopBannerImageCreateCommand(shopId, imageFileId, sort);
     }

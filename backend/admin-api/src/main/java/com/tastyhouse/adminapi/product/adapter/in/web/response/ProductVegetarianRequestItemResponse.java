@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 
-/**
- * 메뉴 채식 설정 요청 검수 목록 항목.
- *
- * <p>{@code ingredients}·{@code description}을 목록에 함께 담는다 — 그것이 검수의 유일한 근거이므로
- * 검수자가 상세를 다시 열지 않고 판정할 수 있어야 한다.
- */
 @Schema(description = "메뉴 채식 설정 요청 목록 항목")
 public record ProductVegetarianRequestItemResponse(
     @Schema(description = "요청 ID", example = "7")
@@ -41,7 +35,6 @@ public record ProductVegetarianRequestItemResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "액젓이 포함되어 비건에 해당하지 않습니다.")
     String rejectReason
 ) {
-
     public static ProductVegetarianRequestItemResponse from(ProductVegetarianRequestResult result) {
         return new ProductVegetarianRequestItemResponse(
             result.id(),

@@ -113,7 +113,6 @@ public record ShopReviewDetailResponse(
     @Schema(description = "배달 평가 내용. 미평가면 null입니다. 점주 전용이며 고객 앱에는 표시되지 않습니다.", example = "빠르게 잘 받았어요")
     String deliveryComment
 ) {
-
     public static ShopReviewDetailResponse from(ShopReviewDetailViewResult view) {
         ShopReviewManagementDetailResult result = view.review();
         OrderMethod orderMethod = result.orderMethod();

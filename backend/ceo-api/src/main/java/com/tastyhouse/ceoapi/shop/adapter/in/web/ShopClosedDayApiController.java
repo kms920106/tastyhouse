@@ -32,7 +32,6 @@ import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand
 @RestController
 @RequestMapping("/api/shops")
 public class ShopClosedDayApiController {
-
     private final ShopClosedDayQueryUseCase shopClosedDayQueryService;
     private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
 

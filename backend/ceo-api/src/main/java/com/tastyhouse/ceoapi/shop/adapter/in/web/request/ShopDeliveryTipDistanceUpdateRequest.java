@@ -23,7 +23,6 @@ public record ShopDeliveryTipDistanceUpdateRequest(
     @Schema(description = "단위당 할증액(원). PER_100M은 100~300원, PER_500M은 100~1,500원", example = "500", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer surchargeAmount
 ) {
-
     public ShopDeliveryTipDistanceUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryTipDistanceUpdateCommand(ceoId, shopId, baseDistanceMeters(), surchargeUnit(), surchargeAmount());
     }

@@ -12,7 +12,6 @@ public record ShopPhotoCategorySaveRequest(
     @Schema(description = "포토 카테고리명", example = "가게 외관", requiredMode = Schema.RequiredMode.REQUIRED)
     String name
 ) {
-
     public ShopPhotoCategoryCreateCommand toCreateCommand(Long shopId) {
         return new ShopPhotoCategoryCreateCommand(shopId, name);
     }

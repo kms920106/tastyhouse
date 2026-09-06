@@ -21,7 +21,6 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemRes
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderAvailabilityApiController {
-
     private final ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService;
 
     public ShopOrderAvailabilityApiController(ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService) {

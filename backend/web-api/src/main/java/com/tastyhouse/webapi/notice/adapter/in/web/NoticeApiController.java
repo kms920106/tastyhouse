@@ -21,7 +21,6 @@ import com.tastyhouse.webapi.notice.adapter.in.web.response.NoticeListItemRespon
 @RequestMapping("/api/notices")
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
-
     private final NoticeQueryUseCase noticeQueryService;
 
     public NoticeApiController(NoticeQueryUseCase noticeQueryService) {
@@ -31,7 +30,6 @@ public class NoticeApiController {
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
-
         PaginationResponse<NoticeListItemResponse> pageResult = PaginationResponse.from(
             noticeQueryService.getNoticeList(pageRequest.page(), pageRequest.size())
                 .map(NoticeListItemResponse::from)

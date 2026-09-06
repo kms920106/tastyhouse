@@ -15,7 +15,6 @@ public record OrderProductOptionRequest(
     @Schema(description = "옵션 ID", example = "3", requiredMode = Schema.RequiredMode.REQUIRED)
     Long optionId
 ) {
-
     public OrderLineOptionCommand toCommand() {
         return OrderLineOptionCommand.of(groupId, optionId);
     }

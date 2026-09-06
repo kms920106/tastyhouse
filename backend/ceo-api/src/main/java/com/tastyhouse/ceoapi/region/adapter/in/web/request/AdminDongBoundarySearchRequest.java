@@ -10,12 +10,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
-/**
- * 행정동 경계 조회 요청.
- *
- * <p>조회 방식이 두 가지이며 <b>서로 배타적</b>이다 — 지도 영역(bbox)으로 훑거나, 식별자를 지정해 특정
- * 동만 다시 그리거나. 둘 다 비면 전국을 요청하는 것이 되어 거절한다. 이 배타성 검증은 서비스가 수행한다.
- */
 @Schema(description = "행정동 경계 조회 요청")
 public record AdminDongBoundarySearchRequest(
     @DecimalMin(value = "-90", message = "위도는 -90 이상이어야 합니다.")

@@ -55,7 +55,6 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
 @RequestMapping("/api/shops")
 @Tag(name = "Shop", description = "가게 관리 API")
 public class ShopApiController {
-
     private final ShopCommandUseCase shopCommandUseCase;
     private final ShopSearchQueryUseCase shopSearchQueryUseCase;
     private final ShopDetailQueryUseCase shopDetailQueryUseCase;
@@ -90,7 +89,6 @@ public class ShopApiController {
         @Valid @ModelAttribute PageRequest pageRequest,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        // 공개 경로라 비로그인이면 principal 이 null 이다 — 그때는 배달지역 필터를 걸지 않는다.
         PaginationResponse<ShopBestListItemResponse> pageResponse = PaginationResponse.from(
             shopSearchQueryUseCase.searchBestShops(memberIdOrNull(userDetails), pageRequest.page(), pageRequest.size())
                 .map(ShopBestListItemResponse::from)
@@ -287,18 +285,6 @@ public class ShopApiController {
         return ResponseEntity.ok(ApiResponse.success(ShopBookmarkResponse.from(bookmarked)));
     }
 
-    /**
-     * 배달팁 조회·재견적.
-     *
-     * <p><b>상세 초기 렌더 비용이 0</b>이다 — 배달팁 표·지역 목록·시간대 목록은 팝업을 열 때만
-     * 필요하므로 가게 상세({@code /v1/{id}})에 싣지 않고 이 엔드포인트로 분리했다. 상세는 하한/상한
-     * 2필드만 갖는다.
-     *
-     * <p><b>{@code userDetails}는 null일 수 있다.</b> 이 컨트롤러의 경로들은 {@code PublicPaths}에
-     * 등록된 공개 경로이고, 비로그인 사용자도 가게 상세에서 배달팁 팝업을 열 수 있어야 한다. 따라서
-     * 인증을 요구하지 않고, 로그인하지 않았으면 확정 계산을 시도하지 않고 <b>범위 모드</b>로
-     * 떨어뜨린다(배달 주소는 로그인 회원의 주소록에만 있으므로 비로그인은 애초에 확정할 수 없다).
-     */
     @Operation(summary = "배달팁 조회", description = "가게의 배달팁 설정과 하한/상한을 조회합니다. 로그인 회원이 배달 주소 ID와 주문금액을 함께 주면 확정 배달팁과 산출 근거를 반환합니다.")
     @GetMapping("/v1/{id}/delivery-tip")
     public ResponseEntity<ApiResponse<ShopDeliveryTipResponse>> getShopDeliveryTip(
@@ -318,14 +304,6 @@ public class ShopApiController {
         return ResponseEntity.ok(ApiResponse.success(deliveryTip));
     }
 
-    /**
-     * 예약 가능 수령시간 슬롯 조회.
-     *
-     * <p>비로그인도 조회할 수 있다 — 슬롯은 가게 설정과 영업시간만으로 정해지고 회원별로 달라지지 않는다.
-     *
-     * <p>예약할 수 없는 상태여도 404가 아니라 200 + {@code available:false}로 응답한다(배달팁 조회 선례).
-     * 시각 의존 응답이라 캐시하지 않는다.
-     */
     @Operation(
         summary = "예약 가능 수령시간 조회",
         description = "가게의 예약 가능한 수령시간 슬롯을 30분 단위로 조회합니다. 예약주문 미운영이거나 "
@@ -351,12 +329,6 @@ public class ShopApiController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 공개 경로의 회원 식별자 — 비로그인이면 {@code null}.
-     *
-     * <p>목록 조회는 인증 없이도 열려 있어({@code PublicPaths}) principal 이 {@code null} 로 들어온다.
-     * 배달지역 필터는 회원 배송지가 있을 때만 걸리므로 여기서 그대로 흘려보낸다.
-     */
     private Long memberIdOrNull(MemberUserDetails userDetails) {
         return userDetails == null ? null : userDetails.getMemberId();
     }

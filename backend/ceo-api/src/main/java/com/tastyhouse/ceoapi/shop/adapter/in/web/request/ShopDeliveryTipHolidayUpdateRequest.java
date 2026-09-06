@@ -13,7 +13,6 @@ public record ShopDeliveryTipHolidayUpdateRequest(
     @Schema(description = "법정 공휴일에 부과할 추가 배달팁(원). 0원을 보내면 설정이 삭제됩니다", example = "2000", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer tipAmount
 ) {
-
     public ShopDeliveryTipHolidayUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryTipHolidayUpdateCommand(ceoId, shopId, tipAmount());
     }

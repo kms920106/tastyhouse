@@ -20,7 +20,6 @@ public record RankPeriodUpdateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean visible
 ) {
-
     public RankPeriodUpdateCommand toCommand(Long rankPeriodId) {
         return new RankPeriodUpdateCommand(rankPeriodId, startAt(), endAt(), visible());
     }

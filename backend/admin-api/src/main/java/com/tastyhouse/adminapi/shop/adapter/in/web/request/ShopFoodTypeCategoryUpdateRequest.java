@@ -6,13 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-/**
- * 음식종류 카테고리 수정 요청.
- *
- * <p>음식 유형({@code foodType})은 카테고리를 식별하는 키라 생성 이후 변경할 수 없으므로
- * (도메인 {@code ShopFoodTypeCategory.foodType}이 final) 이 요청에는 포함하지 않는다.
- * 등록 시에만 지정한다 — {@link ShopFoodTypeCategoryCreateRequest}.
- */
 @Schema(description = "음식종류 카테고리 수정 요청")
 public record ShopFoodTypeCategoryUpdateRequest(
     @NotBlank(message = "표시명은 필수입니다.")
@@ -35,7 +28,6 @@ public record ShopFoodTypeCategoryUpdateRequest(
     @Schema(description = "사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
-
     public ShopFoodTypeCategoryUpdateCommand toCommand(Long categoryId) {
         return new ShopFoodTypeCategoryUpdateCommand(
             categoryId, displayName, activeImageFileId, inactiveImageFileId, sort, visible

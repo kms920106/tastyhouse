@@ -32,7 +32,6 @@ public record ShopAmenityCategoryCreateRequest(
     @Schema(description = "사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
-
     public ShopAmenityCategoryCreateCommand toCommand() {
         return new ShopAmenityCategoryCreateCommand(
             amenity, displayName, activeImageFileId, inactiveImageFileId, sort, visible

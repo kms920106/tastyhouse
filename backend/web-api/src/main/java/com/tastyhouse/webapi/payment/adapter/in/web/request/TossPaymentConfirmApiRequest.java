@@ -22,13 +22,6 @@ public record TossPaymentConfirmApiRequest(
     @Positive(message = "결제 금액은 0보다 커야 합니다")
     Integer amount
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}를 주입받아 command로 변환한다.
-     *
-     * <p>{@code paymentKey}·{@code pgOrderId}가 같은 {@code String}이라 위치 기반 전달은 조용히
-     * 뒤바뀌므로, 아래는 이름 기반 접근자로 각 값을 짚어 넘긴다.
-     */
     public TossPaymentConfirmCommand toCommand(Long memberId) {
         return new TossPaymentConfirmCommand(
             memberId,

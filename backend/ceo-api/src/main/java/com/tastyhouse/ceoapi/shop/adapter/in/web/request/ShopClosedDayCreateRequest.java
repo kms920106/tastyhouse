@@ -11,7 +11,6 @@ public record ShopClosedDayCreateRequest(
     @Schema(description = "정기 휴무 유형", example = "EVERY_WEEK_MONDAY", requiredMode = Schema.RequiredMode.REQUIRED)
     String closedDayType
 ) {
-
     public ShopClosedDayOwnerCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopClosedDayOwnerCreateCommand(ceoId, shopId, closedDayType());
     }

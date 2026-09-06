@@ -25,21 +25,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
 
-/**
- * 점주 옵션 관리 API.
- *
- * <p>목록 조회 엔드포인트가 없다 — 옵션은 옵션그룹 목록
- * ({@link ProductOptionGroupApiController#getProductOptionGroups})에 중첩되어 함께 내려온다. 옵션만
- * 따로 조회할 화면이 없으므로 경로를 만들지 않는다.
- *
- * <p><b>모든 경로가 옵션그룹의 소유 가게를 역조회해 검증한다</b> — 옵션은 자기 가게를 모르므로
- * {@code 옵션 → 그룹 → 링크 → 메뉴 → 가게} 역조회 없이는 남의 가게 옵션을 조작하는 것을 막을 수 없다.
- */
 @Tag(name = "Ceo Product Option", description = "점주 옵션 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionApiController {
-
     private final ProductOptionCommandUseCase productOptionCommandUseCase;
 
     public ProductOptionApiController(ProductOptionCommandUseCase productOptionCommandUseCase) {

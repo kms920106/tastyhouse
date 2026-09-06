@@ -11,7 +11,6 @@ public record BugReportAssignRequest(
     @Schema(description = "담당 관리자 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long assigneeAdminId
 ) {
-
     public BugReportAssignCommand toCommand(Long bugReportId) {
         return new BugReportAssignCommand(bugReportId, assigneeAdminId());
     }

@@ -11,7 +11,6 @@ public record ShopFoodTypeAssignRequest(
     @Schema(description = "음식종류 카테고리 ID", example = "5", requiredMode = Schema.RequiredMode.REQUIRED)
     Long foodTypeCategoryId
 ) {
-
     public ShopFoodTypeAssignCommand toCommand(Long shopId) {
         return new ShopFoodTypeAssignCommand(shopId, foodTypeCategoryId);
     }

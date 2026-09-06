@@ -221,6 +221,15 @@
 |---|---|---|
 | 선택 항목 가져옴 여부 | 안 가져옴 → 가져옴 | 안 가져옴 상태의 메뉴만 자동 동기화 대상으로 뽑힌다 |
 
+### 승인요청 검수의 3단 상태
+
+매장가격 인증 요청은 **`PENDING` → `IN_PROGRESS` → 승인/반려**로 흐른다. 가운데 `IN_PROGRESS`는 **검수자가 그 항목을 선점했다**는 뜻이며, 두 가지 목적으로 존재한다.
+
+- 여러 관리자가 같은 요청을 **중복 검수**하는 것을 막는다.
+- 점주 화면에 **"검수 중"** 을 보여준다.
+
+즉 이 상태는 진행 표시가 아니라 **동시 검수 방지 장치**다.
+
 ## 비즈니스 규칙
 
 | 규칙 | 위반하면 사용자에게 무슨 일이 생기는가 |
@@ -267,6 +276,34 @@
 | 메뉴 이미지와 채식 설정은 관리자 승인 후 반영된다 | 점주가 신청하면 검수 대기 상태가 되고, 승인되어야 손님 화면에 보인다. 같은 대상에 검수 대기 중인 신청이 있으면 새로 신청할 수 없다 |
 | 이미지 순서 변경·삭제는 승인 없이 즉시 반영된다 | 검수 대상은 "새 이미지의 내용"이지 배치가 아니기 때문이다 |
 | 일부 가게 카테고리는 채식 메뉴를 등록할 수 없다 | 치킨·피자·중식 등은 신청 자체가 거절된다 |
+
+### 메뉴 승인요청을 승인하면 무엇이 반영되는가
+
+점주가 낸 승인요청을 관리자가 승인할 때, 유형별로 반영되는 곳이 다르다.
+
+| 승인요청 유형 | 승인 시 반영 대상 |
+|---|---|
+| 이미지 변경 | 그 메뉴의 이미지 목록 **맨 뒤**에 추가된다 |
+| 채식 | `Product.vegetarianType` |
+| 사장님 추천 | `Product.representative` |
+
+**이미지가 맨 뒤에 붙는 것은 의도다** — 앞에 붙이면 대표 이미지가 점주도 관리자도 의도하지 않게 바뀐다.
+
+### 검수 반려에는 사유가 반드시 있어야 한다
+
+메뉴 이미지·채식·사장님 추천·매장가 인증 **모든 검수 경로에서 반려 사유는 필수**다. 점주가 무엇을 고쳐 다시 올려야 하는지 알 수 있는 유일한 통로이기 때문이다.
+
+매장가 인증의 사유 길이 상한(500자)은 `SHOP_STORE_PRICE_VERIFICATION.reject_reason` 컬럼 길이와 맞춘 값이다 — **여기서 막지 않으면 DB 단계에서 잘리거나 실패한다.**
+
+### 채널 가격 해석은 서버가 단독으로 결정한다
+
+메뉴 가격 한 행은 "가격명 + 주문유형으로 **이미 해석된** 단일 가격"이다. 어느 채널 가격(배달가/픽업가)을 쓸지는 `ProductPrice#resolvePrice`가 **주문유형으로 결정하며 이 결정은 서버 단독**이다. 손님 화면은 채널을 고르지 않는다.
+
+배치 조회도 상세 조회와 같은 파라미터를 받아 이미 해석된 단일 가격만 내려받는다. **클라이언트가 채널을 고르게 만들면 주문 접수의 `validateAmounts()`와 어긋나 주문이 거절된다.**
+
+### 매장가는 표시 전용이다
+
+매장가(`storePrice`)는 **결제에 쓰이지 않는 표시 전용 값**이다. 손님 대상 쓰임은 가게 단위 뱃지(`GET /api/shops/v1/{id}/price-badges`) 하나뿐이며, **메뉴 단위로는 내려가지 않는다.**
 
 ## 다른 도메인과의 관계
 
@@ -320,3 +357,132 @@
 기존 관리자 경로(`품절 처리`·`비노출 처리`)는 **그대로 유지된다** — 관리자는 계속 같은 방식으로 처리할 수 있고, 그 경로로 품절 처리한 메뉴는 자동해제 시각이 없는 무기한 품절이 된다.
 
 점주 접점은 모두 **자기 소유 가게로 범위가 제한**된다. 옵션은 소속 가게를 옵션그룹 → 메뉴 → 가게로 거슬러 확인하므로, 남의 가게 옵션을 처리 대상에 끼워 넣을 수 없다.
+
+## 점주 화면이 드러내는 규칙 (챕터 06 이관)
+
+<!-- 분류 C. ceo-api 코드 주석에서 이관. 역참조 앵커는 각 항목의 '대상' 참조 -->
+
+### 메뉴 노출 판정 축
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductExposureApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductExposureResponse.java` → record 컴포넌트 `exposedNow`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductExposureHourRequest.java` → record 컴포넌트 `startTime`, `endTime`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductExposureHourResponse.java` → record 컴포넌트 `startTime`, `endTime`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductExposureRequest.java` → record 컴포넌트 `hours`
+
+- **노출 = `visible` AND 기간 AND 요일·시간대**다.
+- **품절은 이 축과 직교한다** — 품절 메뉴는 목록에서 사라지지 않고 남은 채 '품절' 뱃지만 붙는다.
+- 요일·시간대 규칙: `startTime`·`endTime`을 **모두 비우면 그 요일 종일 노출**. `endTime`이 `startTime`보다 이르면 **자정을 넘긴다**(예: 22:00~02:00 야식).
+- `hours`를 빈 배열로 보내면 요일·시간 제약이 사라지고 **기간 축만 남는다**.
+- "요일 묶음과 개별 요일 혼용 금지"는 **집합 전체를 봐야 판정되는 규칙**이다.
+- 응답은 설정값만이 아니라 `exposedNow`와 그 사유를 함께 담는다 — 설정값만 주면 점주가 "설정했는데 왜 안 보이지"를 스스로 판단할 수 없다.
+
+### 메뉴 가격 규칙과 매장 가격 인증 게이트
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductPriceApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductPriceItemRequest.java` → record 컴포넌트 `id`, `priceName`, `storePrice`, `pickupPrice`, `sort`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductPriceResponse.java` → record 전체
+
+- 가격 규칙 3종은 **목록 전체를 봐야 판정**된다: 가격명 중복 금지 · "행이 2개 이상이면 가격명 필수"(`PRODUCT_PRICE_NAME_REQUIRED`) · 표시 순서.
+- **가격 0개는 정상 요청이 아니다**(`PRODUCT_PRICE_EMPTY`) — 메뉴에 가격이 없으면 주문 자체가 불가능하다.
+- **매장가·픽업가는 매장 가격 인증을 받은 가게만 채울 수 있다.** 미인증 가게가 값을 실어 보내면 `PRODUCT_PRICE_STORE_NOT_VERIFIED`로 거절된다. 화면은 인증 상태를 `GET /api/shops/v1/{id}/store-price-verifications/latest`로 먼저 확인한다.
+- 미인증 상태의 매장가·픽업가는 **`null`이며 0이 아니다** — 0원은 "무료"라는 정당한 값이다.
+- `sort=0` 행의 배달가가 **메뉴 대표가로 동기화된다**.
+- 전체 교체(PUT)이므로 요청에 담기지 않은 기존 행은 **삭제**되고, `id`가 있으면 갱신·비어 있으면 신규 추가다.
+
+### 옵션그룹 단일 가게 불변식과 마지막 연결 규칙
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductOptionGroupLinkApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionGroupLinkedProductResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionGroupSortRequest.java` → record 전체
+
+- **핵심 불변식 — 옵션그룹은 단일 가게에만 속한다.** 다른 가게 메뉴에 연결하려 하면 `PRODUCT_OPTION_GROUP_SHOP_MISMATCH`(400)로 거부된다. 이 불변식 덕분에 소유권 판정에서 ANY/ALL 구분이 사라져 "연결된 아무 메뉴 하나"로 판정할 수 있다.
+- **마지막 연결 해제는 막힌다**(`PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK`) — 연결이 0건이면 어디서도 보이지 않는 **고아 그룹**이 된다. 그룹 자체를 없애려면 옵션그룹 삭제 API를 쓴다.
+- 해제·순서 변경은 남은 연결의 `sort`를 **함께 재정규화**한다.
+- 순서는 그룹이 아니라 **링크가 갖는다** — 같은 그룹도 메뉴마다 순서가 다를 수 있다.
+
+### 옵션그룹 합치기(merge)는 비가역
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductOptionGroupMergeApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionGroupMergePreviewGroupResponse.java` → record 컴포넌트 `*Differs`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionGroupMergePreviewOptionResponse.java` → record 컴포넌트 `diffType`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionGroupMergePreviewResponse.java` → record 컴포넌트 `mergeable`, `blockedReason`
+
+- **합치기는 되돌릴 수 없다**(분리 엔드포인트 자체가 없다).
+- 합치면 **기준 그룹의 값이 이긴다.** `*Differs` 플래그는 기준 그룹 기준이며 기준 자신은 항상 `false`다 — 플래그가 켜진 항목이 곧 "합치면 바뀌는 것"이다.
+- `diffType`이 이 화면의 본질이다 — 점주가 "무엇이 남고 무엇이 사라지는지"를 **수락한 상태에서만** 실행돼야 한다.
+- `mergeable`이 `false`면 화면이 버튼을 비활성화하고 `blockedReason`을 안내한다 — 실행 시점 거절보다 **누르기 전에** 막는 편이 낫다.
+
+### 관리자 검수를 거치는 방향과 즉시 반영되는 방향
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductVegetarianApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductRepresentativeApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductImageApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/ShopMenuCollectionImageApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductVegetarianStatusResponse.java` → record 컴포넌트 `vegetarianType`, `requests`
+
+**공통 판단 기준**: 검수의 목적은 부적합한 내용이 손님에게 노출되는 것을 막는 데 있으므로, **노출을 늘리는 방향만 승인을 거치고 줄이는 방향은 즉시 반영**된다.
+
+| 동작 | 승인 | 즉시 |
+|---|---|---|
+| 채식 설정 | ✅ 재료를 근거로 신청 → 관리자 판정 | — |
+| 채식 해제 | — | ✅ (잘못된 표기를 즉시 내려야 하고, 그 방향에 오표기 위험이 없다) |
+| 사장님 추천 지정 | ✅ | — |
+| 사장님 추천 해제 | — | ✅ |
+| 메뉴 이미지·메뉴모음컷 등록 | ✅ (검수 대상은 새 이미지의 **내용**) | — |
+| 메뉴 이미지·메뉴모음컷 순서 변경·삭제 | — | ✅ (검수 대상이 배치가 아니다) |
+
+추가 규칙:
+
+- **채식 표기는 알레르기·신념과 직결돼 오표기의 대가가 크다.** 채식 메뉴를 등록할 수 없는 가게 카테고리(돈까스/회/일식, 고기/구이 등)는 **신청 자체를 거부**한다. `ingredients`가 관리자 검수의 유일한 근거다.
+- **사장님 추천(대표 메뉴) 등록 기준(원문 PDF)**: 가게당 **최대 6개** · **이미지가 등록된 메뉴만** · **최소 1개는 유지**. 개수 제한은 **집합 단위 불변식**이라 요청 전체를 반영한 뒤의 최종 상태를 봐야 하고(`PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED`), 한 건씩 받으면 어느 건이 통과할지가 호출 순서에 좌우된다.
+- **메뉴모음컷 등록 정원은 6개이며 대기·반려 건도 그 정원을 차지한다.**
+- 채식 현황에서 `vegetarianType`이 **현재 반영된 진실값**이고 `requests`는 이력이다 — 승인 전 요청이 있어도 반영값은 바뀌지 않는다.
+
+### 일회용컵 보증금 옵션
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionCreateRequest.java` → record 컴포넌트 `cupCount`, `personalCupDiscountAmount`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionUpdateRequest.java` → 동일 컴포넌트
+
+- `cupCount`(일회용컵 제공 개수)는 **1~10**이며, 검증은 도메인 `CupDepositPolicy#validateCupCount`가 소유해 `PRODUCT_OPTION_CUP_COUNT_INVALID`("1개 이상 10개 이하")로 응답한다.
+- **보증금액 = 개수 × 300원**을 서버가 계산한다 — 클라이언트가 금액을 직접 보내지 않는다.
+- `personalCupDiscountAmount`(개인컵 사용 할인)는 보증금 옵션그룹 안에서만 설정할 수 있고 **보증금이 아니라 상품 할인 축**이다. 이 값이 있는 옵션은 컵을 제공하지 않으므로 `cupCount`가 없다.
+- `cupCount`·`personalCupDiscountAmount`는 **보증금 옵션그룹의 옵션만** 값을 갖는다.
+
+### 일반 옵션과 공통 옵션은 다른 테이블·다른 id 시퀀스
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionTargetRequest.java` → record 컴포넌트 `optionType`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionAvailabilityItemResponse.java` → record 컴포넌트 `optionType`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionAvailabilityGroupResponse.java` → record 컴포넌트 `optionType`
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductOptionGroupResponse.java` → record 전체
+
+일반 옵션과 공통 옵션은 **다른 테이블·다른 id 시퀀스**라 id만으로는 어느 쪽인지 알 수 없다. 그래서 일괄 처리 요청·품절 관리 응답은 `optionType`을 항목마다 함께 실어 서버가 올바른 리포지토리를 고를 수 있게 한다. 품절·숨김 관리 목록은 두 갈래를 **하나의 목록으로 합쳐** 내려주되 `optionType`으로 갈래를 표시하고(손님 화면 옵션 조회와 같은 방식), 반대로 점주 CRUD 대상인 옵션그룹 목록은 **일반 옵션그룹만** 담는다.
+
+### 메뉴-가게 연결(멀티 노출)
+
+**대상**: `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductShopLinkApiController.java`
+→ 클래스 전체 / `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductShopLinkItemRequest.java` → record 컴포넌트 `productCategoryId`
+
+- **메뉴가 삭제되는 것이 아니라 노출 범위만 바뀐다.** 연결을 해제해도 메뉴 자체와 그 메뉴의 가격·옵션·리뷰는 그대로 남고, 그 가게 메뉴판에서만 사라진다.
+- **가격은 연결된 가게끼리 공유된다** — 가게별로 다른 가격이 필요하면 메뉴를 따로 만든다.
+- **옵션그룹은 원본 소유 가게가 계속 소유하며 연결된 가게는 읽기만 한다.**
+- 연결마다 `productCategoryId`가 필수인 이유는 **가게마다 메뉴그룹이 다르기 때문**이다 — 원본 가게의 메뉴그룹을 그대로 쓸 수 없으므로 연결할 때마다 그 가게의 그룹을 고른다.
+- "링크 1개 이상 유지" 규칙은 목록 전체를 봐야 판정된다.
+
+### 고객 의견(피드백) 집계 정책
+
+**대상**:
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/ProductFeedbackApiController.java` → 클래스 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/response/ProductFeedbackResponse.java` → record 전체
+- `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductFeedbackSearchRequest.java` → record 전체
+
+- **건별이 아니라 메뉴 × 유형 집계로 내려보낸다** — 점주가 알아야 하는 것은 "누가 언제 보냈는가"가 아니라 "어떤 메뉴의 무엇이 몇 명에게 틀려 보이는가"다. 같은 지적이 수십 줄로 흩어지면 무엇을 고쳐야 할지 판단할 수 없다.
+- **집계 기간은 지난 7일(한 주)이며 서버가 고정한다** — 점주가 창을 넓힐 수 있으면 **중복 제보 방지 기간**과 어긋나 집계가 왜곡된다.
+- **제보자 정보는 어떤 응답에도 담기지 않는다**(A절 가드 참조).

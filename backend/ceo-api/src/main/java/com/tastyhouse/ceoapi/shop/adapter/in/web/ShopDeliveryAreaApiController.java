@@ -47,7 +47,6 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyComman
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaApiController {
-
     private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryService;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
     private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryService;
@@ -193,10 +192,6 @@ public class ShopDeliveryAreaApiController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    /**
-     * HTTP 메서드는 {@code POST}지만 <b>의미는 조회</b>다 — 도형이 URL에 들어갈 수 없어 본문으로 받을
-     * 뿐이며, 저장하지 않고 환산 결과만 계산해 돌려준다.
-     */
     @Operation(
         summary = "배달지역 도형 환산 미리보기",
         description = "도형을 저장하지 않고 환산 결과만 조회합니다. 저장 시 열리는 행정동·닫히는 행정동·배달팁 때문에 닫을 수 없는 행정동을 함께 알려줍니다."
@@ -225,5 +220,4 @@ public class ShopDeliveryAreaApiController {
         shopDeliveryAreaCommandUseCase.deletePolygon(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
 }

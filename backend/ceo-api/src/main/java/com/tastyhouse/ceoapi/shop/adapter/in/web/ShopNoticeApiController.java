@@ -36,7 +36,6 @@ import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopNoticeApiController {
-
     private final ShopNoticeOwnerQueryUseCase shopNoticeQueryService;
     private final ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase;
 

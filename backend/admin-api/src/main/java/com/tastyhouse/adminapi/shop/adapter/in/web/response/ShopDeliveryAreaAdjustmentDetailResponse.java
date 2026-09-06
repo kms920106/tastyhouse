@@ -44,7 +44,6 @@ public record ShopDeliveryAreaAdjustmentDetailResponse(
     @Schema(description = "수정 일시", example = "2026-08-09T12:00:00")
     LocalDateTime updatedAt
 ) {
-
     public static ShopDeliveryAreaAdjustmentDetailResponse from(ShopDeliveryAreaAdjustmentDetailResult result) {
         return new ShopDeliveryAreaAdjustmentDetailResponse(
             result.id(),

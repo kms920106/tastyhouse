@@ -19,7 +19,6 @@ public record ShopChoiceCreateRequest(
     @Schema(description = "내용", example = "상세 설명 내용...")
     String content
 ) {
-
     public ShopChoiceCreateCommand toCommand() {
         return new ShopChoiceCreateCommand(shopId, title, content);
     }

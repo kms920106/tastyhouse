@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 
-/**
- * 요청건 문의 스레드 항목 응답.
- *
- * <p>ceo-api의 동명 record와 필드가 같지만 통합하지 않는다 — 각 모듈이 자기 응답 계약을 소유하는 이 저장소의
- * 관례이고, 담당자 화면에서 작성자 표기가 갈릴 여지가 있다. 작성자 실명·식별자는 양쪽 모두 노출하지 않는다.
- */
 @Schema(description = "요청건 문의 스레드 항목")
 public record ShopRequestCommentResponse(
 
@@ -30,7 +24,6 @@ public record ShopRequestCommentResponse(
     @Schema(description = "작성 일시", example = "2026-08-12T09:20:11")
     LocalDateTime createdAt
 ) {
-
     public static ShopRequestCommentResponse from(ShopRequestCommentResult result) {
         return new ShopRequestCommentResponse(
             result.commentId(),

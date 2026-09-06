@@ -20,7 +20,6 @@ import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
 @RestController
 @RequestMapping("/api/admins")
 public class AdminApiController {
-
     private final AdminCommandUseCase adminCommandUseCase;
 
     public AdminApiController(AdminCommandUseCase adminCommandUseCase) {

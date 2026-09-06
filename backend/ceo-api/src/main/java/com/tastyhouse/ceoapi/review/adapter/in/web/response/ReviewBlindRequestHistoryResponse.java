@@ -45,7 +45,6 @@ public record ReviewBlindRequestHistoryResponse(
     @Schema(description = "요청 접수일시", example = "2026-06-21T09:30:00")
     LocalDateTime createdAt
 ) {
-
     public static ReviewBlindRequestHistoryResponse from(ReviewBlindRequestHistoryResult result) {
         ReviewBlindReason reason = result.reason();
         ReviewBlindStatus status = result.status();

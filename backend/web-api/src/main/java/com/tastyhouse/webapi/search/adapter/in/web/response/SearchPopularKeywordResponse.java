@@ -15,7 +15,6 @@ public record SearchPopularKeywordResponse(
     @Schema(description = "신규 진입 검색어 여부", example = "true")
     boolean newKeyword
 ) {
-
     public static SearchPopularKeywordResponse from(PopularKeywordResult result) {
         return new SearchPopularKeywordResponse(
             result.rank(),

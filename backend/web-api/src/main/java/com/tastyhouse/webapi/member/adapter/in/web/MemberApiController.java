@@ -24,7 +24,6 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberStatsResponse;
 @RequestMapping("/api/members")
 @Tag(name = "Member", description = "회원 공개 조회 API")
 public class MemberApiController {
-
     private final MemberScreenUseCase memberService;
 
     public MemberApiController(MemberScreenUseCase memberService) {

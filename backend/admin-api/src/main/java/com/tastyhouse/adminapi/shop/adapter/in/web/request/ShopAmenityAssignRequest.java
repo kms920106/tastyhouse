@@ -11,7 +11,6 @@ public record ShopAmenityAssignRequest(
     @Schema(description = "편의시설 카테고리 ID", example = "3", requiredMode = Schema.RequiredMode.REQUIRED)
     Long amenityCategoryId
 ) {
-
     public ShopAmenityManagementAssignCommand toCommand(Long adminId, Long shopId) {
         return new ShopAmenityManagementAssignCommand(adminId, shopId, amenityCategoryId);
     }

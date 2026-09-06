@@ -21,7 +21,6 @@ import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqListItemResponse;
 @RequestMapping("/api/faqs")
 @Tag(name = "FAQ", description = "자주하는 질문 API")
 public class FaqApiController {
-
     private final FaqQueryUseCase faqQueryService;
 
     public FaqApiController(FaqQueryUseCase faqQueryService) {

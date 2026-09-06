@@ -17,7 +17,6 @@ public record ShopTemporaryClosureCreateRequest(
     @Schema(description = "임시 휴무 종료일", example = "2026-08-03", requiredMode = Schema.RequiredMode.REQUIRED)
     LocalDate endDate
 ) {
-
     public ShopTemporaryClosureCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopTemporaryClosureCreateCommand(ceoId, shopId, startDate(), endDate());
     }

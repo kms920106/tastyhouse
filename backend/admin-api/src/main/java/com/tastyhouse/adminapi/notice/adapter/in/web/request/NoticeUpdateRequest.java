@@ -20,7 +20,6 @@ public record NoticeUpdateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean visible
 ) {
-
     public NoticeUpdateCommand toCommand(Long noticeId) {
         return new NoticeUpdateCommand(noticeId, title, content, visible);
     }

@@ -20,21 +20,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUpsertCommand;
 
-/**
- * 점주 주문안내(메뉴판 최상단 안내 문구) API.
- *
- * <p>{@code ShopNoticeApiController}(사장님 공지)와 별개 컨트롤러다 — 공지는 여러 건을 등록해 그중
- * 1건만 노출하는 목록형 자원({@code /notices/{noticeId}})이고, 주문안내는 가게당 1건 단일 자원
- * ({@code /order-notice})이라 경로 형태와 메서드 구성이 다르다.
- *
- * <p>웹(손님) 앱에도 같은 경로 {@code GET /api/shops/v1/{shopId}/order-notice}가 있다. 앱이 달라
- * 충돌하지 않으며, 응답 형태는 의도적으로 다르다 — 손님은 게시중단 여부·사유를 받지 않는다.
- */
 @Tag(name = "Ceo Shop Order Notice", description = "점주 주문안내 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
-
     private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryService;
     private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;
 

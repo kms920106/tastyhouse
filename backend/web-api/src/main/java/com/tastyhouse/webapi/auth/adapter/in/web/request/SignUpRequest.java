@@ -68,7 +68,6 @@ public record SignUpRequest(
     @Size(min = 2, max = 20, message = "추천인 닉네임은 2~20자로 입력해주세요.")
     String referrerNickname
 ) {
-
     public com.tastyhouse.application.auth.port.in.AuthSignUpCommand toCommand() {
         return new com.tastyhouse.application.auth.port.in.AuthSignUpCommand(
             username, password, nickname, fullName, gender, birthDate, phoneNumber,

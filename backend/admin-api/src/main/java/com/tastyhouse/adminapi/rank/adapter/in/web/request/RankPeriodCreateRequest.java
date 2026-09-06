@@ -20,7 +20,6 @@ public record RankPeriodCreateRequest(
     @Schema(description = "노출 여부 (미지정 시 노출)", example = "true", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     boolean visible
 ) {
-
     public RankPeriodCreateCommand toCommand() {
         return new RankPeriodCreateCommand(startAt(), endAt(), visible());
     }

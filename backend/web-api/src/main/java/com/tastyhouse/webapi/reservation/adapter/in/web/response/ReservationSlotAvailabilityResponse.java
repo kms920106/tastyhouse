@@ -18,7 +18,6 @@ public record ReservationSlotAvailabilityResponse(
     @Schema(description = "슬롯별 가용 정보")
     List<ReservationSlot> slots
 ) {
-
     public static ReservationSlotAvailabilityResponse from(ReservationSlotAvailabilityResult result) {
         return new ReservationSlotAvailabilityResponse(
             result.date(),

@@ -39,10 +39,6 @@ public record EventListItemResponse(
         );
     }
 
-    /**
-     * 목록용 — DAO가 join으로 함께 가져온 파일명·URL로 조립한다(추가 조회 없음). fileId가 없으면(파일
-     * 미등록) {@code null}을 그대로 반환한다.
-     */
     private static FileResponse toFileResponse(Long fileId, String fileName, String imageUrl) {
         if (fileId == null) {
             return null;

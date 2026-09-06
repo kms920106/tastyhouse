@@ -18,13 +18,6 @@ public record RefundRequest(
     @Schema(description = "환불 사유", example = "상품 불량")
     String refundReason
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code paymentId}를 주입받아 command로 변환한다.
-     *
-     * <p>두 {@code Long}이 연달아 있어 위치 기반 전달은 조용히 뒤바뀌므로, 아래는 이름 기반 접근자로
-     * 각 값을 짚어 넘긴다.
-     */
     public PaymentRefundRequestCommand toCommand(Long memberId, Long paymentId) {
         return new PaymentRefundRequestCommand(
             memberId,

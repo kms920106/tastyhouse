@@ -20,7 +20,6 @@ public record RankPeriodListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
-
     public static RankPeriodListItemResponse from(RankPeriodResult result) {
         return new RankPeriodListItemResponse(
             result.id(),

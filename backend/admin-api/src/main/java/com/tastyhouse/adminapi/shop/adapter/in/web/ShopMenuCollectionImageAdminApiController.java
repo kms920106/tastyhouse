@@ -28,20 +28,10 @@ import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagement
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 import com.tastyhouse.domain.shared.page.PageResult;
 
-/**
- * 메뉴모음컷 검수 관리자 API.
- *
- * <p>점주가 올린 메뉴모음컷을 승인·반려한다. 승인하면 그 즉시 손님 화면 최상단에 노출되므로, 검수
- * 대상은 이미지의 <b>내용</b>이다 — 순서 변경·삭제는 점주가 승인 없이 즉시 수행하며 이 API를 타지 않는다.
- *
- * <p>{@code ProductApprovalApiController}와 같은 형태(상태 필터 목록 + {@code PATCH approve}/{@code reject})를
- * 유지한다 — 관리자 검수 화면이 탭만 바꿔 같은 조작을 하기 때문이다.
- */
 @Tag(name = "Shop Menu Collection Image Admin", description = "메뉴모음컷 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageAdminApiController {
-
     private final ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase;
 

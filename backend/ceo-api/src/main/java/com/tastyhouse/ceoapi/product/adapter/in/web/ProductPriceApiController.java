@@ -24,27 +24,10 @@ import com.tastyhouse.application.product.port.in.ProductPriceCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductPriceReplaceCommand;
 import com.tastyhouse.application.product.port.in.ProductPriceQueryUseCase;
 
-/**
- * 점주 메뉴 가격(배달가·매장가·픽업가) 관리 API.
- *
- * <p><b>수정이 개별 행 CRUD가 아니라 전체 교체(PUT) 하나인 것이 이 리소스의 핵심</b>이다. 가격명 중복
- * 금지·"2개 이상이면 가격명 필수"·표시 순서 같은 규칙은 <b>목록 전체를 봐야 판정</b>되므로, 행 단위로
- * 열면 중간 상태가 반드시 규칙을 위반한다(배달팁 구간과 같은 판단).
- *
- * <p>매장가·픽업가는 <b>매장 가격 인증을 받은 가게만</b> 채울 수 있다. 미인증 가게가 값을 실어 보내면
- * {@code PRODUCT_PRICE_STORE_NOT_VERIFIED}로 거절되므로, 화면은 인증 상태를
- * {@code GET /api/shops/v1/{id}/store-price-verifications/latest}로 먼저 확인한다.
- *
- * <p>{@code shopId}를 경로가 아니라 query·바디로 받는다 — 경로에 가게 식별자가 없으면 소유권 검증을
- * 생략하기 쉽고, 이 저장소는 그 형태로 IDOR을 낸 전례가 있다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Price", description = "점주 메뉴 가격 관리 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductPriceApiController {
-
     private final ProductPriceQueryUseCase productPriceQueryService;
     private final ProductPriceCommandUseCase productPriceCommandUseCase;
 

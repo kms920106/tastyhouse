@@ -24,7 +24,6 @@ import com.tastyhouse.application.shop.port.in.ShopStatusUpdateCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopStatusApiController {
-
     private final ShopStatusQueryUseCase shopStatusQueryService;
     private final ShopStatusCommandUseCase shopStatusCommandUseCase;
 

@@ -9,7 +9,6 @@ import com.tastyhouse.application.WebApplicationConfig;
 @SpringBootApplication
 @Import(WebApplicationConfig.class)
 public class WebApiApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(WebApiApplication.class, args);
     }

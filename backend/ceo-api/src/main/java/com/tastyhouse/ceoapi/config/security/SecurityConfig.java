@@ -31,7 +31,6 @@ import static com.tastyhouse.ceoapi.config.security.PublicPaths.PATTERNS;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
@@ -80,11 +79,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // 공개 경로 (PublicPaths.PATTERNS에서 중앙 관리)
+
                 .requestMatchers(PATTERNS).permitAll()
-                // 로그아웃은 인증만 필요 (특정 역할 불요, 임의 토큰 블랙리스트 등록 방지)
+
                 .requestMatchers("/api/auth/v1/logout").authenticated()
-                // 나머지 API는 점주 전용 역할(ROLE_CEO) 필요 (심층 방어)
+
                 .anyRequest().hasRole("CEO")
             )
             .exceptionHandling(ex -> ex

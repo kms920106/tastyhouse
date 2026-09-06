@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 
-/**
- * 메뉴 이미지 등록 요청의 검수 상태.
- */
 @Schema(description = "메뉴 이미지 검수 요청")
 public record ProductImageChangeRequestResponse(
     @Schema(description = "요청 ID", example = "12")
@@ -22,7 +19,6 @@ public record ProductImageChangeRequestResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "메뉴가 잘 보이지 않습니다.")
     String rejectReason
 ) {
-
     public static ProductImageChangeRequestResponse from(ProductImageChangeRequestResult result) {
         return new ProductImageChangeRequestResponse(
             result.id(),

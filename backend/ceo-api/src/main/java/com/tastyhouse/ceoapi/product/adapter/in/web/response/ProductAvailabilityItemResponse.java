@@ -38,7 +38,6 @@ public record ProductAvailabilityItemResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
-
     public static ProductAvailabilityItemResponse from(ProductAvailabilityItemResult result) {
         return new ProductAvailabilityItemResponse(
             result.id(),

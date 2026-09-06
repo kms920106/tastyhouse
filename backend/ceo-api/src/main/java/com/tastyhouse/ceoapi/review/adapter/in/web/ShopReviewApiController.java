@@ -36,7 +36,6 @@ import com.tastyhouse.application.review.port.in.ShopReviewQueryUseCase;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopReviewApiController {
-
     private final ShopReviewQueryUseCase shopReviewQueryService;
     private final ShopReviewCommandUseCase shopReviewCommandUseCase;
 

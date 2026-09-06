@@ -22,7 +22,6 @@ public record ShopContentBoardUpdateRequest(
     @Schema(description = "설명 (최대 50자)", example = "매장 외부 전경입니다.")
     String description
 ) {
-
     public ShopContentBoardUpdateCommand toCommand(Long ceoId, Long shopId, Long contentBoardId) {
         return new ShopContentBoardUpdateCommand(ceoId, shopId, contentBoardId, topic(), youtubeUrl(), description());
     }

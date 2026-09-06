@@ -38,7 +38,6 @@ public record ShopUpdateRequest(
     @Schema(description = "썸네일 이미지 파일 ID", example = "10")
     Long thumbnailImageFileId
 ) {
-
     public ShopUpdateCommand toCommand(Long shopId) {
         return new ShopUpdateCommand(
             shopId, stationId, name, latitude, longitude,

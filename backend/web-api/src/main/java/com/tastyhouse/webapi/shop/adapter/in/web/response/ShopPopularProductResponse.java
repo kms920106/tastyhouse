@@ -6,12 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 
-/**
- * 가게 상세 상단 "가장 인기 있는 메뉴" 항목.
- *
- * <p>{@code representative}가 {@code true}면 <b>사장님 추천으로 채워진 자리</b>다. 판매량과 무관하게
- * 우선 채워지므로 {@code salesQuantity}가 0일 수 있고, 화면은 이 값으로 추천 뱃지를 붙인다.
- */
 @Schema(description = "인기 메뉴 항목")
 public record ShopPopularProductResponse(
     @Schema(description = "메뉴 ID", example = "5")
@@ -47,7 +41,6 @@ public record ShopPopularProductResponse(
     @Schema(description = "최근 30일 완료 주문의 판매 수량 합. 추천으로 채워진 항목은 0일 수 있음", example = "42")
     long salesQuantity
 ) {
-
     public static ShopPopularProductResponse from(PopularProductItemResult result) {
         return new ShopPopularProductResponse(
             result.id(),

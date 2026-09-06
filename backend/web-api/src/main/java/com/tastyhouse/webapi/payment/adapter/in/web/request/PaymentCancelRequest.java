@@ -13,10 +13,6 @@ public record PaymentCancelRequest(
     @Schema(description = "취소 사유", example = "고객 단순 변심", requiredMode = Schema.RequiredMode.REQUIRED)
     String cancelReason
 ) {
-
-    /**
-     * 인증 주체의 {@code memberId}와 경로 변수 {@code paymentId}를 주입받아 command로 변환한다.
-     */
     public PaymentCancelCommand toCommand(Long memberId, Long paymentId) {
         return new PaymentCancelCommand(
             memberId,

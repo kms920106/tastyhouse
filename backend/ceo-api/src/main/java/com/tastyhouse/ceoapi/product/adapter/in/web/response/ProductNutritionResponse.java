@@ -7,12 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import com.tastyhouse.application.product.port.out.ProductNutritionViewResult;
 import com.tastyhouse.application.product.port.out.ProductNutritionResult;
 
-/**
- * 메뉴 영양성분·알레르기(점주 관리 화면).
- *
- * <p>{@code allergens}는 <b>코드 배열</b>이다 — 점주 화면은 체크박스 상태를 복원해야 하므로 라벨이 아니라
- * 코드가 필요하다. 손님 응답({@code web-api})은 반대로 한글 라벨 배열을 받는다.
- */
 @Schema(description = "메뉴 영양성분·알레르기")
 public record ProductNutritionResponse(
     @Schema(description = "1회 제공량. 미설정이면 null", example = "100g")
@@ -63,7 +57,6 @@ public record ProductNutritionResponse(
     @Schema(description = "알레르기 유발성분 코드 배열", example = "[\"MILK\", \"PEANUT\"]")
     List<String> allergens
 ) {
-
     public static ProductNutritionResponse from(ProductNutritionViewResult view) {
         ProductNutritionResult result = view.nutrition();
         return new ProductNutritionResponse(

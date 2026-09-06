@@ -21,7 +21,6 @@ public record ShopBreakTimeItem(
     @Schema(description = "브레이크타임 종료", example = "17:00")
     String endTime
 ) {
-    /** 시각 표기 — {@code ShopBusinessHourItem}과 같은 형태를 유지한다. */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     public static ShopBreakTimeItem from(ShopBreakTimeResult result) {

@@ -20,7 +20,6 @@ public record ShopPhotoCategoryImageSaveRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
-
     public ShopPhotoCategoryImageCreateCommand toCreateCommand(Long categoryId) {
         return new ShopPhotoCategoryImageCreateCommand(categoryId, imageFileId, sort, visible);
     }

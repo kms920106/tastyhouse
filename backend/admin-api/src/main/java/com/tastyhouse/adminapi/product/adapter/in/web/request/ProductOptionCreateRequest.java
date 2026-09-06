@@ -29,9 +29,6 @@ public record ProductOptionCreateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible,
 
-    // 범위(1~10) 검증은 Bean Validation이 아니라 도메인 계층(CupDepositPolicy#validateCupCount)이 소유한다.
-    // 여기에 @Min/@Max를 다시 붙이면 경계별로 다른 문구가 나가, ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID의
-    // 통합 메시지("1개 이상 10개 이하")와 어긋난다.
     @Schema(description = "일회용컵 제공 개수(1~10). 보증금 옵션그룹의 옵션만 값을 갖습니다.", example = "1")
     Integer cupCount,
 
@@ -40,7 +37,6 @@ public record ProductOptionCreateRequest(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
-
     public ProductOptionManagementCreateCommand toCommand(Long optionGroupId) {
         return new ProductOptionManagementCreateCommand(
             optionGroupId, name, additionalPrice, sort, soldOut,

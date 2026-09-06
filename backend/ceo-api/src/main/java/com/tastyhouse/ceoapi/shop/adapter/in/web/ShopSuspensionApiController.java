@@ -30,7 +30,6 @@ import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
-
     private final ShopSuspensionQueryUseCase shopSuspensionQueryService;
     private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;
 

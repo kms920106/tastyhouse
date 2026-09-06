@@ -27,26 +27,10 @@ import com.tastyhouse.application.product.port.in.ProductFeedbackOwnerCommandUse
 import com.tastyhouse.application.product.port.in.ProductFeedbackReadCommand;
 import com.tastyhouse.application.product.port.in.ProductFeedbackQueryUseCase;
 
-/**
- * 점주 메뉴 정보 고객 의견 확인 API.
- *
- * <p><b>건별이 아니라 메뉴 × 유형 집계로 내려보낸다</b> — 점주가 알아야 하는 것은 "누가 언제 보냈는가"가
- * 아니라 "어떤 메뉴의 무엇이 몇 명에게 틀려 보이는가"다. 같은 지적이 수십 줄로 흩어지면 무엇을 고쳐야
- * 할지 판단할 수 없다.
- *
- * <p><b>제보자 정보는 어떤 응답에도 담기지 않는다.</b> 점주가 특정 손님을 식별하면 보복 우려가 있고,
- * 제보의 목적은 정보 수정이지 손님 응대가 아니다.
- *
- * <p>{@code shopId}를 경로가 아니라 query·바디로 받는다 — 경로에 가게 식별자가 없으면 소유권 검증을
- * 생략하기 쉽고, 이 저장소는 그 형태로 IDOR을 낸 전례가 있다.
- *
- * <p>역할 게이트({@code hasRole("CEO")})는 {@code SecurityConfig}가 담당하므로 별도 어노테이션이 없다.
- */
 @Tag(name = "Ceo Product Feedback", description = "점주 메뉴 정보 고객 의견 API")
 @RestController
 @RequestMapping("/api/products")
 public class ProductFeedbackApiController {
-
     private final ProductFeedbackQueryUseCase productFeedbackQueryService;
     private final ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase;
 

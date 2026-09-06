@@ -4,12 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
 
-/**
- * 메뉴 상세(점주 관리 화면). 노출기간 상세값(요일·시간대·기간)·이미지·연결된 옵션그룹은 각각 별도
- * 조회 API(§6·§7·§5-2)가 담당하므로 이 응답에는 담지 않는다. 다만 {@code exposureScheduled}만은
- * 예외로 포함한다 — 화면이 §6을 열기 전(최초 렌더·새로고침)에도 "노출기간 설정됨" 요약을 보여줘야
- * 하기 때문이다.
- */
 @Schema(description = "메뉴 상세")
 public record ProductDetailResponse(
     @Schema(description = "메뉴 ID", example = "108")
@@ -71,7 +65,6 @@ public record ProductDetailResponse(
         " 초기 요약 표시에 쓰인다 — 정확한 노출기간 값은 별도 조회 API(§6)가 담당", example = "false")
     boolean exposureScheduled
 ) {
-
     public static ProductDetailResponse from(ProductManagementDetailResult result) {
         return new ProductDetailResponse(
             result.id(),

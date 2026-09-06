@@ -12,10 +12,6 @@ public record MemberSummaryResponse(
     @Schema(description = "닉네임", example = "맛집헌터")
     String nickname
 ) {
-
-    /**
-     * 제보자 회원이 조회되지 않으면 {@code null}을 그대로 반환한다(승격 이전 서비스 동작 보존).
-     */
     public static MemberSummaryResponse from(MemberWithProfileImageResult result) {
         if (result == null) {
             return null;

@@ -38,7 +38,6 @@ public record MemberListItemResponse(
     @Schema(description = "가입일시", example = "2025-03-01T10:00:00")
     LocalDateTime createdAt
 ) {
-
     public static MemberListItemResponse from(MemberListItemResult result) {
         return new MemberListItemResponse(
             result.id(),

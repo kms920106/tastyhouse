@@ -29,7 +29,6 @@ public record PolicyListItemResponse(
     @Schema(description = "생성 일시", example = "2025-12-01T10:00:00")
     LocalDateTime createdAt
 ) {
-
     public static PolicyListItemResponse from(PolicyListItemResult result) {
         return new PolicyListItemResponse(
             result.id(),

@@ -13,7 +13,6 @@ public record ShopDeliveryAreaAdjustmentRejectRequest(
     @Schema(description = "반려 사유", example = "첨부된 동의서가 식별되지 않습니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
-
     public ShopDeliveryAreaAdjustmentRejectCommand toCommand(Long requestId) {
         return new ShopDeliveryAreaAdjustmentRejectCommand(requestId, reason);
     }

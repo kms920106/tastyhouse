@@ -23,7 +23,6 @@ public record RankPrizeListItemResponse(
     @Schema(description = "경품 이미지 파일 정보")
     FileResponse image
 ) {
-
     public static RankPrizeListItemResponse from(RankPrizeManagementResult result) {
         return new RankPrizeListItemResponse(
             result.id(),

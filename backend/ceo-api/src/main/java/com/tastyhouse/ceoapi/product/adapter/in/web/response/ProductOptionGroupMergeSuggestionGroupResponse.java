@@ -17,7 +17,6 @@ public record ProductOptionGroupMergeSuggestionGroupResponse(
     @Schema(description = "이 그룹이 연결된 메뉴명 목록")
     List<String> linkedProductNames
 ) {
-
     public static ProductOptionGroupMergeSuggestionGroupResponse from(
         ProductOptionGroupMergeSuggestionResult.Group group
     ) {

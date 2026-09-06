@@ -40,7 +40,6 @@ import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/coupons")
 public class CouponApiController {
-
     private final CouponCommandUseCase couponCommandUseCase;
     private final CouponManagementQueryUseCase couponQueryUseCase;
 

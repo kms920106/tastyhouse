@@ -13,7 +13,6 @@ public record AuthPhoneLoginResponse(
     @Schema(description = "JWT 토큰 정보. needsSignUp=false일 때만 반환")
     AuthJwtResponse jwt
 ) {
-
     public static AuthPhoneLoginResponse from(PhoneLoginResult result) {
         return new AuthPhoneLoginResponse(
             result.needsSignUp(),

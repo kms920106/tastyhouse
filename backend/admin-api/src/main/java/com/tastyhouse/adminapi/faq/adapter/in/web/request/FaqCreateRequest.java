@@ -27,7 +27,6 @@ public record FaqCreateRequest(
     @Schema(description = "노출 여부 (미지정 시 노출)", example = "true", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     boolean visible
 ) {
-
     public FaqCreateCommand toCommand() {
         return new FaqCreateCommand(faqCategoryId, question, answer, sort, visible);
     }

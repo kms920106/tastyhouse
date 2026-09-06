@@ -42,7 +42,6 @@ import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
 @RestController
 @RequestMapping("/api/ranks")
 public class RankApiController {
-
     private final RankCommandUseCase rankCommandUseCase;
     private final RankManagementQueryUseCase rankQueryUseCase;
 
