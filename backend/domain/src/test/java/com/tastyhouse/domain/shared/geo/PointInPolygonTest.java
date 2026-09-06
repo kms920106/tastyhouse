@@ -9,21 +9,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * ray-casting 포함 판정 단위 테스트.
- *
- * <p>이 판정이 배달지역 환산의 1차 규칙이므로, 뒤집히면 <b>주문 접수 가능 범위가 통째로 달라진다.</b>
- * 그래서 정점 위·변 위처럼 구현이 흔히 틀리는 경계 케이스를 명시적으로 고정한다.
- */
 class PointInPolygonTest {
-
-    /** 경도 0~10, 위도 0~10인 정사각형. */
     private static final GeoPolygon SQUARE = polygon(ring(0, 0, 10, 0, 10, 10, 0, 10));
 
     @Nested
     @DisplayName("볼록 도형")
     class Convex {
-
         @Test
         @DisplayName("내부의 점은 포함이다")
         void contains_pointInside() {
@@ -41,7 +32,6 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("경계 위의 점")
     class OnBoundary {
-
         @Test
         @DisplayName("정점 위의 점은 포함으로 본다")
         void contains_pointOnVertex() {
@@ -59,7 +49,6 @@ class PointInPolygonTest {
         @Test
         @DisplayName("정점을 지나는 수평 반직선이 판정을 뒤집지 않는다")
         void contains_horizontalRayThroughVertex() {
-            // 위도 10에 정점이 두 개 있어, 반개구간 규칙이 없으면 교차가 두 번 세어져 판정이 뒤집힌다.
             assertThat(SQUARE.contains(point(5, 10))).isTrue();
             assertThat(SQUARE.contains(point(20, 10))).isFalse();
         }
@@ -68,8 +57,6 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("오목 도형")
     class Concave {
-
-        /** ㄷ 자 모양 — 가운데 홈이 파여 있다. */
         private final GeoPolygon uShape = polygon(ring(
             0, 0, 10, 0, 10, 10, 7, 10, 7, 3, 3, 3, 3, 10, 0, 10
         ));
@@ -91,7 +78,6 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("여러 링")
     class MultipleRings {
-
         @Test
         @DisplayName("바깥 링 안의 두 번째 링은 구멍이 된다(even-odd)")
         void contains_innerRingBecomesHole() {
@@ -100,8 +86,8 @@ class PointInPolygonTest {
                 ring(4, 4, 6, 4, 6, 6, 4, 6)
             );
 
-            assertThat(withHole.contains(point(5, 5))).isFalse();  // 구멍 안
-            assertThat(withHole.contains(point(1, 1))).isTrue();   // 구멍 밖·바깥 링 안
+            assertThat(withHole.contains(point(5, 5))).isFalse();
+            assertThat(withHole.contains(point(1, 1))).isTrue();
         }
 
         @Test
@@ -121,7 +107,6 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("입력 정규화")
     class Normalization {
-
         @Test
         @DisplayName("명시적으로 폐합된 입력도 같은 도형으로 취급한다")
         void contains_explicitlyClosedRing() {
@@ -143,7 +128,6 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("소수 6자리 경계값")
     class Precision {
-
         @Test
         @DisplayName("저장 정밀도(1e-6도) 차이는 서로 다른 점으로 구분된다")
         void contains_distinguishesSixthDecimal() {
@@ -159,7 +143,6 @@ class PointInPolygonTest {
         }
     }
 
-    /** {@code lng, lat} 쌍을 나열해 링을 만든다(저장 형식과 같은 순서라 테스트가 읽기 쉽다). */
     private static GeoRing ring(double... lngLatPairs) {
         List<GeoPoint> points = new java.util.ArrayList<>();
         for (int i = 0; i < lngLatPairs.length; i += 2) {

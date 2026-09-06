@@ -34,14 +34,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 가게 배달가능지역 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트와 조회 포트를 손으로 만든 fake로 대체해 검증한다
- * (domain에는 Mockito 의존이 없다).
- */
 class ShopDeliveryAreaServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final AdminDongId ADMIN_DONG_ID = AdminDongId.of(100L);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -49,7 +42,6 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("addArea")
     class AddArea {
-
         @Test
         @DisplayName("행정동이 마스터에 없으면 ADMIN_DONG_NOT_FOUND로 거부한다")
         void addArea_rejectsUnknownAdminDong() {
@@ -92,7 +84,6 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("removeArea")
     class RemoveArea {
-
         @Test
         @DisplayName("존재하지 않는 배달가능지역은 SHOP_DELIVERY_AREA_NOT_FOUND로 거부한다")
         void removeArea_rejectsMissingArea() {
@@ -150,7 +141,6 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("변경이력")
     class ChangeHistory {
-
         @Test
         @DisplayName("단건 등록·삭제는 행정동 이름으로 CREATE·DELETE 한 행씩 남긴다")
         void addAndRemoveArea_recordRowLevelHistory() {
@@ -194,10 +184,9 @@ class ShopDeliveryAreaServiceTest {
             assertThat(histories).hasSize(1);
             assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
             assertThat(histories.getFirst().getPreviousValue()).isEqualTo("없음");
-            // fake가 모든 동에 같은 표시명을 주므로 이름 자체보다 "두 행이 한 스냅샷에 담겼다"를 본다.
+
             assertThat(histories.getFirst().getNewValue().lines()).hasSize(2);
         }
-
     }
 
     private static ShopDeliveryAreaService service(
@@ -222,10 +211,8 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class AdminDongRepositoryFake implements AdminDongRepository {
-
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
-            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
         }
 
@@ -282,7 +269,6 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class ShopDeliveryAreaRepositoryFake implements ShopDeliveryAreaRepository {
-
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -348,12 +334,8 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupFake implements ShopDeliveryTipRegionLookup {
-
         private final List<String> regionTipKeys = new ArrayList<>();
 
-        // adminDongId를 현재 테스트가 한 값으로만 넘기지만 파라미터를 없애지 않는다 — 이 fake는
-        // (shopId, adminDongId) 복합키를 저장하고 findRegionTipAdminDongIds가 그 dong을 되읽으므로,
-        // 상수로 굳히면 동을 두 개 이상 쓰는 경우를 표현할 수 없고 그 조회의 검증력이 사라진다.
         @SuppressWarnings("SameParameterValue")
         void addRegionTip(ShopId shopId, AdminDongId adminDongId) {
             regionTipKeys.add(key(shopId, adminDongId));

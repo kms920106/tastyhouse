@@ -1,16 +1,10 @@
 package com.tastyhouse.domain.exception;
 
 public enum ErrorCode implements ErrorCodeSpec {
-
-    // 공통 - 입력 구조 위반 (Command record의 compact constructor 가드 전용)
-    // 형식·범위 검증은 Request의 jakarta.validation이 담당하므로, 이 코드는 인바운드 어댑터를
-    // 우회해 Command가 직접 조립된 경우의 필수값 누락 같은 구조적 위반에만 쓴다.
     INVALID_INPUT(400, "INVALID_INPUT", "입력값이 올바르지 않습니다."),
 
-    // 공통 - 엔티티 미존재 (fallback: 도메인별 전용 NOT_FOUND 코드가 있으면 그쪽을 쓴다)
     ENTITY_NOT_FOUND(404, "ENTITY_NOT_FOUND", "요청한 데이터를 찾을 수 없습니다."),
 
-    // 공통 - 인증·인가 (필터 단계와 advice 단계가 같은 코드를 쓰도록 공용으로 둔다)
     AUTH_REQUIRED(401, "AUTH_REQUIRED", "인증이 필요합니다."),
     ACCESS_DENIED(403, "ACCESS_DENIED", "접근 권한이 없습니다."),
     AUTH_TOKEN_INVALID(401, "AUTH_TOKEN_INVALID", "유효하지 않은 토큰입니다."),
@@ -19,7 +13,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     AUTH_VERIFICATION_MISMATCH(401, "AUTH_VERIFICATION_MISMATCH", "인증 정보가 일치하지 않습니다."),
     AUTH_PHONE_VERIFICATION_MISMATCH(401, "AUTH_PHONE_VERIFICATION_MISMATCH", "휴대폰 인증 정보가 일치하지 않습니다."),
 
-    // 주문
     ORDER_NOT_FOUND(404, "ORDER_NOT_FOUND", "주문을 찾을 수 없습니다."),
     ORDER_ACCESS_DENIED(403, "ORDER_ACCESS_DENIED", "본인의 주문만 조회할 수 있습니다."),
     ORDER_PRODUCT_NOT_FOUND(404, "ORDER_PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
@@ -45,7 +38,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     ORDER_AMOUNT_NEGATIVE(400, "ORDER_AMOUNT_NEGATIVE", "주문 금액은 음수일 수 없습니다."),
     ORDER_AMOUNT_NOT_CONSISTENT(400, "ORDER_AMOUNT_NOT_CONSISTENT", "주문 금액 합계가 일치하지 않습니다."),
 
-    // 쿠폰
     COUPON_NOT_FOUND(404, "COUPON_NOT_FOUND", "쿠폰을 찾을 수 없습니다."),
     COUPON_ACCESS_DENIED(403, "COUPON_ACCESS_DENIED", "본인의 쿠폰만 사용할 수 있습니다."),
     COUPON_INFO_NOT_FOUND(404, "COUPON_INFO_NOT_FOUND", "쿠폰 정보를 찾을 수 없습니다."),
@@ -58,7 +50,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     COUPON_PERIOD_INVALID(400, "COUPON_PERIOD_INVALID", "쿠폰 기간의 시작 일시는 종료 일시보다 늦을 수 없습니다."),
     COUPON_USE_END_AT_REQUIRED(400, "COUPON_USE_END_AT_REQUIRED", "쿠폰 사용 종료 일시는 필수입니다."),
 
-    // 결제
     PAYMENT_NOT_FOUND(404, "PAYMENT_NOT_FOUND", "결제를 찾을 수 없습니다."),
     PAYMENT_REFUND_NOT_FOUND(404, "PAYMENT_REFUND_NOT_FOUND", "환불 정보를 찾을 수 없습니다."),
     PAYMENT_ORDER_ACCESS_DENIED(403, "PAYMENT_ORDER_ACCESS_DENIED", "본인의 주문만 결제할 수 있습니다."),
@@ -75,7 +66,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     PAYMENT_METHOD_UNKNOWN(400, "PAYMENT_METHOD_UNKNOWN", "알 수 없는 결제 방법입니다."),
     PG_PROVIDER_UNKNOWN(400, "PG_PROVIDER_UNKNOWN", "알 수 없는 PG사입니다."),
 
-    // 회원
     MEMBER_NOT_FOUND(404, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
     MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),
     MEMBER_EMAIL_ALREADY_REGISTERED(409, "MEMBER_EMAIL_ALREADY_REGISTERED", "이미 가입된 이메일입니다."),
@@ -99,49 +89,37 @@ public enum ErrorCode implements ErrorCodeSpec {
     MEMBER_ALREADY_ACTIVE(409, "MEMBER_ALREADY_ACTIVE", "이미 활성 상태인 회원입니다."),
     MEMBER_STATUS_CHANGE_NOT_ALLOWED(400, "MEMBER_STATUS_CHANGE_NOT_ALLOWED", "탈퇴한 회원은 상태를 변경할 수 없습니다."),
 
-    // 관리자
     ADMIN_NOT_FOUND(404, "ADMIN_NOT_FOUND", "관리자를 찾을 수 없습니다."),
     ADMIN_USERNAME_DUPLICATED(409, "ADMIN_USERNAME_DUPLICATED", "이미 사용 중인 관리자 아이디입니다."),
     ADMIN_AUTHENTICATION_FAILED(401, "ADMIN_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
     ADMIN_ACCOUNT_INACTIVE(401, "ADMIN_ACCOUNT_INACTIVE", "비활성화된 관리자 계정입니다."),
     ADMIN_ROLE_UNKNOWN(400, "ADMIN_ROLE_UNKNOWN", "알 수 없는 관리자 권한입니다."),
 
-    // 점주
     CEO_NOT_FOUND(404, "CEO_NOT_FOUND", "점주를 찾을 수 없습니다."),
     CEO_USERNAME_DUPLICATED(409, "CEO_USERNAME_DUPLICATED", "이미 사용 중인 점주 아이디입니다."),
     CEO_AUTHENTICATION_FAILED(401, "CEO_AUTHENTICATION_FAILED", "아이디 또는 비밀번호가 올바르지 않습니다."),
     CEO_ACCOUNT_INACTIVE(401, "CEO_ACCOUNT_INACTIVE", "비활성화된 점주 계정입니다."),
 
-    // 점주 개인정보 접속기록 · 시스템 접근권한 이력
     CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE(400, "CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 90일입니다."),
     CEO_LOGIN_RESULT_UNKNOWN(400, "CEO_LOGIN_RESULT_UNKNOWN", "알 수 없는 로그인 결과입니다."),
     CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE(400, "CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 5년입니다."),
 
-    // 점주 자주 쓰는 문구
     CEO_REPLY_PHRASE_NOT_FOUND(404, "CEO_REPLY_PHRASE_NOT_FOUND", "자주 쓰는 문구를 찾을 수 없습니다."),
     CEO_REPLY_PHRASE_LIMIT_EXCEEDED(409, "CEO_REPLY_PHRASE_LIMIT_EXCEEDED", "자주 쓰는 문구는 최대 5개까지 등록할 수 있습니다."),
     CEO_REPLY_PHRASE_ACCESS_DENIED(403, "CEO_REPLY_PHRASE_ACCESS_DENIED", "다른 점주의 문구입니다."),
 
-    // 인증 (SMS)
-    // 상수명은 SMS_ 접두어로 대칭화했으나 응답 code 문자열은 기존 값을 유지한다 —
-    // 프론트가 code로 분기하는 경우 구버전 클라이언트가 unknown으로 처리해 안내 문구가 퇴화하기 때문.
-    // 프론트 마이그레이션 완료 후 code도 SMS_VERIFICATION_CODE_*로 통일 예정.
     SMS_VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     SMS_VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
     SMS_VERIFICATION_CODE_MISMATCH(400, "VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
 
-    // 인증 (메일)
-    // 위 SMS와 동일하게 상수명만 MAIL_ 접두어로 통일하고 응답 code 문자열은 유지한다.
     MAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     MAIL_VERIFICATION_CODE_EXPIRED(400, "EMAIL_VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
     MAIL_VERIFICATION_CODE_MISMATCH(400, "EMAIL_VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
 
-    // 포인트
     POINT_NOT_FOUND(404, "POINT_NOT_FOUND", "포인트 정보를 찾을 수 없습니다."),
     POINT_INSUFFICIENT(400, "POINT_INSUFFICIENT", "포인트가 부족합니다."),
     POINT_TYPE_UNKNOWN(400, "POINT_TYPE_UNKNOWN", "알 수 없는 포인트 유형입니다."),
 
-    // 파일
     FILE_EMPTY(400, "FILE_EMPTY", "파일이 비어있습니다."),
     FILE_SIZE_EXCEEDED(400, "FILE_SIZE_EXCEEDED", "파일 크기는 10MB를 초과할 수 없습니다."),
     FILE_TYPE_NOT_ALLOWED(400, "FILE_TYPE_NOT_ALLOWED", "허용되지 않는 파일 형식입니다. (jpg, png, gif, webp만 가능)"),
@@ -151,7 +129,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     FILE_STORE_FAILED(500, "FILE_STORE_FAILED", "파일 저장에 실패했습니다."),
     FILE_DELETE_FAILED(500, "FILE_DELETE_FAILED", "파일 삭제에 실패했습니다."),
 
-    // 리뷰
     REVIEW_NOT_FOUND(404, "REVIEW_NOT_FOUND", "리뷰를 찾을 수 없습니다."),
     REVIEW_ACCESS_DENIED(403, "REVIEW_ACCESS_DENIED", "본인의 리뷰만 수정/삭제할 수 있습니다."),
     REVIEW_ALREADY_EXISTS(400, "REVIEW_ALREADY_EXISTS", "이미 리뷰를 작성한 상품입니다."),
@@ -180,13 +157,11 @@ public enum ErrorCode implements ErrorCodeSpec {
     REVIEW_DATE_RANGE_INVALID(400, "REVIEW_DATE_RANGE_INVALID", "조회 시작일이 종료일보다 늦을 수 없습니다."),
     REVIEW_DELIVERY_RATING_NOT_ALLOWED(400, "REVIEW_DELIVERY_RATING_NOT_ALLOWED", "배달 주문에만 배달 평가를 남길 수 있습니다."),
 
-    // 메뉴 평가
     MENU_REVIEW_NOT_FOUND(404, "MENU_REVIEW_NOT_FOUND", "메뉴 평가를 찾을 수 없습니다."),
     MENU_REVIEW_ALREADY_EXISTS(409, "MENU_REVIEW_ALREADY_EXISTS", "이미 평가한 메뉴입니다."),
     MENU_REVIEW_ACCESS_DENIED(403, "MENU_REVIEW_ACCESS_DENIED", "본인이 주문한 메뉴만 평가할 수 있습니다."),
     MENU_REVIEW_NOT_ALLOWED(400, "MENU_REVIEW_NOT_ALLOWED", "평가할 수 없는 메뉴입니다."),
 
-    // 가게
     SHOP_NOT_FOUND(404, "SHOP_NOT_FOUND", "존재하지 않는 가게입니다."),
     STATION_NOT_FOUND(404, "STATION_NOT_FOUND", "존재하지 않는 지하철역입니다."),
     SHOP_AMENITY_CATEGORY_NOT_FOUND(404, "SHOP_AMENITY_CATEGORY_NOT_FOUND", "존재하지 않는 편의시설 카테고리입니다."),
@@ -206,7 +181,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     DAY_TYPE_UNKNOWN(400, "DAY_TYPE_UNKNOWN", "알 수 없는 요일 유형입니다."),
     CLOSED_DAY_TYPE_UNKNOWN(400, "CLOSED_DAY_TYPE_UNKNOWN", "알 수 없는 정기 휴무 유형입니다."),
 
-    // 점주 가게 관리 (ceo-api)
     SHOP_ACCESS_DENIED(403, "SHOP_ACCESS_DENIED", "해당 가게에 대한 접근 권한이 없습니다."),
     SHOP_CUP_DEPOSIT_NOT_ENABLED(400, "SHOP_CUP_DEPOSIT_NOT_ENABLED", "일회용컵 보증금제 대상 가게가 아닙니다."),
     SHOP_BUSINESS_HOUR_INVALID_UNIT(400, "SHOP_BUSINESS_HOUR_INVALID_UNIT", "영업시간은 5분 단위로 설정해야 합니다."),
@@ -225,7 +199,7 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST(409, "SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST", "진행 중인 승인 요청이 있어 가게 상태를 변경할 수 없습니다."),
     SHOP_ALREADY_PERMANENTLY_CLOSED(400, "SHOP_ALREADY_PERMANENTLY_CLOSED", "폐업한 가게는 정보를 수정하거나 다시 노출할 수 없습니다."),
     SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE(400, "SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE", "최소주문금액은 5,000원 이상 30,000원 이하여야 합니다."),
-    // 쿠폰 최소주문금액 미달(ORDER_MINIMUM_AMOUNT_NOT_MET)과 다른 검증이다. 프론트가 code로 원인을 구분하므로 별도 코드로 둔다.
+
     SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET(400, "SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET", "가게 최소주문금액을 충족하지 않습니다."),
     SHOP_TEXT_PROHIBITED_WORD(400, "SHOP_TEXT_PROHIBITED_WORD", "등록할 수 없는 문구가 포함되어 있습니다."),
     SHOP_INTRODUCTION_TOO_LONG(400, "SHOP_INTRODUCTION_TOO_LONG", "가게 소개는 최대 500자까지 입력할 수 있습니다."),
@@ -265,15 +239,12 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_NOTICE_ALREADY_HIDDEN(409, "SHOP_NOTICE_ALREADY_HIDDEN", "이미 게시중단된 공지입니다."),
     SHOP_NOTICE_NOT_HIDDEN(409, "SHOP_NOTICE_NOT_HIDDEN", "게시중단 상태가 아닌 공지입니다."),
 
-    // 주문안내 — 메뉴판 최상단 안내 문구. 승인 절차 없이 즉시 반영되므로 등록 시점 검증은 본문 길이뿐이고,
-    // 규정 위반은 관리자 게시중단(is_hidden)으로 사후 조치한다(금지어 자동 판정은 하지 않는다).
     SHOP_ORDER_NOTICE_NOT_FOUND(404, "SHOP_ORDER_NOTICE_NOT_FOUND", "주문안내를 찾을 수 없습니다."),
     SHOP_ORDER_NOTICE_CONTENT_REQUIRED(400, "SHOP_ORDER_NOTICE_CONTENT_REQUIRED", "주문안내 내용을 입력해 주세요."),
     SHOP_ORDER_NOTICE_CONTENT_TOO_LONG(400, "SHOP_ORDER_NOTICE_CONTENT_TOO_LONG", "주문안내는 500자 이내로 입력해 주세요."),
     SHOP_HYGIENE_BADGE_NOT_FOUND(404, "SHOP_HYGIENE_BADGE_NOT_FOUND", "존재하지 않는 위생 인증 뱃지입니다."),
     HYGIENE_BADGE_TYPE_UNKNOWN(400, "HYGIENE_BADGE_TYPE_UNKNOWN", "알 수 없는 위생 인증 유형입니다."),
 
-    // 메뉴모음컷 — 손님이 가게를 열었을 때 가장 먼저 보는 이미지. 등록만 검수하고 순서 변경·삭제는 즉시 반영된다.
     SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND(404, "SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND", "메뉴모음컷을 찾을 수 없습니다."),
     SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED(400, "SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED", "메뉴모음컷은 최대 6개까지 등록할 수 있습니다."),
     SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE(400, "SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE", "메뉴모음컷은 최소 1개 이상 등록되어야 합니다."),
@@ -281,7 +252,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_MENU_COLLECTION_IMAGE_SPEC_INVALID(400, "SHOP_MENU_COLLECTION_IMAGE_SPEC_INVALID", "1280x960 이상, 15MB 이하의 JPG/PNG 이미지만 등록할 수 있습니다."),
     SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING(409, "SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING", "대기 상태가 아닌 메뉴모음컷은 처리할 수 없습니다."),
 
-    // 가게 배달팁
     SHOP_DELIVERY_TIP_NOT_FOUND(404, "SHOP_DELIVERY_TIP_NOT_FOUND", "배달팁 설정을 찾을 수 없습니다."),
     SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED(400, "SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED", "기본 배달팁 구간은 최대 3개까지 설정할 수 있습니다."),
     SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE(400, "SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE", "배달팁은 0원 이상 5,000원 미만이어야 합니다."),
@@ -301,7 +271,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     DELIVERY_TIP_EXTRA_TYPE_UNKNOWN(400, "DELIVERY_TIP_EXTRA_TYPE_UNKNOWN", "알 수 없는 추가 배달팁 유형입니다."),
     DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN(400, "DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN", "알 수 없는 거리 할증 단위입니다."),
 
-    // 배달가능지역·행정동
     SHOP_DELIVERY_AREA_NOT_FOUND(404, "SHOP_DELIVERY_AREA_NOT_FOUND", "배달가능지역을 찾을 수 없습니다."),
     SHOP_DELIVERY_AREA_DUPLICATED(409, "SHOP_DELIVERY_AREA_DUPLICATED", "이미 등록된 배달가능지역입니다."),
     SHOP_DELIVERY_AREA_IN_USE(409, "SHOP_DELIVERY_AREA_IN_USE", "지역별 배달팁이 설정된 지역은 삭제할 수 없습니다."),
@@ -313,7 +282,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_DELIVERY_AREA_EMPTY_PROJECTION(400, "SHOP_DELIVERY_AREA_EMPTY_PROJECTION", "선택한 영역에 포함되는 행정동이 없습니다."),
     SHOP_DELIVERY_AREA_COUNT_EXCEEDED(400, "SHOP_DELIVERY_AREA_COUNT_EXCEEDED", "배달가능지역은 최대 500개까지 등록할 수 있습니다."),
 
-    // 배달지역 조정 신청
     SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND(404, "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND", "존재하지 않는 배달지역 조정 신청입니다."),
     SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING(409, "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING", "이미 진행 중인 배달지역 조정 신청이 있습니다."),
     SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_PENDING(409, "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_PENDING", "접수 대기 상태가 아닌 신청은 처리할 수 없습니다."),
@@ -321,7 +289,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED(409, "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED", "이미 종결된 신청입니다."),
     DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN(400, "DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN", "알 수 없는 배달지역 조정 신청 상태입니다."),
 
-    // 가게 요청처리 현황
     SHOP_REQUEST_NOT_FOUND(404, "SHOP_REQUEST_NOT_FOUND", "존재하지 않는 요청입니다."),
     SHOP_REQUEST_TYPE_UNKNOWN(400, "SHOP_REQUEST_TYPE_UNKNOWN", "알 수 없는 요청 유형입니다."),
     SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND(404, "SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND", "매장 가격 인증 요청을 찾을 수 없습니다."),
@@ -335,46 +302,35 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_REQUEST_NOT_CANCELABLE(409, "SHOP_REQUEST_NOT_CANCELABLE", "대기중인 요청만 취소할 수 있습니다."),
     SHOP_REQUEST_DATE_RANGE_INVALID(400, "SHOP_REQUEST_DATE_RANGE_INVALID", "조회 시작일이 종료일보다 늦습니다."),
 
-    // 가게 변경이력
     SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE(400, "SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE", "조회 가능한 기간은 최근 6개월입니다."),
     SHOP_CHANGE_CATEGORY_UNKNOWN(400, "SHOP_CHANGE_CATEGORY_UNKNOWN", "알 수 없는 변경 분류입니다."),
     SHOP_CHANGE_TYPE_UNKNOWN(400, "SHOP_CHANGE_TYPE_UNKNOWN", "알 수 없는 변경 유형입니다."),
 
-    // 가게 담당 점주 배정(시스템 접근권한)
     SHOP_CEO_ASSIGNMENT_ACTION_UNKNOWN(400, "SHOP_CEO_ASSIGNMENT_ACTION_UNKNOWN", "알 수 없는 접근권한 조치 유형입니다."),
     SHOP_CEO_ALREADY_ASSIGNED(409, "SHOP_CEO_ALREADY_ASSIGNED", "이미 해당 점주가 배정된 가게입니다."),
     SHOP_CEO_NOT_ASSIGNED(409, "SHOP_CEO_NOT_ASSIGNED", "담당 점주가 배정되지 않은 가게입니다."),
 
-    // 주문가능 상태(주문 접수·예약 생성 게이트)
-    // SHOP_ORDER_METHOD_NOT_SUPPORTED(400)는 위 SHOP_ORDER_METHOD_NOT_FOUND(404)와 용도가 다르다 —
-    // 후자는 admin이 배정 행을 찾을 때, 전자는 주문을 거절할 때 쓴다.
     SHOP_NOT_ORDERABLE(400, "SHOP_NOT_ORDERABLE", "현재 주문할 수 없는 가게입니다."),
     SHOP_ORDER_METHOD_NOT_SUPPORTED(400, "SHOP_ORDER_METHOD_NOT_SUPPORTED", "이 가게가 지원하지 않는 주문유형입니다."),
     SHOP_ORDER_METHOD_SUSPENDED(400, "SHOP_ORDER_METHOD_SUSPENDED", "해당 주문유형은 현재 임시중지 중입니다."),
 
-    // 회원 배달 주소
     MEMBER_DELIVERY_ADDRESS_NOT_FOUND(404, "MEMBER_DELIVERY_ADDRESS_NOT_FOUND", "배달 주소를 찾을 수 없습니다."),
     MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED(400, "MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED", "배달 주소는 최대 10개까지 등록할 수 있습니다."),
     MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED(403, "MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED", "본인의 배달 주소만 사용할 수 있습니다."),
 
-    // 주문 배달팁
-    // 아래 3개는 프론트가 code로 분기하는 wire 계약이다. 문자열을 바꾸면 프론트 매핑도 함께 고쳐야 한다.
     ORDER_DELIVERY_ADDRESS_REQUIRED(400, "ORDER_DELIVERY_ADDRESS_REQUIRED", "배달 주문은 배달 주소가 필요합니다."),
     ORDER_DELIVERY_AREA_NOT_COVERED(400, "ORDER_DELIVERY_AREA_NOT_COVERED", "배달 가능 지역이 아닙니다."),
     ORDER_DELIVERY_TIP_AMOUNT_MISMATCH(400, "ORDER_DELIVERY_TIP_AMOUNT_MISMATCH", "배달팁이 일치하지 않습니다."),
 
-    // 예약주문(수령 예약시간)
     SHOP_SCHEDULED_ORDER_DISABLED(400, "SHOP_SCHEDULED_ORDER_DISABLED", "이 가게는 예약주문을 운영하지 않습니다."),
     ORDER_SCHEDULE_METHOD_NOT_SUPPORTED(400, "ORDER_SCHEDULE_METHOD_NOT_SUPPORTED", "이 주문 방법은 예약주문을 지원하지 않습니다."),
     ORDER_SCHEDULED_AT_UNAVAILABLE(400, "ORDER_SCHEDULED_AT_UNAVAILABLE", "예약할 수 없는 수령 시간입니다."),
 
-    // 정책
     POLICY_NOT_FOUND(404, "POLICY_NOT_FOUND", "정책 문서를 찾을 수 없습니다."),
     POLICY_CURRENT_NOT_FOUND(404, "POLICY_CURRENT_NOT_FOUND", "현재 유효한 정책을 찾을 수 없습니다."),
     POLICY_VERSION_NOT_FOUND(404, "POLICY_VERSION_NOT_FOUND", "해당 버전의 정책을 찾을 수 없습니다."),
     POLICY_TYPE_UNKNOWN(400, "POLICY_TYPE_UNKNOWN", "알 수 없는 정책 타입입니다."),
 
-    // 상품
     PRODUCT_NOT_FOUND(404, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
     PRODUCT_PRICE_NEGATIVE(400, "PRODUCT_PRICE_NEGATIVE", "상품 가격은 음수일 수 없습니다."),
     PRODUCT_PRICE_NOT_FOUND(404, "PRODUCT_PRICE_NOT_FOUND", "가격 정보를 찾을 수 없습니다."),
@@ -442,21 +398,16 @@ public enum ErrorCode implements ErrorCodeSpec {
     PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED(400, "PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED", "사장님 추천 메뉴는 최대 6개까지 등록할 수 있습니다."),
     PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED(400, "PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED", "이미지가 등록된 메뉴만 사장님 추천으로 설정할 수 있습니다."),
     PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND(404, "PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND", "사장님 추천 요청을 찾을 수 없습니다."),
-    // 상태 전이 가드 — 스펙의 3종에는 없지만 이미지·채식 승인요청과 같은 구조라 같은 형태의 코드가 필요하다.
-    // 이 코드가 없으면 이미 승인·반려된 요청을 다시 승인할 수 있고, 그때 Product 컬럼이 두 번 켜진다.
+
     PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_NOT_PENDING", "검수 대기 상태가 아닙니다."),
     PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING(400, "PRODUCT_REPRESENTATIVE_REQUEST_ALREADY_PENDING", "이미 검수 대기 중인 사장님 추천 요청이 있습니다."),
 
-    // 메뉴 정보에 대한 고객 의견 제보 — 리뷰(맛 평가)가 아니라 "등록된 정보가 틀렸다"는 제보다.
     PRODUCT_FEEDBACK_TYPE_UNKNOWN(400, "PRODUCT_FEEDBACK_TYPE_UNKNOWN", "의견 유형이 올바르지 않습니다."),
     PRODUCT_FEEDBACK_CONTENT_REQUIRED(400, "PRODUCT_FEEDBACK_CONTENT_REQUIRED", "기타 의견은 내용을 입력해 주세요."),
     PRODUCT_FEEDBACK_CONTENT_TOO_LONG(400, "PRODUCT_FEEDBACK_CONTENT_TOO_LONG", "의견은 500자 이내로 입력해 주세요."),
-    // 같은 회원이 같은 메뉴에 같은 유형으로 7일 내 재제보하는 것을 막는다. 없으면 한 사람이 반복 제보해
-    // 점주가 보는 주간 집계 건수가 왜곡된다.
+
     PRODUCT_FEEDBACK_ALREADY_SUBMITTED(400, "PRODUCT_FEEDBACK_ALREADY_SUBMITTED", "최근에 같은 의견을 보내셨습니다."),
 
-    // 메뉴-가게 연결(N:M) — PRODUCT.shop_id(원본 소유 가게)는 유지하고, 이 링크가 "어느 가게 메뉴판에
-    // 노출되는가"만 담는다. 링크가 1개인 메뉴는 동작이 완전히 그대로다.
     PRODUCT_SHOP_LINK_NOT_FOUND(404, "PRODUCT_SHOP_LINK_NOT_FOUND", "메뉴-가게 연결을 찾을 수 없습니다."),
     PRODUCT_SHOP_LINK_NOT_OWNED(400, "PRODUCT_SHOP_LINK_NOT_OWNED", "본인 소유 가게에만 연결할 수 있습니다."),
     PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK(400, "PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK", "메뉴는 최소 1개 가게에 연결되어야 합니다."),
@@ -464,15 +415,12 @@ public enum ErrorCode implements ErrorCodeSpec {
     PRODUCT_SHOP_LINK_CATEGORY_MISMATCH(400, "PRODUCT_SHOP_LINK_CATEGORY_MISMATCH", "해당 가게의 메뉴그룹이 아닙니다."),
     PRODUCT_SHOP_LINK_ALREADY_LINKED(400, "PRODUCT_SHOP_LINK_ALREADY_LINKED", "이미 연결된 가게입니다."),
 
-    // 공지사항
     NOTICE_NOT_FOUND(404, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
 
-    // FAQ
     FAQ_NOT_FOUND(404, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
     FAQ_CATEGORY_NOT_FOUND(404, "FAQ_CATEGORY_NOT_FOUND", "FAQ 카테고리를 찾을 수 없습니다."),
     FAQ_CATEGORY_HAS_ITEMS(400, "FAQ_CATEGORY_HAS_ITEMS", "소속된 FAQ가 있어 카테고리를 삭제할 수 없습니다."),
 
-    // 버그 제보
     BUG_REPORT_NOT_FOUND(404, "BUG_REPORT_NOT_FOUND", "버그 제보를 찾을 수 없습니다."),
     BUG_REPORT_INVALID_STATUS(400, "BUG_REPORT_INVALID_STATUS", "현재 상태에서는 해당 처리를 할 수 없습니다."),
     BUG_REPORT_STATUS_UNKNOWN(400, "BUG_REPORT_STATUS_UNKNOWN", "알 수 없는 버그 제보 상태입니다."),
@@ -480,48 +428,40 @@ public enum ErrorCode implements ErrorCodeSpec {
     BUG_REPORT_PRIORITY_UNKNOWN(400, "BUG_REPORT_PRIORITY_UNKNOWN", "알 수 없는 버그 제보 우선순위입니다."),
     BUG_REPORT_PLATFORM_UNKNOWN(400, "BUG_REPORT_PLATFORM_UNKNOWN", "알 수 없는 버그 제보 플랫폼입니다."),
 
-    // 배너
     BANNER_NOT_FOUND(404, "BANNER_NOT_FOUND", "배너를 찾을 수 없습니다."),
     BANNER_TYPE_UNKNOWN(400, "BANNER_TYPE_UNKNOWN", "알 수 없는 배너 유형입니다."),
 
-    // 랭크
     RANK_TYPE_UNKNOWN(400, "RANK_TYPE_UNKNOWN", "알 수 없는 랭크 타입입니다."),
     RANK_PERIOD_NOT_FOUND(404, "RANK_PERIOD_NOT_FOUND", "랭킹 기간을 찾을 수 없습니다."),
     RANK_PRIZE_NOT_FOUND(404, "RANK_PRIZE_NOT_FOUND", "랭킹 경품을 찾을 수 없습니다."),
 
-    // 이벤트
     EVENT_STATUS_UNKNOWN(400, "EVENT_STATUS_UNKNOWN", "알 수 없는 이벤트 상태입니다."),
     EVENT_NOT_FOUND(404, "EVENT_NOT_FOUND", "이벤트를 찾을 수 없습니다."),
     EVENT_ANNOUNCEMENT_NOT_FOUND(404, "EVENT_ANNOUNCEMENT_NOT_FOUND", "당첨자 발표 공지를 찾을 수 없습니다."),
     EVENT_ANNOUNCEMENT_ALREADY_EXISTS(409, "EVENT_ANNOUNCEMENT_ALREADY_EXISTS", "이미 당첨자 발표 공지가 등록된 이벤트입니다."),
     EVENT_WINNER_NOT_FOUND(404, "EVENT_WINNER_NOT_FOUND", "당첨자를 찾을 수 없습니다."),
 
-    // 가게 enum (음식 종류·편의시설)
     FOOD_TYPE_UNKNOWN(400, "FOOD_TYPE_UNKNOWN", "알 수 없는 음식 종류입니다."),
     AMENITY_UNKNOWN(400, "AMENITY_UNKNOWN", "알 수 없는 편의시설입니다."),
 
-    // 추천인
     REFERRAL_NOT_FOUND(404, "REFERRAL_NOT_FOUND", "추천 이력을 찾을 수 없습니다."),
     REFERRAL_REFERRER_NOT_FOUND(400, "REFERRAL_REFERRER_NOT_FOUND", "존재하지 않는 추천인 닉네임입니다."),
     REFERRAL_SELF_NOT_ALLOWED(400, "REFERRAL_SELF_NOT_ALLOWED", "자기 자신을 추천인으로 설정할 수 없습니다."),
     REFERRAL_ALREADY_EXISTS(400, "REFERRAL_ALREADY_EXISTS", "이미 추천인이 등록되어 있습니다."),
     REFERRAL_INVALID_STATUS(400, "REFERRAL_INVALID_STATUS", "처리할 수 없는 추천 상태입니다."),
 
-    // 팔로우
     FOLLOW_SELF_NOT_ALLOWED(400, "FOLLOW_SELF_NOT_ALLOWED", "자기 자신을 팔로우할 수 없습니다."),
     FOLLOW_ALREADY_EXISTS(400, "FOLLOW_ALREADY_EXISTS", "이미 팔로우한 사용자입니다."),
     FOLLOW_NOT_FOUND(400, "FOLLOW_NOT_FOUND", "팔로우 관계가 존재하지 않습니다."),
     FOLLOW_TARGET_NOT_FOUND(404, "FOLLOW_TARGET_NOT_FOUND", "팔로우 대상 회원을 찾을 수 없습니다."),
     FOLLOWER_REMOVE_ACCESS_DENIED(403, "FOLLOWER_REMOVE_ACCESS_DENIED", "본인의 팔로워만 삭제할 수 있습니다."),
 
-    // 회원 enum
     GENDER_TYPE_UNKNOWN(400, "GENDER_TYPE_UNKNOWN", "알 수 없는 성별입니다."),
     SOCIAL_PROVIDER_TYPE_UNKNOWN(400, "SOCIAL_PROVIDER_TYPE_UNKNOWN", "알 수 없는 소셜 로그인 제공자입니다."),
     WITHDRAWAL_REASON_TYPE_UNKNOWN(400, "WITHDRAWAL_REASON_TYPE_UNKNOWN", "알 수 없는 탈퇴 사유입니다."),
     MEMBER_STATUS_TYPE_UNKNOWN(400, "MEMBER_STATUS_TYPE_UNKNOWN", "알 수 없는 회원 상태입니다."),
     MEMBER_GRADE_TYPE_UNKNOWN(400, "MEMBER_GRADE_TYPE_UNKNOWN", "알 수 없는 회원 등급입니다."),
 
-    // 소셜 로그인
     SOCIAL_ACCOUNT_ALREADY_REGISTERED(409, "SOCIAL_ACCOUNT_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."),
     SOCIAL_EMAIL_REQUIRED(400, "SOCIAL_EMAIL_REQUIRED", "카카오 이메일 제공 동의가 필요합니다."),
     SOCIAL_OAUTH_FAILED(502, "SOCIAL_OAUTH_FAILED", "소셜 로그인 처리 중 오류가 발생했습니다."),
@@ -531,13 +471,10 @@ public enum ErrorCode implements ErrorCodeSpec {
     APPLE_TEMP_TOKEN_EXPIRED(400, "APPLE_TEMP_TOKEN_EXPIRED", "애플 인증이 만료되었습니다. 다시 시도해주세요."),
     APPLE_ID_TOKEN_INVALID(400, "APPLE_ID_TOKEN_INVALID", "애플 인증 토큰이 유효하지 않습니다."),
 
-    // 검색
     SEARCH_KEYWORD_BLANK(400, "SEARCH_KEYWORD_BLANK", "검색어를 입력해주세요."),
 
-    // Rate Limiting
     RATE_LIMIT_EXCEEDED(429, "RATE_LIMIT_EXCEEDED", "요청 횟수가 초과되었습니다. 잠시 후 다시 시도해주세요."),
 
-    // 예약
     RESERVATION_NOT_FOUND(404, "RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다."),
     RESERVATION_ACCESS_DENIED(403, "RESERVATION_ACCESS_DENIED", "본인의 예약만 처리할 수 있습니다."),
     RESERVATION_INVALID_STATUS(400, "RESERVATION_INVALID_STATUS", "현재 상태에서는 해당 처리를 할 수 없습니다."),
@@ -551,7 +488,6 @@ public enum ErrorCode implements ErrorCodeSpec {
     RESERVATION_PARTY_SIZE_INVALID(400, "RESERVATION_PARTY_SIZE_INVALID", "방문 인원수는 1명 이상이어야 합니다."),
     DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 해당 날짜에 예약이 존재합니다. 예약을 변경하려면 기존 예약을 취소해주세요."),
 
-    // 제휴 신청
     PARTNERSHIP_REQUEST_NOT_FOUND(404, "PARTNERSHIP_REQUEST_NOT_FOUND", "제휴 신청을 찾을 수 없습니다."),
     PARTNERSHIP_STATUS_UNKNOWN(400, "PARTNERSHIP_STATUS_UNKNOWN", "알 수 없는 제휴 신청 상태입니다.");
 

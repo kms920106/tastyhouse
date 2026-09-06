@@ -27,23 +27,14 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 이미지 변경요청 변경이력 기록 회귀 테스트.
- *
- * <p>이력 기록이 조용히 빠지는 결함(저장은 되는데 기록이 없는 부류)을 막는 것이 이 테스트의 목적이다.
- * 요청 1건당 이력 1행이며, 관리자 검수(승인·반려)는 이력을 남기지 않아야 한다.
- */
 class ShopImageApprovalServiceTest {
-
     private static final Long SHOP_ID = 1L;
 
     private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
     private RecordingShopRequestIndexRepository shopRequestIndexRepository;
     private ShopImageApprovalService shopImageApprovalService;
 
-    /** 이미지 변경요청 write 포트 fake. 저장 시 식별자를 부여해 승인 경로도 태울 수 있게 한다. */
     private static final class FakeShopImageChangeRequestRepository implements ShopImageChangeRequestRepository {
-
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
 
@@ -84,9 +75,7 @@ class ShopImageApprovalServiceTest {
         }
     }
 
-    /** 가게 write 포트 fake. 승인 시 이미지 반영 경로가 가게를 찾을 수 있어야 한다. */
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {
@@ -171,7 +160,6 @@ class ShopImageApprovalServiceTest {
         shopImageApprovalService.approveImageChange(trademarkRequestId);
         shopImageApprovalService.rejectImageChange(thumbnailRequestId, "해상도가 낮습니다.");
 
-        // 요청 2건에 대한 2행만 남고, 검수 조치로는 추가되지 않는다.
         assertThat(shopChangeHistoryRepository.saved()).hasSize(2);
     }
 

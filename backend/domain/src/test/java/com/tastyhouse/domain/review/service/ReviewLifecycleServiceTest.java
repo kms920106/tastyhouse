@@ -17,12 +17,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 리뷰 생애주기 도메인 서비스 단위 테스트. Spring/JPA 컨텍스트 없이 순수 POJO + fake write 포트로 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스 — {@code ReviewTest}와 동일한 취지).
- */
 class ReviewLifecycleServiceTest {
-
     private ReviewLifecycleService reviewLifecycleService;
 
     @BeforeEach

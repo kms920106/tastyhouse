@@ -13,12 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class ShopSuspensionTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사 시각·해제 시각 없음)이고 사유·기간을 담는다")
     void of_createsTransientShopSuspension() {
@@ -102,7 +97,7 @@ class ShopSuspensionTest {
 
         assertThat(shopSuspension.appliesTo(OrderMethod.DELIVERY)).isTrue();
         assertThat(shopSuspension.appliesTo(OrderMethod.TAKEOUT)).isTrue();
-        // target=null은 가게 전체 판정 — 전체 대상 중지는 가게 전체를 멈춘다
+
         assertThat(shopSuspension.appliesTo(null)).isTrue();
     }
 
@@ -113,7 +108,7 @@ class ShopSuspensionTest {
 
         assertThat(shopSuspension.appliesTo(OrderMethod.DELIVERY)).isTrue();
         assertThat(shopSuspension.appliesTo(OrderMethod.TAKEOUT)).isFalse();
-        // 배달만 멈춰도 가게 전체는 멈추지 않는다 — 결함 A 수정의 핵심
+
         assertThat(shopSuspension.appliesTo(null)).isFalse();
     }
 
@@ -144,7 +139,6 @@ class ShopSuspensionTest {
         assertThat(shopSuspension.isActive(LocalDateTime.of(2026, 8, 1, 11, 0), null)).isFalse();
     }
 
-    /** 2026-08-01 10:00 ~ 12:00 활성 중지. */
     private ShopSuspension suspension(OrderMethod orderMethod) {
         return ShopSuspension.of(
             ShopId.of(1L),

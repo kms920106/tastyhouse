@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.member.follow.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -15,8 +14,9 @@ import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFol
 /**
  * 팔로우 write 어댑터.
  *
- * <p>단건 로드·중복 검증·통계 카운트·저장·삭제만 담당한다. 팔로잉/팔로워 목록(회원·프로필 이미지 조인
- * 투영)은 같은 모듈의 {@code member/follow/query/MemberFollowQueryDao}로 이관했다.
+ * <p>단건 로드·중복 검증·저장·삭제만 담당한다. 팔로잉/팔로워 목록과 통계 카운트(회원·프로필 이미지 조인
+ * 투영 포함)는 읽기 계약 {@code MemberFollowQueryPort}와 그 구현
+ * {@code member/follow/query/MemberFollowQueryDao}가 담당한다.
  */
 @Repository
 public class MemberFollowRepositoryImpl implements MemberFollowRepository {
@@ -65,36 +65,5 @@ public class MemberFollowRepositoryImpl implements MemberFollowRepository {
     @Override
     public void delete(MemberFollow memberFollow) {
         memberFollowJpaRepository.deleteById(memberFollow.getId());
-    }
-
-    @Override
-    public List<Long> findFollowingIdsByFollowerId(MemberId followerId) {
-        return queryFactory
-            .select(memberFollowJpaEntity.followingId)
-            .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followerId.eq(followerId.value()))
-            .fetch();
-    }
-
-    @Override
-    public long countByFollowerId(MemberId followerId) {
-        Long count = queryFactory
-            .select(memberFollowJpaEntity.count())
-            .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followerId.eq(followerId.value()))
-            .fetchOne();
-
-        return count != null ? count : 0L;
-    }
-
-    @Override
-    public long countByFollowingId(MemberId followingId) {
-        Long count = queryFactory
-            .select(memberFollowJpaEntity.count())
-            .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followingId.eq(followingId.value()))
-            .fetchOne();
-
-        return count != null ? count : 0L;
     }
 }

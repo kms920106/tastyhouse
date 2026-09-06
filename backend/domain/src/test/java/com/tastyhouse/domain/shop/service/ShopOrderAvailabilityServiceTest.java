@@ -40,26 +40,11 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 주문 접수 게이트 단위 테스트 — 주문 접수·예약 생성이 공유하는 검증 3종을 검증한다.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트를 손으로 만든 fake로 대체한다
- * (domain에는 Mockito 의존이 없다).
- *
- * <p>{@code OrderPlacementService}·{@code ReservationBookingService}를 직접 검증하지 않는 이유는
- * 그 서비스들이 각각 17개·5개 리포지토리를 주입받는 반면 <b>검증 규칙 자체는 전부 이 서비스에 있기
- * 때문</b>이다 — 게이트를 여기서 검증하면 같은 규칙을 두 벌 검증하지 않아도 된다.
- */
 class ShopOrderAvailabilityServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
-    /** 2026-07-27(월) 정오 — 아래 fake의 영업시간(09:00~22:00) 안. */
     private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 7, 27, 12, 0);
 
-    /**
-     * 검증 대상 가게. 호출부가 로드해 넘기는 구조이므로 fixture와 호출이 같은 인스턴스를 쓴다.
-     */
     private final Shop shop = openShop();
 
     @Test
@@ -76,7 +61,6 @@ class ShopOrderAvailabilityServiceTest {
     void validateOrderable_rejects_whenShopNotOrderable() {
         ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.DELIVERY), List.of());
 
-        // 23:00은 영업시간(09:00~22:00) 밖
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON.withHour(23)))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
@@ -133,7 +117,6 @@ class ShopOrderAvailabilityServiceTest {
     @Test
     @DisplayName("검증 순서상 미배정이 유형별 중지보다 먼저 걸린다")
     void validateOrderable_reportsNotSupported_beforeSuspended() {
-        // DELIVERY가 미배정이면서 동시에 중지된 상태 — 사유는 미배정이 먼저다
         ShopOrderAvailabilityService service =
             service(shop, List.of(OrderMethod.TAKEOUT), List.of(suspension(OrderMethod.DELIVERY)));
 
@@ -148,8 +131,6 @@ class ShopOrderAvailabilityServiceTest {
     void validateOrderable_usesGivenTime_notNow() {
         ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.RESERVATION), List.of());
 
-        // 판정 기준을 미래 슬롯 시각(영업시간 안)으로 주면 통과한다 —
-        // 예약이 "지금"이 아니라 슬롯 시각으로 판정된다는 근거.
         assertThatCode(() -> service.validateOrderable(shop, OrderMethod.RESERVATION, MONDAY_NOON))
             .doesNotThrowAnyException();
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.RESERVATION, MONDAY_NOON.withHour(5)))
@@ -170,8 +151,6 @@ class ShopOrderAvailabilityServiceTest {
     @Test
     @DisplayName("게이트는 넘겨받은 가게로만 판정한다 — 내부에서 다시 읽어 폐업·노출정지 가게를 되살리지 않는다")
     void validateOrderable_judgesPassedShop_withoutReloading() {
-        // 리포지토리에는 정상 가게가 있지만 호출부가 노출정지 가게를 넘긴 상황.
-        // 게이트가 내부에서 findById로 다시 읽는다면 정상 가게로 판정해 통과해 버린다.
         ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.DELIVERY), List.of());
         Shop hiddenShop = Shop.reconstitute(
             1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
@@ -184,8 +163,6 @@ class ShopOrderAvailabilityServiceTest {
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
     }
-
-    // ------------------------------------------------------------------ fixtures
 
     private ShopOrderAvailabilityService service(
         Shop shop,
@@ -211,7 +188,6 @@ class ShopOrderAvailabilityServiceTest {
         );
     }
 
-    /** MONDAY_NOON을 포함하는 활성 임시중지. */
     private ShopSuspension suspension(OrderMethod orderMethod) {
         return ShopSuspension.reconstitute(
             1L, SHOP_ID, SuspensionReason.SHOP_CIRCUMSTANCE, orderMethod,
@@ -220,7 +196,6 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopRepositoryFake implements ShopRepository {
-
         private final Shop shop;
 
         private ShopRepositoryFake(Shop shop) {
@@ -244,7 +219,6 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopSuspensionRepositoryFake implements ShopSuspensionRepository {
-
         private final List<ShopSuspension> suspensions;
 
         private ShopSuspensionRepositoryFake(List<ShopSuspension> suspensions) {
@@ -268,7 +242,6 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopTemporaryClosureRepositoryFake implements ShopTemporaryClosureRepository {
-
         @Override
         public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {
             throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
@@ -290,12 +263,7 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    /**
-     * 영업시간(매일 09:00~22:00)과 주문유형 배정만 돌려주는 fake. 나머지 조회는 빈 목록이고,
-     * 이 테스트가 쓰지 않는 write 경로는 호출되면 즉시 실패시켜 의도치 않은 의존을 드러낸다.
-     */
     private static final class ShopDetailRepositoryFake implements ShopDetailRepository {
-
         private final List<OrderMethod> assignedOrderMethods;
 
         private ShopDetailRepositoryFake(List<OrderMethod> assignedOrderMethods) {

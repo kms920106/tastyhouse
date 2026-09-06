@@ -23,17 +23,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴그룹·메뉴 정렬과 그룹 이동의 순수 단위 테스트.
- *
- * <p>핵심 두 가지: <b>sort를 클라이언트에서 받지 않는다</b>(id 배열만 받아 0..N-1 정규화)와
- * <b>그룹 이동 시 출발 그룹도 재정규화한다</b>(빠져나간 자리에 구멍을 남기지 않는다).
- */
 class ProductSortServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
-
-    // ── 메뉴그룹 순서 ──────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("메뉴그룹 순서는 id 배열 순서대로 0..N-1로 정규화된다")
@@ -58,15 +49,12 @@ class ProductSortServiceTest {
         fixture.addCategory(100L, 0);
         fixture.addCategory(101L, 1);
 
-        // 낡은 화면이 102번을 모른 채 두 개만 보냈다.
         assertThatThrownBy(() -> fixture.service.reorderCategories(SHOP_ID,
             List.of(ProductCategoryId.of(100L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(ErrorCode.PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH);
     }
-
-    // ── 그룹 내 메뉴 순서 ──────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("그룹 내 메뉴 순서도 0..N-1로 정규화된다")
@@ -88,7 +76,7 @@ class ProductSortServiceTest {
         Fixture fixture = new Fixture();
         fixture.addProduct(10L, null, 0);
         fixture.addProduct(11L, null, 1);
-        // 다른 그룹의 메뉴는 대상에 섞이지 않아야 한다.
+
         fixture.addProduct(12L, 100L, 0);
 
         fixture.service.reorderProducts(SHOP_ID, null, List.of(ProductId.of(11L), ProductId.of(10L)));
@@ -112,16 +100,13 @@ class ProductSortServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
-    // ── 그룹 이동 ──────────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("메뉴를 다른 그룹으로 옮기고 도착 그룹의 순서를 요청대로 정규화한다")
     void relocateProducts_movesAndOrdersTarget() {
         Fixture fixture = new Fixture();
-        fixture.addProduct(10L, 100L, 0); // 출발 그룹
-        fixture.addProduct(20L, 200L, 0); // 도착 그룹 기존 메뉴
+        fixture.addProduct(10L, 100L, 0);
+        fixture.addProduct(20L, 200L, 0);
 
-        // 10번을 200번 그룹의 맨 앞에 놓는다.
         fixture.service.relocateProducts(SHOP_ID, ProductCategoryId.of(200L),
             List.of(ProductId.of(10L)),
             List.of(ProductId.of(10L), ProductId.of(20L)));
@@ -139,7 +124,6 @@ class ProductSortServiceTest {
         fixture.addProduct(11L, 100L, 1);
         fixture.addProduct(12L, 100L, 2);
 
-        // 가운데(11번)를 다른 그룹으로 옮긴다 → 출발 그룹에 sort 1 자리가 빈다.
         fixture.service.relocateProducts(SHOP_ID, ProductCategoryId.of(200L),
             List.of(ProductId.of(11L)),
             List.of(ProductId.of(11L)));
@@ -201,7 +185,6 @@ class ProductSortServiceTest {
         fixture.addProduct(20L, 200L, 0);
         fixture.addProduct(21L, 200L, 1);
 
-        // 도착 그룹에 21번이 있는데 목록에서 빠졌다.
         assertThatThrownBy(() -> fixture.service.relocateProducts(SHOP_ID, ProductCategoryId.of(200L),
             List.of(ProductId.of(10L)),
             List.of(ProductId.of(10L), ProductId.of(20L))))
@@ -222,10 +205,7 @@ class ProductSortServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
     }
 
-    // ── 픽스처 ─────────────────────────────────────────────────────────────────────
-
     private static final class Fixture {
-
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductCategory> categories = new LinkedHashMap<>();
         private final ProductSortService service;
@@ -258,7 +238,6 @@ class ProductSortServiceTest {
     }
 
     private record StubProductRepository(Map<Long, Product> products) implements ProductRepository {
-
         @Override
         public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
             Long target = productCategoryId == null ? null : productCategoryId.value();
@@ -306,10 +285,6 @@ class ProductSortServiceTest {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
@@ -338,7 +313,6 @@ class ProductSortServiceTest {
 
     private record StubProductCategoryRepository(Map<Long, ProductCategory> categories)
         implements ProductCategoryRepository {
-
         @Override
         public List<ProductCategory> findAllByShopId(ShopId shopId) {
             return categories.values().stream()

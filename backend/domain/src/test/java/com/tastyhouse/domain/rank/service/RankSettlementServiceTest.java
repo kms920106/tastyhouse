@@ -19,15 +19,8 @@ import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 랭킹 확정 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO(도메인 서비스)이므로 Spring 컨텍스트·JPA 없이 write 포트와 조회 포트를 손으로 만든
- * 스텁으로 대체해 검증한다(도메인 서비스 하강으로 얻는 테스트 용이성의 레퍼런스).
- */
 class RankSettlementServiceTest {
-
-    private static final LocalDate BASE_DATE = LocalDate.of(2026, 7, 30); // 목요일
+    private static final LocalDate BASE_DATE = LocalDate.of(2026, 7, 30);
 
     @Test
     @DisplayName("조회 순서대로 1위부터 순위를 부여하고, 기존 랭킹 삭제 후 신규 랭킹을 적재한다")
@@ -135,7 +128,6 @@ class RankSettlementServiceTest {
 
         service.settle(RankType.WEEKLY, BASE_DATE, 10);
 
-        // 2026-07-30은 목요일 -> 그 주 월요일은 2026-07-27, 일요일은 2026-08-02
         assertThat(port.requestedStartAt).isEqualTo(LocalDateTime.of(2026, 7, 27, 0, 0, 0));
         assertThat(port.requestedEndAt).isEqualTo(LocalDateTime.of(LocalDate.of(2026, 8, 2), LocalTime.MAX));
     }
@@ -151,13 +143,12 @@ class RankSettlementServiceTest {
 
         int settled = service.settleAll(BASE_DATE);
 
-        assertThat(settled).isEqualTo(3); // 타입당 1건
+        assertThat(settled).isEqualTo(3);
         assertThat(repository.deletedRankTypes)
             .containsExactly(RankType.ALL, RankType.MONTHLY, RankType.WEEKLY);
     }
 
     private static final class MemberReviewCountPortStub implements MemberReviewCountPort {
-
         private final List<MemberReviewCount> counts;
         private LocalDateTime requestedStartAt;
         private LocalDateTime requestedEndAt;
@@ -175,7 +166,6 @@ class RankSettlementServiceTest {
     }
 
     private static final class MemberReviewRankRepositoryStub implements MemberReviewRankRepository {
-
         private final List<String> callOrder = new ArrayList<>();
         private final List<RankType> deletedRankTypes = new ArrayList<>();
         private List<MemberReviewRank> saved = List.of();

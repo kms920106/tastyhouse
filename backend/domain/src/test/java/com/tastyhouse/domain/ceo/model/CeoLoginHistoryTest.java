@@ -9,11 +9,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 점주 로그인 이력 순수 도메인 모델 단위 테스트.
- */
 class CeoLoginHistoryTest {
-
     @Test
     @DisplayName("of는 식별자·생성시각 없이 신규 이력을 만든다")
     void of_createsNewHistoryWithoutIdAndCreatedAt() {

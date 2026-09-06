@@ -38,20 +38,11 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 배달지역 도형 저장·삭제 오케스트레이션 단위 테스트.
- *
- * <p>고정하는 성질은 셋이다 — (1) 환산 0건 저장을 막는다(막지 않으면 "좁게 그렸더니 전 지역이 열리는"
- * 역전이 생긴다), (2) 도형 재저장이 <b>직접 등록분을 건드리지 않는다</b>, (3) 배달팁 참조로 막히면
- * <b>한 건도</b> 바뀌지 않는다.
- */
 class ShopDeliveryAreaPolygonServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
 
-    /** 가게를 감싸는 작은 사각형(약 1km). */
     private static final GeoPolygon POLYGON = GeoPolygon.of(List.of(GeoRing.of(List.of(
         GeoPoint.of(37.495, 126.995),
         GeoPoint.of(37.495, 127.005),
@@ -63,7 +54,6 @@ class ShopDeliveryAreaPolygonServiceTest {
     @DisplayName("환산 결과가 0건이면 저장을 거부한다")
     void savePolygon_rejectsEmptyProjection() {
         Fixture fixture = new Fixture();
-        // 후보 행정동을 등록하지 않아 환산 결과가 0건이 된다.
 
         assertThatThrownBy(fixture::savePolygon)
             .isInstanceOf(BusinessException.class)
@@ -94,7 +84,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     void savePolygon_preservesManualAreas() {
         Fixture fixture = new Fixture();
         fixture.registerDong(10L, 37.500, 127.000);
-        fixture.registerDong(99L, 38.900, 128.900); // 도형 밖 — 직접 등록분
+        fixture.registerDong(99L, 38.900, 128.900);
         fixture.areaRepository.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
 
         fixture.savePolygon();
@@ -126,7 +116,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     void savePolygon_blocksWhenClosingDongIsReferencedByRegionTip() {
         Fixture fixture = new Fixture();
         fixture.registerDong(10L, 37.500, 127.000);
-        fixture.registerDong(20L, 38.900, 128.900); // 새 환산 결과에 없어 닫히는 동
+        fixture.registerDong(20L, 38.900, 128.900);
         fixture.areaRepository.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(20L), DeliveryAreaSource.POLYGON));
         fixture.regionLookup.addRegionTip(AdminDongId.of(20L));
 
@@ -135,7 +125,6 @@ class ShopDeliveryAreaPolygonServiceTest {
             .extracting(e -> ((BusinessException) e).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_IN_USE);
 
-        // 한 건도 바뀌지 않았다.
         assertThat(fixture.areaRepository.findByShopId(SHOP_ID))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactly(20L);
@@ -227,9 +216,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         assertThat(fixture.historyRepository.saved()).isEmpty();
     }
 
-    /** 테스트 대상과 인메모리 fake 묶음. */
     private static final class Fixture {
-
         private final AdminDongRepositoryFake adminDongRepository = new AdminDongRepositoryFake();
         private final ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
         private final ShopDeliveryAreaPolygonRepositoryFake polygonRepository = new ShopDeliveryAreaPolygonRepositoryFake();
@@ -254,10 +241,8 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class AdminDongRepositoryFake implements AdminDongRepository {
-
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
-            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
         }
 
@@ -307,7 +292,6 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryAreaRepositoryFake implements ShopDeliveryAreaRepository {
-
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -372,7 +356,6 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryAreaPolygonRepositoryFake implements ShopDeliveryAreaPolygonRepository {
-
         private ShopDeliveryAreaPolygon stored;
 
         @Override
@@ -393,7 +376,6 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupFake implements ShopDeliveryTipRegionLookup {
-
         private final Set<AdminDongId> referenced = new LinkedHashSet<>();
 
         void addRegionTip(AdminDongId adminDongId) {

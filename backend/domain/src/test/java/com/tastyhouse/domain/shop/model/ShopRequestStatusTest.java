@@ -9,11 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 통합 요청 상태 enum 단위 테스트.
- */
 class ShopRequestStatusTest {
-
     @Test
     @DisplayName("알 수 없는 코드는 SHOP_REQUEST_STATUS_UNKNOWN(400)으로 변환된다")
     void from_withUnknownCode_throwsBusinessException() {

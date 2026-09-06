@@ -15,33 +15,12 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
-/**
- * 파일 업로드 규칙(도메인 서비스).
- *
- * <p>업로드는 "규격 검증 → 스토리지 저장(출력 포트) → 메타 애그리거트 저장 → 업로드 이벤트 발행"을
- * 한 트랜잭션에서 원자로 묶는 액터 무관 연산이다(공통 지침 분류 C). 업로드 트리거가 web·admin·ceo·
- * batch(외부 이미지 다운로드)로 여러 개이므로, 허용 확장자·용량 한도·저장 경로 규칙이 모듈마다
- * 갈리지 않도록 도메인 계층에 단 하나만 둔다.
- *
- * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code FileDomainConfig}가 담당한다. 이벤트 발행은 프레임워크-프리
- * 포트인 {@link DomainEventPublisher}를 통해 수행한다.
- *
- * <p>이 서비스는 쓰기(업로드)만 담당한다. 저장 경로를 표시용 URL로 바꾸는 읽기 측 변환은
- * infrastructure-module의 {@code FileUrlResolver}가 {@link FileStoragePort}를 직접 사용해 수행하므로,
- * 과거 여기 있던 {@code getUrlByPath}는 제거했다 — 조회 응답 조립에 도메인 서비스를 끌어들일 이유가
- * 없고, 변환 지점을 read 어댑터 한 곳으로 모으는 편이 일관되기 때문이다.
- */
 public class FileUploadService {
-
-    // pdf는 배달지역 조정 신청의 "정보제공 동의서" 첨부 때문에 허용한다. 이 상수는 전 도메인이 공유하므로
-    // 이미지 전용이어야 하는 경로는 각 도메인의 presentation 검증기(ShopImageSpecValidator 등)가 형식·해상도를
-    // 별도로 막는다 — 그 검증이 걸린 경로는 여기서 pdf를 허용해도 영향받지 않는다.
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "pdf");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"
     );
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private final UploadedFileRepository uploadedFileRepository;
@@ -58,9 +37,6 @@ public class FileUploadService {
         this.domainEventPublisher = domainEventPublisher;
     }
 
-    /**
-     * 파일을 검증·저장하고 업로드 이벤트를 발행한 뒤 식별자를 반환한다.
-     */
     public UploadedFileId upload(FileUploadCommand command) {
         validate(command);
 

@@ -26,15 +26,10 @@ import com.tastyhouse.domain.shop.vo.StationId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 예약주문 슬롯 계산기 순수 단위 테스트. Spring/JPA 컨텍스트 없이 리드타임·경계·영업 판정 재사용을 검증한다.
- */
 class ScheduledOrderSlotCalculatorTest {
-
     private final ScheduledOrderSlotCalculator calculator =
         new ScheduledOrderSlotCalculator(new ShopOperatingStatusCalculator());
 
-    /** 2026-07-27은 월요일. */
     private static final LocalDate MONDAY = LocalDate.of(2026, 7, 27);
 
     private static final ShopId SHOP_ID = ShopId.of(1L);
@@ -59,7 +54,6 @@ class ScheduledOrderSlotCalculatorTest {
         return LocalDateTime.of(MONDAY, LocalTime.of(hour, minute));
     }
 
-    /** 배달·포장 둘 다 배정된 가게 — 대부분의 케이스가 쓰는 기본 배정. */
     private List<ShopOrderMethod> allOrderMethodsAssigned() {
         return List.of(
             ShopOrderMethod.reconstitute(1L, SHOP_ID, OrderMethod.DELIVERY),
@@ -98,7 +92,6 @@ class ScheduledOrderSlotCalculatorTest {
         ));
     }
 
-    /** 09:00~22:00 영업, 휴무·중지 없음 — 대부분의 케이스가 쓰는 기본 조건. */
     private List<ScheduledOrderSlot> calculateWithDefaultHours(OrderMethod orderMethod, LocalDateTime now) {
         return calculate(shop(true), orderMethod, now,
             List.of(hours(LocalTime.of(9, 0), LocalTime.of(22, 0))),
@@ -181,7 +174,7 @@ class ScheduledOrderSlotCalculatorTest {
         List<LocalDateTime> startAts = slots.stream().map(ScheduledOrderSlot::startAt).toList();
         assertThat(startAts).contains(at(14, 30));
         assertThat(startAts).doesNotContain(at(15, 0), at(15, 30));
-        // 휴게시간이 끝나는 16:00부터는 다시 예약 가능하다.
+
         assertThat(startAts).contains(at(16, 0));
     }
 
@@ -210,7 +203,7 @@ class ScheduledOrderSlotCalculatorTest {
             List.of(hours24()), List.of(), List.of(), List.of(), List.of());
 
         assertThat(slots.getFirst().startAt()).isEqualTo(at(12, 0));
-        // 하한 12:00 ~ 상한 익일 10:00, 30분 그리드 → 45개
+
         assertThat(slots).hasSize(45);
         assertThat(slots.getLast().startAt()).isEqualTo(at(10, 0).plusDays(1));
     }
@@ -277,7 +270,6 @@ class ScheduledOrderSlotCalculatorTest {
         assertThat(startAts).contains(at(15, 0));
     }
 
-    /** 13:00~15:00 배달만 임시중지. */
     private List<ShopSuspension> deliveryOnlySuspension() {
         return List.of(
             ShopSuspension.reconstitute(

@@ -14,15 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 정보 고객 의견의 순수 단위 테스트.
- *
- * <p><b>내용 필수 판정이 이 테스트의 핵심이다.</b> {@code ETC}는 유형만으로 무엇이 틀렸는지 알 수 없어
- * 서술이 없으면 점주가 고칠 수 없는 제보가 되고, 공백 문자열로 그 검증을 우회할 수 있으면 규칙이 없는
- * 것과 같다.
- */
 class ProductFeedbackTest {
-
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final ShopId SHOP_ID = ShopId.of(2L);
     private static final MemberId MEMBER_ID = MemberId.of(3L);
@@ -34,7 +26,6 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("내용 불변식")
     class ContentInvariant {
-
         @Test
         @DisplayName("ETC는 내용이 없으면 거절한다")
         void etc_withoutContent_rejected() {
@@ -87,7 +78,6 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("유형 승격")
     class TypeConversion {
-
         @Test
         @DisplayName("알 수 없는 문자열은 400으로 거절한다 — 500으로 새어 나가면 입력 오류임을 구분할 수 없다")
         void unknownType_rejected() {
@@ -98,7 +88,7 @@ class ProductFeedbackTest {
 
         @Test
         @DisplayName("null도 400으로 거절한다")
-        @SuppressWarnings("ConstantConditions") // null 거절 자체가 이 테스트의 검증 대상이다.
+        @SuppressWarnings("ConstantConditions")
         void nullType_rejected() {
             assertThatThrownBy(() -> ProductFeedbackType.from(null))
                 .isInstanceOf(BusinessException.class)
@@ -125,7 +115,6 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("재구성")
     class Reconstitute {
-
         @Test
         @DisplayName("불변식을 위반한 기존 행도 로드는 가능하다 — 검증 도입 이전 데이터를 막지 않는다")
         void reconstitute_skipsValidation() {

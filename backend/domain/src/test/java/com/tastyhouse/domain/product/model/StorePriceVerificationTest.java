@@ -14,14 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 매장 가격 인증 요청 애그리거트의 상태 전이 단위 테스트.
- *
- * <p><b>종결된 요청의 재전이를 막는 것이 핵심이다</b> — 막지 않으면 이미 반려된 요청을 다시 승인해
- * 검수 결과를 덮어쓸 수 있다.
- */
 class StorePriceVerificationTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final UploadedFileId FILE_ID = UploadedFileId.of(7L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
@@ -49,7 +42,6 @@ class StorePriceVerificationTest {
         assertThat(verification.getStatus()).isEqualTo(StorePriceVerificationStatus.IN_PROGRESS);
         assertThat(verification.getProcessedAt()).isEqualTo(NOW);
 
-        // 이미 진행 중인 요청을 다시 착수시키지 않는다.
         assertThatThrownBy(() -> verification.startReview(NOW))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
@@ -111,7 +103,6 @@ class StorePriceVerificationTest {
     @Test
     @DisplayName("승인은 이전 반려 사유를 비운다")
     void approve_clearsStaleRejectReason() {
-        // 대기 상태에서 곧바로 승인되는 정상 경로에서도 반려 사유가 남지 않아야 한다.
         StorePriceVerification verification = pending();
 
         verification.approve(NOW);

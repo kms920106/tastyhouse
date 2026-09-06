@@ -32,18 +32,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 반경 일괄 적용 도메인 서비스의 <b>변경이력</b> 단위 테스트.
- *
- * <p>검증의 핵심은 "반경 적용 한 번에 이력이 하나만, 그리고 {@code DELIVERY_AREA_RADIUS}로만 남는가"다 —
- * 이 서비스는 실제 행 추가를 {@code ShopDeliveryAreaService}에 위임하는데 그 경로가 이력까지 남기면
- * 점주가 한 조작(반경 설정) 하나에 {@code DELIVERY_AREA}까지 두 종류가 기록된다. 그 회귀는 컴파일로는
- * 드러나지 않으므로 테스트로 못박는다.
- *
- * <p>순수 POJO라 Spring 컨텍스트·JPA 없이 fake 포트로 검증한다(domain에는 Mockito 의존이 없다).
- */
 class ShopDeliveryAreaRadiusServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -97,7 +86,6 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class AdminDongRepositoryFake implements AdminDongRepository {
-
         private final Map<Long, AdminDong> adminDongs = new LinkedHashMap<>();
 
         void add(long id, GeoPoint center) {
@@ -149,7 +137,6 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class ShopDeliveryAreaRepositoryFake implements ShopDeliveryAreaRepository {
-
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -214,7 +201,6 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupFake implements ShopDeliveryTipRegionLookup {
-
         @Override
         public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
             return false;

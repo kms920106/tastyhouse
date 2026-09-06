@@ -8,11 +8,7 @@ import com.tastyhouse.domain.review.model.ReviewLike;
 import com.tastyhouse.domain.review.repository.ReviewLikeRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
-/**
- * 리뷰 좋아요 write 포트의 인메모리 fake.
- */
 public class FakeReviewLikeRepository implements ReviewLikeRepository {
-
     private final List<ReviewLike> likes = new ArrayList<>();
 
     @Override

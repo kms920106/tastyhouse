@@ -32,15 +32,7 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 회원 배달 주소록 도메인 서비스 단위 테스트.
- *
- * <p>Spring 컨텍스트 없이 수기 fake 리포지토리만으로 검증한다(domain은 Mockito 의존이 없다).
- * 검증 대상은 전부 <b>주소록 전체를 봐야 판정되는</b> 규칙이다 — 기본 배송지 유일성, 회원당 10건 한도,
- * 소유권. 행정동 매칭 실패가 예외가 아니라 null이라는 점도 함께 고정한다.
- */
 class MemberDeliveryAddressServiceTest {
-
     private static final MemberId MEMBER_ID = MemberId.of(1L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(2L);
     private static final BigDecimal LATITUDE = new BigDecimal("37.501234");
@@ -50,7 +42,6 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("등록(create)")
     class Create {
-
         @Test
         @DisplayName("10건이 이미 있으면 한도 초과로 거부한다")
         void create_rejectsWhenLimitExceeded() {
@@ -165,7 +156,6 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("수정(update)")
     class Update {
-
         @Test
         @DisplayName("타인의 주소를 수정하면 접근 거부한다")
         void update_rejectsOtherMembersAddress() {
@@ -219,7 +209,6 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("삭제(delete)")
     class Delete {
-
         @Test
         @DisplayName("타인의 주소를 삭제하면 접근 거부한다")
         void delete_rejectsOtherMembersAddress() {
@@ -254,7 +243,6 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("기본 배송지 변경(changeDefault)")
     class ChangeDefault {
-
         @Test
         @DisplayName("새 기본을 지정하면 기존 기본이 해제되어 회원당 1건만 남는다")
         void changeDefault_keepsSingleDefault() {
@@ -316,12 +304,7 @@ class MemberDeliveryAddressServiceTest {
         return repository.findByMemberId(MEMBER_ID).stream().filter(MemberDeliveryAddress::isDefaultAddress).count();
     }
 
-    /**
-     * 인메모리 배달 주소 리포지토리. {@code save}는 실제 어댑터와 같은 시맨틱을 흉내 낸다 — 식별자가
-     * 없으면 새 id를 발급해 저장하고, 있으면 같은 id의 행을 교체한다.
-     */
     private static final class FakeMemberDeliveryAddressRepository implements MemberDeliveryAddressRepository {
-
         private final Map<Long, MemberDeliveryAddress> store = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong();
         private int saveCount;
@@ -385,21 +368,15 @@ class MemberDeliveryAddressServiceTest {
         }
     }
 
-    /** 인메모리 행정동 마스터. 등록되지 않은 조합을 조회하면 빈 Optional을 돌려 매칭 실패를 재현한다. */
     private static final class FakeAdminDongRepository implements AdminDongRepository {
-
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
-            // 이 테스트들은 조회 경로만 검증한다. 동기화가 불리면 테스트가 잘못 짜인 것이다.
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
         }
 
         private final Map<String, AdminDong> byName = new LinkedHashMap<>();
         private final Map<Long, AdminDong> byId = new LinkedHashMap<>();
 
-        // 현재 테스트가 시/도·시/군/구를 한 값으로만 넘기지만 파라미터를 없애지 않는다 — 이 fake는
-        // 세 이름을 합친 복합키로 findByDongNameMatch를 재현하므로, 상수로 굳히면 이름 조합이 다른
-        // 매칭 실패 케이스를 표현할 수 없다.
         @SuppressWarnings("SameParameterValue")
         void register(Long id, String sidoName, String sigunguName, String dongName) {
             AdminDong adminDong = AdminDong.reconstitute(id, String.valueOf(id), sidoName, sigunguName, dongName, true, null, List.of());

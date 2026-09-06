@@ -27,15 +27,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 가게 등록 시 접근권한 이력 기록 봉인 테스트.
- *
- * <p>가게 등록에서 점주를 함께 배정하는 것도 접근권한 부여이므로, {@code ShopCeoAssignmentService}로
- * 나중에 배정한 경우와 구별 없이 {@code GRANT} 이력이 남아야 한다. 반대로 점주 없이 등록하면 부여할
- * 권한이 없으므로 아무 행도 남지 않아야 한다.
- */
 class ShopLifecycleServiceTest {
-
     private static final Long ADMIN_ID = 99L;
     private static final Long CEO_ID = 7L;
     private static final Long STATION_ID = 3L;
@@ -101,9 +93,7 @@ class ShopLifecycleServiceTest {
         );
     }
 
-    /** 가게 write 포트 fake. 저장 시 식별자를 부여해 이력이 실제 가게를 가리키게 한다. */
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
         private final AtomicLong sequence = new AtomicLong();
 
@@ -148,9 +138,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    /** 즐겨찾기 write 포트 fake — 이 테스트는 즐겨찾기 경로를 타지 않는다. */
     private static final class FakeShopBookmarkRepository implements ShopBookmarkRepository {
-
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
             return false;
@@ -166,10 +154,8 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    /** 이미지 변경요청 write 포트 fake — PENDING 요청이 없는 상태. */
     private static final class FakeShopImageChangeRequestRepository
         implements ShopImageChangeRequestRepository {
-
         @Override
         public Optional<ShopImageChangeRequest> findById(Long id) {
             return Optional.empty();
@@ -195,9 +181,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    /** 금칙어 read 포트 fake — 이 테스트는 금칙어 검수 경로를 타지 않는다. */
     private static final class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public java.util.List<ProhibitedWord> findAll() {
             return java.util.List.of();

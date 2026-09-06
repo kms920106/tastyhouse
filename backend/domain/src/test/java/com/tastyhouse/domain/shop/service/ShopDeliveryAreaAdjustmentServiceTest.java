@@ -27,12 +27,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 도메인 서비스 순수 단위 테스트. fake write 포트를 주입해 중복 신청 차단 불변식과
- * 상태 전이 후 <b>명시적 save</b>(POJO라 더티 체킹이 없다)를 검증한다.
- */
 class ShopDeliveryAreaAdjustmentServiceTest {
-
     private FakeRepository repository;
     private RecordingShopChangeHistoryRepository historyRepository;
     private RecordingShopRequestIndexRepository indexRepository;
@@ -222,13 +217,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         );
     }
 
-    /**
-     * 저장된 신청을 식별자로 되찾아 주는 최소 fake. 신규 저장 시 식별자를 부여해
-     * {@code reconstitute}로 영속 상태를 흉내 내며, {@code saved}에 저장 호출을 기록해
-     * 명시적 save 여부를 검증할 수 있게 한다.
-     */
     private static final class FakeRepository implements ShopDeliveryAreaAdjustmentRequestRepository {
-
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private final List<ShopDeliveryAreaAdjustmentRequest> saved = new ArrayList<>();
         private long sequence = 0L;

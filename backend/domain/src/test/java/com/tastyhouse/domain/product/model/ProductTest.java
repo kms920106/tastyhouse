@@ -15,11 +15,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
- */
 class ProductTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 판매중·비품절 상태다")
     void of_createsTransientProduct() {
@@ -189,7 +185,6 @@ class ProductTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
 
-        // 실패한 update는 기존 상태를 바꾸지 않는다
         assertThat(product.getName()).isEqualTo("떡볶이");
         assertThat(product.getDiscountPrice()).isEqualTo(8000);
     }

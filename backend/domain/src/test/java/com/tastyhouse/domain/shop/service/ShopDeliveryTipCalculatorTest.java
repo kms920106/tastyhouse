@@ -21,19 +21,11 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 배달팁 산출 순수 계산기 단위 테스트.
- *
- * <p>리포지토리·시계 주입이 0개라 fake가 필요 없다 — 거리·행정동·공휴일 여부를 이미 해석된 값으로 담은
- * {@code ShopDeliveryTipContext}를 직접 조립해 넣는다.
- */
 class ShopDeliveryTipCalculatorTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final AdminDongId DONG_A = AdminDongId.of(100L);
     private static final AdminDongId DONG_B = AdminDongId.of(200L);
 
-    /** 2026-08-03은 월요일이다. 요일 의존 케이스는 전부 이 날짜를 기준으로 삼는다. */
     private static final LocalDateTime MONDAY_19H = LocalDateTime.of(2026, 8, 3, 19, 0);
 
     private final ShopDeliveryTipCalculator calculator = new ShopDeliveryTipCalculator();
@@ -41,7 +33,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("orderMethod")
     class OrderMethodGate {
-
         @Test
         @DisplayName("배달이 아닌 주문 방법은 모든 항목이 0원이다")
         void calculate_zeroForNonDelivery() {
@@ -71,7 +62,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("구간별 기본 배달팁")
     class BaseTip {
-
         private final List<ShopDeliveryTipTier> tiers = List.of(
             tier(0, 5000, 2000),
             tier(1, 10000, 1500),
@@ -117,7 +107,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("거리별 추가 배달팁")
     class DistanceTip {
-
         @Test
         @DisplayName("설정 헤더의 할증 계산에 위임한다 — 기본배달거리 초과분을 단위로 올림한다")
         void calculate_delegatesToSetting() {
@@ -146,7 +135,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("지역별 추가 배달팁")
     class RegionTip {
-
         @Test
         @DisplayName("배달지 행정동과 일치하는 행의 금액을 부과한다")
         void calculate_matchesDeliveryAdminDong() {
@@ -193,7 +181,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("공휴일 · 시간별 우선순위")
     class HolidayAndSchedule {
-
         @Test
         @DisplayName("공휴일 팁이 붙으면 시간별은 합산이 아니라 대체된다(시간별 0원)")
         void calculate_holidayReplacesSchedule() {
@@ -238,7 +225,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("시간별 구체성 우선 선택")
     class ScheduleSpecificity {
-
         @Test
         @DisplayName("DAILY와 MONDAY가 모두 걸리는 월요일에는 MONDAY 하나만 적용한다(합산 아님)")
         void calculate_specificDayWinsOverDaily() {
@@ -309,7 +295,6 @@ class ShopDeliveryTipCalculatorTest {
     @Nested
     @DisplayName("breakdown 합산")
     class Breakdown {
-
         @Test
         @DisplayName("항목별 값이 각각 기록되고 총액은 항목 합과 일치한다")
         void calculate_totalEqualsSumOfItems() {

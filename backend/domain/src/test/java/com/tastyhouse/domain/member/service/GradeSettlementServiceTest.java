@@ -20,29 +20,22 @@ import com.tastyhouse.domain.member.vo.MemberId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 회원 등급 확정 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO(도메인 서비스)이므로 Spring 컨텍스트·JPA 없이 조회 포트와 write 포트를 손으로 만든
- * fake로 대체해 검증한다({@code RankSettlementServiceTest}·{@code MailVerificationServiceTest} 선례).
- */
 class GradeSettlementServiceTest {
-
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 15, 3, 30);
 
     @Test
     @DisplayName("등급 경계값 직전·정확값·직후 리뷰 수를 각각 알맞은 등급으로 판정한다")
     void settleAll_assignsGradeAtBoundaries() {
         MemberReviewCountPortFake port = new MemberReviewCountPortFake(List.of(
-            reviewCount(1L, 0L),      // NEWCOMER 하한
-            reviewCount(2L, 99L),     // ACTIVE 직전 → NEWCOMER
-            reviewCount(3L, 100L),    // ACTIVE 정확값
-            reviewCount(4L, 499L),    // INSIDER 직전 → ACTIVE
-            reviewCount(5L, 500L),    // INSIDER 정확값
-            reviewCount(6L, 700L),    // GOURMET 정확값
-            reviewCount(7L, 999L),    // TEHA 직전 → GOURMET
-            reviewCount(8L, 1000L),   // TEHA 정확값
-            reviewCount(9L, 5000L)    // TEHA 상한 없음
+            reviewCount(1L, 0L),
+            reviewCount(2L, 99L),
+            reviewCount(3L, 100L),
+            reviewCount(4L, 499L),
+            reviewCount(5L, 500L),
+            reviewCount(6L, 700L),
+            reviewCount(7L, 999L),
+            reviewCount(8L, 1000L),
+            reviewCount(9L, 5000L)
         ));
         MemberRepositoryFake repository = new MemberRepositoryFake();
         GradeSettlementService service = new GradeSettlementService(port, repository);
@@ -60,9 +53,9 @@ class GradeSettlementServiceTest {
     @DisplayName("등급이 상승·유지·강등되는 회원이 섞여 있어도 리뷰 수 기준 등급으로 재산정한다")
     void settleAll_recalculatesRegardlessOfCurrentGrade() {
         MemberReviewCountPortFake port = new MemberReviewCountPortFake(List.of(
-            reviewCount(11L, 500L),   // 상승: NEWCOMER → INSIDER
-            reviewCount(22L, 100L),   // 유지: ACTIVE → ACTIVE
-            reviewCount(33L, 10L)     // 강등: TEHA → NEWCOMER
+            reviewCount(11L, 500L),
+            reviewCount(22L, 100L),
+            reviewCount(33L, 10L)
         ));
         MemberRepositoryFake repository = new MemberRepositoryFake();
         GradeSettlementService service = new GradeSettlementService(port, repository);
@@ -121,7 +114,6 @@ class GradeSettlementServiceTest {
     }
 
     private static class MemberReviewCountPortFake implements MemberReviewCountPort {
-
         private final List<MemberReviewCount> reviewCounts;
 
         private LocalDateTime requestedStartDate;
@@ -143,7 +135,6 @@ class GradeSettlementServiceTest {
     }
 
     private static class MemberRepositoryFake implements MemberRepository {
-
         private final Map<MemberGrade, List<Long>> updatedIdsByGrade = new EnumMap<>(MemberGrade.class);
 
         @Override

@@ -12,15 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 매장가격 뱃지 노출 정책의 순수 단위 테스트.
- *
- * <p><b>익일(영업일) 노출 규정과 80% 커버리지가 이 테스트의 핵심이다.</b> 커버리지 분모가 가격 행이
- * 아니라 <b>메뉴 수</b>라는 점을 못 박는다 — 행으로 세면 가격명이 여러 개인 메뉴 몇 개로 커버리지를
- * 채울 수 있다.
- */
 class StorePriceBadgePolicyTest {
-
     private static final LocalDateTime SET_AT = LocalDateTime.of(2026, 3, 1, 15, 0);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 3, 10, 0);
     private static final Integer STORE_PRICE = 9000;
@@ -38,7 +30,6 @@ class StorePriceBadgePolicyTest {
             pickupPriceSetAt, null, null);
     }
 
-    /** 설정일(3/1) 이후 영업일이 지난 상태 — 익일 규정을 충족한다. */
     private static List<LocalDate> businessDaysAfterSetAt() {
         return List.of(LocalDate.of(2026, 3, 2), LocalDate.of(2026, 3, 3));
     }
@@ -65,7 +56,6 @@ class StorePriceBadgePolicyTest {
     @Test
     @DisplayName("커버리지가 80% 미만이면 노출하지 않는다")
     void belowCoverageThreshold_hidesBadge() {
-        // 메뉴 5개 중 3개만 매장가·픽업가를 가짐 → 60%
         List<ProductPrice> prices = List.of(
             price(1L, 100L, 8500, SET_AT),
             price(2L, 101L, 8500, SET_AT),
@@ -78,7 +68,6 @@ class StorePriceBadgePolicyTest {
     @Test
     @DisplayName("커버리지가 정확히 80%면 노출한다")
     void exactlyAtThreshold_exposesBadge() {
-        // 메뉴 5개 중 4개 → 80%
         List<ProductPrice> prices = List.of(
             price(1L, 100L, 8500, SET_AT),
             price(2L, 101L, 8500, SET_AT),
@@ -92,7 +81,6 @@ class StorePriceBadgePolicyTest {
     @Test
     @DisplayName("커버리지 분모는 가격 행이 아니라 메뉴 수다 — 한 메뉴의 여러 가격 행이 가중치를 갖지 않는다")
     void coverageCountsProductsNotRows() {
-        // 같은 메뉴(100L)에 가격 행 4개가 매장가·픽업가를 가져도 메뉴 1개로만 센다.
         List<ProductPrice> prices = List.of(
             price(1L, 100L, 8500, SET_AT),
             price(2L, 100L, 8500, SET_AT),
@@ -100,7 +88,6 @@ class StorePriceBadgePolicyTest {
             price(4L, 100L, 8500, SET_AT)
         );
 
-        // 전체 메뉴 5개인데 실제 충족 메뉴는 1개(20%)이므로 노출되지 않아야 한다.
         assertThat(policy.shouldExposePickupBadge(prices, 5L, businessDaysAfterSetAt(), NOW)).isFalse();
     }
 
@@ -109,7 +96,6 @@ class StorePriceBadgePolicyTest {
     void sameDayAsSetAt_hidesBadge() {
         List<ProductPrice> prices = List.of(price(1L, 100L, 8500, SET_AT));
 
-        // 설정일과 같은 날의 영업일만 있는 상태.
         List<LocalDate> sameDayOnly = List.of(LocalDate.of(2026, 3, 1));
 
         assertThat(policy.shouldExposePickupBadge(
@@ -129,7 +115,7 @@ class StorePriceBadgePolicyTest {
     void usesLatestPickupPriceSetAt() {
         List<ProductPrice> prices = List.of(
             price(1L, 100L, 8500, SET_AT),
-            // 오늘 막 설정된 행 — 아직 익일이 지나지 않았다.
+
             price(2L, 101L, 8500, NOW)
         );
 

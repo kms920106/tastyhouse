@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum PointType {
-    EARNED,  // 적립
-    USE,     // 사용
-    REFUND;  // 환불
+    EARNED,
+    USE,
+    REFUND;
 
     public static PointType from(String code) {
         try {

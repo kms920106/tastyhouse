@@ -23,16 +23,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메일 인증 도메인 서비스 단위 테스트.
- *
- * <p><b>이 테스트의 존재 이유</b>: 과거 발송 책임이 호출부에 흩어져 있어 회원가입 인증코드 발송
- * API가 코드를 저장만 하고 실제로 발송하지 않는 버그가 있었다(비밀번호 재설정 파사드만 발송을
- * 직접 호출). {@code issue}가 발송까지 수행하는지를 여기서 검증하므로 그 회귀가 CI에서 잡힌다.
- * Spring 컨텍스트 없이 fake 포트만으로 검증된다(도메인 프레임워크-프리의 이점).
- */
 class MailVerificationServiceTest {
-
     @Test
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 메일을 발송한다")
     void issue_sendsMailWithGeneratedCode() {
@@ -120,7 +111,7 @@ class MailVerificationServiceTest {
         service.confirmForSignUp("user@tastyhouse.com", issued.getVerificationCode().value());
 
         assertThat(published).hasSize(1);
-        assertThat(repository.saved).hasSize(2); // issue 1건 + confirm 1건
+        assertThat(repository.saved).hasSize(2);
     }
 
     @Test
@@ -136,7 +127,6 @@ class MailVerificationServiceTest {
     }
 
     private static final class RecordingMailSender implements MailSender {
-
         private final List<String> sent = new ArrayList<>();
         private String lastTo;
         private String lastSubject;
@@ -156,7 +146,6 @@ class MailVerificationServiceTest {
     }
 
     private static final class FakeMailVerificationRepository implements MailVerificationRepository {
-
         private final List<MailVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();
         private MailVerification pending;
@@ -169,7 +158,7 @@ class MailVerificationServiceTest {
             if (mailVerification.getId() != null) {
                 return mailVerification;
             }
-            // 저장 시 식별자가 부여되는 것을 모사한다.
+
             return MailVerification.reconstitute(
                 sequence++,
                 mailVerification.getEmail(),
@@ -193,11 +182,7 @@ class MailVerificationServiceTest {
         }
     }
 
-    /**
-     * {@code existsByUsername}만 사용하는 도메인 서비스에 맞춘 최소 fake. 나머지 메서드는 호출되지 않는다.
-     */
     private record FakeMemberRepository(boolean usernameExists) implements MemberRepository {
-
         @Override
         public boolean existsByUsername(String username) {
             return usernameExists;

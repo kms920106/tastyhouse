@@ -37,17 +37,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 상품 등록·구성 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트를 손으로 만든 스텁으로 대체해 검증한다.
- * 특히 <b>도메인 모델 변경 후 명시적 save 호출</b>(더티 체킹 없음)을 확인한다.
- *
- * <p>이 서비스는 도메인 이벤트를 발행하지 않으므로 발행 스텁도 두지 않는다 — 사유는
- * {@link ProductRegistrationService} Javadoc 참고(P9에서 수신자 없는 발행 3종 제거).
- */
 class ProductRegistrationServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long PRODUCT_ID = 7L;
     private static final Long OPTION_GROUP_ID = 11L;
@@ -163,11 +153,7 @@ class ProductRegistrationServiceTest {
         );
     }
 
-    /**
-     * 도메인 서비스와 그 협력 스텁을 한 번에 조립하는 테스트 픽스처.
-     */
     private static final class Fixture {
-
         private final ProductRepositoryStub productRepository;
         private final ProductCategoryRepositoryStub categoryRepository = new ProductCategoryRepositoryStub();
         private final ProductOptionGroupRepositoryStub optionGroupRepository = new ProductOptionGroupRepositoryStub();
@@ -179,7 +165,7 @@ class ProductRegistrationServiceTest {
         private Fixture(Product existing) {
             this.productRepository = new ProductRepositoryStub(existing);
             ProductOptionGroupLinkRepositoryStub optionGroupLinkRepository = new ProductOptionGroupLinkRepositoryStub();
-            // 메뉴 등록은 원본 소유 가게 링크(PRODUCT_SHOP_LINK)도 함께 만든다 — 그 저장을 받아 줄 fake가 필요하다.
+
             this.service = new ProductRegistrationService(
                 productRepository,
                 categoryRepository,
@@ -194,7 +180,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductRepositoryStub implements ProductRepository {
-
         private final Product existing;
         private final List<Product> saved = new ArrayList<>();
 
@@ -207,11 +192,6 @@ class ProductRegistrationServiceTest {
             return Optional.ofNullable(existing);
         }
 
-        /**
-         * 실제 어댑터 계약을 모사한다 — 신규(id null) 저장이면 PK를 부여한 인스턴스를 반환하고,
-         * 기존 상품이면 그대로 돌려준다. 호출부가 반환된 인스턴스의 {@code getProductId()}를 읽으므로
-         * id 부여를 생략하면 실제 동작과 달라진다.
-         */
         @Override
         public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
             return List.of();
@@ -227,10 +207,6 @@ class ProductRegistrationServiceTest {
             return 0L;
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
@@ -241,7 +217,6 @@ class ProductRegistrationServiceTest {
             return List.of();
         }
 
-        /** 이 스텁은 삭제 상태를 다루지 않으므로 findById와 같은 결과를 돌려준다. */
         @Override
         public Optional<Product> findByIdIncludingDeleted(ProductId id) {
             return Optional.ofNullable(existing);
@@ -306,7 +281,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductCategoryRepositoryStub implements ProductCategoryRepository {
-
         private final List<ProductCategory> saved = new ArrayList<>();
 
         @Override
@@ -337,7 +311,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionGroupRepositoryStub implements ProductOptionGroupRepository {
-
         private final List<ProductOptionGroup> saved = new ArrayList<>();
 
         @Override
@@ -350,11 +323,6 @@ class ProductRegistrationServiceTest {
             return List.of();
         }
 
-        /**
-         * 실제 어댑터 계약을 모사한다 — 신규(id null) 저장이면 PK를 부여한 인스턴스를 반환한다.
-         * {@code saveProductOptionGroup}이 반환값의 {@code getProductOptionGroupId()}로 링크 행을
-         * 만들므로, id 부여를 생략하면 미영속 불변식 위반으로 실패한다.
-         */
         @Override
         public ProductOptionGroup save(ProductOptionGroup productOptionGroup) {
             saved.add(productOptionGroup);
@@ -378,7 +346,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionRepositoryStub implements ProductOptionRepository {
-
         private final List<ProductOption> saved = new ArrayList<>();
 
         @Override
@@ -409,7 +376,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductImageRepositoryStub implements ProductImageRepository {
-
         private final List<ProductImage> saved = new ArrayList<>();
 
         @Override
@@ -442,7 +408,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductBbqRepositoryStub implements ProductBbqRepository {
-
         private final List<ProductBbq> saved = new ArrayList<>();
         private ProductBbq stored;
 
@@ -459,7 +424,6 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionGroupLinkRepositoryStub implements ProductOptionGroupLinkRepository {
-
         private final List<ProductOptionGroupLink> saved = new ArrayList<>();
 
         @Override

@@ -11,11 +11,7 @@ import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
- */
 class ReviewCommentTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 숨김 처리되지 않은 상태다")
     void of_createsTransientComment() {

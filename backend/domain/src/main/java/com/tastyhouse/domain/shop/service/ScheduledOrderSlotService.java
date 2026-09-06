@@ -21,19 +21,7 @@ import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 예약 가능 수령시간 슬롯 조회·확정 오케스트레이션(도메인 서비스).
- *
- * <p>슬롯 판정은 가게·영업시간·휴게시간·정기휴무·임시휴무·임시중지 <b>여섯 애그리거트</b>를 모두 읽어야
- * 가능하다({@link ShopOperatingStatusService}와 같은 조회 셋). 이 서비스는 그 조회·조립만 담당하고 판정
- * 규칙 자체는 순수 계산기 {@link ScheduledOrderSlotCalculator}에 위임한다. 규칙이 소비 액터(web 슬롯
- * 조회·주문 접수)와 무관하게 동일해야 하므로 도메인 계층에 둔다.
- *
- * <p>{@code @Service}/{@code @Transactional} 없는 순수 POJO이며(공통 지침 패턴 1), 빈 등록은
- * infrastructure-module의 {@code ShopDomainConfig}가 담당한다.
- */
 public class ScheduledOrderSlotService {
-
     private final ShopRepository shopRepository;
     private final ShopDetailRepository shopDetailRepository;
     private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
@@ -54,14 +42,6 @@ public class ScheduledOrderSlotService {
         this.scheduledOrderSlotCalculator = scheduledOrderSlotCalculator;
     }
 
-    /**
-     * 예약 가능한 슬롯 목록을 시작 시각 오름차순으로 조회한다.
-     *
-     * <p>예약주문 미운영·미지원 주문방식·영업시간 미등록 등 예약할 수 없는 상태는 예외가 아니라 <b>빈
-     * 목록</b>이다 — 소비 API가 404가 아니라 {@code available:false}로 내려주기 위함이다.
-     *
-     * @throws ResourceNotFoundException 가게가 없는 경우
-     */
     public List<ScheduledOrderSlot> findAvailableSlots(ShopId shopId, OrderMethod orderMethod, LocalDateTime now) {
         Shop shop = shopRepository.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
@@ -69,20 +49,6 @@ public class ScheduledOrderSlotService {
         return scheduledOrderSlotCalculator.calculate(buildContext(shop, shopId, orderMethod, now));
     }
 
-    /**
-     * 클라이언트가 보낸 수령 예약 시각을 <b>서버가 슬롯을 재계산해 대조</b>한 뒤 확정된 슬롯을 돌려준다.
-     *
-     * <p>클라이언트 값을 그대로 믿지 않는 이유는 배달팁 금액 대조와 같다 — 주문서 진입 시점과 결제 시점
-     * 사이에 영업시간·임시중지가 바뀌거나 경계가 지나면 그 시각은 더 이상 예약 가능하지 않다. 30분 단위를
-     * 벗어난 임의 시각·영업시간 밖 시각도 어느 슬롯과도 일치하지 않아 같은 경로로 거절된다.
-     *
-     * <p><b>주문 스냅샷 VO({@code OrderSchedule})가 아니라 shop 소유 타입을 돌려준다</b> — 과거에는
-     * 이 메서드가 order의 VO를 만들어 돌려주어 shop이 order 내부를 알고 있었다. 확정된 슬롯을 주문
-     * 스냅샷으로 옮겨 담는 것은 그 값을 저장하는 order의 몫이다.
-     *
-     * @throws BusinessException 요청 시각이 현재 유효 슬롯 목록에 없는 경우
-     *                           ({@link ErrorCode#ORDER_SCHEDULED_AT_UNAVAILABLE})
-     */
     public ScheduledOrderSlot resolveSlot(
         ShopId shopId,
         OrderMethod orderMethod,

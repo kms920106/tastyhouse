@@ -12,12 +12,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class CouponTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 삭제되지 않은 상태다")
     void of_createsTransientCoupon() {
@@ -124,8 +119,8 @@ class CouponTest {
         );
 
         assertThat(amountCoupon.calculateDiscount(50000)).isEqualTo(1000);
-        assertThat(rateCoupon.calculateDiscount(50000)).isEqualTo(3000); // 10% = 5000, capped at 3000
-        assertThat(rateCoupon.calculateDiscount(10000)).isEqualTo(1000); // 10% = 1000, under cap
+        assertThat(rateCoupon.calculateDiscount(50000)).isEqualTo(3000);
+        assertThat(rateCoupon.calculateDiscount(10000)).isEqualTo(1000);
     }
 
     @Test
@@ -141,7 +136,7 @@ class CouponTest {
         assertThatThrownBy(() -> coupon.validateMinOrderAmount(1000))
             .isInstanceOf(BusinessException.class);
 
-        assertThat(coupon).satisfies(c -> c.validateMinOrderAmount(5000)); // 경계값은 통과
+        assertThat(coupon).satisfies(c -> c.validateMinOrderAmount(5000));
     }
 
     private static final LocalDateTime START = LocalDateTime.of(2026, 1, 1, 0, 0);
@@ -182,7 +177,6 @@ class CouponTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
 
-        // 문제 상세에 적힌 대표 사례: RATE인데 200(=200%)
         assertThatThrownBy(() -> couponOf(DiscountType.RATE, 200))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
@@ -261,7 +255,6 @@ class CouponTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
 
-        // 실패한 update는 기존 상태를 바꾸지 않는다
         assertThat(coupon.getDiscountType()).isEqualTo(DiscountType.AMOUNT);
         assertThat(coupon.getDiscountAmount()).isEqualTo(1000);
     }

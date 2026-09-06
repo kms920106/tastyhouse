@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 /**
@@ -31,15 +30,6 @@ public class ProductOptionGroupMergeHistoryRepositoryImpl implements ProductOpti
         ProductOptionGroupMergeHistoryJpaEntity saved =
             jpaRepository.save(ProductOptionGroupMergeHistoryMapper.toEntity(history));
         return ProductOptionGroupMergeHistoryMapper.toDomain(saved);
-    }
-
-    @Override
-    public List<ProductOptionGroupMergeHistory> findAllByMergedOptionGroupId(
-        ProductOptionGroupId mergedOptionGroupId
-    ) {
-        return jpaRepository.findAllByMergedOptionGroupId(mergedOptionGroupId.value()).stream()
-            .map(ProductOptionGroupMergeHistoryMapper::toDomain)
-            .toList();
     }
 
     @Override

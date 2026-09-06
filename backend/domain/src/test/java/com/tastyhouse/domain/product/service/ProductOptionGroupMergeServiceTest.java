@@ -33,15 +33,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 옵션그룹 합치기의 순수 단위 테스트.
- *
- * <p><b>이 테스트가 지키는 것</b>은 합치기의 정의 그 자체다 — 기준 그룹은 손대지 않고, 흡수 그룹은
- * 행을 남긴 채 감추며, <b>옵션을 union하지 않는다</b>. 합치기는 되돌릴 수 없으므로 회귀가 나면
- * 데이터로 복구할 수단이 없고, 그래서 이 규칙들이 코드가 아니라 테스트로 못박혀 있어야 한다.
- */
 class ProductOptionGroupMergeServiceTest {
-
     private static final ShopId MY_SHOP = ShopId.of(1L);
     private static final ShopId OTHER_SHOP = ShopId.of(2L);
     private static final CeoId ACTOR = CeoId.of(7L);
@@ -62,7 +54,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThat(base.getMinSelect()).isEqualTo(1);
         assertThat(base.getMaxSelect()).isEqualTo(1);
         assertThat(base.isVisible()).isTrue();
-        // union 회귀 가드 — 합치기 전후로 기준 그룹의 옵션 집합이 완전히 같아야 한다.
+
         assertThat(fixture.optionIdsOf()).isEqualTo(baseOptionIdsBefore);
     }
 
@@ -101,12 +93,11 @@ class ProductOptionGroupMergeServiceTest {
 
         fixture.merge(TARGET_GROUP);
 
-        // 메뉴 20은 흡수 그룹에만 연결돼 있었으므로 이제 기준 그룹을 본다.
         List<ProductOptionGroupLink> linksOfProduct20 = fixture.links.findAllByProductId(ProductId.of(20L));
         assertThat(linksOfProduct20).hasSize(1);
         assertThat(linksOfProduct20.getFirst().getOptionGroupId())
             .isEqualTo(ProductOptionGroupId.of(BASE_GROUP));
-        // 링크가 하나뿐이므로 재정규화로 sort는 0이 된다.
+
         assertThat(linksOfProduct20.getFirst().getSort()).isZero();
     }
 
@@ -114,7 +105,7 @@ class ProductOptionGroupMergeServiceTest {
     @DisplayName("링크가 사라진 메뉴의 남은 sort가 0..N-1로 재정규화된다")
     void merge_renumbersRemainingLinks() {
         Fixture fixture = defaultFixture();
-        // 메뉴 20에 다른 그룹(300)을 sort=1로 하나 더 붙인다 → 흡수 그룹(sort=0)이 옮겨간 뒤 재정규화 대상.
+
         fixture.addGroup(300L, "다른그룹", 0);
         fixture.links.seed(20L, 300L, 1);
 
@@ -190,7 +181,7 @@ class ProductOptionGroupMergeServiceTest {
     @DisplayName("★ 같은 메뉴에 연결된 두 그룹은 합칠 수 없다 — 그 메뉴의 링크가 조용히 줄어든다")
     void merge_sameProductLinked_rejected() {
         Fixture fixture = defaultFixture();
-        // 기준 그룹이 걸린 메뉴 10에 흡수 대상도 연결한다.
+
         fixture.links.seed(10L, TARGET_GROUP, 1);
 
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP))
@@ -205,7 +196,7 @@ class ProductOptionGroupMergeServiceTest {
         Fixture fixture = defaultFixture();
         fixture.addGroup(300L, "또다른흡수", 1);
         fixture.addOption(301L, 300L, "옵션");
-        // 메뉴 20을 흡수 대상 둘이 공유한다(기준 그룹은 무관).
+
         fixture.links.seed(20L, 300L, 1);
 
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP, 300L))
@@ -248,7 +239,7 @@ class ProductOptionGroupMergeServiceTest {
         fixture.addGroup(600L, "보증금그룹", 0, ProductOptionGroupType.CUP_DEPOSIT);
         fixture.addOption(601L, 600L, "일회용컵");
         fixture.links.seed(20L, 600L, 1);
-        // 같은 메뉴 공유 검증에 먼저 걸리지 않도록 별도 메뉴에 연결한다.
+
         fixture.links.delete(fixture.links.findByProductIdAndOptionGroupId(
             ProductId.of(20L), ProductOptionGroupId.of(600L)).orElseThrow());
         fixture.addProduct(40L, MY_SHOP);
@@ -264,7 +255,7 @@ class ProductOptionGroupMergeServiceTest {
     @DisplayName("기준 그룹이 자기 최소 선택 개수를 못 채우면 거부한다 — 흡수 메뉴들이 주문 불가가 된다")
     void merge_baseCannotSatisfyMinSelect_rejected() {
         Fixture fixture = defaultFixture();
-        // 기준 그룹의 유일한 판매중 옵션을 감춘다(minSelect=1을 못 채운다).
+
         fixture.options.findAllByOptionGroupId(ProductOptionGroupId.of(BASE_GROUP))
             .forEach(ProductOption::hide);
 
@@ -274,10 +265,6 @@ class ProductOptionGroupMergeServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
-    /**
-     * 기본 시나리오: 같은 가게의 메뉴 10(기준 그룹 연결)과 메뉴 20(흡수 그룹 연결).
-     * 두 그룹은 같은 메뉴를 공유하지 않으므로 합치기가 가능한 상태다.
-     */
     private static Fixture defaultFixture() {
         Fixture fixture = new Fixture();
         fixture.addProduct(10L, MY_SHOP);
@@ -294,7 +281,6 @@ class ProductOptionGroupMergeServiceTest {
     }
 
     private static final class Fixture {
-
         private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
@@ -360,9 +346,7 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    /** 옵션 write 포트의 인메모리 fake — 같은 인스턴스를 돌려주므로 상태 변경이 그대로 보인다. */
     private static final class FakeProductOptionRepository implements ProductOptionRepository {
-
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
 
@@ -412,9 +396,7 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    /** {@code findById}·{@code save}만 쓰는 최소 스텁. */
     private static final class StubOptionGroupRepository implements ProductOptionGroupRepository {
-
         private final Map<Long, ProductOptionGroup> groups;
 
         private StubOptionGroupRepository(Map<Long, ProductOptionGroup> groups) {
@@ -441,10 +423,8 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    /** 이력 append를 그대로 모아두는 fake. */
     private static final class RecordingMergeHistoryRepository
         implements ProductOptionGroupMergeHistoryRepository {
-
         private final List<ProductOptionGroupMergeHistory> histories;
 
         private RecordingMergeHistoryRepository(List<ProductOptionGroupMergeHistory> histories) {
@@ -455,15 +435,6 @@ class ProductOptionGroupMergeServiceTest {
         public ProductOptionGroupMergeHistory save(ProductOptionGroupMergeHistory history) {
             histories.add(history);
             return history;
-        }
-
-        @Override
-        public List<ProductOptionGroupMergeHistory> findAllByMergedOptionGroupId(
-            ProductOptionGroupId mergedOptionGroupId
-        ) {
-            return histories.stream()
-                .filter(history -> history.getMergedOptionGroupId().equals(mergedOptionGroupId))
-                .toList();
         }
 
         @Override

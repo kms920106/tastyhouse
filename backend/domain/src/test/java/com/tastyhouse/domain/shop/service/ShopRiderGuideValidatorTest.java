@@ -17,20 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 라이더 안내 등록 기준(PDF "작성 불가 3유형") 검증 단위 테스트. 금칙어 포트는 fake로 대체해
- * Spring/DB 없이 판정 로직만 검증한다.
- */
 class ShopRiderGuideValidatorTest {
-
     private ShopRiderGuideValidator shopRiderGuideValidator;
     private Shop shop;
 
-    /**
-     * 금칙어 테이블을 대신하는 fake. 시드와 동일하게 "전화주문" 하나만 담는다.
-     */
     private static class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

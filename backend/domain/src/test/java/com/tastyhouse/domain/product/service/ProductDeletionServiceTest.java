@@ -20,17 +20,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 일괄 삭제의 부분실패 제약 순수 단위 테스트.
- *
- * <p>핵심은 <b>숨김과 같은 불변식이 걸린다</b>는 것이다 — 숨김만 막고 삭제를 열어두면 점주가
- * 삭제로 우회해 빈 메뉴판을 만들 수 있다.
- */
 class ProductDeletionServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
-
-    // ── 부분실패 제약 ──────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("★ 마지막 노출 메뉴는 삭제할 수 없다 — 숨김과 같은 제약이 걸린다")
@@ -51,7 +42,6 @@ class ProductDeletionServiceTest {
     @Test
     @DisplayName("마지막 추천 메뉴는 삭제할 수 없다")
     void deleteProducts_lastRepresentative_rejected() {
-        // 노출 메뉴는 3개라 노출 제약은 통과하고 추천 제약만 걸린다.
         Product representative = product(10L, "대표메뉴", true, true, 0);
         Fixture fixture = Fixture.of(List.of(representative), 3, 1);
 
@@ -74,7 +64,6 @@ class ProductDeletionServiceTest {
         ProductAvailabilityChangeResult result = fixture.service.deleteProducts(
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)));
 
-        // 노출 메뉴 2개를 전부 지우면 0개가 되므로 1건을 되돌린다 — 되돌리는 쪽은 sort가 큰 2번이다.
         assertThat(result.succeeded()).containsExactly(10L);
         assertThat(result.failed()).extracting(ProductAvailabilityFailure::id).containsExactly(11L);
         assertThat(first.isDeleted()).isTrue();
@@ -84,7 +73,6 @@ class ProductDeletionServiceTest {
     @Test
     @DisplayName("추천 메뉴를 되돌리면 노출 부족분도 함께 해소된다 — 판정과 되돌리기는 각각 한 번이다")
     void deleteProducts_representativeRollbackAlsoSatisfiesVisible() {
-        // 노출 2개(그중 추천 1개)를 전부 삭제 요청. 추천 메뉴 1건만 되돌리면 두 제약이 함께 충족된다.
         Product normal = product(10L, "일반", true, false, 0);
         Product representative = product(11L, "추천", true, true, 1);
         Fixture fixture = Fixture.of(List.of(normal, representative), 2, 1);
@@ -116,8 +104,6 @@ class ProductDeletionServiceTest {
             .isEqualTo(reversedResult.failed().stream().map(ProductAvailabilityFailure::id).toList());
     }
 
-    // ── 삭제 동작 ──────────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("★ 삭제는 visible도 함께 끈다 — deleted 필터를 빠뜨린 읽기경로에 대한 두 겹 방어")
     void deleteProducts_alsoTurnsOffVisible() {
@@ -147,7 +133,6 @@ class ProductDeletionServiceTest {
     @Test
     @DisplayName("이미 숨김인 메뉴는 노출 제약 계산에서 제외되지만 삭제는 그대로 수행된다")
     void deleteProducts_alreadyHidden_excludedFromConstraint() {
-        // 숨김 메뉴는 노출 카운트를 줄이지 않으므로, 노출 메뉴가 1개뿐이어도 삭제가 통과한다.
         Product hidden = product(10L, "숨긴메뉴", false, false, 1);
         Fixture fixture = Fixture.of(List.of(hidden), 1, 1);
 
@@ -157,8 +142,6 @@ class ProductDeletionServiceTest {
         assertThat(result.succeeded()).containsExactly(10L);
         assertThat(hidden.isDeleted()).isTrue();
     }
-
-    // ── 요청 자체의 오류 ───────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("대상이 비어 있으면 부분실패가 아니라 요청 전체를 거절한다")
@@ -185,8 +168,6 @@ class ProductDeletionServiceTest {
         assertThat(result.failed().getFirst().id()).isEqualTo(999L);
     }
 
-    // ── 픽스처 ─────────────────────────────────────────────────────────────────────
-
     private static Product product(Long id, String name, boolean visible, boolean representative, Integer sort) {
         Product product = Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, null, 10000, null, null, 0,
@@ -200,11 +181,6 @@ class ProductDeletionServiceTest {
     }
 
     private record Fixture(ProductDeletionService service) {
-
-        /**
-         * @param visibleCount        가게의 현재 노출 메뉴 수
-         * @param representativeCount 가게의 현재 노출 추천 메뉴 수
-         */
         private static Fixture of(List<Product> products, long visibleCount, long representativeCount) {
             return new Fixture(new ProductDeletionService(
                 new StubProductRepository(products, visibleCount, representativeCount)));
@@ -212,7 +188,6 @@ class ProductDeletionServiceTest {
     }
 
     private static final class StubProductRepository implements ProductRepository {
-
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final long visibleCount;
         private final long representativeCount;
@@ -241,10 +216,6 @@ class ProductDeletionServiceTest {
             return representativeCount;
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();

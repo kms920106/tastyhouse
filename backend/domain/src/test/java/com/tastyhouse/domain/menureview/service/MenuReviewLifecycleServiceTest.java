@@ -20,17 +20,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 평가 생애주기 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트와 이벤트 발행 포트를 fake로 대체해 검증한다.
- *
- * <p><b>가장 중요한 케이스는 {@link #register_succeedsWithoutStoreReview}다</b> — 매장 리뷰가 없어도
- * 메뉴 평가가 등록된다는 설계 원칙 1의 회귀 방어다. 이 서비스가 {@code ReviewRepository}를 아예 주입받지
- * 않는 것 자체가 그 원칙의 구조적 보증이며, 테스트는 그 상태를 봉인한다.
- */
 class MenuReviewLifecycleServiceTest {
-
     private static final MemberId MEMBER_ID = MemberId.of(3L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(4L);
     private static final ShopId SHOP_ID = ShopId.of(1L);

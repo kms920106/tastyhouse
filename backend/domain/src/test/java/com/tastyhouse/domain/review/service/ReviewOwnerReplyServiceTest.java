@@ -29,22 +29,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 사장님 답변 불변식 단위 테스트 — 특히 <b>30일 작성 제한이 등록에만 걸리는지</b>를 봉인한다.
- *
- * <p>기한 판정 기준일을 파라미터로 받는 설계 덕에 시계를 조작하지 않고 29·30·31일차를 직접 지정할 수
- * 있다. 도메인이 {@code LocalDate.now()}를 직접 부르면 이 테스트 자체가 불가능하다.
- *
- * <p>write 포트·금칙어 포트·이벤트 발행 포트를 fake로 대체해 Spring/DB 없이 판정 로직만 검증한다.
- */
 class ReviewOwnerReplyServiceTest {
-
     private static final Long SHOP_ID = 1L;
     private static final Long CEO_ID = 7L;
     private static final Long REVIEWER_MEMBER_ID = 42L;
     private static final String CONTENT = "소중한 리뷰 감사합니다.";
 
-    /** 리뷰 작성일 — 모든 기한 계산의 기준. 마감일은 이 날짜 + 30일이다. */
     private static final LocalDate REVIEW_CREATED_DATE = LocalDate.of(2026, 6, 1);
     private static final LocalDate DEADLINE = REVIEW_CREATED_DATE.plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
 
@@ -66,8 +56,6 @@ class ReviewOwnerReplyServiceTest {
             domainEventPublisher
         );
 
-        // 식별자를 채운 상태로 넣는다 — fake의 save는 id가 있으면 그대로 보존하므로 createdAt(기한 판정의
-        // 기준)이 유실되지 않는다. id가 null이면 fake가 재구성하면서 createdAt을 채우지 않는다.
         reviewId = 100L;
         reviewRepository.save(Review.reconstitute(
             reviewId,
@@ -167,12 +155,7 @@ class ReviewOwnerReplyServiceTest {
             .isEqualTo(ErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
     }
 
-    /**
-     * 사장님 답변 write 포트의 인메모리 fake. {@code save}가 신규 저장 시 식별자를 채운 새 인스턴스를
-     * 반환하는 것까지 실제 어댑터와 같게 재현한다.
-     */
     private static class FakeReviewOwnerReplyRepository implements ReviewOwnerReplyRepository {
-
         private final Map<Long, ReviewOwnerReply> replies = new HashMap<>();
         private long sequence = 0L;
 
@@ -219,11 +202,7 @@ class ReviewOwnerReplyServiceTest {
         }
     }
 
-    /**
-     * 금칙어 테이블을 대신하는 fake. 시드와 동일하게 "전화주문" 하나만 담는다.
-     */
     private static class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

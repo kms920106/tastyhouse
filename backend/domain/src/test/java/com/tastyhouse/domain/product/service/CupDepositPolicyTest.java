@@ -10,13 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 일회용컵 보증금 정책의 순수 단위 테스트.
- *
- * <p>요율이 한 곳에만 있어야 "화면에 보이는 금액과 결제 금액이 다른" 사고가 구조적으로 불가능해진다.
- */
 class CupDepositPolicyTest {
-
     private final CupDepositPolicy policy = new CupDepositPolicy();
 
     @Test

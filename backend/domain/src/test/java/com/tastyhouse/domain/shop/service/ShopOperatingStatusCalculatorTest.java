@@ -26,16 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
 
-/**
- * 영업 상태 계산기 순수 단위 테스트. Spring/JPA 컨텍스트 없이 우선순위·경계 케이스를 검증한다.
- *
- * <p>주문유형별 판정(유형별 임시중지가 가게 전체를 멈추지 않는다)의 회귀 방어선도 함께 담는다.
- */
 class ShopOperatingStatusCalculatorTest {
-
     private final ShopOperatingStatusCalculator calculator = new ShopOperatingStatusCalculator();
 
-    // 2026-07-27은 월요일
     private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 7, 27, 12, 0);
 
     private Shop shop() {
@@ -58,14 +51,12 @@ class ShopOperatingStatusCalculatorTest {
         );
     }
 
-    /** 매일 09:00 ~ 22:00 영업. */
     private List<ShopBusinessHour> dailyBusinessHours() {
         return List.of(
             ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false)
         );
     }
 
-    /** MONDAY_NOON을 포함하는 활성 임시중지. */
     private ShopSuspension activeSuspension(OrderMethod orderMethod) {
         return ShopSuspension.reconstitute(
             1L, ShopId.of(1L), SuspensionReason.SHOP_CIRCUMSTANCE, orderMethod,
@@ -88,7 +79,6 @@ class ShopOperatingStatusCalculatorTest {
         ));
     }
 
-    /** 영업시간만 주어진 기본 형태 — 가게 전체 판정. */
     private ShopOperatingStatusResult calculateShopWide(Shop shop, List<ShopBusinessHour> hours, LocalDateTime now) {
         return calculate(shop, hours, List.of(), List.of(), List.of(), List.of(), null, now);
     }
@@ -132,7 +122,6 @@ class ShopOperatingStatusCalculatorTest {
     @Test
     @DisplayName("전일 영업시간이 자정을 넘겨 새벽까지 이어지면 영업중")
     void open_crossMidnightFromYesterday() {
-        // 매일 20:00 ~ 02:00 (자정 넘김) → 월요일 01:00은 일요일 영업의 연장
         List<ShopBusinessHour> hours = List.of(
             ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, LocalTime.of(20, 0), LocalTime.of(2, 0), false, false)
         );
@@ -230,11 +219,9 @@ class ShopOperatingStatusCalculatorTest {
             ShopClosedDay.reconstitute(1L, ShopId.of(1L), ClosedDayType.EVERY_MONTH_FOURTH_WEEK_MONDAY)
         );
 
-        // 2026-07-27은 넷째 주 월요일((27-1)/7+1 = 4) → 준비중
         assertThat(calculate(shop(), dailyBusinessHours(), List.of(), closedDays, List.of(), List.of(), null,
             LocalDateTime.of(2026, 7, 27, 12, 0)).status()).isEqualTo(ShopOperatingStatus.PREPARING);
 
-        // 2026-07-06은 첫째 주 월요일 → 영업중
         assertThat(calculate(shop(), dailyBusinessHours(), List.of(), closedDays, List.of(), List.of(), null,
             LocalDateTime.of(2026, 7, 6, 12, 0)).status()).isEqualTo(ShopOperatingStatus.OPEN);
     }

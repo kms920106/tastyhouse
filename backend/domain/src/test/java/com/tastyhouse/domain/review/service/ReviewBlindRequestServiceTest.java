@@ -29,17 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-/**
- * 게시중단 요청 워크플로 불변식 단위 테스트.
- *
- * <p>봉인 대상은 스펙의 세 규칙이다 — <b>1회 제한</b>(단 CANCELED는 예외), <b>고객 동의 삭제</b>,
- * <b>타인 리뷰 접근 차단</b>. 승인 시각을 파라미터로 받는 설계 덕에 시계를 조작하지 않고 재노출 기한을
- * 고정해 검증할 수 있다.
- *
- * <p>write 포트·이벤트 발행 포트를 fake로 대체해 Spring/DB 없이 판정 로직만 검증한다.
- */
 class ReviewBlindRequestServiceTest {
-
     private static final Long SHOP_ID = 1L;
     private static final Long CEO_ID = 7L;
     private static final Long REVIEWER_MEMBER_ID = 42L;
@@ -110,7 +100,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("1회 제한")
     class OnceOnly {
-
         @Test
         @DisplayName("종결된 요청이 있으면 재신청할 수 없다 — 승인 후")
         void cannotRequestAgainAfterApproved() {
@@ -162,7 +151,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("승인")
     class Approve {
-
         @Test
         @DisplayName("승인하면 재노출 기한이 승인 시각 + 30일로 설정되고 리뷰가 숨겨진다")
         void approveSetsBlindUntilAndHidesReview() {
@@ -199,7 +187,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("고객 삭제 동의")
     class ConsentToDelete {
-
         @Test
         @DisplayName("동의하면 요청이 삭제 처리로 종결되고 리뷰가 삭제된다")
         void consentDeletesReview() {
@@ -271,7 +258,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("만료 재노출")
     class Expire {
-
         @Test
         @DisplayName("만료하면 요청이 재노출 상태가 되고 리뷰 숨김이 풀린다")
         void expireUnhidesReview() {
@@ -317,12 +303,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("요청처리 현황 인덱스 동기화")
     class IndexSync {
-
-        /**
-         * 원본 상태 → 통합 상태 매핑은 컨텍스트 경계 때문에 recorder가 아니라 이 서비스가 소유한다.
-         * 신규 전이 2종이 종결(APPROVED)로 접히는지 봉인한다 — 목록에 "재노출"·"삭제"라는 없는 통합
-         * 상태가 새어 나가면 안 된다.
-         */
         @Test
         @DisplayName("만료 재노출은 통합 현황에서 종결(승인)로 보인다")
         void expiredMapsToApproved() {
@@ -365,7 +345,6 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("증빙 서류 첨부")
     class Attachments {
-
         @Test
         @DisplayName("첨부 파일에 1부터 순번이 부여된다")
         void attachmentsGetSequentialSort() {

@@ -10,11 +10,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
- */
 class PaymentRefundTest {
-
     private static final PaymentId PAYMENT_ID = PaymentId.of(1L);
 
     @Test

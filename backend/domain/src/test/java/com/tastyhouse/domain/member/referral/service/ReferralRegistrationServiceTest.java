@@ -17,16 +17,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 추천인 등록 도메인 서비스 단위 테스트.
- *
- * <p>이 서비스가 <b>더 이상 포인트를 적립하지 않는다</b>는 것이 핵심 검증 대상이다. 적립은 커밋 이후
- * {@code ReferralRegisteredEventListener}가 point 컨텍스트를 경유해 수행하므로, 여기서는 추천 관계가
- * {@code PENDING}으로 남고 등록 이벤트에 <b>식별자가 채워진 채</b> 실리는지를 본다 — 식별자가 없으면
- * 리스너가 보상 완료 전이 대상을 찾지 못한다.
- */
 class ReferralRegistrationServiceTest {
-
     private static final MemberId REFERRER_ID = MemberId.of(101L);
     private static final MemberId REFEREE_ID = MemberId.of(202L);
 
@@ -60,7 +51,7 @@ class ReferralRegistrationServiceTest {
         assertThat(event.referralId().value())
             .as("save 반환값을 재할당하지 않으면 식별자가 비어 리스너가 전이 대상을 찾지 못한다")
             .isNotNull();
-        // 추천인·피추천인이 둘 다 MemberId라 순서를 바꿔도 컴파일된다 — 각각 제 자리인지 확인한다.
+
         assertThat(event.referrerId()).isEqualTo(REFERRER_ID);
         assertThat(event.refereeId()).isEqualTo(REFEREE_ID);
         assertThat(event.registeredAt()).isNotNull();
@@ -94,7 +85,6 @@ class ReferralRegistrationServiceTest {
     }
 
     private static final class DomainEventPublisherStub implements DomainEventPublisher {
-
         private final List<Object> published = new ArrayList<>();
 
         @Override

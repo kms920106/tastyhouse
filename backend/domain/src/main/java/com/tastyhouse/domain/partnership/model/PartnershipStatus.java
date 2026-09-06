@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum PartnershipStatus {
-    PENDING,        // 접수 대기
-    IN_PROGRESS,    // 처리 중
-    COMPLETED;      // 처리 완료
+    PENDING,
+    IN_PROGRESS,
+    COMPLETED;
 
     public static PartnershipStatus from(String code) {
         try {

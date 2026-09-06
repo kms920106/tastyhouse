@@ -37,15 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 주문 옵션 검증의 순수 단위 테스트.
- *
- * <p><b>여기서 막는 것들은 전부 "프론트만 막고 서버는 통과시키던" 결함이다</b> — 필수 옵션그룹을 비운
- * 주문, 숨긴·품절 옵션을 실은 주문. 3단계 보증금이 도입되면 후자는 "보증금 옵션을 숨겨 보증금 없이
- * 주문"하는 경로가 되므로, 이 테스트가 그 우회를 영구히 봉인한다.
- */
 class OrderProductValidationServiceTest {
-
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
     private static final long PRODUCT_ID = 10L;
     private static final long REQUIRED_GROUP = 100L;
@@ -202,10 +194,6 @@ class OrderProductValidationServiceTest {
         assertThat(option.cupCount()).isNull();
     }
 
-    // ---------------------------------------------------------------------
-    // 주문유형별 가격 해석 — 이 규칙이 화면과 어긋나면 전 주문이 금액 대조로 거절된다
-    // ---------------------------------------------------------------------
-
     @Test
     @DisplayName("가격 행이 없는 메뉴는 기존 PRODUCT.original_price로 폴백한다 — 이관 이전 데이터 보존")
     void validate_withoutPriceRow_fallsBackToProductOriginalPrice() {
@@ -278,7 +266,6 @@ class OrderProductValidationServiceTest {
         fixture.addProduct();
         fixture.addPrice(500L, null, 9000, null, 0);
 
-        // 이 메뉴에 속하지 않은 가격 행 id — 금액이 가격 행에서 나오므로 반드시 막아야 한다.
         assertThatThrownBy(() -> fixture.validate(List.of(), 999L, OrderMethod.DELIVERY))
             .isInstanceOf(ResourceNotFoundException.class)
             .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
@@ -298,7 +285,6 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class Fixture {
-
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
@@ -384,7 +370,6 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class MapOptionGroupRepository implements ProductOptionGroupRepository {
-
         private final Map<Long, ProductOptionGroup> groups;
 
         private MapOptionGroupRepository(Map<Long, ProductOptionGroup> groups) {
@@ -412,7 +397,6 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class MapOptionRepository implements ProductOptionRepository {
-
         private final Map<Long, ProductOption> options;
 
         private MapOptionRepository(Map<Long, ProductOption> options) {
@@ -451,9 +435,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    /** 대표 이미지가 없는 상태를 나타내는 스텁 — 이 테스트는 이미지를 검증하지 않는다. */
     private static final class NoImageRepository implements ProductImageRepository {
-
         @Override
         public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
             return null;
@@ -480,9 +462,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    /** 노출기간 설정이 없는 상태 — 항상 노출로 판정된다. */
     private static final class NoExposureHourRepository implements ProductExposureHourRepository {
-
         @Override
         public List<ProductExposureHour> saveAll(List<ProductExposureHour> hours) {
             throw new UnsupportedOperationException();
@@ -499,12 +479,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    /**
-     * 가격 행 저장소 스텁 — 씨드하지 않으면 빈 상태이므로 기존 테스트는 {@code PRODUCT.original_price}
-     * 폴백 경로를 그대로 검증한다(이관 이전 데이터의 동작 보존).
-     */
     private static final class MapProductPriceRepository implements ProductPriceRepository {
-
         private final Map<Long, ProductPrice> prices = new LinkedHashMap<>();
 
         private void seed(ProductPrice price) {

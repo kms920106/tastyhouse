@@ -40,23 +40,14 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 편의정보·편의시설 변경이력 기록 회귀 테스트.
- *
- * <p>이력 기록이 조용히 빠지는 결함(설정은 저장되는데 이력이 없는 부류)을 막는 것이 목적이다. 편의정보는
- * 한 화면 저장이므로 <b>필드 수와 무관하게 1행</b>, 편의시설은 화면에서 하나씩 켜고 끄므로 <b>조작당 1행</b>이다.
- */
 class ShopConvenienceInfoServiceTest {
-
     private static final Long SHOP_ID = 1L;
     private static final Long PARKING_CATEGORY_ID = 11L;
 
     private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
     private ShopConvenienceInfoService shopConvenienceInfoService;
 
-    /** 편의정보 write 포트 fake. 가게당 1건 upsert 시맨틱을 그대로 흉내낸다. */
     private static final class FakeShopConvenienceInfoRepository implements ShopConvenienceInfoRepository {
-
         private final Map<Long, ShopConvenienceInfo> infos = new HashMap<>();
 
         @Override
@@ -71,11 +62,7 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    /**
-     * 이 테스트가 쓰는 편의시설 3개 경로만 구현하고, 나머지는 호출되면 즉시 실패시켜 의도치 않은 의존을 드러낸다.
-     */
     private static final class FakeShopDetailRepository implements ShopDetailRepository {
-
         private final Map<Long, ShopAmenityCategory> categories = new HashMap<>();
         private long sequence = 0L;
 
@@ -99,7 +86,6 @@ class ShopConvenienceInfoServiceTest {
 
         @Override
         public void deleteAmenityByShopIdAndCategoryId(Long shopId, Long shopAmenityCategoryId) {
-            // 이력 기록만 검증하는 테스트이므로 삭제는 no-op으로 둔다.
         }
 
         @Override
@@ -257,9 +243,7 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    /** 표시 위치 반경 검증이 읽는 가게 좌표만 제공하는 fake. */
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {
@@ -289,7 +273,6 @@ class ShopConvenienceInfoServiceTest {
     }
 
     private static final class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

@@ -25,33 +25,9 @@ import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴모음컷 등록·검수·배치 워크플로의 불변식 봉인 테스트.
- *
- * <p>이 서비스의 규칙은 전부 <b>행 하나만 보고는 판정할 수 없는 집합 차원</b>이라, 애그리거트 단위
- * 테스트로는 한 줄도 검증되지 않는다. 그래서 네 가지를 각각 못 박는다.
- *
- * <ul>
- *   <li><b>정원(최대 6개)은 상태를 가리지 않는다</b> — 대기·반려 건도 슬롯을 차지한다. 승인분만 세면
- *       반려된 것을 지우지 않고 계속 올려 검수 큐를 한 가게로 채울 수 있다.</li>
- *   <li><b>하한(최소 1개)은 승인분만 센다</b> — 이 테스트의 최고 가치 지점이다. 전체 건수로 세면
- *       "승인 1 + 반려 1"인 가게에서 승인분 삭제가 통과해(전체가 2건이므로) 손님이 보는 자리가
- *       빈 채로 노출된다. 반려·대기 행은 노출되지 않으므로 하한을 지탱하지 못한다.</li>
- *   <li><b>배치(순서 변경·삭제)는 검수 대상이 아니다</b> — 승인 없이 즉시 반영되고, 반대로
- *       순서를 바꿨다는 이유로 대기 중인 이미지가 노출되어서도 안 된다.</li>
- *   <li><b>순서 변경은 replace-all</b> — 부분·초과·미지의 id 목록은 전부 거절한다. 부분 목록을 받아주면
- *       낡은 화면에서 보낸 요청이 빠진 이미지를 목록 끝으로 밀어내는데, 점주는 순서만 바꿨다고 믿는다.</li>
- * </ul>
- *
- * <p>가게 소유가 아닌 id는 존재를 알리지 않고 {@code SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND}로 합쳐
- * IDOR을 막는다 — 이 경로도 함께 봉인한다.
- */
 class ShopMenuCollectionImageServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final ShopId OTHER_SHOP_ID = ShopId.of(2L);
-
-    // ── 등록 ──────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("등록하면 PENDING 행이 맨 뒤(sort = 현재 개수)에 붙고 손님에게는 아직 노출되지 않는다")
@@ -125,8 +101,6 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThat(fixture.imageRepository.require(imageId).getSort()).isEqualTo(5);
     }
-
-    // ── 삭제 (최소 1개 유지) ────────────────────────────────────────────────────
 
     @Test
     @DisplayName("승인 1 + 반려 1에서 승인분 삭제는 거부된다 — 전체 건수로 세면 통과해 손님 화면이 빈다")
@@ -204,8 +178,6 @@ class ShopMenuCollectionImageServiceTest {
         assertThat(fixture.imageRepository.idsOf(OTHER_SHOP_ID)).containsExactly(20L);
     }
 
-    // ── 순서 변경 ─────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("전체 목록을 순서만 바꿔 보내면 sort가 보낸 순서대로 0..N-1로 다시 매겨진다")
     void reorderRenumbersToRequestedOrder() {
@@ -280,8 +252,6 @@ class ShopMenuCollectionImageServiceTest {
         assertThat(fixture.imageRepository.require(20L).getSort()).isZero();
     }
 
-    // ── 검수 ─────────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("승인하면 APPROVED가 되고 sort는 건드리지 않는다 — 승인만으로 첫 화면 이미지가 바뀌지 않는다")
     void approveFlipsStatusOnly() {
@@ -350,8 +320,6 @@ class ShopMenuCollectionImageServiceTest {
             .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
     }
 
-    // ── 픽스처 ────────────────────────────────────────────────────────────────
-
     private static ShopMenuCollectionImage approved(Long id, int sort) {
         return image(id, SHOP_ID, sort, ApprovalStatus.APPROVED, null);
     }
@@ -399,16 +367,8 @@ class ShopMenuCollectionImageServiceTest {
     ) {
     }
 
-    /**
-     * 메뉴모음컷 write 포트 fake. 신규 저장 시 식별자를 부여하고, 기존 행은 <b>같은 인스턴스를 그대로</b>
-     * 보관한다 — 서비스가 전이 메서드로 바꾼 상태·순서가 저장소에 반영되는 실제 동작과 같아진다.
-     *
-     * <p>{@code findAllByShopId}는 write 포트 계약대로 <b>상태 무관 전량을 sort 오름차순</b>으로 준다.
-     * 여기서 상태로 좁히면 정원·하한 판정이 조용히 다른 전제 위에서 통과한다.
-     */
     private static final class FakeShopMenuCollectionImageRepository
         implements ShopMenuCollectionImageRepository {
-
         private final Map<Long, ShopMenuCollectionImage> images = new LinkedHashMap<>();
         private long sequence = 900L;
 
@@ -432,7 +392,6 @@ class ShopMenuCollectionImageServiceTest {
             return imagesOf(shopId).stream().map(ShopMenuCollectionImage::getId).toList();
         }
 
-        /** id → sort 쌍을 sort 오름차순으로 준다. 재부여 결과를 순서째로 대조하기 위한 것이다. */
         List<Map.Entry<Long, Integer>> sortsOf() {
             return imagesOf(SHOP_ID).stream()
                 .map(image -> Map.entry(image.getId(), image.getSort()))
@@ -486,9 +445,7 @@ class ShopMenuCollectionImageServiceTest {
         }
     }
 
-    /** 가게 존재 검증만 실제로 동작하는 fake. 등록 경로가 가게를 찾을 수 있어야 한다. */
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new LinkedHashMap<>();
 
         private FakeShopRepository() {

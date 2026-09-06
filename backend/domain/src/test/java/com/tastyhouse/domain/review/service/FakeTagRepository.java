@@ -7,11 +7,7 @@ import java.util.Optional;
 import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.domain.shop.repository.TagRepository;
 
-/**
- * 태그 write 포트의 인메모리 fake.
- */
 public class FakeTagRepository implements TagRepository {
-
     private final Map<Long, Tag> tags = new HashMap<>();
     private long sequence = 0L;
 

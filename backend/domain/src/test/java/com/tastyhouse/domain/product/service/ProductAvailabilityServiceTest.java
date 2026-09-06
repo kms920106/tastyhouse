@@ -36,15 +36,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 품절·숨김 부분실패 제약과 기간 검증의 순수 단위 테스트. Spring/DB 없이 스텁만으로 검증한다.
- */
 class ProductAvailabilityServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 17, 12, 0);
-
-    // ── 부분실패 3종 ────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("마지막 노출 메뉴는 숨길 수 없다 — 메뉴판에 최소 1개가 남아야 한다")
@@ -64,7 +58,6 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("마지막 추천 메뉴는 숨길 수 없다 — 추천 메뉴가 최소 1개 남아야 한다")
     void hideProducts_lastRepresentative_rejected() {
-        // 노출 메뉴는 3개라 노출 제약은 통과하고, 추천 메뉴 제약만 걸린다.
         Product representative = product(10L, "대표메뉴", true, true, 1);
         Fixture fixture = Fixture.withProducts(List.of(representative), 3, 1);
 
@@ -81,7 +74,6 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("옵션 품절은 옵션그룹의 minSelect 개수만큼 판매 중인 옵션을 남긴다")
     void markOptionsSoldOut_minSelectViolation_rejectsExcess() {
-        // minSelect=1인 그룹에 판매중 옵션 2개. 둘 다 품절 요청하면 뒤의 1건만 실패한다.
         ProductOption first = option(100L, "곱빼기", 1);
         ProductOption second = option(101L, "치즈추가", 2);
         Fixture fixture = Fixture.withOptions(List.of(first, second), optionGroup(1));
@@ -116,8 +108,6 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("maxSelect도 잔여 하한이 된다 — 최대 3개를 고를 수 있다면 판매중 옵션이 3개 미만이 될 수 없다")
     void markOptionsSoldOut_maxSelectViolation_rejectsExcess() {
-        // maxSelect=3인 그룹에 판매중 옵션 4개. 손님에게 "최대 3개"를 약속했으므로 3개는 남아야 하고,
-        // 4건을 품절 요청하면 1건만 통과한다.
         Fixture fixture = Fixture.withOptions(
             List.of(
                 option(100L, "곱빼기", 1),
@@ -147,9 +137,6 @@ class ProductAvailabilityServiceTest {
     @Test
     @DisplayName("두 제약이 겹칠 때 과잉 거부하지 않는다 — 노출 2개 중 추천이 1개면 실패는 1건이다")
     void hideProducts_overlappingConstraints_doNotOverReject() {
-        // 노출 메뉴 2개(전부 요청 대상), 그중 sort=1인 앞선 메뉴만 추천 메뉴다.
-        // 최종 상태 기준: 하나만 남기면 노출 ≥1과 추천 ≥1을 동시에 만족시킬 수 있다(추천 메뉴를 남기면 된다).
-        // 따라서 실패는 1건이어야 하고, 남는 것은 추천 메뉴여야 한다.
         Product representative = product(10L, "대표메뉴", true, true, 1);
         Product plain = product(11L, "일반메뉴", true, false, 2);
         Fixture fixture = Fixture.withProducts(List.of(representative, plain), 2, 1);
@@ -159,7 +146,7 @@ class ProductAvailabilityServiceTest {
 
         assertThat(result.failed()).hasSize(1);
         assertThat(result.succeeded()).hasSize(1);
-        // 추천 메뉴가 살아남아야 두 제약이 함께 만족된다.
+
         assertThat(representative.isVisible()).isTrue();
         assertThat(plain.isVisible()).isFalse();
     }
@@ -179,24 +166,16 @@ class ProductAvailabilityServiceTest {
         assertThat(failedIds).doesNotHaveDuplicates();
     }
 
-    // ── 순서 무관성 ─────────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("노출 메뉴 2개를 순서를 바꿔 요청해도 같은 결과다 — 최종 상태 기준 판정")
     void hideProducts_isOrderIndependent() {
         List<Long> forwardSucceeded = hideTwoVisible(false);
         List<Long> reverseSucceeded = hideTwoVisible(true);
 
-        // sort 오름차순 뒤에서부터 되돌리므로, 어느 순서로 요청해도 앞선 메뉴(sort=1, id=10)가 실패하지 않는다.
         assertThat(forwardSucceeded).isEqualTo(reverseSucceeded);
         assertThat(forwardSucceeded).containsExactly(10L);
     }
 
-    /**
-     * 노출 메뉴가 정확히 2개인 가게에서 둘 다 숨김 요청한다. 하나는 반드시 남아야 하므로 1건만 성공한다.
-     *
-     * @param reversed 요청 배열의 순서를 뒤집을지 여부
-     */
     private List<Long> hideTwoVisible(boolean reversed) {
         Product first = product(10L, "떡볶이", true, false, 1);
         Product second = product(11L, "튀김", true, false, 2);
@@ -208,8 +187,6 @@ class ProductAvailabilityServiceTest {
 
         return fixture.service.hideProducts(SHOP_ID, ids).succeeded();
     }
-
-    // ── 기간 경계 ───────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("품절 기간은 현재+29분을 거부하고 +30분을 허용한다")
@@ -257,8 +234,6 @@ class ProductAvailabilityServiceTest {
 
         assertThat(target.isSoldOut()).isFalse();
     }
-
-    // ── 전이 규칙 ───────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("품절 해제는 soldOut과 soldOutUntil을 함께 정리한다")
@@ -341,8 +316,6 @@ class ProductAvailabilityServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
-    // ── 픽스처 ─────────────────────────────────────────────────────────────────────
-
     private static Product product(Long id, String name, boolean visible, boolean representative, int sort) {
         return Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), name, "설명", 10000,
@@ -364,14 +337,6 @@ class ProductAvailabilityServiceTest {
             id, ProductOptionGroupId.of(30L), name, 0, sort, false, null, true);
     }
 
-    /**
-     * {@code minSelect} 축만 검증하는 픽스처.
-     *
-     * <p>{@code maxSelect}를 {@code null}로 둔다 — 잔여 하한이
-     * {@code max(minSelect, maxSelect, 1)}이므로(ProductOptionSelectionRule), 값을 넣으면 그 축이 함께
-     * 걸려 어느 제약 때문에 실패했는지 알 수 없게 된다. {@code maxSelect} 축은
-     * {@link #optionGroup(Integer, Integer)}를 쓰는 전용 테스트가 따로 검증한다.
-     */
     private static ProductOptionGroup optionGroup(Integer minSelect) {
         return optionGroup(minSelect, null);
     }
@@ -384,16 +349,11 @@ class ProductAvailabilityServiceTest {
     }
 
     private static ProductCommonOptionGroup commonOptionGroup() {
-        // 위 optionGroup(Integer)와 같은 이유로 maxSelect를 null로 둔다(minSelect 축만 검증).
         return ProductCommonOptionGroup.reconstitute(
             30L, ProductId.of(500L), "공통그룹", "설명", true, false, 1, null, 1, true);
     }
 
-    /**
-     * 도메인 서비스와 스텁 리포지토리를 조립하는 픽스처.
-     */
     private static final class Fixture {
-
         private final ProductAvailabilityService service;
 
         private Fixture(
@@ -405,13 +365,9 @@ class ProductAvailabilityServiceTest {
             List<ProductOptionGroup> optionGroups,
             List<ProductCommonOptionGroup> commonOptionGroups
         ) {
-            // 옵션 소유권 역조회를 위해 옵션그룹이 가리키는 상품(id=500)을 항상 이 가게 소유로 둔다.
             List<Product> owned = new ArrayList<>(products);
             owned.add(product(500L, "옵션소유상품", true, false, 99));
 
-            // 소유권 판정이 "그룹 → 링크 → 메뉴 → 가게"로 바뀌었으므로, 각 옵션그룹을 그 소유 상품
-            // (id=500)에 연결하는 링크 행을 함께 제공한다. 링크가 없는 그룹은 소유 가게를 알 수 없어
-            // PRODUCT_NOT_FOUND로 실패하는데, 그것이 "남의 가게 옵션은 실패한다"의 새 판정 경로다.
             List<ProductOptionGroupLink> optionGroupLinks = optionGroups.stream()
                 .map(group -> ProductOptionGroupLink.reconstitute(
                     group.getId(), ProductId.of(500L), ProductOptionGroupId.of(group.getId()), 1))
@@ -458,7 +414,6 @@ class ProductAvailabilityServiceTest {
         long visibleCount,
         long visibleRepresentativeCount
     ) implements ProductRepository {
-
         @Override
         public Optional<Product> findById(ProductId id) {
             return products.stream().filter(product -> product.getId().equals(id.value())).findFirst();
@@ -485,10 +440,6 @@ class ProductAvailabilityServiceTest {
             return visibleRepresentativeCount;
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
@@ -499,7 +450,6 @@ class ProductAvailabilityServiceTest {
             return List.of();
         }
 
-        /** 이 스텁은 삭제 상태를 다루지 않으므로 findById와 같은 집합을 돌려준다. */
         @Override
         public Optional<Product> findByIdIncludingDeleted(ProductId id) {
             return findById(id);
@@ -529,7 +479,6 @@ class ProductAvailabilityServiceTest {
     }
 
     private record ProductOptionRepositoryStub(List<ProductOption> options) implements ProductOptionRepository {
-
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -562,7 +511,6 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionRepositoryStub(
         List<ProductCommonOption> options
     ) implements ProductCommonOptionRepository {
-
         @Override
         public Optional<ProductCommonOption> findById(ProductCommonOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -595,7 +543,6 @@ class ProductAvailabilityServiceTest {
     private record ProductOptionGroupRepositoryStub(
         List<ProductOptionGroup> groups
     ) implements ProductOptionGroupRepository {
-
         @Override
         public Optional<ProductOptionGroup> findById(ProductOptionGroupId id) {
             return groups.stream().filter(group -> group.getId().equals(id.value())).findFirst();
@@ -616,7 +563,6 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionGroupRepositoryStub(
         List<ProductCommonOptionGroup> groups
     ) implements ProductCommonOptionGroupRepository {
-
         @Override
         public ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup) {
             return productCommonOptionGroup;
@@ -632,7 +578,6 @@ class ProductAvailabilityServiceTest {
     private record ProductOptionGroupLinkRepositoryStub(
         List<ProductOptionGroupLink> links
     ) implements ProductOptionGroupLinkRepository {
-
         @Override
         public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
             return links.stream()
@@ -684,7 +629,6 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionGroupLinkRepositoryStub(
         List<ProductCommonOptionGroupLink> links
     ) implements ProductCommonOptionGroupLinkRepository {
-
         @Override
         public List<ProductCommonOptionGroupLink> findAllByOptionGroupIdIn(
             List<ProductOptionGroupId> optionGroupIds

@@ -16,23 +16,14 @@ import com.tastyhouse.domain.holiday.repository.PublicHolidayRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 법정 공휴일 판정 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 조회 포트를 손으로 만든 fake로 대체해 검증한다(domain에는 Mockito 의존이 없다).
- */
 class PublicHolidayCalendarTest {
-
-    /** 2026-08-02는 평범한 일요일이다(법정공휴일 아님). */
     private static final LocalDate PLAIN_SUNDAY = LocalDate.of(2026, 8, 2);
 
-    /** 2026-03-01 삼일절은 일요일과 겹치는 법정공휴일이다. */
     private static final LocalDate HOLIDAY_ON_SUNDAY = LocalDate.of(2026, 3, 1);
 
     @Nested
     @DisplayName("isPublicHoliday - 일요일 규칙")
     class SundayRule {
-
         @Test
         @DisplayName("캘린더가 일요일 자체를 담지 않는다는 데이터 규칙 덕에, 평범한 일요일은 공휴일이 아니다(공휴일 배달팁 미부과)")
         void isPublicHoliday_falseForPlainSunday() {
@@ -55,7 +46,6 @@ class PublicHolidayCalendarTest {
     @Nested
     @DisplayName("isPublicHoliday - 기타")
     class IsPublicHoliday {
-
         @Test
         @DisplayName("캘린더에 있는 평일 공휴일은 true다")
         void isPublicHoliday_trueForWeekdayHoliday() {
@@ -77,7 +67,6 @@ class PublicHolidayCalendarTest {
     @Nested
     @DisplayName("findBetween")
     class FindBetween {
-
         @Test
         @DisplayName("구간 안의 공휴일 날짜 집합을 돌려준다(양끝 포함)")
         void findBetween_returnsHolidaysInRange() {
@@ -116,12 +105,11 @@ class PublicHolidayCalendarTest {
     }
 
     private static final class PublicHolidayRepositoryFake implements PublicHolidayRepository {
-
         private final Map<LocalDate, PublicHoliday> holidays = new LinkedHashMap<>();
         private long sequence = 0L;
 
         void add(LocalDate holidayDate) {
-            holidays.put(holidayDate, PublicHoliday.reconstitute(++sequence, holidayDate, "공휴일", false));
+            holidays.put(holidayDate, PublicHoliday.reconstitute(++sequence, holidayDate, "공휴일"));
         }
 
         @Override

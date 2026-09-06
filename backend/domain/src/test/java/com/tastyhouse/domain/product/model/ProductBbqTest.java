@@ -8,11 +8,7 @@ import com.tastyhouse.domain.product.vo.BbqCategoryId;
 import com.tastyhouse.domain.product.vo.BbqMenuId;
 import com.tastyhouse.domain.product.vo.ProductId;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
- */
 class ProductBbqTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 옵션 미동기화 상태다")
     void of_createsTransientProductBbq() {

@@ -22,12 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class ShopTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 폐업하지 않은 상태다")
     void of_createsTransientShop() {
@@ -171,7 +166,6 @@ class ShopTest {
     @Nested
     @DisplayName("폐업 가드")
     class PermanentClosureGuard {
-
         private Shop openShop() {
             return Shop.of(
                 StationId.of(1L),
@@ -222,7 +216,6 @@ class ShopTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
 
-            // 거부된 update는 기존 상태를 바꾸지 않는다
             assertThat(shop.getName()).isEqualTo("상점명");
         }
 
@@ -255,7 +248,6 @@ class ShopTest {
     @Nested
     @DisplayName("최소주문금액")
     class MinOrderAmount {
-
         private Shop shop() {
             return Shop.of(
                 StationId.of(1L),
@@ -303,7 +295,6 @@ class ShopTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
 
-            // 거부된 변경은 기존 값을 바꾸지 않는다
             assertThat(shop.getMinOrderAmount()).isEqualTo(Shop.MIN_ORDER_AMOUNT_UNSET);
         }
 
@@ -401,5 +392,4 @@ class ShopTest {
         assertThatThrownBy(() -> shop.changeCupDepositEnabled(true))
             .isInstanceOf(BusinessException.class);
     }
-
 }

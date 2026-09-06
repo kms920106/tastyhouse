@@ -25,15 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
-/**
- * 가게 담당 점주 배정·해제 상태 규칙 봉인 테스트.
- *
- * <p>{@code ShopCeoAssignmentService} Javadoc의 상태 규칙 표 전체를 항목별로 검증한다. 특히
- * <b>재배정이 {@code REVOKE}+{@code GRANT} 2행</b>인 것을 봉인한다 — 한 행에 before/after를 담는
- * 형태로 되돌아가면 "언제부터 언제까지 권한이 있었는가"를 읽을 수 없게 된다.
- */
 class ShopCeoAssignmentServiceTest {
-
     private static final Long SHOP_ID = 12L;
     private static final Long CEO_A = 7L;
     private static final Long CEO_B = 8L;
@@ -149,9 +141,7 @@ class ShopCeoAssignmentServiceTest {
         assertThat(historyRepository.saved()).isEmpty();
     }
 
-    /** 가게 write 포트 fake. 점주 미배정 상태로 시작한다. */
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {
@@ -163,7 +153,6 @@ class ShopCeoAssignmentServiceTest {
             ));
         }
 
-        /** 테스트 착수 상태를 만든다 — 이미 {@link ShopCeoAssignmentServiceTest#CEO_A}가 배정된 가게. */
         void assignCeoA() {
             shops.get(SHOP_ID).assignCeo(CeoId.of(CEO_A));
         }
@@ -189,9 +178,7 @@ class ShopCeoAssignmentServiceTest {
         }
     }
 
-    /** 점주 write 포트 fake. {@link #CEO_A}·{@link #CEO_B}만 실재한다. */
     private static final class FakeCeoRepository implements CeoRepository {
-
         private final Map<Long, Ceo> ceos = new HashMap<>();
 
         FakeCeoRepository() {

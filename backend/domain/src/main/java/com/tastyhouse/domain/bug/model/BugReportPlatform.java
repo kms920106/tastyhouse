@@ -4,9 +4,8 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum BugReportPlatform {
-
-    IOS,      // iOS
-    ANDROID;  // Android
+    IOS,
+    ANDROID;
 
     public static BugReportPlatform from(String code) {
         try {

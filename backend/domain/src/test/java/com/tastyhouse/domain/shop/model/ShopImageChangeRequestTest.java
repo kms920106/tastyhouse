@@ -13,12 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class ShopImageChangeRequestTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 PENDING 상태다")
     void of_createsTransientShopImageChangeRequest() {

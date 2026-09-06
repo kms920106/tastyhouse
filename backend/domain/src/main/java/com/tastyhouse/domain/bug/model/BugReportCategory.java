@@ -4,14 +4,13 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum BugReportCategory {
-
-    PAYMENT,      // 결제
-    LOGIN,        // 로그인/인증
-    ORDER,        // 주문
-    RESERVATION,  // 예약
-    UI,           // 화면/UI
-    PERFORMANCE,  // 성능/속도
-    ETC;          // 기타
+    PAYMENT,
+    LOGIN,
+    ORDER,
+    RESERVATION,
+    UI,
+    PERFORMANCE,
+    ETC;
 
     public static BugReportCategory from(String code) {
         try {

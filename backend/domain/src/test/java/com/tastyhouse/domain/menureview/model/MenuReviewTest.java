@@ -17,14 +17,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 평가 도메인 모델 순수 단위 테스트.
- *
- * <p>평점 범위 검증이 <b>팩토리와 전이 양쪽</b>에 걸려 있는지가 핵심이다 — 생성만 막고 수정을 열어두면
- * 같은 위반 값이 곧바로 뒷문으로 들어온다.
- */
 class MenuReviewTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 숨김 처리되지 않은 상태다")
     void of_createsTransientMenuReview() {

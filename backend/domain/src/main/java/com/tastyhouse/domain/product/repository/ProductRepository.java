@@ -9,82 +9,28 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 상품 write 포트.
- *
- * <p>표현 목적 조회(목록·검색·상세 투영)는 infrastructure-module의 {@code ProductQueryDao}가 담당하고,
- * 이 포트에는 command 경로·도메인 서비스가 불변식 검증과 상태 전이를 위해 쓰는 단건 로드·저장만 남긴다.
- */
 public interface ProductRepository {
-
     Optional<Product> findById(ProductId id);
 
     Product save(Product product);
 
-    /**
-     * 일괄 품절·숨김 처리 대상을 한 번에 로드한다. 소유 가게가 다른 id는 결과에 담기지 않으므로
-     * 호출부가 요청 id와 대조해 소유권 위반·미존재를 함께 판정할 수 있다.
-     *
-     * <p>이 조회가 write 포트에 있는 이유는 부분실패 제약 검증(노출 메뉴 ≥1 · 추천 메뉴 ≥1)이
-     * 애그리거트 불변식이고, 이 로드 없이는 그 검증과 상태 전이가 불가능하기 때문이다.
-     */
     List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids);
 
-    /**
-     * 가게의 현재 노출 메뉴 수. 숨김 처리 후에도 메뉴판에 최소 1개가 남는지 판정하는 데 쓴다.
-     */
     long countVisibleByShopId(ShopId shopId);
 
-    /**
-     * 가게의 현재 노출 중인 사장님 추천 메뉴 수. 추천 메뉴가 0개가 되는 숨김을 막는 데 쓴다.
-     */
     long countVisibleRepresentativeByShopId(ShopId shopId);
 
-    /**
-     * 노출 여부와 무관하게 이 가게의 대표 메뉴 수를 센다(삭제분만 제외).
-     *
-     * <p>{@link #countVisibleRepresentativeByShopId}와 나누어 두는 이유는 두 불변식이 보는 집합이
-     * 다르기 때문이다 — "최소 1개 노출" 하한은 손님에게 보이는 것만 세야 하지만, <b>최대 6개 상한은
-     * 숨김 상태까지 세야 한다.</b> 숨김을 빼고 세면 점주가 6개를 채운 뒤 3개를 숨기고 3개를 더
-     * 승인받아, 숨김을 해제하는 순간 9개가 손님 화면에 나타난다.
-     */
     long countRepresentativeByShopId(ShopId shopId);
 
-    /**
-     * 자동해제 시각이 지난 품절 상품을 조회한다({@code soldOut = true} 이고
-     * {@code soldOutUntil <= 기준시각}). 품절 자동해제 배치가 대상을 뽑는 데 쓴다.
-     */
     List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime);
 
-    /**
-     * 메뉴명 중복 검사. 같은 가게 안에서 메뉴명은 유일해야 한다.
-     *
-     * <p>불변식 검증이므로 화면용 집계가 아니라 이 포트에 남는다. 삭제된 메뉴는 제외한다 —
-     * 지운 메뉴의 이름을 영원히 못 쓰게 하는 것이 사용자 의도와 어긋난다.
-     */
     boolean existsByShopIdAndName(ShopId shopId, String name);
 
-    /** 이름 변경 시의 중복 검사 — 자기 자신은 제외한다. */
     boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId);
 
-    /**
-     * 메뉴그룹(미분류 포함)에 속한 메뉴를 {@code sort} 오름차순으로 로드한다. 재정렬·그룹 이동의
-     * 대상 집합을 만드는 데 쓴다.
-     *
-     * <p><b>{@code productCategoryId}가 {@code null}이면 미분류 메뉴</b>를 뜻하며, 구현은
-     * {@code eq(null)}이 아니라 {@code isNull()}로 조회해야 한다 — QueryDSL은 {@code eq(null)}이면
-     * 조건을 통째로 무시해 가게의 모든 메뉴가 대상이 된다.
-     */
     List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId);
 
-    /** 메뉴그룹에 속한 (삭제되지 않은) 메뉴 수. 메뉴그룹 삭제 가능 여부 판정에 쓴다. */
     long countByCategoryId(ProductCategoryId productCategoryId);
 
-    /**
-     * 삭제 대상을 필터 없는 <b>순수 PK 조회</b>로 로드한다.
-     *
-     * <p>{@link #findById}를 재사용하면 그쪽이 {@code deleted} 필터를 갖고 있어 삭제가 영원히
-     * 실패한다({@code RankPeriodRepositoryImpl#delete} 선례). 그래서 별도 메서드로 둔다.
-     */
     Optional<Product> findByIdIncludingDeleted(ProductId id);
 }

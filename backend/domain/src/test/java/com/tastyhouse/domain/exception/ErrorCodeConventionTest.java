@@ -12,20 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link ErrorCode} 카탈로그의 규약을 강제하는 가드 테스트.
- *
- * <p>이 enum은 228개가 넘는 상수를 담은 단일 카탈로그이고 상태코드가 상수별 수작업으로 지정되므로,
- * 신규 상수를 추가할 때 이름과 HTTP 상태가 어긋나는 것을 사람 눈으로 잡기 어렵다. 이 테스트가 그 규약을 대신 지킨다.
- */
 class ErrorCodeConventionTest {
-
-    /**
-     * 이름은 {@code *_NOT_FOUND}인데 404가 아닌 기존 상수들.
-     *
-     * <p>이 값들은 이미 프론트엔드가 분기하는 wire 계약(응답 status + code)이므로 지금 고치면 클라이언트가 깨진다.
-     * 따라서 교정 대상이 아니라 <b>봉인 대상</b>이다. 여기에 새 항목을 추가하지 말고, 신규 상수는 규약을 지킨다.
-     */
     private static final Set<ErrorCode> NOT_FOUND_NAME_WITH_NON_404_STATUS = EnumSet.of(
         ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND,
         ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND,
@@ -33,14 +20,6 @@ class ErrorCodeConventionTest {
         ErrorCode.FOLLOW_NOT_FOUND
     );
 
-    /**
-     * 상수명과 응답 {@code code}가 의도적으로 다른 상수들.
-     *
-     * <p>채널 도메인 어휘 통일(mail/sms)로 상수명은 {@code SMS_}·{@code MAIL_} 접두어로 대칭화했지만,
-     * 응답 {@code code} 문자열은 프론트가 분기하는 wire 계약이라 예전 값({@code VERIFICATION_CODE_*}·
-     * {@code EMAIL_VERIFICATION_CODE_*})을 유지했다. 루트 {@code CLAUDE.md}의
-     * "채널 도메인 어휘 통일 규칙"에 명시된 의도적 불일치이므로 교정 대상이 아니다.
-     */
     private static final Set<ErrorCode> CODE_INTENTIONALLY_DIFFERS_FROM_NAME = EnumSet.of(
         ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND,
         ErrorCode.SMS_VERIFICATION_CODE_EXPIRED,

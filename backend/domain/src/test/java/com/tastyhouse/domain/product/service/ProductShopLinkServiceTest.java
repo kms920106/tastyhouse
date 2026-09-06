@@ -21,15 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 ↔ 가게 연결 불변식의 순수 단위 테스트.
- *
- * <p><b>이 설계의 안전장치가 "링크가 1개인 메뉴는 동작이 완전히 그대로"라는 것</b>이므로, 최소 1개
- * 유지·메뉴그룹 소속 대조·본인 소유 가게 제한 세 규칙을 못 박는다. 하나라도 뚫리면 메뉴가 어느
- * 메뉴판에도 없는 유령이 되거나, 남의 가게 메뉴판을 조작할 수 있게 된다.
- */
 class ProductShopLinkServiceTest {
-
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final ShopId OWNER_SHOP = ShopId.of(10L);
     private static final ShopId OTHER_OWNED_SHOP = ShopId.of(20L);
@@ -51,7 +43,7 @@ class ProductShopLinkServiceTest {
         service = new ProductShopLinkService(productRepository, linkRepository, categoryRepository);
 
         productRepository.given(visibleProduct());
-        // 메뉴판이 비지 않도록 넉넉히 둔다 — 노출 개수 제약은 별도 테스트에서 따로 검증한다.
+
         productRepository.givenVisibleCount(OWNER_SHOP, 5L);
         productRepository.givenVisibleCount(OTHER_OWNED_SHOP, 5L);
 
@@ -75,7 +67,6 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("연결 전체 교체")
     class ReplaceLinks {
-
         @Test
         @DisplayName("빈 목록은 거절한다 — 링크가 0개면 어느 메뉴판에도 없는 유령 메뉴가 된다")
         void emptyLinks_rejected() {
@@ -174,7 +165,6 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("가게 기준 불러오기·제외")
     class LinkAndUnlink {
-
         @Test
         @DisplayName("이미 연결된 가게는 거절한다 — 조용히 통과시키면 메뉴그룹이 이전 값 그대로여서 결과가 어긋난다")
         void alreadyLinked_rejected() {
@@ -234,11 +224,6 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("메뉴 등록 시 추가 연결")
     class CreateInitialLinks {
-
-        /**
-         * 원본 가게 링크는 {@code ProductRegistrationService}가 저장과 같은 자리에서 이미 만든다.
-         * 등록 직후 상태를 재현하기 위해 미리 심어 둔다.
-         */
         @BeforeEach
         void givenOwnerLinkCreatedAtRegistration() {
             linkRepository.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);

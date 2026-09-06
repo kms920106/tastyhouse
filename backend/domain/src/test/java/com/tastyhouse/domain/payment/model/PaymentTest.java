@@ -13,12 +13,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class PaymentTest {
-
     private static final OrderId ORDER_ID = OrderId.of(1L);
 
     private Payment newPayment() {

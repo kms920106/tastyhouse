@@ -25,27 +25,14 @@ import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 자주 쓰는 문구 불변식 단위 테스트. write 포트와 금칙어 포트를 fake로 대체해 Spring/DB 없이 판정
- * 로직만 검증한다.
- */
 class CeoReplyPhraseServiceTest {
-
     private static final Long OWNER_CEO_ID = 1L;
     private static final Long OTHER_CEO_ID = 2L;
 
     private FakeCeoReplyPhraseRepository ceoReplyPhraseRepository;
     private CeoReplyPhraseService ceoReplyPhraseService;
 
-    /**
-     * 자주 쓰는 문구 write 포트의 인메모리 fake.
-     *
-     * <p>{@code save}가 신규 저장 시 <b>새 인스턴스를 반환</b>하는 것까지 실제 어댑터와 같게 재현한다 —
-     * fake가 in-place로 id를 채우면 "반환값을 재할당하지 않아 식별자가 없는 채로 이어지는" 결함이 테스트에
-     * 드러나지 않는다.
-     */
     private static class FakeCeoReplyPhraseRepository implements CeoReplyPhraseRepository {
-
         private final Map<Long, CeoReplyPhrase> phrases = new HashMap<>();
         private long sequence = 0L;
 
@@ -99,11 +86,7 @@ class CeoReplyPhraseServiceTest {
         }
     }
 
-    /**
-     * 금칙어 테이블을 대신하는 fake. 시드와 동일하게 "전화주문" 하나만 담는다.
-     */
     private static class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));
@@ -113,8 +96,7 @@ class CeoReplyPhraseServiceTest {
     @BeforeEach
     void setUp() {
         ceoReplyPhraseRepository = new FakeCeoReplyPhraseRepository();
-        // 검수 포트에 실제 ProhibitedWordValidator를 물려, 운영과 같은 판정 규칙을 태운다 — 포트를
-        // 무조건 통과하는 스텁으로 바꾸면 "금칙어가 실제로 걸리는가"를 검증하지 못한다.
+
         ReplyPhraseTextValidator replyPhraseTextValidator =
             new ProhibitedWordValidator(new FakeProhibitedWordRepository())::validate;
         ceoReplyPhraseService = new CeoReplyPhraseService(

@@ -16,14 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-/**
- * 게시중단 요청 애그리거트의 상태 전이 규칙.
- *
- * <p>{@code blindUntil}을 파라미터로 받게 설계했으므로 <b>과거 시각을 주입해 만료를 즉시 재현</b>할 수
- * 있다 — cron을 기다리거나 시계를 조작할 필요가 없다.
- */
 class ReviewBlindRequestTest {
-
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 17, 10, 0);
 
     private ReviewBlindRequest pendingRequest() {
@@ -45,7 +38,6 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("승인")
     class Approve {
-
         @Test
         @DisplayName("승인하면 게시중단 상태가 되고 재노출 기한이 설정된다")
         void approveSetsBlindUntil() {
@@ -77,7 +69,6 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("만료 재노출")
     class Expire {
-
         @Test
         @DisplayName("게시중단 상태에서 만료하면 재노출 상태가 되고 기한이 비워진다")
         void expireClearsBlindUntil() {
@@ -113,7 +104,6 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("고객 동의 삭제")
     class DeleteByConsent {
-
         @Test
         @DisplayName("게시중단 상태에서 동의하면 삭제 상태가 되고 기한이 비워진다")
         void deleteByConsentClearsBlindUntil() {
@@ -151,7 +141,6 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("취소")
     class Cancel {
-
         @Test
         @DisplayName("승인된 요청은 취소할 수 없다")
         void cannotCancelWhenApproved() {

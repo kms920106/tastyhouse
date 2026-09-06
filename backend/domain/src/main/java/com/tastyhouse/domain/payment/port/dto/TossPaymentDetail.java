@@ -2,11 +2,6 @@ package com.tastyhouse.domain.payment.port.dto;
 
 import java.time.LocalDateTime;
 
-/**
- * 거래 기록(TossPaymentRecord) 저장에 필요한 PG 원본 상세 데이터.
- * core가 external DTO에 의존하지 않도록 표준 타입의 평면 필드로 구성한다.
- * paymentId는 core가 이미 보유하므로 포함하지 않는다.
- */
 public record TossPaymentDetail(
     String version,
     String paymentKey,

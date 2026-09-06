@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 class ShopBusinessHourTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태다")
     void of_createsTransientBusinessHour() {
@@ -139,7 +138,6 @@ class ShopBusinessHourTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
 
-        // 실패한 update는 기존 상태를 바꾸지 않는다
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 0));
     }
 
@@ -157,7 +155,6 @@ class ShopBusinessHourTest {
     @Nested
     @DisplayName("isOpenAt — 영업 중 판정")
     class IsOpenAt {
-
         private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
             return ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, open, close, isClosed, is24Hours);
         }
@@ -233,7 +230,6 @@ class ShopBusinessHourTest {
     @Nested
     @DisplayName("extendsIntoNextDayAt — 전일 자정 넘김 연장 판정")
     class ExtendsIntoNextDayAt {
-
         private ShopBusinessHour hour(LocalTime open, LocalTime close, Boolean isClosed, Boolean is24Hours) {
             return ShopBusinessHour.reconstitute(1L, ShopId.of(1L), DayType.DAILY, open, close, isClosed, is24Hours);
         }

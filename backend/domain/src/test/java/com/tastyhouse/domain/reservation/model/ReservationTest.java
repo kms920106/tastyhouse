@@ -16,12 +16,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다
- * (도메인/JPA 엔티티 분리로 얻는 테스트 용이성의 레퍼런스).
- */
 class ReservationTest {
-
     private static final MemberId MEMBER_ID = MemberId.of(1L);
     private static final ShopId SHOP_ID = ShopId.of(10L);
     private static final LocalDate DATE = LocalDate.of(2026, 8, 1);
@@ -201,7 +196,7 @@ class ReservationTest {
 
     @Test
     @DisplayName("of는 인원수가 0·음수·null이면 RESERVATION_PARTY_SIZE_INVALID로 거부한다")
-    @SuppressWarnings("DataFlowIssue") // null partySize 호출이 항상 실패하는 것이 이 테스트의 검증 대상이다
+    @SuppressWarnings("DataFlowIssue")
     void of_invalidPartySize_throws() {
         assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, 0, null))
             .isInstanceOf(BusinessException.class)

@@ -23,15 +23,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 주문 상태전이 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트를 손으로 만든 스텁으로 대체해 검증한다.
- * 특히 <b>상태 전이 후 명시적 save 호출</b>(순수 POJO 도메인 모델은 더티 체킹이 없다)을 확인한다 —
- * 이 저장이 빠지면 결제 승인·취소가 주문에 반영되지 않고 조용히 유실된다.
- */
 class OrderTransitionServiceTest {
-
     private static final Long ORDER_ID = 42L;
     private static final Long MEMBER_ID = 7L;
     private static final Long OTHER_MEMBER_ID = 8L;
@@ -103,7 +95,6 @@ class OrderTransitionServiceTest {
     void changeStatus_invalidTransition_throwsAndDoesNotSave() {
         Fixture fixture = new Fixture();
 
-        // PENDING -> COMPLETED 는 단계 건너뛰기라 허용하지 않는다
         assertThatThrownBy(() -> fixture.service.changeStatus(OrderId.of(ORDER_ID), OrderStatus.COMPLETED))
             .isInstanceOf(BusinessException.class);
 
@@ -176,7 +167,6 @@ class OrderTransitionServiceTest {
     }
 
     private static final class Fixture {
-
         private final StubOrderRepository orderRepository = new StubOrderRepository();
         private final OrderTransitionService service = new OrderTransitionService(orderRepository);
 
@@ -204,7 +194,6 @@ class OrderTransitionServiceTest {
     }
 
     private static final class StubOrderRepository implements OrderRepository {
-
         private Order stored;
         private final List<Order> saved = new ArrayList<>();
 

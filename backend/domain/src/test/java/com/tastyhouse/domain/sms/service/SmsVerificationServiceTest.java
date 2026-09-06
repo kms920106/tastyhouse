@@ -18,16 +18,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * SMS 인증 도메인 서비스 단위 테스트.
- *
- * <p><b>이 테스트의 존재 이유</b>: 과거 발송 책임이 호출부에 흩어져 있어 인증코드 발송 API가 코드를
- * 저장만 하고 실제로 발송하지 않는 버그가 있었다({@code SmsSender}는 프로덕션에서 호출조차 되지
- * 않는 죽은 포트였다). {@code issue}가 발송까지 수행하는지를 여기서 검증하므로 그 회귀가 CI에서
- * 잡힌다. Spring 컨텍스트 없이 fake 포트만으로 검증된다(도메인 프레임워크-프리의 이점).
- */
 class SmsVerificationServiceTest {
-
     @Test
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 SMS를 발송한다")
     void issue_sendsSmsWithGeneratedCode() {
@@ -97,11 +88,10 @@ class SmsVerificationServiceTest {
         service.confirm("01012345678", issued.getVerificationCode().value());
 
         assertThat(published).hasSize(1);
-        assertThat(repository.saved).hasSize(2); // issue 1건 + confirm 1건
+        assertThat(repository.saved).hasSize(2);
     }
 
     private static final class RecordingSmsSender implements SmsSender {
-
         private final List<String> sent = new ArrayList<>();
         private String lastTo;
         private String lastContent;
@@ -119,7 +109,6 @@ class SmsVerificationServiceTest {
     }
 
     private static final class FakeSmsVerificationRepository implements SmsVerificationRepository {
-
         private final List<SmsVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();
         private SmsVerification pending;
@@ -132,7 +121,7 @@ class SmsVerificationServiceTest {
             if (smsVerification.getId() != null) {
                 return smsVerification;
             }
-            // 저장 시 식별자가 부여되는 것을 모사한다.
+
             return SmsVerification.reconstitute(
                 sequence++,
                 smsVerification.getPhoneNumber(),

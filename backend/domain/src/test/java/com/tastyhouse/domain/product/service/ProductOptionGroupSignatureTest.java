@@ -13,14 +13,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 옵션그룹 동일성 서명의 순수 단위 테스트.
- *
- * <p>이 서명이 흔들리면 <b>점주가 [X]로 제외한 묶음이 다시 추천되거나, 반대로 엉뚱한 묶음이 영구히
- * 숨는다.</b> 서명은 저장되는 값이므로 계산 규칙이 바뀌면 과거 제외 기록이 통째로 무효가 된다.
- */
 class ProductOptionGroupSignatureTest {
-
     @Test
     @DisplayName("★ 옵션 정렬 순서(sort)가 달라도 같은 서명이 나온다 — 진열 순서는 동일성과 무관하다")
     void signature_ignoresOptionSort() {

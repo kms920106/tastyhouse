@@ -4,16 +4,8 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
-/**
- * 토스페이먼츠 결제 원장(raw) 순수 도메인 모델.
- *
- * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
- * {@code TossPaymentRecordJpaEntity} + {@code TossPaymentRecordMapper}가 담당한다. 상태전이
- * 메서드가 없는 insert 전용 레코드이므로 신규 생성 시에도 감사 시각을 요구하지 않는다.
- */
 public class TossPaymentRecord {
-
-    private final Long id; // null이면 아직 영속되지 않은 신규 상태
+    private final Long id;
     private final PaymentId paymentId;
     private final String version;
     private final String paymentKey;
@@ -69,7 +61,7 @@ public class TossPaymentRecord {
     private final String country;
     private final String failureCode;
     private final String failureMessage;
-    private final LocalDateTime createdAt; // DB 재구성 시에만 값 존재 (신규 생성 시 null)
+    private final LocalDateTime createdAt;
 
     private TossPaymentRecord(
         Long id, PaymentId paymentId, String version, String paymentKey, String type,
@@ -152,9 +144,6 @@ public class TossPaymentRecord {
         this.createdAt = createdAt;
     }
 
-    /**
-     * 신규 토스 결제 원장을 생성한다. 아직 영속되지 않았으므로 식별자·감사 시각은 없다.
-     */
     public static TossPaymentRecord create(
         PaymentId paymentId, String version, String paymentKey, String type,
         String orderId, String orderName, String mId, String currency,
@@ -190,10 +179,6 @@ public class TossPaymentRecord {
         );
     }
 
-    /**
-     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이며,
-     * 불변식을 우회한 임의 생성을 막기 위해 이 팩토리로만 식별자·감사 시각을 주입한다.
-     */
     public static TossPaymentRecord reconstitute(
         Long id, PaymentId paymentId, String version, String paymentKey, String type,
         String orderId, String orderName, String mId, String currency,

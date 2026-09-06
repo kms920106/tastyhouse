@@ -17,19 +17,12 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 시간별 추가 배달팁 한 행의 값 불변식·시간 포함 판정 단위 테스트.
- *
- * <p>같은 요일 구분끼리의 시간대 겹침(집합 관계)은 {@code ShopDeliveryTipService}가 담당한다.
- */
 class ShopDeliveryTipScheduleTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Nested
     @DisplayName("covers - 자정 넘김 구간")
     class CoversOvernight {
-
         @Test
         @DisplayName("22:00~02:00 구간은 23:00과 01:00을 포함하고 03:00·21:00은 포함하지 않는다")
         void covers_overnightRange() {
@@ -45,7 +38,6 @@ class ShopDeliveryTipScheduleTest {
     @Nested
     @DisplayName("covers - 일반 구간")
     class CoversNormal {
-
         @Test
         @DisplayName("반열림 구간 [시작, 종료)이라 시작 시각은 포함하고 종료 시각은 포함하지 않는다")
         void covers_halfOpenRange() {
@@ -61,7 +53,6 @@ class ShopDeliveryTipScheduleTest {
     @Nested
     @DisplayName("covers - dayType 위임")
     class CoversDayType {
-
         @Test
         @DisplayName("MONDAY 행은 월요일에만 적용되고 화요일에는 적용되지 않는다(DayType.appliesTo에 위임)")
         void covers_delegatesToDayType() {
@@ -87,7 +78,6 @@ class ShopDeliveryTipScheduleTest {
     @Nested
     @DisplayName("of - 검증")
     class Validation {
-
         @Test
         @DisplayName("DayType.HOLIDAY는 공휴일 전용 애그리거트와 이중 부과되므로 거부한다")
         void of_rejectsHolidayDayType() {
@@ -146,7 +136,6 @@ class ShopDeliveryTipScheduleTest {
     @Nested
     @DisplayName("update")
     class Update {
-
         @Test
         @DisplayName("생성과 같은 검증 한 벌을 강제한다 — HOLIDAY로의 변경도 막는다")
         void update_appliesSameValidation() {
@@ -169,7 +158,6 @@ class ShopDeliveryTipScheduleTest {
     @Nested
     @DisplayName("reconstitute")
     class Reconstitute {
-
         @Test
         @DisplayName("검증하지 않는다 — HOLIDAY 행이나 범위 밖 금액도 로드할 수 있다")
         void reconstitute_bypassesValidation() {

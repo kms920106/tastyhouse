@@ -13,11 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 순수 도메인 모델 단위 테스트. Spring/JPA 컨텍스트 없이 도메인 로직만 검증한다.
- */
 class ShopRiderGuideTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태이고 문구·픽업 위치가 모두 비어 있다")
     void of_createsEmptyTransientRiderGuide() {

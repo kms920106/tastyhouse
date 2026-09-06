@@ -18,21 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 배달지역 상한 정책 단위 테스트.
- *
- * <p>7km 상한은 <b>정점 하나만 넘어도</b> 위반이어야 한다 — 평균이나 중심 거리로 판정하면 길게 뻗은
- * 도형이 상한을 우회한다. 그 성질을 명시적으로 고정한다.
- */
 class ShopDeliveryAreaPolicyTest {
-
     private static final GeoPoint SHOP = GeoPoint.of(37.5, 127.0);
 
     @Test
     @DisplayName("정확히 7000m 지점의 정점은 허용한다")
     void validateWithinMaxRadius_allowsExactly7000m() {
-        // 정북 방향으로 정확히 7000m 떨어진 점을 직접 만든다. GeoCircle의 근사 원을 쓰면 좌표가 소수
-        // 6자리로 반올림되면서 정점이 7000m를 수십 cm 넘길 수 있어, 상한 경계를 재는 테스트로는 부적절하다.
         double latitudeDelta = Math.toDegrees(7000.0 / GeoDistance.EARTH_RADIUS_METERS);
         GeoPolygon polygon = GeoPolygon.of(List.of(GeoRing.of(List.of(
             SHOP,
@@ -59,9 +50,8 @@ class ShopDeliveryAreaPolicyTest {
     @Test
     @DisplayName("정점 하나만 상한을 넘어도 거부한다")
     void validateWithinMaxRadius_rejectsWhenSingleVertexExceeds() {
-        // 대부분의 정점은 1km 안이고 딱 하나만 멀리 뻗은 도형.
         List<GeoPoint> points = new ArrayList<>(GeoCircle.approximate(SHOP, 1000, 8).points());
-        points.add(GeoPoint.of(37.6, 127.09)); // 약 12km
+        points.add(GeoPoint.of(37.6, 127.09));
 
         GeoPolygon polygon = GeoPolygon.of(List.of(GeoRing.of(points)));
 

@@ -14,11 +14,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 점주 로그인 이력 기록기 단위 테스트. Spring 컨텍스트 없이 fake 포트만으로 검증한다.
- */
 class CeoLoginHistoryRecorderTest {
-
     private static final int USER_AGENT_MAX_LENGTH = 500;
 
     @Test
@@ -80,11 +76,7 @@ class CeoLoginHistoryRecorderTest {
         assertThat(repository.saved.get(1).getUserAgent()).isNull();
     }
 
-    /**
-     * 로그인 이력 write 포트 fake — domain에는 Mockito 의존이 없어 손으로 만든다.
-     */
     private static class FakeCeoLoginHistoryRepository implements CeoLoginHistoryRepository {
-
         private final List<CeoLoginHistory> saved = new ArrayList<>();
 
         @Override

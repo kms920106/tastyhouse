@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum EventStatus {
-    SCHEDULED,  // 예정
-    ACTIVE,     // 진행중
-    ENDED;      // 종료
+    SCHEDULED,
+    ACTIVE,
+    ENDED;
 
     public static EventStatus from(String code) {
         try {

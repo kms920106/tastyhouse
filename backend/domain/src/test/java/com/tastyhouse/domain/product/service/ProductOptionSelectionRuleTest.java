@@ -17,14 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 옵션 잔여 개수·0원 옵션 규칙의 순수 단위 테스트.
- *
- * <p><b>이 규칙이 한 곳에 있어야 하는 이유가 곧 이 테스트의 존재 이유다</b> — 과거에는 일괄 숨김과
- * 개별 삭제가 서로 다른 하한을 써서, 일괄로는 막히는 상태를 개별 삭제로는 만들 수 있었다.
- */
 class ProductOptionSelectionRuleTest {
-
     @Test
     @DisplayName("★ 잔여 하한은 max(minSelect, maxSelect, 1)이다")
     void minRemaining_isMaxOfBounds() {

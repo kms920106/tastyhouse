@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum MemberStatus {
-    ACTIVE,      // 가입
-    SUSPENDED,   // 정지
-    DELETED;     // 탈퇴
+    ACTIVE,
+    SUSPENDED,
+    DELETED;
 
     public static MemberStatus from(String code) {
         try {

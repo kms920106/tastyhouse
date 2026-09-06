@@ -10,14 +10,7 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * {@code findById}만 실제로 동작하는 최소 스텁 — product 도메인의 순수 단위 테스트가 공유한다.
- *
- * <p>나머지 메서드는 이 스텁을 쓰는 테스트가 호출하지 않으므로 {@code UnsupportedOperationException}을
- * 던진다 — 조용히 빈 값을 돌려주면 테스트가 잘못된 전제 위에서 통과할 수 있다.
- */
 final class StubProductRepository implements ProductRepository {
-
     private final Map<Long, Product> products;
 
     StubProductRepository(Map<Long, Product> products) {
@@ -54,10 +47,6 @@ final class StubProductRepository implements ProductRepository {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-     * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-     */
     @Override
     public long countRepresentativeByShopId(ShopId shopId) {
         throw new UnsupportedOperationException();

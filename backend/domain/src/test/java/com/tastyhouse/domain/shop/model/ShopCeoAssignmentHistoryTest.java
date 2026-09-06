@@ -10,11 +10,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 가게-점주 접근권한 이력 순수 도메인 모델 단위 테스트.
- */
 class ShopCeoAssignmentHistoryTest {
-
     @Test
     @DisplayName("of는 식별자·생성시각 없이 신규 이력을 만든다")
     void of_createsNewHistoryWithoutIdAndCreatedAt() {

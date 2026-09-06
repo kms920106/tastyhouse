@@ -12,11 +12,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * append-only 이력 도메인 모델 단위 테스트.
- */
 class ShopRiderGuideHistoryTest {
-
     @Test
     @DisplayName("of로 생성하면 미영속 상태이고 점주 변경 이력을 담는다")
     void of_createsTransientHistory() {

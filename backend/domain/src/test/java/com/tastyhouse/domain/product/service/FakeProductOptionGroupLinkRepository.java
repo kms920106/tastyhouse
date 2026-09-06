@@ -11,18 +11,14 @@ import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
-/**
- * 메뉴 ↔ 일반 옵션그룹 연결 write 포트의 인메모리 fake. 순수 단위 테스트 전용이다.
- */
 class FakeProductOptionGroupLinkRepository implements ProductOptionGroupLinkRepository {
-
     private final List<ProductOptionGroupLink> links = new ArrayList<>();
     private final AtomicLong sequence = new AtomicLong(1L);
 
     @Override
     public ProductOptionGroupLink save(ProductOptionGroupLink link) {
         if (link.getId() != null) {
-            return link; // 기존 링크의 sort 변경은 같은 인스턴스를 그대로 들고 있으므로 재저장이 불필요하다.
+            return link;
         }
         ProductOptionGroupLink persisted = ProductOptionGroupLink.reconstitute(
             sequence.getAndIncrement(),
@@ -78,7 +74,6 @@ class FakeProductOptionGroupLinkRepository implements ProductOptionGroupLinkRepo
         links.removeIf(existing -> existing.getId().equals(link.getId()));
     }
 
-    /** 테스트 준비용 — 링크를 바로 심는다. */
     void seed(Long productId, Long optionGroupId, int sort) {
         save(ProductOptionGroupLink.of(ProductId.of(productId), ProductOptionGroupId.of(optionGroupId), sort));
     }

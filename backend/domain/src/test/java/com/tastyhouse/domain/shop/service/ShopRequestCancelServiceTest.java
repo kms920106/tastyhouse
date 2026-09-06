@@ -29,16 +29,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 요청 취소 단위 테스트.
- *
- * <p>봉인하는 규칙 세 가지 — (1) PENDING만 취소된다, (2) IN_PROGRESS는 409로 거부된다(가맹본부에 자료가
- * 전달된 뒤라 플랫폼이 일방 취소할 수 없다), (3) <b>취소는 원본 애그리거트의 상태를 바꾼다</b>. (3)이
- * 핵심인데, 인덱스에만 CANCELED를 두면 원본이 PENDING으로 남아 중복 차단이 재요청을 계속 막고 관리자가
- * 취소된 요청을 승인·반려할 수 있다.
- */
 class ShopRequestCancelServiceTest {
-
     private static final Long SHOP_ID = 1L;
     private static final Long OTHER_SHOP_ID = 2L;
 
@@ -153,11 +144,6 @@ class ShopRequestCancelServiceTest {
                 .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
     }
 
-    /**
-     * 이미지 변경요청 1건과 그에 대응하는 인덱스 행을 만든다.
-     *
-     * @return 인덱스 행 ID(요청의 대외 식별자)
-     */
     private Long registerImageChangeRequest() {
         ShopImageChangeRequest saved = imageRepository.save(ShopImageChangeRequest.of(
             ShopId.of(SHOP_ID), ShopImageType.TRADEMARK, UploadedFileId.of(4821L)
@@ -173,11 +159,6 @@ class ShopRequestCancelServiceTest {
         return indexRepository.require(ShopRequestType.TRADEMARK_CHANGE, saved.getId()).getId();
     }
 
-    /**
-     * 조정 신청 1건과 인덱스 행을 만들고, 필요하면 IN_PROGRESS까지 전이시킨다.
-     *
-     * @return 인덱스 행 ID
-     */
     private Long registerAdjustmentRequest(DeliveryAreaAdjustmentStatus status) {
         ShopDeliveryAreaAdjustmentRequest saved = adjustmentRepository.save(
             ShopDeliveryAreaAdjustmentRequest.of(
@@ -201,12 +182,7 @@ class ShopRequestCancelServiceTest {
         return indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, saved.getId()).getId();
     }
 
-    /**
-     * 이미지 변경요청 write 포트 fake. 저장 시 식별자를 부여하고 <b>같은 인스턴스를 보관</b>해,
-     * 취소 전이가 store의 행에 그대로 반영되게 한다(중복 차단 해제를 검증하려면 필요하다).
-     */
     private static final class FakeShopImageChangeRequestRepository implements ShopImageChangeRequestRepository {
-
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
 
@@ -251,9 +227,7 @@ class ShopRequestCancelServiceTest {
         }
     }
 
-    /** 조정 신청 write 포트 fake. 위와 같은 이유로 같은 인스턴스를 보관한다. */
     private static final class FakeAdjustmentRepository implements ShopDeliveryAreaAdjustmentRequestRepository {
-
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private long sequence = 0L;
 

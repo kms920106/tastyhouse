@@ -17,15 +17,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 요청 인덱스 동기화 단위 테스트.
- *
- * <p>원본 → 통합 상태 <b>매핑 표를 전수</b> 봉인한다. 특히 조정 신청의
- * {@code COMPLETED → APPROVED}는 유일하게 값 이름이 어긋나는 매핑이라, 여기서 고정하지 않으면
- * 목록에 "완료"라는 없는 상태가 새어 나가거나 매핑이 조용히 뒤집힌다.
- */
 class ShopRequestIndexRecorderTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long SOURCE_ID = 500L;
 
@@ -146,12 +138,6 @@ class ShopRequestIndexRecorderTest {
             .isEqualTo(expected);
     }
 
-    /**
-     * 게시중단은 형제 메서드들과 달리 <b>통합 상태를 그대로 받는다</b> — 컨텍스트 경계 때문에 recorder가
-     * {@code review.model.ReviewBlindStatus}를 import할 수 없어, 원본 상태 → 통합 상태 매핑은
-     * {@code ReviewBlindRequestService}가 소유한다. 그 매핑 표(특히 {@code EXPIRED}/{@code DELETED} →
-     * {@code APPROVED})는 {@code ReviewBlindRequestServiceTest}가 봉인한다.
-     */
     private void assertBlindRequestMapping(ShopRequestStatus status) {
         setUp();
         recordBlindRequest();

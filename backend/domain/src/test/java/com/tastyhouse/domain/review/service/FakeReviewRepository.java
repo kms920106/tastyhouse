@@ -12,14 +12,7 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.repository.ReviewRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
-/**
- * 리뷰 write 포트의 인메모리 fake.
- *
- * <p>{@code save}가 신규 저장 시 <b>새 인스턴스를 반환</b>하는 것까지 실제 어댑터와 같게 재현한다
- * (다른 fake write 포트 선례와 동일한 이유 — {@link FakeReviewBlindRequestRepository} 참고).
- */
 public class FakeReviewRepository implements ReviewRepository {
-
     private final Map<Long, Review> reviews = new HashMap<>();
     private long sequence = 0L;
 

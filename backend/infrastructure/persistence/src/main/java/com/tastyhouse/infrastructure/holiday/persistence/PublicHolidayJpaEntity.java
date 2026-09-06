@@ -29,8 +29,13 @@ public class PublicHolidayJpaEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name; // 공휴일 명칭
 
+    /**
+     * 대체공휴일 여부. 도메인 모델이 소비하지 않아 접근자를 두지 않지만, 스키마의
+     * {@code is_substitute NOT NULL} 컬럼과 매핑돼야 {@code ddl-auto: validate}를 통과하므로
+     * 필드는 유지한다.
+     */
     @Column(name = "is_substitute", nullable = false)
-    private boolean substitute; // 대체공휴일 여부
+    private boolean substitute;
 
     protected PublicHolidayJpaEntity() {
     }
@@ -45,9 +50,5 @@ public class PublicHolidayJpaEntity {
 
     public String getName() {
         return this.name;
-    }
-
-    public boolean isSubstitute() {
-        return this.substitute;
     }
 }

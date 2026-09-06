@@ -13,14 +13,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 추천 보상 완료 전이 도메인 서비스 단위 테스트.
- *
- * <p>도메인 모델이 순수 POJO라 더티 체킹이 없으므로, 전이 후 <b>명시적으로 저장되는지</b>가 핵심
- * 검증 대상이다 — 저장이 빠지면 전이가 조용히 유실되어 보상은 적립됐는데 관계는 계속 PENDING으로 남는다.
- */
 class ReferralRewardCompletionServiceTest {
-
     private final FakeMemberReferralRepository referralRepository = new FakeMemberReferralRepository();
     private final ReferralRewardCompletionService service =
         new ReferralRewardCompletionService(referralRepository);

@@ -9,14 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 요청 유형 enum 단위 테스트.
- *
- * <p>{@code from}이 생짜 {@code IllegalArgumentException}("No enum constant …")을 흘리지 않고 400
- * {@code ErrorCode}로 변환하는지가 핵심이다 — 이 변환이 없으면 잘못된 query 파라미터가 500이 된다.
- */
 class ShopRequestTypeTest {
-
     @Test
     @DisplayName("알 수 없는 코드는 SHOP_REQUEST_TYPE_UNKNOWN(400)으로 변환된다")
     void from_withUnknownCode_throwsBusinessException() {

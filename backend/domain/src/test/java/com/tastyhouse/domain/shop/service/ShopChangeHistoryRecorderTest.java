@@ -17,11 +17,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 가게 변경이력 기록기 단위 테스트. Spring 컨텍스트 없이 fake 포트만으로 검증한다.
- */
 class ShopChangeHistoryRecorderTest {
-
     @Test
     @DisplayName("record는 전달받은 값으로 이력 1행을 저장한다")
     void record_savesSingleHistoryRow() {
@@ -84,7 +80,6 @@ class ShopChangeHistoryRecorderTest {
     }
 
     private static class FakeShopChangeHistoryRepository implements ShopChangeHistoryRepository {
-
         private final List<ShopChangeHistory> saved = new ArrayList<>();
 
         @Override

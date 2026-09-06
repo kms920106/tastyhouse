@@ -10,14 +10,7 @@ import com.tastyhouse.domain.menureview.repository.MenuReviewRepository;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 
-/**
- * 메뉴 평가 write 포트의 인메모리 fake.
- *
- * <p>{@code save}는 실제 어댑터와 같은 시맨틱을 흉내낸다 — id가 없으면 시퀀스를 채워 재구성하고, 있으면
- * 그대로 보존한다.
- */
 class FakeMenuReviewRepository implements MenuReviewRepository {
-
     private final Map<Long, MenuReview> menuReviews = new LinkedHashMap<>();
     private long sequence;
 

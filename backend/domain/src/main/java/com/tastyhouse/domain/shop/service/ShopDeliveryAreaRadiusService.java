@@ -23,28 +23,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 반경으로 배달가능지역을 일괄 적용한다(도메인 서비스).
- *
- * <p>"가게에서 N km 이내의 행정동을 전부 열기"는 점주가 가장 자주 쓰는 설정 방식이라 도형을 그리지 않고도
- * 쓸 수 있어야 한다. 결과는 {@code MANUAL} 출처로 저장되므로 <b>도형을 나중에 저장해도 지워지지 않는다</b>
- * — 반경으로 깔아둔 기본 범위 위에 도형으로 세부 조정을 얹는 사용 방식을 위해서다.
- *
- * <p><b>후보를 write 포트({@link AdminDongRepository})로 읽는 이유</b>: 이 클래스는 명령 경로이고, 명령이
- * infra query DAO를 주입하면 CQRS 교차 주입 금지 규칙({@code commandServicesShouldNotDependOnQueryDaos})에
- * 걸린다. 여기서 필요한 조회는 표현용 투영이 아니라 <b>불변식 판정을 위한 도메인 로드</b>라 write 포트에
- * 남는 것이 규약에도 맞다.
- *
- * <p>거리 판정은 원 근사 폴리곤이 아니라 하버사인({@code GeoDistance}) 직선거리로 한다 — 근사 다각형은
- * 표시·환산용이고, "반경 안인가"는 직접 재는 쪽이 정확하다.
- *
- * <p><b>변경이력({@code DELIVERY_AREA_RADIUS})은 이 서비스가 남긴다.</b> 실제 행 추가는
- * {@link ShopDeliveryAreaService#addAreasWithoutHistory}에 위임하지만 그 경로가 이력까지 남기면 반경 적용
- * 한 번에 {@code DELIVERY_AREA}와 {@code DELIVERY_AREA_RADIUS} 두 종류가 남는다 — 점주가 한 것은
- * "반경 설정" 하나이므로 이력도 하나여야 한다.
- */
 public class ShopDeliveryAreaRadiusService {
-
     private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
     private final AdminDongRepository adminDongRepository;
     private final ShopDeliveryAreaService shopDeliveryAreaService;
@@ -62,17 +41,6 @@ public class ShopDeliveryAreaRadiusService {
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
-    /**
-     * 반경 안에 드는 행정동을 배달가능지역으로 적용한다.
-     *
-     * <p>변경이력은 적용 1회당 1행이다. <b>변경 전 값은 없다</b> — 반경은 어디에도 저장되지 않는 일회성
-     * 적용 파라미터이므로 "이전 반경"이라는 것이 존재하지 않는다. 저장하지 않는 값을 이력에서 되살릴 수는
-     * 없으므로 {@code previousValue}는 {@code null}로 두고, 새 값에 적용 반경과 그 결과(반영 후 총 동 수)를
-     * 함께 담아 무엇이 일어났는지 읽을 수 있게 한다.
-     *
-     * @param replace {@code true}면 기존 {@code MANUAL} 행 중 반경 밖의 것을 닫고 교체한다. {@code false}면
-     *                기존 설정 위에 더하기만 한다. 교체 시 닫히는 동에 배달팁 참조가 있으면 전체를 409로 막는다.
-     */
     public ShopDeliveryAreaService.BulkResult applyRadius(
         ShopId shopId,
         GeoPoint shopLocation,
@@ -103,32 +71,16 @@ public class ShopDeliveryAreaRadiusService {
         return result;
     }
 
-    /**
-     * 반경 적용을 한 줄로 요약한다(예: {@code "3.5km (교체 적용, 배달가능지역 42곳)"}).
-     *
-     * <p>교체/추가 여부를 함께 담는 이유는 같은 반경값이라도 결과가 전혀 다르기 때문이다 — 추가는 기존 범위를
-     * 넓히고 교체는 반경 밖을 닫으므로, 반경만 남기면 이력을 보고 무엇이 일어났는지 알 수 없다.
-     */
     private String describeRadius(int radiusMeters, boolean replace, int totalCount) {
         return ShopChangeValueFormatter.distanceKm(toKilometers(radiusMeters))
             + " (" + (replace ? "교체 적용" : "추가 적용") + ", 배달가능지역 " + totalCount + "곳)";
     }
 
-    /**
-     * 미터를 km로 환산한다. 소수점 아래 표기 정리는 {@code distanceKm}이 담당한다(3500m → 3.5km).
-     */
     private BigDecimal toKilometers(int meters) {
         return BigDecimal.valueOf(meters).divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP);
     }
 
-    /**
-     * 반경 안에 대표점이 드는 사용 중 행정동 식별자를 찾는다.
-     *
-     * <p>바운딩 박스로 후보를 좁힌 뒤 하버사인으로 정밀 판정하는 2단계다 — 박스는 인덱스를 타고, 원 판정은
-     * 박스 모서리에 든 동을 걸러낸다.
-     */
     public Set<AdminDongId> findAdminDongIdsWithinRadius(GeoPoint center, int radiusMeters) {
-        // 원 근사 다각형의 bbox = 원의 bbox. 별도 각도 계산을 두지 않고 GeoCircle 하나만 신뢰한다.
         GeoBoundingBox candidateBox = GeoCircle
             .approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS)
             .boundingBox();
@@ -140,12 +92,6 @@ public class ShopDeliveryAreaRadiusService {
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    /**
-     * 반경 밖으로 벗어난 기존 {@code MANUAL} 행을 닫는다. 배달팁 참조가 있으면 한 건도 지우지 않고 409.
-     *
-     * <p>{@code POLYGON} 행은 건드리지 않는다 — 도형은 별도의 편집 원본이므로 반경 적용이 도형 파생분을
-     * 지우면 두 설정 방식이 서로를 덮어쓴다.
-     */
     private void removeManualAreasOutside(
         ShopId shopId,
         Set<AdminDongId> keep,

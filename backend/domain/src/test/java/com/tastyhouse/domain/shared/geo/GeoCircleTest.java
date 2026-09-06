@@ -8,14 +8,7 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 반경 원 근사 단위 테스트.
- *
- * <p>핵심 검증은 <b>기존 {@link GeoDistance}로 교차 검증</b>하는 것이다 — 근사 공식이 자기 자신과
- * 일관되기만 하면 통과하는 테스트는 경도 보정 누락 같은 실제 결함을 잡지 못한다.
- */
 class GeoCircleTest {
-
     private static final GeoPoint SEOUL = GeoPoint.of(37.5, 127.0);
 
     @Test
@@ -33,7 +26,6 @@ class GeoCircleTest {
     @Test
     @DisplayName("고위도·저위도 양극단에서도 경도 보정이 적용된다")
     void approximate_appliesLongitudeCorrectionAcrossLatitudes() {
-        // 경도 보정(1/cos φ)이 빠지면 위도가 높을수록 동서 방향이 짧아져 오차가 커진다.
         for (double latitude : new double[] {33.0, 38.0}) {
             GeoPoint center = GeoPoint.of(latitude, 127.0);
 

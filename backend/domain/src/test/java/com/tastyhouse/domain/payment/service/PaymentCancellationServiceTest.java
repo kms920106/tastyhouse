@@ -37,23 +37,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 결제 취소·환불 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO(도메인 서비스)이므로 Spring 컨텍스트·JPA 없이 write 포트·PG 게이트웨이·이벤트 발행 포트를
- * 손으로 만든 스텁으로 대체해 검증한다.
- *
- * <p>핵심 검증 대상은 <b>결제 취소와 주문 취소가 항상 함께 반영되고, 취소 불가 시에는 어느 쪽도 바뀌지
- * 않는다</b>는 원자 불변식이다.
- *
- * <p><b>PG 취소 요청은 이 서비스 밖으로 나갔다</b>(P3 트랜잭션 경계 정리) — 취소가 사전 판정
- * {@code prepareCancellation}(읽기)과 결과 반영 {@code applyCancellation}(쓰기)으로 쪼개지고 그 사이의 PG
- * 호출은 소비 모듈이 트랜잭션 밖에서 수행한다. 따라서 여기서는 (1) 사전 판정이 PG 호출 필요 여부와 거절
- * 코드를 올바르게 돌려주는지, (2) 결과 반영이 결제·주문을 함께 취소하는지를 검증하고, "PG 실패 시
- * CANCEL_FAILED" 같은 오케스트레이션 동작은 소비 모듈의 {@code PaymentCommandService}가 책임진다.
- */
 class PaymentCancellationServiceTest {
-
     private static final MemberId MEMBER_ID = MemberId.of(7L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(99L);
     private static final OrderId ORDER_ID = OrderId.of(100L);
@@ -207,12 +191,7 @@ class PaymentCancellationServiceTest {
         assertThat(fixture.paymentRefundRepository.saved).isEmpty();
     }
 
-    /**
-     * 테스트 대상과 스텁 묶음 — 결제·주문 저장이 실제로 함께(또는 함께 안) 일어났는지 확인하기 위해 두
-     * 리포지토리의 마지막 저장 값을 보관한다.
-     */
     private static final class Fixture {
-
         private final PaymentCancellationService service;
         private final PaymentRepositoryStub paymentRepository;
         private final OrderRepositoryStub orderRepository;
@@ -256,7 +235,6 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class PaymentRepositoryStub implements PaymentRepository {
-
         private final Payment stored;
         private Payment lastSaved;
 
@@ -287,7 +265,6 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class OrderRepositoryStub implements OrderRepository {
-
         private final Order stored;
         private Order lastSaved;
 
@@ -308,7 +285,6 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class PaymentRefundRepositoryStub implements PaymentRefundRepository {
-
         private final List<PaymentRefund> saved = new ArrayList<>();
 
         @Override
@@ -328,7 +304,6 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class DomainEventPublisherStub implements DomainEventPublisher {
-
         private final List<Object> published = new ArrayList<>();
 
         @Override

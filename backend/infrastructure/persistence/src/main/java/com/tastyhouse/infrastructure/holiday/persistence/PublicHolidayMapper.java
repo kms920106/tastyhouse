@@ -11,8 +11,7 @@ final class PublicHolidayMapper {
         return PublicHoliday.reconstitute(
             entity.getId(),
             entity.getHolidayDate(),
-            entity.getName(),
-            entity.isSubstitute()
+            entity.getName()
         );
     }
 }

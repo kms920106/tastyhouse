@@ -13,18 +13,7 @@ import com.tastyhouse.domain.review.repository.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
-/**
- * 게시중단 요청 write 포트의 인메모리 fake.
- *
- * <p>{@code save}가 신규 저장 시 <b>새 인스턴스를 반환</b>하는 것까지 실제 어댑터와 같게 재현한다 —
- * 호출부가 반환값을 재할당하지 않으면 이어지는 전이가 식별자 없는 객체에 적용돼 중복 insert가 되는데,
- * 그 결함은 fake가 in-place로 id를 채우면 테스트에서 드러나지 않는다.
- */
 public class FakeReviewBlindRequestRepository implements ReviewBlindRequestRepository {
-
-    /**
-     * 1회 제한의 판정 대상 — {@code CANCELED}는 제외한다(실제 어댑터와 같은 목록).
-     */
     private static final List<ReviewBlindStatus> TERMINATED_STATUSES = List.of(
         ReviewBlindStatus.APPROVED,
         ReviewBlindStatus.REJECTED,

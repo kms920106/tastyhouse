@@ -3,18 +3,11 @@ package com.tastyhouse.domain.product.model;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 상품 카테고리 순수 도메인 모델.
- *
- * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
- * {@code ProductCategoryJpaEntity} + {@code ProductCategoryMapper}가 담당한다.
- */
 public class ProductCategory {
-
     private final Long id;
     private final ShopId shopId;
     private String name;
-    /** 메뉴그룹 설명 — 메뉴판에서 그룹명 아래에 노출된다. */
+
     private String description;
     private Integer sort;
     private boolean visible;
@@ -45,9 +38,6 @@ public class ProductCategory {
         return new ProductCategory(null, shopId, name, description, sort, visible);
     }
 
-    /**
-     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
-     */
     public static ProductCategory reconstitute(
         Long id,
         ShopId shopId,
@@ -69,13 +59,11 @@ public class ProductCategory {
         this.visible = visible;
     }
 
-    /** 메뉴그룹명·설명을 바꾼다(점주 경로). 정렬·노출은 각자의 전이 메서드가 담당한다. */
     public void changeDetails(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    /** 정렬 순서만 바꾼다. */
     public void changeSort(Integer sort) {
         this.sort = sort;
     }

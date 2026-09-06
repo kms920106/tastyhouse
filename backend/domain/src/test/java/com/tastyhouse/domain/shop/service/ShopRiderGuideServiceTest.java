@@ -32,12 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 라이더 안내 오케스트레이션 단위 테스트. 리포지토리 포트를 fake로 대체해 Spring/DB 없이
- * 불변식 순서와 이력 기록을 검증한다.
- */
 class ShopRiderGuideServiceTest {
-
     private static final Long OPEN_SHOP_ID = 1L;
     private static final Long CLOSED_SHOP_ID = 2L;
     private static final Long MISSING_SHOP_ID = 99L;
@@ -46,11 +41,7 @@ class ShopRiderGuideServiceTest {
     private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
     private ShopRiderGuideService shopRiderGuideService;
 
-    /**
-     * 라이더 안내 write 포트를 대신하는 in-memory fake. 저장된 행과 이력을 그대로 들여다볼 수 있게 한다.
-     */
     private static class FakeShopRiderGuideRepository implements ShopRiderGuideRepository {
-
         private final Map<Long, ShopRiderGuide> guides = new HashMap<>();
         private final List<ShopRiderGuideHistory> histories = new ArrayList<>();
         private long historySequence = 0L;
@@ -78,11 +69,7 @@ class ShopRiderGuideServiceTest {
         }
     }
 
-    /**
-     * 가게 write 포트를 대신하는 fake. 영업 중 가게와 폐업 가게만 담는다.
-     */
     private static class FakeShopRepository implements com.tastyhouse.domain.shop.repository.ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {
@@ -117,7 +104,6 @@ class ShopRiderGuideServiceTest {
     }
 
     private static class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

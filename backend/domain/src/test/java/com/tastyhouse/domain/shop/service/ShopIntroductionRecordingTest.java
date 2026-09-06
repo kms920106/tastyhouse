@@ -45,24 +45,13 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 사장님 한마디({@code INTRODUCTION}) 변경이력 기록 회귀 테스트.
- *
- * <p>사장님 한마디는 append-only 이력이라 저장 자체는 늘 성공하므로, 변경이력 기록이 빠져도 화면상
- * 아무 증상이 없다 — 그래서 이 테스트가 필요하다. 저장 1회당 1행이며 변경 전 값은 저장 전 최신 문구다.
- */
 class ShopIntroductionRecordingTest {
-
     private static final Long SHOP_ID = 1L;
 
     private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
     private ShopLifecycleService shopLifecycleService;
 
-    /**
-     * 사장님 한마디 append-only 이력만 구현하고, 나머지는 호출되면 즉시 실패시켜 의도치 않은 의존을 드러낸다.
-     */
     private static final class FakeShopDetailRepository implements ShopDetailRepository {
-
         private final List<ShopOwnerMessageHistory> ownerMessages = new ArrayList<>();
         private long sequence = 0L;
 
@@ -241,7 +230,6 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopRepository implements ShopRepository {
-
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {
@@ -271,7 +259,6 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopBookmarkRepository implements ShopBookmarkRepository {
-
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
             throw new UnsupportedOperationException("이 테스트는 이 경로를 쓰지 않는다");
@@ -289,7 +276,6 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopImageChangeRequestRepository implements ShopImageChangeRequestRepository {
-
         @Override
         public ShopImageChangeRequest save(ShopImageChangeRequest shopImageChangeRequest) {
             throw new UnsupportedOperationException("이 테스트는 이 경로를 쓰지 않는다");
@@ -312,7 +298,6 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeProhibitedWordRepository implements ProhibitedWordRepository {
-
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

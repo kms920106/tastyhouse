@@ -2,14 +2,7 @@ package com.tastyhouse.domain.product.model;
 
 import com.tastyhouse.domain.product.vo.ProductId;
 
-/**
- * 상품 공통 옵션 그룹 순수 도메인 모델.
- *
- * <p>JPA/프레임워크에 의존하지 않는 POJO다. 영속화는 infrastructure-module의
- * {@code ProductCommonOptionGroupJpaEntity} + {@code ProductCommonOptionGroupMapper}가 담당한다.
- */
 public class ProductCommonOptionGroup {
-
     private final Long id;
     private final ProductId productId;
     private String name;
@@ -62,9 +55,6 @@ public class ProductCommonOptionGroup {
         );
     }
 
-    /**
-     * DB에 저장된 상태로부터 도메인 객체를 재구성한다. 영속 계층(infrastructure) 전용이다.
-     */
     public static ProductCommonOptionGroup reconstitute(
         Long id,
         ProductId productId,

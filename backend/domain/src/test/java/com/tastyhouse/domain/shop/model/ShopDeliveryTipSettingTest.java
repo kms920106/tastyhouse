@@ -13,20 +13,12 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 배달팁 설정 헤더(거리별 값과 추가 배달팁 방식의 소유자) 단위 테스트.
- *
- * <p>거리↔지역 배타 검증 자체는 다른 애그리거트 컬렉션을 읽어야 하므로 {@code ShopDeliveryTipService}가
- * 담당한다. 여기서는 헤더가 혼자 판정할 수 있는 값의 불변식과 할증 계산식만 본다.
- */
 class ShopDeliveryTipSettingTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Nested
     @DisplayName("changeToDistance - 기본배달거리")
     class BaseDistance {
-
         @ParameterizedTest(name = "기본배달거리 {0}m는 통과한다")
         @ValueSource(ints = {1000, 1500, 2000, 2500, 3000})
         @DisplayName("허용값(1/1.5/2/2.5/3km)은 통과한다")
@@ -55,7 +47,6 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("changeToDistance - 단위별 할증 범위")
     class SurchargeRange {
-
         @ParameterizedTest(name = "PER_100M {0}원은 통과한다")
         @ValueSource(ints = {100, 200, 300})
         @DisplayName("PER_100M은 100~300원을 허용한다")
@@ -106,18 +97,15 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("calculateDistanceSurcharge")
     class CalculateDistanceSurcharge {
-
         @Test
         @DisplayName("PDF 예시: 설정이 달라도 둘 다 3km 배달 시 기본팁 포함 4,000원이 된다")
         void calculateDistanceSurcharge_pdfGoldenCases() {
-            // 설정1: 기본배달거리 1.5km / 기본팁 2,500원 + 500m당 500원
             ShopDeliveryTipSetting first = distanceSetting(1500, 500);
             int firstSurcharge = first.calculateDistanceSurcharge(3000);
 
             assertThat(firstSurcharge).isEqualTo(1500);
             assertThat(2500 + firstSurcharge).isEqualTo(4000);
 
-            // 설정2: 기본배달거리 2km / 기본팁 2,000원 + 500m당 1,000원
             ShopDeliveryTipSetting second = distanceSetting(2000, 1000);
             int secondSurcharge = second.calculateDistanceSurcharge(3000);
 
@@ -167,7 +155,6 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("전환 메서드")
     class Transition {
-
         @Test
         @DisplayName("of는 추가 배달팁 미사용(NONE) 상태로 시작한다")
         void of_startsWithNoExtraTip() {

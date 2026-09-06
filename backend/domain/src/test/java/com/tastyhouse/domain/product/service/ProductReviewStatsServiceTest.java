@@ -17,17 +17,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 상품 메뉴 평가 통계 갱신 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO이므로 Spring 컨텍스트·JPA 없이 write 포트와 조회 포트를 손으로 만든 스텁으로 대체해
- * 검증한다(도메인 서비스 하강으로 얻는 테스트 용이성).
- *
- * <p>과거의 "맛·양·가격 3항목 부분 평균" 케이스는 사라졌다 — {@code PRODUCT.rating}의 근거가
- * MENU_REVIEW로 이관되며 평균 축이 {@code rating} 하나로 줄었기 때문이다.
- */
 class ProductReviewStatsServiceTest {
-
     private static final Long PRODUCT_ID = 7L;
 
     @Test
@@ -112,7 +102,6 @@ class ProductReviewStatsServiceTest {
     }
 
     private static final class ProductRepositoryStub implements ProductRepository {
-
         private final Product product;
         private final List<Product> saved = new ArrayList<>();
 
@@ -140,10 +129,6 @@ class ProductReviewStatsServiceTest {
             return 0L;
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
@@ -190,7 +175,6 @@ class ProductReviewStatsServiceTest {
         Long count,
         Double averageRating
     ) implements ProductReviewStatisticsPort {
-
         @Override
         public Long countVisibleMenuReviewsByProductId(Long productId) {
             return count;

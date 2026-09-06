@@ -36,17 +36,7 @@ import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 결제 개시·승인 도메인 서비스 단위 테스트.
- *
- * <p>순수 POJO(도메인 서비스)이므로 Spring 컨텍스트·JPA 없이 write 포트·PG 게이트웨이·이벤트 발행 포트를
- * 손으로 만든 스텁으로 대체해 검증한다.
- *
- * <p>핵심 검증 대상은 <b>결제 완료와 주문 확정이 항상 함께 반영된다</b>는 원자 불변식이다 — 승인 경로가
- * 세 가지(PG 콜백·토스 승인·현장결제)여도 규칙이 갈리지 않아야 한다.
- */
 class PaymentConfirmationServiceTest {
-
     private static final MemberId MEMBER_ID = MemberId.of(7L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(99L);
     private static final OrderId ORDER_ID = OrderId.of(100L);
@@ -182,7 +172,7 @@ class PaymentConfirmationServiceTest {
 
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(fixture.orderRepository.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
-        // 21000원의 10% = 2100 — 이벤트 리스너의 실제 적립액과 같은 계산식을 쓴다.
+
         assertThat(fixture.orderRepository.lastSaved.getEarnedPoint()).isEqualTo(2100);
 
         PaymentCompletedEvent event = (PaymentCompletedEvent) fixture.eventPublisher.published.getFirst();
@@ -250,12 +240,7 @@ class PaymentConfirmationServiceTest {
         );
     }
 
-    /**
-     * 테스트 대상과 스텁 묶음 — 결제·주문 저장이 실제로 함께 일어났는지 확인하기 위해 두 리포지토리의
-     * 마지막 저장 값을 보관한다.
-     */
     private static final class Fixture {
-
         private final PaymentConfirmationService service;
         private final PaymentRepositoryStub paymentRepository;
         private final OrderRepositoryStub orderRepository;
@@ -306,7 +291,6 @@ class PaymentConfirmationServiceTest {
     }
 
     private static final class PaymentRepositoryStub implements PaymentRepository {
-
         private final Payment stored;
         private Payment lastSaved;
         private boolean existsByOrderId;
@@ -338,7 +322,6 @@ class PaymentConfirmationServiceTest {
     }
 
     private static final class OrderRepositoryStub implements OrderRepository {
-
         private final Order stored;
         private Order lastSaved;
 
@@ -359,7 +342,6 @@ class PaymentConfirmationServiceTest {
     }
 
     private static final class TossPaymentRecordRepositoryStub implements TossPaymentRecordRepository {
-
         private final List<TossPaymentRecord> saved = new ArrayList<>();
 
         @Override
@@ -370,7 +352,6 @@ class PaymentConfirmationServiceTest {
     }
 
     private static final class DomainEventPublisherStub implements DomainEventPublisher {
-
         private final List<Object> published = new ArrayList<>();
 
         @Override

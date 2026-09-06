@@ -28,16 +28,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 사장님 추천(대표 메뉴) 승인 워크플로의 불변식 봉인 테스트.
- *
- * <p>세 제약(최대 6개 · 이미지 필수 · 최소 1개 유지)이 각각 어느 코드로 거부되는지를 고정한다 —
- * 특히 <b>최소 1개 유지가 기존 {@code PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE}를 재사용</b>하는 것이
- * 이 테스트가 지키는 핵심이다. 새 코드로 갈라지면 같은 불변식에 프론트가 두 갈래를 분기해야 하고,
- * 일괄 숨김 경로와 하한이 어긋난다.
- */
 class ProductRepresentativeApprovalServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Test
@@ -206,8 +197,6 @@ class ProductRepresentativeApprovalServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
     }
 
-    // ── 픽스처 ────────────────────────────────────────────────────────────────
-
     private static Product product(Long id, boolean representative) {
         return Product.reconstitute(
             id, SHOP_ID, ProductCategoryId.of(2L), "메뉴" + id, "설명", 10000,
@@ -233,7 +222,6 @@ class ProductRepresentativeApprovalServiceTest {
         List<Long> requestIds = fixture.service.requestRepresentative(SHOP_ID, targets);
         assertThat(requestIds).hasSize(6);
 
-        // 승인이 진행될수록 켜진 개수가 늘고 대기 건수는 줄어든다 — 실제 운영 순서를 그대로 재현한다.
         for (int index = 0; index < requestIds.size(); index++) {
             fixture.productRepository.visibleRepresentativeCount = index;
             fixture.requestRepository.pendingCount = 6L - index;
@@ -247,7 +235,7 @@ class ProductRepresentativeApprovalServiceTest {
     @DisplayName("숨긴 대표 메뉴도 최대 6개 상한에 포함된다 — 숨김으로 상한을 우회할 수 없다")
     void hiddenRepresentativesStillCountTowardTheLimit() {
         Fixture fixture = fixture(List.of(product(20L, false)), List.of(20L));
-        // 노출 3개 + 숨김 3개 = 총 6개. 노출분만 세면 3개로 보여 통과해버린다.
+
         fixture.productRepository.visibleRepresentativeCount = 3L;
         fixture.productRepository.totalRepresentativeCount = 6L;
 
@@ -272,7 +260,6 @@ class ProductRepresentativeApprovalServiceTest {
         FakeProductRepository productRepository,
         FakeRepresentativeRequestRepository requestRepository
     ) {
-
         ProductRepresentativeRequest givenPendingRequest() {
             Long requestId = 1L;
             ProductRepresentativeRequest request = ProductRepresentativeRequest.reconstitute(
@@ -282,13 +269,7 @@ class ProductRepresentativeApprovalServiceTest {
         }
     }
 
-    /**
-     * 소유 가게 필터와 대표 메뉴 카운트만 실제로 동작하는 fake. 나머지는 이 테스트가 호출하지 않으므로
-     * {@code UnsupportedOperationException}을 던진다 — 조용히 빈 값을 돌려주면 잘못된 전제 위에서
-     * 테스트가 통과한다.
-     */
     private static final class FakeProductRepository implements ProductRepository {
-
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private long visibleRepresentativeCount;
         private Long totalRepresentativeCount;
@@ -326,7 +307,6 @@ class ProductRepresentativeApprovalServiceTest {
 
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
-            // 명시하지 않으면 노출분과 같다고 본다(숨김 없는 가게). 숨김을 섞는 테스트만 따로 지정한다.
             return totalRepresentativeCount != null ? totalRepresentativeCount : visibleRepresentativeCount;
         }
 
@@ -368,7 +348,6 @@ class ProductRepresentativeApprovalServiceTest {
 
     private static final class FakeRepresentativeRequestRepository
         implements ProductRepresentativeRequestRepository {
-
         private final Map<Long, ProductRepresentativeRequest> byId = new LinkedHashMap<>();
         private final List<ProductRepresentativeRequest> saved = new ArrayList<>();
         private long pendingCount;
@@ -418,7 +397,6 @@ class ProductRepresentativeApprovalServiceTest {
     }
 
     private static final class FakeProductImageRepository implements ProductImageRepository {
-
         private final List<Long> productIdsWithImage;
 
         private FakeProductImageRepository(List<Long> productIdsWithImage) {

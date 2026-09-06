@@ -15,15 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 가격 행의 순수 단위 테스트.
- *
- * <p><b>주문유형 → 가격 해석이 이 테스트의 핵심이다.</b> 이 규칙이 화면과 어긋나면
- * {@code OrderPlacementService#validateAmounts}의 금액 대조가 실패해 <b>모든 주문이 거절</b>된다.
- * 그래서 네 가지 주문유형 전부와 픽업가 미설정 폴백을 명시적으로 못 박는다.
- */
 class ProductPriceTest {
-
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
 
@@ -35,7 +27,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("주문유형별 가격 해석")
     class ResolvePrice {
-
         @Test
         @DisplayName("배달·테이블·예약은 배달가를 쓴다")
         void deliveryTableReservation_useDeliveryPrice() {
@@ -61,7 +52,6 @@ class ProductPriceTest {
         @Test
         @DisplayName("매장가는 어떤 주문유형에서도 결제 가격이 되지 않는다(표시 전용)")
         void storePrice_isNeverUsedForPayment() {
-            // 매장가만 유별나게 싼 상황 — 어느 주문유형도 이 값을 골라서는 안 된다.
             ProductPrice price = price(10000, 1000, null);
 
             for (OrderMethod orderMethod : OrderMethod.values()) {
@@ -73,7 +63,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("가격 불변식")
     class Validation {
-
         @Test
         @DisplayName("음수 가격은 PRODUCT_PRICE_NEGATIVE로 거절된다")
         void negativePrice_isRejected() {
@@ -124,7 +113,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("인증 사유 판정")
     class UnverifiedReason {
-
         @Test
         @DisplayName("매장가가 없으면 미등록 사유가 우선한다")
         void noStorePrice_reportsNotRegistered() {
@@ -150,7 +138,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("픽업가 설정 시각")
     class PickupPriceSetAt {
-
         @Test
         @DisplayName("픽업가가 같은 값으로 재전송되면 설정 시각이 밀리지 않는다")
         void unchangedPickupPrice_keepsSetAt() {
@@ -160,8 +147,6 @@ class ProductPriceTest {
 
             price.change(null, 9000, 9000, 8000, 0, NOW.plusDays(3));
 
-            // 전체 교체(PUT)에서 같은 값이 매번 재전송되므로, 여기서 시각이 밀리면 익일 노출 규정 때문에
-            // 뱃지가 영구히 노출되지 않는다.
             assertThat(price.getPickupPriceSetAt()).isEqualTo(firstSetAt);
         }
 
@@ -185,7 +170,6 @@ class ProductPriceTest {
 
             price.change(null, 9000, 9000, null, 0, NOW.plusDays(1));
 
-            // 껐다 켠 픽업가가 과거 시각을 근거로 즉시 노출되는 것을 막는다.
             assertThat(price.getPickupPriceSetAt()).isNull();
         }
     }
@@ -193,7 +177,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("승인된 매장가 반영")
     class ApplyVerifiedStorePrice {
-
         @Test
         @DisplayName("픽업가 동일 설정이 켜지면 픽업가도 매장가와 같아진다")
         void applyPickupSamePrice_setsPickupPriceToStorePrice() {
@@ -222,7 +205,6 @@ class ProductPriceTest {
     @Nested
     @DisplayName("뱃지 조건 술어")
     class BadgePredicates {
-
         @Test
         @DisplayName("매장가·픽업가가 모두 있어야 커버리지에 든다")
         void hasStoreAndPickupPrice() {
@@ -237,7 +219,7 @@ class ProductPriceTest {
             assertThat(price(9000, 9000, 8000).isPickupPriceWithinStorePrice()).isTrue();
             assertThat(price(9000, 9000, 9000).isPickupPriceWithinStorePrice()).isTrue();
             assertThat(price(9000, 9000, 9500).isPickupPriceWithinStorePrice()).isFalse();
-            // 값이 없으면 판정할 수 없으므로 false다.
+
             assertThat(price(9000, null, 8000).isPickupPriceWithinStorePrice()).isFalse();
         }
 

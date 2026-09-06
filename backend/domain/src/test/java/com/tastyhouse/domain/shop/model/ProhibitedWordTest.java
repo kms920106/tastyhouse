@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 순수 도메인 모델 단위 테스트. 읽기 전용 애그리거트라 상태전이는 없고 reconstitute만 검증한다.
- */
 class ProhibitedWordTest {
-
     @Test
     @DisplayName("reconstitute는 DB 상태로부터 식별자를 포함해 재구성한다")
     void reconstitute_restoresPersistedState() {

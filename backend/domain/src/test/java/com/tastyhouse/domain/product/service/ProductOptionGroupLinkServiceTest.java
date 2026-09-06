@@ -18,14 +18,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 ↔ 옵션그룹 연결의 <b>단일 가게 불변식</b> 순수 단위 테스트.
- *
- * <p>이 불변식이 깨지면 소유권 판정에서 ANY/ALL 구분이 필요해지고, 결국 "남의 가게 옵션을
- * 품절 처리할 수 있는가"라는 질문에 답이 없어진다.
- */
 class ProductOptionGroupLinkServiceTest {
-
     private static final ShopId MY_SHOP = ShopId.of(1L);
     private static final ShopId OTHER_SHOP = ShopId.of(2L);
 
@@ -35,7 +28,7 @@ class ProductOptionGroupLinkServiceTest {
         Fixture fixture = new Fixture();
         fixture.addProduct(10L, MY_SHOP);
         fixture.addProduct(20L, OTHER_SHOP);
-        // 그룹 100번은 이미 남의 가게 메뉴(20)에 연결돼 있다.
+
         fixture.links.seed(20L, 100L, 0);
 
         assertThatThrownBy(() ->
@@ -96,8 +89,6 @@ class ProductOptionGroupLinkServiceTest {
         assertThat(links).extracting(ProductOptionGroupLink::getSort).containsExactly(0, 1, 2);
     }
 
-    // ── 마지막 연결 해제 ────────────────────────────────────────────────────────────
-
     @Test
     @DisplayName("★ 마지막 연결은 해제할 수 없다 — 어디서도 보이지 않는 고아 그룹이 된다")
     void unlink_lastLink_rejected() {
@@ -121,7 +112,7 @@ class ProductOptionGroupLinkServiceTest {
         fixture.links.seed(10L, 100L, 0);
         fixture.links.seed(10L, 101L, 1);
         fixture.links.seed(10L, 102L, 2);
-        fixture.links.seed(11L, 100L, 0); // 그룹 100은 다른 메뉴에도 연결돼 있어 해제 가능
+        fixture.links.seed(11L, 100L, 0);
 
         fixture.service.unlink(ProductId.of(10L), ProductOptionGroupId.of(100L));
 
@@ -129,8 +120,6 @@ class ProductOptionGroupLinkServiceTest {
         assertThat(remaining).hasSize(2);
         assertThat(remaining).extracting(ProductOptionGroupLink::getSort).containsExactly(0, 1);
     }
-
-    // ── 소유 가게 역조회 ────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("옵션그룹의 소유 가게를 그룹 → 링크 → 메뉴 → 가게로 역조회한다")
@@ -149,8 +138,6 @@ class ProductOptionGroupLinkServiceTest {
 
         assertThat(fixture.service.findOwningShopId(ProductOptionGroupId.of(999L))).isNull();
     }
-
-    // ── 순서 변경 ──────────────────────────────────────────────────────────────────
 
     @Test
     @DisplayName("순서는 id 배열로 받아 0..N-1로 정규화한다 — sort 값을 받지 않는다")
@@ -187,10 +174,7 @@ class ProductOptionGroupLinkServiceTest {
             .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
-    // ── 픽스처 ─────────────────────────────────────────────────────────────────────
-
     private static final class Fixture {
-
         private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final ProductOptionGroupLinkService service;
@@ -207,5 +191,4 @@ class ProductOptionGroupLinkServiceTest {
             ));
         }
     }
-
 }

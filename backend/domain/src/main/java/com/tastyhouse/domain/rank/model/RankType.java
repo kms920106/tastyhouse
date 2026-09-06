@@ -4,9 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum RankType {
-    ALL,        // 전체 기간
-    MONTHLY,    // 월간
-    WEEKLY      // 주간
+    ALL,
+    MONTHLY,
+    WEEKLY
     ;
 
     public static RankType from(String code) {

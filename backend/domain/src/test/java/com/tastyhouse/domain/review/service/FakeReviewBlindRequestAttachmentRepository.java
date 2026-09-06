@@ -6,13 +6,7 @@ import java.util.List;
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
 import com.tastyhouse.domain.review.repository.ReviewBlindRequestAttachmentRepository;
 
-/**
- * 게시중단 요청 첨부 write 포트의 인메모리 fake.
- *
- * <p>불변 애그리거트라 적재만 재현하면 충분하다. 적재된 첨부를 그대로 노출해 순번 부여를 검증할 수 있게 한다.
- */
 public class FakeReviewBlindRequestAttachmentRepository implements ReviewBlindRequestAttachmentRepository {
-
     private final List<ReviewBlindRequestAttachment> attachments = new ArrayList<>();
     private long sequence = 0L;
 

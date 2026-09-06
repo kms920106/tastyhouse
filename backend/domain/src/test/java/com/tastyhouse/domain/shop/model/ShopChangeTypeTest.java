@@ -9,14 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 가게 변경이력 분류 카탈로그 단위 테스트.
- *
- * <p>중분류는 자기 대분류를 보유하고, 이 대응 관계가 그대로 필터 카탈로그 API로 나간다. 상수를 추가할 때
- * 대분류·라벨을 빠뜨리면 화면 드롭다운에 이름 없는 항목이 뜨므로 여기서 전수 검증한다.
- */
 class ShopChangeTypeTest {
-
     @Test
     @DisplayName("모든 중분류는 대분류와 한글 라벨을 갖는다")
     void everyChangeTypeHasCategoryAndDescription() {

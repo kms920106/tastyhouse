@@ -29,15 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 메뉴 가격 전체 교체(PUT)의 순수 단위 테스트.
- *
- * <p><b>{@code PRODUCT.original_price} 동기화가 이 테스트의 핵심이다.</b> 그 동기화가 빠지면 기존 주문
- * 경로가 옛 정가를 읽어 금액 대조에 실패하고 <b>주문이 전부 거절</b>된다 — 가격 행이 1개인 메뉴의
- * 동작이 그대로 유지되는 것이 이 설계의 안전장치이므로 그 지점을 못 박는다.
- */
 class ProductPriceServiceTest {
-
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final ProductId PRODUCT_ID = ProductId.of(10L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
@@ -45,7 +37,6 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("original_price 동기화")
     class OriginalPriceSync {
-
         @Test
         @DisplayName("sort=0 행의 배달가가 PRODUCT.original_price에 반영된다")
         void syncsBasePriceToProduct() {
@@ -73,7 +64,6 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("컬렉션 불변식")
     class CollectionInvariants {
-
         @Test
         @DisplayName("빈 목록은 PRODUCT_PRICE_EMPTY로 거절된다")
         void emptyList_isRejected() {
@@ -118,7 +108,6 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("인증 게이트")
     class VerificationGate {
-
         @Test
         @DisplayName("미인증 가게는 매장가를 설정할 수 없다")
         void unverifiedShop_cannotSetStorePrice() {
@@ -162,7 +151,6 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("할인 진행 중 차단")
     class DiscountGate {
-
         @Test
         @DisplayName("할인가가 설정된 메뉴는 가격을 바꿀 수 없다")
         void discountedProduct_cannotChangePrice() {
@@ -178,13 +166,12 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("재인증 필요 판정(인증 OFF)")
     class VerificationRefresh {
-
         @Test
         @DisplayName("배달가가 매장가를 넘으면 가게 인증이 즉시 내려간다")
         void deliveryAboveStore_clearsVerification() {
             Fixture fixture = new Fixture();
             fixture.verificationPort.verified = true;
-            // 이미 저장된 다른 메뉴의 가격 행이 위반 상태가 된다.
+
             fixture.prices.seed(ProductPrice.reconstitute(
                 900L, ProductId.of(99L), null, 12000, 9000, null, 0, null, null, null));
 
@@ -219,7 +206,7 @@ class ProductPriceServiceTest {
             assertThat(stored.getStorePrice()).isNull();
             assertThat(stored.getPickupPrice()).isNull();
             assertThat(stored.getPickupPriceSetAt()).isNull();
-            // 배달가는 결제 가격이므로 인증이 풀려도 남는다.
+
             assertThat(stored.getDeliveryPrice()).isEqualTo(12000);
         }
 
@@ -254,7 +241,6 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("전체 교체 의미론")
     class ReplaceSemantics {
-
         @Test
         @DisplayName("요청에 담기지 않은 기존 행은 삭제된다")
         void omittedRowsAreDeleted() {
@@ -264,7 +250,6 @@ class ProductPriceServiceTest {
             fixture.prices.seed(ProductPrice.reconstitute(
                 501L, PRODUCT_ID, "곱빼기", 12000, null, null, 1, null, null, null));
 
-            // 501만 남기고 보낸다 → 500은 삭제돼야 한다.
             fixture.replace(List.of(spec(501L, "곱빼기", 12000, null, null, 0)));
 
             assertThat(fixture.prices.deleted).containsExactly(500L);
@@ -293,9 +278,7 @@ class ProductPriceServiceTest {
         return ProductPriceSpec.of(id, priceName, deliveryPrice, storePrice, pickupPrice, sort);
     }
 
-    /** 가격 서비스와 그 협력자 스텁 한 벌. */
     private static final class Fixture {
-
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final MapProductPriceRepository prices = new MapProductPriceRepository();
         private final RecordingVerificationPort verificationPort = new RecordingVerificationPort();
@@ -327,9 +310,7 @@ class ProductPriceServiceTest {
         }
     }
 
-    /** 소유권 조회({@code findAllByShopIdAndIdIn})와 저장만 동작하는 스텁. */
     private static final class OwnedProductRepository implements ProductRepository {
-
         private final Map<Long, Product> products;
 
         private OwnedProductRepository(Map<Long, Product> products) {
@@ -405,9 +386,7 @@ class ProductPriceServiceTest {
         }
     }
 
-    /** 가격 행 저장소 스텁 — 신규 저장 시 id를 부여하고 삭제 대상을 기록한다. */
     private static final class MapProductPriceRepository implements ProductPriceRepository {
-
         private final Map<Long, ProductPrice> rows = new LinkedHashMap<>();
         private final List<Long> deleted = new ArrayList<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
@@ -422,7 +401,7 @@ class ProductPriceServiceTest {
                 rows.put(productPrice.getId(), productPrice);
                 return productPrice;
             }
-            // 신규 저장은 id가 부여된 새 인스턴스로 재구성해 돌려준다(JPA 어댑터와 같은 계약).
+
             long id = sequence.incrementAndGet();
             ProductPrice saved = ProductPrice.reconstitute(
                 id,
@@ -455,8 +434,6 @@ class ProductPriceServiceTest {
 
         @Override
         public List<ProductPrice> findAllByShopId(ShopId shopId) {
-            // 이 스텁은 가게 필터를 두지 않는다 — 재인증 판정 테스트가 "저장된 모든 행"을 보게 해
-            // 위반 행 1건이 인증을 내리는지를 확인하는 것이 목적이다.
             return List.copyOf(rows.values());
         }
 
@@ -469,9 +446,7 @@ class ProductPriceServiceTest {
         }
     }
 
-    /** 가게 인증 플래그를 메모리로 들고 있는 포트 스텁. */
     private static final class RecordingVerificationPort implements StorePriceVerificationPort {
-
         private boolean verified;
 
         @Override

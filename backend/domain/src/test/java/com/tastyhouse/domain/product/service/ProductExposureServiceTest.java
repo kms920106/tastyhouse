@@ -23,14 +23,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 노출기간 설정 저장 규칙의 순수 단위 테스트.
- *
- * <p>핵심은 <b>요일 묶음과 개별 요일의 혼용 금지</b>다 — 그런 조합을 애초에 저장하지 못하게 하면
- * SQL 술어(목록)와 계산기(상세)의 판정이 갈릴 여지가 사라진다.
- */
 class ProductExposureServiceTest {
-
     private static final ProductId PRODUCT_ID = ProductId.of(10L);
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
@@ -139,7 +132,7 @@ class ProductExposureServiceTest {
         assertThat(fixture.hours.rows).isEmpty();
         assertThat(fixture.product.getExposureStartDate()).isNull();
         assertThat(fixture.product.getExposureEndDate()).isNull();
-        // 숨김은 점주의 별개 의사이므로 스케줄 해제가 되살리지 않는다.
+
         assertThat(fixture.product.isVisible()).isFalse();
     }
 
@@ -147,10 +140,7 @@ class ProductExposureServiceTest {
         return ProductExposureHour.of(PRODUCT_ID, dayType, start, end);
     }
 
-    // ── 픽스처 ─────────────────────────────────────────────────────────────────────
-
     private static final class Fixture {
-
         private final Product product = Product.reconstitute(
             10L, SHOP_ID, ProductCategoryId.of(2L), "떡볶이", null, 8000, null, null, 0,
             false, null, false, null, true, 0,
@@ -166,7 +156,6 @@ class ProductExposureServiceTest {
     }
 
     private static final class FakeExposureHourRepository implements ProductExposureHourRepository {
-
         private final List<ProductExposureHour> rows = new ArrayList<>();
 
         @Override
@@ -187,7 +176,6 @@ class ProductExposureServiceTest {
     }
 
     private record StubProductRepository(Product product) implements ProductRepository {
-
         @Override
         public Optional<Product> findById(ProductId id) {
             return Optional.of(product);
@@ -218,10 +206,6 @@ class ProductExposureServiceTest {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * 이 스텁을 쓰는 테스트는 대표 메뉴 상한(최대 6개)을 검증하지 않으므로 호출되지 않는다.
-         * 조용히 0을 돌려주면 상한 판정이 항상 통과해 테스트가 잘못된 전제 위에서 성공한다.
-         */
         @Override
         public long countRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();

@@ -12,14 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 일회용컵 보증금 옵션·옵션그룹 설정 규칙의 순수 단위 테스트.
- *
- * <p>보증금은 결제 금액에 직접 들어가고 비과세 항목으로 분리 저장되므로, "어떤 옵션이 보증금인가"의
- * 판정이 흔들리면 금액이 조용히 틀어진다.
- */
 class CupDepositOptionRuleTest {
-
     private final CupDepositPolicy policy = new CupDepositPolicy();
 
     @Test
