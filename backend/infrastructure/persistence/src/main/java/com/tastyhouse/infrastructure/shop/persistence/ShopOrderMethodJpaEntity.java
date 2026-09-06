@@ -13,23 +13,19 @@ import jakarta.persistence.UniqueConstraint;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 상점-주문방식 배정 JPA 영속 모델. 순수 도메인 모델 {@code ShopOrderMethod}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_ORDER_METHOD", uniqueConstraints = {@UniqueConstraint(columnNames = {"shop_id", "order_method"})})
 public class ShopOrderMethodJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private OrderMethod orderMethod; // 주문 방식
+    private OrderMethod orderMethod;
 
     protected ShopOrderMethodJpaEntity() {
     }

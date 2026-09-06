@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopRiderGuideJpaRepository extends JpaRepository<ShopRiderGuideJpaEntity, Long> {
-
     Optional<ShopRiderGuideJpaEntity> findByShopId(Long shopId);
 }

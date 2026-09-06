@@ -11,17 +11,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-/**
- * {@link ProductPriceMapper}의 round-trip 검증.
- *
- * <p><b>nullable 컬럼이 세 개(store_price·pickup_price·pickup_price_set_at)나 있는 것이 이 테스트의
- * 이유다.</b> 매장가·픽업가는 인증 전에는 비어 있는 것이 정상 상태이므로, 이관 직후의 전 메뉴가 이
- * 경로를 지난다 — 여기서 null을 잘못 다루면 가격 조회가 전부 깨진다.
- *
- * <p>{@code productId}는 NOT NULL FK지만 {@code IdMapping}을 경유하는지도 함께 본다(정책 B).
- */
 class ProductPriceMapperTest {
-
     private static final LocalDateTime SET_AT = LocalDateTime.of(2026, 3, 1, 15, 0);
 
     @Test
@@ -29,12 +19,12 @@ class ProductPriceMapperTest {
     void roundTrip_withUnverifiedNullColumns() {
         ProductPriceJpaEntity entity = ProductPriceJpaEntity.create(
             10L,
-            null, // priceName: 단일 가격
+            null,
             9000,
-            null, // storePrice: 인증 전
-            null, // pickupPrice: 인증 전
+            null,
+            null,
             0,
-            null  // pickupPriceSetAt
+            null
         );
 
         assertThatCode(() -> ProductPriceMapper.toDomain(entity)).doesNotThrowAnyException();

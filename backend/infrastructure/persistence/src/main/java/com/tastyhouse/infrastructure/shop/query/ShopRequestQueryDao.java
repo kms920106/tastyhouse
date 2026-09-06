@@ -35,26 +35,8 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeReq
 import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestCommentJpaEntity.shopRequestCommentJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestIndexJpaEntity.shopRequestIndexJpaEntity;
 
-/**
- * 요청처리 현황 read 어댑터(CQRS query 측).
- *
- * <p>목록은 인덱스 테이블 단독으로 조회한다 — 유형별 원본을 UNION하지 않으므로 정렬·페이징·필터가 단일
- * 테이블 인덱스로 해결되고, 유형이 늘어도 이 코드는 그대로다. 진입 인덱스는
- * {@code (shop_id, created_at)}이며 기본 정렬 {@code created_at DESC, id DESC}가 이를 그대로 탄다.
- *
- * <p><b>상세는 인덱스와 원본을 함께 읽는다.</b> 인덱스에서 {@code requestType}/{@code sourceRequestId}를
- * 얻어 유형별 원본을 별도 투영하며, 상태·반려 사유는 <b>원본 값</b>으로 응답한다(인덱스는 파생 읽기모델).
- *
- * <p>날짜 필터는 <b>반열림 구간</b> {@code [startDate 00:00, endDate+1일 00:00)}으로 만든다 —
- * {@code DATE(created_at)} 같은 함수를 컬럼에 씌우면 인덱스를 타지 못한다. 조회 기간 상한은 두지 않으므로
- * 변경이력의 보관 하한 이중 안전망에 대응하는 조건이 없다.
- *
- * <p>첨부 URL은 {@code UPLOADED_FILE}을 left join한 뒤 {@link FileUrlResolver}로 완성해 투영한다(응답에
- * {@code ~FileId}를 노출하지 않는 규칙). 목록에서는 join 없이 존재 여부만 담는다.
- */
 @Repository
 public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestManagementQueryPort {
-
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 
@@ -63,9 +45,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    /**
-     * 요청처리 현황 목록 페이징 — 최신순({@code created_at DESC, id DESC}).
-     */
     @Override
     public PageResult<ShopRequestListItemResult> findRequestPage(
         ShopRequestSearchCondition condition,
@@ -111,9 +90,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 요청처리 현황 상세(인덱스 부분). 유형별 원본은 아래 두 메서드가 별도로 투영한다.
-     */
     @Override
     public Optional<ShopRequestDetailResult> findRequestDetail(Long requestId) {
         ShopRequestDetailResult detail = queryFactory
@@ -139,9 +115,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         return Optional.ofNullable(detail).map(this::withResolvedAttachmentUrl);
     }
 
-    /**
-     * 이미지 변경요청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
-     */
     @Override
     public Optional<ShopRequestImageChangeDetailResult> findImageChangeDetail(Long sourceRequestId) {
         ShopRequestImageChangeDetailResult detail = queryFactory
@@ -165,9 +138,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         ));
     }
 
-    /**
-     * 배달지역 조정 신청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
-     */
     @Override
     public Optional<ShopRequestAdjustmentDetailResult> findAdjustmentDetail(Long sourceRequestId) {
         ShopRequestAdjustmentDetailResult detail = queryFactory
@@ -197,13 +167,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         ));
     }
 
-    /**
-     * 리뷰 게시중단 요청 원본 투영. 상태·반려 사유의 진실원이라 함께 담는다.
-     *
-     * <p>대상 리뷰를 join해 내용·평점까지 담는다 — 통합 요청처리 상세에서 "무엇의 게시중단을 요청했는지"를
-     * 리뷰 관리 화면으로 이동하지 않고 확인할 수 있어야 한다. 첨부 파일이 없는 유형이라
-     * {@code UPLOADED_FILE} join은 없다.
-     */
     @Override
     public Optional<ShopRequestReviewBlindDetailResult> findReviewBlindDetail(Long sourceRequestId) {
         ShopRequestReviewBlindDetailResult detail = queryFactory
@@ -224,13 +187,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         return Optional.ofNullable(detail);
     }
 
-    /**
-     * 문의 스레드 전체 — <b>작성순</b>({@code created_at ASC, id ASC}).
-     *
-     * <p>이 저장소의 목록 조회는 대체로 최신순(DESC)인데 여기만 ASC인 것은 이 목록이 <b>대화</b>라서다 —
-     * 문의와 답변이 오간 순서대로 읽혀야 한다. 페이징하지 않는 것도 같은 이유로, 요청 1건당 대화량이 적고
-     * 화면이 스레드를 통째로 보여준다.
-     */
     @Override
     public List<ShopRequestCommentResult> findComments(Long requestId) {
         return queryFactory
@@ -246,10 +202,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
             .fetch();
     }
 
-    /**
-     * 투영된 {@code filePath}를 표시용 URL로 바꿔 Result를 재조립한다. record 재조립은 위치 기반이므로
-     * 필드 선언 순서와 인자 순서를 하나씩 대조한다.
-     */
     private ShopRequestDetailResult withResolvedAttachmentUrl(ShopRequestDetailResult row) {
         return new ShopRequestDetailResult(
             row.requestId(),
@@ -266,10 +218,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         );
     }
 
-    /**
-     * 요청별 문의 건수 상관 서브쿼리. {@code (shop_request_index_id, id)} 인덱스가 커버하며, 목록 size가
-     * 최대 100이라 행마다 실행돼도 비용이 낮다.
-     */
     private Expression<Long> commentCount() {
         return JPAExpressions
             .select(shopRequestCommentJpaEntity.count())
@@ -289,10 +237,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         return startDate != null ? shopRequestIndexJpaEntity.createdAt.goe(startDate.atStartOfDay()) : null;
     }
 
-    /**
-     * 종료일 필터는 <b>다음날 00:00 미만</b>으로 만든다 — 종료일 당일에 접수된 요청이 빠지지 않게 하려면
-     * {@code loe(endDate.atStartOfDay())}가 아니라 반열림 상한이어야 한다.
-     */
     private BooleanExpression createdAtLt(LocalDate endDate) {
         if (endDate == null) {
             return null;

@@ -12,17 +12,9 @@ import jakarta.persistence.Table;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 옵션그룹 합치기 이력 JPA 영속 모델(append-only).
- *
- * <p>{@code entryType}은 {@code @Enumerated(STRING)} + {@code columnDefinition = "VARCHAR(20)"}로
- * 매핑한다 — Hibernate 6의 {@code MySQLDialect}는 STRING enum을 네이티브 {@code ENUM(...)}으로
- * 기대하므로, {@code columnDefinition}을 빼면 {@code ddl-auto: validate}가 부팅을 거부한다.
- */
 @Entity
 @Table(name = "PRODUCT_OPTION_GROUP_MERGE_HISTORY")
 public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -65,7 +57,6 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
         this.actorCeoId = actorCeoId;
     }
 
-    /** 신규 저장용 엔티티를 생성한다(식별자 없음). 매퍼에서만 호출한다. */
     static ProductOptionGroupMergeHistoryJpaEntity create(
         Long shopId,
         Long baseOptionGroupId,
@@ -78,8 +69,6 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
             shopId, baseOptionGroupId, mergedOptionGroupId, mergedGroupName, entryType, actorCeoId
         );
     }
-
-    // append-only라 applyChanges를 두지 않는다 — 이력은 기록된 뒤 바뀌지 않는다.
 
     public Long getId() {
         return this.id;

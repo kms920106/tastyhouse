@@ -9,7 +9,6 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 
 @Repository
 public interface ShopRequestIndexJpaRepository extends JpaRepository<ShopRequestIndexJpaEntity, Long> {
-
     Optional<ShopRequestIndexJpaEntity> findByRequestTypeAndSourceRequestId(
         ShopRequestType requestType,
         Long sourceRequestId

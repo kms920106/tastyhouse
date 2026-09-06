@@ -6,7 +6,6 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopBannerImageMapper {
-
     private ShopBannerImageMapper() {
     }
 

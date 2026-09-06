@@ -14,7 +14,6 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewOwnerReply
 
 @Repository
 public class ReviewOwnerReplyRepositoryImpl implements ReviewOwnerReplyRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository;
 
@@ -57,8 +56,6 @@ public class ReviewOwnerReplyRepositoryImpl implements ReviewOwnerReplyRepositor
             return ReviewOwnerReplyMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ReviewOwnerReplyJpaEntity entity = reviewOwnerReplyJpaRepository.findById(reviewOwnerReply.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 사장님 답변입니다: " + reviewOwnerReply.getId()));
         ReviewOwnerReplyMapper.applyChanges(entity, reviewOwnerReply);

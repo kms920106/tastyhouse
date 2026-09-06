@@ -10,7 +10,6 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository
 public class ShopOrderNoticeRepositoryImpl implements ShopOrderNoticeRepository {
-
     private final ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository;
 
     public ShopOrderNoticeRepositoryImpl(ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository) {
@@ -25,8 +24,6 @@ public class ShopOrderNoticeRepositoryImpl implements ShopOrderNoticeRepository 
             return ShopOrderNoticeMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ShopOrderNoticeJpaEntity entity = shopOrderNoticeJpaRepository.findById(shopOrderNotice.getId().value())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 주문안내입니다: " + shopOrderNotice.getId().value()));
         ShopOrderNoticeMapper.applyChanges(entity, shopOrderNotice);

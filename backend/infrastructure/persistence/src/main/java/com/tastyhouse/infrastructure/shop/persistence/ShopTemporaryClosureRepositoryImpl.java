@@ -10,7 +10,6 @@ import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 
 @Repository
 public class ShopTemporaryClosureRepositoryImpl implements ShopTemporaryClosureRepository {
-
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;
 
     public ShopTemporaryClosureRepositoryImpl(ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository) {

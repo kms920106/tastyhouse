@@ -8,12 +8,8 @@ import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 
-/**
- * 메뉴 노출 요일·시간대 write 어댑터. 설정은 {@code deleteAllByProductId} → {@code saveAll}의 replace-all로 교체한다.
- */
 @Repository
 public class ProductExposureHourRepositoryImpl implements ProductExposureHourRepository {
-
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;
 
     public ProductExposureHourRepositoryImpl(ProductExposureHourJpaRepository productExposureHourJpaRepository) {

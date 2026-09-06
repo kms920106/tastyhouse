@@ -9,7 +9,6 @@ import com.tastyhouse.domain.shop.repository.ShopHygieneBadgeRepository;
 
 @Repository
 public class ShopHygieneBadgeRepositoryImpl implements ShopHygieneBadgeRepository {
-
     private final ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository;
 
     public ShopHygieneBadgeRepositoryImpl(ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository) {

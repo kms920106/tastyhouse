@@ -15,14 +15,7 @@ import com.tastyhouse.infrastructure.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link MemberEventListener}의 현재 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>가입·탈퇴는 web-api(본인)와 admin-api(관리자 강제 탈퇴) 양쪽에서 트리거되지만, 리스너 자체는
- * 발행 경로를 알지 않고 이벤트만 받는다 — 그래서 스프링 배선 없이 핸들러를 직접 호출하는 것으로 충분하다.
- */
 class MemberEventListenerTest {
-
     private final MemberEventListener listener = new MemberEventListener();
 
     private ListenerLogCapture logCapture;

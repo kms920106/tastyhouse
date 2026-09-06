@@ -17,13 +17,6 @@ import jakarta.persistence.UniqueConstraint;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 회원 리뷰 랭킹 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code MemberReviewRank}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberReviewRankMapper}가 수행한다.
- * 상태전이·삭제가 없는 insert-only 애그리거트라 update용 {@code applyChanges}는 두지 않는다.
- */
 @Entity
 @Table(
     name = "MEMBER_REVIEW_RANK",
@@ -39,7 +32,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class MemberReviewRankJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -82,9 +74,6 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         this.lastReviewAt = lastReviewAt;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberReviewRankMapper#toEntity}에서만 호출한다.
-     */
     static MemberReviewRankJpaEntity create(
         Long memberId,
         Integer reviewCount,

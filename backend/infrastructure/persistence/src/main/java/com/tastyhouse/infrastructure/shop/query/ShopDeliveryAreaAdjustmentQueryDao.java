@@ -22,18 +22,8 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryAreaAdjustmentRequestJpaEntity.shopDeliveryAreaAdjustmentRequestJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
-/**
- * 프랜차이즈 배달지역 조정 신청 read 어댑터(CQRS query 측).
- *
- * <p>{@code ShopQueryDao}에 합치지 않고 독립 DAO로 둔다 — 그 DAO는 이미 가게 설정 전반과 이미지 변경요청
- * 까지 담아 비대하므로, 배달 기능군의 {@code ShopDeliveryAreaQueryDao} 선례를 따른다.
- *
- * <p>동의서 파일은 여기서 {@code UPLOADED_FILE}을 left join하고 {@link FileUrlResolver}로 표시용 URL까지
- * 완성해 투영한다 — 소비 Service가 fileId로 재조회하지 않으며 응답에 {@code ~FileId}가 노출되지 않는다.
- */
 @Repository
 public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjustmentQueryPort, ShopDeliveryAreaAdjustmentManagementQueryPort {
-
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 
@@ -42,9 +32,6 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    /**
-     * 가게의 조정 신청 이력 — 최근 신청 순. 가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.
-     */
     @Override
     public List<ShopDeliveryAreaAdjustmentListItemResult> findAdjustmentRequests(Long shopId) {
         return listItemProjection()
@@ -56,9 +43,6 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .toList();
     }
 
-    /**
-     * 조정 신청 목록 페이징(검수 화면) — 상태·가게로 필터하며, 최근 신청 순.
-     */
     @Override
     public PageResult<ShopDeliveryAreaAdjustmentListItemResult> findAdjustmentRequestPage(
         DeliveryAreaAdjustmentStatus status,
@@ -88,9 +72,6 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 조정 신청 상세(검수 화면).
-     */
     @Override
     public Optional<ShopDeliveryAreaAdjustmentDetailResult> findAdjustmentRequestById(Long requestId) {
         ShopDeliveryAreaAdjustmentDetailResult detail = queryFactory
@@ -137,10 +118,6 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopDeliveryAreaAdjustmentRequestJpaEntity.consentFileId));
     }
 
-    /**
-     * 투영된 {@code filePath}를 표시용 URL로 바꿔 Result를 재조립한다. record 재조립은 위치 기반이므로
-     * 필드 선언 순서와 인자 순서를 하나씩 대조한다.
-     */
     private ShopDeliveryAreaAdjustmentListItemResult withResolvedConsentFileUrl(ShopDeliveryAreaAdjustmentListItemResult row) {
         return new ShopDeliveryAreaAdjustmentListItemResult(
             row.id(),

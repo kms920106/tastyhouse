@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CeoJpaRepository extends JpaRepository<CeoJpaEntity, Long> {
-
     Optional<CeoJpaEntity> findByUsername(String username);
 
     boolean existsByUsername(String username);

@@ -11,15 +11,8 @@ import com.tastyhouse.domain.coupon.vo.CouponId;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 
-/**
- * 쿠폰 write 어댑터.
- *
- * <p>목록·상세 등 표현 목적 조회는 같은 모듈의 {@code CouponQueryDao}(query 패키지)로 이관했으므로,
- * 여기에는 단건 로드와 저장만 남는다.
- */
 @Repository
 public class CouponRepositoryImpl implements CouponRepository {
-
     private final JPAQueryFactory queryFactory;
     private final CouponJpaRepository couponJpaRepository;
 
@@ -47,8 +40,6 @@ public class CouponRepositoryImpl implements CouponRepository {
             return CouponMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         CouponJpaEntity entity = couponJpaRepository.findById(coupon.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 쿠폰입니다: " + coupon.getId()));
         CouponMapper.applyChanges(entity, coupon);

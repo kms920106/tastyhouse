@@ -15,7 +15,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeReq
 
 @Repository
 public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequestRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ShopImageChangeRequestJpaRepository shopImageChangeRequestJpaRepository;
 
@@ -32,8 +31,6 @@ public class ShopImageChangeRequestRepositoryImpl implements ShopImageChangeRequ
             return ShopImageChangeRequestMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ShopImageChangeRequestJpaEntity entity = shopImageChangeRequestJpaRepository.findById(shopImageChangeRequest.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 이미지 변경 요청입니다: " + shopImageChangeRequest.getId()));
         ShopImageChangeRequestMapper.applyChanges(entity, shopImageChangeRequest);

@@ -12,12 +12,6 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 이벤트 당첨자 발표 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code EventAnnouncement}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code EventAnnouncementMapper}가 수행한다.
- */
 @Entity
 @Table(
     name = "EVENT_ANNOUNCEMENT",
@@ -27,22 +21,21 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class EventAnnouncementJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "event_id", nullable = false, unique = true)
-    private Long eventId; // 이벤트 ID (EVENT.id 참조)
+    private Long eventId;
 
     @Column(name = "name", nullable = false, length = 200)
-    private String name; // 당첨자 발표 제목
+    private String name;
 
     @Column(name = "content", nullable = false, length = 1000)
-    private String content; // 당첨자 발표 내용
+    private String content;
 
     @Column(name = "announced_at", nullable = false)
-    private LocalDateTime announcedAt; // 당첨자 발표 일시
+    private LocalDateTime announcedAt;
 
     protected EventAnnouncementJpaEntity() {
     }
@@ -59,9 +52,6 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
         this.announcedAt = announcedAt;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code EventAnnouncementMapper#toEntity}에서만 호출한다.
-     */
     static EventAnnouncementJpaEntity create(
         Long eventId,
         String name,
@@ -71,9 +61,6 @@ public class EventAnnouncementJpaEntity extends BaseEntity {
         return new EventAnnouncementJpaEntity(eventId, name, content, announcedAt);
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
-     */
     void applyChanges(
         String name,
         String content,

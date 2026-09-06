@@ -10,7 +10,6 @@ import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
 
 @Repository
 public class ShopSuspensionRepositoryImpl implements ShopSuspensionRepository {
-
     private final ShopSuspensionJpaRepository shopSuspensionJpaRepository;
 
     public ShopSuspensionRepositoryImpl(ShopSuspensionJpaRepository shopSuspensionJpaRepository) {
@@ -24,8 +23,6 @@ public class ShopSuspensionRepositoryImpl implements ShopSuspensionRepository {
             return ShopSuspensionMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush한다.
-        // detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ShopSuspensionJpaEntity entity = shopSuspensionJpaRepository.findById(shopSuspension.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 영업 임시중지입니다: " + shopSuspension.getId()));
         ShopSuspensionMapper.applyChanges(entity, shopSuspension);

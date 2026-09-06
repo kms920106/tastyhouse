@@ -9,22 +9,18 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 상점 북마크 JPA 영속 모델. 순수 도메인 모델 {@code ShopBookmark}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_BOOKMARK")
 public class ShopBookmarkJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     protected ShopBookmarkJpaEntity() {
     }

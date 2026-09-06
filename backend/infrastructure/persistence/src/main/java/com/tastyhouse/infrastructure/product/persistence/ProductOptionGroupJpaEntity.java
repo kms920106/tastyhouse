@@ -12,16 +12,9 @@ import jakarta.persistence.Table;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 상품 옵션 그룹 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code ProductOptionGroup}과 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
- * {@code ProductOptionGroupMapper}가 수행한다.
- */
 @Entity
 @Table(name = "PRODUCT_OPTION_GROUP")
 public class ProductOptionGroupJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -53,14 +46,6 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
-    /**
-     * 옵션그룹 유형. {@code @Enumerated(STRING)} + {@code columnDefinition = "VARCHAR(20)"}가 함께
-     * 필요하다 — Hibernate 6의 {@code MySQLDialect}는 STRING enum을 네이티브 {@code ENUM(...)}으로
-     * 기대하므로, {@code columnDefinition}이 없으면 {@code ddl-auto: validate}가 부팅을 거부한다.
-     *
-     * <p>{@code applyChanges}에 포함하지 않는다 — 유형 전환 경로를 두지 않기로 한 도메인 결정
-     * ({@code ProductOptionGroup.groupType}이 {@code final}인 이유)을 영속 계층에서도 그대로 지킨다.
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "group_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ProductOptionGroupType groupType;
@@ -92,9 +77,6 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         this.groupType = groupType != null ? groupType : ProductOptionGroupType.NORMAL;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductOptionGroupMapper#toEntity}에서만 호출한다.
-     */
     static ProductOptionGroupJpaEntity create(
         Long productId,
         String name,
@@ -113,9 +95,6 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). productId는 건드리지 않는다.
-     */
     void applyChanges(
         String name,
         String description,

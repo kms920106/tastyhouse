@@ -16,17 +16,9 @@ import com.tastyhouse.domain.payment.model.RefundStatus;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 결제 환불 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code PaymentRefund}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code PaymentRefundMapper}가 수행한다.
- * update 경로가 없는 insert 전용 애그리거트라 {@code applyChanges}는 두지 않는다.
- */
 @Entity
 @Table(name = "PAYMENT_REFUND")
 public class PaymentRefundJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -70,9 +62,6 @@ public class PaymentRefundJpaEntity extends BaseEntity {
         this.refundedAt = refundedAt;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code PaymentRefundMapper#toEntity}에서만 호출한다.
-     */
     static PaymentRefundJpaEntity create(
         Long paymentId,
         Amount refundAmount,

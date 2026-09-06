@@ -8,12 +8,8 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.product.repository.ProductFeedbackReadRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 점주 의견 확인 시각 write 어댑터.
- */
 @Repository
 public class ProductFeedbackReadRepositoryImpl implements ProductFeedbackReadRepository {
-
     private final ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository;
 
     public ProductFeedbackReadRepositoryImpl(
@@ -30,8 +26,6 @@ public class ProductFeedbackReadRepositoryImpl implements ProductFeedbackReadRep
             return ProductFeedbackReadMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush.
-        // detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ProductFeedbackReadJpaEntity entity = productFeedbackReadJpaRepository
             .findById(feedbackRead.getId())
             .orElseThrow(() -> new IllegalStateException(

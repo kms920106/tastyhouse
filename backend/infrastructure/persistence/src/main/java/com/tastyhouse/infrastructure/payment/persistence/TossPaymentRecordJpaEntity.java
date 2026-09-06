@@ -11,17 +11,9 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 토스페이먼츠 결제 원장(raw) JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code TossPaymentRecord}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code TossPaymentRecordMapper}가 수행한다.
- * update 경로가 없는 insert 전용 애그리거트라 {@code applyChanges}는 두지 않는다.
- */
 @Entity
 @Table(name = "TOSS_PAYMENT_RECORD")
 public class TossPaymentRecordJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -270,9 +262,6 @@ public class TossPaymentRecordJpaEntity extends BaseEntity {
         this.country = country;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code TossPaymentRecordMapper#toEntity}에서만 호출한다.
-     */
     static TossPaymentRecordJpaEntity create(Long paymentId, String version, String paymentKey, String type,
                                            String orderId, String orderName, String mId, String currency,
                                            String method, Integer totalAmount, Integer balanceAmount, String status,

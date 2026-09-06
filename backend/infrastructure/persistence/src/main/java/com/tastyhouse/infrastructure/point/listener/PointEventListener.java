@@ -10,16 +10,8 @@ import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
 
-/**
- * 포인트 변동 이벤트 리스너.
- *
- * <p>포인트 변동은 web(주문 결제)·admin(수동 조정)·이벤트 경유(결제 취소·추천 보상) 등 여러 모듈에서
- * 트리거되므로, 특정 api 모듈에 두면 다른 모듈 트리거 시 리스너가 누락된다. 따라서 크로스커팅 리스너로
- * infrastructure-module에 둔다(공통 지침 분류 E).
- */
 @Component
 public class PointEventListener {
-
     private static final Logger log = LoggerFactory.getLogger(PointEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

@@ -12,12 +12,8 @@ import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 사장님 추천(대표 메뉴) 지정 요청 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class ProductRepresentativeRequestRepositoryImpl implements ProductRepresentativeRequestRepository {
-
     private final ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository;
 
     public ProductRepresentativeRequestRepositoryImpl(
@@ -34,8 +30,6 @@ public class ProductRepresentativeRequestRepositoryImpl implements ProductRepres
             return ProductRepresentativeRequestMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ProductRepresentativeRequestJpaEntity entity = productRepresentativeRequestJpaRepository
             .findById(request.getId())
             .orElseThrow(() -> new IllegalStateException(

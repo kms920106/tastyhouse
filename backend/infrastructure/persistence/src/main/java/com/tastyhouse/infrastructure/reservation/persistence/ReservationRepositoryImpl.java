@@ -17,7 +17,6 @@ import static com.tastyhouse.infrastructure.reservation.persistence.QReservation
 
 @Repository
 public class ReservationRepositoryImpl implements ReservationRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ReservationJpaRepository reservationJpaRepository;
 
@@ -51,8 +50,6 @@ public class ReservationRepositoryImpl implements ReservationRepository {
             return ReservationMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ReservationJpaEntity entity = reservationJpaRepository.findById(reservation.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 예약입니다: " + reservation.getId()));
         ReservationMapper.applyChanges(entity, reservation);

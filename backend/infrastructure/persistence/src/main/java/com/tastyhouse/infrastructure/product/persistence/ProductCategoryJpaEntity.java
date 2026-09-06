@@ -9,16 +9,9 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 상품 카테고리 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code ProductCategory}와 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
- * {@code ProductCategoryMapper}가 수행한다.
- */
 @Entity
 @Table(name = "PRODUCT_CATEGORY")
 public class ProductCategoryJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,7 +22,6 @@ public class ProductCategoryJpaEntity extends BaseEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    /** 메뉴그룹 설명 — 메뉴판에서 그룹명 아래에 노출된다. */
     @Column(name = "description", length = 500)
     private String description;
 
@@ -56,9 +48,6 @@ public class ProductCategoryJpaEntity extends BaseEntity {
         this.visible = visible;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductCategoryMapper#toEntity}에서만 호출한다.
-     */
     static ProductCategoryJpaEntity create(
         Long shopId,
         String name,
@@ -69,9 +58,6 @@ public class ProductCategoryJpaEntity extends BaseEntity {
         return new ProductCategoryJpaEntity(shopId, name, description, sort, visible);
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). shopId는 건드리지 않는다.
-     */
     void applyChanges(String name, String description, Integer sort, boolean visible) {
         this.name = name;
         this.description = description;

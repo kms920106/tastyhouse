@@ -11,7 +11,6 @@ import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 @Repository
 public class ProductAllergenRepositoryImpl implements ProductAllergenRepository {
-
     private final ProductAllergenJpaRepository productAllergenJpaRepository;
 
     public ProductAllergenRepositoryImpl(ProductAllergenJpaRepository productAllergenJpaRepository) {

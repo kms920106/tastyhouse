@@ -11,7 +11,6 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEnt
 
 @Repository
 public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;
 
@@ -44,7 +43,6 @@ public class ShopBookmarkRepositoryImpl implements ShopBookmarkRepository {
             return ShopBookmarkMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopBookmark는 insert-only) — 존재 시에도 재조회만 수행
         ShopBookmarkJpaEntity entity = shopBookmarkJpaRepository.findById(shopBookmark.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 북마크입니다: " + shopBookmark.getId()));
         return ShopBookmarkMapper.toDomain(entity);

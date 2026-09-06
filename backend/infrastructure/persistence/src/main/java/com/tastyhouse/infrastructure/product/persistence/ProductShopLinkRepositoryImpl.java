@@ -10,13 +10,8 @@ import com.tastyhouse.domain.product.repository.ProductShopLinkRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 메뉴-가게 연결 write 어댑터. 표현 목적 조회(연결 가능 가게 목록 등)는
- * {@code ProductShopLinkQueryDao}가 담당하고, 여기 남은 조회는 불변식 판정에 필요한 것들이다.
- */
 @Repository
 public class ProductShopLinkRepositoryImpl implements ProductShopLinkRepository {
-
     private final ProductShopLinkJpaRepository productShopLinkJpaRepository;
 
     public ProductShopLinkRepositoryImpl(ProductShopLinkJpaRepository productShopLinkJpaRepository) {
@@ -31,8 +26,6 @@ public class ProductShopLinkRepositoryImpl implements ProductShopLinkRepository 
             return ProductShopLinkMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush.
-        // detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ProductShopLinkJpaEntity entity = productShopLinkJpaRepository.findById(link.getId())
             .orElseThrow(() -> new IllegalStateException(
                 "존재하지 않는 메뉴-가게 연결입니다: " + link.getId()));

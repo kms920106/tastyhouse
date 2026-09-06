@@ -9,12 +9,8 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
-/**
- * 상품 옵션 그룹 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class ProductOptionGroupRepositoryImpl implements ProductOptionGroupRepository {
-
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
 
     public ProductOptionGroupRepositoryImpl(ProductOptionGroupJpaRepository productOptionGroupJpaRepository) {

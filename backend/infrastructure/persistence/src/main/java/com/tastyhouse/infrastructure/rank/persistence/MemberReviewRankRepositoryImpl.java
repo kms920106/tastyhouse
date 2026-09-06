@@ -16,15 +16,8 @@ import com.tastyhouse.domain.rank.repository.MemberReviewRankRepository;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
-/**
- * 회원 리뷰 랭킹 write 어댑터.
- *
- * <p>표현 목적 조회(랭킹 목록·내 랭킹 join 투영)는 같은 모듈의 {@code rank/query/RankQueryDao}로
- * 이관했다. 여기에는 랭킹 확정 트랜잭션의 일괄 삭제·적재와 등급 산정용 단건 로드만 남는다.
- */
 @Repository
 public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepository {
-
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
 
@@ -57,10 +50,6 @@ public class MemberReviewRankRepositoryImpl implements MemberReviewRankRepositor
         memberReviewRankJpaRepository.saveAll(entities);
     }
 
-    /**
-     * 벌크 삭제 후 1차 캐시를 비운다 — 같은 트랜잭션에서 곧바로 같은 기준일 랭킹을 새로 적재하므로,
-     * 삭제된 행이 캐시에 남아 있으면 적재분과 충돌한다.
-     */
     @Override
     public void deleteByRankTypeAndBaseDate(RankType rankType, LocalDate baseDate) {
         queryFactory

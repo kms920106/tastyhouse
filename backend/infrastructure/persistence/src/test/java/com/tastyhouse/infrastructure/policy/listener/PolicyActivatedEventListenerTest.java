@@ -14,15 +14,7 @@ import com.tastyhouse.infrastructure.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link PolicyActivatedEventListener}의 현재 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>이 리스너는 오래 미소비 상태로 남아 있던 {@code PolicyActivatedEvent}의 소비처로 신설됐다.
- * 지금은 전이 사실만 기록하므로 <b>어떤 정책이 어느 버전으로 현행이 됐는지</b>가 기록에 남는지를
- * 확인한다 — 재동의 고지·개정 통지 같은 후속 처리를 붙일 때 이 테스트가 그 지점의 출발선이 된다.
- */
 class PolicyActivatedEventListenerTest {
-
     private final PolicyActivatedEventListener listener = new PolicyActivatedEventListener();
 
     private ListenerLogCapture logCapture;

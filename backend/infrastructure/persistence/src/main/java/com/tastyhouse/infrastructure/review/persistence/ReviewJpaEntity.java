@@ -9,16 +9,9 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 리뷰 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code Review}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code ReviewMapper}가 수행한다.
- */
 @Entity
 @Table(name = "REVIEW")
 public class ReviewJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -65,23 +58,12 @@ public class ReviewJpaEntity extends BaseEntity {
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
 
-    /**
-     * 사장님만보기 여부. 등록 시에만 정해지고 전환이 불가능하므로 {@link #applyChanges}의 복사 대상이
-     * <b>아니다</b> — 여기에 추가하면 "언젠가 바꿀 수 있다"는 잘못된 신호가 된다.
-     */
     @Column(name = "is_owner_only", nullable = false)
     private boolean ownerOnly;
 
-    /**
-     * 배달 평점(1~5). 배달 주문에만 남기며 미평가면 null이다.
-     *
-     * <p><b>노출은 ceo-api 점주 리뷰 상세에만 한정된다</b> — web-api 응답에는 어떤 경로로도 담지 않는다
-     * (원문 규격: 고객 앱 미노출). {@code total_rating} 계산에도 넣지 않는다.
-     */
     @Column(name = "delivery_rating")
     private Integer deliveryRating;
 
-    /** 배달 평가 내용(점주 전용, 고객 앱 미노출). 미평가면 null. */
     @Column(name = "delivery_comment", length = 500)
     private String deliveryComment;
 
@@ -126,9 +108,6 @@ public class ReviewJpaEntity extends BaseEntity {
         this.deliveryComment = deliveryComment;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ReviewMapper#toEntity}에서만 호출한다.
-     */
     static ReviewJpaEntity create(
         Long shopId,
         Long productId,
@@ -169,9 +148,6 @@ public class ReviewJpaEntity extends BaseEntity {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
-     */
     void applyChanges(
         String content,
         Double totalRating,

@@ -25,19 +25,8 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeImageJpaEntity.shopNoticeImageJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeJpaEntity.shopNoticeJpaEntity;
 
-/**
- * 점주 공지 read 어댑터(CQRS query 측).
- *
- * <p>공지 본문과 첨부 이미지를 <b>두 쿼리로 나눠</b> 읽고 {@code shopNoticeId}로 묶는다 — 1:N 조인으로
- * 한 번에 읽으면 공지 행이 이미지 수만큼 중복되어 페이징 카운트가 어긋난다. 이미지 URL은
- * {@link FileUrlResolver}로 조회 시점에 완성하므로 소비 Service는 파일 식별자를 보지 않는다.
- *
- * <p>{@code shop} 도메인은 대형이라 용도별 DAO 분리가 허용된다 — 공지는 본문·이미지 2단 조회라는 고유한
- * 조립 형태를 가지므로 {@code ShopQueryDao}에 섞지 않고 별도 DAO로 둔다.
- */
 @Repository
 public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQueryPort, ShopNoticeManagementQueryPort {
-
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 
@@ -46,9 +35,6 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    /**
-     * 가게의 공지 목록(점주 화면) — 노출중 공지를 맨 위로, 그다음 최근 등록 순.
-     */
     @Override
     public List<ShopNoticeResult> findNotices(Long shopId) {
         List<ShopNoticeRow> rows = queryFactory
@@ -82,9 +68,6 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
             .toList();
     }
 
-    /**
-     * 가게에서 현재 앱에 노출 중인 공지(web 화면) — {@code exposed = true AND hidden = false} 최대 1건.
-     */
     @Override
     public Optional<ShopNoticeResult> findExposedNotice(Long shopId) {
         return Optional.ofNullable(queryFactory
@@ -116,9 +99,6 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
             ));
     }
 
-    /**
-     * 공지 목록 페이징(관리 화면) — 가게·가게명·게시중단 여부로 필터하며, 최근 등록 순.
-     */
     @Override
     public PageResult<ShopNoticeManagementListItemResult> findNoticePage(
         Long shopId,
@@ -182,9 +162,6 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 공지 ID 묶음의 첨부 이미지를 한 쿼리로 읽어 공지별 URL 목록으로 묶는다({@code sortOrder} 오름차순).
-     */
     private Map<Long, List<String>> findImageUrlsByNoticeIds(List<Long> noticeIds) {
         if (noticeIds.isEmpty()) {
             return Map.of();

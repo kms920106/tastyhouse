@@ -9,7 +9,6 @@ import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 
 public interface StorePriceVerificationJpaRepository
     extends JpaRepository<StorePriceVerificationJpaEntity, Long> {
-
     Optional<StorePriceVerificationJpaEntity> findFirstByShopIdOrderByIdDesc(Long shopId);
 
     boolean existsByShopIdAndStatusIn(Long shopId, List<StorePriceVerificationStatus> statuses);

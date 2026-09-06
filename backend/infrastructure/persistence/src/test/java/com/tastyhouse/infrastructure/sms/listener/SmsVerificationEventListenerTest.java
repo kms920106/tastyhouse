@@ -13,15 +13,7 @@ import com.tastyhouse.infrastructure.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link SmsVerificationEventListener}의 현재 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>{@code MailVerificationEventListenerTest}와 동일한 이유로 <b>발송하지 않음</b>도 함께 고정한다 —
- * 발송은 도메인 서비스 {@code SmsVerificationService#issue}가 발급과 원자적으로 수행하며, 이 리스너는
- * 인증 완료 사실만 기록한다.
- */
 class SmsVerificationEventListenerTest {
-
     private final SmsVerificationEventListener listener = new SmsVerificationEventListener();
 
     private ListenerLogCapture logCapture;

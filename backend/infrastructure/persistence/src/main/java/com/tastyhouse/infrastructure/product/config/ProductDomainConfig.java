@@ -49,19 +49,8 @@ import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
 import com.tastyhouse.domain.product.service.StorePriceVerificationService;
 
-/**
- * product 컨텍스트의 도메인 서비스(POJO) 빈 등록 설정.
- *
- * <p>도메인 서비스는 {@code @Service} 없는 순수 POJO라 Spring이 스캔할 수 없으므로,
- * 이 컨텍스트에 새 POJO 도메인 서비스를 추가하면 여기에 {@code @Bean}을 추가한다.
- */
 @Configuration(proxyBeanMethods = false)
 public class ProductDomainConfig {
-
-    /**
-     * 상품 등록·구성 — 상품 본체와 카테고리·옵션그룹·옵션·이미지·BBQ 매핑을 한 트랜잭션에서 함께
-     * 저장하는 오케스트레이션(admin CRUD·batch 크롤링이 공유하는 액터 무관 규칙).
-     */
     @Bean
     public ProductRegistrationService productRegistrationService(
         ProductRepository productRepository,
@@ -85,10 +74,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 상품 리뷰 통계 갱신 — 리뷰 집계(출력 포트)를 읽어 상품 애그리거트의 평점·리뷰 수에 반영하는
-     * 크로스 애그리거트 오케스트레이션.
-     */
     @Bean
     public ProductReviewStatsService productReviewStatsService(
         ProductRepository productRepository,
@@ -97,10 +82,6 @@ public class ProductDomainConfig {
         return new ProductReviewStatsService(productRepository, productReviewStatisticsPort);
     }
 
-    /**
-     * 주문 라인의 상품·옵션 검증 — 상품 존재·판매중지·옵션 존재를 판정하고 주문 라인에 박제할 스냅샷을
-     * 돌려준다. 주문 접수가 product의 모델·리포지토리를 직접 쓰지 않도록 이 컨텍스트가 소유한다.
-     */
     @Bean
     public OrderProductValidationService orderProductValidationService(
         ProductRepository productRepository,
@@ -126,11 +107,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴·옵션 품절·숨김 전이와 부분실패 제약 — 노출 메뉴 ≥1 · 추천 메뉴 ≥1 · 옵션그룹별
-     * {@code minSelect} 잔여 개수의 단일 소유자. 제약이 애그리거트 불변식이라 ceo/admin 두 모듈에
-     * 흩어지지 않도록 도메인에 둔다.
-     */
     @Bean
     public ProductAvailabilityService productAvailabilityService(
         ProductRepository productRepository,
@@ -152,19 +128,11 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 일괄 삭제(소프트)와 부분실패 제약 — 숨김과 같은 불변식을 적용한다. 숨김만 막고 삭제를
-     * 열어두면 점주가 삭제로 우회해 빈 메뉴판을 만들 수 있다.
-     */
     @Bean
     public ProductDeletionService productDeletionService(ProductRepository productRepository) {
         return new ProductDeletionService(productRepository);
     }
 
-    /**
-     * 메뉴그룹·메뉴 정렬과 그룹 이동. sort 값을 클라이언트에서 받지 않고 순서 있는 id 배열만 받아
-     * 서버가 0..N-1로 정규화한다.
-     */
     @Bean
     public ProductSortService productSortService(
         ProductRepository productRepository,
@@ -173,10 +141,6 @@ public class ProductDomainConfig {
         return new ProductSortService(productRepository, productCategoryRepository);
     }
 
-    /**
-     * 메뉴 ↔ 옵션그룹 연결(N:M). <b>옵션그룹은 단일 가게에만 속한다</b>는 불변식을 강제해,
-     * 소유권 판정에서 ANY/ALL 구분이 사라지게 한다.
-     */
     @Bean
     public ProductOptionGroupLinkService productOptionGroupLinkService(
         ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
@@ -185,12 +149,6 @@ public class ProductDomainConfig {
         return new ProductOptionGroupLinkService(productOptionGroupLinkRepository, productRepository);
     }
 
-    /**
-     * 옵션그룹 합치기. 다중 애그리거트(그룹·옵션·링크·이력)에 걸친 불변식이라 도메인이 제자리다.
-     *
-     * <p>링크 재배치는 {@link ProductOptionGroupLinkService#relink}에 위임한다 — UNIQUE 충돌 처리와
-     * sort 불변식이 그 클래스 소유로 남아야 {@code renumber}를 공개하지 않아도 된다.
-     */
     @Bean
     public ProductOptionGroupMergeService productOptionGroupMergeService(
         ProductOptionGroupRepository productOptionGroupRepository,
@@ -208,30 +166,16 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 노출 판정 계산기 — 리포지토리도 시계도 갖지 않는 순수 함수라 의존이 없다.
-     */
     @Bean
     public ProductExposureCalculator productExposureCalculator() {
         return new ProductExposureCalculator();
     }
 
-    /**
-     * 일회용컵 보증금 요율·계산. 리포지토리도 시계도 갖지 않는 순수 계산기라 의존이 없다.
-     *
-     * <p>빈으로 두는 이유는 요율을 <b>단 한 곳</b>에 두기 위함이다 — 점주 설정(ceo)·손님 메뉴판(web)·
-     * 주문 금액 확정(order) 세 경로가 같은 인스턴스를 주입받아야 "화면 금액과 결제 금액이 다른" 사고가
-     * 구조적으로 불가능해진다.
-     */
     @Bean
     public CupDepositPolicy cupDepositPolicy() {
         return new CupDepositPolicy();
     }
 
-    /**
-     * 노출기간 설정의 조회·조립·저장. 요일·시간대는 replace-all로 교체하며, 요일 묶음과 개별 요일의
-     * 혼용을 금지한다 — 그 조합을 저장할 수 없게 하면 SQL 술어와 계산기가 갈릴 여지가 없다.
-     */
     @Bean
     public ProductExposureService productExposureService(
         ProductRepository productRepository,
@@ -245,10 +189,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 이미지 등록 승인 워크플로. 검수 대상은 "새 이미지의 내용"이므로 등록만 승인을 거치고
-     * 순서 변경·삭제는 즉시 반영한다.
-     */
     @Bean
     public ProductImageApprovalService productImageApprovalService(
         ProductImageChangeRequestRepository productImageChangeRequestRepository,
@@ -262,13 +202,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 영양성분·알레르기 유발성분의 조회·upsert·삭제. 두 값이 한 화면에서 함께 저장·삭제되는 한 벌이라
-     * 한 서비스가 소유한다 — 나누면 "영양성분만 저장되고 알레르기는 이전 값이 남은" 중간 상태가 손님
-     * 화면에 잘못된 알레르기 표시로 노출된다.
-     *
-     * <p>승인 워크플로가 없다 — 점주(가맹본사)만이 아는 사실 정보여서 관리자가 검증할 근거가 없다.
-     */
     @Bean
     public ProductNutritionService productNutritionService(
         ProductNutritionRepository productNutritionRepository,
@@ -282,10 +215,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 채식 설정 승인 워크플로. 점주는 재료를 근거로 신청만 하고, 관리자 승인 시에만 반영된다 —
-     * 채식 표기는 알레르기·신념과 직결돼 잘못된 표기의 대가가 크기 때문이다.
-     */
     @Bean
     public ProductVegetarianApprovalService productVegetarianApprovalService(
         ProductVegetarianRequestRepository productVegetarianRequestRepository,
@@ -297,14 +226,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 사장님 추천(대표 메뉴) 승인 워크플로. <b>지정은 승인을 거치고 해제는 즉시 반영된다</b> —
-     * 검수의 목적이 부적합한 메뉴의 상단 노출을 막는 데 있어 해제 방향에는 그 위험이 없다.
-     *
-     * <p>가게당 최대 6개·이미지 필수·최소 1개 유지 세 제약을 이 서비스가 단독으로 소유한다.
-     * 세 번째 제약은 일괄 숨김({@link ProductAvailabilityService})이 이미 쓰는
-     * {@code PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE}를 재사용하므로, 두 경로가 같은 하한을 공유한다.
-     */
     @Bean
     public ProductRepresentativeApprovalService productRepresentativeApprovalService(
         ProductRepresentativeRequestRepository productRepresentativeRequestRepository,
@@ -318,14 +239,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 가격(가격명 + 채널별 가격) 등록·수정. <b>전체 교체(PUT) 의미론</b>이라 정렬·가격명 중복 같은
-     * 컬렉션 단위 불변식을 한 번에 판정하며, {@code sort=0} 행의 배달가를 {@code PRODUCT.original_price}에
-     * 동기화해 그 컬럼을 읽는 기존 수십 경로(주문·검색·오늘의할인·목록)의 동작을 그대로 유지한다.
-     *
-     * <p>{@link StorePriceVerificationPort}를 받는 이유는 가격 변경으로 배달가 &gt; 매장가가 되면 그
-     * 자리에서 가게 인증을 내려야 하기 때문이다 — 배치로 미루면 그 사이 손님이 잘못된 뱃지를 본다.
-     */
     @Bean
     public ProductPriceService productPriceService(
         ProductPriceRepository productPriceRepository,
@@ -339,13 +252,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 매장 가격 인증 워크플로(요청·승인·반려·취소). 승인이 하는 일의 본체가 {@code PRODUCT_PRICE}의
-     * 매장가·픽업가를 채우는 것이므로 shop이 아니라 이 컨텍스트가 소유한다 — 반대로 두면 승인 경로가
-     * product의 모델·리포지토리를 import해 컨텍스트 경계 규칙을 위반한다.
-     *
-     * <p>가게 단위 인증 ON/OFF 플래그만 {@link StorePriceVerificationPort}로 다룬다.
-     */
     @Bean
     public StorePriceVerificationService storePriceVerificationService(
         StorePriceVerificationRepository storePriceVerificationRepository,
@@ -363,23 +269,11 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 매장가격 뱃지 2종('매장과 같은 가격'·'매장가격 픽업')의 노출 판정. 리포지토리도 시계도 갖지 않는
-     * 순수 계산 정책이라 의존이 없다({@link ProductExposureCalculator}와 같은 형태).
-     *
-     * <p>빈으로 두는 이유는 판정을 <b>단 한 곳</b>에 두기 위함이다 — 손님 화면(web)·점주 화면(ceo)이
-     * 같은 인스턴스를 주입받아야 "점주 화면엔 뱃지가 켜졌는데 손님 화면엔 안 보이는" 어긋남이
-     * 구조적으로 불가능해진다.
-     */
     @Bean
     public StorePriceBadgePolicy storePriceBadgePolicy() {
         return new StorePriceBadgePolicy();
     }
 
-    /**
-     * 메뉴 정보 고객 의견 — 제보 접수(메뉴 존재 확인·가게 비정규화·중복 방지)와 점주 확인 상태를
-     * 한 트랜잭션에서 함께 다루는 오케스트레이션.
-     */
     @Bean
     public ProductFeedbackService productFeedbackService(
         ProductRepository productRepository,
@@ -393,12 +287,6 @@ public class ProductDomainConfig {
         );
     }
 
-    /**
-     * 메뉴 ↔ 가게 연결(N:M) — 연결 교체·불러오기·제외의 불변식 오케스트레이션.
-     *
-     * <p>메뉴그룹이 그 가게의 것인지, 링크가 최소 1개 남는지, 해제 후에도 그 가게 메뉴판에 노출 메뉴가
-     * 남는지는 메뉴·링크·메뉴그룹 세 애그리거트를 함께 봐야 판정된다.
-     */
     @Bean
     public ProductShopLinkService productShopLinkService(
         ProductRepository productRepository,

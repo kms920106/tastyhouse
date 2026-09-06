@@ -13,15 +13,7 @@ import com.tastyhouse.infrastructure.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link FileUploadedEventListener}의 현재 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>협력자 없이 기록만 하는 리스너이므로 무엇이 기록되는지를 {@link ListenerLogCapture}로 확인한다.
- * 기록되는 것은 <b>저장 경로</b>이지 표시용 URL이 아니다 — URL 변환은 조회 시점에 query DAO가
- * {@code FileUrlResolver}로 수행하므로, 이 리스너가 경로를 그대로 남기는 것이 정상이다.
- */
 class FileUploadedEventListenerTest {
-
     private final FileUploadedEventListener listener = new FileUploadedEventListener();
 
     private ListenerLogCapture logCapture;

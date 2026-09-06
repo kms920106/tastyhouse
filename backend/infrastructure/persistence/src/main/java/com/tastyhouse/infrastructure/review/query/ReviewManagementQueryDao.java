@@ -34,23 +34,8 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewReplyJpaEn
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
-/**
- * 리뷰 관리(admin) read 어댑터(CQRS query 측).
- *
- * <p>web/공용 조회는 {@code ReviewQueryDao}에 있고, 여기에는 관리 화면 전용 조회만 둔다. 관리 화면은
- * 숨김 처리된 리뷰·댓글·답글까지 모두 봐야 하므로 {@code hidden} 필터를 걸지 않는다는 점이 web 조회와
- * 다르다.
- *
- * <p>댓글·답글 목록은 과거 core 조회 서비스가 도메인 모델을 읽은 뒤 작성자 닉네임을 별도 조회해 맵으로
- * 붙였는데, 여기서는 회원 테이블을 join해 한 번에 투영한다.
- */
 @Repository
 public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
-
-    /**
-     * 답글의 "누구에게 단 답글인지"(replyTo) 회원을 조인하기 위한 별칭. 작성자 조인과 같은 회원 테이블이라
-     * 별칭을 분리해야 한다.
-     */
     private static final QMemberJpaEntity replyToMember = new QMemberJpaEntity("replyToMember");
 
     private final JPAQueryFactory queryFactory;
@@ -61,9 +46,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    /**
-     * 리뷰 목록(숨김 포함) — 검색 조건으로 동적 필터링, 최신순.
-     */
     @Override
     public PageResult<ReviewListItemResult> findReviews(ReviewSearchCondition condition, PageQuery pageQuery) {
         JPAQuery<ReviewListItemResult> query = queryFactory
@@ -102,9 +84,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 리뷰 상세(숨김 포함) — 이미지 URL을 함께 채운다. 없으면 비어 있다.
-     */
     @Override
     public Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId) {
         ReviewManagementDetailResult result = queryFactory
@@ -145,9 +124,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         return Optional.ofNullable(result);
     }
 
-    /**
-     * 리뷰의 댓글 목록(숨김 포함) — 최신순. 작성자 닉네임을 회원 테이블 join으로 함께 투영한다.
-     */
     @Override
     public List<ReviewCommentListItemResult> findCommentsIncludingHidden(ReviewId reviewId) {
         return queryFactory
@@ -166,11 +142,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             .fetch();
     }
 
-    /**
-     * 여러 댓글에 달린 답글 목록(숨김 포함) — 작성순. 입력이 비어 있으면 조회하지 않고 빈 목록을 돌려준다.
-     *
-     * <p>답글 대상 회원(replyTo)은 없을 수 있어 leftJoin으로 붙인다.
-     */
     @Override
     public List<ReviewReplyListItemResult> findRepliesIncludingHidden(List<ReviewCommentId> commentIds) {
         if (commentIds.isEmpty()) {
@@ -199,12 +170,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             .fetch();
     }
 
-    /**
-     * 리뷰 관리 목록의 총 건수 — 목록 쿼리와 같은 {@code innerJoin}(member)·같은 where를 재현한다.
-     *
-     * <p>회원 조인은 {@code innerJoin}이라 짝이 없는 리뷰를 제외하므로 리뷰 테이블만 세면 값이 달라진다.
-     * 조인이 1:1(회원 PK 동등)이라 행이 늘지 않아 {@code countDistinct}는 필요 없다.
-     */
     private long countReviews(ReviewSearchCondition condition) {
         Long total = queryFactory
             .select(reviewJpaEntity.count())
@@ -240,11 +205,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         return hidden != null ? reviewJpaEntity.hidden.eq(hidden) : null;
     }
 
-    /**
-     * 사장님만보기 필터. {@code null}이면 조건 없음(전체)이며 {@code hidden}과 동일한 패턴이다.
-     *
-     * <p>관리자는 두 축 모두 전량 열람이 기본이므로 필터를 <b>강제하지 않고</b> 검색 수단으로만 제공한다.
-     */
     private BooleanExpression ownerOnlyEq(Boolean ownerOnly) {
         return ownerOnly != null ? reviewJpaEntity.ownerOnly.eq(ownerOnly) : null;
     }
@@ -266,10 +226,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         return null;
     }
 
-    /**
-     * 단일 리뷰의 이미지 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지
-     * 변환한 뒤 돌려준다.
-     */
     private List<String> findImageUrlsByReviewId(Long reviewId) {
         List<String> filePaths = queryFactory
             .select(uploadedFileJpaEntity.filePath)
@@ -282,10 +238,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         return fileUrlResolver.resolveAll(filePaths);
     }
 
-    /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. {@code Projections.constructor}는 생성자 직접 투영이라
-     * 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
-     */
     private ReviewManagementDetailResult withResolvedImageUrl(ReviewManagementDetailResult row) {
         return new ReviewManagementDetailResult(
             row.id(),
@@ -312,20 +264,11 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
         );
     }
 
-    /**
-     * {@code @Convert} VO 컬럼인 {@code SHOP.station_id}를 raw {@code Long}으로 비교하기 위한
-     * path(shop 도메인의 크로스 참조).
-     */
     private NumberPath<Long> shopStationId() {
         return Expressions.numberPath(Long.class, shopJpaEntity, "stationId");
     }
 
-    /**
-     * {@code @Convert} VO 컬럼인 {@code MEMBER.profile_image_file_id}를 raw {@code Long}으로 비교하기
-     * 위한 path(member 도메인의 크로스 참조).
-     */
     private NumberPath<Long> memberProfileImageFileId() {
         return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
     }
-
 }

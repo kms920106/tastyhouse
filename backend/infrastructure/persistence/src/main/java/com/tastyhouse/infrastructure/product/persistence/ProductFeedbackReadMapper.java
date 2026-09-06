@@ -4,11 +4,7 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
-/**
- * 점주 의견 확인 시각 도메인 모델 ↔ JPA 엔티티 변환기.
- */
 final class ProductFeedbackReadMapper {
-
     private ProductFeedbackReadMapper() {
     }
 

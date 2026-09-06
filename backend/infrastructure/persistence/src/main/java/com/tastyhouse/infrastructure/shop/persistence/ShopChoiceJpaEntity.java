@@ -9,25 +9,21 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 에디터 초이스 JPA 영속 모델. 순수 도메인 모델 {@code ShopChoice}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_CHOICE")
 public class ShopChoiceJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "title", nullable = false, length = 200)
-    private String title; // 선택지 제목
+    private String title;
 
     @Column(name = "content", columnDefinition = "TEXT")
-    private String content; // 선택지 상세 내용
+    private String content;
 
     protected ShopChoiceJpaEntity() {
     }

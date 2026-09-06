@@ -7,7 +7,6 @@ import com.tastyhouse.domain.payment.vo.Amount;
 
 @Converter(autoApply = true)
 public class AmountConverter implements AttributeConverter<Amount, Integer> {
-
     @Override
     public Integer convertToDatabaseColumn(Amount attribute) {
         return attribute == null ? null : attribute.value();

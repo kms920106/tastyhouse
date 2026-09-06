@@ -8,12 +8,8 @@ import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
-/**
- * 상품 공통 옵션 그룹 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class ProductCommonOptionGroupRepositoryImpl implements ProductCommonOptionGroupRepository {
-
     private final ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository;
 
     public ProductCommonOptionGroupRepositoryImpl(ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository) {

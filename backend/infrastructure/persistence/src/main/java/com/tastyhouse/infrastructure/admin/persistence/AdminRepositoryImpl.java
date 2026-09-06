@@ -9,7 +9,6 @@ import com.tastyhouse.domain.admin.repository.AdminRepository;
 
 @Repository
 public class AdminRepositoryImpl implements AdminRepository {
-
     private final AdminJpaRepository adminJpaRepository;
 
     public AdminRepositoryImpl(AdminJpaRepository adminJpaRepository) {

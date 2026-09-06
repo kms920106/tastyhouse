@@ -14,15 +14,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 가게 배달가능지역 write 어댑터.
- *
- * <p>단건 로드·중복 검증·건수 카운트·저장·삭제만 담당한다. 행정동 이름을 조인해 표시용으로 완성하는
- * 목록 조회는 같은 모듈의 {@code shop/query/ShopDeliveryAreaQueryDao}가 담당한다(CQRS 분리).
- */
 @Repository
 public class ShopDeliveryAreaRepositoryImpl implements ShopDeliveryAreaRepository {
-
     private final ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository;
 
     public ShopDeliveryAreaRepositoryImpl(ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository) {

@@ -14,14 +14,7 @@ import com.tastyhouse.domain.shared.geo.GeoRing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * 도형 텍스트 인코딩 단위 테스트.
- *
- * <p>가장 중요한 검증은 <b>왕복 동일성</b>과 <b>좌표 순서</b>다 — 저장 형식은 "경도 위도"이고 도메인
- * 타입은 (위도, 경도) 순서라, 한쪽만 틀리면 컴파일은 통과하고 도형이 지구 반대편에 그려진다.
- */
 class GeoPolygonTextCodecTest {
-
     @Test
     @DisplayName("인코딩 후 디코딩하면 원본과 같은 좌표가 나온다(왕복 동일성)")
     void encodeDecode_roundTrips() {
@@ -118,7 +111,6 @@ class GeoPolygonTextCodecTest {
         assertThat(decoded.vertexCount()).isEqualTo(5000);
     }
 
-    /** {@code lat, lng} 문자열 쌍으로 링을 만든다. */
     private static GeoRing ring(String... latLngPairs) {
         List<GeoPoint> points = new ArrayList<>();
         for (int i = 0; i < latLngPairs.length; i += 2) {

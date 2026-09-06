@@ -9,16 +9,9 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * Product와 BBQ 메뉴 ID 매핑 JPA 영속 모델 — BBQ API 외부 메뉴 ID 임시 저장.
- *
- * <p>순수 도메인 모델 {@code ProductBbq}와 분리된 영속 전용 엔티티다. 도메인↔엔티티 변환은
- * {@code ProductBbqMapper}가 수행한다.
- */
 @Entity
 @Table(name = "PRODUCT_BBQ")
 public class ProductBbqJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,16 +38,10 @@ public class ProductBbqJpaEntity extends BaseEntity {
         this.optionsSynced = optionsSynced;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ProductBbqMapper#toEntity}에서만 호출한다.
-     */
     static ProductBbqJpaEntity create(Long productId, Long bbqMenuId, Long bbqCategoryId, boolean optionsSynced) {
         return new ProductBbqJpaEntity(productId, bbqMenuId, bbqCategoryId, optionsSynced);
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체).
-     */
     void applyChanges(boolean optionsSynced) {
         this.optionsSynced = optionsSynced;
     }

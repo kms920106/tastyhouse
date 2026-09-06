@@ -14,13 +14,6 @@ import jakarta.persistence.Version;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 가게 예약 슬롯 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code ReservationSlot}과 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)과
- * 낙관적 락({@code @Version})만 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은
- * {@code ReservationSlotMapper}가 수행한다.
- */
 @Entity
 @Table(
     name = "RESERVATION_SLOT",
@@ -30,7 +23,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     )
 )
 public class ReservationSlotJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -50,11 +42,6 @@ public class ReservationSlotJpaEntity extends BaseEntity {
     @Column(name = "reserved_count", nullable = false)
     private Integer reservedCount;
 
-    /**
-     * 낙관적 락 버전. 애플리케이션 코드가 대입하지 않고 Hibernate가 flush 시점에 검증·증가시킨다 — IDE가
-     * "never assigned"로 경고하지만 정상이다. 읽기는 {@code ReservationSlotMapper}가 도메인 재구성 시
-     * {@link #getVersion()}으로 수행한다.
-     */
     @Version
     @Column(name = "version")
     private Long version;
@@ -70,17 +57,10 @@ public class ReservationSlotJpaEntity extends BaseEntity {
         this.reservedCount = reservedCount;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자·버전 없음). {@code ReservationSlotMapper#toEntity}에서만 호출한다.
-     */
     static ReservationSlotJpaEntity create(Long shopId, LocalDate slotDate, LocalTime slotTime, Integer capacity, Integer reservedCount) {
         return new ReservationSlotJpaEntity(shopId, slotDate, slotTime, capacity, reservedCount);
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·버전은 건드리지 않는다.
-     * 버전은 flush 시 JPA가 자동으로 검증·증가시켜 낙관적 락을 담당한다.
-     */
     void applyChanges(Integer reservedCount) {
         this.reservedCount = reservedCount;
     }

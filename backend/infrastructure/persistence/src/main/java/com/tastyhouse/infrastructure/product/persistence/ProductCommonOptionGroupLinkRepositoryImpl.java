@@ -10,12 +10,8 @@ import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupLinkRepo
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
-/**
- * 메뉴 ↔ 공통 옵션그룹 연결 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class ProductCommonOptionGroupLinkRepositoryImpl implements ProductCommonOptionGroupLinkRepository {
-
     private final ProductCommonOptionGroupLinkJpaRepository productCommonOptionGroupLinkJpaRepository;
 
     public ProductCommonOptionGroupLinkRepositoryImpl(
@@ -32,8 +28,6 @@ public class ProductCommonOptionGroupLinkRepositoryImpl implements ProductCommon
             return ProductCommonOptionGroupLinkMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush.
-        // detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ProductCommonOptionGroupLinkJpaEntity entity = productCommonOptionGroupLinkJpaRepository.findById(link.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 옵션그룹 연결입니다: " + link.getId()));
         ProductCommonOptionGroupLinkMapper.applyChanges(entity, link);

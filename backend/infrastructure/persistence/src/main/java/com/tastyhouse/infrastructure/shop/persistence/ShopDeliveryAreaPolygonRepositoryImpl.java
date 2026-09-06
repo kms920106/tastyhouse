@@ -8,15 +8,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 가게 배달지역 도형 write 어댑터.
- *
- * <p>가게당 1건이라 조회는 {@code shopId} 단건뿐이다. 저장은 detached merge가 아니라 load-copy-save로
- * 수행해 감사 필드({@code created_at})가 보존되게 한다.
- */
 @Repository
 public class ShopDeliveryAreaPolygonRepositoryImpl implements ShopDeliveryAreaPolygonRepository {
-
     private final ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository;
 
     public ShopDeliveryAreaPolygonRepositoryImpl(ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository) {

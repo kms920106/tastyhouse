@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MemberDeliveryAddressJpaRepository extends JpaRepository<MemberDeliveryAddressJpaEntity, Long> {
-
     List<MemberDeliveryAddressJpaEntity> findByMemberIdOrderByIdAsc(Long memberId);
 
     long countByMemberId(Long memberId);

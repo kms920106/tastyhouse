@@ -12,24 +12,10 @@ import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * 주문 상품 조회 결과의 <b>재조립 단계</b>를 검증한다 — {@code OrderQueryDao#findOrderProducts}가 fetch
- * 직후 수행하는 "저장 경로 → 표시용 URL 변환 + 옵션 덧붙이기"를 DB 없이 재현한다.
- *
- * <p>이 단계가 회귀 지점이다. 과거 {@code ORDER_PRODUCT.image_url}은 컬럼명과 달리 저장 경로를 담고
- * 있었는데 조회 경로가 이를 URL로 간주해 {@code FileUrlResolver}를 건너뛴 탓에, 응답이 호스트 없는
- * 경로(`2026/04/19/....png`)를 그대로 내려보내 프론트엔드 {@code next/image}가 크래시했다. 변환을
- * 되돌리면 이 테스트가 실패한다.
- *
- * <p>DAO 전체는 DB가 필요해(이 리포지토리에 DAO 테스트 선례가 없다) 여기서는 변환 계약만 고정한다 —
- * QueryDSL 투영·join 자체는 e2e에서 확인한다.
- */
 class OrderProductResultTest {
-
     private static final String STORED_PATH = "2026/04/19/a3f511fd-a444-49a1-b5d9-3ed0c40bd965.png";
     private static final String BASE_URL = "https://firebasestorage.example/v0/b/bucket/o";
 
-    /** 경로를 URL로 바꾸는 실제 규칙을 모사한다(Firebase: 경로 인코딩 + {@code ?alt=media}). */
     private final FileUrlResolver fileUrlResolver = new FileUrlResolver(new FakeFileStoragePort());
 
     @Test
@@ -78,7 +64,6 @@ class OrderProductResultTest {
 
         assertThat(reassembled.options()).isEqualTo(options);
         assertThat(reassembled.name()).isEqualTo("상품");
-        // 가격명 스냅샷도 재조립에서 보존돼야 한다 — 빠지면 전표에 "곱빼기" 하위 항목이 사라진다.
         assertThat(reassembled.priceName()).isEqualTo("곱빼기");
         assertThat(reassembled.quantity()).isEqualTo(2);
         assertThat(reassembled.originalPrice()).isEqualTo(9000);
@@ -90,7 +75,6 @@ class OrderProductResultTest {
     }
 
     private static final class FakeFileStoragePort implements FileStoragePort {
-
         @Override
         public String store(byte[] content, String storedFilename, String datePath, String contentType) {
             throw new UnsupportedOperationException("조회 변환만 검증한다");

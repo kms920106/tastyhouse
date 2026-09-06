@@ -14,21 +14,8 @@ import com.tastyhouse.domain.payment.event.RefundRequestedEvent;
 import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
 import com.tastyhouse.domain.point.service.PointLedgerService;
 
-/**
- * 결제 완료·취소 이벤트를 받아 포인트를 연동하는 크로스커팅 리스너(분류 E).
- *
- * <p>infrastructure-module에 두는 이유: 결제는 web-api(회원 결제·취소)에서 트리거되지만, 이후 admin-api의
- * 환불·관리 경로가 같은 이벤트를 발행하게 되어도 포인트 연동이 누락되지 않아야 한다. 특정 api 모듈에
- * 리스너를 두면 다른 모듈이 이벤트를 발행할 때 연동이 빠지므로, 모든 실행 모듈이 공통으로 의존하는
- * infrastructure-module이 소유한다.
- *
- * <p>포인트 증감 규칙 자체는 도메인 서비스 {@link PointLedgerService}가 갖고, 적립액 계산은
- * {@link PaymentConfirmationService#calculateEarnedPoint}가 단일 원천이다(주문에 기록되는 적립 포인트와
- * 실제 적립액이 갈리지 않도록). 이 리스너는 이벤트 수신과 트랜잭션 경계(커밋 후 새 트랜잭션)만 담당한다.
- */
 @Component
 public class PaymentEventListener {
-
     private static final Logger log = LoggerFactory.getLogger(PaymentEventListener.class);
 
     private final PointLedgerService pointLedgerService;
@@ -39,9 +26,6 @@ public class PaymentEventListener {
         this.paymentConfirmationService = paymentConfirmationService;
     }
 
-    /**
-     * 결제 완료 — 현장 결제만 적립 대상이다(PG 결제는 주문 접수 시점에 이미 처리됨).
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPaymentCompleted(PaymentCompletedEvent event) {
@@ -60,9 +44,6 @@ public class PaymentEventListener {
         log.info("현장 결제 포인트 적립 — memberId={}, earnedPoint={}", event.memberId().value(), earnedPoint);
     }
 
-    /**
-     * 결제 취소 — 사용한 포인트는 돌려주고, 적립된 포인트는 회수한다.
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPaymentCancelled(PaymentCancelledEvent event) {
@@ -78,16 +59,6 @@ public class PaymentEventListener {
         }
     }
 
-    /**
-     * 환불 요청 접수 — 포인트를 건드리지 않는다.
-     *
-     * <p>이 이벤트는 환불 <b>접수</b> 시점이며, 실제 금전 정산(사용 포인트 환급·적립 포인트 회수)은
-     * 결제가 취소로 확정될 때 {@link PaymentCancelledEvent}가 수행한다. 여기서 포인트를 함께 움직이면
-     * 승인 전 요청만으로 잔액이 바뀌고, 이후 취소가 확정될 때 같은 금액이 두 번 반영된다.
-     *
-     * <p>따라서 이 핸들러는 접수 사실만 남긴다 — 관리자 알림·정산 연동 같은 후속 소비처가 생기면
-     * 여기에 연결한다. 위 두 핸들러와 달리 DB를 쓰지 않으므로 {@code REQUIRES_NEW} 트랜잭션도 열지 않는다.
-     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRefundRequested(RefundRequestedEvent event) {
         log.info("환불 요청 접수 — refundId={}, paymentId={}, memberId={}, refundAmount={}, refundReason={}, requestedAt={}",

@@ -10,17 +10,7 @@ import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResul
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link MemberReviewCountQueryDao#mergeAndSort} 단위 테스트 — 매장 리뷰 + 메뉴 평가 합산 규칙 봉인.
- *
- * <p><b>이 테스트가 필수인 이유</b>: 이 DAO를 소비하는 {@code RankSettlementService}·
- * {@code GradeSettlementService} 테스트는 포트를 fake로 주입하는 순수 단위 테스트라 DAO의 합산·병합·정렬
- * 변경을 <b>전혀 잡지 못한다</b>. 병합·정렬을 쿼리에서 분리해 둔 것도 DB 없이 이 규칙을 검증하기 위해서다.
- *
- * <p>정렬 규칙: 건수 내림차순 → 마지막 작성 이른 순 → 회원 ID 오름차순.
- */
 class MemberReviewCountQueryDaoTest {
-
     @Test
     @DisplayName("매장 리뷰만 있는 회원의 집계는 그대로 유지된다")
     void mergeAndSort_keepsReviewOnlyMember() {
@@ -82,10 +72,10 @@ class MemberReviewCountQueryDaoTest {
     void mergeAndSort_appliesRankingOrder() {
         List<MemberReviewCountResult> merged = MemberReviewCountQueryDao.mergeAndSort(
             List.of(
-                reviewCount(10L, 2L, at(12)),   // 합산 2건, 마지막 12시
-                reviewCount(11L, 2L, at(9)),    // 합산 2건, 마지막 9시  → 10L보다 앞
-                reviewCount(12L, 2L, at(9)),    // 합산 2건, 마지막 9시  → id가 커서 11L 뒤
-                reviewCount(13L, 1L, at(8))     // 합산 5건(메뉴 4건 추가) → 맨 앞
+                reviewCount(10L, 2L, at(12)),
+                reviewCount(11L, 2L, at(9)),
+                reviewCount(12L, 2L, at(9)),
+                reviewCount(13L, 1L, at(8))
             ),
             List.of(menuReviewCount(13L, 4L, at(7)))
         );

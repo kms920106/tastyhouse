@@ -11,12 +11,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 
-/**
- * 상품 ↔ BBQ 매핑 write 어댑터. 동기화 대상 탐색은 {@code ProductQueryDao#findFirstBbqSyncTarget}가 담당한다.
- */
 @Repository
 public class ProductBbqRepositoryImpl implements ProductBbqRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ProductBbqJpaRepository productBbqJpaRepository;
 

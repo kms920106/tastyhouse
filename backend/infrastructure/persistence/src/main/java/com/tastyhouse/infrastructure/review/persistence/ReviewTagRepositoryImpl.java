@@ -13,7 +13,6 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewTagJpaEnti
 
 @Repository
 public class ReviewTagRepositoryImpl implements ReviewTagRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ReviewTagJpaRepository reviewTagJpaRepository;
 

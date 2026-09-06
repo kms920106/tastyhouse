@@ -9,7 +9,6 @@ import com.tastyhouse.domain.search.repository.SearchKeywordLogRepository;
 
 @Repository
 public class SearchKeywordLogRepositoryImpl implements SearchKeywordLogRepository {
-
     private final SearchKeywordLogJpaRepository jpaRepository;
 
     public SearchKeywordLogRepositoryImpl(SearchKeywordLogJpaRepository jpaRepository) {

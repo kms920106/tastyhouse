@@ -15,16 +15,7 @@ import com.tastyhouse.infrastructure.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link PointEventListener}의 현재 동작을 봉인하는 순수 단위 테스트.
- *
- * <p><b>이 리스너가 잔액을 건드리지 않는 것이 정상</b>이라는 점을 함께 고정한다 — 포인트 증감은
- * 도메인 서비스 {@code PointLedgerService}가 이벤트 발행 <b>이전에</b> 이미 수행했고, 이 리스너는 그
- * 사실을 기록만 한다. 협력자를 주입받지 않는 생성자가 그 증거이며, 여기에 원장 서비스가 추가되면
- * 같은 금액이 두 번 반영되므로 이 테스트가 컴파일되지 않아 드러난다.
- */
 class PointEventListenerTest {
-
     private final PointEventListener listener = new PointEventListener();
 
     private ListenerLogCapture logCapture;

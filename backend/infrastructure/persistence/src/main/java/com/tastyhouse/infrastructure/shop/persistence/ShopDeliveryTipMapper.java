@@ -9,15 +9,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
-/**
- * 배달팁 5종의 도메인↔엔티티 변환.
- *
- * <p>write 포트 {@code ShopDeliveryTipRepository}가 5종을 한 인터페이스로 묶었으므로 그 어댑터가 쓰는
- * 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께
- * 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
- */
 final class ShopDeliveryTipMapper {
-
     private ShopDeliveryTipMapper() {
     }
 

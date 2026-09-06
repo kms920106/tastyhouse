@@ -9,28 +9,24 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 가게 전화번호(다건) JPA 영속 모델. 순수 도메인 모델 {@code ShopPhoneNumber}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_PHONE_NUMBER")
 public class ShopPhoneNumberJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "phone_number", nullable = false, length = 20)
-    private String phoneNumber; // 전화번호
+    private String phoneNumber;
 
     @Column(name = "is_primary", nullable = false)
-    private boolean primary; // 대표 여부
+    private boolean primary;
 
     @Column(name = "is_virtual", nullable = false)
-    private boolean virtual; // 가상번호 여부
+    private boolean virtual;
 
     protected ShopPhoneNumberJpaEntity() {
     }

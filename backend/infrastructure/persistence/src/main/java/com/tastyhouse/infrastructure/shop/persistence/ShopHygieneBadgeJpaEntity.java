@@ -14,29 +14,25 @@ import jakarta.persistence.Table;
 import com.tastyhouse.domain.shop.model.HygieneBadgeType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 가게 위생 인증 뱃지 JPA 영속 모델. 순수 도메인 모델 {@code ShopHygieneBadge}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_HYGIENE_BADGE")
 public class ShopHygieneBadgeJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "badge_type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private HygieneBadgeType badgeType; // 위생 인증 유형
+    private HygieneBadgeType badgeType;
 
     @Column(name = "certified_date", nullable = false)
-    private LocalDate certifiedDate; // 인증일
+    private LocalDate certifiedDate;
 
     @Column(name = "last_inspection_month", length = 7)
-    private String lastInspectionMonth; // 세스코 최근 점검월 ("2026-03" 형태, nullable)
+    private String lastInspectionMonth;
 
     protected ShopHygieneBadgeJpaEntity() {
     }
@@ -48,9 +44,6 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
         this.lastInspectionMonth = lastInspectionMonth;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopHygieneBadgeMapper#toEntity}에서만 호출한다.
-     */
     static ShopHygieneBadgeJpaEntity create(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         return new ShopHygieneBadgeJpaEntity(shopId, badgeType, certifiedDate, lastInspectionMonth);
     }

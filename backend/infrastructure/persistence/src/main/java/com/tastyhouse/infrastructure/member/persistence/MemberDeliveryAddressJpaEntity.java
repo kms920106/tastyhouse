@@ -12,54 +12,42 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 회원 배달 주소록 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code MemberDeliveryAddress}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사
- * 필드)만 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code MemberDeliveryAddressMapper}가
- * 수행한다.
- *
- * <p>FK({@code member_id}·{@code admin_dong_id})는 연관관계가 아니라 raw {@code Long}으로 둔다.
- * {@code admin_dong_id}는 nullable(행정동 매칭 실패)이므로 매퍼가 {@code IdMapping}으로 null-안전하게
- * 승격·언패킹한다.
- */
 @Entity
 @Table(
     name = "MEMBER_DELIVERY_ADDRESS",
     indexes = @Index(name = "idx_member_delivery_address_member_id", columnList = "member_id")
 )
 public class MemberDeliveryAddressJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 회원 ID (MEMBER.id 참조)
+    private Long memberId;
 
     @Column(name = "alias", length = 50)
-    private String alias; // 주소 별칭 (집/회사 등)
+    private String alias;
 
     @Column(name = "road_address", nullable = false, length = 500)
-    private String roadAddress; // 도로명 주소
+    private String roadAddress;
 
     @Column(name = "lot_address", length = 500)
-    private String lotAddress; // 지번 주소
+    private String lotAddress;
 
     @Column(name = "detail_address", length = 200)
-    private String detailAddress; // 상세 주소
+    private String detailAddress;
 
     @Column(name = "admin_dong_id")
-    private Long adminDongId; // 행정동 ID (ADMIN_DONG.id 참조, 매칭 실패 시 NULL)
+    private Long adminDongId;
 
     @Column(name = "latitude", nullable = false, precision = 9, scale = 6)
-    private BigDecimal latitude; // 위도
+    private BigDecimal latitude;
 
     @Column(name = "longitude", nullable = false, precision = 9, scale = 6)
-    private BigDecimal longitude; // 경도
+    private BigDecimal longitude;
 
     @Column(name = "is_default", nullable = false)
-    private boolean defaultAddress; // 기본 배송지 여부
+    private boolean defaultAddress;
 
     protected MemberDeliveryAddressJpaEntity() {
     }
@@ -86,9 +74,6 @@ public class MemberDeliveryAddressJpaEntity extends BaseEntity {
         this.defaultAddress = defaultAddress;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code MemberDeliveryAddressMapper#toEntity}에서만 호출한다.
-     */
     static MemberDeliveryAddressJpaEntity create(
         Long memberId,
         String alias,
@@ -113,10 +98,6 @@ public class MemberDeliveryAddressJpaEntity extends BaseEntity {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
-     * {@code member_id}는 생성 이후 바뀌지 않으므로 대상이 아니다.
-     */
     void applyChanges(
         String alias,
         String roadAddress,

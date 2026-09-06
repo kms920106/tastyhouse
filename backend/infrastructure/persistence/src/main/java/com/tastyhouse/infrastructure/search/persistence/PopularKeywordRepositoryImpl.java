@@ -14,7 +14,6 @@ import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJp
 
 @Repository
 public class PopularKeywordRepositoryImpl implements PopularKeywordRepository {
-
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;
 

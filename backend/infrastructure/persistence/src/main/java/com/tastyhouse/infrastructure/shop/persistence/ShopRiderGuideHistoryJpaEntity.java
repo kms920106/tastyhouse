@@ -13,44 +13,35 @@ import com.tastyhouse.domain.shop.model.RiderGuideActionType;
 import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 라이더 안내 문구 변경 이력 JPA 영속 모델(append-only). 순수 도메인 모델
- * {@code ShopRiderGuideHistory}와 분리된 영속 전용 엔티티다.
- *
- * <p>enum 필드는 {@code @Enumerated(EnumType.STRING)}과 {@code columnDefinition = "VARCHAR(20)"}을
- * 병기한다 — {@code columnDefinition}을 빠뜨리면 Hibernate 6의 {@code MySQLDialect}가 네이티브
- * {@code ENUM(...)}을 기대해 {@code ddl-auto=validate}에서 부팅이 실패한다.
- */
 @Entity
 @Table(name = "SHOP_RIDER_GUIDE_HISTORY")
 public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "actor_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RiderGuideActorType actorType; // 변경 주체 (CEO, ADMIN)
+    private RiderGuideActorType actorType;
 
     @Column(name = "actor_id", nullable = false)
-    private Long actorId; // 변경 주체 ID (CEO.id 또는 ADMIN.id 참조)
+    private Long actorId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RiderGuideActionType actionType; // 조치 유형 (UPDATE, REVISION_REQUEST, DELETION)
+    private RiderGuideActionType actionType;
 
     @Column(name = "previous_visit_guide", length = 200)
-    private String previousVisitGuide; // 변경 전 문구
+    private String previousVisitGuide;
 
     @Column(name = "new_visit_guide", length = 200)
-    private String newVisitGuide; // 변경 후 문구 (삭제 조치 시 NULL)
+    private String newVisitGuide;
 
     @Column(name = "reason", length = 200)
-    private String reason; // 관리자 조치 사유 (점주 변경 시 NULL)
+    private String reason;
 
     protected ShopRiderGuideHistoryJpaEntity() {
     }

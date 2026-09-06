@@ -19,19 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-/**
- * {@link ProductMenuReviewEventListener}의 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>이 리스너는 상품 평점·평가 수라는 <b>영속 상태</b>를 갱신하므로, 기록이 아니라 "어떤 상품 id로 통계
- * 갱신을 호출하는가"를 검증한다. 이벤트 3종 모두가 같은 재집계를 트리거해야 한다 — 하나라도 빠지면
- * {@code PRODUCT.rating}이 조용히 낡는다.
- *
- * <p>{@code productId == null} 가드도 함께 검증한다 — 그 예외는 AFTER_COMMIT 리스너에서 조용히 유실된다.
- *
- * <p>{@code @Async}·{@code REQUIRES_NEW} 배선은 프레임워크 몫이라 검증 대상이 아니다.
- */
 class ProductMenuReviewEventListenerTest {
-
     private final ProductReviewStatsService productReviewStatsService = mock(ProductReviewStatsService.class);
 
     private final ProductMenuReviewEventListener listener =

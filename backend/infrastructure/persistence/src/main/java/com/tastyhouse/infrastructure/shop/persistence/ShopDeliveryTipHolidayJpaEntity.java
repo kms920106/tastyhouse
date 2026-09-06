@@ -9,24 +9,18 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 공휴일 추가 배달팁 JPA 영속 모델 (가게당 1건).
- *
- * <p>금액 변경 경로가 있으므로 {@code applyChanges}를 둔다(load-copy-save).
- */
 @Entity
 @Table(name = "SHOP_DELIVERY_TIP_HOLIDAY")
 public class ShopDeliveryTipHolidayJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "tip_amount", nullable = false)
-    private int tipAmount; // 추가 배달팁 (0~10,000)
+    private int tipAmount;
 
     protected ShopDeliveryTipHolidayJpaEntity() {
     }

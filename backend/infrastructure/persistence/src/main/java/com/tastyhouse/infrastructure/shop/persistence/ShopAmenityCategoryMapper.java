@@ -5,7 +5,6 @@ import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopAmenityCategoryMapper {
-
     private ShopAmenityCategoryMapper() {
     }
 

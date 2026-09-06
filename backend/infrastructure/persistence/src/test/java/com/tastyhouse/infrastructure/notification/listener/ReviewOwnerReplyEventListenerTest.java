@@ -21,18 +21,7 @@ import com.tastyhouse.infrastructure.shop.query.ShopQueryDao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * {@link ReviewOwnerReplyEventListener}의 동작을 봉인하는 순수 단위 테스트.
- *
- * <p>이 리스너는 review↔notification 두 컨텍스트를 잇는 지점이므로, 검증 대상은 로깅이 아니라
- * <b>답변 등록 이벤트가 리뷰 작성자 앞으로 알림을 적재하는가</b>이다. 특히 수신자가
- * {@code reviewerMemberId}(작성자)여야 하고 이동 대상이 그 리뷰여야 한다.
- *
- * <p>가게명은 리스너가 {@link ShopQueryDao}로 조회해 문구 조립에 넘기므로, 조회가 비어 있는 경우까지
- * 함께 봉인한다 — 알림 본문에 "null 사장님"이 새는 것을 막기 위함이다.
- */
 class ReviewOwnerReplyEventListenerTest {
-
     private static final ReviewId REVIEW_ID = ReviewId.of(482L);
     private static final MemberId REVIEWER_MEMBER_ID = MemberId.of(42L);
     private static final ShopId SHOP_ID = ShopId.of(7L);
@@ -107,12 +96,7 @@ class ReviewOwnerReplyEventListenerTest {
     private record Notified(MemberId memberId, ReviewId reviewId, String shopName) {
     }
 
-    /**
-     * 적재 호출만 기록하는 스텁. {@code NotificationService}는 인터페이스가 아니라 클래스이므로 상속으로
-     * 대체하며, 부모 생성자가 요구하는 포트는 호출되지 않으므로 {@code null}을 넘긴다.
-     */
     private static final class RecordingNotificationService extends NotificationService {
-
         private final List<Notified> notified = new ArrayList<>();
         private long sequence = 0L;
 
@@ -127,11 +111,7 @@ class ReviewOwnerReplyEventListenerTest {
         }
     }
 
-    /**
-     * 가게명 조회만 대신하는 스텁. 위와 같은 이유로 상속을 쓴다.
-     */
     private static final class StubShopQueryDao extends ShopQueryDao {
-
         private String shopName;
 
         private StubShopQueryDao() {

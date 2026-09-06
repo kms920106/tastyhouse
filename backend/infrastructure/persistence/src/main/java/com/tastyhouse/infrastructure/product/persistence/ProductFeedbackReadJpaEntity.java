@@ -11,13 +11,9 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 점주의 고객 의견 확인 시각 JPA 영속 모델. 가게당 1건({@code UNIQUE(shop_id)}).
- */
 @Entity
 @Table(name = "PRODUCT_FEEDBACK_READ")
 public class ProductFeedbackReadJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,9 +36,6 @@ public class ProductFeedbackReadJpaEntity extends BaseEntity {
         return new ProductFeedbackReadJpaEntity(shopId, readAt);
     }
 
-    /**
-     * managed 엔티티에 변경된 확인 시각을 복사한다. {@code shop_id}는 불변이라 건드리지 않는다.
-     */
     void applyChanges(LocalDateTime readAt) {
         this.readAt = readAt;
     }

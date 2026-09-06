@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopContentBoardJpaRepository extends JpaRepository<ShopContentBoardJpaEntity, Long> {
-
     List<ShopContentBoardJpaEntity> findByShopId(Long shopId);
 
     long countByShopId(Long shopId);

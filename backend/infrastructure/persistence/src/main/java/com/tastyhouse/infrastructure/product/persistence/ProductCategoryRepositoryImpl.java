@@ -13,12 +13,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 
-/**
- * 상품 카테고리 write 어댑터. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class ProductCategoryRepositoryImpl implements ProductCategoryRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
 
@@ -68,11 +64,6 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
             .toList();
     }
 
-    /**
-     * 메뉴그룹은 <b>하드 삭제</b>한다. 메뉴와 달리 그룹은 주문·리뷰가 참조하지 않고, 소속 메뉴가
-     * 남아 있으면 도메인 서비스가 {@code PRODUCT_CATEGORY_HAS_PRODUCTS}로 먼저 막으므로
-     * 고아 데이터가 생기지 않는다.
-     */
     @Override
     public void delete(ProductCategory productCategory) {
         productCategoryJpaRepository.deleteById(productCategory.getId());

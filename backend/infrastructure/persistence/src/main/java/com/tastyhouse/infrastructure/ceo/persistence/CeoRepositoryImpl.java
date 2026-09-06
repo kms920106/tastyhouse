@@ -10,7 +10,6 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 
 @Repository
 public class CeoRepositoryImpl implements CeoRepository {
-
     private final CeoJpaRepository ceoJpaRepository;
 
     public CeoRepositoryImpl(CeoJpaRepository ceoJpaRepository) {

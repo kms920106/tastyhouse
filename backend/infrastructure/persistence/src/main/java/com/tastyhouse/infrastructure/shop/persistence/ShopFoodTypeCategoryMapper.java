@@ -5,7 +5,6 @@ import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopFoodTypeCategoryMapper {
-
     private ShopFoodTypeCategoryMapper() {
     }
 

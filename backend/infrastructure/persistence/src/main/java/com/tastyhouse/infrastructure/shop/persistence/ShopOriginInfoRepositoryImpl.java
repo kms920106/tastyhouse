@@ -9,7 +9,6 @@ import com.tastyhouse.domain.shop.repository.ShopOriginInfoRepository;
 
 @Repository
 public class ShopOriginInfoRepositoryImpl implements ShopOriginInfoRepository {
-
     private final ShopOriginInfoJpaRepository shopOriginInfoJpaRepository;
 
     public ShopOriginInfoRepositoryImpl(ShopOriginInfoJpaRepository shopOriginInfoJpaRepository) {
@@ -28,8 +27,6 @@ public class ShopOriginInfoRepositoryImpl implements ShopOriginInfoRepository {
             return ShopOriginInfoMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ShopOriginInfoJpaEntity entity = shopOriginInfoJpaRepository.findById(shopOriginInfo.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 가게 원산지 정보입니다: " + shopOriginInfo.getId()));
         ShopOriginInfoMapper.applyChanges(entity, shopOriginInfo);

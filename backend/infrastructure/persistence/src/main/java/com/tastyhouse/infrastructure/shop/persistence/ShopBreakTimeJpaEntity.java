@@ -13,29 +13,25 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.shared.model.DayType;
 
-/**
- * 상점 브레이크타임 JPA 영속 모델. 순수 도메인 모델 {@code ShopBreakTime}과 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_BREAK_TIME")
 public class ShopBreakTimeJpaEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType; // 요일 유형 (WEEKDAY, SATURDAY, SUNDAY, HOLIDAY 등)
+    private DayType dayType;
 
     @Column(name = "start_time", nullable = false)
-    private LocalTime startTime; // 브레이크타임 시작 시각
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalTime endTime; // 브레이크타임 종료 시각
+    private LocalTime endTime;
 
     protected ShopBreakTimeJpaEntity() {
     }

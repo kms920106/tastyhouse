@@ -32,19 +32,8 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEn
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
-/**
- * 관리자 게시중단 요청 심사 read 어댑터(CQRS query 측).
- *
- * <p>점주용 {@code ShopReviewManagementQueryDao}와 분리한다 — 이쪽은 가게 스코프가 아니라 <b>전 가게의
- * 심사 대기 큐</b>이고, 진입 조건이 {@code status}(PENDING)라 인덱스도 다르다
- * ({@code idx_review_blind_request_status}).
- *
- * <p>목록은 요청 테이블을 주 테이블로 삼고 리뷰·가게를 join한다 — 요청 1건당 리뷰·가게가 각각 1건이라
- * 행이 불어나지 않는다.
- */
 @Repository
 public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, ReviewBlindRequestManagementQueryPort {
-
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 
@@ -53,9 +42,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    /**
-     * 게시중단 요청 목록 — 최신순({@code created_at DESC, id DESC}).
-     */
     @Override
     public PageResult<ReviewBlindRequestListItemResult> findBlindRequestPage(
         ReviewBlindRequestSearchCondition condition,
@@ -104,9 +90,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 게시중단 요청 심사 상세.
-     */
     @Override
     public Optional<ReviewBlindRequestDetailResult> findBlindRequestDetail(Long id) {
         ReviewBlindRequestDetailResult detail = queryFactory
@@ -145,15 +128,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         ));
     }
 
-    /**
-     * 고객용 게시중단 안내 — 현재 게시중단(APPROVED) 중인 요청 1건과 그 대상 리뷰를 함께 투영한다.
-     *
-     * <p><b>{@code hidden} 필터를 걸지 않는다</b> — 대상이 애초에 게시중단된 리뷰이므로, 일반 리뷰 상세
-     * 조회의 {@code hidden.isFalse()}를 그대로 쓰면 아무것도 나오지 않는다. 대신 <b>작성자 본인 검증은
-     * 호출부(서비스)가</b> {@code reviewMemberId}로 수행한다 — 이 DAO는 표현용 투영만 담당한다.
-     *
-     * <p>{@code status = APPROVED}로 좁히므로 이미 만료·삭제된 건은 자동으로 제외된다(안내할 것이 없다).
-     */
     @Override
     public Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId) {
         ReviewBlindNoticeResult notice = queryFactory
@@ -184,10 +158,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         return Optional.of(notice.withImageUrls(findReviewImageUrls(notice.reviewId())));
     }
 
-    /**
-     * 증빙 서류 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지 완성해
-     * 돌려준다 — {@code fileId}를 노출하지 않고 URL만 내리는 응답 규칙 때문이다.
-     */
     private List<String> findAttachmentUrls(Long blindRequestId) {
         if (blindRequestId == null) {
             return List.of();
@@ -206,10 +176,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
             .toList();
     }
 
-    /**
-     * 대상 리뷰의 사진 URL 목록(정렬값 오름차순). 저장 경로는 {@link FileUrlResolver}로 표시용 URL까지
-     * 완성해 돌려준다.
-     */
     private List<String> findReviewImageUrls(Long reviewId) {
         if (reviewId == null) {
             return List.of();
@@ -243,10 +209,6 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         return startDate != null ? reviewBlindRequestJpaEntity.createdAt.goe(startDate.atStartOfDay()) : null;
     }
 
-    /**
-     * 종료일 필터는 <b>다음날 00:00 미만</b>으로 만든다 — 종료일 당일 접수분이 빠지지 않게 하려면
-     * 반열림 상한이어야 한다.
-     */
     private BooleanExpression createdAtLt(LocalDate endDate) {
         if (endDate == null) {
             return null;

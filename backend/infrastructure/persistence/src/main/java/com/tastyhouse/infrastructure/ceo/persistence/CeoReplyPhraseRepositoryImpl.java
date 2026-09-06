@@ -13,12 +13,8 @@ import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 
 import static com.tastyhouse.infrastructure.ceo.persistence.QCeoReplyPhraseJpaEntity.ceoReplyPhraseJpaEntity;
 
-/**
- * 자주 쓰는 문구 write 어댑터.
- */
 @Repository
 public class CeoReplyPhraseRepositoryImpl implements CeoReplyPhraseRepository {
-
     private final JPAQueryFactory queryFactory;
     private final CeoReplyPhraseJpaRepository ceoReplyPhraseJpaRepository;
 
@@ -66,8 +62,6 @@ public class CeoReplyPhraseRepositoryImpl implements CeoReplyPhraseRepository {
             return CeoReplyPhraseMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         CeoReplyPhraseJpaEntity entity = ceoReplyPhraseJpaRepository.findById(ceoReplyPhrase.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 자주 쓰는 문구입니다: " + ceoReplyPhrase.getId()));
         CeoReplyPhraseMapper.applyChanges(entity, ceoReplyPhrase);

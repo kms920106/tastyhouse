@@ -11,13 +11,8 @@ import com.tastyhouse.domain.product.repository.ProductFeedbackRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 고객 의견 write 어댑터. 제보는 수정되지 않으므로 {@code save}는 항상 insert 경로다.
- * 목록·집계 조회는 {@code ProductFeedbackQueryDao}가 담당한다.
- */
 @Repository
 public class ProductFeedbackRepositoryImpl implements ProductFeedbackRepository {
-
     private final ProductFeedbackJpaRepository productFeedbackJpaRepository;
 
     public ProductFeedbackRepositoryImpl(ProductFeedbackJpaRepository productFeedbackJpaRepository) {

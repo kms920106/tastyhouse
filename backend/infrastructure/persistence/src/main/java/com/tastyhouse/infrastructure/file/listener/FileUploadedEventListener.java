@@ -10,7 +10,6 @@ import com.tastyhouse.domain.file.event.FileUploadedEvent;
 
 @Component
 public class FileUploadedEventListener {
-
     private static final Logger log = LoggerFactory.getLogger(FileUploadedEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

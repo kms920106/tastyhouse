@@ -11,40 +11,36 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 가게 편의정보 JPA 영속 모델. 순수 도메인 모델 {@code ShopConvenienceInfo}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_CONVENIENCE_INFO")
 public class ShopConvenienceInfoJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "is_parking_available", nullable = false)
-    private boolean parkingAvailable; // 주차 가능 여부
+    private boolean parkingAvailable;
 
     @Column(name = "is_parking_paid", nullable = false)
-    private boolean parkingPaid; // 주차 유료 여부
+    private boolean parkingPaid;
 
     @Column(name = "is_valet_available", nullable = false)
-    private boolean valetAvailable; // 발렛 가능 여부
+    private boolean valetAvailable;
 
     @Column(name = "is_valet_paid", nullable = false)
-    private boolean valetPaid; // 발렛 유료 여부
+    private boolean valetPaid;
 
     @Column(name = "directions_guide", length = 200)
-    private String directionsGuide; // 찾아오는 길 안내
+    private String directionsGuide;
 
     @Column(name = "display_latitude", precision = 9, scale = 6)
-    private BigDecimal displayLatitude; // 노출 위치 위도
+    private BigDecimal displayLatitude;
 
     @Column(name = "display_longitude", precision = 9, scale = 6)
-    private BigDecimal displayLongitude; // 노출 위치 경도
+    private BigDecimal displayLongitude;
 
     protected ShopConvenienceInfoJpaEntity() {
     }
@@ -69,9 +65,6 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
         this.displayLongitude = displayLongitude;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopConvenienceInfoMapper#toEntity}에서만 호출한다.
-     */
     static ShopConvenienceInfoJpaEntity create(
         Long shopId,
         boolean parkingAvailable,
@@ -86,9 +79,6 @@ public class ShopConvenienceInfoJpaEntity extends BaseEntity {
             directionsGuide, displayLatitude, displayLongitude);
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·shopId는 건드리지 않는다.
-     */
     void applyChanges(
         boolean parkingAvailable,
         boolean parkingPaid,

@@ -18,81 +18,63 @@ import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 주문 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code Order}와 분리된 영속 전용 엔티티다. DB 매핑(테이블/컬럼/감사 필드)만
- * 담당하고 비즈니스 행위는 갖지 않는다. 도메인↔엔티티 변환은 {@code OrderMapper}가 수행한다.
- */
 @Entity
 @Table(name = "ORDERS")
 public class OrderJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId; // 주문자 회원 ID
+    private Long memberId;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 주문 대상 가게 ID
+    private Long shopId;
 
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
-    private String orderNumber; // 주문 번호
+    private String orderNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private OrderMethod orderMethod; // 주문 방식
+    private OrderMethod orderMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private OrderStatus orderStatus; // 주문 상태
+    private OrderStatus orderStatus;
 
     @Column(name = "orderer_name", nullable = false, length = 100)
-    private String ordererName; // 주문자 이름
+    private String ordererName;
 
     @Column(name = "orderer_phone", nullable = false, length = 20)
-    private String ordererPhone; // 주문자 전화번호
+    private String ordererPhone;
 
     @Column(name = "orderer_email", length = 100)
-    private String ordererEmail; // 주문자 이메일
+    private String ordererEmail;
 
     @Column(name = "total_product_amount", nullable = false)
-    private Integer totalProductAmount; // 상품 금액 합계
+    private Integer totalProductAmount;
 
     @Column(name = "product_discount_amount", nullable = false)
-    private Integer productDiscountAmount; // 상품 할인 금액
+    private Integer productDiscountAmount;
 
     @Column(name = "coupon_discount_amount", nullable = false)
-    private Integer couponDiscountAmount; // 쿠폰 할인 금액
+    private Integer couponDiscountAmount;
 
     @Column(name = "point_discount_amount", nullable = false)
-    private Integer pointDiscountAmount; // 포인트 할인 금액
+    private Integer pointDiscountAmount;
 
     @Column(name = "total_discount_amount", nullable = false)
-    private Integer totalDiscountAmount; // 총 할인 금액
+    private Integer totalDiscountAmount;
 
     @Column(name = "delivery_tip_amount", nullable = false)
-    private Integer deliveryTipAmount; // 배달팁 (final_amount 가산 항목 — 보증금과 함께 둘뿐이다)
+    private Integer deliveryTipAmount;
 
-    /**
-     * 일회용컵 보증금 합계(자원순환보증금). 비과세·점주 매출 아님·중개이용료 대상 아님·최소주문금액
-     * 산정 제외. {@code final_amount}에만 가산된다.
-     */
     @Column(name = "cup_deposit_amount", nullable = false)
     private Integer cupDepositAmount;
 
     @Column(name = "final_amount", nullable = false)
-    private Integer finalAmount; // 최종 결제 금액 (= 상품 금액 - 총 할인 + 배달팁 + 보증금)
+    private Integer finalAmount;
 
-    /**
-     * 주문 시점 배달 목적지 스냅샷 7컬럼.
-     *
-     * <p>주소를 FK가 아니라 복사하는 이유는 이 도메인의 원칙(주문 당시 값 고정)과 일치시키기 위해서다 —
-     * 회원이 주소록을 수정·삭제해도 과거 주문의 배달팁 산출 근거가 사라지면 안 된다. 배달이 아닌 주문은
-     * 7컬럼이 전부 null이므로 모두 nullable이다.
-     */
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "roadAddress", column = @Column(name = "delivery_road_address", length = 500)),
@@ -103,32 +85,26 @@ public class OrderJpaEntity extends BaseEntity {
         @AttributeOverride(name = "longitude", column = @Column(name = "delivery_longitude", precision = 9, scale = 6)),
         @AttributeOverride(name = "distanceMeters", column = @Column(name = "delivery_distance_meters"))
     })
-    private OrderDeliveryDestination deliveryDestination; // 주문 시점 배달 목적지 스냅샷
+    private OrderDeliveryDestination deliveryDestination;
 
-    /**
-     * 주문 시점 확정된 수령 예약시간 스냅샷 2컬럼.
-     *
-     * <p>즉시 주문은 두 컬럼이 모두 null이므로 nullable이다 — 기존 주문 행은 전부 null이라 "즉시 주문"으로
-     * 정확히 해석된다(무손상 마이그레이션). 포장 주문은 슬롯이 단일 시각이라 두 컬럼 값이 같다.
-     */
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "scheduledAt", column = @Column(name = "scheduled_at")),
         @AttributeOverride(name = "scheduledSlotEndAt", column = @Column(name = "scheduled_slot_end_at"))
     })
-    private OrderSchedule schedule; // 주문 시점 확정된 수령 예약시간 스냅샷
+    private OrderSchedule schedule;
 
     @Column(name = "member_coupon_id")
-    private Long memberCouponId; // 사용한 회원 쿠폰 ID
+    private Long memberCouponId;
 
     @Column(name = "used_point", nullable = false)
-    private Integer usedPoint; // 사용한 포인트
+    private Integer usedPoint;
 
     @Column(name = "earned_point", nullable = false)
-    private Integer earnedPoint; // 적립된 포인트
+    private Integer earnedPoint;
 
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted; // 삭제 여부 (true: 삭제됨, Soft Delete)
+    private boolean deleted;
 
     protected OrderJpaEntity() {
     }
@@ -181,9 +157,6 @@ public class OrderJpaEntity extends BaseEntity {
         this.deleted = deleted;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code OrderMapper#toEntity}에서만 호출한다.
-     */
     static OrderJpaEntity create(
         Long memberId,
         Long shopId,
@@ -234,9 +207,6 @@ public class OrderJpaEntity extends BaseEntity {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자는 건드리지 않는다.
-     */
     void applyChanges(
         OrderStatus orderStatus,
         Integer totalProductAmount,

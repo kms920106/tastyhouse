@@ -13,35 +13,31 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.domain.shared.model.DayType;
 
-/**
- * 상점 영업시간 JPA 영속 모델. 순수 도메인 모델 {@code ShopBusinessHour}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_BUSINESS_HOUR")
 public class ShopBusinessHourJpaEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType; // 요일 유형 (WEEKDAY, SATURDAY, SUNDAY, HOLIDAY 등)
+    private DayType dayType;
 
     @Column(name = "open_time")
-    private LocalTime openTime; // 영업 시작 시각
+    private LocalTime openTime;
 
     @Column(name = "close_time")
-    private LocalTime closeTime; // 영업 종료 시각
+    private LocalTime closeTime;
 
     @Column(name = "is_closed")
-    private Boolean isClosed; // 휴무 여부 (true: 휴무)
+    private Boolean isClosed;
 
     @Column(name = "is_open_24_hours")
-    private Boolean is24Hours; // 24시간 영업 여부
+    private Boolean is24Hours;
 
     protected ShopBusinessHourJpaEntity() {
     }

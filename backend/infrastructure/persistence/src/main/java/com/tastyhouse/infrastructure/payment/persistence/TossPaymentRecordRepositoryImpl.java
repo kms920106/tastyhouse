@@ -7,7 +7,6 @@ import com.tastyhouse.domain.payment.repository.TossPaymentRecordRepository;
 
 @Repository
 public class TossPaymentRecordRepositoryImpl implements TossPaymentRecordRepository {
-
     private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
 
     public TossPaymentRecordRepositoryImpl(TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository) {

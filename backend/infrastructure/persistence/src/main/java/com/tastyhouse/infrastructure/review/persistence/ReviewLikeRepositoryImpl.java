@@ -12,7 +12,6 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEnt
 
 @Repository
 public class ReviewLikeRepositoryImpl implements ReviewLikeRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;
 

@@ -7,7 +7,6 @@ import com.tastyhouse.domain.member.repository.MemberWithdrawalRepository;
 
 @Repository
 public class MemberWithdrawalRepositoryImpl implements MemberWithdrawalRepository {
-
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
 
     public MemberWithdrawalRepositoryImpl(MemberWithdrawalJpaRepository memberWithdrawalJpaRepository) {

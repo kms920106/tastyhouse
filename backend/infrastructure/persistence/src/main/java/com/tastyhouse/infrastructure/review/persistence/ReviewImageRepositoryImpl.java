@@ -13,7 +13,6 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEn
 
 @Repository
 public class ReviewImageRepositoryImpl implements ReviewImageRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ReviewImageJpaRepository reviewImageJpaRepository;
 

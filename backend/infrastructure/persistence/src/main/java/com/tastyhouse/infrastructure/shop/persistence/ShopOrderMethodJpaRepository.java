@@ -7,6 +7,5 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 
 @Repository
 public interface ShopOrderMethodJpaRepository extends JpaRepository<ShopOrderMethodJpaEntity, Long> {
-
     void deleteByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod);
 }

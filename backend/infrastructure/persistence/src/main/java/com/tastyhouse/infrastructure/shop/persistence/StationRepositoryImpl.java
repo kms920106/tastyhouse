@@ -6,7 +6,6 @@ import com.tastyhouse.domain.shop.repository.StationRepository;
 
 @Repository
 public class StationRepositoryImpl implements StationRepository {
-
     private final StationJpaRepository stationJpaRepository;
 
     public StationRepositoryImpl(StationJpaRepository stationJpaRepository) {

@@ -11,25 +11,21 @@ import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 상점 임시 휴무 JPA 영속 모델. 순수 도메인 모델 {@code ShopTemporaryClosure}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_TEMPORARY_CLOSURE")
 public class ShopTemporaryClosureJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "shop_id", nullable = false)
-    private Long shopId; // 가게 ID (SHOP.id 참조)
+    private Long shopId;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDate startDate; // 임시 휴무 시작일
+    private LocalDate startDate;
 
     @Column(name = "end_date", nullable = false)
-    private LocalDate endDate; // 임시 휴무 종료일
+    private LocalDate endDate;
 
     protected ShopTemporaryClosureJpaEntity() {
     }
@@ -40,9 +36,6 @@ public class ShopTemporaryClosureJpaEntity extends BaseEntity {
         this.endDate = endDate;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음). {@code ShopTemporaryClosureMapper#toEntity}에서만 호출한다.
-     */
     static ShopTemporaryClosureJpaEntity create(Long shopId, LocalDate startDate, LocalDate endDate) {
         return new ShopTemporaryClosureJpaEntity(shopId, startDate, endDate);
     }

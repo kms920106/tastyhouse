@@ -13,17 +13,6 @@ import jakarta.persistence.Table;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 프랜차이즈 배달지역 조정 신청 JPA 영속 모델.
- *
- * <p>순수 도메인 모델 {@code ShopDeliveryAreaAdjustmentRequest}와 분리된 영속 전용 엔티티다. DB 매핑만
- * 담당하고 비즈니스 행위는 갖지 않으며, 도메인↔엔티티 변환은
- * {@code ShopDeliveryAreaAdjustmentRequestMapper}가 수행한다.
- *
- * <p>{@code status}에 {@code columnDefinition = "VARCHAR(20)"}가 필수다 — Hibernate 6의 MySQLDialect는
- * {@code EnumType.STRING}을 네이티브 {@code ENUM} 컬럼으로 매핑하므로, 생략하면 DB의 {@code VARCHAR(20)}과
- * 불일치해 {@code ddl-auto=validate}에서 부팅이 실패한다({@code BugReport} 장애 선례).
- */
 @Entity
 @Table(
     name = "SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST",
@@ -33,7 +22,6 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -86,10 +74,6 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         this.rejectReason = rejectReason;
     }
 
-    /**
-     * 신규 저장용 엔티티를 생성한다(식별자 없음).
-     * {@code ShopDeliveryAreaAdjustmentRequestMapper#toEntity}에서만 호출한다.
-     */
     static ShopDeliveryAreaAdjustmentRequestJpaEntity create(
         Long shopId,
         String counterpartShopName,
@@ -112,10 +96,6 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update용 dirty checking 대체). 감사 필드·식별자·불변
-     * 필드는 건드리지 않는다 — 신청 내용은 접수 후 바뀌지 않고 상태 전이만 일어난다.
-     */
     void applyChanges(DeliveryAreaAdjustmentStatus status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;

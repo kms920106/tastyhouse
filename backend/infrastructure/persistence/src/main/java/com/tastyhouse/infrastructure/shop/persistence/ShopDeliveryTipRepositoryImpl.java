@@ -19,21 +19,8 @@ import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 배달팁 5종 write 어댑터.
- *
- * <p>{@link ShopDeliveryTipRepository}와 함께 {@link ShopDeliveryTipRegionLookup}도 구현한다 —
- * 두 포트가 같은 테이블({@code SHOP_DELIVERY_TIP_REGION})을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에
- * 생긴다. 포트를 나눈 것은 소비자({@code ShopDeliveryAreaService})의 의존을 좁히기 위함이지 저장소를
- * 나누기 위함이 아니다.
- *
- * <p>저장 시맨틱은 <b>load-copy-save</b>다 — detached {@code save()}(merge)는
- * {@code @CreatedDate(updatable = false)} 감사 필드를 깨뜨린다. 컬렉션 3종(구간·지역별·시간별)은
- * replace-all 교체라 개별 update 경로가 없어 항상 insert다.
- */
 @Repository
 public class ShopDeliveryTipRepositoryImpl implements ShopDeliveryTipRepository, ShopDeliveryTipRegionLookup {
-
     private final ShopDeliveryTipSettingJpaRepository shopDeliveryTipSettingJpaRepository;
     private final ShopDeliveryTipTierJpaRepository shopDeliveryTipTierJpaRepository;
     private final ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository;
@@ -179,13 +166,6 @@ public class ShopDeliveryTipRepositoryImpl implements ShopDeliveryTipRepository,
         return shopDeliveryTipRegionJpaRepository.existsByShopIdAndAdminDongId(shopId.value(), adminDongId.value());
     }
 
-    /**
-     * 지역별 배달팁이 참조하는 행정동 집합을 한 번에 읽는다. 일괄 삭제·폴리곤 재저장이 "하나라도 참조돼
-     * 있으면 한 건도 지우지 않는다"는 원자적 차단을 하려면 지우기 전에 참조 집합 전체를 알아야 한다.
-     *
-     * <p>가게당 지역별 팁은 배달가능지역 수를 넘지 않아(각 팁이 배달가능한 동을 가리킨다) 행을 그대로
-     * 읽어도 규모가 제한적이다.
-     */
     @Override
     public Set<AdminDongId> findRegionTipAdminDongIds(ShopId shopId) {
         return shopDeliveryTipRegionJpaRepository.findByShopId(shopId.value()).stream()

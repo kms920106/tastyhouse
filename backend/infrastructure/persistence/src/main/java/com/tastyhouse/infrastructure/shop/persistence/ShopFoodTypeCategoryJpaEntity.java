@@ -12,35 +12,31 @@ import jakarta.persistence.Table;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 음식 유형 카테고리 JPA 영속 모델. 순수 도메인 모델 {@code ShopFoodTypeCategory}와 분리된 영속 전용 엔티티다.
- */
 @Entity
 @Table(name = "SHOP_FOOD_TYPE_CATEGORY")
 public class ShopFoodTypeCategoryJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "food_type", nullable = false, unique = true, length = 50, columnDefinition = "VARCHAR(50)")
-    private FoodType foodType; // 음식 유형 (KOREAN, JAPANESE, CHINESE, WESTERN 등)
+    private FoodType foodType;
 
     @Column(name = "display_name", nullable = false, length = 100)
-    private String displayName; // 화면 표시명
+    private String displayName;
 
     @Column(name = "active_image_file_id", nullable = false)
-    private Long activeImageFileId; // 활성 상태 아이콘 파일 ID (FILE.id 참조)
+    private Long activeImageFileId;
 
     @Column(name = "inactive_image_file_id", nullable = false)
-    private Long inactiveImageFileId; // 비활성 상태 아이콘 파일 ID (FILE.id 참조)
+    private Long inactiveImageFileId;
 
     @Column(name = "sort", nullable = false)
-    private Integer sort; // 정렬 순서
+    private Integer sort;
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible; // 사용 여부 (true: 사용 중)
+    private boolean visible;
 
     protected ShopFoodTypeCategoryJpaEntity() {
     }

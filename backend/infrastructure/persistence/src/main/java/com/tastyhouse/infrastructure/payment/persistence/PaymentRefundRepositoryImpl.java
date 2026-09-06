@@ -7,7 +7,6 @@ import com.tastyhouse.domain.payment.repository.PaymentRefundRepository;
 
 @Repository
 public class PaymentRefundRepositoryImpl implements PaymentRefundRepository {
-
     private final PaymentRefundJpaRepository paymentRefundJpaRepository;
 
     public PaymentRefundRepositoryImpl(PaymentRefundJpaRepository paymentRefundJpaRepository) {

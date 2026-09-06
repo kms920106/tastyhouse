@@ -26,17 +26,8 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJp
 import static com.tastyhouse.infrastructure.shop.persistence.QShopClosedDayJpaEntity.shopClosedDayJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
 
-/**
- * 가게 자식 애그리거트 write 어댑터.
- *
- * <p>표현 목적 read(카테고리 목록·배정 목록·배너·사진 목록, 주문방식 배정·사진 카테고리·최신 사장님
- * 한마디)는 같은 모듈의 {@link com.tastyhouse.infrastructure.shop.query.ShopQueryDao}로 이관했다
- * (공통 지침 패턴 4). 불변식 검증·영업 상태 판정에 쓰이는 목록 조회(영업시간·휴게시간·정기휴무)는
- * 도메인 소비자가 있어 write 어댑터에 남는다.
- */
 @Repository
 public class ShopDetailRepositoryImpl implements ShopDetailRepository {
-
     private final JPAQueryFactory queryFactory;
     private final ShopBusinessHourJpaRepository shopBusinessHourJpaRepository;
     private final ShopBreakTimeJpaRepository shopBreakTimeJpaRepository;
@@ -161,7 +152,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             return ShopClosedDayMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopClosedDay는 insert-only) — 존재 시에도 재조회만 수행
         ShopClosedDayJpaEntity entity = shopClosedDayJpaRepository.findById(closedDay.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 정기 휴무입니다: " + closedDay.getId()));
         return ShopClosedDayMapper.toDomain(entity);
@@ -215,7 +205,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             return ShopAmenityMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopAmenity는 insert-only) — 존재 시에도 재조회만 수행
         ShopAmenityJpaEntity entity = shopAmenityJpaRepository.findById(amenity.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 편의시설 배정입니다: " + amenity.getId()));
         return ShopAmenityMapper.toDomain(entity);
@@ -233,7 +222,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             return ShopFoodTypeMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopFoodType은 insert-only) — 존재 시에도 재조회만 수행
         ShopFoodTypeJpaEntity entity = shopFoodTypeJpaRepository.findById(foodType.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 음식 유형 배정입니다: " + foodType.getId()));
         return ShopFoodTypeMapper.toDomain(entity);
@@ -263,7 +251,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             return ShopOrderMethodMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopOrderMethod는 insert-only) — 존재 시에도 재조회만 수행
         ShopOrderMethodJpaEntity entity = shopOrderMethodJpaRepository.findById(orderMethod.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 주문방식 배정입니다: " + orderMethod.getId()));
         return ShopOrderMethodMapper.toDomain(entity);
@@ -281,7 +268,6 @@ public class ShopDetailRepositoryImpl implements ShopDetailRepository {
             return ShopBannerImageMapper.toDomain(saved);
         }
 
-        // update 경로 없음(ShopBannerImage는 insert-only) — 존재 시에도 재조회만 수행
         ShopBannerImageJpaEntity entity = shopBannerImageJpaRepository.findById(bannerImage.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 배너 이미지입니다: " + bannerImage.getId()));
         return ShopBannerImageMapper.toDomain(entity);

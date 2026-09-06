@@ -9,7 +9,6 @@ import com.tastyhouse.domain.shop.repository.ProhibitedWordRepository;
 
 @Repository
 public class ProhibitedWordRepositoryImpl implements ProhibitedWordRepository {
-
     private final ProhibitedWordJpaRepository jpaRepository;
 
     public ProhibitedWordRepositoryImpl(ProhibitedWordJpaRepository jpaRepository) {

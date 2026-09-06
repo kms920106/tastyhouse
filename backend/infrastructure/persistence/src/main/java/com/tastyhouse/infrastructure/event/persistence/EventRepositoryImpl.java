@@ -11,15 +11,8 @@ import com.tastyhouse.domain.event.vo.EventId;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.eventJpaEntity;
 
-/**
- * 이벤트 write 어댑터.
- *
- * <p>command 경로의 단건 로드·저장만 담당한다. 표현 목적 read(목록·검색·상세)는 같은 모듈의
- * {@code EventQueryDao}로 이관했다(CQRS 분리).
- */
 @Repository
 public class EventRepositoryImpl implements EventRepository {
-
     private final JPAQueryFactory queryFactory;
     private final EventJpaRepository eventJpaRepository;
 
@@ -44,8 +37,6 @@ public class EventRepositoryImpl implements EventRepository {
             return EventMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         EventJpaEntity entity = eventJpaRepository.findById(event.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 이벤트입니다: " + event.getId()));
         EventMapper.applyChanges(entity, event);

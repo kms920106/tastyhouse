@@ -9,31 +9,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * 법정 공휴일 JPA 영속 모델. 순수 도메인 모델 {@code PublicHoliday}와 분리된 영속 전용 엔티티다.
- *
- * <p>시드 SQL로만 관리하는 read-only 마스터라 생성·변경 팩토리를 두지 않는다. 감사 컬럼이 없어
- * {@code BaseEntity}를 상속하지 않는다({@code MailVerification} 선례).
- */
 @Entity
 @Table(name = "PUBLIC_HOLIDAY")
 public class PublicHolidayJpaEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "holiday_date", nullable = false)
-    private LocalDate holidayDate; // 공휴일 날짜
+    private LocalDate holidayDate;
 
     @Column(name = "name", nullable = false, length = 50)
-    private String name; // 공휴일 명칭
+    private String name;
 
-    /**
-     * 대체공휴일 여부. 도메인 모델이 소비하지 않아 접근자를 두지 않지만, 스키마의
-     * {@code is_substitute NOT NULL} 컬럼과 매핑돼야 {@code ddl-auto: validate}를 통과하므로
-     * 필드는 유지한다.
-     */
     @Column(name = "is_substitute", nullable = false)
     private boolean substitute;
 

@@ -12,7 +12,6 @@ import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 @Repository
 public class ShopRiderGuideRepositoryImpl implements ShopRiderGuideRepository {
-
     private final ShopRiderGuideJpaRepository shopRiderGuideJpaRepository;
     private final ShopRiderGuideHistoryJpaRepository shopRiderGuideHistoryJpaRepository;
 
@@ -37,8 +36,6 @@ public class ShopRiderGuideRepositoryImpl implements ShopRiderGuideRepository {
             return ShopRiderGuideMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         ShopRiderGuideJpaEntity entity = shopRiderGuideJpaRepository.findById(riderGuide.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 라이더 안내입니다: " + riderGuide.getId()));
         ShopRiderGuideMapper.applyChanges(entity, riderGuide);

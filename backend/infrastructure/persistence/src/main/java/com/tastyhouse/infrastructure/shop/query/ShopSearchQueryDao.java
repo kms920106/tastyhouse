@@ -43,31 +43,8 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopFoodTypeJpaEnt
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
-/**
- * 가게 목록·검색 read 어댑터(CQRS query 측).
- *
- * <p>표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영한다. 도메인 모델을 거치지 않으므로 write
- * 포트({@code ShopRepository})와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의
- * {@code Shop*QueryService}가 이 DAO를 주입해 사용하며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
- *
- * <p>shop은 대형 도메인이므로 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다 — 이 클래스는
- * <b>목록·검색·베스트·즐겨찾기 등 대형 조인</b>을 담당하고, 가게별 설정·관리 화면 조회는
- * {@link ShopQueryDao}가 담당한다.
- *
- * <p>목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄
- * 조회(in절)로 채우는 방식을 유지한다 — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영으로는
- * 카티전 곱이 생기기 때문이다.
- */
 @Repository
 public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManagementQueryPort {
-
-    /**
-     * 지도 마커 조회 반경(m). 위·경도 1도 ≈ 111km 근사로 사각 범위를 계산한다.
-     *
-     * <p>도메인 정책이 아니라 <b>지리 계산 구현 세부</b>라 DAO에 잔류한다 — 이 값은 "가게가 어떠해야
-     * 하는가"가 아니라 "지도 뷰포트 질의를 어떤 사각 범위로 근사할 것인가"를 정하며, 정밀 거리 계산
-     * (하버사인)이나 공간 인덱스로 구현이 바뀌면 함께 사라진다. 도메인 어휘에 대응 개념이 없다.
-     */
     private static final double MAP_MARKER_RADIUS_METERS = 200.0;
     private static final double METERS_PER_DEGREE = 111000.0;
 
@@ -85,9 +62,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         this.shopDeliveryTipQueryDao = shopDeliveryTipQueryDao;
     }
 
-    /**
-     * 현재 위치 주변 가게 마커 목록. 폐업·노출정지 가게는 제외한다.
-     */
     @Override
     public List<ShopMapMarkerResult> findNearbyShops(BigDecimal latitude, BigDecimal longitude) {
         BigDecimal degreeDiff = BigDecimal.valueOf(MAP_MARKER_RADIUS_METERS / METERS_PER_DEGREE);
@@ -109,12 +83,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
             .fetch();
     }
 
-    /**
-     * 베스트 가게 목록 — 평점 높은 순. 평점 없는 가게와 폐업·노출정지 가게는 제외한다.
-     *
-     * @param deliveryAdminDongId 회원 기본 배송지의 행정동. {@code null}이면 배달지역 필터를 걸지 않는다
-     *                            ({@link #deliveryAreaCovers} 참고)
-     */
     @Override
     public PageResult<BestShopItemResult> findBestShops(Long deliveryAdminDongId, PageQuery pageQuery) {
         BooleanExpression[] conditions = {
@@ -163,10 +131,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 최신 가게 목록 — 등록 최신 순. 역·음식유형·편의시설로 필터한다(편의시설은 지정한 항목을 모두 갖춘
-     * 가게만). 폐업·노출정지 가게는 제외한다.
-     */
     @Override
     public PageResult<LatestShopItemResult> findLatestShops(
         Long stationId,
@@ -269,9 +233,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 상호명 키워드 검색 결과 — 평점 높은 순. 로그인 회원이면 즐겨찾기 여부를 함께 채운다.
-     */
     @Override
     public PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(
         String keyword,
@@ -334,9 +295,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 내 즐겨찾기 가게 목록 — 즐겨찾기 등록 최신 순. 폐업·노출정지 가게는 제외한다.
-     */
     @Override
     public PageResult<ShopBookmarkedItemResult> findMyBookmarkedShops(Long memberId, PageQuery pageQuery) {
         Long total = queryFactory
@@ -388,9 +346,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /**
-     * 가게 목록 페이징(관리·점주 화면) — 상호명·역·폐업여부·소유 점주로 필터하며, 최근 등록 순.
-     */
     @Override
     public PageResult<ShopListItemResult> findShops(ShopSearchCondition condition, PageQuery pageQuery) {
         Long total = queryFactory
@@ -432,8 +387,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
-
-    // ------------------------------------------------------ shopId 일괄 보강 조회
 
     private Map<Long, String> stationNamesByShopId(List<Long> shopIds) {
         return queryFactory
@@ -480,14 +433,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
             ));
     }
 
-    /**
-     * 가게별 고객 노출 리뷰 수 — 숨김(관리자 게시중단)과 사장님만보기를 <b>둘 다</b> 제외한다.
-     *
-     * <p>{@code ownerOnly}를 빼먹으면 목록 카드의 리뷰 수만 늘고 정작 가게 리뷰 목록에는 그 리뷰가 없어
-     * <b>건수 차이로 비공개 리뷰의 존재가 새어나간다</b>(이 조회는 비로그인도 호출 가능한 경로다).
-     * 같은 이유로 {@code ReviewStatisticsQueryDao#countVisibleByShopId}와 조건이 일치해야 한다 —
-     * 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.
-     */
     private Map<Long, Long> reviewCountsByShopId(List<Long> shopIds) {
         return queryFactory
             .select(reviewJpaEntity.shopId, reviewJpaEntity.shopId.count())
@@ -520,9 +465,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
             ));
     }
 
-    /**
-     * 두 필터 집합의 교집합. 한쪽이 없으면 다른 쪽을, 둘 다 없으면 null(필터 없음)을 돌려준다.
-     */
     private Set<Long> intersect(Set<Long> first, Set<Long> second) {
         if (first == null) {
             return second;
@@ -555,21 +497,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return shopIds != null ? shopJpaEntity.id.in(shopIds) : null;
     }
 
-    /**
-     * 회원 배송지의 행정동을 배달하지 않는 가게를 목록에서 제외한다.
-     *
-     * <p>이 필터가 없으면 고객은 <b>결제 마지막 단계에서야</b> 배달 불가를 안다
-     * ({@code ORDER_DELIVERY_AREA_NOT_COVERED}) — 목록에 보이는 것과 주문할 수 있는 것이 어긋난다.
-     * 노출 시점과 주문 접수 시점({@code OrderPlacementService#validateDeliveryArea})이 같은 규칙을
-     * 쓰도록 두 판정을 일치시킨다.
-     *
-     * <p><b>배달가능지역을 하나도 등록하지 않은 가게는 통과시킨다.</b> 주문 접수 검사와 같은 원칙이며
-     * ("정보를 안 넣은 것을 닫힌 것으로 보지 않는다"), 이것이 없으면 미설정 가게가 배포 즉시 목록에서
-     * 전부 사라진다. 기존 데이터의 대부분이 0건이므로 사실상 서비스가 비는 것과 같다.
-     *
-     * @param adminDongId 회원 기본 배송지의 행정동. {@code null}이면(비로그인·주소 미등록·행정동 미매칭)
-     *                    필터를 걸지 않는다 — 좁힐 근거가 없을 때 감추는 것은 노출 축소일 뿐이다.
-     */
     private BooleanExpression deliveryAreaCovers(Long adminDongId) {
         if (adminDongId == null) {
             return null;
@@ -593,12 +520,6 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return notConfigured.or(covers);
     }
 
-    /**
-     * 투영된 저장 경로를 표시용 URL로 바꾸고 배달팁 하한/상한을 채워 재조립한다.
-     * {@code Projections.constructor}가 생성자 직접 투영이라 두 변환 모두 투영식에 넣을 수 없어 fetch 직후
-     * 호출한다(배달팁 범위는 올림 계산이 섞여 SQL 집계로 표현되지 않는다 —
-     * {@link ShopDeliveryTipQueryDao#findTipRanges} 참고).
-     */
     private ShopBookmarkedItemResult withResolvedImageUrlAndTipRange(
         ShopBookmarkedItemResult row,
         Map<Long, ShopDeliveryTipRangeResult> tipRangeMap
@@ -617,13 +538,11 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         );
     }
 
-    /** 배달팁 하한. 설정이 없는 가게는 0이다. */
     private int minDeliveryTip(Map<Long, ShopDeliveryTipRangeResult> tipRangeMap, Long shopId) {
         ShopDeliveryTipRangeResult range = tipRangeMap.get(shopId);
         return range == null ? 0 : range.minDeliveryTip();
     }
 
-    /** 배달팁 상한. 설정이 없는 가게는 0이다. */
     private int maxDeliveryTip(Map<Long, ShopDeliveryTipRangeResult> tipRangeMap, Long shopId) {
         ShopDeliveryTipRangeResult range = tipRangeMap.get(shopId);
         return range == null ? 0 : range.maxDeliveryTip();

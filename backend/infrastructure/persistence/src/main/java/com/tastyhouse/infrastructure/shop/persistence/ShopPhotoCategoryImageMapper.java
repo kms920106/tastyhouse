@@ -6,7 +6,6 @@ import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
 final class ShopPhotoCategoryImageMapper {
-
     private ShopPhotoCategoryImageMapper() {
     }
 

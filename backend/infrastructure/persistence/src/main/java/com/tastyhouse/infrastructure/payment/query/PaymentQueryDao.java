@@ -18,37 +18,14 @@ import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.or
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentRefundJpaEntity.paymentRefundJpaEntity;
 
-/**
- * 결제 read 어댑터(CQRS query 측).
- *
- * <p>표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영한다. 도메인 모델을 거치지 않으므로 write
- * 포트({@code PaymentRepository} 등)와 역할이 겹치지 않는다. 소비 모듈(web-api)의
- * {@code PaymentQueryService}가 이 DAO를 주입해 사용한다.
- *
- * <p>현재는 소비 모듈이 실제로 쓰는 조회 둘만 갖는다 — 주문별 결제 조회({@link #findPaymentByOrderId},
- * 회원의 결제 확인 화면)와 PK 조회({@link #findPaymentById}, command 커밋 후 응답 조립용 재조회). 공통
- * 지침 패턴 3의 "소비 모듈이 실제 쓰는 메서드·필드만 이관" 원칙에 따른다. 관리자 결제·환불 내역 조회는
- * admin-api에 결제 소비자가 생길 때 이 DAO에 메서드로 추가한다(호출부 없는 조회를 미리 만들지 않는다).
- */
 @Repository
 public class PaymentQueryDao implements PaymentQueryPort {
-
     private final JPAQueryFactory queryFactory;
 
     public PaymentQueryDao(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 
-    /**
-     * 주문의 결제 단건 — 결제가 없으면 {@link Optional#empty()}.
-     *
-     * <p>회원 스코프 검증에 쓸 주문의 {@code memberId}를 함께 투영한다. 주문이 없으면 결제도 조회되지
-     * 않으므로(inner join) 소비 모듈은 "주문 없음"과 "결제 없음"을 결과 부재로 함께 처리한다.
-     *
-     * <p>{@code PAYMENT.order_id}에 unique 제약이 있어 주문당 결제는 최대 1건이다. 이 불변식이 깨지면
-     * 임의의 한 건을 조용히 고르는 대신 {@code fetchOne}으로 즉시 실패시킨다 — 기존
-     * {@code PaymentRepository#findByOrderId}와 동일한 fail-loud 시맨틱을 유지한다.
-     */
     @Override
     public Optional<PaymentResult> findPaymentByOrderId(OrderId orderId) {
         return Optional.ofNullable(
@@ -58,12 +35,6 @@ public class PaymentQueryDao implements PaymentQueryPort {
         );
     }
 
-    /**
-     * 결제 단건(PK) — 결제가 없으면 {@link Optional#empty()}.
-     *
-     * <p>command 경로(생성·승인·취소·현장완료·환불)가 커밋 후 응답을 조립할 때 재조회하는 경로다
-     * (CQRS 분리 — command는 식별자만 돌려주고 조립은 조회가 담당).
-     */
     @Override
     public Optional<PaymentResult> findPaymentById(PaymentId paymentId) {
         return Optional.ofNullable(
@@ -73,12 +44,6 @@ public class PaymentQueryDao implements PaymentQueryPort {
         );
     }
 
-    /**
-     * 환불 요청 단건(PK) — 없으면 {@link Optional#empty()}.
-     *
-     * <p>환불 요청 command가 커밋 후 응답을 조립할 때 재조회하는 경로다. 소유권은 요청 시점에 이미
-     * 검증되었고 이 조회는 그 직후 재조회이므로 회원 스코프를 다시 대조하지 않는다.
-     */
     @Override
     public Optional<PaymentRefundResult> findRefundById(PaymentRefundId refundId) {
         return Optional.ofNullable(
@@ -99,9 +64,6 @@ public class PaymentQueryDao implements PaymentQueryPort {
         );
     }
 
-    /**
-     * 결제 단건 투영 — 두 조회 경로(주문별·PK별)가 같은 필드 셋을 쓰므로 공유한다.
-     */
     private JPAQuery<PaymentResult> selectPayment() {
         return queryFactory
             .select(Projections.constructor(PaymentResult.class,

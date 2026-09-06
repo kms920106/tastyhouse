@@ -9,7 +9,6 @@ import com.tastyhouse.domain.member.model.MemberSocialProvider;
 
 @Repository
 public interface MemberSocialAccountJpaRepository extends JpaRepository<MemberSocialAccountJpaEntity, Long> {
-
     Optional<MemberSocialAccountJpaEntity> findByProviderAndProviderId(MemberSocialProvider provider, String providerId);
 
     boolean existsByProviderAndProviderId(MemberSocialProvider provider, String providerId);

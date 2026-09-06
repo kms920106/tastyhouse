@@ -11,19 +11,13 @@ import com.tastyhouse.domain.shop.vo.StationId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-/**
- * {@link ShopMapper}의 nullable FK(ceoId/thumbnailImageFileId/trademarkImageFileId) round-trip을
- * 검증한다. {@code IdMapping}을 거치지 않고 {@code CeoId.of(entity.getCeoId())}처럼 직접 호출했다면
- * 이 테스트가 {@code IllegalArgumentException}으로 실패했을 것이다.
- */
 class ShopMapperTest {
-
     @Test
     @DisplayName("nullable FK가 전부 null인 엔티티를 도메인으로 재구성해도 예외가 나지 않는다")
     void toDomainDoesNotThrowWhenNullableFksAreNull() {
         ShopJpaEntity entity = ShopJpaEntity.create(
-            null, // ceoId: 점주 미배정
-            1L, // stationId: NOT NULL
+            null,
+            1L,
             "가게",
             BigDecimal.ONE,
             BigDecimal.ONE,
@@ -31,15 +25,15 @@ class ShopMapperTest {
             null,
             null,
             null,
-            null, // thumbnailImageFileId
-            null, // trademarkImageFileId
+            null,
+            null,
             false,
             false,
             false,
             0,
             false,
-            false, // cupDepositEnabled: 보증금제 대상 아님
-            false // storePriceVerified: 매장가격 인증 안 됨
+            false,
+            false
         );
 
         assertThatCode(() -> ShopMapper.toDomain(entity)).doesNotThrowAnyException();
@@ -55,7 +49,7 @@ class ShopMapperTest {
     void toEntityDoesNotThrowWhenNullableVosAreNull() {
         Shop domain = Shop.reconstitute(
             null,
-            null, // ceoId
+            null,
             StationId.of(1L),
             "가게",
             BigDecimal.ONE,
@@ -64,15 +58,15 @@ class ShopMapperTest {
             null,
             null,
             null,
-            null, // thumbnailImageFileId
-            null, // trademarkImageFileId
+            null,
+            null,
             false,
             false,
             false,
             0,
             false,
             false,
-            false, // storePriceVerified: 매장가격 인증 안 됨
+            false,
             null,
             null
         );

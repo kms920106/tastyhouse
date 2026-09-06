@@ -6,11 +6,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
-/**
- * 메뉴-가게 연결 도메인 모델 ↔ JPA 엔티티 변환기.
- */
 final class ProductShopLinkMapper {
-
     private ProductShopLinkMapper() {
     }
 

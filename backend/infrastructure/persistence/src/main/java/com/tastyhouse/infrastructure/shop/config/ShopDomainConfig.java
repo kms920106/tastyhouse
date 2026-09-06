@@ -63,58 +63,23 @@ import com.tastyhouse.domain.shop.service.ShopRiderGuideService;
 import com.tastyhouse.domain.shop.service.ShopRiderGuideValidator;
 import com.tastyhouse.infrastructure.shop.persistence.CachingProhibitedWordRepository;
 
-/**
- * shop 컨텍스트의 도메인 서비스(POJO) 빈 등록 설정.
- *
- * <p>도메인 서비스는 {@code @Service} 없는 순수 POJO라 Spring이 스캔할 수 없으므로,
- * 이 컨텍스트에 새 POJO 도메인 서비스를 추가하면 여기에 {@code @Bean}을 추가한다.
- */
 @Configuration(proxyBeanMethods = false)
 public class ShopDomainConfig {
-
-    /**
-     * 금칙어 검수 정책 — 점주 입력 텍스트(가게소개·찾아오는길)에 액터 무관하게 적용되는 무상태 정책.
-     */
     @Bean
     public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordRepository prohibitedWordRepository) {
-        // 검증기는 텍스트 검증마다 findAll()을 호출하므로, 전량 로드가 매번 DB로 나가지 않도록 캐싱
-        // 데코레이터로 감싼 포트를 주입한다. 금칙어는 SQL 시드 read-only 데이터라 정합성 리스크가 낮고,
-        // 캐싱을 어댑터 쪽에 두어 domain의 순수 POJO 검증기는 그대로 둔다.
         return new ProhibitedWordValidator(new CachingProhibitedWordRepository(prohibitedWordRepository));
     }
 
-    /**
-     * 점주 공지 앱 노출 불변식 — "가게당 노출 공지는 최대 1건". 이 공지를 켜면서 기존 노출 공지를 함께
-     * 내리는 집합 연산이라 단일 애그리거트 연산이 아니므로 도메인 서비스가 소유한다.
-     */
     @Bean
     public ShopNoticeExposureService shopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
         return new ShopNoticeExposureService(shopNoticeRepository);
     }
 
-    /**
-     * 주문안내 전체교체(upsert) 연산 — "가게당 주문안내 1건". PUT 하나가 기존 행 유무에 따라
-     * insert/update로 갈라지므로 단일 애그리거트 연산이 아니고, 그 분기 규칙을 ceo·admin 두 api
-     * 모듈이 각자 갖지 않도록 도메인 서비스가 소유한다.
-     *
-     * <p>본문 길이 검증(1~500자)과 관리자 게시중단 토글도 같은 서비스가 갖는다 — 승인 절차가 없어
-     * 상태 전이가 {@code hidden} 하나뿐이라 서비스를 더 쪼갤 이유가 없다.
-     */
     @Bean
     public ShopOrderNoticeService shopOrderNoticeService(ShopOrderNoticeRepository shopOrderNoticeRepository) {
         return new ShopOrderNoticeService(shopOrderNoticeRepository);
     }
 
-    /**
-     * 다음 영업일 오픈 시각 계산기 — 품절 기간 기본값("익일 가게 오픈 시간")에 쓴다.
-     *
-     * <p>product 컨텍스트가 아니라 shop에 두는 이유: 영업시간·휴무일 해석은 shop의 관심사이고,
-     * product 도메인 서비스가 {@code ShopBusinessHour}를 직접 참조하면 컨텍스트 경계 위반이다.
-     * 두 서비스의 조립은 ceo-api의 command service가 담당한다.
-     *
-     * <p>요일별 영업시간 선택 규칙은 {@link ShopOperatingStatusCalculator}가 이미 소유하므로 주입해
-     * 재사용한다(복제하면 요일 구분 추가 시 한쪽만 고쳐진다).
-     */
     @Bean
     public ShopNextOpenTimeCalculator shopNextOpenTimeCalculator(
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
@@ -122,18 +87,11 @@ public class ShopDomainConfig {
         return new ShopNextOpenTimeCalculator(shopOperatingStatusCalculator);
     }
 
-    /**
-     * 가게 영업 상태 계산기 — 리포지토리에 의존하지 않는 순수 판정 로직.
-     */
     @Bean
     public ShopOperatingStatusCalculator shopOperatingStatusCalculator() {
         return new ShopOperatingStatusCalculator();
     }
 
-    /**
-     * 가게 영업 상태 판정 — 가게·영업시간·휴게시간·정기휴무·임시휴무·임시중지 여섯 애그리거트를 읽어
-     * 계산기에 위임하는 오케스트레이션.
-     */
     @Bean
     public ShopOperatingStatusService shopOperatingStatusService(
         ShopRepository shopRepository,
@@ -151,11 +109,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 주문 접수 게이트 — 영업상태·주문유형 배정·유형별 임시중지 검증. 주문 접수
-     * ({@code OrderPlacementService})와 예약 생성({@code ReservationBookingService})이 같은 규칙을
-     * 쓰도록 검증을 이 서비스 하나에 모았다.
-     */
     @Bean
     public ShopOrderAvailabilityService shopOrderAvailabilityService(
         ShopOperatingStatusService shopOperatingStatusService,
@@ -167,10 +120,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 예약주문 슬롯 계산기 — 리포지토리 주입 0개의 순수 판정 로직.
-     * 영업 판정을 새로 짜지 않고 {@link ShopOperatingStatusCalculator}에 미래 시각을 넘겨 재사용한다.
-     */
     @Bean
     public ScheduledOrderSlotCalculator scheduledOrderSlotCalculator(
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
@@ -178,11 +127,6 @@ public class ShopDomainConfig {
         return new ScheduledOrderSlotCalculator(shopOperatingStatusCalculator);
     }
 
-    /**
-     * 예약주문 슬롯 조회·확정 — 가게·영업시간·휴게시간·정기휴무·임시휴무·임시중지 여섯 애그리거트를 읽어
-     * 계산기에 위임하는 오케스트레이션. 주문 접수({@code OrderPlacementService})는 이 서비스 하나만
-     * 주입받아 클라이언트가 보낸 수령 시각을 재계산·대조한다.
-     */
     @Bean
     public ScheduledOrderSlotService scheduledOrderSlotService(
         ShopRepository shopRepository,
@@ -200,10 +144,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 이미지 변경 승인 워크플로 — 요청 승인과 가게 이미지 반영을 한 트랜잭션에서 함께 처리하는
-     * 원자 연산(요청자 ceo·검수자 admin 양쪽이 공유하는 액터 무관 규칙).
-     */
     @Bean
     public ShopImageApprovalService shopImageApprovalService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
@@ -219,11 +159,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 메뉴모음컷 불변식 — 최대 6개·최소 1개 유지·순서 replace-all은 행 하나만 보고는 판정할 수 없는
-     * 집합 차원 규칙이라 애그리거트가 아니라 도메인 서비스가 소유한다. 등록만 검수를 거치고 순서 변경·
-     * 삭제는 즉시 반영되며, 요청자 ceo·검수자 admin 양쪽이 같은 규칙을 쓰도록 여기 하나만 둔다.
-     */
     @Bean
     public ShopMenuCollectionImageService shopMenuCollectionImageService(
         ShopMenuCollectionImageRepository shopMenuCollectionImageRepository,
@@ -232,9 +167,6 @@ public class ShopDomainConfig {
         return new ShopMenuCollectionImageService(shopMenuCollectionImageRepository, shopRepository);
     }
 
-    /**
-     * 가게 전화번호 목록 불변식 — 대표번호와 가게 애그리거트의 대표 전화번호를 항상 함께 갱신한다.
-     */
     @Bean
     public ShopPhoneNumberRegistryService shopPhoneNumberRegistryService(
         ShopPhoneNumberRepository shopPhoneNumberRepository,
@@ -248,9 +180,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 영업시간·휴게시간·정기휴무 규격 불변식 — 휴게시간이 같은 요일 영업시간 범위 안인지 등을 검증한다.
-     */
     @Bean
     public ShopBusinessHourService shopBusinessHourService(
         ShopDetailRepository shopDetailRepository,
@@ -259,10 +188,6 @@ public class ShopDomainConfig {
         return new ShopBusinessHourService(shopDetailRepository, shopChangeHistoryRecorder);
     }
 
-    /**
-     * 가게 배달팁 컬렉션 불변식 — 구간 개수·정렬·단조성, 거리별↔지역별 상호 배타, 지역별 팁의 행정동이
-     * 배달가능지역에 속하는지, 같은 요일 시간대 겹침을 검증한다. 컬렉션 3종은 replace-all로 교체한다.
-     */
     @Bean
     public ShopDeliveryTipService shopDeliveryTipService(
         ShopDeliveryTipRepository shopDeliveryTipRepository,
@@ -278,19 +203,11 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 배달팁 산출 — 리포지토리 주입 0개·인스턴스 상태 0개의 순수 계산기.
-     * 좌표→거리, 날짜→공휴일 변환은 호출부가 끝내고 이미 해석된 값으로 넘긴다.
-     */
     @Bean
     public ShopDeliveryTipCalculator shopDeliveryTipCalculator() {
         return new ShopDeliveryTipCalculator();
     }
 
-    /**
-     * 가게 배달가능지역 불변식 — 행정동 존재·중복 등록을 검증하고, 지역별 배달팁이 참조 중인 지역의
-     * 삭제를 차단한다(지역별 팁이 배달불가 지역을 가리키는 상태 방지).
-     */
     @Bean
     public ShopDeliveryAreaService shopDeliveryAreaService(
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
@@ -303,11 +220,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 배달지역 도형 저장·삭제 — 도형 원본과 그것을 환산한 행정동 집합이 같은 트랜잭션에서 항상 일치하도록
-     * 순서와 검증을 한 곳에 모은다. 환산을 비동기로 미루면 "저장은 됐는데 주문은 거절되는" 창이 생기고,
-     * 그 사이 등록 건수가 0이 되면 주문 접수의 지역 검사가 통째로 비활성된다.
-     */
     @Bean
     public ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService(
         ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository,
@@ -325,10 +237,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 반경 일괄 적용 — 후보 행정동을 write 포트로 읽는다(명령 경로가 infra query DAO를 주입하면 CQRS 교차
-     * 주입 금지 규칙에 걸린다). 거리 판정은 원 근사 다각형이 아니라 하버사인 직선거리로 한다.
-     */
     @Bean
     public ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService(
         ShopDeliveryAreaRepository shopDeliveryAreaRepository,
@@ -341,11 +249,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 프랜차이즈 배달지역 조정 신청 불변식 — 같은 가게에 진행 중(PENDING·IN_PROGRESS) 신청이 있으면 새
-     * 접수를 막고(행 하나만 보고는 판정할 수 없는 집합 차원 규칙), 상태 전이 후 명시적으로 저장한다.
-     * 신청 접수는 ceo, 검수는 admin이 수행하는 액터 공유 규칙이라 도메인 계층에 하나만 둔다.
-     */
     @Bean
     public ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService(
         ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
@@ -359,9 +262,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 생애주기 불변식 — 역 존재 확인·노출정지 차단(진행 중 이미지 요청)·가게소개 검수를 담당한다.
-     */
     @Bean
     public ShopLifecycleService shopLifecycleService(
         ShopRepository shopRepository,
@@ -385,12 +285,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 원산지 표시 정보의 조회·upsert와 변경이력 기록.
-     *
-     * <p>금칙어 검수를 하지 않는다 — 원산지 본문은 마케팅 문구가 아니라 법령이 요구하는 사실 표시라,
-     * 검수로 저장을 막으면 표시 의무를 이행할 수 없게 된다.
-     */
     @Bean
     public ShopOriginInfoService shopOriginInfoService(
         ShopOriginInfoRepository shopOriginInfoRepository,
@@ -404,10 +298,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 편의정보 불변식 — 찾아오는길 금칙어 검수와 표시 위치 반경(1km) 검증, 그리고 편의정보·편의시설
-     * 변경이력 기록을 담당한다.
-     */
     @Bean
     public ShopConvenienceInfoService shopConvenienceInfoService(
         ShopConvenienceInfoRepository shopConvenienceInfoRepository,
@@ -425,18 +315,11 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 라이더 안내 문구 등록 기준 검증 정책 — 배민 가이드의 "작성 불가 3유형"(금칙어·가게 실주소 재기재·
-     * 배차 특정)을 액터 무관하게 적용하는 무상태 정책.
-     */
     @Bean
     public ShopRiderGuideValidator shopRiderGuideValidator(ProhibitedWordValidator prohibitedWordValidator) {
         return new ShopRiderGuideValidator(prohibitedWordValidator);
     }
 
-    /**
-     * 라이더 안내 불변식 — 폐업 가게 차단·문구 등록 기준 검증·변경 이력 기록을 원자적으로 묶는 오케스트레이션.
-     */
     @Bean
     public ShopRiderGuideService shopRiderGuideService(
         ShopRiderGuideRepository shopRiderGuideRepository,
@@ -452,11 +335,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 가게 변경이력 기록 — 변경을 수행하는 도메인 서비스들이 같은 트랜잭션에서 동기 호출한다.
-     *
-     * <p>{@code ShopChangeValueFormatter}는 상태 없는 static 유틸이라 빈으로 등록하지 않는다.
-     */
     @Bean
     public ShopChangeHistoryRecorder shopChangeHistoryRecorder(
         ShopChangeHistoryRepository shopChangeHistoryRepository
@@ -464,10 +342,6 @@ public class ShopDomainConfig {
         return new ShopChangeHistoryRecorder(shopChangeHistoryRepository);
     }
 
-    /**
-     * 가게-점주 접근권한 이력 기록 — 배정·해제를 수행하는 도메인 서비스가 같은 트랜잭션에서 동기 호출한다.
-     * 새 배정 경로를 만들면 그 도메인 서비스에 이 Recorder를 배선해야 한다.
-     */
     @Bean
     public ShopCeoAssignmentRecorder shopCeoAssignmentRecorder(
         ShopCeoAssignmentHistoryRepository shopCeoAssignmentHistoryRepository
@@ -475,10 +349,6 @@ public class ShopDomainConfig {
         return new ShopCeoAssignmentRecorder(shopCeoAssignmentHistoryRepository);
     }
 
-    /**
-     * 가게 담당 점주 배정·해제 불변식 — {@code SHOP.ceo_id} 갱신과 접근권한 이력 기록을 원자적으로
-     * 수행하고, 재배정을 {@code REVOKE}+{@code GRANT} 2행으로 남긴다.
-     */
     @Bean
     public ShopCeoAssignmentService shopCeoAssignmentService(
         ShopRepository shopRepository,
@@ -492,10 +362,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 요청처리 현황 인덱스 기록·동기화 — 원본 상태 전이와 같은 트랜잭션에서 파생 읽기모델을 갱신한다.
-     * 요청 성격의 애그리거트를 새로 만들면 그 도메인 서비스에 이 Recorder를 배선해야 한다.
-     */
     @Bean
     public ShopRequestIndexRecorder shopRequestIndexRecorder(
         ShopRequestIndexRepository shopRequestIndexRepository
@@ -503,9 +369,6 @@ public class ShopDomainConfig {
         return new ShopRequestIndexRecorder(shopRequestIndexRepository);
     }
 
-    /**
-     * 요청 취소 — 유형별 원본 애그리거트의 {@code cancel()}(PENDING만 허용)과 인덱스 동기화를 함께 수행한다.
-     */
     @Bean
     public ShopRequestCancelService shopRequestCancelService(
         ShopImageChangeRequestRepository shopImageChangeRequestRepository,
@@ -521,10 +384,6 @@ public class ShopDomainConfig {
         );
     }
 
-    /**
-     * 요청건 문의 스레드 작성 — 실재하는 요청에만 댓글이 달리도록 인덱스 행을 확인한다(점주 경로는 가게
-     * 일치까지 재검증).
-     */
     @Bean
     public ShopRequestCommentService shopRequestCommentService(
         ShopRequestCommentRepository shopRequestCommentRepository,
@@ -533,11 +392,6 @@ public class ShopDomainConfig {
         return new ShopRequestCommentService(shopRequestCommentRepository, shopRequestIndexRecorder);
     }
 
-    /**
-     * 주문 접수가 가게에 묻는 것들의 파사드 — 가게 로드·주문가능 검증·최소주문금액 검증·배달가능지역
-     * 판정·거리 산출·배달팁 조립·예약슬롯 확정. 주문 접수가 shop의 모델·리포지토리를 직접 쓰지 않도록
-     * 이 컨텍스트가 소유한다.
-     */
     @Bean
     public ShopOrderContextService shopOrderContextService(
         ShopRepository shopRepository,

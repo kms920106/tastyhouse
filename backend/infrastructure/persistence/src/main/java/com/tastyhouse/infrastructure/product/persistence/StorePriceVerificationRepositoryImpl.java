@@ -12,13 +12,8 @@ import com.tastyhouse.domain.product.repository.StorePriceVerificationRepository
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
-/**
- * 매장 가격 인증 요청 write 어댑터. 요청 본체와 항목이 같은 애그리거트 경계에서 함께 저장·조회되므로
- * 한 포트(한 구현)가 두 JPA 리포지토리를 감싼다. 표현 목적 조회는 {@code ProductQueryDao}가 담당한다.
- */
 @Repository
 public class StorePriceVerificationRepositoryImpl implements StorePriceVerificationRepository {
-
     private final StorePriceVerificationJpaRepository storePriceVerificationJpaRepository;
     private final StorePriceVerificationItemJpaRepository storePriceVerificationItemJpaRepository;
 
@@ -38,8 +33,6 @@ public class StorePriceVerificationRepositoryImpl implements StorePriceVerificat
             return StorePriceVerificationMapper.toDomain(saved);
         }
 
-        // update 경로: managed 엔티티를 PK로 조회(동일 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해
-        // dirty checking으로 flush. detached merge는 @CreatedDate(updatable=false) 감사 필드 파손 위험이 있어 쓰지 않는다.
         StorePriceVerificationJpaEntity entity = storePriceVerificationJpaRepository
             .findById(verification.getId())
             .orElseThrow(() -> new IllegalStateException(
@@ -70,8 +63,6 @@ public class StorePriceVerificationRepositoryImpl implements StorePriceVerificat
 
     @Override
     public void saveItem(StorePriceVerificationItem item) {
-        // 항목은 접수 시 한 번 저장되고 이후 변경되지 않으므로 update 분기를 두지 않는다.
-        // 저장 후 별도 조회 경로(findAllItemsByVerificationId)가 있어 저장 결과를 반환하지 않는다.
         storePriceVerificationItemJpaRepository.save(StorePriceVerificationItemMapper.toEntity(item));
     }
 

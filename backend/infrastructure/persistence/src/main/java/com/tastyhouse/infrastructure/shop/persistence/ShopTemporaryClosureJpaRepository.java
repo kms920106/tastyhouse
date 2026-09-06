@@ -7,6 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopTemporaryClosureJpaRepository extends JpaRepository<ShopTemporaryClosureJpaEntity, Long> {
-
     List<ShopTemporaryClosureJpaEntity> findByShopId(Long shopId);
 }

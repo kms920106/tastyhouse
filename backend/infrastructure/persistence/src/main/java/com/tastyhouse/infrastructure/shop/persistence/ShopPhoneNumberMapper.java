@@ -4,17 +4,10 @@ import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 
-/**
- * 가게 전화번호 도메인 모델 ↔ JPA 엔티티 변환기. 도메인이 프레임워크-프리를 유지하도록 변환 책임을 infrastructure에 둔다.
- */
 final class ShopPhoneNumberMapper {
-
     private ShopPhoneNumberMapper() {
     }
 
-    /**
-     * JPA 엔티티를 도메인 모델로 재구성한다(조회 경로).
-     */
     static ShopPhoneNumber toDomain(ShopPhoneNumberJpaEntity entity) {
         return ShopPhoneNumber.reconstitute(
             entity.getId(),
@@ -27,9 +20,6 @@ final class ShopPhoneNumberMapper {
         );
     }
 
-    /**
-     * 신규 도메인 모델을 저장용 JPA 엔티티로 변환한다(식별자 없는 상태).
-     */
     static ShopPhoneNumberJpaEntity toEntity(ShopPhoneNumber domain) {
         return ShopPhoneNumberJpaEntity.create(
             IdMapping.raw(domain.getShopId(), ShopId::value),
@@ -39,9 +29,6 @@ final class ShopPhoneNumberMapper {
         );
     }
 
-    /**
-     * managed 엔티티에 도메인의 변경 필드를 복사한다(update 경로, dirty checking 대체).
-     */
     static void applyChanges(ShopPhoneNumberJpaEntity entity, ShopPhoneNumber domain) {
         entity.applyChanges(domain.isPrimary());
     }

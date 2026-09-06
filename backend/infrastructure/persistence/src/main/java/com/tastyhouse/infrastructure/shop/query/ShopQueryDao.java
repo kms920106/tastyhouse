@@ -74,45 +74,16 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopPhotoCategoryJ
 import static com.tastyhouse.infrastructure.shop.persistence.QShopSuspensionJpaEntity.shopSuspensionJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopTemporaryClosureJpaEntity.shopTemporaryClosureJpaEntity;
 
-/**
- * 가게 관리·설정 read 어댑터(CQRS query 측).
- *
- * <p>표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영한다. 도메인 모델을 거치지 않으므로 write
- * 포트({@code ShopRepository}/{@code ShopDetailRepository} 등)와 역할이 겹치지 않는다. 소비 모듈
- * (web/admin/ceo-api)의 {@code Shop*QueryService}가 이 DAO를 주입해 사용하며, 그 덕분에 api 모듈은
- * QueryDSL을 알지 않는다.
- *
- * <p>shop은 대형 도메인이므로 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다 — 이 클래스는
- * <b>가게별 설정·관리 화면 조회</b>(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형
- * 배정·배너·사진)를 담당하고, 목록·검색·베스트 등 대형 조인은 {@link ShopSearchQueryDao}가 담당한다.
- *
- * <p>소비자별 메서드는 CLAUDE.md 규칙대로 admin 마커 없이 순수 동작명을 쓰고, 비-admin 형제와 충돌할
- * 때만 시그니처·{@code ById} 한정어로 구별한다.
- */
 @Repository
 public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort {
-
-    /**
-     * 카테고리의 활성/비활성 아이콘을 한 쿼리에서 함께 투영하기 위한 파일 테이블 별칭.
-     */
     private static final QUploadedFileJpaEntity activeFile = new QUploadedFileJpaEntity("activeFile");
     private static final QUploadedFileJpaEntity inactiveFile = new QUploadedFileJpaEntity("inactiveFile");
 
-    /**
-     * 콘텐츠보드/이미지 변경요청 조회에서 이미지 파일을 조인하기 위한 파일 테이블 별칭.
-     */
     private static final QUploadedFileJpaEntity contentBoardImageFile = new QUploadedFileJpaEntity("contentBoardImageFile");
     private static final QUploadedFileJpaEntity imageChangeRequestImageFile = new QUploadedFileJpaEntity("imageChangeRequestImageFile");
 
-    /**
-     * 메뉴모음컷 조회에서 이미지 파일을 조인하기 위한 파일 테이블 별칭 — 검수 목록은 {@code SHOP}도 함께
-     * 조인하므로 공용 {@code uploadedFileJpaEntity} 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다.
-     */
     private static final QUploadedFileJpaEntity menuCollectionImageFile = new QUploadedFileJpaEntity("menuCollectionImageFile");
 
-    /**
-     * 가게 상세 조립 시 썸네일/상표 이미지를 함께 조회하기 위한 파일 테이블 별칭.
-     */
     private static final QUploadedFileJpaEntity shopThumbnailFile = new QUploadedFileJpaEntity("shopThumbnailFile");
     private static final QUploadedFileJpaEntity shopTrademarkFile = new QUploadedFileJpaEntity("shopTrademarkFile");
 
@@ -124,18 +95,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         this.fileUrlResolver = fileUrlResolver;
     }
 
-    // ------------------------------------------------------------------- 가게명
-
-    /**
-     * 가게명 단건 — 다른 컨텍스트가 표시 문구를 조립할 때 쓴다(알림 본문 등).
-     *
-     * <p>도메인 모델({@code Shop})을 통째로 로드하지 않는 이유는 소비처가 이름 한 필드만 필요하고, 그
-     * 소비처가 애그리거트 경계 밖(알림 리스너)이라 도메인 모델을 넘기면 컨텍스트가 결합되기 때문이다.
-     *
-     * <p><b>포트에 선언되지 않은 infra 내부 조회다.</b> 유일한 소비처인 {@code ReviewOwnerReplyEventListener}가
-     * 같은 모듈에서 이 DAO를 구체 타입으로 주입하므로, application 계층이 소유할 계약이 아니다
-     * ({@code MemberReviewCountQueryPort} 선례와 같은 취급이며, 챕터 04의 포트 분할 대상에서 제외했다).
-     */
     public Optional<String> findShopName(Long shopId) {
         return Optional.ofNullable(
             queryFactory
@@ -146,11 +105,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         );
     }
 
-    // ---------------------------------------------------------------- 전화번호
-
-    /**
-     * 가게 전화번호 목록 — 대표번호 우선, 그다음 등록 순.
-     */
     @Override
     public List<ShopPhoneNumberResult> findPhoneNumbers(Long shopId) {
         return queryFactory
@@ -167,12 +121,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // ------------------------------------------------------------ 가게 상세 이미지
-
-    /**
-     * 가게 썸네일/상표 이미지 표시용 URL(가게 상세 조립용). 도메인 모델({@code Shop})은 다른 필드를
-     * 위해 계속 로드하되, 이미지 URL만 이 조회로 대체해 파일 단건 재조회를 없앤다.
-     */
     @Override
     public Optional<ShopImageUrlsResult> findShopImageUrls(Long shopId) {
         return Optional.ofNullable(
@@ -190,11 +138,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         ).map(this::withResolvedImageUrls);
     }
 
-    // ---------------------------------------------------------------- 편의정보
-
-    /**
-     * 가게 편의정보 단건(가게당 1건). 없으면 비어 있다.
-     */
     @Override
     public Optional<ShopConvenienceInfoResult> findConvenienceInfo(Long shopId) {
         return Optional.ofNullable(
@@ -216,12 +159,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         );
     }
 
-    // ------------------------------------------------------------ 원산지
-
-    /**
-     * 가게 원산지 표시 정보. 가게당 1건이며 미설정이면 {@code Optional.empty()}다 — 점주 화면은 그때 빈
-     * 폼을, 손님 화면은 원산지 영역 숨김을 택하므로 판정은 소비 측에 맡긴다.
-     */
     @Override
     public Optional<ShopOriginInfoResult> findOriginInfo(Long shopId) {
         return Optional.ofNullable(
@@ -240,11 +177,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         );
     }
 
-    // ------------------------------------------------------------ 콘텐츠보드
-
-    /**
-     * 가게 콘텐츠보드 목록(점주 화면) — 등록 순.
-     */
     @Override
     public List<ShopContentBoardResult> findContentBoards(Long shopId) {
         return contentBoardProjection()
@@ -256,9 +188,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 콘텐츠보드 목록 페이징(관리 화면) — 가게·숨김여부·콘텐츠 유형으로 필터하며, 최근 등록 순.
-     */
     @Override
     public PageResult<ShopContentBoardResult> findContentBoardPage(
         Long shopId,
@@ -322,11 +251,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return contentType != null ? shopContentBoardJpaEntity.contentType.eq(contentType) : null;
     }
 
-    // -------------------------------------------------------------- 위생 뱃지
-
-    /**
-     * 가게 위생 인증 뱃지 목록 — 인증일 최신 순.
-     */
     @Override
     public List<ShopHygieneBadgeResult> findHygieneBadges(Long shopId) {
         return queryFactory
@@ -343,14 +267,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // ------------------------------------------------------- 이미지 변경요청
-
-    /**
-     * 가게의 이미지 변경요청 목록(점주 화면) — 이미지 유형별로 걸러 최근 요청 순.
-     *
-     * <p>상표·대표이미지는 화면에서 각각 독립된 항목으로 "검수 대기 중" 배지를 표시하므로,
-     * 유형 필터 없이 반환하면 한쪽 유형의 PENDING 요청이 다른 쪽 배지까지 켠다.
-     */
     @Override
     public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId, ShopImageType imageType) {
         return imageChangeRequestProjection()
@@ -365,9 +281,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 이미지 변경요청 목록 페이징(검수 화면) — 승인 상태·이미지 유형으로 필터하며, 최근 요청 순.
-     */
     @Override
     public PageResult<ShopImageChangeRequestResult> findImageChangeRequestPage(
         ApprovalStatus status,
@@ -419,11 +332,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return imageType != null ? shopImageChangeRequestJpaEntity.imageType.eq(imageType) : null;
     }
 
-    // ------------------------------------------------------------ 임시중지·휴무
-
-    /**
-     * 가게 영업 임시중지 목록 — 최근 시작 순.
-     */
     @Override
     public List<ShopSuspensionResult> findSuspensions(Long shopId) {
         return queryFactory
@@ -442,9 +350,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    /**
-     * 가게 임시 휴무 목록 — 시작일 순.
-     */
     @Override
     public List<ShopTemporaryClosureResult> findTemporaryClosures(Long shopId) {
         return queryFactory
@@ -460,11 +365,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // ------------------------------------------------- 편의시설·음식유형 카테고리
-
-    /**
-     * 노출 중인 음식 유형 카테고리 목록(회원 화면) — 정렬 순.
-     */
     @Override
     public List<ShopFoodTypeCategoryResult> findVisibleFoodTypeCategories() {
         return queryFactory
@@ -488,9 +388,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 노출 중인 편의시설 카테고리 목록(회원 화면) — 정렬 순.
-     */
     @Override
     public List<ShopAmenityCategoryResult> findVisibleAmenityCategories() {
         return queryFactory
@@ -514,9 +411,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 전체 편의시설 카테고리 목록(관리 화면 — 미노출분 포함) — 정렬 순.
-     */
     @Override
     public List<ShopAmenityCategoryResult> findAllAmenityCategories() {
         return queryFactory
@@ -539,9 +433,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 전체 음식 유형 카테고리 목록(관리 화면 — 미노출분 포함) — 정렬 순.
-     */
     @Override
     public List<ShopFoodTypeCategoryResult> findAllFoodTypeCategories() {
         return queryFactory
@@ -564,11 +455,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    // ------------------------------------------------------ 가게별 배정 목록
-
-    /**
-     * 가게에 배정된 편의시설 목록(카테고리 정보 포함, 관리·설정 화면).
-     */
     @Override
     public List<ShopAmenityAssignmentResult> findAmenityAssignments(Long shopId) {
         return queryFactory
@@ -589,9 +475,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 가게에 배정된 편의시설 목록(회원 상세 화면 — 배정 식별자 없이 표시용 필드만).
-     */
     @Override
     public List<ShopAmenityWithCategoryResult> findAmenitiesWithCategory(Long shopId) {
         return queryFactory
@@ -610,9 +493,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 가게에 배정된 음식 유형 목록(카테고리 정보 포함, 관리 화면).
-     */
     @Override
     public List<ShopFoodTypeAssignmentResult> findFoodTypeAssignments(Long shopId) {
         return queryFactory
@@ -633,15 +513,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 가게에 배정된 음식 유형의 <b>화면 표시명만</b> 뽑는다.
-     *
-     * <p>{@link #findFoodTypeAssignments}와 목적이 다르다. 그쪽은 관리 화면용이라 아이콘 파일을
-     * 조인하고 URL까지 완성하지만, 이 메서드는 <b>정책 판정</b>에 쓰이는 이름 집합만 필요하다 —
-     * 채식 메뉴 등록 불가 카테고리 판정(product 컨텍스트)이 소비자다. 아이콘 조인을 함께 끌고 오면
-     * 판정에 쓰이지 않는 파일 조회가 얹히고, {@code activeImageFileId} 결측 시 inner join으로
-     * 카테고리가 조용히 누락돼 <b>거절해야 할 요청이 통과</b>한다.
-     */
     @Override
     public List<String> findFoodTypeCategoryNames(Long shopId) {
         return queryFactory
@@ -652,11 +523,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // ------------------------------------------------------------ 배너·사진
-
-    /**
-     * 가게 배너 이미지 목록(파일 경로 포함) — 정렬 순.
-     */
     @Override
     public List<ShopBannerImageResult> findBannerImages(Long shopId) {
         return queryFactory
@@ -675,14 +541,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    // -------------------------------------------------------------- 메뉴모음컷
-
-    /**
-     * 점주 화면용 메뉴모음컷 목록 — {@code sort} 순, <b>상태 무관 전량</b>.
-     *
-     * <p>대기·반려 건까지 내려보내는 이유는 원문 규격이 점주 화면에 검수 진행 상태를 보여주도록
-     * 규정하기 때문이다. 손님 화면은 {@link #findExposedMenuCollectionImages}로 승인분만 본다.
-     */
     @Override
     public List<ShopMenuCollectionImageResult> findMenuCollectionImages(Long shopId) {
         return queryFactory
@@ -704,12 +562,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 손님 화면용 메뉴모음컷 목록 — <b>승인분만</b> {@code sort} 순.
-     *
-     * <p>상태 필터를 소비 측(api 모듈)이 아니라 이 투영에 두는 이유는, 필터를 호출부에 맡기면 새 소비
-     * 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출될 수 있기 때문이다.
-     */
     @Override
     public List<ShopMenuCollectionImageExposureResult> findExposedMenuCollectionImages(Long shopId) {
         return queryFactory
@@ -732,9 +584,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 관리자 검수용 메뉴모음컷 요청 페이징 목록 — 승인 상태로 필터하며 최근 등록 순.
-     */
     @Override
     public PageResult<ShopMenuCollectionImageRequestResult> findMenuCollectionImageRequestPage(
         ApprovalStatus status,
@@ -776,14 +625,10 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    /** 상태 미지정({@code null})은 "전체"를 뜻하므로 술어를 붙이지 않는다. */
     private BooleanExpression menuCollectionImageStatusEq(ApprovalStatus status) {
         return status != null ? shopMenuCollectionImageJpaEntity.status.eq(status) : null;
     }
 
-    /**
-     * 전체 사진 카테고리 이미지 목록(파일 경로 포함) — 정렬 순. 소비 측이 카테고리별로 묶어 쓴다.
-     */
     @Override
     public List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages() {
         return photoCategoryImageProjection()
@@ -794,12 +639,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 특정 사진 카테고리의 이미지 목록(관리 화면 — 노출 여부 포함) — 정렬 순.
-     *
-     * <p>관리 화면은 미노출 이미지도 함께 보여주고 그 상태를 표시해야 하므로 {@code visible}을 담은
-     * {@link ShopPhotoCategoryImageManagementResult}를 돌려준다.
-     */
     @Override
     public List<ShopPhotoCategoryImageManagementResult> findPhotoCategoryImages(Long shopPhotoCategoryId) {
         return queryFactory
@@ -820,9 +659,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .toList();
     }
 
-    /**
-     * 가게 사진 카테고리 목록(회원 상세·관리 화면) — 등록 순.
-     */
     @Override
     public List<ShopPhotoCategoryResult> findPhotoCategories(Long shopId) {
         return queryFactory
@@ -836,11 +672,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // ------------------------------------------------------------ 주문방식
-
-    /**
-     * 가게에 배정된 주문방식 목록(회원 상세·관리 화면) — 등록 순.
-     */
     @Override
     public List<ShopOrderMethodResult> findOrderMethods(Long shopId) {
         return queryFactory
@@ -854,11 +685,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    // -------------------------------------------------------- 사장님 한마디
-
-    /**
-     * 가게의 최신 사장님 한마디(회원 가게정보·점주 가게소개 화면). 없으면 비어 있다.
-     */
     @Override
     public Optional<ShopOwnerMessageResult> findLatestOwnerMessage(Long shopId) {
         return Optional.ofNullable(
@@ -874,14 +700,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         );
     }
 
-    // -------------------------------------------------- 영업시간·정기휴무(표현용)
-
-    /**
-     * 가게 영업시간 목록(회원 가게정보·점주 설정·관리 화면) — 요일 순.
-     *
-     * <p>같은 데이터를 도메인 서비스도 읽지만 그쪽은 write 포트로 도메인 모델을 로드한다 —
-     * 목적(불변식 검증 vs 화면 표현)과 반환 타입이 다르므로 중복이 아니다.
-     */
     @Override
     public List<ShopBusinessHourResult> findBusinessHours(Long shopId) {
         return queryFactory
@@ -899,11 +717,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    /**
-     * 가게 휴게시간 목록(회원 가게정보·점주 설정·관리 화면) — 요일 순.
-     *
-     * <p>{@link #findBusinessHours(Long)}과 같은 이유로 write 포트의 목록 조회와 공존한다.
-     */
     @Override
     public List<ShopBreakTimeResult> findBreakTimes(Long shopId) {
         return queryFactory
@@ -919,11 +732,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .fetch();
     }
 
-    /**
-     * 가게 정기휴무 목록(회원 가게정보·점주 설정·관리 화면) — 등록 순.
-     *
-     * <p>{@link #findBusinessHours(Long)}과 같은 이유로 write 포트의 목록 조회와 공존한다.
-     */
     @Override
     public List<ShopClosedDayResult> findClosedDays(Long shopId) {
         return queryFactory
@@ -949,10 +757,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId));
     }
 
-    /**
-     * 투영된 저장 경로를 표시용 URL로 바꿔 재조립한다. 아래 메서드들은 {@code Projections.constructor}가
-     * 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어 fetch 직후 호출한다.
-     */
     private ShopFoodTypeCategoryResult withResolvedIconUrls(ShopFoodTypeCategoryResult row) {
         return new ShopFoodTypeCategoryResult(
             row.id(),
@@ -1095,13 +899,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         );
     }
 
-    /**
-     * 회원 노출용 가게 단건 — 폐업·노출정지 가게는 투영되지 않는다.
-     *
-     * <p>가시성 조건({@code permanentlyClosed=false}·{@code hidden=false})은 write 포트
-     * {@code ShopRepository#findVisibleById}와 동일하게 유지한다. 애그리거트를 로드해 표시 필드를
-     * 꺼내던 기존 형태를 한 번의 투영으로 대체한다.
-     */
     @Override
     public Optional<ShopVisibleDetailResult> findVisibleDetailById(Long shopId) {
         ShopVisibleDetailResult result = queryFactory
@@ -1128,9 +925,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return Optional.ofNullable(result);
     }
 
-    /**
-     * 회원의 가게 북마크 여부. 표현용 단건 판정이라 write 포트가 아니라 이 어댑터가 답한다.
-     */
     @Override
     public boolean existsBookmark(Long shopId, Long memberId) {
         Integer found = queryFactory
@@ -1145,9 +939,6 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return found != null;
     }
 
-    /**
-     * 가게 관리 상세 조회 — 회원 노출용과 달리 폐업·노출정지 가게도 조회된다.
-     */
     @Override
     public Optional<ShopManagementDetailResult> findManagementDetailById(Long shopId) {
         ShopManagementDetailResult result = queryFactory
@@ -1172,5 +963,4 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
 
         return Optional.ofNullable(result);
     }
-
 }

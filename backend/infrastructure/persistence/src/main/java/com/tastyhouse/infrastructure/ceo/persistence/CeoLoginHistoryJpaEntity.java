@@ -13,39 +13,29 @@ import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
-/**
- * 점주 로그인 이력 JPA 영속 모델(append-only). 순수 도메인 모델 {@code CeoLoginHistory}와 분리된 영속
- * 전용 엔티티다.
- *
- * <p>enum 필드는 {@code @Enumerated(EnumType.STRING)}과 {@code columnDefinition = "VARCHAR(n)"}을
- * 병기한다 — {@code columnDefinition}을 빠뜨리면 Hibernate 6의 {@code MySQLDialect}가 네이티브
- * {@code ENUM(...)}을 기대해 {@code ddl-auto=validate}에서 부팅이 실패한다. {@code n}은 {@code schema.sql}과
- * 일치해야 한다(result/failureReason 모두 20).
- */
 @Entity
 @Table(name = "CEO_LOGIN_HISTORY")
 public class CeoLoginHistoryJpaEntity extends BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // PK
+    private Long id;
 
     @Column(name = "ceo_id", nullable = false)
-    private Long ceoId; // 점주 ID (CEO.id 참조)
+    private Long ceoId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "result", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private CeoLoginResult result; // 결과 (SUCCESS, FAILURE)
+    private CeoLoginResult result;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "failure_reason", length = 20, columnDefinition = "VARCHAR(20)")
-    private CeoLoginFailureReason failureReason; // 실패 사유 (성공 시 NULL)
+    private CeoLoginFailureReason failureReason;
 
     @Column(name = "ip_address", length = 45)
-    private String ipAddress; // 접속 IP (IPv6 최대 45자, 판별 불가 시 NULL)
+    private String ipAddress;
 
     @Column(name = "user_agent", length = 500)
-    private String userAgent; // 접속 기기 정보 (500자 초과분은 Recorder가 절단)
+    private String userAgent;
 
     protected CeoLoginHistoryJpaEntity() {
     }
