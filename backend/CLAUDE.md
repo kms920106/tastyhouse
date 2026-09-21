@@ -678,9 +678,95 @@ public static EmailVerifyTokenResponse from(String emailVerifyToken) {
 
 reference 구현: `admin-api`의 `auth/response/JwtResponse`, `coupon/response/CouponDetailResponse`(파라미터 15개, `return new`도 한 줄에 하나씩 — 시그니처·본문 통일의 기준 예시), `event/response/EventWinnerResponse`(파라미터 6개), `bug/response/BugReportDetailResponse`(과거 `return new` 인자가 여러 개씩 묶여 있던 것을 전환), `common/ApiResponse`(제네릭 `ApiResponse<>`도 동일 적용), `web-api`의 `notice/response/NoticeListItemResponse`(이미 줄바꿈된 다수파 예시), `member/response/MyReviewListItemResponse`(파라미터 2개로 줄바꿈 전환).
 
+## java 주석 금지 규칙 (설계 근거는 `AGENTS.md`·`docs/domain`이 소유한다)
+
+**backend의 `*.java`에는 주석을 쓰지 않는다.** `/** */` Javadoc, `// ` 라인 주석, `/* */` 블록 주석 **전부**가 대상이며, main·test를 가리지 않는다. 33,996줄의 java 주석을 전량 제거하고 근거를 문서로 옮긴 결과 확립된 규칙이다.
+
+**설명할 것이 있으면 처음부터 문서에 쓴다.** 주석으로 적었다가 나중에 옮기는 것이 아니라, **애초에 문서가 그 설명의 소재지**다. 그러므로 새 코드를 쓰면서 "이건 주석으로 남겨야 하는데"라는 판단이 서면, 그 순간 할 일은 주석을 쓰는 것이 아니라 **아래 표가 지정하는 문서에 항목을 추가하는 것**이다.
+
+위 [설정·빌드 스크립트 주석 규칙](#설정빌드-스크립트-주석-규칙-applicationyml--buildgradle)이 yml·gradle에 대해 정한 것과 같은 근거다 — 설명이 코드와 문서 양쪽에 있으면 **한쪽만 갱신돼 두 벌이 갈라진다.** 다른 점은 java에는 "유지하는 주석" 예외가 없다는 것이다(단위 라벨·블록 제목처럼 yml에서 남기는 형태가 java에는 대응물이 없다).
+
+**주석 없는 java 파일은 문서화 누락이 아니라 의도된 상태다.** 되살리지 않는다.
+
+### 설명이 사는 곳 — 성격으로 목적지를 정한다
+
+새로 쓰는 설명이든 잔존 주석에서 건져낸 내용이든, 목적지는 그 내용의 성격으로 정한다.
+
+| 분류 | 판별 기준 | 목적지 |
+|---|---|---|
+| **A. 가드** | 특정 코드 지점의 변경을 금지·제약한다. "추가하지 말 것", "교정 대상이 아니다", "봉인", "내릴 때가 아니라 올릴 때만" | 그 모듈 `AGENTS.md`의 **`## 봉인·가드 목록`** 절 |
+| **B. 아키텍처 서술** | 모듈·계층·경계의 구조와 그 근거. ArchUnit 규칙 설명, 의존 방향, 패키지 소유 규칙 | 그 모듈 `AGENTS.md`의 **`## 코드 주석에서 이관된 설계 근거`** 절 |
+| **C. 도메인 규칙** | 비즈니스 계산·상태 전이·정책. 금액 공식, 등급 산정, 주문 상태 규칙 | `docs/domain/{도메인}.md` |
+| **D. 단순 서술** | 코드를 다시 말하는 것. `@param`/`@return`/`@throws` 태그 | **어디에도 쓰지 않는다** |
+
+**D를 문서로 옮기지 않는 이유**: 코드에서 그대로 읽히는 정보라 문서에 적으면 즉시 낡는 중복이 된다. 시그니처가 바뀌어도 문서는 따라오지 않으므로 **적는 것이 안 적는 것보다 나쁘다.** 다만 D로 분류하려면 "코드만 읽어도 같은 결론에 도달하는가"를 실제로 확인하고, 판단이 서지 않으면 D가 아니라 B로 취급해 문서에 남긴다.
+
+**어느 `AGENTS.md`인가 — 그 코드를 소유한 모듈의 것이다.** 두 절은 이미 신설돼 있으므로(`## 봉인·가드 목록` 21곳, `## 코드 주석에서 이관된 설계 근거` 22곳 — 후자는 `web-api`·`infrastructure:external`의 패키지 단위 `src/main/.../AGENTS.md`에도 있다), 새로 만들지 말고 그 절에 항목을 **추가**한다.
+
+### 잔존 주석을 발견했을 때만 — 먼저 옮기고 그다음 지운다
+
+**이 절은 신규 작성 규칙이 아니다.** 이관에서 누락됐거나 규칙을 모르는 채 추가된 주석을 발견했을 때 적용하는 **정리 절차**다.
+
+**"먼저 문서에 쓰고, 그다음 주석을 지운다."** 순서를 뒤집어 지우고 나면 무엇을 옮겨야 했는지가 사라진다. 목적지는 위 표로 정하고, D로 판정되면 옮기지 않고 그냥 지운다.
+
+### 역참조 앵커 3요소 (필수)
+
+A·B·C로 문서에 적는 모든 항목은 **어느 코드 요소에 대한 이야기인지**를 밝힌다. 설명이 코드에서 떨어져 있는 구조이므로, 앵커가 없으면 문서만 남고 그것이 무엇을 제약하는지 알 수 없게 된다. 신규 작성이든 잔존 주석 이관이든 똑같이 필요하다.
+
+````markdown
+### 빈 **정의** 순서와 **생성** 순서는 다르다
+
+**대상**: `backend/infrastructure/redis/src/main/java/com/tastyhouse/infrastructure/redis/RedisModuleAutoConfiguration.java`
+→ `before` 속성과 `RedisConnectionFactory` 주입
+
+`RedisConnectionFactory`는 Boot가 만들지만, 빈 *정의* 순서와 *생성* 순서는 다르다 …
+````
+
+1. **파일 경로** — 리포 루트 기준
+2. **코드 요소명** — 필드·메서드·클래스명. **줄 번호는 쓰지 않는다** (코드가 바뀌면 즉시 틀린다)
+3. **내용** — 잔존 주석을 옮기는 경우라면 원문 취지를 축약하되 **금지·제약의 강도는 낮추지 않는다**
+
+### 주석이 아닌 것 — 함께 지우지 않는다
+
+형태가 비슷해 혼동하기 쉽지만, 아래는 **문자열 리터럴·어노테이션·억제 마커라 컴파일·런타임·정적분석에 관여**한다.
+
+| 대상 | 현재 건수 | 지우면 |
+|---|---:|---|
+| ArchUnit `.because("...")` | 44 | 규칙 실패 시 위반 원인을 알 수 없다 |
+| `@DisplayName("...")` | 186개 파일 | 테스트 리포트 표시명이 사라진다 |
+| `// noinspection BusyWait` | 1 | 형태는 주석이지만 **정적분석 도구가 읽는다** |
+| `@SuppressWarnings`·`@Deprecated` | — | 어노테이션이다 |
+| 로그·예외 메시지 문자열 | — | 런타임 출력이다 |
+
+**그래서 잔존 주석 검사의 기대값은 0이 아니라 `1`이다.** 0이 나왔다면 `//noinspection`을 잘못 지운 것이므로 복구한다.
+
+```bash
+cd backend
+find . -name '*.java' -not -path '*/build/*' -not -path '*/bin/*' -print0 \
+  | xargs -0 grep -chE '^[[:space:]]*(//|\*|/\*)' | paste -sd+ - | bc   # → 1
+```
+
+**zsh에서 `--include=*.java`를 따옴표 없이 쓰지 않는다.** 인용하지 않으면 `no matches found`로 죽고, 그 실패가 조용히 `0`으로 읽혀 **"주석 없음"으로 오판**된다. 위처럼 `find -print0 | xargs -0` 형태를 쓰면 이 함정을 피한다. 검사가 실제로 파일을 세고 있는지도 함께 확인한다 — `find . -name '*.java' -not -path '*/build/*' -not -path '*/bin/*' | wc -l`이 3,000을 훌쩍 넘어야 한다.
+
+### 이 규칙이 감수한 손실 (되돌리자는 근거가 아니다)
+
+`{@link}` 상호참조 1,126건이 사라져 **IDE 상호 탐색이 저하됐다.** javadoc jar를 만드는 gradle 태스크는 없으므로(`*.gradle`에 `javadoc` 참조 0건) 빌드는 영향받지 않는다. 문서에서 다른 타입을 가리킬 때는 `{@link Xxx}` 대신 백틱 코드 표기나 마크다운 링크를 쓴다.
+
+**사용자가 전면 제거를 명시적으로 선택한 결과이므로, "주석이 있으면 편할 텐데"를 근거로 주석을 되살리지 않는다.** 필요한 것은 문서 쪽 항목을 보강하는 일이다.
+
+### `bin/` 아래 `AGENTS.md`는 편집 대상이 아니다
+
+`find`로 `AGENTS.md`를 훑으면 아래 3건이 함께 잡히지만 **빌드 산출물 사본**이다. 편집 대상은 `src/` 쪽과 모듈 루트뿐이다.
+
+- `backend/domain/bin/main/com/tastyhouse/domain/AGENTS.md`
+- `backend/infrastructure/external/bin/main/com/tastyhouse/external/AGENTS.md`
+- `backend/web-api/bin/main/com/tastyhouse/webapi/AGENTS.md`
+
+마찬가지로 주석 검사·제거 대상 java 파일에서도 `*/build/*`와 `*/bin/*`를 제외한다.
+
 ## 설정·빌드 스크립트 주석 규칙 (`application*.yml` · `build.gradle`)
 
-**`application*.yml`과 `build.gradle`에는 근거·배경을 설명하는 여러 줄 주석을 쓰지 않는다. 그 자리는 해당 모듈의 `AGENTS.md`다.** 설정 파일을 여는 사람이 먼저 봐야 하는 것은 "값이 무엇인가"이고, "왜 그 값인가"는 그 모듈의 설계를 서술하는 문서가 소유한다. 같은 설명이 주석과 AGENTS.md 양쪽에 있으면 한쪽만 갱신돼 **두 벌이 갈라지는 것**이 실제 실패 양식이다.
+**`application*.yml`과 `build.gradle`에는 근거·배경을 설명하는 여러 줄 주석을 쓰지 않는다. 그 자리는 해당 모듈의 `AGENTS.md`다.** (java는 위 [java 주석 금지 규칙](#java-주석-금지-규칙-설계-근거는-agentsmddocsdomain이-소유한다)이 더 강하게 — 예외 없이 — 정한다.) 설정 파일을 여는 사람이 먼저 봐야 하는 것은 "값이 무엇인가"이고, "왜 그 값인가"는 그 모듈의 설계를 서술하는 문서가 소유한다. 같은 설명이 주석과 AGENTS.md 양쪽에 있으면 한쪽만 갱신돼 **두 벌이 갈라지는 것**이 실제 실패 양식이다.
 
 **유지하는 주석 — 가독성 도구는 대상이 아니다.**
 
