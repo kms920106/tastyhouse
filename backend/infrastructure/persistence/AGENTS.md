@@ -358,6 +358,31 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `Projections.constructor`는 **리플렉션으로 생성자를 찾으므로 정적 호출부가 0개**다. IDE·정적분석이 "사용되지 않는 생성자"로 표시하지만 삭제하면 조회 시점에 `No constructor found`로 터진다.
 
+### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 54개, 줄어들기만 한다
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java`
+→ 상수 `SEALED_REASSEMBLY_HELPERS`, 패턴 `REASSEMBLY_HELPER`(`private \S+ withResolved\w*\(`), 메서드 `reassemblyHelpersShouldNotGrow`
+
+fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withResolved*` 헬퍼는 **전 컴포넌트를 위치 기반으로 재나열**하므로, 인접한 같은 타입 슬롯(썸네일 URL ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 써도 컴파일되고 값만 조용히 뒤바뀐다. 어떤 가드도 이 `new` 호출을 검사하지 않는다 — `detectReordering`이 보는 것은 `Projections.constructor` 인자뿐이다. 그래서 개수를 봉인해 **새 헬퍼가 생기는 것 자체를 막는다.** 새 URL 변환은 `fileUrlResolver.urlOf(...)`로 투영식 안에서 한다.
+
+- **상수는 줄어들기만 한다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙).
+- **두 번째 단정(`isEqualTo`)은 봉인의 낡음을 잡는다.** 헬퍼를 걷어냈는데 상수를 내리지 않으면 실패하며, 실패 메시지가 내려야 할 값을 알려준다. 상한만 두면 봉인이 느슨해진 채 방치된다.
+- **0이 되면 봉인 장치를 제거하고 `isZero()` 순수 강제로 전환한다.** 그때 상수와 두 번째 단정을 함께 지운다.
+- **알려진 한계 — 개수만 세고 타입·순서는 검사하지 않는다.** 봉인된 54개 안에서 같은 위치의 `Long`↔`Integer`나 인접 `String` 슬롯이 교차해도 이 테스트는 통과한다. 남은 헬퍼의 순서 보장은 코드 리뷰와 조회 호출 확인이 맡는다.
+- 패턴이 `private` 헬퍼만 세므로, 가시성을 바꿔 헬퍼를 늘리는 우회도 가능하다. 그것은 이 봉인의 의도를 우회한 것이므로 리뷰에서 거절한다.
+
+### `urlOf(...)`는 `*.filePath` 컬럼만 감싼다 — 래핑 대상 단정
+
+**대상**: 같은 파일 → `projectionArgumentCountShouldMatchConstructor`의 `URL_WRAPPER` 검사, `trailingPropertyName`의 언랩
+
+`fileUrlResolver.urlOf(...)`는 `Expression<String>`이면 무엇이든 받는다. `title`이나 `name`을 감싸도 **컴파일·런타임 모두 통과하고 출력만 망가진다**(제목이 URL 인코딩된 채 `?alt=media`가 붙어 나간다). 그래서 `Projections.constructor` 인자 중 `fileUrlResolver.urlOf(x)` 형태는 `x`가 `.filePath`로 끝나야 한다고 단정한다.
+
+- 도입 시점 전수 확인 결과 `filePath` 투영은 전부 평범한 dotted path(`uploadedFileJpaEntity.filePath`, `activeFile.filePath` 등)이고 `coalesce`·`as()` 래핑 사례가 없어 **오탐이 없다.** 경로 컬럼에 함수를 씌워야 하는 투영이 생기면 이 단정을 완화하지 말고, 함수를 `urlOf` 바깥이 아니라 DAO의 별도 표현식으로 빼서 `urlOf(표현식)`의 인자를 dotted path로 유지하는 방안을 먼저 검토한다.
+- **`trailingPropertyName`은 같은 래퍼를 언랩한다.** 언랩하지 않으면 래퍼가 붙은 인자가 전부 `null`(이름 추출 불가)로 처리되어 순서 검출이 지금보다 더 무력해진다. URL 슬롯 자체는 컴포넌트명(`imageUrl`)과 컬럼명(`filePath`)이 달라 이름 일치 판정에 걸리지 않는다 — 언랩의 실익은 **래퍼가 있어도 나머지 인자의 순서 검출이 계속 동작한다**는 것이고, URL 슬롯 자체는 위 래핑 대상 단정이 담당한다.
+- **도입 시점에는 검사할 대상이 0건이다.** `urlOf`는 02 덩어리(URL 투영 롤아웃)에서 도입되므로, 그 전까지 이 단정은 휴면이다. 02에서 첫 `urlOf`가 들어오는 순간부터 실제로 문다.
+- **패턴은 두 가지를 고정한다 — 인자 전체가 호출식일 것, 수신자 이름이 `fileUrlResolver`일 것.** `ExpressionUtils.as(fileUrlResolver.urlOf(...), "a")`처럼 감싸이거나 `this.fileUrlResolver`·다른 필드명으로 호출하면 단정과 언랩을 모두 빠져나간다. 반대로 `urlOf(x.filePath).as("y")`는 탐욕적 `(.+)`가 `).as("y"`까지 삼켜 **요란한 오탐**이 난다. 그래서 DAO는 `urlOf(...)`를 `Projections.constructor`의 최상위 인자로 그대로 두고, 필드명은 `fileUrlResolver`로 통일한다.
+- 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(row.xxx())`처럼 괄호가 남는 형태는 여전히 이름을 뽑지 못해 건너뛴다 — 그 형태는 `withResolved*` 헬퍼 안에 있고, 위 봉인이 헬퍼 증가를 막는다.
+
 ### `ShopQueryDao` 파일 별칭 4종 — 공용 별칭 재사용 금지
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryDao.java`

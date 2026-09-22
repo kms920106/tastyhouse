@@ -25,6 +25,14 @@ class ProjectionConstructorMatchingTest {
     private static final Pattern CALL_START =
         Pattern.compile("Projections\\.constructor\\(\\s*([A-Za-z0-9_.]+)\\.class\\s*,");
 
+    private static final Pattern URL_WRAPPER =
+        Pattern.compile("^fileUrlResolver\\.urlOf\\((.+)\\)$");
+
+    private static final Pattern REASSEMBLY_HELPER =
+        Pattern.compile("private \\S+ withResolved\\w*\\(");
+
+    private static final int SEALED_REASSEMBLY_HELPERS = 54;
+
     @Test
     @DisplayName("Projections.constructor 인자 개수가 대상 record 생성자 파라미터 개수와 일치해야 한다")
     void projectionArgumentCountShouldMatchConstructor() {
@@ -46,6 +54,13 @@ class ProjectionConstructorMatchingTest {
                 List<String> arguments = readArguments(text, matcher.end());
                 if (arguments == null) {
                     continue;
+                }
+                for (String argument : arguments) {
+                    Matcher wrapper = URL_WRAPPER.matcher(argument.strip());
+                    if (wrapper.matches() && !wrapper.group(1).strip().endsWith(".filePath")) {
+                        mismatches.add("%s: urlOf(...)가 파일 경로 컬럼이 아닌 %s를 감싼다"
+                            .formatted(source.getFileName(), wrapper.group(1).strip()));
+                    }
                 }
                 int actual = arguments.size();
 
@@ -77,6 +92,22 @@ class ProjectionConstructorMatchingTest {
                 ExpressionException(No constructor found)으로 500이 난다 — 이 테스트 외에는 걸러낼 방법이 없다.
                 record 컴포넌트 선언 순서와 select 절 인자 순서를 하나씩 대조하라.""")
             .isEmpty();
+    }
+
+    @Test
+    @DisplayName("fetch 후 Result record 재조립 헬퍼는 봉인된 개수를 넘지 않는다")
+    void reassemblyHelpersShouldNotGrow() {
+        long count = javaSources().stream()
+            .map(this::read)
+            .mapToLong(text -> REASSEMBLY_HELPER.matcher(text).results().count())
+            .sum();
+
+        assertThat(count)
+            .as("withResolved* 재조립 헬퍼가 늘었다. 새 URL 변환은 fileUrlResolver.urlOf(...)로 투영식 안에서 한다")
+            .isLessThanOrEqualTo(SEALED_REASSEMBLY_HELPERS);
+        assertThat(count)
+            .as("봉인 상수가 낡았다 — SEALED_REASSEMBLY_HELPERS를 %d로 내려라".formatted(count))
+            .isEqualTo(SEALED_REASSEMBLY_HELPERS);
     }
 
     private List<String> readArguments(String text, int afterFirstComma) {
@@ -163,6 +194,10 @@ class ProjectionConstructorMatchingTest {
 
     private String trailingPropertyName(String argument) {
         String trimmed = argument.strip();
+        Matcher wrapper = URL_WRAPPER.matcher(trimmed);
+        if (wrapper.matches()) {
+            trimmed = wrapper.group(1).strip();
+        }
         if (!trimmed.matches("[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)+")) {
             return null;
         }

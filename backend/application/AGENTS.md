@@ -357,6 +357,72 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
   전환으로 **`QReviewManagementDetailResult` Q타입은 더 이상 생성되지 않는다**(실측 0건). 실제 위험은
   빌드 실패가 아니라 **런타임 투영 실패**다.
 
+### `ResultWitherComponentOrderTest` — `port/out` Result wither의 컴포넌트 순서 가드 (이 모듈의 유일한 방어선)
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/ResultWitherComponentOrderTest.java`
+→ `witherArgumentsShouldFollowComponentOrder`, `detectWitherReordering`, 짝 테스트 `detectorShouldCatchSwappedSlots`
+
+**검사 대상**: `backend/application/src/main/java/com/tastyhouse/application/**/port/out/*.java`의 record가 가진
+`public {자기 record명} with\w+(...)` 메서드 전부. 도입 시점 15개:
+`OrderProductResult#withResolvedImageUrl` · `OrderDetailResult#withOrderProducts`/`#withPayment` ·
+`MenuReviewWritableItemResult#withProductImageUrl` · `MenuReviewListItemResult#withMemberProfileImageUrl` ·
+`ReviewBlindNoticeResult#withImageUrls` · `ReviewBlindRequestDetailResult#withUrls` ·
+`ReviewManagementDetailResult#withImageUrls`/`#withTagNames` · `ReviewDetailResult#withImageUrls`/`#withTagNames` ·
+`ShopReviewManagementDetailResult#withCollections` ·
+`ShopReviewManagementListItemResult#withImageUrls`/`#withProductNames` · `LatestReviewListItemResult#withImageUrls`
+
+- **wither는 전 컴포넌트를 위치 기반으로 재나열한다.** 인접한 같은 타입 컴포넌트를 바꿔 써도 컴파일되고 어떤
+  테스트도 잡지 못한다. 가장 위험한 것은 `ShopReviewManagementListItemResult`(13개 컴포넌트를 **두 번**
+  재나열하며 `imageUrls`·`productNames`가 인접한 `List<String>`)와 `OrderDetailResult`(24개 컴포넌트 중
+  금액·포인트 `Integer`가 9개, 가게·주문자 `String`이 5개 연속)다.
+- **`infrastructure:persistence`의 가드 2종은 이 모듈을 스캔하지 않는다.** `ProjectionConstructorMatchingTest`는
+  자기 모듈 소스(`Projections.constructor` 인자)만 보고, 재조립 헬퍼 봉인은 개수만 센다. 그래서 이 테스트가
+  wither 순서에 대한 **유일한 방어선**이다. 지우거나 `@Disabled`하지 않는다.
+- **wither는 제거 대상이 아니다.** 별도 쿼리로 얻는 컬렉션(이미지·태그·상품명)과 서브 애그리거트(주문 상품·결제)
+  보강은 컬럼 표현식이 될 수 없어 post-fetch가 정상 형태다. `infrastructure:persistence`의 `withResolved*` 재조립
+  헬퍼(URL 변환 — 투영식 안으로 옮기는 대상)와 혼동하지 않는다.
+
+**판정 방식** — 인자마다 아래 셋 중 하나로 본다. 어느 것에도 해당하지 않는 인자(`List.of()`·메서드 호출 등)는
+건너뛴다.
+
+| 인자 형태 | 의미 | 실패 조건 |
+|---|---|---|
+| `this.foo`(인자 전체가 이 형태일 때만) | 기존 필드 복사 | `foo`가 그 자리의 컴포넌트명과 다르면 |
+| `foo`(wither 파라미터가 아님) | 기존 필드 복사(`this.` 생략형) | `foo`가 컴포넌트명인데 그 자리와 다르면 |
+| `foo`(wither 파라미터) | 교체 슬롯 | 파라미터명이 **컴포넌트명과 같은데** 그 자리와 다르면. 이름이 다른 파라미터(`resolvedImageUrl`)는 건너뛴다 |
+
+인자 개수가 컴포넌트 개수와 다르면 그것만으로 실패다. 이와 별개로 두 가지를 더 단정한다.
+
+- **wither 파라미터는 전부 인자로 쓰여야 한다.** `withProductNames(productNames)`의 본문이 `this.productNames`를
+  그대로 쓰면 모든 인자가 제자리라 순서 검사는 통과하지만, wither가 **기존 값을 그대로 반환**한다. 두 wither가
+  같은 13개 인자를 복붙하는 `ShopReviewManagementListItemResult`에서 가장 일어나기 쉬운 실수다.
+- **리플렉션으로 센 wither 수 = 소스에서 파싱한 wither 수.** 레코드마다 `getDeclaredMethods()` 중 비정적·비합성이고
+  이름이 `with[A-Z]…`이며 반환 타입이 자기 record인 메서드를 세어, 시그니처 패턴(`public {Record} with\w+(`)이
+  놓친 wither(`final`·제네릭 메서드·package-private 등)를 조용히 건너뛰지 않게 한다. 같은 이유로 `port/out`에
+  record 선언이 있는데 클래스를 로드하지 못하면 건너뛰지 않고 실패한다.
+
+- **`this.` 접두 인자만 보면 안 된다.** 원 스펙은 `this.` 인자만 검사하도록 설계했으나, 도입 시점 전수 확인에서
+  15개 중 **8개가 `this.` 없이 필드명을 그대로** 쓰는 것으로 드러났다(`OrderProductResult` 1 ·
+  `OrderDetailResult` 2 · `ReviewManagementDetailResult` 2 · `ReviewDetailResult` 2 · `LatestReviewListItemResult` 1).
+  `this.`만 보면 이 8개는 검사 인자가 0개가 되어 공허하게 통과한다 — 그중 `OrderDetailResult`가 금액·포인트
+  `Integer` 9개가 연속한 가장 위험한 record다. 그래서 파라미터가 아닌 bare 식별자도 필드 참조로 판정한다.
+- **오탐이 없는 근거**: record 메서드 본문에서 파라미터가 아닌 bare 식별자는 컴포넌트 필드를 가리킬 수밖에 없고,
+  현존 wither는 교체 슬롯에 파라미터명을 그대로 쓴다(`imageUrls` 파라미터 → `imageUrls` 자리). 교체 슬롯에
+  이름이 다른 파라미터를 쓰는 형태(`resolvedImageUrl`)는 판정하지 않을 뿐 실패시키지 않는다.
+- **시그니처 파싱만 `<`·`>`를 괄호 깊이로 센다.** `List<String> a, Map<K, V> b` 같은 제네릭 쉼표 때문이다.
+  `new` 인자 파싱에서는 세지 않는다 — 인자 안의 `->`·비교 연산자가 깊이를 깨뜨린다.
+- **공허 통과를 막는 장치 2겹**: `checked` 카운터는 `isPositive()`로 스캔 경로가 살아 있음을 단정하고
+  (도입 시점 실측 15), 짝 테스트 `detectorShouldCatchSwappedSlots`는 합성 record `SwapProbe`에 대해 세 형태의
+  교차를 **실제로 잡아내는지** 단정한다. 현존 wither가 전부 통과하는 상태에서는 검출기가 고장 나도 알 수 없으므로,
+  짝 테스트를 지우지 않는다. `checked`를 15로 고정하지 않는 것은 wither 추가가 정상 변경이기 때문이다 — 누락은
+  위 리플렉션 대조가 record 단위로 잡는다.
+- **알려진 한계**: `new {Record}(` 탐색은 시그니처 뒤 **첫 번째** 등장을 쓰므로, 다른 wither에 위임하거나
+  (`return withBoth(x, this.y);`) 본문에서 두 번 생성하는(if/else) wither는 정확히 검사되지 않는다. 현존 15개에는
+  없는 형태다. 보조 생성자의 `this(...)` 위임 인자 순서(`OrderProductResult`의 축약 생성자)도 이 가드의 대상이 아니다.
+- **이 테스트가 실패하면 그것은 가드의 오작동이 아니라 발견된 프로덕션 버그다.** 테스트를 고치거나 완화하지 말고,
+  리팩터링과 분리한 별도 커밋(`fix(query): ...`)으로 해당 record의 wither 인자 순서를 바로잡은 뒤, 그 Result를
+  쓰는 엔드포인트를 실제로 호출해 값이 교차돼 있었는지 확인한다.
+
 ### `//noinspection BusyWait` — 이 억제 마커는 정당하며 제거 대상이 아니다
 
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java`
