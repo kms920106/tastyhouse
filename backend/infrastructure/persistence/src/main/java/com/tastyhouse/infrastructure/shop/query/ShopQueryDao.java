@@ -127,15 +127,15 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             queryFactory
                 .select(Projections.constructor(ShopImageUrlsResult.class,
                     shopJpaEntity.id,
-                    shopThumbnailFile.filePath,
-                    shopTrademarkFile.filePath
+                    fileUrlResolver.urlOf(shopThumbnailFile.filePath),
+                    fileUrlResolver.urlOf(shopTrademarkFile.filePath)
                 ))
                 .from(shopJpaEntity)
                 .leftJoin(shopThumbnailFile).on(shopThumbnailFile.id.eq(shopJpaEntity.thumbnailImageFileId))
                 .leftJoin(shopTrademarkFile).on(shopTrademarkFile.id.eq(shopJpaEntity.trademarkImageFileId))
                 .where(shopJpaEntity.id.eq(shopId))
                 .fetchOne()
-        ).map(this::withResolvedImageUrls);
+        );
     }
 
     @Override
@@ -182,10 +182,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return contentBoardProjection()
             .where(shopContentBoardJpaEntity.shopId.eq(shopId))
             .orderBy(shopContentBoardJpaEntity.id.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -218,10 +215,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .orderBy(shopContentBoardJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -233,7 +227,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopContentBoardJpaEntity.shopId,
                 shopContentBoardJpaEntity.contentType,
                 shopContentBoardJpaEntity.topic,
-                contentBoardImageFile.filePath,
+                fileUrlResolver.urlOf(contentBoardImageFile.filePath),
                 shopContentBoardJpaEntity.youtubeUrl,
                 shopContentBoardJpaEntity.description,
                 shopContentBoardJpaEntity.hidden,
@@ -275,10 +269,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 imageChangeImageTypeEq(imageType)
             )
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -302,10 +293,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .orderBy(shopImageChangeRequestJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -316,7 +304,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopImageChangeRequestJpaEntity.id,
                 shopImageChangeRequestJpaEntity.shopId,
                 shopImageChangeRequestJpaEntity.imageType,
-                imageChangeRequestImageFile.filePath,
+                fileUrlResolver.urlOf(imageChangeRequestImageFile.filePath),
                 shopImageChangeRequestJpaEntity.status,
                 shopImageChangeRequestJpaEntity.rejectReason
             ))
@@ -372,8 +360,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopFoodTypeCategoryJpaEntity.id,
                 shopFoodTypeCategoryJpaEntity.foodType,
                 shopFoodTypeCategoryJpaEntity.displayName,
-                activeFile.filePath,
-                inactiveFile.filePath,
+                fileUrlResolver.urlOf(activeFile.filePath),
+                fileUrlResolver.urlOf(inactiveFile.filePath),
                 shopFoodTypeCategoryJpaEntity.sort,
                 shopFoodTypeCategoryJpaEntity.visible
             ))
@@ -382,10 +370,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .join(inactiveFile).on(inactiveFile.id.eq(shopFoodTypeCategoryJpaEntity.inactiveImageFileId))
             .where(shopFoodTypeCategoryJpaEntity.visible.eq(true))
             .orderBy(shopFoodTypeCategoryJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrls)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -395,8 +380,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopAmenityCategoryJpaEntity.id,
                 shopAmenityCategoryJpaEntity.amenity,
                 shopAmenityCategoryJpaEntity.displayName,
-                activeFile.filePath,
-                inactiveFile.filePath,
+                fileUrlResolver.urlOf(activeFile.filePath),
+                fileUrlResolver.urlOf(inactiveFile.filePath),
                 shopAmenityCategoryJpaEntity.sort,
                 shopAmenityCategoryJpaEntity.visible
             ))
@@ -405,10 +390,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .join(inactiveFile).on(inactiveFile.id.eq(shopAmenityCategoryJpaEntity.inactiveImageFileId))
             .where(shopAmenityCategoryJpaEntity.visible.eq(true))
             .orderBy(shopAmenityCategoryJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrls)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -418,8 +400,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopAmenityCategoryJpaEntity.id,
                 shopAmenityCategoryJpaEntity.amenity,
                 shopAmenityCategoryJpaEntity.displayName,
-                activeFile.filePath,
-                inactiveFile.filePath,
+                fileUrlResolver.urlOf(activeFile.filePath),
+                fileUrlResolver.urlOf(inactiveFile.filePath),
                 shopAmenityCategoryJpaEntity.sort,
                 shopAmenityCategoryJpaEntity.visible
             ))
@@ -427,10 +409,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .leftJoin(activeFile).on(activeFile.id.eq(shopAmenityCategoryJpaEntity.activeImageFileId))
             .leftJoin(inactiveFile).on(inactiveFile.id.eq(shopAmenityCategoryJpaEntity.inactiveImageFileId))
             .orderBy(shopAmenityCategoryJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrls)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -440,8 +419,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopFoodTypeCategoryJpaEntity.id,
                 shopFoodTypeCategoryJpaEntity.foodType,
                 shopFoodTypeCategoryJpaEntity.displayName,
-                activeFile.filePath,
-                inactiveFile.filePath,
+                fileUrlResolver.urlOf(activeFile.filePath),
+                fileUrlResolver.urlOf(inactiveFile.filePath),
                 shopFoodTypeCategoryJpaEntity.sort,
                 shopFoodTypeCategoryJpaEntity.visible
             ))
@@ -449,10 +428,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .leftJoin(activeFile).on(activeFile.id.eq(shopFoodTypeCategoryJpaEntity.activeImageFileId))
             .leftJoin(inactiveFile).on(inactiveFile.id.eq(shopFoodTypeCategoryJpaEntity.inactiveImageFileId))
             .orderBy(shopFoodTypeCategoryJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrls)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -463,16 +439,13 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopAmenityJpaEntity.shopAmenityCategoryId,
                 shopAmenityCategoryJpaEntity.amenity,
                 shopAmenityCategoryJpaEntity.displayName,
-                activeFile.filePath
+                fileUrlResolver.urlOf(activeFile.filePath)
             ))
             .from(shopAmenityJpaEntity)
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(shopAmenityJpaEntity.shopAmenityCategoryId))
             .join(activeFile).on(activeFile.id.eq(shopAmenityCategoryJpaEntity.activeImageFileId))
             .where(shopAmenityJpaEntity.shopId.eq(shopId))
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -481,16 +454,13 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopAmenityWithCategoryResult.class,
                 shopAmenityCategoryJpaEntity.amenity,
                 shopAmenityCategoryJpaEntity.displayName,
-                activeFile.filePath
+                fileUrlResolver.urlOf(activeFile.filePath)
             ))
             .from(shopAmenityJpaEntity)
             .join(shopAmenityCategoryJpaEntity).on(shopAmenityCategoryJpaEntity.id.eq(shopAmenityJpaEntity.shopAmenityCategoryId))
             .join(activeFile).on(activeFile.id.eq(shopAmenityCategoryJpaEntity.activeImageFileId))
             .where(shopAmenityJpaEntity.shopId.eq(shopId))
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -501,16 +471,13 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopFoodTypeJpaEntity.shopFoodTypeCategoryId,
                 shopFoodTypeCategoryJpaEntity.foodType,
                 shopFoodTypeCategoryJpaEntity.displayName,
-                activeFile.filePath
+                fileUrlResolver.urlOf(activeFile.filePath)
             ))
             .from(shopFoodTypeJpaEntity)
             .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeCategoryJpaEntity.id.eq(shopFoodTypeJpaEntity.shopFoodTypeCategoryId))
             .join(activeFile).on(activeFile.id.eq(shopFoodTypeCategoryJpaEntity.activeImageFileId))
             .where(shopFoodTypeJpaEntity.shopId.eq(shopId))
-            .fetch()
-            .stream()
-            .map(this::withResolvedIconUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -528,17 +495,14 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopBannerImageResult.class,
                 shopBannerImageJpaEntity.id,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopBannerImageJpaEntity.sort
             ))
             .from(shopBannerImageJpaEntity)
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopBannerImageJpaEntity.imageFileId))
             .where(shopBannerImageJpaEntity.shopId.eq(shopId))
             .orderBy(shopBannerImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -546,7 +510,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopMenuCollectionImageResult.class,
                 shopMenuCollectionImageJpaEntity.id,
-                menuCollectionImageFile.filePath,
+                fileUrlResolver.urlOf(menuCollectionImageFile.filePath),
                 shopMenuCollectionImageJpaEntity.sort,
                 shopMenuCollectionImageJpaEntity.status,
                 shopMenuCollectionImageJpaEntity.rejectReason
@@ -556,10 +520,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
             .where(shopMenuCollectionImageJpaEntity.shopId.eq(shopId))
             .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -567,7 +528,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopMenuCollectionImageExposureResult.class,
                 shopMenuCollectionImageJpaEntity.id,
-                menuCollectionImageFile.filePath,
+                fileUrlResolver.urlOf(menuCollectionImageFile.filePath),
                 shopMenuCollectionImageJpaEntity.sort
             ))
             .from(shopMenuCollectionImageJpaEntity)
@@ -578,10 +539,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopMenuCollectionImageJpaEntity.status.eq(ApprovalStatus.APPROVED)
             )
             .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -604,7 +562,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopMenuCollectionImageJpaEntity.id,
                 shopMenuCollectionImageJpaEntity.shopId,
                 shopJpaEntity.name,
-                menuCollectionImageFile.filePath,
+                fileUrlResolver.urlOf(menuCollectionImageFile.filePath),
                 shopMenuCollectionImageJpaEntity.sort,
                 shopMenuCollectionImageJpaEntity.status,
                 shopMenuCollectionImageJpaEntity.rejectReason
@@ -617,10 +575,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .orderBy(shopMenuCollectionImageJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -633,10 +588,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
     public List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages() {
         return photoCategoryImageProjection()
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -645,7 +597,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopPhotoCategoryImageManagementResult.class,
                 shopPhotoCategoryImageJpaEntity.id,
                 shopPhotoCategoryImageJpaEntity.shopPhotoCategoryId,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopPhotoCategoryImageJpaEntity.sort,
                 shopPhotoCategoryImageJpaEntity.visible
             ))
@@ -653,10 +605,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId))
             .where(shopPhotoCategoryImageJpaEntity.shopPhotoCategoryId.eq(shopPhotoCategoryId))
             .orderBy(shopPhotoCategoryImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -750,153 +699,11 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopPhotoCategoryImageResult.class,
                 shopPhotoCategoryImageJpaEntity.id,
                 shopPhotoCategoryImageJpaEntity.shopPhotoCategoryId,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopPhotoCategoryImageJpaEntity.sort
             ))
             .from(shopPhotoCategoryImageJpaEntity)
             .join(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopPhotoCategoryImageJpaEntity.imageFileId));
-    }
-
-    private ShopFoodTypeCategoryResult withResolvedIconUrls(ShopFoodTypeCategoryResult row) {
-        return new ShopFoodTypeCategoryResult(
-            row.id(),
-            row.foodType(),
-            row.displayName(),
-            fileUrlResolver.resolve(row.activeIconUrl()),
-            fileUrlResolver.resolve(row.inactiveIconUrl()),
-            row.sort(),
-            row.visible()
-        );
-    }
-
-    private ShopAmenityCategoryResult withResolvedIconUrls(ShopAmenityCategoryResult row) {
-        return new ShopAmenityCategoryResult(
-            row.id(),
-            row.amenity(),
-            row.displayName(),
-            fileUrlResolver.resolve(row.activeIconUrl()),
-            fileUrlResolver.resolve(row.inactiveIconUrl()),
-            row.sort(),
-            row.visible()
-        );
-    }
-
-    private ShopAmenityAssignmentResult withResolvedIconUrl(ShopAmenityAssignmentResult row) {
-        return new ShopAmenityAssignmentResult(
-            row.id(),
-            row.amenityCategoryId(),
-            row.amenity(),
-            row.displayName(),
-            fileUrlResolver.resolve(row.activeIconUrl())
-        );
-    }
-
-    private ShopAmenityWithCategoryResult withResolvedIconUrl(ShopAmenityWithCategoryResult row) {
-        return new ShopAmenityWithCategoryResult(
-            row.amenity(),
-            row.displayName(),
-            fileUrlResolver.resolve(row.activeIconUrl())
-        );
-    }
-
-    private ShopFoodTypeAssignmentResult withResolvedIconUrl(ShopFoodTypeAssignmentResult row) {
-        return new ShopFoodTypeAssignmentResult(
-            row.id(),
-            row.foodTypeCategoryId(),
-            row.foodType(),
-            row.displayName(),
-            fileUrlResolver.resolve(row.activeIconUrl())
-        );
-    }
-
-    private ShopContentBoardResult withResolvedImageUrl(ShopContentBoardResult row) {
-        return new ShopContentBoardResult(
-            row.id(),
-            row.shopId(),
-            row.contentType(),
-            row.topic(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.youtubeUrl(),
-            row.description(),
-            row.hidden(),
-            row.createdAt()
-        );
-    }
-
-    private ShopImageChangeRequestResult withResolvedImageUrl(ShopImageChangeRequestResult row) {
-        return new ShopImageChangeRequestResult(
-            row.id(),
-            row.shopId(),
-            row.imageType(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.status(),
-            row.rejectReason()
-        );
-    }
-
-    private ShopBannerImageResult withResolvedImageUrl(ShopBannerImageResult row) {
-        return new ShopBannerImageResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort()
-        );
-    }
-
-    private ShopPhotoCategoryImageResult withResolvedImageUrl(ShopPhotoCategoryImageResult row) {
-        return new ShopPhotoCategoryImageResult(
-            row.id(),
-            row.shopPhotoCategoryId(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort()
-        );
-    }
-
-    private ShopPhotoCategoryImageManagementResult withResolvedImageUrl(ShopPhotoCategoryImageManagementResult row) {
-        return new ShopPhotoCategoryImageManagementResult(
-            row.id(),
-            row.shopPhotoCategoryId(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort(),
-            row.visible()
-        );
-    }
-
-    private ShopMenuCollectionImageResult withResolvedImageUrl(ShopMenuCollectionImageResult row) {
-        return new ShopMenuCollectionImageResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort(),
-            row.status(),
-            row.rejectReason()
-        );
-    }
-
-    private ShopMenuCollectionImageExposureResult withResolvedImageUrl(ShopMenuCollectionImageExposureResult row) {
-        return new ShopMenuCollectionImageExposureResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort()
-        );
-    }
-
-    private ShopMenuCollectionImageRequestResult withResolvedImageUrl(ShopMenuCollectionImageRequestResult row) {
-        return new ShopMenuCollectionImageRequestResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort(),
-            row.status(),
-            row.rejectReason()
-        );
-    }
-
-    private ShopImageUrlsResult withResolvedImageUrls(ShopImageUrlsResult row) {
-        return new ShopImageUrlsResult(
-            row.shopId(),
-            fileUrlResolver.resolve(row.thumbnailImageUrl()),
-            fileUrlResolver.resolve(row.trademarkImageUrl())
-        );
     }
 
     @Override

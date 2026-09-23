@@ -42,13 +42,13 @@ public record OrderProductResult(
         );
     }
 
-    public OrderProductResult withResolvedImageUrl(String resolvedImageUrl, List<OrderProductOptionResult> options) {
+    public OrderProductResult withOptions(List<OrderProductOptionResult> options) {
         return new OrderProductResult(
             orderProductId,
             productId,
             name,
             priceName,
-            resolvedImageUrl,
+            imageUrl,
             quantity,
             originalPrice,
             discountPrice,

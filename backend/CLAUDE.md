@@ -469,7 +469,7 @@ reference 구현: `web-api`의 `NoticeListItemResponse`(`notice/response/`)와 `
 - **`raw(...)`는 NOT NULL 컬럼에서도 죽은 코드가 아닙니다** — 도메인 모델이 아직 배정되지 않은 상태(예: 점주 미배정 `Shop`)를 null VO로 들고 있을 수 있으므로, `domain.getCeoId().value()`를 직접 호출하면 VO가 null일 때 NPE로 실패합니다.
 - **`Xxx.of(...)` 위임 규칙의 예외가 아닙니다**: `IdMapping.vo(raw, CeoId::of)`의 메서드 레퍼런스가 `of()` 팩토리를 경유하므로 `new`는 여전히 팩토리 내부에만 남습니다.
 
-**단일값 VO도 읽기 계약에서는 경계 타입으로 내립니다 (챕터 07).** `OrderPaymentResult.amount`가 `Amount` VO였던 것은 `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성한다는 **영속 매핑의 산물**이었고, 그 결과 api 모듈이 `result.amount().value()`로 도메인 VO를 만져 `apiModuleShouldBeDomainModelFree`의 유일한 비-enum 위반이 됐습니다. 컴포넌트를 `Integer`로 바꾸고, VO → 원시타입 언랩은 DAO가 **fetch 직후 재조립**으로 수행합니다(`Projections.constructor`가 생성자 직접 투영이라 변환을 투영식에 넣을 수 없으므로 — `withResolvedShopThumbnailImageUrl`과 같은 형태). 투영 중간 타입은 `PaymentProjection`(infra 내부, `public record`)이 받습니다. **`@Convert`/`AmountConverter` 자체는 write 엔티티에서 그대로 유지합니다** — 바뀐 것은 읽기 계약의 타입뿐입니다.
+**단일값 VO도 읽기 계약에서는 경계 타입으로 내립니다 (챕터 07).** `OrderPaymentResult.amount`가 `Amount` VO였던 것은 `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성한다는 **영속 매핑의 산물**이었고, 그 결과 api 모듈이 `result.amount().value()`로 도메인 VO를 만져 `apiModuleShouldBeDomainModelFree`의 유일한 비-enum 위반이 됐습니다. 컴포넌트를 `Integer`로 바꾸고, VO → 원시타입 언랩은 DAO가 **fetch 직후** `PaymentProjection` → `OrderPaymentResult` 변환(`OrderQueryDao#withUnwrappedAmount`)으로 수행합니다. 파일 URL은 이후 `fileUrlResolver.urlOf`로 투영식 안에서 변환하게 됐지만, 이 언랩은 대상 컬럼이 `SimplePath<Amount>`라 같은 방식을 쓰지 않고 fetch 뒤 변환으로 남아 있습니다. 투영 중간 타입은 `PaymentProjection`(infra 내부, `public record`)이 받습니다. **`@Convert`/`AmountConverter` 자체는 write 엔티티에서 그대로 유지합니다** — 바뀐 것은 읽기 계약의 타입뿐입니다.
 
 **query DAO의 Result record·SearchCondition도 raw `Long`을 예외 없이 씁니다.** 정책 A 시절 일부 Result record가 `@Convert`가 투영해 주는 VO를 그대로 필드 타입으로 삼은 사례가 있었으나(예: `MemberReferralResult.referrerId : MemberId`), 이는 "query DAO 계층은 항상 raw Long" 규칙 위반이었고 정책 B 전환으로 전부 `Long`으로 교정했습니다. 도메인/write 포트로 값을 넘겨야 하는 소비 지점(예: 랭킹 도메인 포트 `MemberReviewCount.of(MemberId, ...)`)은 그 호출부에서 `MemberId.of(result.memberId())`로 승격합니다 — 승격 책임은 query 결과가 아니라 그 결과를 도메인 포트에 넘기는 어댑터가 집니다.
 
@@ -1485,23 +1485,25 @@ reference 구현: ceo-api — `ShopImageStatusResponse.currentImageUrl`·`ShopIm
 **파일 저장 경로(`filePath`)를 표시용 URL로 바꾸는 변환은 api 모듈 Service가 아니라 infrastructure query DAO가 조회 시점에 수행합니다.** Result record는 `~FilePath`가 아니라 **`~Url`을 담은 채** 나오고, 소비 Service는 그 값을 그대로 응답에 전달합니다.
 
 - **왜 DAO인가**: 전환 전에는 같은 변환(`fileService.getUrlByPath(dto.xxxFilePath())`)이 60여 개 호출부에 흩어져 있었고, 그 결과 세 모듈의 `FileService`가 서로 다르게 드리프트했습니다(web엔 배치 변환이 없고, ceo엔 경로 변환이 없고, `findFileResponse`는 admin에만 존재). 더 나쁜 것은 Result가 `Long fileId`만 담던 11개 경로로, 응답 조립 중에 파일을 **다시 조회**해 추가 DB 왕복이 발생했습니다. 표현 목적 read model을 화면이 필요로 하는 형태로 완성해 내려보내는 것은 CQRS read 측의 정상 책임이므로(Microsoft Learn의 CQRS·Materialized View 가이드가 계산·변환된 값을 read view에 포함하도록 권장), 변환 지점을 read 어댑터 한 곳으로 모읍니다.
-- **변환기**: `infrastructure:persistence`의 `file/query/FileUrlResolver`(`@Component`) 하나만 씁니다. 도메인 출력 포트 `FileStoragePort`를 주입받아 `resolve(String filePath)`·`resolveAll(Map<Long,String>)`·`resolveAll(Collection<String>)`를 제공합니다. driven 어댑터가 도메인 포트를 사용하는 형태라 의존 방향(안쪽)이 유지되며, infrastructure는 이미 domain을 `api`로 의존하므로 새 모듈 의존이 생기지 않습니다.
-- **SQL로 URL을 만들지 않습니다**: Firebase는 `URLEncoder.encode(path).replace("+","%20") + "?alt=media"`, S3는 `baseUrl + "/" + path`로 규칙이 다르고 `baseUrl`은 환경 설정값입니다. `CONCAT`으로 재현하면 인코딩이 깨지고 설정이 하드코딩되므로, **조회 직후 Java에서 매핑**합니다.
-- **`@QueryProjection`과의 관계**: `@QueryProjection`은 record 생성자로 직접 투영하므로 변환을 투영식에 끼울 수 없습니다. 따라서 DAO는 `uploadedFileJpaEntity.filePath`를 그대로 투영한 뒤 **fetch 직후 재조립**합니다 — Result 타입마다 private `withResolvedXxx(Result row)` 헬퍼를 두고 `new XxxResult(...)`로 URL 슬롯만 `fileUrlResolver.resolve(...)`로 바꿔 다시 만듭니다.
+- **변환기**: `infrastructure:persistence`의 `file/query/FileUrlResolver`(`@Component`) 하나만 씁니다. 도메인 출력 포트 `FileStoragePort`를 주입받아 투영식용 `urlOf(Expression<String> filePath)`와 값 변환용 `resolve(String filePath)`·`resolveAll(Map<Long,String>)`·`resolveAll(Collection<String>)`를 제공합니다. driven 어댑터가 도메인 포트를 사용하는 형태라 의존 방향(안쪽)이 유지되며, infrastructure는 이미 domain을 `api`로 의존하므로 새 모듈 의존이 생기지 않습니다.
+- **SQL로 URL을 만들지 않습니다**: Firebase는 `URLEncoder.encode(path).replace("+","%20") + "?alt=media"`, S3는 `baseUrl + "/" + path`로 규칙이 다르고 `baseUrl`은 환경 설정값입니다. `CONCAT`으로 재현하면 인코딩이 깨지고 설정이 하드코딩되므로, SQL은 경로 컬럼을 그대로 읽고 **QueryDSL이 행을 만들 때 Java에서 매핑**합니다(아래 `urlOf`).
+- **변환 지점은 투영식 인자 — `fileUrlResolver.urlOf(경로컬럼)`**: `Projections.constructor`는 record canonical 생성자를 직접 호출하지만, 인자 자리에 중첩 `FactoryExpression`을 두면 QueryDSL이 그 반환값을 바깥 생성자의 해당 슬롯에 넣습니다. `urlOf`는 QueryDSL 공식 `MappingProjection` 기반 1-인자 래퍼(`FileUrlProjection`)를 돌려주므로, DAO는 URL 슬롯의 `*.filePath`를 감싸기만 하고 `.fetch()`로 끝납니다. 바깥 생성자의 arity와 리플렉션 생성자 탐색은 바뀌지 않습니다(근거는 `infrastructure/persistence/AGENTS.md`의 `FileUrlProjection` 절).
 
 ```java
 List<BannerListItemResult> banners = queryFactory
     .select(Projections.constructor(BannerListItemResult.class,
-        bannerJpaEntity.id, bannerJpaEntity.title, uploadedFileJpaEntity.filePath))
+        bannerJpaEntity.id,
+        bannerJpaEntity.title,
+        fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+        bannerJpaEntity.linkUrl))
     .from(bannerJpaEntity)
     .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bannerImageFileId()))
-    .fetch()
-    .stream()
-    .map(this::withResolvedImageUrl)   // filePath → URL
-    .toList();
+    .fetch();
 ```
 
-- **record 재조립은 위치 기반이라 주의합니다**: 같은 `String` 필드가 여러 개면(썸네일 URL vs 상표 URL, active 아이콘 vs inactive 아이콘) 순서를 바꿔도 컴파일은 되고 값만 조용히 뒤바뀝니다. record 선언 순서와 `new` 호출 인자 순서를 한 필드씩 대조합니다([DTO 조립 규칙](#dto-조립-규칙-new-직접-호출-지양)의 동일 경고).
+- **fetch 후 재조립 헬퍼는 존재하지 않습니다**: 과거에는 Result 타입마다 private `withResolvedXxx(Result row)` 헬퍼를 두고 fetch 직후 `new XxxResult(...)`로 **전 컴포넌트를 위치 기반으로 재나열**했습니다(헬퍼 54개). 인접한 같은 타입 슬롯(썸네일 ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 넣어도 컴파일·가드를 통과해 값만 조용히 뒤바뀌는 구조였고, 전부 `urlOf`로 전환해 제거했습니다. `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow`가 `private … withResolved*(` 헬퍼 개수를 **0으로 봉인**해 재발을 막습니다. 슬롯 순서는 이제 `Projections.constructor` 인자 목록 한 벌만 대조하면 되고, 그 순서는 같은 테스트의 `detectReordering`이 봅니다.
+- **`urlOf`는 `*.filePath`만, `Projections.constructor`의 최상위 인자로 감쌉니다**: 경로가 아닌 컬럼을 감싸도 컴파일·런타임이 통과하고 출력만 망가지므로 가드가 대상 컬럼을 단정합니다. **다인자로 확장하지 않고**, URL 슬롯이 둘이면 슬롯마다 한 번씩 호출합니다(`MappingProjection`이 같은 인자를 합치기 때문 — 근거는 AGENTS.md).
+- **post-fetch가 여전히 정상인 형태**: 컬럼 표현식이 될 수 없는 보강은 fetch 뒤에 남습니다 — 별도 쿼리로 얻은 컬렉션을 붙이는 wither(`withImageUrls(list)`·`OrderProductResult#withOptions`·`OrderDetailResult#withOrderProducts`), 다른 조회 결과 Map과의 병합(`ShopSearchQueryDao#withTipRange`의 배달팁 범위), 그리고 `Tuple`·스칼라·Map 룩업으로 얻은 **경로 값**의 변환(`resolve`·`resolveAll` — 예: `ProductQueryDao#findProductBatch`의 `resolve(imagePathByProductId.get(...))`). 이 형태들은 URL 슬롯을 재나열하지 않으므로 위 봉인 대상이 아닙니다. **Result record의 URL 슬롯을 `resolve(row.xxx())`로 다시 채우는 코드는 어떤 형태(헬퍼·인라인 람다)로도 새로 만들지 않습니다.**
 - **캐싱하지 않습니다**: `FileStoragePort.getFileUrl`은 네트워크·SDK·DB 접근이 없는 순수 문자열 연산이라 행 단위 반복 호출에 비용이 없습니다. 캐싱은 값비싼 연산에 쓰는 수단이며, 여기 도입하면 `baseUrl` 변경 시 무효화 책임만 새로 생깁니다.
 - **DB에는 계속 경로를 저장합니다**: 절대 URL을 저장하면 `baseUrl` 변경·Firebase 토큰 무효화 시 저장된 값이 통째로 썩습니다. 스키마(`UPLOADED_FILE.file_path`)는 그대로 두고 읽기 시점에만 URL을 만듭니다.
 - **fileId만 있고 경로가 없으면 join을 추가합니다**: Service에서 파일을 재조회하지 않습니다. 애그리거트(`Shop`·`Member`)에서 fileId를 꺼내 변환하던 경로도, 그 로드가 표현 목적뿐이면 [write 포트 잔류 판정 기준](#write-포트-잔류-판정-기준-domain-repository에-남길-조회의-경계)에 따라 DAO 투영으로 옮깁니다(예: `ShopQueryDao#findShopImageUrls`, `MemberQueryDao#findProfileImageUrl`).
@@ -1509,7 +1511,7 @@ List<BannerListItemResult> banners = queryFactory
 - **api 모듈 `FileService`는 업로드 전용입니다**: 세 모듈(`webapi`/`adminapi`/`ceoapi`)의 `file/FileService`는 `upload(MultipartFile)` + `readBytes` 만 갖는 **완전히 동일한 파일**입니다(패키지 선언만 다름). `MultipartFile`이 spring-web 타입이라 프레임워크-프리인 domain에 둘 수 없어 이 얇은 어댑터만 모듈별로 남으며, 이는 `ApiResponse`/`PageRequest`/`PaginationResponse`의 모듈별 중복 관례와 같습니다. 업로드 규칙 본체는 domain의 `FileUploadService` 한 곳이 소유합니다.
 - **write 포트에 표현용 조회를 두지 않습니다**: `UploadedFileRepository`는 `save`·`findById`만 노출합니다. 과거의 `findFilePath`(default)·`findFilePaths`(배치)는 화면에 뿌릴 값을 얻기 위한 조회여서 잔류 기준에 맞지 않았고, 전환 후 호출부가 0이 되어 제거했습니다. `FileUploadService.getUrlByPath`도 같은 이유로 제거됐습니다(읽기 변환은 `FileUrlResolver` 소유).
 
-reference 구현: `infrastructure:persistence`의 `file/query/FileUrlResolver` + 이를 주입하는 14개 query DAO(`BannerQueryDao`가 가장 단순한 기준 예시 — 단건·목록·상세 3개 메서드 전부 이 형태). 파일 join이 새로 추가된 사례: `ShopQueryDao`(콘텐츠보드·이미지변경요청·`findShopImageUrls`), `EventQueryDao#findEventDetailById`(썸네일·배너 2개 alias join), `BugReportQueryDao#findImages`(`BugReportImageResult`로 분리), `MemberQueryDao#findProfileImageUrl`. **이 규칙에는 예외가 없습니다.** 과거 `OrderProductResult.imageUrl`이 "주문 시점에 이미 URL로 스냅샷된 값"이라는 이유로 유일한 예외로 기재돼 있었으나, `OrderPlacementService`가 그 컬럼(`ORDER_PRODUCT.image_url`)에 넣던 값은 `UPLOADED_FILE.file_path`인 **저장 경로**여서 전제가 사실과 달랐습니다. 그 결과 주문 상세 응답이 호스트 없는 경로(`2026/04/....png`)를 그대로 내려보내 프론트엔드 `next/image`가 크래시하는 장애가 발생했습니다.
+reference 구현: `infrastructure:persistence`의 `file/query/FileUrlResolver`·`FileUrlProjection` + 이를 주입하는 query DAO(`BannerQueryDao`가 가장 단순한 기준 예시 — 단건·목록·상세 3개 메서드 전부 `urlOf` 투영. 슬롯이 둘인 사례: `ShopQueryDao`의 음식종류·편의시설 카테고리 active/inactive 아이콘, `EventQueryDao#findEventDetailById`의 썸네일·배너). 파일 join이 새로 추가된 사례: `ShopQueryDao`(콘텐츠보드·이미지변경요청·`findShopImageUrls`), `EventQueryDao#findEventDetailById`(썸네일·배너 2개 alias join), `BugReportQueryDao#findImages`(`BugReportImageResult`로 분리), `MemberQueryDao#findProfileImageUrl`. **이 규칙에는 예외가 없습니다.** 과거 `OrderProductResult.imageUrl`이 "주문 시점에 이미 URL로 스냅샷된 값"이라는 이유로 유일한 예외로 기재돼 있었으나, `OrderPlacementService`가 그 컬럼(`ORDER_PRODUCT.image_url`)에 넣던 값은 `UPLOADED_FILE.file_path`인 **저장 경로**여서 전제가 사실과 달랐습니다. 그 결과 주문 상세 응답이 호스트 없는 경로(`2026/04/....png`)를 그대로 내려보내 프론트엔드 `next/image`가 크래시하는 장애가 발생했습니다.
 
 **교훈: 파일 참조는 경로 문자열이 아니라 `UPLOADED_FILE.id`로 스냅샷하십시오.** 이 사고 후 `ORDER_PRODUCT`는 `image_url`(경로 문자열) → `image_file_id`(파일 ID) 로 전환했습니다. 파일 ID를 들고 있으면 조회 시 `UPLOADED_FILE`을 join해 경로를 얻고 resolver를 거치는 것이 **유일하게 가능한 형태**가 되어, "이 컬럼에 URL이 들었나 경로가 들었나"라는 혼동 자체가 성립하지 않습니다. 값 스냅샷(`name`·`original_price`처럼 주문 시점 값을 박제)이 필요한 경우에도 이미지만은 ID 참조가 맞습니다 — `UPLOADED_FILE` 행은 불변이라 과거 주문이 당시 파일을 계속 가리키므로 **이력 보존도 함께 만족**합니다.
 

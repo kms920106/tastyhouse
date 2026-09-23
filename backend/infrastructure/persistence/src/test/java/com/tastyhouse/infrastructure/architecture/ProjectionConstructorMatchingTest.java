@@ -31,7 +31,7 @@ class ProjectionConstructorMatchingTest {
     private static final Pattern REASSEMBLY_HELPER =
         Pattern.compile("private \\S+ withResolved\\w*\\(");
 
-    private static final int SEALED_REASSEMBLY_HELPERS = 51;
+    private static final int SEALED_REASSEMBLY_HELPERS = 0;
 
     @Test
     @DisplayName("Projections.constructor 인자 개수가 대상 record 생성자 파라미터 개수와 일치해야 한다")

@@ -54,10 +54,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
             .orderBy(storePriceVerificationJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedFileUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -67,8 +64,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
         return Optional.ofNullable(
                 verificationProjection()
                     .where(storePriceVerificationJpaEntity.id.eq(verificationId))
-                    .fetchOne())
-            .map(this::withResolvedFileUrl);
+                    .fetchOne());
     }
 
     @Override
@@ -100,7 +96,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
                 storePriceVerificationJpaEntity.shopId,
                 shopJpaEntity.name,
                 storePriceVerificationJpaEntity.status,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 storePriceVerificationJpaEntity.rejectReason,
                 JPAExpressions
                     .select(storePriceVerificationItemJpaEntity.count())
@@ -118,19 +114,5 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
 
     private BooleanExpression statusEq(StorePriceVerificationStatus status) {
         return status != null ? storePriceVerificationJpaEntity.status.eq(status) : null;
-    }
-
-    private StorePriceVerificationListItemResult withResolvedFileUrl(StorePriceVerificationListItemResult row) {
-        return new StorePriceVerificationListItemResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            row.status(),
-            fileUrlResolver.resolve(row.priceListFileUrl()),
-            row.rejectReason(),
-            row.itemCount(),
-            row.requestedAt(),
-            row.processedAt()
-        );
     }
 }

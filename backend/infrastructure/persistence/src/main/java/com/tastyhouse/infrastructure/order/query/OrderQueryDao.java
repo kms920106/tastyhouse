@@ -61,7 +61,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .select(Projections.constructor(OrderListItemResult.class,
                 orderJpaEntity.id,
                 shopJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 orderProductJpaEntity.name.min(),
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.finalAmount,
@@ -87,10 +87,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .orderBy(orderJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedShopThumbnailImageUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(orderJpaEntity.count())
@@ -100,20 +97,6 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
-
-    private OrderListItemResult withResolvedShopThumbnailImageUrl(OrderListItemResult row) {
-        return new OrderListItemResult(
-            row.id(),
-            row.shopName(),
-            fileUrlResolver.resolve(row.shopThumbnailImageUrl()),
-            row.firstProductName(),
-            row.totalItemCount(),
-            row.amount(),
-            row.paymentStatus(),
-            row.paymentDate(),
-            row.scheduledAt()
-        );
     }
 
     public PageResult<OrderManagementListItemResult> findOrders(OrderSearchCondition condition, PageQuery pageQuery) {
@@ -236,7 +219,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
                 orderProductJpaEntity.priceName,
-                ORDER_PRODUCT_IMAGE_FILE.filePath,
+                fileUrlResolver.urlOf(ORDER_PRODUCT_IMAGE_FILE.filePath),
                 orderProductJpaEntity.quantity,
                 orderProductJpaEntity.originalPrice,
                 orderProductJpaEntity.discountPrice,
@@ -277,8 +260,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .collect(Collectors.groupingBy(OrderProductOptionResult::orderProductId));
 
         return orderProducts.stream()
-            .map(orderProduct -> orderProduct.withResolvedImageUrl(
-                fileUrlResolver.resolve(orderProduct.imageUrl()),
+            .map(orderProduct -> orderProduct.withOptions(
                 optionsByOrderProductId.getOrDefault(orderProduct.orderProductId(), List.of())
             ))
             .toList();

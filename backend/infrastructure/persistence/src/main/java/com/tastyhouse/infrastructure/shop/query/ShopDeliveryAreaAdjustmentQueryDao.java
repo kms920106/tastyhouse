@@ -37,10 +37,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
         return listItemProjection()
             .where(shopDeliveryAreaAdjustmentRequestJpaEntity.shopId.eq(shopId))
             .orderBy(shopDeliveryAreaAdjustmentRequestJpaEntity.id.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedConsentFileUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -64,10 +61,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .orderBy(shopDeliveryAreaAdjustmentRequestJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedConsentFileUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -83,7 +77,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
                 shopDeliveryAreaAdjustmentRequestJpaEntity.counterpartBusinessNumber,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.franchiseName,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.reason,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopDeliveryAreaAdjustmentRequestJpaEntity.status,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.rejectReason,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.createdAt,
@@ -95,7 +89,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .where(shopDeliveryAreaAdjustmentRequestJpaEntity.id.eq(requestId))
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(this::withResolvedConsentFileUrl);
+        return Optional.ofNullable(detail);
     }
 
     private JPQLQuery<ShopDeliveryAreaAdjustmentListItemResult> listItemProjection() {
@@ -108,7 +102,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
                 shopDeliveryAreaAdjustmentRequestJpaEntity.counterpartBusinessNumber,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.franchiseName,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.reason,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopDeliveryAreaAdjustmentRequestJpaEntity.status,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.rejectReason,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.createdAt
@@ -116,39 +110,6 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .from(shopDeliveryAreaAdjustmentRequestJpaEntity)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopDeliveryAreaAdjustmentRequestJpaEntity.shopId))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopDeliveryAreaAdjustmentRequestJpaEntity.consentFileId));
-    }
-
-    private ShopDeliveryAreaAdjustmentListItemResult withResolvedConsentFileUrl(ShopDeliveryAreaAdjustmentListItemResult row) {
-        return new ShopDeliveryAreaAdjustmentListItemResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            row.counterpartShopName(),
-            row.counterpartBusinessNumber(),
-            row.franchiseName(),
-            row.reason(),
-            fileUrlResolver.resolve(row.consentFileUrl()),
-            row.status(),
-            row.rejectReason(),
-            row.createdAt()
-        );
-    }
-
-    private ShopDeliveryAreaAdjustmentDetailResult withResolvedConsentFileUrl(ShopDeliveryAreaAdjustmentDetailResult row) {
-        return new ShopDeliveryAreaAdjustmentDetailResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            row.counterpartShopName(),
-            row.counterpartBusinessNumber(),
-            row.franchiseName(),
-            row.reason(),
-            fileUrlResolver.resolve(row.consentFileUrl()),
-            row.status(),
-            row.rejectReason(),
-            row.createdAt(),
-            row.updatedAt()
-        );
     }
 
     private BooleanExpression statusEq(DeliveryAreaAdjustmentStatus status) {

@@ -55,7 +55,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
                 memberJpaEntity.gender,
                 memberJpaEntity.memberGrade,
                 memberJpaEntity.memberStatus,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 memberJpaEntity.createdAt
             ))
             .from(memberJpaEntity)
@@ -70,10 +70,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedProfileImageUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(memberJpaEntity.count())
@@ -100,10 +97,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
             .orderBy(memberJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedProfileImageUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(memberJpaEntity.count())
@@ -123,8 +117,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
                     .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
                     .where(memberJpaEntity.id.eq(memberId.value()))
                     .fetchOne()
-            )
-            .map(this::withResolvedProfileImageUrl);
+            );
     }
 
     @Override
@@ -154,7 +147,6 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
             .where(memberJpaEntity.id.in(distinctIds))
             .fetch()
             .stream()
-            .map(this::withResolvedProfileImageUrl)
             .collect(Collectors.toMap(
                 MemberWithProfileImageResult::id,
                 Function.identity(),
@@ -168,32 +160,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
             memberJpaEntity.nickname,
             memberJpaEntity.memberGrade,
             memberJpaEntity.statusMessage,
-            uploadedFileJpaEntity.filePath
-        );
-    }
-
-    private MemberListItemResult withResolvedProfileImageUrl(MemberListItemResult row) {
-        return new MemberListItemResult(
-            row.id(),
-            row.username(),
-            row.nickname(),
-            row.fullName(),
-            row.phoneNumber(),
-            row.gender(),
-            row.memberGrade(),
-            row.memberStatus(),
-            fileUrlResolver.resolve(row.profileImageUrl()),
-            row.createdAt()
-        );
-    }
-
-    private MemberWithProfileImageResult withResolvedProfileImageUrl(MemberWithProfileImageResult row) {
-        return new MemberWithProfileImageResult(
-            row.id(),
-            row.nickname(),
-            row.memberGrade(),
-            row.statusMessage(),
-            fileUrlResolver.resolve(row.profileImageUrl())
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
         );
     }
 

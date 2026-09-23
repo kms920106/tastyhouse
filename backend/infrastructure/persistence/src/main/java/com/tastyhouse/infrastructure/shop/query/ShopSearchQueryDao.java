@@ -317,7 +317,7 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
                 shopJpaEntity.name,
                 stationJpaEntity.stationName,
                 shopJpaEntity.rating,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 Expressions.asBoolean(true),
                 shopJpaEntity.minOrderAmount,
                 Expressions.asNumber(0),
@@ -340,7 +340,7 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         );
 
         List<ShopBookmarkedItemResult> content = rows.stream()
-            .map(row -> withResolvedImageUrlAndTipRange(row, tipRangeMap))
+            .map(row -> withTipRange(row, tipRangeMap))
             .toList();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
@@ -520,7 +520,7 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return notConfigured.or(covers);
     }
 
-    private ShopBookmarkedItemResult withResolvedImageUrlAndTipRange(
+    private ShopBookmarkedItemResult withTipRange(
         ShopBookmarkedItemResult row,
         Map<Long, ShopDeliveryTipRangeResult> tipRangeMap
     ) {
@@ -530,7 +530,7 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
             row.shopName(),
             row.stationName(),
             row.rating(),
-            fileUrlResolver.resolve(row.imageUrl()),
+            row.imageUrl(),
             row.bookmarked(),
             row.minOrderAmount(),
             minDeliveryTip(tipRangeMap, row.shopId()),

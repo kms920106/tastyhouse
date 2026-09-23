@@ -36,7 +36,7 @@ public class MenuReviewQueryDao implements MenuReviewQueryPort {
                 orderProductJpaEntity.id,
                 orderProductJpaEntity.productId,
                 orderProductJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 menuReviewJpaEntity.id,
                 menuReviewJpaEntity.rating,
                 menuReviewJpaEntity.comment
@@ -50,10 +50,7 @@ public class MenuReviewQueryDao implements MenuReviewQueryPort {
                 productJpaEntity.ratingExcluded.isNull().or(productJpaEntity.ratingExcluded.isFalse())
             )
             .orderBy(orderProductJpaEntity.id.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedProductImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -68,7 +65,7 @@ public class MenuReviewQueryDao implements MenuReviewQueryPort {
             .select(Projections.constructor(MenuReviewListItemResult.class,
                 menuReviewJpaEntity.id,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 menuReviewJpaEntity.rating,
                 menuReviewJpaEntity.comment,
                 menuReviewJpaEntity.createdAt
@@ -80,19 +77,8 @@ public class MenuReviewQueryDao implements MenuReviewQueryPort {
             .orderBy(menuReviewJpaEntity.createdAt.desc(), menuReviewJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedMemberProfileImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
-    }
-
-    private MenuReviewWritableItemResult withResolvedProductImageUrl(MenuReviewWritableItemResult row) {
-        return row.withProductImageUrl(fileUrlResolver.resolve(row.productImageUrl()));
-    }
-
-    private MenuReviewListItemResult withResolvedMemberProfileImageUrl(MenuReviewListItemResult row) {
-        return row.withMemberProfileImageUrl(fileUrlResolver.resolve(row.memberProfileImageUrl()));
     }
 }

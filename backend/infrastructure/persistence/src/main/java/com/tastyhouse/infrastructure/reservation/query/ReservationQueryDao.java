@@ -41,10 +41,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
         return reservationQuery()
             .where(reservationJpaEntity.memberId.eq(memberId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedShopImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -52,10 +49,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
         return reservationQuery()
             .where(reservationJpaEntity.shopId.eq(shopId))
             .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedShopImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -64,8 +58,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
                 reservationQuery()
                     .where(reservationJpaEntity.id.eq(id.value()))
                     .fetchOne()
-            )
-            .map(this::withResolvedShopImageUrl);
+            );
     }
 
     @Override
@@ -75,7 +68,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
                 reservationJpaEntity.id,
                 reservationJpaEntity.shopId,
                 shopJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopJpaEntity.roadAddress,
                 shopJpaEntity.lotAddress,
                 reservationJpaEntity.memberId,
@@ -96,7 +89,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
             .where(reservationJpaEntity.id.eq(id.value()))
             .fetchOne();
 
-        return Optional.ofNullable(result).map(this::withResolvedShopImageUrl);
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -140,7 +133,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
                 reservationJpaEntity.id,
             reservationJpaEntity.shopId,
             shopJpaEntity.name,
-            uploadedFileJpaEntity.filePath,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             shopJpaEntity.roadAddress,
             shopJpaEntity.lotAddress,
             reservationJpaEntity.memberId,
@@ -150,45 +143,6 @@ public class ReservationQueryDao implements ReservationQueryPort {
             reservationJpaEntity.status,
             reservationJpaEntity.request,
             reservationJpaEntity.createdAt
-        );
-    }
-
-    private ReservationResult withResolvedShopImageUrl(ReservationResult row) {
-        return new ReservationResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            fileUrlResolver.resolve(row.shopImageUrl()),
-            row.shopRoadAddress(),
-            row.shopLotAddress(),
-            row.memberId(),
-            row.reservationDate(),
-            row.reservationTime(),
-            row.partySize(),
-            row.status(),
-            row.request(),
-            row.createdAt()
-        );
-    }
-
-    private ReservationDetailResult withResolvedShopImageUrl(ReservationDetailResult row) {
-        return new ReservationDetailResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            fileUrlResolver.resolve(row.shopImageUrl()),
-            row.shopRoadAddress(),
-            row.shopLotAddress(),
-            row.memberId(),
-            row.reserverName(),
-            row.reserverPhoneNumber(),
-            row.reserverEmail(),
-            row.reservationDate(),
-            row.reservationTime(),
-            row.partySize(),
-            row.status(),
-            row.request(),
-            row.createdAt()
         );
     }
 

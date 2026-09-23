@@ -178,7 +178,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate
@@ -195,10 +195,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         List<TodayDiscountProductResult> products = query
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(products, total, pageQuery.page(), pageQuery.size());
     }
@@ -240,7 +237,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.id,
                 shopJpaEntity.name,
                 productJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate,
@@ -257,10 +254,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .orderBy(productJpaEntity.representative.desc().nullsLast(), productJpaEntity.rating.desc().nullsLast())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -659,7 +653,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.id,
                 productShopLinkJpaEntity.productCategoryId,
                 productJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate,
@@ -680,10 +674,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.rating.desc(),
                 productJpaEntity.id.asc()
             )
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -863,7 +854,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                     productJpaEntity.ratingExcluded,
                     productJpaEntity.soldOut,
                     productJpaEntity.visible,
-                    uploadedFileJpaEntity.filePath,
+                    fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                     productJpaEntity.vegetarianType,
                     productJpaEntity.weightText,
                     productJpaEntity.exposureStartDate.isNotNull()
@@ -876,7 +867,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
                 .where(productJpaEntity.id.eq(productId), notDeleted())
                 .fetchOne()
-        ).map(this::withResolvedImageUrl);
+        );
     }
 
     @Override
@@ -924,30 +915,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .from(subExposureHour)
             .where(subExposureHour.productId.eq(productId))
             .exists();
-    }
-
-    private ProductManagementDetailResult withResolvedImageUrl(ProductManagementDetailResult row) {
-        return new ProductManagementDetailResult(
-            row.id(),
-            row.shopId(),
-            row.productCategoryId(),
-            row.productCategoryName(),
-            row.name(),
-            row.composition(),
-            row.description(),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.singleServing(),
-            row.spiciness(),
-            row.representative(),
-            row.ratingExcluded(),
-            row.soldOut(),
-            row.visible(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.vegetarianType(),
-            row.weightText(),
-            row.exposureScheduled()
-        );
     }
 
     @Override
@@ -1475,7 +1442,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         return queryFactory
             .select(Projections.constructor(ProductImageManagementResult.class,
                 productImageJpaEntity.id,
-                productImageFile.filePath,
+                fileUrlResolver.urlOf(productImageFile.filePath),
                 productImageJpaEntity.sort,
                 productImageJpaEntity.visible
             ))
@@ -1483,10 +1450,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .leftJoin(productImageFile).on(productImageFile.id.eq(productImageJpaEntity.imageFileId))
             .where(productImageJpaEntity.productId.eq(productId))
             .orderBy(productImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -1513,10 +1477,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         return imageChangeRequestProjection()
             .where(productImageChangeRequestJpaEntity.productId.eq(productId))
             .orderBy(productImageChangeRequestJpaEntity.id.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -1539,10 +1500,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .orderBy(productImageChangeRequestJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -1600,10 +1558,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .orderBy(productRepresentativeRequestJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -1625,7 +1580,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         List<PopularProductItemResult> merged = new ArrayList<>(representatives);
         int remaining = POPULAR_PRODUCT_LIMIT - merged.size();
         if (remaining <= 0) {
-            return merged.stream().map(this::withResolvedImageUrl).toList();
+            return List.copyOf(merged);
         }
 
         Set<Long> filledIds = merged.stream()
@@ -1644,7 +1599,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .fetch();
 
         merged.addAll(popular);
-        return merged.stream().map(this::withResolvedImageUrl).toList();
+        return List.copyOf(merged);
     }
 
     @Override
@@ -1685,7 +1640,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productImageChangeRequestJpaEntity.productId,
                 productJpaEntity.shopId,
                 productJpaEntity.name,
-                imageChangeRequestFile.filePath,
+                fileUrlResolver.urlOf(imageChangeRequestFile.filePath),
                 productImageChangeRequestJpaEntity.status,
                 productImageChangeRequestJpaEntity.rejectReason
             ))
@@ -1732,7 +1687,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productRepresentativeRequestJpaEntity.shopId,
                 shopJpaEntity.name,
                 productJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productRepresentativeRequestJpaEntity.status,
                 productRepresentativeRequestJpaEntity.rejectReason
             ))
@@ -1749,7 +1704,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .select(Projections.constructor(PopularProductItemResult.class,
                 productJpaEntity.id,
                 productJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate,
@@ -1795,56 +1750,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .and(exposedNow(now));
     }
 
-    private PopularProductItemResult withResolvedImageUrl(PopularProductItemResult row) {
-        return new PopularProductItemResult(
-            row.id(),
-            row.name(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.discountRate(),
-            row.rating(),
-            row.reviewCount(),
-            row.representative(),
-            row.spiciness(),
-            row.salesQuantity()
-        );
-    }
-
-    private ProductRepresentativeRequestResult withResolvedImageUrl(ProductRepresentativeRequestResult row) {
-        return new ProductRepresentativeRequestResult(
-            row.id(),
-            row.productId(),
-            row.shopId(),
-            row.shopName(),
-            row.productName(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.status(),
-            row.rejectReason()
-        );
-    }
-
-    private ProductImageManagementResult withResolvedImageUrl(ProductImageManagementResult row) {
-        return new ProductImageManagementResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.sort(),
-            row.visible()
-        );
-    }
-
-    private ProductImageChangeRequestResult withResolvedImageUrl(ProductImageChangeRequestResult row) {
-        return new ProductImageChangeRequestResult(
-            row.id(),
-            row.productId(),
-            row.shopId(),
-            row.productName(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.status(),
-            row.rejectReason()
-        );
-    }
-
     @Override
     public Optional<ProductBbqSyncTargetResult> findFirstBbqSyncTarget() {
         return Optional.ofNullable(
@@ -1858,51 +1763,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 .innerJoin(productJpaEntity).on(productBbqJpaEntity.productId.eq(productJpaEntity.id))
                 .where(productBbqJpaEntity.optionsSynced.eq(false), notDeleted())
                 .fetchFirst()
-        );
-    }
-
-    private SearchProductItemResult withResolvedImageUrl(SearchProductItemResult row) {
-        return new SearchProductItemResult(
-            row.id(),
-            row.shopName(),
-            row.name(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.discountRate(),
-            row.rating(),
-            row.reviewCount(),
-            row.representative(),
-            row.spiciness()
-        );
-    }
-
-    private TodayDiscountProductResult withResolvedImageUrl(TodayDiscountProductResult row) {
-        return new TodayDiscountProductResult(
-            row.id(),
-            row.shopName(),
-            row.name(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.discountRate()
-        );
-    }
-
-    private ShopProductItemResult withResolvedImageUrl(ShopProductItemResult row) {
-        return new ShopProductItemResult(
-            row.id(),
-            row.productCategoryId(),
-            row.name(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.discountRate(),
-            row.rating(),
-            row.reviewCount(),
-            row.representative(),
-            row.spiciness(),
-            row.soldOut()
         );
     }
 

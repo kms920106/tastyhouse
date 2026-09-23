@@ -112,7 +112,7 @@ with parameters: [class java.lang.Long, class java.lang.String, ...]
 
 - **select 절 인자 개수·타입·순서가 record 생성자와 일치해야 한다.** 전환하는 select 절마다 record 컴포넌트 순서와 대조하고, **그 조회 경로를 실제로 한 번 호출해** 확인한다.
 - **DAO 본문에 중첩된 `private` 헬퍼 record는 가드 대상이 아니다** — `new`로 직접 조립하는 내부 계산용이라 리플렉션 탐색을 거치지 않는다. 투영에 쓰려면 애초에 독립 파일로 분리해야 하고, 그 시점에 가드 대상이 된다.
-- **`FileUrlResolver` 재조립(`withResolvedXxx` 패턴)은 이 전환과 무관하다** — fetch 직후 Result를 재조립하는 로직은 소유 모듈이 바뀌어도 그대로 동작한다.
+- **`FileUrlResolver`의 URL 변환은 이 전환과 무관하다** — 변환은 투영식 인자(`fileUrlResolver.urlOf(경로컬럼)`)에서 일어나므로 Result record의 소유 모듈이 바뀌어도 그대로 동작한다.
 
 #### 두 가드가 어디까지 잡고 어디부터 못 잡는가
 
@@ -296,7 +296,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 **삭제 필터링은 이관 이전 동작을 그대로 보존한다** — admin 관리 목록/상세와 당첨자 목록은 soft delete 분을 제외하고, **web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.**
 
-썸네일·배너 파일 경로는 `UploadedFileJpaEntity`를 **left join**해 얻는다(파일 미등록 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). `Projections.constructor`는 record 생성자로 직접 투영하므로 URL 변환을 투영식에 끼울 수 없어 fetch 직후 재조립한다.
+썸네일·배너 파일 경로는 `UploadedFileJpaEntity`를 **left join**해 얻는다(파일 미등록 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). URL은 두 alias를 각각 `fileUrlResolver.urlOf(thumbnailFile.filePath)`·`urlOf(bannerFile.filePath)`로 감싸 투영식 안에서 변환한다.
 
 ### 이벤트 리스너 단위 테스트 12종 — 현재 동작 봉인 (공통 규칙)
 
@@ -360,17 +360,16 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/file/query/FileUrlProjection.java` → `map(Tuple)`도 같은 처지다. QueryDSL이 `MappingProjection#newInstance`를 거쳐 호출하므로 **정적 호출부가 0개**지만, 지우거나 비우면 `urlOf(...)`로 감싼 모든 URL 슬롯이 망가진다.
 
-### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 51개, 줄어들기만 한다
+### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 0개, 올리지 않는다
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java`
 → 상수 `SEALED_REASSEMBLY_HELPERS`, 패턴 `REASSEMBLY_HELPER`(`private \S+ withResolved\w*\(`), 메서드 `reassemblyHelpersShouldNotGrow`
 
-fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withResolved*` 헬퍼는 **전 컴포넌트를 위치 기반으로 재나열**하므로, 인접한 같은 타입 슬롯(썸네일 URL ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 써도 컴파일되고 값만 조용히 뒤바뀐다. 어떤 가드도 이 `new` 호출을 검사하지 않는다 — `detectReordering`이 보는 것은 `Projections.constructor` 인자뿐이다. 그래서 개수를 봉인해 **새 헬퍼가 생기는 것 자체를 막는다.** 새 URL 변환은 `fileUrlResolver.urlOf(...)`로 투영식 안에서 한다.
+fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withResolved*` 헬퍼는 **전 컴포넌트를 위치 기반으로 재나열**하므로, 인접한 같은 타입 슬롯(썸네일 URL ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 써도 컴파일되고 값만 조용히 뒤바뀐다. 어떤 가드도 이 `new` 호출을 검사하지 않는다 — `detectReordering`이 보는 것은 `Projections.constructor` 인자뿐이다. 그래서 개수를 봉인해 **새 헬퍼가 생기는 것 자체를 막는다.** URL 변환은 `fileUrlResolver.urlOf(...)`로 투영식 안에서 한다.
 
-- **상수는 줄어들기만 한다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙). 도입 시점 54개 → `BannerQueryDao` 파일럿 전환(헬퍼 3개 제거)으로 51개.
-- **두 번째 단정(`isEqualTo`)은 봉인의 낡음을 잡는다.** 헬퍼를 걷어냈는데 상수를 내리지 않으면 실패하며, 실패 메시지가 내려야 할 값을 알려준다. 상한만 두면 봉인이 느슨해진 채 방치된다.
-- **0이 되면 봉인 장치를 제거하고 `isZero()` 순수 강제로 전환한다.** 그때 상수와 두 번째 단정을 함께 지운다.
-- **알려진 한계 — 개수만 세고 타입·순서는 검사하지 않는다.** 봉인된 51개 안에서 같은 위치의 `Long`↔`Integer`나 인접 `String` 슬롯이 교차해도 이 테스트는 통과한다. 남은 헬퍼의 순서 보장은 코드 리뷰와 조회 호출 확인이 맡는다.
+- **상수는 0이고 올리지 않는다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙). 도입 시점 54개 → `BannerQueryDao` 파일럿(3개 제거)으로 51개 → 02 롤아웃에서 나머지 17개 DAO의 51개를 걷어내 **0개**. `ShopSearchQueryDao`의 헬퍼는 삭제가 아니라 URL 부분만 투영식으로 옮기고 `withTipRange`로 개명해 패턴에서 빠졌다(아래 `ShopSearchQueryDao` 절).
+- **상수 0에서는 두 단정이 모두 "헬퍼 0개"를 강제한다** — 상한(`isLessThanOrEqualTo(0)`)과 일치(`isEqualTo(0)`)가 같은 조건이 되어 `isZero()` 순수 강제와 동치다. 상수를 지우지 않고 0으로 둔 것은 봉인 이력(54 → 51 → 0)을 한 곳에서 읽히게 하려는 선택이다.
+- **알려진 한계 — 패턴은 `private … withResolved*(` 헬퍼만 센다.** 인라인 람다(`.map(row -> new XxxResult(..., resolve(row.xxx()), ...))`)나 public wither로 같은 재조립을 만들면 이 봉인을 빠져나간다. 02 롤아웃에서 실제로 그런 형태 4건(`ShopRequestQueryDao`의 이미지변경·배달지역 상세 람다 2건, `ShopNoticeQueryDao#findImageUrlsByNoticeIds` 람다, `OrderProductResult#withResolvedImageUrl` wither)을 함께 걷어냈다. Result record의 URL 슬롯을 `resolve(row.xxx())`로 다시 채우는 코드는 형태와 무관하게 리뷰에서 거절한다.
 - 패턴이 `private` 헬퍼만 세므로, 가시성을 바꿔 헬퍼를 늘리는 우회도 가능하다. 그것은 이 봉인의 의도를 우회한 것이므로 리뷰에서 거절한다.
 
 ### `urlOf(...)`는 `*.filePath` 컬럼만 감싼다 — 래핑 대상 단정
@@ -381,9 +380,9 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 
 - 도입 시점 전수 확인 결과 `filePath` 투영은 전부 평범한 dotted path(`uploadedFileJpaEntity.filePath`, `activeFile.filePath` 등)이고 `coalesce`·`as()` 래핑 사례가 없어 **오탐이 없다.** 경로 컬럼에 함수를 씌워야 하는 투영이 생기면 이 단정을 완화하지 말고, 함수를 `urlOf` 바깥이 아니라 DAO의 별도 표현식으로 빼서 `urlOf(표현식)`의 인자를 dotted path로 유지하는 방안을 먼저 검토한다.
 - **`trailingPropertyName`은 같은 래퍼를 언랩한다.** 언랩하지 않으면 래퍼가 붙은 인자가 전부 `null`(이름 추출 불가)로 처리되어 순서 검출이 지금보다 더 무력해진다. URL 슬롯 자체는 컴포넌트명(`imageUrl`)과 컬럼명(`filePath`)이 달라 이름 일치 판정에 걸리지 않는다 — 언랩의 실익은 **래퍼가 있어도 나머지 인자의 순서 검출이 계속 동작한다**는 것이고, URL 슬롯 자체는 위 래핑 대상 단정이 담당한다.
-- **도입 시점에는 검사할 대상이 0건이다.** `urlOf`는 02 덩어리(URL 투영 롤아웃)에서 도입되므로, 그 전까지 이 단정은 휴면이다. 02에서 첫 `urlOf`가 들어오는 순간부터 실제로 문다.
+- **도입 시점에는 검사할 대상이 0건이었다.** `urlOf`는 02 덩어리(URL 투영 롤아웃)에서 도입됐고, 롤아웃 완료 후 `Projections.constructor` 최상위 인자의 `urlOf` 전부(70여 곳)가 이 단정의 대상이다.
 - **패턴은 두 가지를 고정한다 — 인자 전체가 호출식일 것, 수신자 이름이 `fileUrlResolver`일 것.** `ExpressionUtils.as(fileUrlResolver.urlOf(...), "a")`처럼 감싸이거나 `this.fileUrlResolver`·다른 필드명으로 호출하면 단정과 언랩을 모두 빠져나간다. 반대로 `urlOf(x.filePath).as("y")`는 탐욕적 `(.+)`가 `).as("y"`까지 삼켜 **요란한 오탐**이 난다. 그래서 DAO는 `urlOf(...)`를 `Projections.constructor`의 최상위 인자로 그대로 두고, 필드명은 `fileUrlResolver`로 통일한다.
-- 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(row.xxx())`처럼 괄호가 남는 형태는 여전히 이름을 뽑지 못해 건너뛴다 — 그 형태는 `withResolved*` 헬퍼 안에 있고, 위 봉인이 헬퍼 증가를 막는다.
+- 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(...)`는 투영식 인자가 아니라 fetch 뒤 **값**(Tuple·스칼라·Map 룩업으로 얻은 경로)에만 쓰이므로 이 검사와 만나지 않는다.
 
 ### `ShopQueryDao` 파일 별칭 4종 — 공용 별칭 재사용 금지
 
@@ -1028,7 +1027,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 | ceo | `findProductManagementDetailById` · `findProductAvailability` |
 | batch | `findFirstBbqSyncTarget` |
 
-상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조). 조인으로 얻은 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는데, `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어 **fetch 직후 재조립한다**(`withResolvedImageUrl` 계열).
+상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조). 조인으로 얻은 저장 경로는 투영식에서 `fileUrlResolver.urlOf(...)`로 감싸 표시용 URL로 Result에 담는다. **예외 — `findProductBatch`의 `resolve(imagePathByProductId.get(...))`는 대상이 아니다**: 대표 이미지 경로를 별도 쿼리로 모은 Map에서 꺼낸 뒤 변환하므로, 투영 슬롯을 재나열하는 재조립이 아니라 값 변환이다.
 
 #### 서브쿼리 별칭을 새로 만드는 이유 — 별칭 재사용은 조인을 조용히 망가뜨린다
 
@@ -1318,7 +1317,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 - 소비 모듈의 `*QueryService`가 주입해 쓰며, **그 덕분에 api 모듈은 QueryDSL을 알지 않는다.**
 - 도메인당 DAO 1개 원칙에 따라 소비자별 메서드를 한 클래스에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
 - 소비자별로 필요한 필드 셋이 달라 Result를 통합하지 않는다.
-- 조인으로 얻은 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. **새 코드는 `fileUrlResolver.urlOf(경로컬럼)`을 투영식 인자로 넣는다**(아래 [`FileUrlProjection`·`FileUrlResolver#urlOf`](#fileurlprojection--fileurlresolverurlof--경로url-변환을-투영식-안으로) 절). fetch 직후 재조립하는 `withResolvedXxx` 패턴은 **전환 중인 잔존분**이다 — `BannerQueryDao`가 파일럿으로 전환을 마쳤고, 나머지 DAO는 02 덩어리 롤아웃에서 걷어낸다. 봉인(`SEALED_REASSEMBLY_HELPERS`)이 새 헬퍼를 막는다.
+- 조인으로 얻은 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. **변환은 `fileUrlResolver.urlOf(경로컬럼)`을 투영식 인자로 넣어 한다**(아래 [`FileUrlProjection`·`FileUrlResolver#urlOf`](#fileurlprojection--fileurlresolverurlof--경로url-변환을-투영식-안으로) 절). fetch 직후 재조립하는 `withResolvedXxx` 헬퍼는 02 롤아웃으로 **전부 제거됐고**, 봉인(`SEALED_REASSEMBLY_HELPERS = 0`)이 재발을 막는다. fetch 뒤에 남는 것은 별도 쿼리 컬렉션을 붙이는 wither(`withImageUrls`·`withOptions`)·Map 병합(`withTipRange`)·Tuple/스칼라 경로 값의 `resolve`/`resolveAll`뿐이다.
 
 **개별 DAO 문서에 이 문장들을 다시 쓰지 않는다.** 새 DAO를 만들 때도 마찬가지다 — 규칙 절이 이미 말하는 것을 클래스 Javadoc이 복창하던 것이 이 모듈 주석 7,244줄의 큰 몫이었다.
 
@@ -1333,7 +1332,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 | **count와 content의 술어·조인 공유** | 따로 두면 한쪽만 고쳐져 페이징 `totalElements`가 어긋나고 마지막 페이지가 빈다. **`innerJoin`은 count에서도 재현**해야 하고(짝이 없는 행을 제외하므로), 1:1 조인이라 행이 늘지 않으면 `countDistinct`는 필요 없다 |
 | **파일 조인은 `leftJoin`** | 파일 미등록 행이 목록에서 통째로 누락되지 않게 한다 |
 
-`withResolvedXxx` 재조립은 **record 재조립이 위치 기반**이므로 필드 선언 순서와 인자 순서를 하나씩 대조한다 — 타입이 같으면 뒤바뀌어도 컴파일이 통과한다.
+fetch 뒤 wither(`withImageUrls`·`withOptions`·`withTipRange` 등)로 record를 다시 만드는 곳은 **재조립이 위치 기반**이므로 필드 선언 순서와 인자 순서를 하나씩 대조한다 — 타입이 같으면 뒤바뀌어도 컴파일이 통과한다(`application`의 wither는 `ResultWitherComponentOrderTest`가 검사하고, DAO private 메서드는 리뷰가 맡는다).
 
 ### 개별 DAO — 그 DAO에만 있는 판단
 
@@ -1477,11 +1476,11 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 - 점주 화면(`findMenuCollectionImages`)은 `sort` 순 **상태 무관 전량**이다. 대기·반려 건까지 내려보내는 이유는 원문 규격이 점주 화면에 검수 진행 상태를 보여주도록 규정하기 때문이다.
 - 손님 화면(`findExposedMenuCollectionImages`)은 **승인분만** 본다. **상태 필터를 소비 측(api 모듈)이 아니라 이 투영에 두는 이유는, 필터를 호출부에 맡기면 새 소비 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출될 수 있기 때문이다.**
 
-#### 표시용 URL 변환은 fetch 직후 재조립한다
+#### 표시용 URL 변환은 투영식 안에서 한다 — 아이콘 쌍은 슬롯마다 `urlOf`
 
-→ `withResolvedIconUrls(ShopFoodTypeCategoryResult)` 계열
+→ `findVisibleFoodTypeCategories` · `findAllFoodTypeCategories` · `findVisibleAmenityCategories` · `findAllAmenityCategories`
 
-`Projections.constructor`가 생성자 직접 투영이라 변환을 투영식에 넣을 수 없어, 투영된 저장 경로를 fetch 직후 표시용 URL로 바꿔 재조립한다.
+파일 alias마다 `fileUrlResolver.urlOf(alias.filePath)`로 감싼다. `ShopFoodTypeCategoryResult`·`ShopAmenityCategoryResult`의 `activeIconUrl`/`inactiveIconUrl`은 **인접한 `String` 쌍**이라, `urlOf(activeFile.filePath)`·`urlOf(inactiveFile.filePath)`의 **슬롯 순서를 바꿔 써도 컴파일·가드를 통과하고 아이콘만 교차한다.** 두 alias는 서로 다른 `QUploadedFileJpaEntity` 인스턴스라 래퍼끼리는 충돌하지 않지만, 순서 보장은 record 컴포넌트 순서(active → inactive)와 인자 순서를 대조하는 것뿐이다. `findShopImageUrls`의 썸네일·상표(`shopThumbnailFile`·`shopTrademarkFile`)도 같은 형태다.
 
 ---
 
@@ -1529,11 +1528,11 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 #### 필터 집합 교집합과 목록 후처리
 
-→ `intersect(Set<Long>, Set<Long>)` · `withResolvedImageUrlAndTipRange(...)` · `minDeliveryTip(...)` · `maxDeliveryTip(...)`
+→ `intersect(Set<Long>, Set<Long>)` · `withTipRange(...)` · `minDeliveryTip(...)` · `maxDeliveryTip(...)`
 
 `intersect`는 두 필터 집합의 교집합을 내되, 한쪽이 없으면 다른 쪽을, 둘 다 없으면 `null`(필터 없음)을 돌려준다.
 
-`withResolvedImageUrlAndTipRange`는 투영된 저장 경로를 표시용 URL로 바꾸고 배달팁 하한/상한을 채워 재조립한다. `Projections.constructor`가 생성자 직접 투영이라 두 변환 모두 투영식에 넣을 수 없어 fetch 직후 호출한다 — **배달팁 범위는 올림 계산이 섞여 SQL 집계로 표현되지 않는다**(`ShopDeliveryTipQueryDao#findTipRanges` 참고). 배달팁 설정이 없는 가게는 하한·상한 모두 0이다.
+`withTipRange`는 찜 목록(`findMyBookmarkedShops`) 행에 배달팁 하한/상한을 채워 재조립한다. 이미지 URL은 투영식의 `fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)`가 이미 채웠으므로 그대로 옮기기만 한다 — 02 롤아웃 전에는 URL 변환까지 함께 하던 `withResolvedImageUrlAndTipRange`였고, URL 부분만 투영식으로 옮기며 남은 역할에 맞게 개명했다. 배달팁 병합이 fetch 뒤에 남는 이유는 **배달팁 범위가 올림 계산이 섞여 SQL 집계로 표현되지 않고**(`ShopDeliveryTipQueryDao#findTipRanges` 참고) shopId 키 Map과의 병합이라 컬럼 표현식이 될 수 없기 때문이다. 배달팁 설정이 없는 가게는 하한·상한 모두 0이다.
 
 ---
 
@@ -1638,11 +1637,11 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 이미지 조회도 같은 형태다. 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환한 뒤 돌려주며, 대표 이미지는 "정렬값이 가장 작은 1장"으로 좁힌다.
 
-#### 투영 후 재조립 — `Projections.constructor`의 제약
+#### URL 슬롯은 투영식, 이미지 목록은 fetch 뒤 보강
 
-→ `withResolvedImageUrl(SearchReviewItemResult)`
+→ `searchByKeyword` · `findLatestReviews` 계열 · `findReviewDetail`
 
-`Projections.constructor`는 생성자 직접 투영이라 **변환을 투영식에 넣을 수 없어** fetch 직후 호출해 저장 경로를 표시용 URL로 바꿔 재조립한다.
+단일 URL 슬롯(대표 이미지·작성자 프로필)은 투영식에서 `fileUrlResolver.urlOf(...)`로 변환한다. 리뷰 이미지 **목록**은 별도 쿼리(`findImageUrlsByReviewIds`·`findImageUrlsByReviewId`)로 모아 `withImageUrls(list)`로 붙이며, 이 보강은 컬럼 표현식이 될 수 없어 fetch 뒤가 정상 형태다.
 
 #### 댓글·답글 조회
 
@@ -1778,13 +1777,13 @@ join이 아니라 `EXISTS`로 판정해 **행이 불어나지 않게 한다.** `
 
 #### 이미지 — 같은 테이블 두 번 조인, 그리고 주문 시점 스냅샷
 
-→ `ORDER_PRODUCT_IMAGE_FILE` · `withResolvedShopThumbnailImageUrl(OrderListItemResult)`
+→ `ORDER_PRODUCT_IMAGE_FILE` · `findOrders(MemberId, PageQuery)` · `findOrderProducts`
 
 가게 대표 이미지(주문 목록)와 주문 상품 이미지 모두 `UPLOADED_FILE`을 join해 얻은 저장 경로를 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. 두 이미지가 같은 테이블을 각각 join하므로 `ORDER_PRODUCT_IMAGE_FILE` 별칭을 따로 둔다 — **기본 별칭 하나로는 두 join이 충돌한다**(`EventQueryDao#findEventDetailById` 선례와 동일).
 
 주문 상품은 **주문 시점의 `UPLOADED_FILE.id`를 스냅샷해 두므로**(=`ORDER_PRODUCT.image_file_id`), 이후 상품 대표 이미지가 교체돼도 과거 주문은 주문 당시 이미지를 그대로 보여준다.
 
-URL 변환은 `Projections.constructor`가 생성자 직접 투영이라 투영식에 넣을 수 없어 **fetch 직후 재조립한다.**
+URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`로 한다. 주문 목록은 `groupBy`에 `uploadedFileJpaEntity.filePath`를 원 컬럼 그대로 두는데, `urlOf`가 select 목록으로 평탄화되면 같은 컬럼이 되므로 문제없다. 주문 상품은 옵션 목록을 별도 쿼리로 모아 `OrderProductResult#withOptions`로 붙인다(02 롤아웃 전에는 URL 변환까지 함께 하던 `withResolvedImageUrl`이었다).
 
 #### 목록 쿼리
 
@@ -1813,7 +1812,7 @@ URL 변환은 `Projections.constructor`가 생성자 직접 투영이라 투영�
 
 → `withUnwrappedAmount(PaymentProjection)`
 
-`PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성하므로 **투영은 VO로 받을 수밖에 없고**, `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 넣을 수 없다. 그래서 fetch 직후에 푼다(`withResolvedShopThumbnailImageUrl`과 같은 형태).
+`PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성하므로 **투영은 VO로 받을 수밖에 없고**, `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 넣을 수 없다. 그래서 fetch 직후에 푼다. 파일 URL은 `urlOf`로 투영식 안에서 변환하지만, 이 언랩은 **URL 변환이 아니므로** 그 전환 대상이 아니다(02 롤아웃에서도 건드리지 않았다).
 
 **이 언랩이 읽기 계약을 경계 타입으로 유지해, api 모듈이 `Amount.value()`를 호출하지 않게 한다**(챕터 07 — `apiModuleShouldBeDomainModelFree`의 유일한 비-enum 위반이었다).
 

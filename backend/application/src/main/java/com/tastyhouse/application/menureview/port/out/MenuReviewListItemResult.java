@@ -10,15 +10,4 @@ public record MenuReviewListItemResult(
     String comment,
     LocalDateTime createdAt
 ) {
-
-    public MenuReviewListItemResult withMemberProfileImageUrl(String memberProfileImageUrl) {
-        return new MenuReviewListItemResult(
-            this.id,
-            this.memberNickname,
-            memberProfileImageUrl,
-            this.rating,
-            this.comment,
-            this.createdAt
-        );
-    }
 }

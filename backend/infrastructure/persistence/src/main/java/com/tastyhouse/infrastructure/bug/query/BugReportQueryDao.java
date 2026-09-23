@@ -125,24 +125,13 @@ public class BugReportQueryDao implements BugReportQueryPort {
             .select(Projections.constructor(BugReportImageResult.class,
                 bugReportImageJpaEntity.imageFileId,
                 uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
             ))
             .from(bugReportImageJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(bugReportImageJpaEntity.imageFileId))
             .where(bugReportImageJpaEntity.bugReportId.eq(bugReportId))
             .orderBy(bugReportImageJpaEntity.sort.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
-    }
-
-    private BugReportImageResult withResolvedImageUrl(BugReportImageResult row) {
-        return new BugReportImageResult(
-            row.fileId(),
-            row.fileName(),
-            fileUrlResolver.resolve(row.imageUrl())
-        );
+            .fetch();
     }
 
     private BooleanExpression titleContains(String title) {

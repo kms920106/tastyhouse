@@ -153,7 +153,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
             productJpaEntity.id,
             shopJpaEntity.name,
             productJpaEntity.name,
-            uploadedFileJpaEntity.filePath,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             productJpaEntity.originalPrice,
             productJpaEntity.discountInfo.discountPrice,
             productJpaEntity.discountInfo.discountRate
@@ -184,7 +184,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
             .collect(Collectors.groupingBy(
                 tuple -> Objects.requireNonNull(tuple.get(productShopLinkJpaEntity.shopId)),
                 Collectors.mapping(
-                    tuple -> withResolvedImageUrl(Objects.requireNonNull(tuple.get(productProjection))),
+                    tuple -> Objects.requireNonNull(tuple.get(productProjection)),
                     Collectors.toList()
                 )
             ))
@@ -193,17 +193,5 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
                 Map.Entry::getKey,
                 entry -> entry.getValue().stream().limit(EditorChoicePolicy.PRODUCT_LIMIT).toList()
             ));
-    }
-
-    private ProductSimpleResult withResolvedImageUrl(ProductSimpleResult row) {
-        return new ProductSimpleResult(
-            row.id(),
-            row.shopName(),
-            row.name(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.originalPrice(),
-            row.discountPrice(),
-            row.discountRate()
-        );
     }
 }

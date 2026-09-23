@@ -63,7 +63,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
                 rankPrizeJpaEntity.prizeRank,
                 rankPrizeJpaEntity.name,
                 rankPrizeJpaEntity.brand,
-                uploadedFileJpaEntity.filePath
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
             ))
             .from(rankPeriodJpaEntity)
             .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
@@ -74,10 +74,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
                 rankPrizeJpaEntity.deleted.isFalse()
             )
             .orderBy(rankPeriodJpaEntity.startAt.desc(), rankPrizeJpaEntity.prizeRank.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -93,10 +90,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             )
             .orderBy(memberReviewRankJpaEntity.rankNo.asc())
             .limit(limit)
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -113,7 +107,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             )
             .fetchOne();
 
-        return Optional.ofNullable(result).map(this::withResolvedImageUrl);
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -145,10 +139,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
             .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -160,14 +151,14 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 
-        return Optional.ofNullable(result).map(this::withResolvedImageUrl);
+        return Optional.ofNullable(result);
     }
 
     private ConstructorExpression<MemberRankResult> memberRankProjection() {
         return Projections.constructor(MemberRankResult.class,
                 memberReviewRankJpaEntity.memberId,
             memberJpaEntity.nickname,
-            uploadedFileJpaEntity.filePath,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             memberReviewRankJpaEntity.reviewCount,
             memberReviewRankJpaEntity.rankNo,
             memberJpaEntity.memberGrade
@@ -194,41 +185,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             rankPrizeJpaEntity.brand,
             rankPrizeJpaEntity.imageFileId,
             uploadedFileJpaEntity.originalFilename,
-            uploadedFileJpaEntity.filePath
-        );
-    }
-
-    private MemberRankResult withResolvedImageUrl(MemberRankResult row) {
-        return new MemberRankResult(
-            row.memberId(),
-            row.nickname(),
-            fileUrlResolver.resolve(row.profileImageUrl()),
-            row.reviewCount(),
-            row.rankNo(),
-            row.grade()
-        );
-    }
-
-    private RankPrizeResult withResolvedImageUrl(RankPrizeResult row) {
-        return new RankPrizeResult(
-            row.id(),
-            row.prizeRank(),
-            row.name(),
-            row.brand(),
-            fileUrlResolver.resolve(row.imageUrl())
-        );
-    }
-
-    private RankPrizeManagementResult withResolvedImageUrl(RankPrizeManagementResult row) {
-        return new RankPrizeManagementResult(
-            row.id(),
-            row.periodId(),
-            row.prizeRank(),
-            row.name(),
-            row.brand(),
-            row.imageFileId(),
-            row.imageFileName(),
-            fileUrlResolver.resolve(row.imageUrl())
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
         );
     }
 

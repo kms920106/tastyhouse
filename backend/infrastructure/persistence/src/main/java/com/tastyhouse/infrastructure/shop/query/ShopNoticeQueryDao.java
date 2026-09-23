@@ -170,7 +170,7 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
         return queryFactory
             .select(Projections.constructor(ShopNoticeImageResult.class,
                 shopNoticeImageJpaEntity.shopNoticeId,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopNoticeImageJpaEntity.sortOrder
             ))
             .from(shopNoticeImageJpaEntity)
@@ -179,11 +179,6 @@ public class ShopNoticeQueryDao implements ShopNoticeQueryPort, ShopNoticeOwnerQ
             .orderBy(shopNoticeImageJpaEntity.shopNoticeId.asc(), shopNoticeImageJpaEntity.sortOrder.asc())
             .fetch()
             .stream()
-            .map(row -> new ShopNoticeImageResult(
-                row.shopNoticeId(),
-                fileUrlResolver.resolve(row.imageUrl()),
-                row.sortOrder()
-            ))
             .filter(row -> row.imageUrl() != null)
             .collect(Collectors.groupingBy(
                 ShopNoticeImageResult::shopNoticeId,

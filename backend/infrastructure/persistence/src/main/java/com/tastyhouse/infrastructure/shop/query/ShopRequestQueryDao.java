@@ -101,7 +101,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
                 shopRequestIndexJpaEntity.summary,
                 shopRequestIndexJpaEntity.status,
                 shopRequestIndexJpaEntity.rejectReason,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 commentCount(),
                 shopRequestIndexJpaEntity.createdAt,
                 shopRequestIndexJpaEntity.processedAt
@@ -112,7 +112,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
             .where(shopRequestIndexJpaEntity.id.eq(requestId))
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(this::withResolvedAttachmentUrl);
+        return Optional.ofNullable(detail);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         ShopRequestImageChangeDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestImageChangeDetailResult.class,
                 shopImageChangeRequestJpaEntity.imageType,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopImageChangeRequestJpaEntity.status,
                 shopImageChangeRequestJpaEntity.rejectReason
             ))
@@ -130,12 +130,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
             .where(shopImageChangeRequestJpaEntity.id.eq(sourceRequestId))
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(row -> new ShopRequestImageChangeDetailResult(
-            row.imageType(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.status(),
-            row.rejectReason()
-        ));
+        return Optional.ofNullable(detail);
     }
 
     @Override
@@ -146,7 +141,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
                 shopDeliveryAreaAdjustmentRequestJpaEntity.counterpartBusinessNumber,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.franchiseName,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.reason,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopDeliveryAreaAdjustmentRequestJpaEntity.status,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.rejectReason
             ))
@@ -156,15 +151,7 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
             .where(shopDeliveryAreaAdjustmentRequestJpaEntity.id.eq(sourceRequestId))
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(row -> new ShopRequestAdjustmentDetailResult(
-            row.counterpartShopName(),
-            row.counterpartBusinessNumber(),
-            row.franchiseName(),
-            row.reason(),
-            fileUrlResolver.resolve(row.consentFileUrl()),
-            row.status(),
-            row.rejectReason()
-        ));
+        return Optional.ofNullable(detail);
     }
 
     @Override
@@ -200,22 +187,6 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
             .where(shopRequestCommentJpaEntity.shopRequestIndexId.eq(requestId))
             .orderBy(shopRequestCommentJpaEntity.createdAt.asc(), shopRequestCommentJpaEntity.id.asc())
             .fetch();
-    }
-
-    private ShopRequestDetailResult withResolvedAttachmentUrl(ShopRequestDetailResult row) {
-        return new ShopRequestDetailResult(
-            row.requestId(),
-            row.shopId(),
-            row.requestType(),
-            row.sourceRequestId(),
-            row.summary(),
-            row.status(),
-            row.rejectReason(),
-            fileUrlResolver.resolve(row.attachmentUrl()),
-            row.commentCount(),
-            row.requestedAt(),
-            row.processedAt()
-        );
     }
 
     private Expression<Long> commentCount() {

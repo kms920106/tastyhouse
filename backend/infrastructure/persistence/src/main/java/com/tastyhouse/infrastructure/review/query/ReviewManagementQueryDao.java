@@ -105,7 +105,7 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
                 reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
@@ -118,7 +118,7 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
 
         if (result != null) {
             List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
-            result = withResolvedImageUrl(result.withImageUrls(imageUrls));
+            result = result.withImageUrls(imageUrls);
         }
 
         return Optional.ofNullable(result);
@@ -236,32 +236,6 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             .fetch();
 
         return fileUrlResolver.resolveAll(filePaths);
-    }
-
-    private ReviewManagementDetailResult withResolvedImageUrl(ReviewManagementDetailResult row) {
-        return new ReviewManagementDetailResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            row.stationName(),
-            row.content(),
-            row.totalRating(),
-            row.tasteRating(),
-            row.amountRating(),
-            row.priceRating(),
-            row.atmosphereRating(),
-            row.kindnessRating(),
-            row.hygieneRating(),
-            row.willRevisit(),
-            row.hidden(),
-            row.ownerOnly(),
-            row.memberId(),
-            row.memberNickname(),
-            fileUrlResolver.resolve(row.memberProfileImageUrl()),
-            row.createdAt(),
-            row.imageUrls(),
-            row.tagNames()
-        );
     }
 
     private NumberPath<Long> shopStationId() {

@@ -47,7 +47,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .select(Projections.constructor(EventListItemResult.class,
                 eventJpaEntity.id,
                 eventJpaEntity.name,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt
             ))
@@ -57,10 +57,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .orderBy(eventJpaEntity.startAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedThumbnailUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(eventJpaEntity.count())
@@ -75,14 +72,14 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
     public Optional<EventDetailResult> findEventBannerById(EventId eventId) {
         EventDetailResult result = queryFactory
             .select(Projections.constructor(EventDetailResult.class,
-                uploadedFileJpaEntity.filePath
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
             ))
             .from(eventJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.bannerImageFileId.eq(uploadedFileJpaEntity.id))
             .where(eventJpaEntity.id.eq(eventId.value()))
             .fetchOne();
 
-        return Optional.ofNullable(result).map(this::withResolvedBannerUrl);
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -104,7 +101,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
                 eventJpaEntity.status,
                 eventJpaEntity.thumbnailImageFileId,
                 uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt
             ))
@@ -118,10 +115,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .orderBy(eventJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedThumbnailUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
@@ -139,10 +133,10 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
                 eventJpaEntity.subtitle,
                 eventJpaEntity.thumbnailImageFileId,
                 thumbnailFile.originalFilename,
-                thumbnailFile.filePath,
+                fileUrlResolver.urlOf(thumbnailFile.filePath),
                 eventJpaEntity.bannerImageFileId,
                 bannerFile.originalFilename,
-                bannerFile.filePath,
+                fileUrlResolver.urlOf(bannerFile.filePath),
                 eventJpaEntity.contentHtml,
                 eventJpaEntity.status,
                 eventJpaEntity.startAt,
@@ -156,7 +150,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .where(eventJpaEntity.id.eq(eventId.value()), eventJpaEntity.deleted.isFalse())
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(this::withResolvedFileUrls);
+        return Optional.ofNullable(detail);
     }
 
     @Override
@@ -211,56 +205,6 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
                 eventAnnouncementJpaEntity.announcedAt
             ))
             .from(eventAnnouncementJpaEntity);
-    }
-
-    private EventListItemResult withResolvedThumbnailUrl(EventListItemResult row) {
-        return new EventListItemResult(
-            row.eventId(),
-            row.name(),
-            fileUrlResolver.resolve(row.thumbnailUrl()),
-            row.startAt(),
-            row.endAt()
-        );
-    }
-
-    private EventManagementListItemResult withResolvedThumbnailUrl(EventManagementListItemResult row) {
-        return new EventManagementListItemResult(
-            row.id(),
-            row.name(),
-            row.status(),
-            row.thumbnailImageFileId(),
-            row.thumbnailFileName(),
-            fileUrlResolver.resolve(row.thumbnailUrl()),
-            row.startAt(),
-            row.endAt()
-        );
-    }
-
-    private EventDetailResult withResolvedBannerUrl(EventDetailResult row) {
-        return new EventDetailResult(
-            fileUrlResolver.resolve(row.bannerUrl())
-        );
-    }
-
-    private EventManagementDetailResult withResolvedFileUrls(EventManagementDetailResult row) {
-        return new EventManagementDetailResult(
-            row.id(),
-            row.name(),
-            row.description(),
-            row.subtitle(),
-            row.thumbnailImageFileId(),
-            row.thumbnailFileName(),
-            fileUrlResolver.resolve(row.thumbnailUrl()),
-            row.bannerImageFileId(),
-            row.bannerFileName(),
-            fileUrlResolver.resolve(row.bannerUrl()),
-            row.contentHtml(),
-            row.status(),
-            row.startAt(),
-            row.endAt(),
-            row.createdAt(),
-            row.updatedAt()
-        );
     }
 
     private BooleanExpression nameContains(String name) {

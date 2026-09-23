@@ -363,9 +363,11 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 → `witherArgumentsShouldFollowComponentOrder`, `detectWitherReordering`, 짝 테스트 `detectorShouldCatchSwappedSlots`
 
 **검사 대상**: `backend/application/src/main/java/com/tastyhouse/application/**/port/out/*.java`의 record가 가진
-`public {자기 record명} with\w+(...)` 메서드 전부. 도입 시점 15개:
-`OrderProductResult#withResolvedImageUrl` · `OrderDetailResult#withOrderProducts`/`#withPayment` ·
-`MenuReviewWritableItemResult#withProductImageUrl` · `MenuReviewListItemResult#withMemberProfileImageUrl` ·
+`public {자기 record명} with\w+(...)` 메서드 전부. 도입 시점 15개였고, 02 롤아웃(URL 투영)으로 URL 변환용
+wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#withProductImageUrl`·
+`MenuReviewListItemResult#withMemberProfileImageUrl`은 호출부가 0이 되어 삭제했고,
+`OrderProductResult#withResolvedImageUrl(url, options)`는 URL 인자를 떼고 `#withOptions(options)`로 축소했다.
+`OrderProductResult#withOptions` · `OrderDetailResult#withOrderProducts`/`#withPayment` ·
 `ReviewBlindNoticeResult#withImageUrls` · `ReviewBlindRequestDetailResult#withUrls` ·
 `ReviewManagementDetailResult#withImageUrls`/`#withTagNames` · `ReviewDetailResult#withImageUrls`/`#withTagNames` ·
 `ShopReviewManagementDetailResult#withCollections` ·
@@ -378,9 +380,10 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 - **`infrastructure:persistence`의 가드 2종은 이 모듈을 스캔하지 않는다.** `ProjectionConstructorMatchingTest`는
   자기 모듈 소스(`Projections.constructor` 인자)만 보고, 재조립 헬퍼 봉인은 개수만 센다. 그래서 이 테스트가
   wither 순서에 대한 **유일한 방어선**이다. 지우거나 `@Disabled`하지 않는다.
-- **wither는 제거 대상이 아니다.** 별도 쿼리로 얻는 컬렉션(이미지·태그·상품명)과 서브 애그리거트(주문 상품·결제)
-  보강은 컬럼 표현식이 될 수 없어 post-fetch가 정상 형태다. `infrastructure:persistence`의 `withResolved*` 재조립
-  헬퍼(URL 변환 — 투영식 안으로 옮기는 대상)와 혼동하지 않는다.
+- **wither는 제거 대상이 아니다.** 별도 쿼리로 얻는 컬렉션(이미지·태그·상품명·주문 옵션)과 서브 애그리거트(주문 상품·결제)
+  보강은 컬럼 표현식이 될 수 없어 post-fetch가 정상 형태다. 반대로 **URL 슬롯만 바꿔 끼우는 wither는 만들지 않는다** —
+  URL 변환은 `infrastructure:persistence`가 투영식의 `fileUrlResolver.urlOf(...)`로 끝내고, 그쪽의 `withResolved*`
+  재조립 헬퍼는 02 롤아웃으로 0개가 됐다.
 
 **판정 방식** — 인자마다 아래 셋 중 하나로 본다. 어느 것에도 해당하지 않는 인자(`List.of()`·메서드 호출 등)는
 건너뛴다.

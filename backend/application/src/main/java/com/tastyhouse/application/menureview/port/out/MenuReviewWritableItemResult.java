@@ -9,16 +9,4 @@ public record MenuReviewWritableItemResult(
     Integer rating,
     String comment
 ) {
-
-    public MenuReviewWritableItemResult withProductImageUrl(String productImageUrl) {
-        return new MenuReviewWritableItemResult(
-            this.orderProductId,
-            this.productId,
-            this.productName,
-            productImageUrl,
-            this.menuReviewId,
-            this.rating,
-            this.comment
-        );
-    }
 }

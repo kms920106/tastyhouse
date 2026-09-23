@@ -2,6 +2,9 @@ package com.tastyhouse.infrastructure.order.query;
 
 import java.util.List;
 
+import com.querydsl.core.types.FactoryExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringPath;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,55 +22,48 @@ class OrderProductResultTest {
     private final FileUrlResolver fileUrlResolver = new FileUrlResolver(new FakeFileStoragePort());
 
     @Test
-    @DisplayName("투영된 저장 경로가 표시용 URL로 변환돼 담긴다 — 경로가 그대로 남으면 안 된다")
+    @DisplayName("urlOf로 감싼 저장 경로 슬롯은 표시용 URL로 채워진다 — 경로가 그대로 남으면 안 된다")
     void resolvesStoredPathIntoDisplayUrl() {
-        OrderProductResult projected = projectedWithImage(STORED_PATH);
+        Object imageUrl = urlSlotOf(STORED_PATH);
 
-        OrderProductResult reassembled = projected.withResolvedImageUrl(
-            fileUrlResolver.resolve(projected.imageUrl()),
-            List.of()
-        );
-
-        assertThat(reassembled.imageUrl())
+        assertThat(imageUrl)
+            .asString()
             .isNotEqualTo(STORED_PATH)
             .startsWith(BASE_URL)
             .endsWith("?alt=media");
     }
 
     @Test
-    @DisplayName("대표 이미지가 없어 경로가 null이면 imageUrl도 null이고, 주문 라인 자체는 유지된다")
-    void keepsLineWithNullImageUrlWhenProductHasNoImage() {
-        OrderProductResult projected = projectedWithImage(null);
-
-        OrderProductResult reassembled = projected.withResolvedImageUrl(
-            fileUrlResolver.resolve(projected.imageUrl()),
-            List.of()
-        );
-
-        assertThat(reassembled.imageUrl()).isNull();
-        assertThat(reassembled.orderProductId()).isEqualTo(1L);
-        assertThat(reassembled.name()).isEqualTo("상품");
+    @DisplayName("대표 이미지가 없어 경로가 null이면 URL 슬롯도 null이다")
+    void yieldsNullUrlWhenProductHasNoImage() {
+        assertThat(urlSlotOf(null)).isNull();
     }
 
     @Test
-    @DisplayName("재조립 시 이미지 외 스냅샷 필드와 옵션이 함께 보존된다")
+    @DisplayName("옵션을 붙일 때 이미지 URL과 스냅샷 필드가 함께 보존된다")
     void preservesSnapshotFieldsAndAttachesOptions() {
-        OrderProductResult projected = projectedWithImage(STORED_PATH);
+        String displayUrl = BASE_URL + "/image.png?alt=media";
+        OrderProductResult projected = projectedWithImage(displayUrl);
         List<OrderProductOptionResult> options = List.of(
             new OrderProductOptionResult(1L, 10L, "맵기", "아주 맵게", 500, "NORMAL", null, 0)
         );
 
-        OrderProductResult reassembled = projected.withResolvedImageUrl(
-            fileUrlResolver.resolve(projected.imageUrl()),
-            options
-        );
+        OrderProductResult withOptions = projected.withOptions(options);
 
-        assertThat(reassembled.options()).isEqualTo(options);
-        assertThat(reassembled.name()).isEqualTo("상품");
-        assertThat(reassembled.priceName()).isEqualTo("곱빼기");
-        assertThat(reassembled.quantity()).isEqualTo(2);
-        assertThat(reassembled.originalPrice()).isEqualTo(9000);
-        assertThat(reassembled.totalPrice()).isEqualTo(18000);
+        assertThat(withOptions.options()).isEqualTo(options);
+        assertThat(withOptions.imageUrl()).isEqualTo(displayUrl);
+        assertThat(withOptions.orderProductId()).isEqualTo(1L);
+        assertThat(withOptions.name()).isEqualTo("상품");
+        assertThat(withOptions.priceName()).isEqualTo("곱빼기");
+        assertThat(withOptions.quantity()).isEqualTo(2);
+        assertThat(withOptions.originalPrice()).isEqualTo(9000);
+        assertThat(withOptions.totalPrice()).isEqualTo(18000);
+    }
+
+    private Object urlSlotOf(String storedPath) {
+        StringPath filePath = Expressions.stringPath("filePath");
+        FactoryExpression<?> urlSlot = (FactoryExpression<?>) fileUrlResolver.urlOf(filePath);
+        return urlSlot.newInstance(storedPath);
     }
 
     private OrderProductResult projectedWithImage(String imagePath) {

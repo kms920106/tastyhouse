@@ -45,10 +45,7 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedProfileImageUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
@@ -70,10 +67,7 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedProfileImageUrl)
-            .toList();
+            .fetch();
 
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
@@ -84,22 +78,12 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
-    private FollowMemberResult withResolvedProfileImageUrl(FollowMemberResult row) {
-        return new FollowMemberResult(
-            row.memberId(),
-            row.nickname(),
-            row.memberGrade(),
-            fileUrlResolver.resolve(row.profileImageUrl()),
-            row.following()
-        );
-    }
-
     private ConstructorExpression<FollowMemberResult> followMemberProjection(MemberId viewerMemberId) {
         return Projections.constructor(FollowMemberResult.class,
             memberJpaEntity.id,
             memberJpaEntity.nickname,
             memberJpaEntity.memberGrade,
-            uploadedFileJpaEntity.filePath,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             isFollowedByViewer(viewerMemberId)
         );
     }

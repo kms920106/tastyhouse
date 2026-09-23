@@ -87,7 +87,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
         JPAQuery<BestReviewListItemResult> query = queryFactory
             .select(Projections.constructor(BestReviewListItemResult.class,
                 reviewJpaEntity.id,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 stationJpaEntity.stationName,
                 shopJpaEntity.name,
                 orderProductJpaEntity.name,
@@ -119,10 +119,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
         List<BestReviewListItemResult> reviews = query
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(reviews, total, pageQuery.page(), pageQuery.size());
     }
@@ -137,7 +134,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -174,7 +171,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -191,7 +187,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -234,7 +230,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -283,7 +278,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -321,7 +316,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -370,7 +364,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -408,7 +402,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -436,7 +429,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -468,7 +461,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -496,7 +488,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.content,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 productJpaEntity.id,
                 productJpaEntity.name,
@@ -528,7 +520,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             Map<Long, List<String>> imageUrlsMap = findImageUrlsByReviewIds(reviewIds);
             reviews = reviews.stream()
                 .map(r -> r.withImageUrls(imageUrlsMap.getOrDefault(r.id(), List.of())))
-                .map(this::withResolvedImageUrl)
                 .collect(Collectors.toList());
         }
 
@@ -554,7 +545,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.willRevisit,
                 reviewJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewJpaEntity.createdAt,
                 reviewJpaEntity.ownerOnly,
                 reviewOwnerReplyJpaEntity.content,
@@ -580,7 +571,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
 
         if (result != null) {
             List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
-            result = withResolvedImageUrl(result.withImageUrls(imageUrls));
+            result = result.withImageUrls(imageUrls);
         }
 
         return Optional.ofNullable(result);
@@ -684,7 +675,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
         List<SearchReviewItemResult> content = queryFactory
             .select(Projections.constructor(SearchReviewItemResult.class,
                 reviewJpaEntity.id,
-                uploadedFileJpaEntity.filePath
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
             ))
             .from(reviewJpaEntity)
             .innerJoin(reviewImageJpaEntity).on(
@@ -703,10 +694,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .orderBy(reviewJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
@@ -773,7 +761,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewCommentJpaEntity.reviewId,
                 reviewCommentJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewCommentJpaEntity.content,
                 reviewCommentJpaEntity.createdAt
             ))
@@ -783,10 +771,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
             .where(reviewCommentJpaEntity.reviewId.eq(reviewId.value()))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -803,7 +788,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewReplyJpaEntity.commentId,
                 reviewReplyJpaEntity.memberId,
                 memberJpaEntity.nickname,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 reviewReplyJpaEntity.replyToMemberId,
                 replyToMember.nickname,
                 reviewReplyJpaEntity.content,
@@ -820,10 +805,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewReplyJpaEntity.hidden.eq(false)
             )
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
     }
 
     @Override
@@ -947,101 +929,6 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             ));
 
         return fileUrlResolver.resolveAll(filePathByReviewId);
-    }
-
-    private SearchReviewItemResult withResolvedImageUrl(SearchReviewItemResult row) {
-        return new SearchReviewItemResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl())
-        );
-    }
-
-    private BestReviewListItemResult withResolvedImageUrl(BestReviewListItemResult row) {
-        return new BestReviewListItemResult(
-            row.id(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.stationName(),
-            row.shopName(),
-            row.productName(),
-            row.totalRating(),
-            row.content()
-        );
-    }
-
-    private LatestReviewListItemResult withResolvedImageUrl(LatestReviewListItemResult row) {
-        return new LatestReviewListItemResult(
-            row.id(),
-            row.imageUrls(),
-            row.stationName(),
-            row.totalRating(),
-            row.content(),
-            row.memberId(),
-            row.memberNickname(),
-            fileUrlResolver.resolve(row.memberProfileImageUrl()),
-            row.createdAt(),
-            row.productId(),
-            row.productName(),
-            row.likeCount(),
-            row.commentCount(),
-            row.ownerReplyContent(),
-            row.ownerReplyCreatedAt()
-        );
-    }
-
-    private ReviewDetailResult withResolvedImageUrl(ReviewDetailResult row) {
-        return new ReviewDetailResult(
-            row.id(),
-            row.shopId(),
-            row.shopName(),
-            row.stationName(),
-            row.content(),
-            row.totalRating(),
-            row.tasteRating(),
-            row.amountRating(),
-            row.priceRating(),
-            row.atmosphereRating(),
-            row.kindnessRating(),
-            row.hygieneRating(),
-            row.willRevisit(),
-            row.memberId(),
-            row.memberNickname(),
-            fileUrlResolver.resolve(row.memberProfileImageUrl()),
-            row.createdAt(),
-            row.ownerOnly(),
-            row.imageUrls(),
-            row.tagNames(),
-            row.ownerReplyContent(),
-            row.ownerReplyCreatedAt(),
-            row.orderMethod(),
-            row.deliveryRating(),
-            row.deliveryComment()
-        );
-    }
-
-    private ReviewCommentItemResult withResolvedImageUrl(ReviewCommentItemResult row) {
-        return new ReviewCommentItemResult(
-            row.id(),
-            row.reviewId(),
-            row.memberId(),
-            row.memberNickname(),
-            fileUrlResolver.resolve(row.memberProfileImageUrl()),
-            row.content(),
-            row.createdAt()
-        );
-    }
-
-    private ReviewReplyItemResult withResolvedImageUrl(ReviewReplyItemResult row) {
-        return new ReviewReplyItemResult(
-            row.id(),
-            row.commentId(),
-            row.memberId(),
-            row.memberNickname(),
-            fileUrlResolver.resolve(row.memberProfileImageUrl()),
-            row.replyToMemberId(),
-            row.replyToMemberNickname(),
-            row.content(),
-            row.createdAt()
-        );
     }
 
     private NumberPath<Long> shopStationId() {
