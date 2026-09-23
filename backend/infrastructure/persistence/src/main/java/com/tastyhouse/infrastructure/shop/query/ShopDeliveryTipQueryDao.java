@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringExpression;
@@ -125,11 +124,11 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
         Map<Long, Integer> minTierTips = new HashMap<>();
         Map<Long, Integer> maxTierTips = new HashMap<>();
         collectAmounts(queryFactory
-            .select(
+            .select(Projections.constructor(ShopTipAggregateRow.class,
                 shopDeliveryTipTierJpaEntity.shopId,
                 shopDeliveryTipTierJpaEntity.tipAmount.min(),
                 shopDeliveryTipTierJpaEntity.tipAmount.max()
-            )
+            ))
             .from(shopDeliveryTipTierJpaEntity)
             .where(shopDeliveryTipTierJpaEntity.shopId.in(shopIds))
             .groupBy(shopDeliveryTipTierJpaEntity.shopId)
@@ -138,11 +137,11 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
         Map<Long, Integer> unusedMinRegionTips = new HashMap<>();
         Map<Long, Integer> maxRegionTips = new HashMap<>();
         collectAmounts(queryFactory
-            .select(
+            .select(Projections.constructor(ShopTipAggregateRow.class,
                 shopDeliveryTipRegionJpaEntity.shopId,
                 shopDeliveryTipRegionJpaEntity.tipAmount.min(),
                 shopDeliveryTipRegionJpaEntity.tipAmount.max()
-            )
+            ))
             .from(shopDeliveryTipRegionJpaEntity)
             .where(shopDeliveryTipRegionJpaEntity.shopId.in(shopIds))
             .groupBy(shopDeliveryTipRegionJpaEntity.shopId)
@@ -150,11 +149,11 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
 
         Map<Long, Integer> maxScheduleTips = new HashMap<>();
         collectAmounts(queryFactory
-            .select(
+            .select(Projections.constructor(ShopTipAggregateRow.class,
                 shopDeliveryTipScheduleJpaEntity.shopId,
                 shopDeliveryTipScheduleJpaEntity.tipAmount.max(),
                 shopDeliveryTipScheduleJpaEntity.tipAmount.max()
-            )
+            ))
             .from(shopDeliveryTipScheduleJpaEntity)
             .where(shopDeliveryTipScheduleJpaEntity.shopId.in(shopIds))
             .groupBy(shopDeliveryTipScheduleJpaEntity.shopId)
@@ -162,11 +161,11 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
 
         Map<Long, Integer> holidayTips = new HashMap<>();
         collectAmounts(queryFactory
-            .select(
+            .select(Projections.constructor(ShopTipAggregateRow.class,
                 shopDeliveryTipHolidayJpaEntity.shopId,
                 shopDeliveryTipHolidayJpaEntity.tipAmount.max(),
                 shopDeliveryTipHolidayJpaEntity.tipAmount.max()
-            )
+            ))
             .from(shopDeliveryTipHolidayJpaEntity)
             .where(shopDeliveryTipHolidayJpaEntity.shopId.in(shopIds))
             .groupBy(shopDeliveryTipHolidayJpaEntity.shopId)
@@ -240,11 +239,15 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
             ));
     }
 
-    private void collectAmounts(List<Tuple> rows, Map<Long, Integer> minAmounts, Map<Long, Integer> maxAmounts) {
-        for (Tuple row : rows) {
-            Long shopId = Objects.requireNonNull(row.get(0, Long.class));
-            Integer minAmount = row.get(1, Integer.class);
-            Integer maxAmount = row.get(2, Integer.class);
+    private void collectAmounts(
+        List<ShopTipAggregateRow> rows,
+        Map<Long, Integer> minAmounts,
+        Map<Long, Integer> maxAmounts
+    ) {
+        for (ShopTipAggregateRow row : rows) {
+            Long shopId = Objects.requireNonNull(row.shopId());
+            Integer minAmount = row.minAmount();
+            Integer maxAmount = row.maxAmount();
             minAmounts.put(shopId, minAmount == null ? 0 : minAmount);
             maxAmounts.put(shopId, maxAmount == null ? 0 : maxAmount);
         }

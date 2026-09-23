@@ -993,6 +993,16 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 '매장가격 픽업' 뱃지가 **픽업가 설정 익일(영업일)** 부터 노출되는데, `updated_at`은 가격명·정렬만 바뀌어도 갱신되므로 **뱃지 노출 시점이 뒤로 밀린다.**
 
+### 남긴 `Tuple`은 key→value 룩업 빌더다 — record로 바꾸지 않는다
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`의 잔존 `com.querydsl.core.Tuple` 사용처 — `ShopReviewManagementQueryDao`·`ReviewQueryDao`·`ProductFeedbackQueryDao`의 `(reviewId, filePath) → Map<Long, List<String>>` 수집, `ReviewStatisticsQueryDao#getRatingCounts`·`getMonthly*`, `ShopChoiceQueryDao`의 `select(shopId, ConstructorExpression<ProductSimpleResult>)`, `ShopDeliveryTipQueryDao#findSettings`의 `select(shopId, Projections.constructor(ShopDeliveryTipSettingResult.class, ...))`, `ProductQueryDao`의 메서드 내부 전용 `Map<Long, Tuple>` 그룹 조회
+
+위치 인덱스 접근을 투영 record로 교체한 것은 **03 덩어리의 3건뿐**이다(`ProductQueryDao#findActiveProductSummaries`·`ReviewStatisticsQueryDao#getCategoryAverages`·`ShopDeliveryTipQueryDao#findTipRanges`). 위 목록은 **의도적으로 남긴 것**이며 "Tuple 전량 제거"를 근거로 바꾸지 않는다.
+
+- **2컬럼 key→value 수집은 Tuple의 정당한 용법이다.** 표현식 인스턴스로 `tuple.get(path)`를 꺼내므로 위치 착오가 없고, record로 바꾸면 타입만 늘어난다.
+- **Tuple을 메서드 밖으로 내보내지 않는다.** 반환 타입·필드·맵 값으로 Tuple이 메서드 경계를 넘으면 타입 없는 DTO가 된다 — 그때는 이 목록 대상이 아니라 투영 record 전환 대상이다(`findActiveProductSummaries`가 그 선례).
+- **`row.get(0, Xxx.class)` 위치 인덱스 접근을 새로 쓰지 않는다.** 같은 타입 컬럼이 여러 개면 순서가 어긋나도 예외 없이 값만 뒤바뀐다. 다중 컬럼을 위치로 읽어야 한다면 `Projections.constructor`로 public 최상위 record에 투영한다.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거. 챕터 05에서 코드 주석을 제거하며 이관 -->
@@ -2348,3 +2358,25 @@ domain의 `DomainEventPublisher` 포트를 Spring `ApplicationEventPublisher`에
 - **`SearchKeywordLogJpaRepository`** — 키워드별 검색 수 집계는 타입 없는 `Object[]` 튜플을 돌려주던 네이티브 쿼리 대신 `SearchQueryDao`의 QueryDSL 투영이 담당한다.
 - **`RecommendedKeywordJpaEntity`에 도메인 모델·write 포트·매퍼를 두지 않는다** — 조회 경로가 CQRS query 측으로 이관돼 이 엔티티에서 Result DTO로 직접 투영하므로 전부 미사용이 되어 제거됐다.
 - **`PublicHolidayRepositoryImpl`·`AdminDong` 캘린더는 read-only 마스터라 저장·삭제 경로가 없다** — 캘린더는 `insert.sql` 시드가 소유한다.
+
+### 투영 중간 record `ProductSummaryRow`·`ShopTipAggregateRow` — public 최상위로 둔다
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductSummaryRow.java`(소비처 `ProductQueryDao#findActiveProductSummaries`·`findProductsBatch`), `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopTipAggregateRow.java`(소비처 `ShopDeliveryTipQueryDao#findTipRanges`·`collectAmounts`)
+
+DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중첩 record로 두지 않는다.**
+
+- **package-private 금지** — `Projections.constructor`는 `Class#getConstructors()`로 생성자를 찾는데 이 메서드는 public 생성자만 돌려준다. 같은 패키지 DAO가 투영해도 리플렉션에서 보이지 않아, 컴파일은 통과하고 **그 쿼리가 실행될 때만** `No constructor found`로 500이 난다(`ShopRiderGuidePickupPresenceResult` 장애 선례).
+- **중첩 record 금지** — `QueryResultRecordVisibilityTest`가 `$`를 포함한 클래스명을 건너뛰어 가시성 가드의 사각지대에 들어간다.
+- 선례: `PaymentProjection`·`ShopNoticeRow`·`BugReportDetailProjection`.
+- **컴포넌트 타입은 엔티티 필드와 수동 대조해 정했다** — `ProjectionConstructorMatchingTest`는 인자 **개수**와, 인자가 dotted path일 때의 이름 순서만 본다. **타입은 검사하지 않는다.** `ProductSummaryRow`는 `ProductJpaEntity`의 `id: Long`·`name: String`·`originalPrice: Integer`와 `@Embedded ProductDiscountInfo`의 `discountPrice: Integer`·`discountRate: BigDecimal`을 그대로 따른다(스펙 초안의 `Integer discountRate`는 틀렸다 — `ProductBatchResult.discountRate`도 `BigDecimal`이다). `ShopTipAggregateRow`는 4개 `ShopDeliveryTip*JpaEntity`의 `shopId: Long`과, primitive `int tipAmount`의 `min()`/`max()`가 만드는 `NumberExpression<Integer>`에 맞춰 `Integer` 두 개다.
+- `ShopDeliveryTipQueryDao`의 schedule·holiday 집계는 `min` 자리에도 `max()`를 넣는다 — 두 파트는 최댓값만 쓰고 `collectAmounts`의 min 맵을 버리는 기존 계산을 그대로 옮긴 것이다(`findTipRanges` 하한 불변).
+
+### `ReviewStatisticsQueryDao#getCategoryAverages` — 위치 인덱스 접근을 없애고 Result에 직접 투영한다
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java` → `getCategoryAverages`, 계약 `backend/application/src/main/java/com/tastyhouse/application/review/port/out/ShopReviewCategoryAverageResult.java`
+
+평균 6개를 `row.get(0, Double.class)` … `row.get(5, Double.class)`로 읽던 것을 `Projections.constructor(ShopReviewCategoryAverageResult.class, ...)`로 바꿨다. **6개가 전부 `Double`이라 순서가 어긋나도 예외 없이 맛 평점이 위생 평점 자리로 들어가기** 때문이다.
+
+- **`avg()` 인자 순서는 Result 컴포넌트 선언 순서(taste → amount → price → atmosphere → kindness → hygiene)를 그대로 따른다.** 컴포넌트를 재배열하거나 추가하면 select 절도 같은 자리에서 함께 고친다 — 가드의 `detectReordering`은 `.avg()` 같은 호출식의 이름을 읽지 못해 이 교차를 잡지 못한다.
+- 집계 쿼리는 행이 없어도 `avg()`가 NULL 한 행을 돌려주므로 `fetchOne()`이 `null`인 경우는 드물지만, 기존 폴백(`new ShopReviewCategoryAverageResult(null × 6)`)을 그대로 유지한다.
+- 이 전환으로 메서드가 `ProjectionConstructorMatchingTest`의 스캔 대상 안으로 들어왔다(인자 개수 6 ↔ 생성자 6).

@@ -444,7 +444,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .distinct()
             .toList();
 
-        Map<Long, Tuple> productById = findActiveProductSummaries(productIds);
+        Map<Long, ProductSummaryRow> productById = findActiveProductSummaries(productIds);
         Map<Long, String> imagePathByProductId = findRepresentativeImagePaths(productIds);
         Map<Long, BatchOptionInfo> optionById = findBatchOptions(optionIds);
         Map<Long, Set<Long>> linkedProductIdsByGroupKey =
@@ -490,44 +490,44 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
         return optionsByProductId.entrySet().stream()
             .map(entry -> {
-                Tuple product = productById.get(entry.getKey());
+                ProductSummaryRow product = productById.get(entry.getKey());
                 if (product == null) {
                     return new ProductBatchResult(entry.getKey(), false, null, null, null, null, null, List.of());
                 }
                 return new ProductBatchResult(
-                    product.get(productJpaEntity.id),
+                    product.id(),
                     true,
-                    product.get(productJpaEntity.name),
+                    product.name(),
                     fileUrlResolver.resolve(imagePathByProductId.get(entry.getKey())),
-                    product.get(productJpaEntity.originalPrice),
-                    product.get(productJpaEntity.discountInfo.discountPrice),
-                    product.get(productJpaEntity.discountInfo.discountRate),
+                    product.originalPrice(),
+                    product.discountPrice(),
+                    product.discountRate(),
                     entry.getValue()
                 );
             })
             .toList();
     }
 
-    private Map<Long, Tuple> findActiveProductSummaries(List<Long> productIds) {
+    private Map<Long, ProductSummaryRow> findActiveProductSummaries(List<Long> productIds) {
         if (productIds.isEmpty()) {
             return Map.of();
         }
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductSummaryRow.class,
                 productJpaEntity.id,
                 productJpaEntity.name,
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
                 productJpaEntity.discountInfo.discountRate
-            )
+            ))
             .from(productJpaEntity)
             .where(productJpaEntity.id.in(productIds), productJpaEntity.visible.eq(true), notDeleted())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(productJpaEntity.id) != null)
+            .filter(row -> row.id() != null)
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(productJpaEntity.id)),
-                tuple -> tuple,
+                ProductSummaryRow::id,
+                row -> row,
                 (existing, ignored) -> existing
             ));
     }

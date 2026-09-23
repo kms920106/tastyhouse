@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -186,15 +187,15 @@ public class ReviewStatisticsQueryDao implements ReviewStatisticsQueryPort, Shop
 
     @Override
     public ShopReviewCategoryAverageResult getCategoryAverages(Long shopId, LocalDateTime from, LocalDateTime to) {
-        Tuple row = queryFactory
-            .select(
+        ShopReviewCategoryAverageResult result = queryFactory
+            .select(Projections.constructor(ShopReviewCategoryAverageResult.class,
                 reviewJpaEntity.tasteRating.avg(),
                 reviewJpaEntity.amountRating.avg(),
                 reviewJpaEntity.priceRating.avg(),
                 reviewJpaEntity.atmosphereRating.avg(),
                 reviewJpaEntity.kindnessRating.avg(),
                 reviewJpaEntity.hygieneRating.avg()
-            )
+            ))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
@@ -204,17 +205,9 @@ public class ReviewStatisticsQueryDao implements ReviewStatisticsQueryPort, Shop
             )
             .fetchOne();
 
-        if (row == null) {
-            return new ShopReviewCategoryAverageResult(null, null, null, null, null, null);
-        }
-        return new ShopReviewCategoryAverageResult(
-            row.get(0, Double.class),
-            row.get(1, Double.class),
-            row.get(2, Double.class),
-            row.get(3, Double.class),
-            row.get(4, Double.class),
-            row.get(5, Double.class)
-        );
+        return result != null
+            ? result
+            : new ShopReviewCategoryAverageResult(null, null, null, null, null, null);
     }
 
     @Override
