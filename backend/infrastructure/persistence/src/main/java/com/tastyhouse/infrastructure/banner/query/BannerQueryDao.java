@@ -54,7 +54,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
             .select(Projections.constructor(BannerListItemResult.class,
                 bannerJpaEntity.id,
                 bannerJpaEntity.title,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 bannerJpaEntity.linkUrl
             ))
             .from(bannerJpaEntity)
@@ -69,10 +69,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
             .orderBy(bannerJpaEntity.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(banners, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
@@ -97,7 +94,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
                 bannerJpaEntity.title,
                 uploadedFileJpaEntity.id,
                 uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 bannerJpaEntity.linkUrl,
                 bannerJpaEntity.startDate,
                 bannerJpaEntity.endDate,
@@ -115,10 +112,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
             .orderBy(bannerJpaEntity.sort.asc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
-            .fetch()
-            .stream()
-            .map(this::withResolvedImageUrl)
-            .toList();
+            .fetch();
 
         return PageResult.of(banners, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
@@ -136,7 +130,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
                 bannerJpaEntity.title,
                 uploadedFileJpaEntity.id,
                 uploadedFileJpaEntity.originalFilename,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 bannerJpaEntity.linkUrl,
                 bannerJpaEntity.startDate,
                 bannerJpaEntity.endDate,
@@ -150,50 +144,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
             .where(bannerJpaEntity.id.eq(id), bannerJpaEntity.deleted.isFalse())
             .fetchOne();
 
-        return Optional.ofNullable(detail).map(this::withResolvedImageUrl);
-    }
-
-    private BannerListItemResult withResolvedImageUrl(BannerListItemResult row) {
-        return new BannerListItemResult(
-            row.id(),
-            row.title(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.linkUrl()
-        );
-    }
-
-    private BannerManagementListItemResult withResolvedImageUrl(BannerManagementListItemResult row) {
-        return new BannerManagementListItemResult(
-            row.id(),
-            row.type(),
-            row.title(),
-            row.imageFileId(),
-            row.imageFileName(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.linkUrl(),
-            row.startDate(),
-            row.endDate(),
-            row.sort(),
-            row.visible()
-        );
-    }
-
-    private BannerDetailResult withResolvedImageUrl(BannerDetailResult row) {
-        return new BannerDetailResult(
-            row.id(),
-            row.type(),
-            row.title(),
-            row.imageFileId(),
-            row.imageFileName(),
-            fileUrlResolver.resolve(row.imageUrl()),
-            row.linkUrl(),
-            row.startDate(),
-            row.endDate(),
-            row.sort(),
-            row.visible(),
-            row.createdAt(),
-            row.updatedAt()
-        );
+        return Optional.ofNullable(detail);
     }
 
     private BooleanExpression typeEq(BannerType type) {

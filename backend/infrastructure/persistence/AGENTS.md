@@ -358,17 +358,19 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `Projections.constructor`는 **리플렉션으로 생성자를 찾으므로 정적 호출부가 0개**다. IDE·정적분석이 "사용되지 않는 생성자"로 표시하지만 삭제하면 조회 시점에 `No constructor found`로 터진다.
 
-### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 54개, 줄어들기만 한다
+`backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/file/query/FileUrlProjection.java` → `map(Tuple)`도 같은 처지다. QueryDSL이 `MappingProjection#newInstance`를 거쳐 호출하므로 **정적 호출부가 0개**지만, 지우거나 비우면 `urlOf(...)`로 감싼 모든 URL 슬롯이 망가진다.
+
+### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 51개, 줄어들기만 한다
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java`
 → 상수 `SEALED_REASSEMBLY_HELPERS`, 패턴 `REASSEMBLY_HELPER`(`private \S+ withResolved\w*\(`), 메서드 `reassemblyHelpersShouldNotGrow`
 
 fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withResolved*` 헬퍼는 **전 컴포넌트를 위치 기반으로 재나열**하므로, 인접한 같은 타입 슬롯(썸네일 URL ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 써도 컴파일되고 값만 조용히 뒤바뀐다. 어떤 가드도 이 `new` 호출을 검사하지 않는다 — `detectReordering`이 보는 것은 `Projections.constructor` 인자뿐이다. 그래서 개수를 봉인해 **새 헬퍼가 생기는 것 자체를 막는다.** 새 URL 변환은 `fileUrlResolver.urlOf(...)`로 투영식 안에서 한다.
 
-- **상수는 줄어들기만 한다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙).
+- **상수는 줄어들기만 한다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙). 도입 시점 54개 → `BannerQueryDao` 파일럿 전환(헬퍼 3개 제거)으로 51개.
 - **두 번째 단정(`isEqualTo`)은 봉인의 낡음을 잡는다.** 헬퍼를 걷어냈는데 상수를 내리지 않으면 실패하며, 실패 메시지가 내려야 할 값을 알려준다. 상한만 두면 봉인이 느슨해진 채 방치된다.
 - **0이 되면 봉인 장치를 제거하고 `isZero()` 순수 강제로 전환한다.** 그때 상수와 두 번째 단정을 함께 지운다.
-- **알려진 한계 — 개수만 세고 타입·순서는 검사하지 않는다.** 봉인된 54개 안에서 같은 위치의 `Long`↔`Integer`나 인접 `String` 슬롯이 교차해도 이 테스트는 통과한다. 남은 헬퍼의 순서 보장은 코드 리뷰와 조회 호출 확인이 맡는다.
+- **알려진 한계 — 개수만 세고 타입·순서는 검사하지 않는다.** 봉인된 51개 안에서 같은 위치의 `Long`↔`Integer`나 인접 `String` 슬롯이 교차해도 이 테스트는 통과한다. 남은 헬퍼의 순서 보장은 코드 리뷰와 조회 호출 확인이 맡는다.
 - 패턴이 `private` 헬퍼만 세므로, 가시성을 바꿔 헬퍼를 늘리는 우회도 가능하다. 그것은 이 봉인의 의도를 우회한 것이므로 리뷰에서 거절한다.
 
 ### `urlOf(...)`는 `*.filePath` 컬럼만 감싼다 — 래핑 대상 단정
@@ -1283,6 +1285,29 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 사장님 추천은 가게당 최대 6개·이미지 필수·최소 1개 유지 세 제약을 `ProductRepresentativeApprovalService`가 단독으로 소유한다. 세 번째 제약은 일괄 숨김(`ProductAvailabilityService`)이 이미 쓰는 `PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE`를 재사용하므로, **두 경로가 같은 하한을 공유한다.**
 
+### `FileUrlProjection` · `FileUrlResolver#urlOf` — 경로→URL 변환을 투영식 안으로
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/file/query/FileUrlProjection.java` → 클래스 전체
+· `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/file/query/FileUrlResolver.java` → `urlOf(Expression<String>)`
+
+```java
+.select(Projections.constructor(BannerListItemResult.class,
+    bannerJpaEntity.id, bannerJpaEntity.title,
+    fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+    bannerJpaEntity.linkUrl))
+.fetch();
+```
+
+- **왜 post-fetch 재조립 대신 `MappingProjection` 래퍼인가.** `Projections.constructor`는 record canonical 생성자를 직접 호출하므로, 변환을 넣으려면 fetch 후 `new XxxResult(...)`로 **전 컴포넌트를 위치 기반으로 재나열**해야 했다. 인접한 같은 타입 슬롯(active ↔ inactive 아이콘)을 바꿔 써도 컴파일·가드를 모두 통과해 값만 조용히 뒤바뀐다. 변환을 **해당 슬롯의 인자 자리**에 두면 재나열 자체가 사라지고, 슬롯 순서는 `ProjectionConstructorMatchingTest`가 보는 `Projections.constructor` 인자 목록 한 벌로 수렴한다.
+- **중첩 `FactoryExpression`은 바깥 생성자의 arity·리플렉션 탐색을 바꾸지 않는다**(QueryDSL 6.11 `FactoryExpressionUtils` 소스 확인). `wrap()`이 중첩 factory를 `FactoryExpressionAdapter`로 감싸고, `expand()`가 인자를 select 목록으로 평탄화하며, `compress()`가 `rv[i] = fe.newInstance(compressed)`로 **래퍼의 반환값을 바깥 생성자의 i번 슬롯에 넣는다.** 바깥에서 보면 `urlOf(...)`는 `String` 인자 1개다. 그래서 `ProjectionConstructorMatchingTest#readArguments`가 `depth == 1`의 콤마만 세도 arity 검사가 그대로 유효하다.
+- **`MappingProjection`은 QueryDSL 공식 API다.** `FactoryExpressionBase` 상속으로 equals/hashCode를, `MappingProjection` 자체 구현으로 `accept(visitor)`·`newInstance`를 제공받으므로 `FactoryExpression`을 직접 구현하지 않는다.
+- **`FileUrlProjection`은 package-private이어도 된다 — Result record가 `public`이어야 하는 규칙과는 층위가 다르다.** QueryDSL은 이 클래스를 리플렉션으로 생성하지 않는다. DAO가 `urlOf`로 **직접 인스턴스를 만들어** 넘기고, QueryDSL은 받은 인스턴스의 `newInstance`만 호출한다. 반면 `Projections.constructor`의 대상 record는 QueryDSL이 `getConstructors()`로 **public 생성자를 찾아** 호출하므로 public이어야 한다(`QueryResultRecordVisibilityTest`). `FileUrlProjection`은 record가 아니라 class라 그 테스트의 대상도 아니다. 외부에 노출할 이유가 없으므로 진입점은 `FileUrlResolver#urlOf` 하나로 둔다.
+- **`urlOf`를 다인자로 확장하지 않는다.** `MappingProjection` 생성자는 `ExpressionUtils.distinctList(args)`로 인자를 `LinkedHashSet`에 합친다. 같은 인자(같은 alias의 같은 컬럼)를 두 번 넘기면 `Expression.equals` 기준으로 같아 **예외 없이 1개로 줄어들고**, `map`이 기대한 위치와 다른 값을 읽는다. 1-인자면 합쳐질 대상이 없어 안전하다. URL 슬롯이 둘인 투영(아이콘 active/inactive, 썸네일/배너)은 **`urlOf`를 슬롯마다 한 번씩 호출**한다. 서로 다른 alias(`activeFile`·`inactiveFile`)는 별개 `QUploadedFileJpaEntity` 인스턴스라 `equals` 기준으로 다르므로 각각 감싸도 충돌하지 않는다. `map`이 인덱스가 아니라 `row.get(filePath)`로 읽는 것도 같은 이유다.
+- **`resolver` 필드의 `transient`.** `MappingProjection`이 `Serializable`(`Expression<T> extends Serializable`)이라, 직렬화 대상이 아닌 Spring 빈(`FileUrlResolver`)을 필드로 들면 정적 분석이 비직렬화 필드 경고를 낸다. 투영식은 쿼리 1회 동안만 사는 객체이고 직렬화될 일이 없으므로, 빈 참조를 직렬화 그래프에서 빼 의도를 명시한다.
+- **`null` 경로는 `null` URL이다.** `leftJoin`에서 파일이 없으면 `row.get(filePath)`가 `null`이고 `FileUrlResolver#resolve`가 `null`을 그대로 돌려준다 — 예외가 아니다(`BannerQueryDao#findAllBanners`·`#findDetailById`의 이미지 없는 배너).
+- **`urlOf`는 `*.filePath`만 감싸고, `Projections.constructor`의 최상위 인자로 둔다.** 그 이유와 가드는 [`urlOf(...)`는 `*.filePath` 컬럼만 감싼다](#urlof는-filepath-컬럼만-감싼다--래핑-대상-단정) 절에 있다.
+- **`resolve`·`resolveAll` 2종은 유지한다.** 별도 쿼리로 얻은 Map/Collection을 배치 변환하는 경로(이미지 목록·태그 보강 등)는 컬럼 표현식이 아니므로 post-fetch가 정상이다.
+
 ### 전 `*QueryDao` 공통 — 반복되던 클래스 Javadoc
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/*/query/*QueryDao.java`
@@ -1293,7 +1318,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 - 소비 모듈의 `*QueryService`가 주입해 쓰며, **그 덕분에 api 모듈은 QueryDSL을 알지 않는다.**
 - 도메인당 DAO 1개 원칙에 따라 소비자별 메서드를 한 클래스에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다.
 - 소비자별로 필요한 필드 셋이 달라 Result를 통합하지 않는다.
-- 조인으로 얻은 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다 — `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 끼울 수 없어 **fetch 직후 재조립한다**(`withResolvedXxx` 패턴).
+- 조인으로 얻은 저장 경로는 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. **새 코드는 `fileUrlResolver.urlOf(경로컬럼)`을 투영식 인자로 넣는다**(아래 [`FileUrlProjection`·`FileUrlResolver#urlOf`](#fileurlprojection--fileurlresolverurlof--경로url-변환을-투영식-안으로) 절). fetch 직후 재조립하는 `withResolvedXxx` 패턴은 **전환 중인 잔존분**이다 — `BannerQueryDao`가 파일럿으로 전환을 마쳤고, 나머지 DAO는 02 덩어리 롤아웃에서 걷어낸다. 봉인(`SEALED_REASSEMBLY_HELPERS`)이 새 헬퍼를 막는다.
 
 **개별 DAO 문서에 이 문장들을 다시 쓰지 않는다.** 새 DAO를 만들 때도 마찬가지다 — 규칙 절이 이미 말하는 것을 클래스 Javadoc이 복창하던 것이 이 모듈 주석 7,244줄의 큰 몫이었다.
 

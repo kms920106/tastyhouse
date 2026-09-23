@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.querydsl.core.types.Expression;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.file.port.FileStoragePort;
@@ -23,6 +24,10 @@ public class FileUrlResolver {
             return null;
         }
         return fileStoragePort.getFileUrl(filePath);
+    }
+
+    public Expression<String> urlOf(Expression<String> filePath) {
+        return new FileUrlProjection(filePath, this);
     }
 
     public Map<Long, String> resolveAll(Map<Long, String> filePathById) {
