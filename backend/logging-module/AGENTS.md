@@ -1,6 +1,6 @@
 # logging-module
 
-`web-api`/`admin-api`/`ceo-api`/`batch-module` 네 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `infrastructure:{external,firebase,aws,oauth,payment,messaging,crawling}`이 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure:persistence`가 persistence·조회 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 domain/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
+`web-api`/`admin-api`/`ceo-api`/`batch-module` 네 실행 모듈이 공통으로 쓰는 **횡단 관심사(cross-cutting concern) 제공 모듈**. API 요청/응답 메타 로깅, 컨트롤러 진입 시 인증 사용자·요청 바디 로깅, 로그 출력 전 민감 필드 마스킹을 담당한다. `infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,crawling}`이 OAuth/결제/파일 등 외부 연동 어댑터를, `infrastructure:persistence`가 persistence·조회 어댑터를 캡슐화하는 것과 같은 원리로, 로깅 관련 구현체를 domain/presentation 밖으로 분리해 각 실행 모듈이 로깅 코드를 중복 작성하지 않도록 한다.
 
 ## 패키지 구조
 

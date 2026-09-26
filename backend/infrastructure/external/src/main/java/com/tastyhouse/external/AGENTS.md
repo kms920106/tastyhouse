@@ -2,10 +2,10 @@
 
 # external (코어 어댑터 패키지)
 
-`infrastructure:external` 코어 모듈의 자바 패키지 루트. **이 디렉터리에는 `config/`·`exception/` 둘만 남는다.** 7모듈 분리(챕터 01) 직후에는 `file/`까지 셋이었으나 파일 저장 SPI 삭제로 사라졌다(모듈 문서의 "과거 판단의 번복 — 파일 저장 SPI 삭제" 절). 모듈 차원의 배경·분리 근거는 `../../../../../AGENTS.md`(= `infrastructure/external/AGENTS.md`) 참조.
+`infrastructure:external` 코어 모듈의 자바 패키지 루트. **이 디렉터리에는 `config/`·`exception/` 둘만 남는다.** 7모듈 분리(챕터 01) 직후에는 `file/`까지 셋이었으나 파일 저장 SPI 삭제로 사라졌다(모듈 문서의 "과거 판단의 번복 — 파일 저장 SPI 삭제" 절). 모듈 차원의 배경·분리 근거는 `../../../../../../AGENTS.md`(= `infrastructure/external/AGENTS.md`) 참조.
 
 ## Purpose
-외부 연동 모듈들이 공통으로 쓰는 `WebClient` 빌더와 외부 연동 예외 계약을 소유하는 순수 HTTP 코어다. 도메인 포트 `FileStoragePort`는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws`의 `S3FileStorage`)이 직접 구현한다.
+외부 연동 모듈들이 공통으로 쓰는 `WebClient` 빌더와 외부 연동 예외 계약을 소유하는 순수 HTTP 코어다. 도메인 포트 `FileStoragePort`는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws-s3`의 `S3FileStorage`)이 직접 구현한다.
 
 ## Packages
 | Package | Purpose |
@@ -21,9 +21,10 @@
 | `oauth/{kakao,naver,apple,facebook}` | → `infrastructure:oauth` (패키지 불변) |
 | `payment/toss` | → `infrastructure:payment` (패키지 불변) |
 | `mail/`, `mail/javamail`, `sms/`, `sms/solapi` | → `infrastructure:messaging` (패키지 불변) |
-| `mail/ses`, `sms/sns` | → `infrastructure:aws` (`external.aws.ses` · `external.aws.sns`로 **변경**) |
+| `mail/ses` | → `infrastructure:aws-ses` (`external.aws.ses`로 **변경**) |
+| `sms/sns` | → `infrastructure:aws-sns` (`external.aws.sns`로 **변경**) |
 | `file/firebase` | → `infrastructure:firebase` (`external.firebase`로 **변경**) |
-| `file/s3` | → `infrastructure:aws` (`external.aws.s3`로 **변경**) |
+| `file/s3` | → `infrastructure:aws-s3` (`external.aws.s3`로 **변경**) |
 | `crawling/bbq`, `region/` | → `infrastructure:crawling` (패키지 불변) |
 | `file/RemoteImageDownloader` | → `infrastructure:crawling` (`external.crawling`으로 **변경**) |
 | `file/ByteArrayMultipartFile` | **삭제** — 당시 전략 인터페이스 `FileStorageStrategy`가 `byte[]`를 받게 되어 래퍼가 불필요해졌다 |
@@ -60,7 +61,7 @@
 
 **대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/` (디렉터리 자체)
 
-`infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하므로, 이 패키지를 그 아래로 옮기면 **의존하지 않은 어댑터까지 스캔 대상이 되어 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 이름(`infrastructure:external`)과 패키지 이름(`com.tastyhouse.external`)이 어긋나 보이는 것은 의도된 것이며, 외부 연동 7모듈 전부에 동일하게 적용된다. 모듈 차원의 서술은 `../../../../../AGENTS.md`.
+`infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하므로, 이 패키지를 그 아래로 옮기면 **의존하지 않은 어댑터까지 스캔 대상이 되어 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 이름(`infrastructure:external`)과 패키지 이름(`com.tastyhouse.external`)이 어긋나 보이는 것은 의도된 것이며, 외부 연동 9모듈 전부에 동일하게 적용된다. 모듈 차원의 서술은 `../../../../../../AGENTS.md`.
 
 ## 코드 주석에서 이관된 설계 근거
 

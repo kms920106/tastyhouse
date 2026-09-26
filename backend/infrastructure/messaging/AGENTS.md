@@ -2,7 +2,7 @@
 
 # infrastructure:messaging
 
-메일·SMS **발송 채널**을 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01) 산물이며, 기본 구현은 메일 = JavaMail(SMTP), SMS = Solapi다. **AWS 구현(SES·SNS)은 이 모듈이 아니라 `infrastructure:aws`에 있다**(벤더 단위로 모아 스캔을 격리하기 위함 — `../aws/AGENTS.md`).
+메일·SMS **발송 채널**을 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01) 산물이며, 기본 구현은 메일 = JavaMail(SMTP), SMS = Solapi다. **AWS 구현(SES·SNS)은 이 모듈이 아니라 각각 `infrastructure:aws-ses`·`infrastructure:aws-sns`에 있다**(벤더 단위로 모아 스캔을 격리하기 위함 — `../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`).
 
 ## 무엇을 소유하는가
 
@@ -58,13 +58,13 @@ com.tastyhouse.external/
 - `@ComponentScan({"com.tastyhouse.external.mail", "com.tastyhouse.external.sms", "com.tastyhouse.external.messaging"})` — 채널 어댑터 두 패키지와 이관된 DomainConfig 패키지
 - `@EnableConfigurationProperties({MailProperties.class, SmsProperties.class, SolapiProperties.class})`
 
-**provider 조건은 구현 클래스에 붙어 있고 진입 설정에는 없다.** `JavaMailAdapter`·`SolapiSmsClient` 둘 다 `matchIfMissing = true`라 provider 값이 없어도 기본 구현으로 등록된다. AWS로 전환하려면 `../aws/AGENTS.md`의 절차를 따른다(`mail.provider=ses` / `sms.provider=sns`).
+**provider 조건은 구현 클래스에 붙어 있고 진입 설정에는 없다.** `JavaMailAdapter`·`SolapiSmsClient` 둘 다 `matchIfMissing = true`라 provider 값이 없어도 기본 구현으로 등록된다. AWS로 전환하려면 `../aws-ses/AGENTS.md`(`mail.provider=ses`)·`../aws-sns/AGENTS.md`(`sms.provider=sns`)의 절차를 각각 따른다.
 
 ## yml — `application-messaging.yml`
 
 **web-api만** `spring.config.import`로 로딩한다. `mail.provider`·`mail.sender-address`, `sms.provider`·`sms.sender-number`·`sms.solapi.*`(api-key·api-secret·base-url·send-many-path), 그리고 SMTP 접속 정보 `spring.mail.*`(호스트·포트·계정·starttls)을 담는다. 자격증명은 전부 `.env` 환경변수 참조(`${GMAIL_APP_PASSWORD}`·`${SOLAPI_API_SECRET}` 등)다.
 
-분리 시 주석 처리된 채 남아 있던 `spring.cloud.aws` 블록은 삭제했다 — AWS 설정은 `infrastructure:aws`의 `application-aws.yml`이 소유한다.
+분리 시 주석 처리된 채 남아 있던 `spring.cloud.aws` 블록은 삭제했다 — AWS 설정은 `infrastructure:aws-ses`의 `application-aws-ses.yml`·`infrastructure:aws-sns`의 `application-aws-sns.yml`이 각각 소유한다.
 
 ## Dependencies
 
@@ -76,7 +76,7 @@ com.tastyhouse.external/
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이며, 의존하는 앱은 web-api뿐이다**(분리 전에는 4개 앱 전부가 받았다)
 - `spring-boot-starter-webflux` — Solapi HTTP 호출
 
-**`infrastructure:aws`가 이 모듈을 의존한다** — `SesMailSender`가 `MailProperties`의 발신자 주소를 읽기 때문이다. 방향은 벤더 → 채널이며 그 반대가 아니다.
+**`infrastructure:aws-ses`가 이 모듈을 의존한다**(`infrastructure:aws-sns`는 의존하지 않는다) — `SesMailSender`가 `MailProperties`의 발신자 주소를 읽기 때문이다. 방향은 벤더 → 채널이며 그 반대가 아니다.
 
 ## 주의
 
@@ -129,4 +129,4 @@ Spring Boot 자동설정의 `org.springframework.boot.autoconfigure.mail.MailPro
 
 **대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/messaging/MessagingModuleAutoConfiguration.java`
 
-메일·SMS 인증은 사용자 앱에서만 쓰므로 web-api만 이 모듈을 의존하며, **클래스패스 존재만으로 활성화된다.** 분리 전에는 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`·`SmsSender` 빈을 무조건 요구해 admin/ceo/batch도 발송 어댑터를 강제로 들여와야 했고, 두 설정을 이 모듈로 이관해 그 결합을 끊었다. AWS SES·SNS 구현은 이 모듈이 아니라 `infrastructure:aws`에 있다(`../aws/AGENTS.md`).
+메일·SMS 인증은 사용자 앱에서만 쓰므로 web-api만 이 모듈을 의존하며, **클래스패스 존재만으로 활성화된다.** 분리 전에는 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`·`SmsSender` 빈을 무조건 요구해 admin/ceo/batch도 발송 어댑터를 강제로 들여와야 했고, 두 설정을 이 모듈로 이관해 그 결합을 끊었다. AWS SES·SNS 구현은 이 모듈이 아니라 각각 `infrastructure:aws-ses`·`infrastructure:aws-sns`에 있다(`../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`).

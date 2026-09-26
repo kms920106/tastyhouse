@@ -36,12 +36,13 @@ backend/infrastructure/file-storage/
 
 **앱을 건드리지 않는다.** 이 모듈의 두 파일만 바꾼다.
 
-1. `build.gradle`: `runtimeOnly project(':infrastructure:firebase')` → `runtimeOnly project(':infrastructure:aws')`
-2. `application-file-storage.yml`: import를 `classpath:application-aws.yml`로, `file.provider: s3`로
+1. `build.gradle`: `runtimeOnly project(':infrastructure:firebase')` → `runtimeOnly project(':infrastructure:aws-s3')`
+2. `application-file-storage.yml`: import를 `classpath:application-aws-s3.yml`로, `file.provider: s3`로
+3. `.env`에 `S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY` 추가
 
-**⚠️ 미검증 단서**: `infrastructure:aws`는 `implementation`으로 external·messaging을 갖는다. 전환하면 admin·ceo 런타임에 두 모듈이 전이로 실린다. 그러면 "admin·ceo에 external·webflux가 없다"는 서술은 firebase 선택일 때만 참이 된다. messaging의 `MailDomainConfig`·`SmsDomainConfig`가 발송 포트 빈을 요구해 admin·ceo 기동이 실패할 수도 있다. 전환 전에 admin·ceo를 실제로 기동해 확인한다.
+**해소됨(2026-09-26)**: 과거 `infrastructure:aws`가 external·messaging을 implementation으로 가져 전환 시 admin·ceo에 전이로 실릴 위험이 실측으로 확인됐고, `aws-s3` 분리로 해소했다 — `aws-s3`의 의존은 domain과 spring-cloud-aws-starter-s3뿐이다.
 
-메일(SES)·SMS(SNS)는 web 전용 채널이라 이 스타터를 거치지 않는다 — 기존 절차(`../aws/AGENTS.md`)를 그대로 따른다.
+메일(SES)·SMS(SNS)는 web 전용 채널이라 이 스타터를 거치지 않는다 — 기존 절차(`../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`)를 그대로 따른다.
 
 ## ⚠️ 이 모듈에 코드를 넣지 않는다
 
@@ -50,7 +51,7 @@ backend/infrastructure/file-storage/
 파일 저장 관련 코드가 필요해지면 소속은 둘 중 하나다.
 
 - 벤더 무관 계약 → 도메인 포트 `FileStoragePort`(`domain`)가 이미 맡는다. 그 포트와 동형인 전략 인터페이스를 새로 만들지 않는다
-- 벤더 구현 → `infrastructure:firebase` / `infrastructure:aws` (포트를 직접 구현)
+- 벤더 구현 → `infrastructure:firebase` / `infrastructure:aws-s3` (포트를 직접 구현)
 
 ## 주의
 

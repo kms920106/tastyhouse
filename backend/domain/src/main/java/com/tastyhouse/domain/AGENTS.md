@@ -70,8 +70,8 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · domain/service (POJO 불변식·정책)  ←DIP─  · <ctx>/query (read: QueryDao + Result)
    · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
-   shared (kernel), exception            infrastructure:{external,firebase,aws,
-                                          oauth,payment,messaging,crawling}
+   shared (kernel), exception            infrastructure:{external,firebase,aws-s3,
+                                          aws-ses,aws-sns,oauth,payment,messaging,crawling}
                                           (외부 연동 port 구현)
 ```
 
@@ -183,9 +183,9 @@ public interface DomainEventPublisher {
 
 **출력 포트 (외부 연동 모듈이 기술별로 나눠 구현)**:
 ```java
-// domain/mail/port/MailSender.java        — infrastructure:messaging (JavaMailAdapter) / infrastructure:aws (SesMailSender)
-// domain/sms/port/SmsSender.java          — infrastructure:messaging (SolapiSmsClient) / infrastructure:aws (SnsSmsSender)
-// domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws (S3FileStorage) — file.provider 배타 선택
+// domain/mail/port/MailSender.java        — infrastructure:messaging (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender)
+// domain/sms/port/SmsSender.java          — infrastructure:messaging (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender)
+// domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
 // domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:payment
 ```
 
