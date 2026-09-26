@@ -3,14 +3,13 @@ package com.tastyhouse.external.payment.toss;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.tastyhouse.external.payment.toss.dto.TossPaymentCancelRequest;
 import com.tastyhouse.external.payment.toss.dto.TossPaymentConfirmRequest;
@@ -21,21 +20,12 @@ public class TossPaymentClient {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentClient.class);
 
-    private final WebClient.Builder webClientBuilder;
+    private final RestClient restClient;
     private final TossPaymentProperties tossPaymentProperties;
 
-    private WebClient webClient;
-
-    public TossPaymentClient(WebClient.Builder webClientBuilder, TossPaymentProperties tossPaymentProperties) {
-        this.webClientBuilder = webClientBuilder;
+    public TossPaymentClient(RestClient.Builder restClientBuilder, TossPaymentProperties tossPaymentProperties) {
+        this.restClient = restClientBuilder.baseUrl(tossPaymentProperties.baseUrl()).build();
         this.tossPaymentProperties = tossPaymentProperties;
-    }
-
-    @PostConstruct
-    private void init() {
-        this.webClient = webClientBuilder
-            .baseUrl(tossPaymentProperties.baseUrl())
-            .build();
     }
 
     public TossPaymentConfirmResponse confirmPayment(String paymentKey, String pgOrderId, Integer amount) {
@@ -44,15 +34,14 @@ public class TossPaymentClient {
         log.info("토스 결제 승인하기 API 요청. paymentKey: {}, pgOrderId: {}, amount: {}", paymentKey, pgOrderId, amount);
 
         try {
-            TossPaymentConfirmResponse response = webClient
+            TossPaymentConfirmResponse response = restClient
                 .post()
                 .uri(tossPaymentProperties.confirmPath())
                 .header(HttpHeaders.AUTHORIZATION, createAuthorizationHeader())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
+                .body(request)
                 .retrieve()
-                .bodyToMono(TossPaymentConfirmResponse.class)
-                .block();
+                .body(TossPaymentConfirmResponse.class);
 
             if (response == null) {
                 log.warn("토스 결제 승인하기 API 응답 없음. paymentKey: {}", paymentKey);
@@ -65,7 +54,7 @@ public class TossPaymentClient {
             log.info("토스 결제 승인하기 API 완료. paymentKey: {}, status: {}", paymentKey, response.getStatus());
             return response;
 
-        } catch (WebClientResponseException e) {
+        } catch (RestClientResponseException e) {
             log.error("토스 결제 승인하기 API 실패. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
             TossPaymentConfirmResponse errorResponse = new TossPaymentConfirmResponse();
             errorResponse.setCode("PG_API_ERROR");
@@ -88,15 +77,14 @@ public class TossPaymentClient {
         log.info("토스 전액 취소하기 API 요청. paymentKey: {}, cancelReason: {}", paymentKey, cancelReason);
 
         try {
-            TossPaymentConfirmResponse response = webClient
+            TossPaymentConfirmResponse response = restClient
                 .post()
                 .uri(cancelUrl)
                 .header(HttpHeaders.AUTHORIZATION, createAuthorizationHeader())
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
+                .body(request)
                 .retrieve()
-                .bodyToMono(TossPaymentConfirmResponse.class)
-                .block();
+                .body(TossPaymentConfirmResponse.class);
 
             if (response == null) {
                 log.warn("토스 전액 취소하기 API 응답 없음. paymentKey: {}", paymentKey);
@@ -108,7 +96,7 @@ public class TossPaymentClient {
 
             log.info("토스 전액 취소하기 API 완료. paymentKey: {}, status: {}", paymentKey, response.getStatus());
             return response;
-        } catch (WebClientResponseException e) {
+        } catch (RestClientResponseException e) {
             log.error("토스 전액 취소하기 API 실패. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString());
             TossPaymentConfirmResponse errorResponse = new TossPaymentConfirmResponse();
             errorResponse.setCode("PG_API_ERROR");

@@ -111,10 +111,14 @@ public enum ErrorCode implements ErrorCodeSpec {
     SMS_VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     SMS_VERIFICATION_CODE_EXPIRED(400, "VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
     SMS_VERIFICATION_CODE_MISMATCH(400, "VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
+    SMS_SEND_NO_RESPONSE(502, "SMS_SEND_NO_RESPONSE", "SMS 발송 응답이 없습니다."),
+    SMS_SEND_FAILED(502, "SMS_SEND_FAILED", "SMS 발송에 실패했습니다."),
+    SMS_SEND_API_ERROR(502, "SMS_SEND_API_ERROR", "SMS 발송 중 API 오류가 발생했습니다."),
 
     MAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
     MAIL_VERIFICATION_CODE_EXPIRED(400, "EMAIL_VERIFICATION_CODE_EXPIRED", "인증번호가 만료되었습니다. 인증번호를 다시 요청해주세요."),
     MAIL_VERIFICATION_CODE_MISMATCH(400, "EMAIL_VERIFICATION_CODE_MISMATCH", "인증번호가 일치하지 않습니다."),
+    MAIL_SEND_FAILED(502, "MAIL_SEND_FAILED", "이메일 발송에 실패했습니다."),
 
     POINT_NOT_FOUND(404, "POINT_NOT_FOUND", "포인트 정보를 찾을 수 없습니다."),
     POINT_INSUFFICIENT(400, "POINT_INSUFFICIENT", "포인트가 부족합니다."),
@@ -276,6 +280,7 @@ public enum ErrorCode implements ErrorCodeSpec {
     SHOP_DELIVERY_AREA_IN_USE(409, "SHOP_DELIVERY_AREA_IN_USE", "지역별 배달팁이 설정된 지역은 삭제할 수 없습니다."),
     ADMIN_DONG_NOT_FOUND(404, "ADMIN_DONG_NOT_FOUND", "행정동을 찾을 수 없습니다."),
     ADMIN_DONG_QUERY_INVALID(400, "ADMIN_DONG_QUERY_INVALID", "행정동 조회 조건이 올바르지 않습니다."),
+    ADMIN_DONG_BOUNDARY_FETCH_FAILED(502, "ADMIN_DONG_BOUNDARY_FETCH_FAILED", "행정동 경계 데이터를 가져오지 못했습니다."),
     SHOP_DELIVERY_AREA_RADIUS_EXCEEDED(400, "SHOP_DELIVERY_AREA_RADIUS_EXCEEDED", "배달지역은 가게 주소 기준 7km를 넘을 수 없습니다."),
     SHOP_DELIVERY_AREA_POLYGON_INVALID(400, "SHOP_DELIVERY_AREA_POLYGON_INVALID", "배달지역 도형이 올바르지 않습니다."),
     SHOP_DELIVERY_AREA_POLYGON_NOT_FOUND(404, "SHOP_DELIVERY_AREA_POLYGON_NOT_FOUND", "설정된 배달지역 도형이 없습니다."),

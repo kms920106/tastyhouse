@@ -2,7 +2,7 @@
 
 # infrastructure:messaging
 
-메일·SMS **발송 채널**을 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01) 산물이며, 기본 구현은 메일 = JavaMail(SMTP), SMS = Solapi다. **AWS 구현(SES·SNS)은 이 모듈이 아니라 각각 `infrastructure:aws-ses`·`infrastructure:aws-sns`에 있다**(벤더 단위로 모아 스캔을 격리하기 위함 — `../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`).
+메일·SMS **발송 채널**을 소유하는 어댑터 모듈(`java-library`). `infrastructure:restclient`(구 `infrastructure:http-client`) 7모듈 분리(챕터 01) 산물이며, 기본 구현은 메일 = JavaMail(SMTP), SMS = Solapi다. **AWS 구현(SES·SNS)은 이 모듈이 아니라 각각 `infrastructure:aws-ses`·`infrastructure:aws-sns`에 있다**(벤더 단위로 모아 스캔을 격리하기 위함 — `../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`).
 
 ## 무엇을 소유하는가
 
@@ -69,12 +69,12 @@ com.tastyhouse.external/
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `WebClient.Builder`(Solapi 호출), `ExternalApiException`/`ExternalApiErrorCode`
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(Solapi 호출). 예외·에러코드는 도메인 `ErrorCode` 소유 — `SolapiSmsClient`·`JavaMailAdapter`는 실패를 `BusinessException`으로 직접 던진다
 - `domain` (implementation) — 구현하는 `MailSender`(`mail/port/`)·`SmsSender`(`sms/port/`) 포트, 그리고 **이관된 DomainConfig가 등록하는 도메인 서비스**(`MailVerificationService`·`SmsVerificationService`)와 그 생성자가 요구하는 리포지토리 포트·`DomainEventPublisher`
 
 ### External
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이며, 의존하는 앱은 web-api뿐이다**(분리 전에는 4개 앱 전부가 받았다)
-- `spring-boot-starter-webflux` — Solapi HTTP 호출
+- webflux 없음 — Solapi HTTP 호출은 **동기 `RestClient`**(`SolapiSmsClient`). 코어가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. 단위 테스트는 `MockRestServiceServer.bindTo(RestClient.builder())` 기반(`SolapiSmsClientTest`, 4건).
 
 **`infrastructure:aws-ses`가 이 모듈을 의존한다**(`infrastructure:aws-sns`는 의존하지 않는다) — `SesMailSender`가 `MailProperties`의 발신자 주소를 읽기 때문이다. 방향은 벤더 → 채널이며 그 반대가 아니다.
 
@@ -99,7 +99,7 @@ Spring Boot 자동설정의 `org.springframework.boot.autoconfigure.mail.MailPro
 
 **대상**: `backend/infrastructure/messaging/src/main/java/com/tastyhouse/external/{mail,sms,messaging}/`
 
-외부 연동 7모듈 공통 규칙으로, 패키지 루트를 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 상세는 `../external/AGENTS.md`.
+외부 연동 7모듈 공통 규칙으로, 패키지 루트를 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 상세는 `../restclient/AGENTS.md`.
 
 ### 새 POJO 도메인 서비스는 `@Bean`을 손으로 추가한다
 

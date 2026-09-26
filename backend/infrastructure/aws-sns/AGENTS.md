@@ -38,8 +38,8 @@ com.tastyhouse.external.aws.sns/
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`
-- `domain` (implementation) — `SmsSender` 포트
+- **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제되고 상수가 도메인 `ErrorCode`로 이관되면서 이 모듈은 도메인만 있으면 충분해졌다. `SnsSmsSender`는 발송 실패를 `new BusinessException(ErrorCode.SMS_SEND_API_ERROR/SMS_SEND_FAILED[, cause])`로 직접 던진다.
+- `domain` (implementation) — `SmsSender` 포트 + `ErrorCode`(`SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`)·`BusinessException`
 
 **`infrastructure:messaging`을 의존하지 않는다.** 옛 `infrastructure:aws`가 messaging을 가졌던 것은 SES의 `MailProperties` 때문이었고, SNS는 발신 번호를 읽지 않는다(`SnsConfig`가 `sms.aws.sns.*`만 읽는다). 발신 번호 지정이 필요해지면 `SmsProperties`를 쓰기 위해 그때 의존을 추가한다.
 

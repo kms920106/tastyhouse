@@ -8,7 +8,7 @@
 
 4개 앱(web·admin·ceo·batch)은 파일 저장을 유스케이스 호출로만 쓴다. 컴파일 시점에 어떤 벤더인지 알지 못하고(`runtimeOnly`), 알 이유도 없다. 그런데 챕터 03 이전에는 벤더 선택이 앱마다 **두 곳**(`build.gradle`의 external·firebase 2줄, `application.yml`의 import 2줄)에 드러나 있어 **같은 결정이 8곳에 복제**돼 있었다. 벤더를 바꾸려면 8곳을 고쳐야 했다.
 
-이 모듈이 벤더 구현(`infrastructure:firebase`)을 노출하므로, 앱은 **"파일을 저장한다"** 까지만 알고 **"Firebase로"** 는 모른다. `spring-boot-starter-data-redis`가 Lettuce를 고르는 것과 같은 형태다. 신설 당시에는 코어 SPI(`infrastructure:external`)와 벤더 구현 둘을 묶었으나, 코어 SPI가 삭제되면서(`../external/AGENTS.md`의 "과거 판단의 번복 — 파일 저장 SPI 삭제") **조립 대상이 firebase 하나가 됐다** — 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하므로 중간 모듈이 필요 없다.
+이 모듈이 벤더 구현(`infrastructure:firebase`)을 노출하므로, 앱은 **"파일을 저장한다"** 까지만 알고 **"Firebase로"** 는 모른다. `spring-boot-starter-data-redis`가 Lettuce를 고르는 것과 같은 형태다. 신설 당시에는 코어 SPI(당시 `infrastructure:external`, 현 `infrastructure:restclient`)와 벤더 구현 둘을 묶었으나, 코어 SPI가 삭제되면서(`../restclient/AGENTS.md`의 "과거 판단의 번복 — 파일 저장 SPI 삭제") **조립 대상이 firebase 하나가 됐다** — 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하므로 중간 모듈이 필요 없다.
 
 **조립 대상이 하나여도 이 스타터를 유지한다.** 앱이 firebase를 직접 선언하도록 되돌리면 두 가지를 잃는다.
 
@@ -26,11 +26,11 @@ backend/infrastructure/file-storage/
 
 `compileJava`는 NO-SOURCE로 넘어가고 jar에는 yml만 실린다(비어 있지 않으므로 리소스 로딩에 문제없음).
 
-**전이 메커니즘**: `runtimeOnly`는 `runtimeElements` 변형에 포함되므로, 이 모듈을 `runtimeOnly`로 의존하는 앱의 `runtimeClasspath`에 firebase가 전이로 실린다. compileClasspath에는 둘 다 나타나지 않는다(헥사고날 강제 유지). **external은 이 경로로 실리지 않는다** — 파일 저장만 쓰는 admin-api·ceo-api의 런타임 클래스패스에서는 external과 webflux(reactor-netty)가 빠진다(web·batch는 다른 어댑터 모듈을 경유해 external을 계속 받는다).
+**전이 메커니즘**: `runtimeOnly`는 `runtimeElements` 변형에 포함되므로, 이 모듈을 `runtimeOnly`로 의존하는 앱의 `runtimeClasspath`에 firebase가 전이로 실린다. compileClasspath에는 둘 다 나타나지 않는다(헥사고날 강제 유지). **코어(`infrastructure:restclient`)는 이 경로로 실리지 않는다** — 파일 저장만 쓰는 admin-api·ceo-api의 런타임 클래스패스에서는 코어 모듈이 빠진다(webflux는 애초에 리포 전체에서 제거돼 있다). web·batch는 다른 어댑터 모듈을 경유해 코어를 계속 받는다.
 
 **중첩 `spring.config.import`**: `application-file-storage.yml`이 다시 `classpath:application-firebase.yml`을 import 한다. config data 파일 안에서 동작하며, `classpath:` 리소스는 다른 jar(firebase)에 있어도 해석된다(분리 전 허브 `application-external.yml`이 같은 방식으로 6개를 import했던 선례). `application-firebase.yml`의 configtree import(`optional:configtree:${SECRETS_DIR}/`)는 그대로 firebase 모듈이 소유한다.
 
-**순환 없음**: file-storage → firebase, firebase → domain. 이 모듈을 의존하는 것은 앱 4개뿐이다. (코어 SPI 삭제 당시 검토한 "SPI를 이 모듈로 옮기는" 대안은 firebase가 이 모듈을 되받아야 해 file-storage ↔ firebase 순환이 되므로 비채택했다 — `../external/AGENTS.md`의 [과거 판단의 번복](../external/AGENTS.md#과거-판단의-번복--파일-저장-spi-삭제) 절.)
+**순환 없음**: file-storage → firebase, firebase → domain. 이 모듈을 의존하는 것은 앱 4개뿐이다. (코어 SPI 삭제 당시 검토한 "SPI를 이 모듈로 옮기는" 대안은 firebase가 이 모듈을 되받아야 해 file-storage ↔ firebase 순환이 되므로 비채택했다 — `../restclient/AGENTS.md`의 [과거 판단의 번복](../restclient/AGENTS.md#과거-판단의-번복--파일-저장-spi-삭제) 절.)
 
 ## 벤더 전환 절차 (Firebase → S3)
 

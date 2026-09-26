@@ -5,9 +5,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,14 +16,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
 import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.geo.InteriorPoint;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.restclient.config.HttpRequestFactories;
 
 @Component
 public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
@@ -36,42 +36,43 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
     private static final List<String> SIDO_SUFFIXES =
         List.of("특별자치도", "특별자치시", "광역시", "특별시", "자치도", "자치시");
 
+    private final RestClient restClient;
     private final AdminDongBoundaryProperties properties;
     private final ObjectMapper objectMapper;
 
-    public AdminDongBoundaryClient(AdminDongBoundaryProperties properties, ObjectMapper objectMapper) {
+    public AdminDongBoundaryClient(
+        RestClient.Builder restClientBuilder,
+        AdminDongBoundaryProperties properties,
+        ObjectMapper objectMapper
+    ) {
+        Duration timeout = Duration.ofSeconds(properties.timeoutSeconds());
+        this.restClient = restClientBuilder
+            .requestFactory(HttpRequestFactories.withTimeouts(timeout, timeout))
+            .build();
         this.properties = properties;
         this.objectMapper = objectMapper;
     }
 
     @Override
     public List<AdminDongBoundarySource> fetchAll() {
-        HttpRequest request = HttpRequest.newBuilder(sourceUri())
-            .timeout(Duration.ofSeconds(properties.timeoutSeconds()))
-            .GET()
-            .build();
+        URI sourceUri = sourceUri();
+        try {
+            return restClient.get()
+                .uri(sourceUri)
+                .exchange((request, response) -> {
+                    if (response.getStatusCode().value() != 200) {
+                        log.error("행정동 경계 원천 응답이 비정상입니다: status={}, url={}",
+                            response.getStatusCode().value(), properties.sourceUrl());
+                        throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+                    }
 
-        try (HttpClient client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(properties.timeoutSeconds()))
-            .followRedirects(HttpClient.Redirect.NORMAL)
-            .build()) {
-            HttpResponse<InputStream> response =
-                client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            if (response.statusCode() != 200) {
-                log.error("행정동 경계 원천 응답이 비정상입니다: status={}, url={}",
-                    response.statusCode(), properties.sourceUrl());
-                throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
-            }
-
-            try (InputStream body = new BoundedInputStream(response.body(), properties.maxBytes())) {
-                return parseFeatures(body);
-            }
-        } catch (IOException e) {
+                    try (InputStream body = new BoundedInputStream(response.getBody(), properties.maxBytes())) {
+                        return parseFeatures(body);
+                    }
+                });
+        } catch (ResourceAccessException e) {
             log.error("행정동 경계 원천 다운로드에 실패했습니다: url={}", properties.sourceUrl(), e);
-            throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
         }
     }
 
@@ -79,7 +80,7 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
         try {
             return new URI(properties.sourceUrl());
         } catch (URISyntaxException e) {
-            throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
         }
     }
 
@@ -90,7 +91,7 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
         try (JsonParser parser = objectMapper.getFactory().createParser(body)) {
             if (!moveToFeatures(parser)) {
                 log.error("행정동 경계 GeoJSON에 features 배열이 없습니다: url={}", properties.sourceUrl());
-                throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+                throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
             }
 
             while (parser.nextToken() == JsonToken.START_OBJECT) {
@@ -105,7 +106,7 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
 
         if (results.isEmpty()) {
             log.error("행정동 경계 원천에서 읽어 온 행이 없습니다: url={}", properties.sourceUrl());
-            throw new ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
         }
 
         log.info("행정동 경계 원천 파싱 완료: {}건 (대표점 계산 실패로 제외 {}건)", results.size(), skipped);

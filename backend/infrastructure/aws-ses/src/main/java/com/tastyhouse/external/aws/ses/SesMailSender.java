@@ -11,8 +11,8 @@ import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
 
 import com.tastyhouse.domain.mail.port.MailSender;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 public class SesMailSender implements MailSender {
 
@@ -46,10 +46,10 @@ public class SesMailSender implements MailSender {
             log.info("AWS SES 메일 발송 성공. to: {}, subject: {}", to, subject);
         } catch (SesException e) {
             log.error("AWS SES 메일 발송 실패. to: {}, subject: {}", to, subject, e);
-            throw new ExternalApiException(ExternalApiErrorCode.MAIL_SEND_FAILED, e);
+            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
         } catch (Exception e) {
             log.error("AWS SES 메일 발송 중 예외 발생. to: {}, subject: {}", to, subject, e);
-            throw new ExternalApiException(ExternalApiErrorCode.MAIL_SEND_FAILED, e);
+            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
         }
     }
 }

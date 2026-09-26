@@ -8,8 +8,8 @@ import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sns.model.SnsException;
 
 import com.tastyhouse.domain.sms.port.SmsSender;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 public class SnsSmsSender implements SmsSender {
 
@@ -33,10 +33,10 @@ public class SnsSmsSender implements SmsSender {
             log.info("AWS SNS SMS 발송 성공. to: {}, messageId: {}", to, response.messageId());
         } catch (SnsException e) {
             log.error("AWS SNS SMS 발송 실패. to: {}", to, e);
-            throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_API_ERROR, e);
+            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
         } catch (Exception e) {
             log.error("AWS SNS SMS 발송 중 예외 발생. to: {}", to, e);
-            throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_FAILED, e);
+            throw new BusinessException(ErrorCode.SMS_SEND_FAILED, e);
         }
     }
 }

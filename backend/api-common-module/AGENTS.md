@@ -51,7 +51,7 @@
 ## 여기에 두면 안 되는 것
 - **모듈마다 내용이 다른 정책 파일** — `SecurityConfig`(필터체인·인가 정책), `PublicPaths`(공개 경로 목록: web 18줄 vs admin/ceo 3줄), `TokenService`/`AuthService`(인증 주체 `Admin`/`Ceo`와 JWT 시크릿이 분리되어야 함).
 - **필드 셋이나 `@Schema` 문구가 다른 응답 record** — 예: `ShopDetailResponse`(admin은 감사 시각, ceo는 `trademarkImageUrl`/`hidden`), `ShopAmenityResponse`("가게" vs "내 가게").
-- **도메인 포트가 있는 기술 어댑터** — 그것은 외부 연동 모듈(`infrastructure:external` 코어 + `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}` 어댑터)이나 `infrastructure:persistence`(DB 어댑터) 소관이다.
+- **도메인 포트가 있는 기술 어댑터** — 그것은 외부 연동 모듈(`infrastructure:restclient` 코어 + `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}` 어댑터)이나 `infrastructure:persistence`(DB 어댑터) 소관이다.
 - **기술 구현체** — 이 모듈은 계약(`RateLimitCounterPort`)만 두고 구현은 인프라 모듈에 맡긴다. 표현 계층이 인프라 모듈을 `implementation`으로 끌어오는 순간 챕터 02가 교정한 역방향 의존이 되살아난다.
 
 ## Dependencies
@@ -159,7 +159,7 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 메시지만 공백으로 join한다. 이는 우연한 차이가 아니라 **소비자별 응답 계약 차이**이므로 통합하지 않고
 web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 유지한다.
 
-`ExternalApiException`은 `BusinessException`을 상속하므로 `handleBusinessException` 하나로 처리된다
+외부 연동 실패는 도메인 `BusinessException`(에러코드는 `ErrorCode`)으로 표현되므로 `handleBusinessException` 하나로 처리된다(과거 `ExternalApiException`이 `BusinessException`을 상속하던 시절과 처리 경로는 같다 — 그 예외 타입 자체는 이후 완전히 삭제됐고 상수는 도메인 `ErrorCode`로 이관됐다)
 (전용 핸들러가 없는 것은 누락이 아니다).
 
 ### `ProblemDetails`가 static 유틸인 이유

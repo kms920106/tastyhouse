@@ -27,7 +27,7 @@
 | `domain/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
-| `infrastructure/external/` | **외부 연동 HTTP 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`만 갖는다(파일 저장 SPI `FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`는 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하도록 바뀌며 삭제됐다). 벤더·채널 구현은 아래 9모듈로 분리됐다. **앱이 직접 의존하지 않는다** — web은 oauth·payment·messaging, batch는 bbq·admdongkor를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/external/AGENTS.md`) |
+| `infrastructure/restclient/` | **외부 연동 HTTP 코어**(구 `infrastructure/external/` → `infrastructure/http-client/`를 거쳐 리네임) — Boot `RestClient.Builder`를 꾸미는 `RestClientConfig`만 갖는다(파일 저장 SPI `FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`는 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하도록 바뀌며 삭제됐고, 예외 계약 `ExternalApiException`/`ExternalApiErrorCode`도 완전히 해체돼 도메인 `ErrorCode`로 이관됐다 — 이 모듈에는 이제 예외·에러코드가 없다). `WebClient`/webflux는 전면 제거하고 Spring `RestClient`로 통일했다. 벤더·채널 구현은 아래 9모듈로 분리됐다. **앱이 직접 의존하지 않는다** — web은 oauth·payment·messaging, batch는 bbq·admdongkor를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/restclient/AGENTS.md`) |
 | `infrastructure/file-storage/` | **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:firebase`(`FileStoragePort` 벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
 | `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **앱이 직접 의존하지 않는다** — 스타터 `infrastructure:file-storage`가 의존하고 앱은 그 스타터만 본다 (see `infrastructure/firebase/AGENTS.md`) |
 | `infrastructure/aws-s3/` | S3 파일 저장 어댑터. **어느 앱도 의존하지 않는다** — provider 기본값이 전부 비-AWS라 컴파일만 검증한다. 전환 절차는 (see `infrastructure/aws-s3/AGENTS.md`) |
@@ -69,7 +69,7 @@
 - **등록(POST) API는 생성된 `Long` id만 반환**한다: 리소스를 등록하는 POST는 `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, 생성 응답 전용 래퍼 record(`XxxCreateResponse`)를 만들거나 생성 직후 QueryService로 재조회해 상세 DTO를 반환하지 않는다(상세가 필요하면 클라이언트가 그 id로 GET 상세를 호출). 행을 생성하고도 `ApiResponse<Void>`를 반환하던 지점도 id 반환으로 통일하며, 벌크 등록은 `ApiResponse<List<Long>>`이다. 파일 업로드·인증/토큰 발급·검증 전용·토글/상태전이·POST-as-query·배치집계는 리소스 등록이 아니므로 적용 제외. 상세·적용 제외 목록·reference 구현은 [CLAUDE.md](CLAUDE.md#등록post-api-응답-본문-규칙-생성된-long-id만-반환) 참고.
 - **api 모듈은 QueryDSL도 `com.tastyhouse.infrastructure..`도 모른다 (개정)**: web/admin/ceo/batch의 `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **0건**이며, 각 모듈 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 챕터 04의 마이그레이션 임시 장치(`shouldNotDependOnInfrastructureQuery`, 구·신 패키지 이중 매칭)는 **챕터 05에서 전수 제거**됐고, 대신 `..adapter.in.web..`·`..application.port.in..`을 대상으로 하는 패키지 기준 규칙으로 승격했다. 조회는 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스만 주입한다.
 - **컨트롤러 `@PathVariable`은 주 리소스를 `id`로 통일**한다: 컨트롤러가 이미 `@RequestMapping`으로 그 도메인에 스코프되므로, 주 리소스를 가리키는 경로 변수는 단건·중첩 경로 모두 bare `id`로 쓰고(예: `/coupons/v1/{id}`, `/coupons/v1/{id}/issues`) 한 컨트롤러 안에서 `id`/`{도메인}Id` 혼재를 금지한다. 단, 다른 애그리거트 식별자를 함께 받는 경우만 `{도메인}Id`로 구분한다. 타입은 `Long` 유지(`@PathVariable Long id`). 상세는 [CLAUDE.md](CLAUDE.md#컨트롤러-pathvariable-식별자-명명-규칙-id로-통일) 참고.
-- **import 순서** (Spring Framework 공식 컨벤션 `SpringImportOrderCheck`와 동일): `java.*` → `javax.*` → 그 외 전부(`jakarta.*` 포함, org/io/com.* 등 알파벳 혼합) → 자사(`com.tastyhouse.*`) → static import(맨 아래) 순서로 그룹을 나누고, 그룹 사이 빈 줄 1개, 그룹 내부는 알파벳 순 정렬한다. 자사(`com.tastyhouse.*`) 그룹 내부는 헥사고날 의존성 방향(안→밖) 순 — domain(`com.tastyhouse.domain.<ctx>..`) → infrastructure(`com.tastyhouse.infrastructure..`, 그중 `..query..`만 api에서 허용) → external/shared(`com.tastyhouse.external..`·`com.tastyhouse.domain.shared..`·`com.tastyhouse.domain.exception..`) → presentation — 으로 정렬하고, 같은 계층 내부만 알파벳순(프로젝트 커스텀 규칙, 공식 표준 아님). presentation(`webapi`/`adminapi`/`ceoapi`) 내부는 다시 공용 인프라(`common`·`config`·`security`·`ratelimit`·`exception`)를 위(5-a), 도메인 전용(`<도메인>.request`·`.response`)을 아래(5-b)로 서브정렬한다. 상세·근거·예시는 [CLAUDE.md](CLAUDE.md#코딩-스타일-import-순서) 참고.
+- **import 순서** (Spring Framework 공식 컨벤션 `SpringImportOrderCheck`와 동일): `java.*` → `javax.*` → 그 외 전부(`jakarta.*` 포함, org/io/com.* 등 알파벳 혼합) → 자사(`com.tastyhouse.*`) → static import(맨 아래) 순서로 그룹을 나누고, 그룹 사이 빈 줄 1개, 그룹 내부는 알파벳 순 정렬한다. 자사(`com.tastyhouse.*`) 그룹 내부는 헥사고날 의존성 방향(안→밖) 순 — domain(`com.tastyhouse.domain.<ctx>..`) → infrastructure(`com.tastyhouse.infrastructure..`, 그중 `..query..`만 api에서 허용) → external/shared(`com.tastyhouse.external..`·`com.tastyhouse.restclient..`·`com.tastyhouse.domain.shared..`·`com.tastyhouse.domain.exception..`) → presentation — 으로 정렬하고, 같은 계층 내부만 알파벳순(프로젝트 커스텀 규칙, 공식 표준 아님). presentation(`webapi`/`adminapi`/`ceoapi`) 내부는 다시 공용 인프라(`common`·`config`·`security`·`ratelimit`·`exception`)를 위(5-a), 도메인 전용(`<도메인>.request`·`.response`)을 아래(5-b)로 서브정렬한다. 상세·근거·예시는 [CLAUDE.md](CLAUDE.md#코딩-스타일-import-순서) 참고.
 
 ### Module Dependency Graph
 ```
@@ -119,21 +119,25 @@ infrastructure:redis ─┬→ security-core (implementation)     ← (챕터 01
                       └→ api-common-module (implementation) ← RateLimitCounterPort 구현
    ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 두 계약의
      소유 모듈만 의존한다(adapter → port 방향)
-infrastructure:external ─→ domain (implementation) + webflux   ← HTTP 코어: WebClient 빌더 + 외부 연동 예외(ErrorCodeSpec 구현)
-   ↑ firebase·aws-s3를 뺀 아래 7모듈이 이 코어를 implementation으로 의존한다(예외·WebClient 재사용)
+infrastructure:restclient ─→ (내부 의존 없음) + spring-web·starter-json (api)   ← HTTP 코어: RestClient.Builder customizer만(예외·에러코드 없음). 구 infrastructure:external → infrastructure:http-client, webflux 전면 제거
+   ↑ firebase·aws-s3를 뺀 아래 7모듈 중 설정만 재사용하는 곳이 implementation으로 의존한다(RestClient 재사용)
+   ※ 과거 이 모듈이 소유하던 ExternalApiException/ExternalApiErrorCode는 완전히 삭제됐다 — domain을 의존할 이유가
+     사라져 이 모듈은 이제 domain조차 의존하지 않는다(어댑터가 도메인 BusinessException/ErrorCode를 직접 쓴다)
 infrastructure:file-storage ─→ infrastructure:firebase (runtimeOnly)
    ← (챕터 03 신설) 자바 코드 없는 조립 전용 스타터. 앱 4개가 의존하는 유일한 파일 저장 좌표이며,
      firebase는 여기를 통해 앱 runtimeClasspath에 전이로 실린다(compileClasspath에는 없다)
 infrastructure:firebase  ─→ domain                                 + firebase-admin   ← FileStoragePort 직접 구현
 infrastructure:aws-s3    ─→ domain                                 + spring-cloud-aws-starter-s3(+BOM) ← FileStoragePort 직접 구현
-infrastructure:aws-ses   ─→ infrastructure:external, infrastructure:messaging(MailProperties), domain + awssdk:ses(+BOM)
-infrastructure:aws-sns   ─→ infrastructure:external, domain        + awssdk:sns(+BOM)
-infrastructure:oauth     ─→ infrastructure:external, application(auth SPI), domain + jjwt
-infrastructure:payment   ─→ infrastructure:external, domain        ← PgPaymentGateway 구현
-infrastructure:messaging ─→ infrastructure:external, domain        + starter-mail
+infrastructure:aws-ses   ─→ infrastructure:messaging(MailProperties), domain + awssdk:ses(+BOM)
+   ※ infrastructure:restclient 직접 의존 없음 — messaging을 통해 runtimeClasspath에만 전이로 실린다(compileClasspath에는 없다)
+infrastructure:aws-sns   ─→ domain        + awssdk:sns(+BOM)
+   ※ infrastructure:restclient 의존 없음(직접·전이 모두) — messaging도 의존하지 않는다
+infrastructure:oauth     ─→ infrastructure:restclient, application(auth SPI), domain + jjwt
+infrastructure:payment   ─→ infrastructure:restclient, domain        ← PgPaymentGateway 구현
+infrastructure:messaging ─→ infrastructure:restclient, domain        + starter-mail
                             ← MailSender·SmsSender 구현 + 이 포트를 요구하는 도메인 서비스 빈 등록
-infrastructure:bbq       ─→ infrastructure:external, application(BBQ 포트), domain + webflux
-infrastructure:admdongkor ─→ infrastructure:external, application(행정동 경계 포트), domain + starter-json (webflux 없음)
+infrastructure:bbq       ─→ infrastructure:restclient, application(BBQ 포트), domain (webflux 없음 — 동기 RestClient)
+infrastructure:admdongkor ─→ infrastructure:restclient, application(행정동 경계 포트), domain + starter-json (webflux 없음)
 security-core ─┬→ domain (implementation)   ← ErrorCode(토큰 검증 실패 표현)
                └→ spring-security-core (api) + jjwt-api (api)/jjwt-impl·jjwt-jackson (runtimeOnly)
    ← (챕터 03 신설) security-module에서 서블릿-프리 타입(JwtTokenProvider·토큰 저장소 계약)만 분리. 서블릿 스택(starter-web·jakarta.servlet) 의존 없음
@@ -166,10 +170,10 @@ domain → 의존 없음 (production 의존 0개)
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
   - **계층 축**: `domain`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,file-storage,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}` 11모듈이 아웃바운드(driven) 어댑터다(`file-storage`만은 코드 없는 조립 스타터라 어댑터를 갖지 않고 firebase를 묶기만 한다).
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(같은 이름의 서비스가 여러 모듈에 공존하는 것이 정상).
-  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`과 그 벤더·채널 9모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`oauth`·`payment`·`messaging`·`bbq`·`admdongkor`) + 조립 스타터 `file-storage`가 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 이 중 `file-storage`를 뺀 10모듈이 `com.tastyhouse.external..`을 나눠 소유한다 — `file-storage`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다(AWS는 이후 활성화 경로가 다른 채널별로 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 다시 나뉘었다). domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
+  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`)와 그 벤더·채널 9모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`oauth`·`payment`·`messaging`·`bbq`·`admdongkor`) + 조립 스타터 `file-storage`가 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 벤더 9모듈이 `com.tastyhouse.external..`을 나눠 소유하고, 코어 `restclient`는 `com.tastyhouse.restclient..`를 소유한다 — `file-storage`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다(AWS는 이후 활성화 경로가 다른 채널별로 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 다시 나뉘었다). domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다. **코어는 이후 `WebClient`/webflux를 전면 제거하고 Spring `RestClient`로 통일했으며, 예외 계약(`ExternalApiException`/`ExternalApiErrorCode`)도 완전히 해체해 도메인 `ErrorCode`로 흡수했다 — 지금 이 모듈에는 설정(`RestClientConfig`)만 남는다.**
   - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 web-api의 자체 핸들러와 충돌할 수 있는데, **챕터 02 이후 이것은 스캔 범위가 아니라 조건부 `@Bean`으로 해소된다** — `ApiCommonModuleAutoConfiguration`의 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`가 web에서 스스로 물러난다. (`FileService`는 이후 계층 재배치로 `application`의 유스케이스가 됐고 `apicommon.file` 패키지는 없다.)
-- **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain이 아니라 `infrastructure:oauth`(분리 전 `infrastructure:external`)가 소유하는 이유는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
+- **소셜 로그인은 `com.tastyhouse.application.auth.port.out` SPI로만 사용**한다: web-api는 제공자별 패키지(`..oauth.kakao..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain이 아니라 `application`이 소유하는 이유(구현은 `infrastructure:oauth`, 분리 전에는 `infrastructure:external`)는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
 
 ### Testing Requirements
 - 스키마 무변경 보장: `hibernate.ddl-auto=validate` 기준. JPA 엔티티(`infrastructure:persistence`) 변경 시 `schema.sql`과 정합성 확인.
@@ -195,7 +199,7 @@ domain → 의존 없음 (production 의존 0개)
 - **`subprojects` 일괄 설정의 제외 대상 2개** — `domain`(프레임워크-프리 컴파일 게이트)과 `:infrastructure`(소스 없는 중첩 프로젝트 컨테이너). 각각의 근거는 [CLAUDE.md](CLAUDE.md#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)와 위 [모듈 의존 그래프](#module-dependency-graph)의 "중첩 프로젝트 컨테이너 주의"에 있다.
 
 ### External
-- Spring Boot 3.2.4 (web, webflux, security, data-jpa, data-redis, aop, mail, validation)
+- Spring Boot 3.2.4 (web, security, data-jpa, data-redis, aop, mail, validation) — webflux는 리포 전체에서 제거됐다(외부 HTTP 호출은 동기 `RestClient`로 통일)
 - Java 21, Gradle (멀티모듈)
 - QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (OpenFeign 포크) — 동적 쿼리. **`infrastructure:persistence`에만 `implementation`으로 의존**해 소비 모듈로 전이되지 않는다
 - MySQL (`mysql-connector-j`), Redis

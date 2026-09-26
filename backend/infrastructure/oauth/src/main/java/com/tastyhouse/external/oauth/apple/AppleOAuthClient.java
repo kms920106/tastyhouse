@@ -17,8 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -51,10 +50,10 @@ public class AppleOAuthClient implements SocialOAuthClient {
     @Value("${apple.private-key}")
     private String privateKeyBase64;
 
-    private final WebClient webClient;
+    private final RestClient restClient;
 
-    public AppleOAuthClient(WebClient webClient) {
-        this.webClient = webClient;
+    public AppleOAuthClient(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @Override
@@ -102,14 +101,13 @@ public class AppleOAuthClient implements SocialOAuthClient {
         formData.add("grant_type", "authorization_code");
         formData.add("redirect_uri", redirectUri);
 
-        return webClient.post()
+        return restClient.post()
             .uri(APPLE_AUTH_BASE_URL + "/auth/token")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .header("User-Agent", "tastyhouse-api")
-            .body(BodyInserters.fromFormData(formData))
+            .body(formData)
             .retrieve()
-            .bodyToMono(AppleTokenResponse.class)
-            .block();
+            .body(AppleTokenResponse.class);
     }
 
     public AppleIdTokenPayload verifyAndExtractIdToken(String idToken) {
@@ -142,11 +140,10 @@ public class AppleOAuthClient implements SocialOAuthClient {
 
     private java.security.PublicKey fetchApplePublicKey(String kid) {
         try {
-            JsonNode jwks = webClient.get()
+            JsonNode jwks = restClient.get()
                 .uri(APPLE_JWKS_URI)
                 .retrieve()
-                .bodyToMono(JsonNode.class)
-                .block();
+                .body(JsonNode.class);
             if (jwks == null) {
                 throw new RuntimeException("Apple JWKS 응답이 비어 있습니다.");
             }

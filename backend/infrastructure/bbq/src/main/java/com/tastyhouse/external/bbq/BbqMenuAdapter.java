@@ -25,26 +25,26 @@ public class BbqMenuAdapter implements BbqMenuPort {
 
     @Override
     public List<BbqProductCategoryResponse> fetchMenuCategories() {
-        return bbqApiClient.getMenuCategoriesSync().stream()
+        return bbqApiClient.getMenuCategories().stream()
             .map(BbqMenuAdapter::toProductCategoryResponse)
             .collect(Collectors.toList());
     }
 
     @Override
     public List<BbqProductResponse> fetchMenusByCategoryId(Long categoryId) {
-        return bbqApiClient.getMenusByCategoryIdSync(categoryId).stream()
+        return bbqApiClient.getMenusByCategoryId(categoryId).stream()
             .map(BbqMenuAdapter::toProductResponse)
             .collect(Collectors.toList());
     }
 
     @Override
     public BbqProductResponse fetchMenuDetail(Long menuId) {
-        return toProductResponse(bbqApiClient.getMenuDetailSync(menuId));
+        return toProductResponse(bbqApiClient.getMenuDetail(menuId));
     }
 
     @Override
     public List<BbqProductSubOptionResponse> fetchMenuSubOptions(Long menuId) {
-        return bbqApiClient.getMenuSubOptionsSync(menuId).stream()
+        return bbqApiClient.getMenuSubOptions(menuId).stream()
             .map(BbqMenuAdapter::toProductSubOptionResponse)
             .collect(Collectors.toList());
     }

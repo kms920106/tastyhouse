@@ -2,7 +2,7 @@
 
 # infrastructure:firebase
 
-Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-library`). 도메인 포트 `com.tastyhouse.domain.file.port.FileStoragePort`를 **직접 구현**한다. `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔됐기 때문이다(`../external/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI가 삭제되며 그 `external.file` 스캔은 없어졌다.
+Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-library`). 도메인 포트 `com.tastyhouse.domain.file.port.FileStoragePort`를 **직접 구현**한다. 코어(당시 `infrastructure:external`, 현 `infrastructure:restclient`)의 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔됐기 때문이다(`../restclient/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI가 삭제되며 그 `external.file` 스캔은 없어졌다.
 
 ## 무엇을 소유하는가
 
@@ -49,7 +49,7 @@ file:
 ### Internal
 - `domain` (implementation) — 구현하는 포트 `FileStoragePort`와 예외 계약(`BusinessException`·`ErrorCode`). **내부 의존은 이것 하나뿐이다.**
 
-`infrastructure:external` 의존은 파일 저장 SPI 삭제와 함께 제거됐다 — 이 모듈은 external의 SPI도 예외(`ExternalApiException`)도 쓰지 않는다. 그래서 스타터를 통해 이 모듈만 받는 admin-api·ceo-api의 런타임 클래스패스에 external·webflux가 딸려 오지 않는다.
+`infrastructure:restclient`(구 `infrastructure:http-client`) 의존은 파일 저장 SPI 삭제와 함께 제거됐다 — 이 모듈은 코어의 SPI도 예외(과거 `ExternalApiException`, 현재는 도메인 `BusinessException`)도 쓰지 않는다. 그래서 스타터를 통해 이 모듈만 받는 admin-api·ceo-api의 런타임 클래스패스에 코어(`infrastructure:restclient`)가 딸려 오지 않는다.
 
 ### External
 - `com.google.firebase:firebase-admin:9.10.0` — `FirebaseApp`·`Bucket`. **이 SDK를 클래스패스에 올리는 유일한 모듈이다**(분리 전에는 코어를 의존한 4개 앱이 자동으로 받았고, 지금도 4개 앱이 스타터를 통해 이 모듈을 전이로 받으므로 결과는 같지만 이유가 명시적이다).

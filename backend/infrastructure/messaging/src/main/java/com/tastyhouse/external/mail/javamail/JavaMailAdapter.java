@@ -10,8 +10,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.mail.port.MailSender;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.external.mail.MailProperties;
 
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
@@ -42,10 +42,10 @@ public class JavaMailAdapter implements MailSender {
             log.info("메일 발송 성공. to: {}, subject: {}", to, subject);
         } catch (MessagingException e) {
             log.error("메일 발송 실패. to: {}, subject: {}", to, subject, e);
-            throw new ExternalApiException(ExternalApiErrorCode.MAIL_SEND_FAILED, e);
+            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
         } catch (Exception e) {
             log.error("메일 발송 중 예외 발생. to: {}, subject: {}", to, subject, e);
-            throw new ExternalApiException(ExternalApiErrorCode.MAIL_SEND_FAILED, e);
+            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
         }
     }
 }

@@ -15,10 +15,10 @@
 ```
 com.tastyhouse.external.bbq/
 ├── BbqModuleAutoConfiguration.java   @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(BbqProperties)
-├── BbqApiClient.java                 BBQ 메뉴 API 호출 (WebClient)
+├── BbqApiClient.java                 BBQ 메뉴 API 호출 (RestClient, 동기)
 ├── BbqMenuAdapter.java               BbqMenuPort 구현
-├── BbqProperties.java                bbq.api.*
-├── RemoteImageDownloader.java        RemoteImagePort 구현 — 원격 이미지를 받아 FileUploadService로 저장
+├── BbqProperties.java                bbq.api.* (base-url만 — timeoutSeconds는 삭제됨)
+├── RemoteImageDownloader.java        RemoteImagePort 구현 — 원격 이미지를 받아 FileUploadService로 저장 (RestClient, per-client 5s/30s, 10MB 응답 상한)
 └── dto/  BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse
 ```
 
@@ -26,7 +26,7 @@ com.tastyhouse.external.bbq/
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스 존재만으로 `BbqModuleAutoConfiguration`이 발화하므로 `@Import`는 없다. batch는 이 모듈을 경유해 코어 `infrastructure:external`(WebClient·webflux)을 전이로 받는다.
+**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스 존재만으로 `BbqModuleAutoConfiguration`이 발화하므로 `@Import`는 없다. batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
 
 ## ⚠️ `RemoteImageDownloader`는 persistence가 등록하는 빈에 런타임 의존한다
 
@@ -34,30 +34,32 @@ com.tastyhouse.external.bbq/
 
 ## yml — `application-bbq.yml`
 
-**batch-module만** `spring.config.import`로 로딩한다(분리 전 파일명은 `application-crawling.yml`). `bbq.api.base-url` 하나를 담는다. **접두사는 분리 때 `crawling.bbq.api` → `bbq.api`로 바뀌었다** — 환경변수 오버라이드가 없는 값이라 yml 한 줄만 따라 바뀌었다. `timeout-seconds`는 `BbqProperties`의 `@DefaultValue("10")`을 쓴다.
+**batch-module만** `spring.config.import`로 로딩한다(분리 전 파일명은 `application-crawling.yml`). `bbq.api.base-url` 하나를 담는다. **접두사는 분리 때 `crawling.bbq.api` → `bbq.api`로 바뀌었다** — 환경변수 오버라이드가 없는 값이라 yml 한 줄만 따라 바뀌었다. **`BbqProperties.timeoutSeconds`는 삭제됐다** — yml에서 한 번도 지정된 적이 없어 값이 항상 기본 10초였고, 이는 코어 `RestClientConfig`의 전역 read 타임아웃(10초)과 같았다. 남겨 두면 그 값을 쓰기 위한 per-client `requestFactory` override가 필요해 `MockRestServiceServer` 기반 단위 테스트가 불가능해지므로 삭제하고 전역 타임아웃에 맡겼다.
 
 **yml import 누락은 기동으로 드러나지 않는다.** `baseUrl`에 기본값이 없어 null이 되지만 부팅은 성공하고, 실패는 BBQ 동기화 잡이 실제로 돌 때 `null/api/...` URL로 드러난다. batch `application.yml`의 import 줄을 지우지 않는다.
 
 ## 테스트
 
-`src/test/.../external/bbq/BbqApiClientTest`에 **`@Disabled("실네트워크(bbq.co.kr) 호출 — 빌드 게이트에서 제외")`가 붙어 있다.** 실제 외부 호스트를 호출하는 테스트라 `./gradlew build`가 외부 서비스 가용성에 묶이면 안 되기 때문이다. 응답 형태를 사람이 확인할 때 수동으로 활성화해 돌리는 용도이며, **크롤링 로직의 회귀 방어 수단이 아니다.**
+`src/test/.../external/bbq/BbqApiClientTest`는 **`MockRestServiceServer.bindTo(RestClient.builder())` 기반 단위 테스트(3건)로 교체됐다** — 과거 실네트워크(bbq.co.kr) 호출을 `@Disabled`로 빌드 게이트에서 제외하던 `@SpringBootTest`를 대체한다. `BbqApiClient`가 동기 메서드로 전환되고 per-client `requestFactory` override가 사라져(위 §yml) 스프링 컨텍스트 없이 생성자 직접 호출 + 목 서버 바인딩만으로 검증할 수 있게 됐다.
 
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `WebClient.Builder`
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유)
 - `application` (implementation) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다
 - `domain` (implementation) — `FileUploadService`·`FileUploadCommand`·`UploadedFileId`, 예외 계약
 - **런타임 의존(빌드 그래프에 없음)**: `infrastructure:persistence`의 `FileDomainConfig`가 등록하는 `FileUploadService` 빈
 
 ### External
-- `spring-boot-starter-webflux` — BBQ API 호출(`WebClient`). 코어 `external`의 webflux는 `implementation`이라 컴파일 클래스패스로 전이되지 않으므로 이 모듈이 직접 선언한다. `RemoteImageDownloader`는 JDK `HttpClient`를 쓴다.
+- webflux 없음 — BBQ API 호출은 **동기 `RestClient`**(`BbqApiClient`의 `getMenuCategories`·`getMenusByCategoryId`·`getMenuDetail`·`getMenuSubOptions` 4개 메서드, 과거 Mono 반환 + `...Sync()` 래퍼는 제거됐다). 코어 `infrastructure:restclient`가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. `RemoteImageDownloader`도 RestClient(`retrieve().toEntity(byte[].class)`)를 쓴다.
 
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **크롤링 대상은 남의 서비스다** — `base-url`·응답 형태가 예고 없이 바뀔 수 있고, 그 실패는 빌드가 아니라 배치 실행에서 드러난다. 배치 잡은 실패를 잡아 로그로 남기고 다음 주기에 재실행하는 잡 단위 격리가 정상 설계다.
 - **application 쪽 패키지명에는 `crawling`이 남아 있다**(`com.tastyhouse.application.crawling.bbq`). 이번 분리는 infrastructure 모듈만 대상이었으며, application 패키지 평탄화는 후속 판단 항목이다.
+- **`RemoteImageDownloader`는 URI를 문자열이 아니라 `URI.create(imageUrl)`로 넘긴다** — `.uri(String)` 오버로드는 URI 템플릿 확장 과정에서 `%`를 재인코딩하므로, 원격 이미지 URL이 이미 퍼센트 인코딩(`%20`·한글 인코딩 등)돼 있으면 이중 인코딩되어 404가 났다. `URI.create(...)`로 넘기면 그 문자열을 있는 그대로 쓴다.
+- **`RemoteImageDownloader`는 응답 크기 상한(10MB, `FileUploadService` 업로드 한도와 동일)을 둔다** — `exchange()`로 응답을 받아 초과하면 `BusinessException(ErrorCode.FILE_SIZE_EXCEEDED)`를 던진다. WebClient 시절의 `maxInMemorySize`(2MB) 같은 버퍼 상한이 RestClient에는 없어 생긴 공백을 메운 것이다. 그 밖의 계약은 무변경 — 비정상 상태는 `FILE_EMPTY`, 그 밖의 IO 실패는 `RuntimeException`으로 던진다.
 
 ## 봉인·가드 목록
 
@@ -86,7 +88,7 @@ com.tastyhouse.external.bbq/
 
 `BbqMenuAdapter`는 `BbqMenuPort`의 구현으로, BBQ wire DTO를 application 계약 타입으로 변환한다. 변환 로직은 이전에 `BbqService`가 갖고 있던 `convertToProduct*` 메서드를 그대로 옮긴 것이며, **값 매핑(널 `Boolean` → primitive 기본값 등)은 동작을 바꾸지 않도록 원본과 동일하다.**
 
-`BbqApiClient`는 이 어댑터의 **내부 협력자로 남는다** — `WebClient`·`Mono` 같은 반응형 타입이 시그니처에 드러나므로 포트 계약에 올릴 수 없다. 크롤링 응답 형태를 바꾸는 작업에서 이 클라이언트를 포트로 승격하고 싶어지면, 반응형 타입이 application 계층으로 새어 나간다는 점을 먼저 본다.
+`BbqApiClient`는 이 어댑터의 **내부 협력자로 남는다** — BBQ wire DTO가 시그니처에 드러나므로 포트 계약에 올릴 수 없다(과거에는 `WebClient`·`Mono` 같은 반응형 타입이 그 이유였으나, RestClient 전환으로 동기 메서드가 되면서 지금 남은 이유는 wire DTO 노출이다). 크롤링 응답 형태를 바꾸는 작업에서 이 클라이언트를 포트로 승격하고 싶어지면, wire DTO가 application 계층으로 새어 나간다는 점을 먼저 본다.
 
 ### `RemoteImageDownloader`의 패키지 이력
 

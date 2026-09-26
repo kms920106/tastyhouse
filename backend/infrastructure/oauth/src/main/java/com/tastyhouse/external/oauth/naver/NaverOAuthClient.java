@@ -5,8 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
@@ -29,10 +28,10 @@ public class NaverOAuthClient implements SocialOAuthClient {
     @Value("${naver.redirect-uri}")
     private String redirectUri;
 
-    private final WebClient webClient;
+    private final RestClient restClient;
 
-    public NaverOAuthClient(WebClient webClient) {
-        this.webClient = webClient;
+    public NaverOAuthClient(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @Override
@@ -73,21 +72,19 @@ public class NaverOAuthClient implements SocialOAuthClient {
         formData.add("state", state);
         formData.add("redirect_uri", redirectUri);
 
-        return webClient.post()
+        return restClient.post()
             .uri(NAUTH_BASE_URL + "/oauth2.0/token")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(formData))
+            .body(formData)
             .retrieve()
-            .bodyToMono(NaverTokenResponse.class)
-            .block();
+            .body(NaverTokenResponse.class);
     }
 
     public NaverUserInfoResponse fetchUserInfo(String naverAccessToken) {
-        return webClient.get()
+        return restClient.get()
             .uri(NAPI_BASE_URL + "/v1/nid/me")
             .header("Authorization", "Bearer " + naverAccessToken)
             .retrieve()
-            .bodyToMono(NaverUserInfoResponse.class)
-            .block();
+            .body(NaverUserInfoResponse.class);
     }
 }

@@ -5,8 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
@@ -26,10 +25,10 @@ public class KakaoOAuthClient implements SocialOAuthClient {
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
-    private final WebClient webClient;
+    private final RestClient restClient;
 
-    public KakaoOAuthClient(WebClient webClient) {
-        this.webClient = webClient;
+    public KakaoOAuthClient(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @Override
@@ -66,21 +65,19 @@ public class KakaoOAuthClient implements SocialOAuthClient {
         formData.add("redirect_uri", redirectUri);
         formData.add("code", authorizationCode);
 
-        return webClient.post()
+        return restClient.post()
             .uri(KAUTH_BASE_URL + "/oauth/token")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(BodyInserters.fromFormData(formData))
+            .body(formData)
             .retrieve()
-            .bodyToMono(KakaoTokenResponse.class)
-            .block();
+            .body(KakaoTokenResponse.class);
     }
 
     public KakaoUserInfoResponse fetchUserInfo(String kakaoAccessToken) {
-        return webClient.get()
+        return restClient.get()
             .uri(KAPI_BASE_URL + "/v2/user/me")
             .header("Authorization", "Bearer " + kakaoAccessToken)
             .retrieve()
-            .bodyToMono(KakaoUserInfoResponse.class)
-            .block();
+            .body(KakaoUserInfoResponse.class);
     }
 }

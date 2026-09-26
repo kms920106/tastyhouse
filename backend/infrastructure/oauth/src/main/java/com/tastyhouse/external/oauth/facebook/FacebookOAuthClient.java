@@ -2,7 +2,7 @@ package com.tastyhouse.external.oauth.facebook;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -24,10 +24,10 @@ public class FacebookOAuthClient implements SocialOAuthClient {
     @Value("${facebook.app-secret}")
     private String appSecret;
 
-    private final WebClient webClient;
+    private final RestClient restClient;
 
-    public FacebookOAuthClient(WebClient webClient) {
-        this.webClient = webClient;
+    public FacebookOAuthClient(RestClient.Builder restClientBuilder) {
+        this.restClient = restClientBuilder.build();
     }
 
     @Override
@@ -63,19 +63,21 @@ public class FacebookOAuthClient implements SocialOAuthClient {
     }
 
     public FacebookUserInfoResponse fetchUserInfo(String facebookAccessToken) {
-        return webClient.get()
-            .uri(GRAPH_BASE_URL + "/me?fields=" + USER_FIELDS + "&access_token=" + facebookAccessToken)
+        return restClient.get()
+            .uri(GRAPH_BASE_URL + "/me?fields={fields}&access_token={accessToken}", USER_FIELDS, facebookAccessToken)
             .retrieve()
-            .bodyToMono(FacebookUserInfoResponse.class)
-            .block();
+            .body(FacebookUserInfoResponse.class);
     }
 
     public FacebookTokenDebugResponse debugToken(String facebookAccessToken) {
         String appAccessToken = appId + "|" + appSecret;
-        return webClient.get()
-            .uri(GRAPH_BASE_URL + "/debug_token?input_token=" + facebookAccessToken + "&access_token=" + appAccessToken)
+        return restClient.get()
+            .uri(
+                GRAPH_BASE_URL + "/debug_token?input_token={inputToken}&access_token={accessToken}",
+                facebookAccessToken,
+                appAccessToken
+            )
             .retrieve()
-            .bodyToMono(FacebookTokenDebugResponse.class)
-            .block();
+            .body(FacebookTokenDebugResponse.class);
     }
 }

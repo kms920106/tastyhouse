@@ -2,7 +2,7 @@
 
 # infrastructure:oauth
 
-소셜 로그인(카카오·네이버·애플·페이스북) 클라이언트를 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.oauth..`는 불변**이다(코어 스캔 범위가 `external.config` 하나라 — 파일 저장 SPI 삭제 전에는 `external.file`까지 둘 — 동반 스캔 위험이 없고, web-api ArchUnit 규칙이 이 패키지 이름을 직접 참조한다).
+소셜 로그인(카카오·네이버·애플·페이스북) 클라이언트를 소유하는 어댑터 모듈(`java-library`). `infrastructure:restclient`(구 `infrastructure:http-client`) 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.oauth..`는 불변**이다(코어 스캔 범위가 `external.config` 하나라 — 파일 저장 SPI 삭제 전에는 `external.file`까지 둘 — 동반 스캔 위험이 없고, web-api ArchUnit 규칙이 이 패키지 이름을 직접 참조한다).
 
 ## 무엇을 소유하는가
 
@@ -68,12 +68,12 @@ com.tastyhouse.external.oauth/
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `WebClient.Builder`, `ExternalApiException`/`ExternalApiErrorCode`
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유 — 실패는 `BusinessException`을 직접 던진다)
 - `application` (implementation) — **구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈.** driven adapter가 자신이 구현하는 아웃바운드 포트를 의존하는 정상 방향이다. 반대 방향(`application → infrastructure:oauth`)은 선언돼 있지 않으므로 순환이 아니다
 - `domain` (implementation) — 예외 계약과 도메인 타입
 
 ### External
-- `spring-boot-starter-webflux` — 제공자 API 호출(`WebClient`)
+- webflux 없음 — 제공자 API 호출은 **동기 `RestClient`**(4개 클라이언트, 생성자에서 `RestClient.Builder`를 주입받아 `build()` — baseUrl 없음, 호스트 2개라서). 폼 전송은 `.body(MultiValueMap)`. 코어가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. 이전엔 호출 단위 타임아웃이 없었으나 이제 코어의 전역 customizer로 connect 5s / read 10s가 적용된다.
 - `io.jsonwebtoken:jjwt-api:0.13.0` + `runtimeOnly jjwt-impl`·`jjwt-jackson` — **애플 로그인 전용.** client_secret 생성은 ES256 서명(비공개키 PKCS8, Base64 저장), id_token 검증은 RS256(Apple JWKS에서 공개키 조회). **jjwt를 클래스패스에 올리는 유일한 external 계열 모듈이며, 이 모듈을 의존하는 앱은 web-api뿐이다** — 분리 전에는 4개 앱 전부가 jjwt를 받고 있었다(security 계열의 JWT 의존과는 별개 경로).
 
 ## 주의
@@ -138,6 +138,10 @@ Apple id_token JWT payload의 claim 해석 규약이다.
 **대상**: `backend/infrastructure/oauth/src/main/java/com/tastyhouse/external/oauth/facebook/FacebookOAuthClient.java` → `exchange()`
 
 페이스북은 JS SDK가 클라이언트에서 이미 액세스 토큰을 발급하므로 교환할 것이 없다. 그래서 `exchange()`는 교환 대신 **Facebook 공식 문서가 요구하는 서버측 검증**(`debug_token`으로 토큰의 `app_id`가 우리 앱과 일치하는지 확인)을 수행하고 토큰을 그대로 돌려준다. 이 검증은 과거 web-api `FacebookSocialLoginService#validateToken`에 있었으나, `app_id` 설정값과 `debug_token` 호출은 어댑터의 관심사이므로 이 모듈로 회수했다.
+
+**쿼리는 문자열 연결이 아니라 URI 템플릿 변수로 조립한다**(`/debug_token?input_token={inputToken}&access_token={accessToken}`, `/me?fields={fields}&access_token={accessToken}`). 사용자가 제공하는 액세스 토큰에 `&`·`=`·`{` 같은 문자가 섞여 있으면 문자열 연결로는 파라미터 주입이나 500으로 이어질 수 있다 — WebClient 시절에도 있던 기존 결함이며, RestClient 전환 작업에서 함께 해소했다.
+
+**부수 이점 — 실패 메시지에 앱 시크릿이 남지 않는다**: RestClient의 `RestClientResponseException`/`ResourceAccessException` 메시지는 쿼리 문자열 이후를 잘라내므로, `debug_token` 호출이 실패해도 로그에 `access_token`(Facebook app secret 포함 가능)이 노출되지 않는다. 과거 `WebClientResponseException`은 쿼리를 포함한 전체 URI를 메시지에 그대로 담아 로그에 시크릿이 노출될 수 있었다.
 
 ### 네이버만 `state`를 쓴다 (CSRF 방어)
 

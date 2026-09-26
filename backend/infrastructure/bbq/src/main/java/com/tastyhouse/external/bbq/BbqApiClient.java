@@ -1,14 +1,14 @@
 package com.tastyhouse.external.bbq;
 
-import java.time.Duration;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.tastyhouse.external.bbq.dto.BbqMenuCategoryResponse;
 import com.tastyhouse.external.bbq.dto.BbqMenuResponse;
@@ -19,109 +19,80 @@ public class BbqApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(BbqApiClient.class);
 
-    private final WebClient.Builder webClientBuilder;
-    private final BbqProperties bbqProperties;
+    private static final ParameterizedTypeReference<List<BbqMenuCategoryResponse>> CATEGORY_LIST =
+        new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<BbqMenuResponse>> MENU_LIST =
+        new ParameterizedTypeReference<>() {};
+    private static final ParameterizedTypeReference<List<BbqMenuSubOptionResponse>> SUB_OPTION_LIST =
+        new ParameterizedTypeReference<>() {};
 
-    public BbqApiClient(WebClient.Builder webClientBuilder, BbqProperties bbqProperties) {
-        this.webClientBuilder = webClientBuilder;
-        this.bbqProperties = bbqProperties;
+    private final RestClient restClient;
+
+    public BbqApiClient(RestClient.Builder restClientBuilder, BbqProperties bbqProperties) {
+        this.restClient = restClientBuilder.baseUrl(bbqProperties.baseUrl()).build();
     }
 
-    private WebClient getWebClient() {
-        return webClientBuilder.build();
-    }
-
-    public Mono<List<BbqMenuCategoryResponse>> getMenuCategories() {
-        String url = bbqProperties.baseUrl() + "/api/delivery/menu/category";
-
-        return handleApiError(
-                getWebClient().get()
-                        .uri(url)
-                        .retrieve()
-                        .bodyToFlux(BbqMenuCategoryResponse.class)
-                        .collectList()
-                        .timeout(Duration.ofSeconds(bbqProperties.timeoutSeconds()))
-                        .doOnSuccess(categories ->
-                                log.info("BBQ 메뉴 카테고리 조회 성공: {}개", categories.size())),
-                "BBQ 메뉴 카테고리 조회"
+    public List<BbqMenuCategoryResponse> getMenuCategories() {
+        List<BbqMenuCategoryResponse> categories = call(
+            () -> restClient.get()
+                .uri("/api/delivery/menu/category")
+                .retrieve()
+                .body(CATEGORY_LIST),
+            "BBQ 메뉴 카테고리 조회"
         );
+        log.info("BBQ 메뉴 카테고리 조회 성공: {}개", sizeOf(categories));
+        return categories;
     }
 
-    public List<BbqMenuCategoryResponse> getMenuCategoriesSync() {
-        return getMenuCategories()
-                .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
-    }
-
-    public Mono<List<BbqMenuResponse>> getMenusByCategoryId(Long categoryId) {
-        String url = bbqProperties.baseUrl() + "/api/delivery/menu/" + categoryId;
-
-        return handleApiError(
-                getWebClient().get()
-                        .uri(url)
-                        .retrieve()
-                        .bodyToFlux(BbqMenuResponse.class)
-                        .collectList()
-                        .timeout(Duration.ofSeconds(bbqProperties.timeoutSeconds()))
-                        .doOnSuccess(menus ->
-                                log.info("BBQ 카테고리별 메뉴 조회 성공: categoryId={}, 메뉴 수={}", categoryId, menus.size())),
-                "BBQ 카테고리별 메뉴 조회"
+    public List<BbqMenuResponse> getMenusByCategoryId(Long categoryId) {
+        List<BbqMenuResponse> menus = call(
+            () -> restClient.get()
+                .uri("/api/delivery/menu/{categoryId}", categoryId)
+                .retrieve()
+                .body(MENU_LIST),
+            "BBQ 카테고리별 메뉴 조회"
         );
+        log.info("BBQ 카테고리별 메뉴 조회 성공: categoryId={}, 메뉴 수={}", categoryId, sizeOf(menus));
+        return menus;
     }
 
-    public List<BbqMenuResponse> getMenusByCategoryIdSync(Long categoryId) {
-        return getMenusByCategoryId(categoryId)
-                .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
-    }
-
-    public Mono<BbqMenuResponse> getMenuDetail(Long menuId) {
-        String url = bbqProperties.baseUrl() + "/api/delivery/menu/detail/" + menuId;
-
-        return handleApiError(
-                getWebClient().get()
-                        .uri(url)
-                        .retrieve()
-                        .bodyToMono(BbqMenuResponse.class)
-                        .timeout(Duration.ofSeconds(bbqProperties.timeoutSeconds()))
-                        .doOnSuccess(menu ->
-                                log.info("BBQ 메뉴 상세 조회 성공: menuId={}, menuName={}", menuId, menu.getMenuName())),
-                "BBQ 메뉴 상세 조회"
+    public BbqMenuResponse getMenuDetail(Long menuId) {
+        BbqMenuResponse menu = call(
+            () -> restClient.get()
+                .uri("/api/delivery/menu/detail/{menuId}", menuId)
+                .retrieve()
+                .body(BbqMenuResponse.class),
+            "BBQ 메뉴 상세 조회"
         );
+        log.info("BBQ 메뉴 상세 조회 성공: menuId={}, menuName={}", menuId, menu == null ? null : menu.getMenuName());
+        return menu;
     }
 
-    public BbqMenuResponse getMenuDetailSync(Long menuId) {
-        return getMenuDetail(menuId)
-                .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
-    }
-
-    public Mono<List<BbqMenuSubOptionResponse>> getMenuSubOptions(Long menuId) {
-        String url = bbqProperties.baseUrl() + "/api/delivery/menu/sub-option/" + menuId;
-
-        return handleApiError(
-                getWebClient().get()
-                        .uri(url)
-                        .retrieve()
-                        .bodyToFlux(BbqMenuSubOptionResponse.class)
-                        .collectList()
-                        .timeout(Duration.ofSeconds(bbqProperties.timeoutSeconds()))
-                        .doOnSuccess(subOptions ->
-                                log.info("BBQ 메뉴 서브 옵션 조회 성공: menuId={}, 옵션 수={}", menuId, subOptions.size())),
-                "BBQ 메뉴 서브 옵션 조회"
+    public List<BbqMenuSubOptionResponse> getMenuSubOptions(Long menuId) {
+        List<BbqMenuSubOptionResponse> subOptions = call(
+            () -> restClient.get()
+                .uri("/api/delivery/menu/sub-option/{menuId}", menuId)
+                .retrieve()
+                .body(SUB_OPTION_LIST),
+            "BBQ 메뉴 서브 옵션 조회"
         );
+        log.info("BBQ 메뉴 서브 옵션 조회 성공: menuId={}, 옵션 수={}", menuId, sizeOf(subOptions));
+        return subOptions;
     }
 
-    public List<BbqMenuSubOptionResponse> getMenuSubOptionsSync(Long menuId) {
-        return getMenuSubOptions(menuId)
-                .block(Duration.ofSeconds(bbqProperties.timeoutSeconds()));
+    private <T> T call(Supplier<T> request, String apiName) {
+        try {
+            return request.get();
+        } catch (RestClientResponseException e) {
+            log.error("{} 실패: Status={}, Message={}", apiName, e.getStatusCode(), e.getMessage());
+            throw e;
+        } catch (RuntimeException e) {
+            log.error("{} 중 예외 발생", apiName, e);
+            throw e;
+        }
     }
 
-    private <T> Mono<T> handleApiError(Mono<T> mono, String apiName) {
-        return mono
-                .doOnError(WebClientResponseException.class, ex ->
-                        log.error("{} 실패: Status={}, Message={}", apiName, ex.getStatusCode(), ex.getMessage()))
-                .doOnError(Throwable.class, ex -> {
-                    if (!(ex instanceof WebClientResponseException)) {
-                        log.error("{} 중 예외 발생", apiName, ex);
-                    }
-                });
+    private static int sizeOf(List<?> list) {
+        return list == null ? 0 : list.size();
     }
 }

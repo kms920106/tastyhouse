@@ -21,7 +21,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
-| `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). `ErrorCode`와 `infrastructure:external`의 `ExternalApiErrorCode`(`com.tastyhouse.external.exception`)가 구현하며, `BusinessException`이 이 타입을 보유해 전역 핸들러 하나가 두 계열을 모두 처리한다 |
+| `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). 지금 구현체는 `ErrorCode` 하나뿐이다 — 과거 `infrastructure:http-client`(구 `infrastructure:external`)가 소유하던 `ExternalApiErrorCode`는 완전히 삭제됐고, 외부 연동 실패 코드(SMS 발송·메일 발송·행정동 경계 조회 실패 등)도 지금은 이 `ErrorCode` 카탈로그의 상수다. 인터페이스 자체는 "카탈로그는 하나로 유지하되 필요하면 domain이 모듈별 에러 카탈로그를 다시 호스트할 수 있는 확장점"으로 남긴다. `BusinessException`이 이 타입을 보유해 전역 핸들러가 그대로 처리한다 |
 
 > JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지가 아니라 infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig` 소관입니다.
 

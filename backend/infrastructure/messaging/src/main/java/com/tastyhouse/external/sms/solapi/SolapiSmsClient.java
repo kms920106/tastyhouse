@@ -12,12 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import com.tastyhouse.domain.sms.port.SmsSender;
-import com.tastyhouse.external.exception.ExternalApiErrorCode;
-import com.tastyhouse.external.exception.ExternalApiException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.external.sms.solapi.request.SolapiMessageRequest;
 import com.tastyhouse.external.sms.solapi.response.SolapiMessageResponse;
 
@@ -30,11 +30,11 @@ public class SolapiSmsClient implements SmsSender {
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String AUTH_SCHEME = "HMAC-SHA256";
 
-    private final WebClient.Builder webClientBuilder;
+    private final RestClient restClient;
     private final SolapiProperties solapiProperties;
 
-    public SolapiSmsClient(WebClient.Builder webClientBuilder, SolapiProperties solapiProperties) {
-        this.webClientBuilder = webClientBuilder;
+    public SolapiSmsClient(RestClient.Builder restClientBuilder, SolapiProperties solapiProperties) {
+        this.restClient = restClientBuilder.baseUrl(solapiProperties.baseUrl()).build();
         this.solapiProperties = solapiProperties;
     }
 
@@ -55,36 +55,35 @@ public class SolapiSmsClient implements SmsSender {
         try {
             String authorizationHeader = createAuthorizationHeader();
 
-            SolapiMessageResponse response = webClientBuilder.build()
+            SolapiMessageResponse response = restClient
                 .post()
-                .uri(solapiProperties.baseUrl() + solapiProperties.sendManyPath())
+                .uri(solapiProperties.sendManyPath())
                 .header("Authorization", authorizationHeader)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
+                .body(request)
                 .retrieve()
-                .bodyToMono(SolapiMessageResponse.class)
-                .block();
+                .body(SolapiMessageResponse.class);
 
             if (response == null) {
                 log.warn("Solapi SMS 발송 응답 없음. to: {}", to);
-                throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_NO_RESPONSE);
+                throw new BusinessException(ErrorCode.SMS_SEND_NO_RESPONSE);
             }
 
             if (!response.isSuccess()) {
                 log.error("Solapi SMS 발송 실패. to: {}, failedMessages: {}", to, response.getFailedMessageList());
-                throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_FAILED);
+                throw new BusinessException(ErrorCode.SMS_SEND_FAILED);
             }
 
             log.info("Solapi SMS 발송 성공. to: {}", to);
 
-        } catch (WebClientResponseException e) {
+        } catch (RestClientResponseException e) {
             log.error("Solapi SMS 발송 API 오류. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
-            throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_API_ERROR, e);
-        } catch (ExternalApiException e) {
+            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
+        } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             log.error("Solapi SMS 발송 중 예외 발생. to: {}", to, e);
-            throw new ExternalApiException(ExternalApiErrorCode.SMS_SEND_API_ERROR, e);
+            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
         }
     }
 

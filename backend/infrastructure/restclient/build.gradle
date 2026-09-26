@@ -1,0 +1,31 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+}
+
+dependencies {
+    api 'org.springframework:spring-web'
+    api 'org.springframework.boot:spring-boot-starter-json'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    inputs.files(fileTree(rootProject.file('infrastructure')) {
+        include '*/src/**/*.java'
+        include '*/build.gradle'
+    }).withPropertyName('infrastructureSources').withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}

@@ -2,7 +2,7 @@
 
 # infrastructure:payment
 
-토스페이먼츠 PG 연동을 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.payment..`는 불변**이다(코어 스캔 범위 밖이라 동반 스캔 위험이 없다).
+토스페이먼츠 PG 연동을 소유하는 어댑터 모듈(`java-library`). `infrastructure:restclient`(구 `infrastructure:http-client`) 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.payment..`는 불변**이다(코어 스캔 범위 밖이라 동반 스캔 위험이 없다).
 
 ## 무엇을 소유하는가
 
@@ -20,7 +20,7 @@ com.tastyhouse.external.payment/
         └── TossPaymentConfirmResponse.java
 ```
 
-**wire DTO(`dto/`)는 이 모듈에 잔류한다.** 포트 `PgPaymentGateway`의 반환 타입은 도메인이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — WebClient·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
+**wire DTO(`dto/`)는 이 모듈에 잔류한다.** 포트 `PgPaymentGateway`의 반환 타입은 도메인이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — `RestClient`·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
 
 ## 어느 앱이 의존하는가
 
@@ -47,11 +47,11 @@ payment:
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `WebClient.Builder`(`WebClientConfig`), `ExternalApiException`/`ExternalApiErrorCode`
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유 — 실패는 `BusinessException`을 직접 던진다)
 - `domain` (implementation) — 구현하는 `PgPaymentGateway` 포트와 그 반환 타입(`payment/port/dto/`), 예외 계약
 
 ### External
-- `spring-boot-starter-webflux` — 토스 API 호출(`WebClient`). Jackson도 이것이 전이로 제공한다.
+- webflux 없음 — 토스 API 호출은 **동기 `RestClient`**(`TossPaymentClient`). 코어가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`(Jackson)을 전이로 받는다. 단위 테스트는 `MockRestServiceServer.bindTo(RestClient.builder())` 기반(`TossPaymentClientTest`, 4건).
 
 **`application`에 의존하지 않는다** — 이 모듈이 구현하는 계약은 도메인 포트 하나뿐이고 아웃바운드 SPI가 없다(oauth·bbq·admdongkor와 다른 점).
 
@@ -59,7 +59,7 @@ payment:
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선 (챕터 02 개정)**: web-api만 `implementation project(':infrastructure:payment')`를 선언한다(챕터 02 — `runtimeOnly`). `PaymentModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **의존 선언 자체가 활성화**이므로, 다른 앱에 실수로 의존을 추가하면 `PgPaymentGateway` 빈이 뜨는 것이 아니라(설정값이 web-api에만 있어) 오히려 그 앱에서 프로퍼티 바인딩 실패로 부팅이 깨질 수 있다.
-- **결제 실패는 `ExternalApiException`으로 던진다** — 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다. 응답 `code`는 wire 계약이므로 기존 값을 바꾸지 않는다.
+- **결제 실패는 도메인 `BusinessException(ErrorCode.X)`으로 던진다** — 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다(과거 `ExternalApiException`은 완전히 삭제됐다). 응답 `code`는 wire 계약이므로 기존 값을 바꾸지 않는다.
 
 ## 봉인·가드 목록
 
@@ -69,7 +69,7 @@ payment:
 
 **대상**: `backend/infrastructure/payment/src/main/java/com/tastyhouse/external/payment/`
 
-외부 연동 7모듈 공통 규칙이다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다. 상세는 `../external/AGENTS.md`.
+외부 연동 7모듈 공통 규칙이다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다. 상세는 `../restclient/AGENTS.md`.
 
 ### 다른 앱에 이 모듈 의존을 추가하지 않는다
 
@@ -85,4 +85,4 @@ payment:
 
 **대상**: `backend/infrastructure/payment/src/main/java/com/tastyhouse/external/payment/toss/dto/TossPaymentConfirmResponse.java`
 
-승인 응답 wire DTO 안에 **에러 응답 필드가 함께 선언돼 있다.** 토스가 성공·실패를 같은 엔드포인트에서 돌려주기 때문이며, 실패 판별과 `ExternalApiException` 번역은 `TossPaymentGatewayAdapter`가 수행한다. 이 필드들을 별도 DTO로 떼어내면 어댑터가 응답 본문을 두 번 역직렬화해야 하므로 분리 대상이 아니다.
+승인 응답 wire DTO 안에 **에러 응답 필드가 함께 선언돼 있다.** 토스가 성공·실패를 같은 엔드포인트에서 돌려주기 때문이며, 실패 판별과 `BusinessException` 번역은 `TossPaymentGatewayAdapter`가 수행한다. 이 필드들을 별도 DTO로 떼어내면 어댑터가 응답 본문을 두 번 역직렬화해야 하므로 분리 대상이 아니다.

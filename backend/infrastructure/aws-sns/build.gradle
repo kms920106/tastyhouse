@@ -6,7 +6,6 @@ plugins {
 dependencies {
     implementation platform('software.amazon.awssdk:bom:2.21.46')
 
-    implementation project(':infrastructure:external')
     implementation project(':domain')
 
     implementation 'software.amazon.awssdk:sns'
