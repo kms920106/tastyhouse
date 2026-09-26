@@ -8,7 +8,7 @@ dependencies {
     runtimeOnly project(':infrastructure:redis')
     runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':infrastructure:oauth')
-    runtimeOnly project(':infrastructure:payment')
+    runtimeOnly project(':infrastructure:pg')
     runtimeOnly project(':infrastructure:mail')
     runtimeOnly project(':infrastructure:sms')
     runtimeOnly project(':logging-module')

@@ -87,7 +87,7 @@ public class PaymentConfirmationService {
         return savedPayment.getPaymentId();
     }
 
-    public TossConfirmationTarget prepareTossConfirmation(MemberId memberId, String pgOrderId, int amount) {
+    public PgConfirmationTarget preparePgConfirmation(MemberId memberId, String pgOrderId, int amount) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -101,10 +101,15 @@ public class PaymentConfirmationService {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
-        return new TossConfirmationTarget(payment.getId(), pgOrderId, amount);
+        return new PgConfirmationTarget(payment.getId(), pgOrderId, amount);
     }
 
-    public PaymentId applyTossConfirmation(MemberId memberId, String pgOrderId, PgConfirmResult result) {
+    public PaymentId applyPgConfirmation(
+        MemberId memberId,
+        PgProvider pgProvider,
+        String pgOrderId,
+        PgConfirmResult result
+    ) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -112,13 +117,13 @@ public class PaymentConfirmationService {
             payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
         );
 
-        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getPaymentId(), result.detail()));
+        recordTossDetail(payment.getPaymentId(), result.detail());
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
-        payment.updatePgInfo(PgProvider.TOSS, result.paymentKey(), pgOrderId);
+        payment.updatePgInfo(pgProvider, result.paymentKey(), pgOrderId);
 
         if (result.cardCompany() != null) {
             payment.updateCardInfo(result.cardCompany(), result.cardNumber(), result.installmentPlanMonths());
@@ -142,11 +147,11 @@ public class PaymentConfirmationService {
         return savedPayment.getPaymentId();
     }
 
-    public void failTossConfirmation(String pgOrderId, PgConfirmResult result) {
+    public void failPgConfirmation(String pgOrderId, PgConfirmResult result) {
         Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
-        tossPaymentRecordRepository.save(toTossPaymentRecord(payment.getPaymentId(), result.detail()));
+        recordTossDetail(payment.getPaymentId(), result.detail());
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             return;
@@ -212,6 +217,13 @@ public class PaymentConfirmationService {
 
     private boolean isOnSitePayment(PaymentMethod paymentMethod) {
         return paymentMethod == PaymentMethod.CASH_ON_SITE || paymentMethod == PaymentMethod.CARD_ON_SITE;
+    }
+
+    private void recordTossDetail(PaymentId paymentId, TossPaymentDetail detail) {
+        if (detail == null) {
+            return;
+        }
+        tossPaymentRecordRepository.save(toTossPaymentRecord(paymentId, detail));
     }
 
     private TossPaymentRecord toTossPaymentRecord(PaymentId paymentId, TossPaymentDetail detail) {

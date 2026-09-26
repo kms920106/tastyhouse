@@ -12,7 +12,7 @@ spring:
       - classpath:application-logging.yml
       - classpath:application-infrastructure.yml
       - classpath:application-file-storage.yml
-      - classpath:application-payment.yml
+      - classpath:application-pg.yml
       - classpath:application-mail.yml
       - classpath:application-sms.yml
       - classpath:application-redis.yml

@@ -28,7 +28,7 @@ import com.tastyhouse.application.payment.port.in.PaymentCreateCommand;
 import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteCommand;
 import com.tastyhouse.application.payment.port.in.PaymentQueryUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentRefundRequestCommand;
-import com.tastyhouse.application.payment.port.in.TossPaymentConfirmCommand;
+import com.tastyhouse.application.payment.port.in.PgPaymentConfirmCommand;
 import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
@@ -72,8 +72,8 @@ public class PaymentApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        TossPaymentConfirmCommand command = request.toCommand(memberId);
-        Long paymentId = paymentCommandUseCase.confirmTossPayment(command);
+        PgPaymentConfirmCommand command = request.toCommand(memberId);
+        Long paymentId = paymentCommandUseCase.confirmPgPayment(command);
         PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }

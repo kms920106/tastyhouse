@@ -65,6 +65,7 @@ public enum ErrorCode implements ErrorCodeSpec {
     PAYMENT_NOT_ON_SITE(400, "PAYMENT_NOT_ON_SITE", "현장결제만 완료 처리할 수 있습니다."),
     PAYMENT_METHOD_UNKNOWN(400, "PAYMENT_METHOD_UNKNOWN", "알 수 없는 결제 방법입니다."),
     PG_PROVIDER_UNKNOWN(400, "PG_PROVIDER_UNKNOWN", "알 수 없는 PG사입니다."),
+    PG_PROVIDER_UNSUPPORTED(400, "PG_PROVIDER_UNSUPPORTED", "지원하지 않는 PG사입니다."),
 
     MEMBER_NOT_FOUND(404, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
     MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),

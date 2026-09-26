@@ -44,7 +44,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | 1 (`MailSender`) |
 | order | 주문 (Order/OrderProduct/OrderProductOption) | 4 | 3 | 2 | 3 | 5 | - |
 | partnership | 제휴 신청 | 2 | 1 | - | 1 | - | - |
-| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | 4 (`PgPaymentGateway` + dto) |
+| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | 5 (`PgPaymentGateway` + `PgProviderGateway` + dto) |
 | point | 포인트 (Point/PointHistory) | 3 | - | 3 | 2 | 1 | - |
 | policy | 정책/약관 버전 관리 | 2 | 1 | 1 | 1 | 1 | - |
 | product | 상품·옵션 (8 애그리거트) | 8 | 5 | 3 | 8 | 2 | 1 (`ProductReviewStatisticsPort`) |
@@ -71,7 +71,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{external,firebase,aws-s3,
-                                          aws-ses,aws-sns,oauth,payment,mail,javamail,sms,solapi,
+                                          aws-ses,aws-sns,oauth,pg,tosspayments,mail,javamail,sms,solapi,
                                           bbq,admdongkor}
                                           (외부 연동 port 구현)
 ```
@@ -187,7 +187,8 @@ public interface DomainEventPublisher {
 // domain/mail/port/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
 // domain/sms/port/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:payment
+// domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:pg의 라우터 PgPaymentGatewayRouter(도메인 순수 POJO)가 구현, PgGatewayConfig가 @Bean 등록
+// domain/payment/port/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProvider.TOSS)가 구현, 조립은 infrastructure:pg
 ```
 
 **QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryDao` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryDao`)는 `infrastructure-module/AGENTS.md` 참고.

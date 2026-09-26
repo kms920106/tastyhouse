@@ -13,7 +13,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `application`·`security-module`·`api-common-module`을 `implementation`으로 의존(컴파일 타임에 구체 타입을 직접 참조하는 소비처가 있어 auto-configuration 전환 후에도 남는다), `infrastructure:persistence`·`infrastructure:file-storage`(firebase를 묶은 파일 저장 스타터 — 챕터 03으로 2줄에서 1줄로)·`infrastructure:oauth`·`infrastructure:payment`·`infrastructure:mail`·`infrastructure:sms`·`infrastructure:redis`·`logging-module`은 **챕터 02로 `runtimeOnly`**(자기 등록 auto-configuration이라 앱이 진입점 설정 클래스를 컴파일 타임에 볼 필요가 없어졌다) + web, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). webflux는 리포 전체에서 제거됐다(외부 HTTP 호출은 동기 `RestClient`). QueryDSL 의존은 없다 |
+| `build.gradle` | `application`·`security-module`·`api-common-module`을 `implementation`으로 의존(컴파일 타임에 구체 타입을 직접 참조하는 소비처가 있어 auto-configuration 전환 후에도 남는다), `infrastructure:persistence`·`infrastructure:file-storage`(firebase를 묶은 파일 저장 스타터 — 챕터 03으로 2줄에서 1줄로)·`infrastructure:oauth`·`infrastructure:pg`·`infrastructure:mail`·`infrastructure:sms`·`infrastructure:redis`·`logging-module`은 **챕터 02로 `runtimeOnly`**(자기 등록 auto-configuration이라 앱이 진입점 설정 클래스를 컴파일 타임에 볼 필요가 없어졌다) + web, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). webflux는 리포 전체에서 제거됐다(외부 HTTP 호출은 동기 `RestClient`). QueryDSL 의존은 없다 |
 | `src/main/resources/` | `application.yml` 등 환경 설정 (로깅 설정은 logging-module의 `application-logging.yml`을 import) |
 
 ## Subdirectories
@@ -77,9 +77,9 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
-- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth·payment·solapi를 통해 전이로 실린다
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
 - `infrastructure:oauth` — 소셜 로그인 어댑터 4종(`external.oauth.spi` SPI 구현)
-- `infrastructure:payment` — Toss PG 어댑터(`PgPaymentGateway` 구현)
+- `infrastructure:pg` — 결제 PG 채널(라우터 `PgPaymentGatewayRouter` 조립, `PgPaymentGateway` 구현). 기본 벤더 `infrastructure:tosspayments`(`PgProviderGateway` 구현)를 `runtimeOnly`로 묶는다
 - `infrastructure:mail` — 메일 채널 모듈(`MailDomainConfig` + 기본 벤더 `infrastructure:javamail` 조립). SES 전환은 이 모듈에서 한다
 - `infrastructure:sms` — SMS 채널 모듈(`SmsDomainConfig` + 기본 벤더 `infrastructure:solapi` 조립). SNS 전환은 이 모듈에서 한다
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소

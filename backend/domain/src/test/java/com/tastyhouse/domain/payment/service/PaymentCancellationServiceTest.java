@@ -70,7 +70,20 @@ class PaymentCancellationServiceTest {
 
         assertThat(target.isRejected()).isFalse();
         assertThat(target.pgCancelRequired()).isTrue();
+        assertThat(target.pgProvider()).isEqualTo(PgProvider.TOSS);
         assertThat(target.pgTid()).isEqualTo("tid-1");
+    }
+
+    @Test
+    @DisplayName("사전 판정: 토스 외 PG로 완료된 결제도 PG 취소 대상으로 판정하고 담당 PG를 함께 돌려준다")
+    void prepareCancellation_carriesProviderForNonTossPayment() {
+        Fixture fixture = Fixture.with(PgProvider.KAKAO, PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        PaymentCancellationTarget target = fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
+
+        assertThat(target.isRejected()).isFalse();
+        assertThat(target.pgCancelRequired()).isTrue();
+        assertThat(target.pgProvider()).isEqualTo(PgProvider.KAKAO);
     }
 
     @Test
@@ -212,13 +225,17 @@ class PaymentCancellationServiceTest {
         }
 
         private static Fixture with(PaymentStatus paymentStatus, OrderStatus orderStatus) {
-            return new Fixture(payment(paymentStatus), order(orderStatus));
+            return with(PgProvider.TOSS, paymentStatus, orderStatus);
         }
 
-        private static Payment payment(PaymentStatus paymentStatus) {
+        private static Fixture with(PgProvider pgProvider, PaymentStatus paymentStatus, OrderStatus orderStatus) {
+            return new Fixture(payment(pgProvider, paymentStatus), order(orderStatus));
+        }
+
+        private static Payment payment(PgProvider pgProvider, PaymentStatus paymentStatus) {
             return Payment.reconstitute(
                 PAYMENT_ID.value(), ORDER_ID, PaymentMethod.CREDIT_CARD, paymentStatus, new Amount(21000),
-                PgProvider.TOSS, "tid-1", "pg-order-1", null, null, null,
+                pgProvider, "tid-1", "pg-order-1", null, null, null,
                 LocalDateTime.of(2026, 7, 31, 9, 30), null, null, null,
                 LocalDateTime.of(2026, 7, 31, 9, 0)
             );

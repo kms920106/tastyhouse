@@ -184,7 +184,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 ### Internal
 - `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
-- **외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,mail,javamail,sms,solapi,bbq,admdongkor}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:bbq`·`infrastructure:admdongkor`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
+- **외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:bbq`·`infrastructure:admdongkor`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
 
 ### External
@@ -474,10 +474,12 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
 
 **대상**: `payment/service/PaymentCommandService.java` · `payment/service/PaymentConfirmationExecutor.java`
 
-**클래스 레벨 `@Transactional`이 없는 것은 의도다.** 토스 승인·결제 취소는 PG사와의 HTTP 왕복을
+**클래스 레벨 `@Transactional`이 없는 것은 의도다.** PG 승인·결제 취소는 PG사와의 HTTP 왕복을
 포함하는데, 그 왕복이 DB 트랜잭션 안에 있으면 (1) 커넥션과 결제·주문 행 락을 네트워크 지연만큼
 점유하고, (2) PG 처리가 성공한 뒤 커밋이 실패하면 **"PG는 승인/취소, DB는 미반영"이라는 보상 불가
-불일치**가 남는다.
+불일치**가 남는다. **취소는 `pgCancelRequired && pgPaymentGateway.supports(pgProvider)`일 때만 PG를 호출한다** —
+`PaymentCommandService#cancelPayment`가 판정하는 `pgCancelAttempted`이며, 라우터가 해당 벤더를
+지원하지 않으면(`PgPaymentGatewayRouter#supports`) PG 왕복 없이 DB 취소만 반영한다.
 
 ```
 ① 사전 검증  : PaymentConfirmationExecutor#prepareInNewTx  (트랜잭션, readOnly)

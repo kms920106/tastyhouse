@@ -75,10 +75,10 @@ class PaymentConfirmationServiceTest {
 
     @Test
     @DisplayName("토스 반영(성공): 결제 완료·주문 확정·원장 기록·완료 이벤트가 모두 일어난다")
-    void applyTossConfirmation_completesAndPublishesEvent() {
+    void applyPgConfirmation_completesAndPublishesEvent() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
 
-        fixture.service.applyTossConfirmation(MEMBER_ID, "pg-order-1", successConfirmResult());
+        fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult());
 
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(fixture.orderRepository.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
@@ -91,14 +91,30 @@ class PaymentConfirmationServiceTest {
     }
 
     @Test
+    @DisplayName("PG 반영(성공): 담당 PG를 결제에 기록하고, 원본 응답이 없는 PG는 토스 원장을 남기지 않는다")
+    void applyPgConfirmation_recordsProviderAndSkipsMissingDetail() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        PgConfirmResult withoutDetail = new PgConfirmResult(
+            true, "payment-key", "DONE", 21000, LocalDateTime.of(2026, 7, 31, 10, 0),
+            "https://receipt", null, null, null, null, null, null
+        );
+
+        fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.KAKAO, "pg-order-1", withoutDetail);
+
+        assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.paymentRepository.lastSaved.getPgProvider()).isEqualTo(PgProvider.KAKAO);
+        assertThat(fixture.tossPaymentRecordRepository.saved).isEmpty();
+    }
+
+    @Test
     @DisplayName("토스 반영(실패): 결제를 FAILED로 저장하고 주문은 확정하지 않으며 원장은 남긴다")
-    void failTossConfirmation_savesFailedWithoutConfirmingOrder() {
+    void failPgConfirmation_savesFailedWithoutConfirmingOrder() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         PgConfirmResult rejected = new PgConfirmResult(
             false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
         );
 
-        fixture.service.failTossConfirmation("pg-order-1", rejected);
+        fixture.service.failPgConfirmation("pg-order-1", rejected);
 
         assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
         assertThat(fixture.orderRepository.lastSaved).isNull();
@@ -108,23 +124,23 @@ class PaymentConfirmationServiceTest {
 
     @Test
     @DisplayName("토스 반영(실패): 예외를 던지지 않는다 — 실패 근거(원장·FAILED 전이)가 커밋되어야 하므로 예외 변환은 호출자 몫이다")
-    void failTossConfirmation_doesNotThrow() {
+    void failPgConfirmation_doesNotThrow() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         PgConfirmResult rejected = new PgConfirmResult(
             false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
         );
 
-        fixture.service.failTossConfirmation("pg-order-1", rejected);
+        fixture.service.failPgConfirmation("pg-order-1", rejected);
 
         assertThat(fixture.tossPaymentRecordRepository.saved).hasSize(1);
     }
 
     @Test
     @DisplayName("토스 사전 검증: 요청 금액이 결제 금액과 다르면 거절하고 아무 상태도 바꾸지 않는다(PG 호출 전)")
-    void prepareTossConfirmation_rejectsAmountMismatch() {
+    void preparePgConfirmation_rejectsAmountMismatch() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
 
-        assertThatThrownBy(() -> fixture.service.prepareTossConfirmation(MEMBER_ID, "pg-order-1", 999))
+        assertThatThrownBy(() -> fixture.service.preparePgConfirmation(MEMBER_ID, "pg-order-1", 999))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
 
@@ -135,10 +151,10 @@ class PaymentConfirmationServiceTest {
 
     @Test
     @DisplayName("토스 사전 검증: 통과하면 PG 요청에 쓸 결제 식별자·주문번호·금액을 확정해 돌려준다")
-    void prepareTossConfirmation_returnsPgRequestTarget() {
+    void preparePgConfirmation_returnsPgRequestTarget() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
 
-        TossConfirmationTarget target = fixture.service.prepareTossConfirmation(MEMBER_ID, "pg-order-1", 21000);
+        PgConfirmationTarget target = fixture.service.preparePgConfirmation(MEMBER_ID, "pg-order-1", 21000);
 
         assertThat(target.paymentId()).isEqualTo(PAYMENT_ID.value());
         assertThat(target.pgOrderId()).isEqualTo("pg-order-1");
@@ -148,14 +164,14 @@ class PaymentConfirmationServiceTest {
 
     @Test
     @DisplayName("토스 승인: 다른 회원의 주문이면 사전 검증·반영 모두 PAYMENT_ACCESS_DENIED로 거절한다")
-    void confirmTossPayment_rejectsOtherMember() {
+    void confirmPgPayment_rejectsOtherMember() {
         Fixture prepareFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-        assertThatThrownBy(() -> prepareFixture.service.prepareTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", 21000))
+        assertThatThrownBy(() -> prepareFixture.service.preparePgConfirmation(OTHER_MEMBER_ID, "pg-order-1", 21000))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-        assertThatThrownBy(() -> applyFixture.service.applyTossConfirmation(OTHER_MEMBER_ID, "pg-order-1", successConfirmResult()))
+        assertThatThrownBy(() -> applyFixture.service.applyPgConfirmation(OTHER_MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult()))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 

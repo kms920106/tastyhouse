@@ -32,6 +32,8 @@ backend/infrastructure/mail/
 
 즉 "벤더를 조립하는 쪽이 DomainConfig를 갖는다"가 채널 모듈의 정의다. `sms` 모듈도 같다.
 
+세 번째 형태 — `infrastructure:pg`는 채널 모듈이지만 DomainConfig 대신 **라우터**를 등록하는 공존형이다(벤더에 provider 배타 조건이 없다 — 여러 PG 벤더가 동시에 뜨고 `PgProvider`로 라우팅한다). 상세는 `../pg/AGENTS.md`.
+
 ## 벤더 전환 절차 (JavaMail → SES)
 
 **web-api를 건드리지 않는다.** 이 모듈의 두 파일만 바꾼다.

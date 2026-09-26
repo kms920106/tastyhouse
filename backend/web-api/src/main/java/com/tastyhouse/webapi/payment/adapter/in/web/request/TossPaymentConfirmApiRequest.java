@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-import com.tastyhouse.application.payment.port.in.TossPaymentConfirmCommand;
+import com.tastyhouse.application.payment.port.in.PgPaymentConfirmCommand;
 
 @Schema(description = "토스 결제 승인 요청")
 public record TossPaymentConfirmApiRequest(
@@ -22,9 +22,12 @@ public record TossPaymentConfirmApiRequest(
     @Positive(message = "결제 금액은 0보다 커야 합니다")
     Integer amount
 ) {
-    public TossPaymentConfirmCommand toCommand(Long memberId) {
-        return new TossPaymentConfirmCommand(
+    private static final String PG_PROVIDER = "TOSS";
+
+    public PgPaymentConfirmCommand toCommand(Long memberId) {
+        return new PgPaymentConfirmCommand(
             memberId,
+            PG_PROVIDER,
             paymentKey,
             pgOrderId,
             amount

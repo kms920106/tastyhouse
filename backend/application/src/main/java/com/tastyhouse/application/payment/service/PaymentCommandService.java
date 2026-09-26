@@ -18,7 +18,7 @@ import com.tastyhouse.domain.payment.service.PaymentCancellationService;
 import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
 import com.tastyhouse.domain.payment.service.PgConfirmation;
-import com.tastyhouse.domain.payment.service.TossConfirmationTarget;
+import com.tastyhouse.domain.payment.service.PgConfirmationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -29,7 +29,7 @@ import com.tastyhouse.application.payment.port.in.PaymentConfirmCommand;
 import com.tastyhouse.application.payment.port.in.PaymentCreateCommand;
 import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteCommand;
 import com.tastyhouse.application.payment.port.in.PaymentRefundRequestCommand;
-import com.tastyhouse.application.payment.port.in.TossPaymentConfirmCommand;
+import com.tastyhouse.application.payment.port.in.PgPaymentConfirmCommand;
 
 @Service
 @WebApp
@@ -87,15 +87,17 @@ public class PaymentCommandService implements PaymentCommandUseCase {
     }
 
     @Override
-    public Long confirmTossPayment(TossPaymentConfirmCommand command) {
+    public Long confirmPgPayment(PgPaymentConfirmCommand command) {
+        PgProvider pgProvider = PgProvider.from(command.pgProvider());
         String paymentKey = command.paymentKey();
         String pgOrderId = command.pgOrderId();
         Integer amount = command.amount();
         MemberId memberIdVo = MemberId.of(command.memberId());
 
-        TossConfirmationTarget target = paymentConfirmationExecutor.prepareInNewTx(memberIdVo, pgOrderId, amount);
+        PgConfirmationTarget target = paymentConfirmationExecutor.prepareInNewTx(memberIdVo, pgOrderId, amount);
 
         PgConfirmResult result = pgPaymentGateway.confirmPayment(
+            pgProvider,
             target.paymentId(), paymentKey, target.pgOrderId(), target.amount()
         );
 
@@ -111,17 +113,17 @@ public class PaymentCommandService implements PaymentCommandUseCase {
 
         PaymentId paymentId;
         try {
-            paymentId = paymentConfirmationExecutor.applyInNewTx(memberIdVo, pgOrderId, result);
+            paymentId = paymentConfirmationExecutor.applyInNewTx(memberIdVo, pgProvider, pgOrderId, result);
         } catch (RuntimeException e) {
 
             log.error(
-                "{} 토스 승인 성공 후 DB 반영 실패 — pgOrderId={}, paymentKey={}, amount={}",
-                PG_DB_MISMATCH, pgOrderId, result.paymentKey(), amount, e
+                "{} PG 승인 성공 후 DB 반영 실패 — pgProvider={}, pgOrderId={}, paymentKey={}, amount={}",
+                PG_DB_MISMATCH, pgProvider, pgOrderId, result.paymentKey(), amount, e
             );
             throw e;
         }
 
-        log.info("토스 결제 승인 완료 — paymentId={}, amount={}", paymentId.value(), amount);
+        log.info("PG 결제 승인 완료 — pgProvider={}, paymentId={}, amount={}", pgProvider, paymentId.value(), amount);
         return paymentId.value();
     }
 
@@ -149,7 +151,8 @@ public class PaymentCommandService implements PaymentCommandUseCase {
             return target.rejectCode();
         }
 
-        if (target.pgCancelRequired() && !requestPgCancel(target.pgTid(), cancelReason)) {
+        boolean pgCancelAttempted = target.pgCancelRequired() && pgPaymentGateway.supports(target.pgProvider());
+        if (pgCancelAttempted && !requestPgCancel(target.pgProvider(), target.pgTid(), cancelReason)) {
             log.error("결제 취소 실패 — paymentId={}, cancelCode={}", id, PaymentCancelCode.CANCEL_FAILED);
             return PaymentCancelCode.CANCEL_FAILED;
         }
@@ -158,10 +161,10 @@ public class PaymentCommandService implements PaymentCommandUseCase {
         try {
             cancelCode = paymentCancellationExecutor.applyInNewTx(memberIdVo, paymentId, cancelReason);
         } catch (RuntimeException e) {
-            if (target.pgCancelRequired()) {
+            if (pgCancelAttempted) {
                 log.error(
-                    "{} PG 취소 성공 후 DB 반영 실패 — paymentId={}, pgTid={}",
-                    PG_DB_MISMATCH, id, target.pgTid(), e
+                    "{} PG 취소 성공 후 DB 반영 실패 — pgProvider={}, paymentId={}, pgTid={}",
+                    PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), e
                 );
             }
             throw e;
@@ -169,10 +172,10 @@ public class PaymentCommandService implements PaymentCommandUseCase {
 
         if (cancelCode != PaymentCancelCode.SUCCESS) {
 
-            if (target.pgCancelRequired()) {
+            if (pgCancelAttempted) {
                 log.error(
-                    "{} PG 취소 성공 후 재판정 거절 — paymentId={}, pgTid={}, cancelCode={}",
-                    PG_DB_MISMATCH, id, target.pgTid(), cancelCode
+                    "{} PG 취소 성공 후 재판정 거절 — pgProvider={}, paymentId={}, pgTid={}, cancelCode={}",
+                    PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), cancelCode
                 );
             }
             log.error("결제 취소 실패 — paymentId={}, cancelCode={}", id, cancelCode);
@@ -190,16 +193,16 @@ public class PaymentCommandService implements PaymentCommandUseCase {
             .value();
     }
 
-    private boolean requestPgCancel(String pgTid, String cancelReason) {
+    private boolean requestPgCancel(PgProvider pgProvider, String pgTid, String cancelReason) {
         try {
-            PgCancelResult cancelResult = pgPaymentGateway.cancelPayment(pgTid, cancelReason);
+            PgCancelResult cancelResult = pgPaymentGateway.cancelPayment(pgProvider, pgTid, cancelReason);
             if (!cancelResult.success()) {
-                log.error("PG 취소 거절 — pgTid={}, errorCode={}, errorMessage={}",
-                    pgTid, cancelResult.errorCode(), cancelResult.errorMessage());
+                log.error("PG 취소 거절 — pgProvider={}, pgTid={}, errorCode={}, errorMessage={}",
+                    pgProvider, pgTid, cancelResult.errorCode(), cancelResult.errorMessage());
             }
             return cancelResult.success();
         } catch (Exception e) {
-            log.error("PG 취소 요청 예외 — pgTid={}", pgTid, e);
+            log.error("PG 취소 요청 예외 — pgProvider={}, pgTid={}", pgProvider, pgTid, e);
             return false;
         }
     }

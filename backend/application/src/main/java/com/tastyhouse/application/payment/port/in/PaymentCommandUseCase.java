@@ -10,7 +10,7 @@ public interface PaymentCommandUseCase {
 
     Long confirmPayment(PaymentConfirmCommand command);
 
-    Long confirmTossPayment(TossPaymentConfirmCommand command);
+    Long confirmPgPayment(PgPaymentConfirmCommand command);
 
     Long completeOnSitePayment(PaymentOnSiteCompleteCommand command);
 

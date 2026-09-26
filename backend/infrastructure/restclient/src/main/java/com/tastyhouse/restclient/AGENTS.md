@@ -18,7 +18,7 @@
 | 과거 패키지 | 현재 |
 |---|---|
 | `oauth/{kakao,naver,apple,facebook}` | → `infrastructure:oauth` (패키지 불변) |
-| `payment/toss` | → `infrastructure:payment` (패키지 불변) |
+| `payment/toss` | → `infrastructure:payment` (패키지 불변) → 채널·벤더 분할로 `infrastructure:tosspayments` (패키지 `com.tastyhouse.external.tosspayments`로 **변경**) |
 | `mail/`, `mail/javamail`, `sms/`, `sms/solapi` | → `infrastructure:messaging` (패키지 불변) → 이후 4분할로 `infrastructure:mail`(`external.mail`)·`javamail`(`external.javamail`)·`sms`(`external.sms`)·`solapi`(`external.solapi`) |
 | `mail/ses` | → `infrastructure:aws-ses` (`external.aws.ses`로 **변경**) |
 | `sms/sns` | → `infrastructure:aws-sns` (`external.aws.sns`로 **변경**) |

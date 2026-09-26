@@ -12,7 +12,6 @@ import com.tastyhouse.domain.payment.model.Payment;
 import com.tastyhouse.domain.payment.model.PaymentCancelCode;
 import com.tastyhouse.domain.payment.model.PaymentRefund;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
-import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.domain.payment.repository.PaymentRefundRepository;
 import com.tastyhouse.domain.payment.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.vo.Amount;
@@ -52,7 +51,11 @@ public class PaymentCancellationService {
             return PaymentCancellationTarget.rejected(cancelCode);
         }
 
-        return PaymentCancellationTarget.cancellable(isPgCancelRequired(payment), payment.getPgTid());
+        return PaymentCancellationTarget.cancellable(
+            isPgCancelRequired(payment),
+            payment.getPgProvider(),
+            payment.getPgTid()
+        );
     }
 
     public PaymentCancelCode applyCancellation(MemberId memberId, PaymentId paymentId, String cancelReason) {
@@ -134,7 +137,7 @@ public class PaymentCancellationService {
     }
 
     private boolean isPgCancelRequired(Payment payment) {
-        return payment.getPgProvider() == PgProvider.TOSS
+        return payment.getPgProvider() != null
             && payment.getPaymentStatus() == PaymentStatus.COMPLETED;
     }
 }
