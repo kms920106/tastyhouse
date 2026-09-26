@@ -1,0 +1,8 @@
+spring:
+  config:
+    import:
+      - classpath:application-javamail.yml
+
+mail:
+  provider: javamail # javamail | ses
+  sender-address: ${MAIL_SENDER_ADDRESS}

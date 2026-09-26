@@ -42,9 +42,11 @@ backend/infrastructure/file-storage/
 
 **해소됨(2026-09-26)**: 과거 `infrastructure:aws`가 external·messaging을 implementation으로 가져 전환 시 admin·ceo에 전이로 실릴 위험이 실측으로 확인됐고, `aws-s3` 분리로 해소했다 — `aws-s3`의 의존은 domain과 spring-cloud-aws-starter-s3뿐이다.
 
-메일(SES)·SMS(SNS)는 web 전용 채널이라 이 스타터를 거치지 않는다 — 기존 절차(`../aws-ses/AGENTS.md`·`../aws-sns/AGENTS.md`)를 그대로 따른다.
+메일(SES)·SMS(SNS)는 이 스타터를 거치지 않고, 각자의 채널 모듈(`../mail/AGENTS.md`·`../sms/AGENTS.md`)이 같은 방식(채널 모듈 `build.gradle` + yml 2파일)으로 벤더를 조립한다.
 
 ## ⚠️ 이 모듈에 코드를 넣지 않는다
+
+메일·SMS 채널 모듈(`infrastructure:mail`·`infrastructure:sms`)은 DomainConfig 코드를 갖지만 이 규칙의 예외가 아니라 **다른 개념**이다 — 그쪽은 포트 구현이 web에만 있어 도메인 서비스 빈을 persistence에 둘 수 없는 채널이고, 파일 저장은 `FileDomainConfig`가 persistence에 남아 이 모듈에 둘 코드가 없다(`../mail/AGENTS.md`의 "채널 모듈과 파일 저장 스타터의 차이").
 
 **자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 auto-configuration을 갖지 않는다(`META-INF/spring/...AutoConfiguration.imports` 없음) — 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다.
 

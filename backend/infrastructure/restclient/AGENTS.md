@@ -19,7 +19,7 @@
 | ceo-api | **File만** |
 | batch-module | File(원격 이미지) · BBQ · 행정동 경계 |
 
-즉 admin/ceo는 파일 저장 하나만 쓰면서 OAuth·Toss·메일·SMS·크롤링 코드와 무거운 SDK(AWS·Firebase)를 전부 클래스패스에 얹고 있었다. admin/ceo/batch가 메일·SMS 어댑터까지 강제로 들여와야 했던 직접 원인은 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`/`SmsSender` 빈을 무조건 요구한 것이며, 그 결합은 두 설정을 `infrastructure:messaging`으로 이관해 함께 끊었다(`../messaging/AGENTS.md`).
+즉 admin/ceo는 파일 저장 하나만 쓰면서 OAuth·Toss·메일·SMS·크롤링 코드와 무거운 SDK(AWS·Firebase)를 전부 클래스패스에 얹고 있었다. admin/ceo/batch가 메일·SMS 어댑터까지 강제로 들여와야 했던 직접 원인은 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`/`SmsSender` 빈을 무조건 요구한 것이며, 그 결합은 두 설정을 `infrastructure:messaging`으로 이관해 함께 끊었다(이후 messaging 4분할로 채널 모듈 `../mail/AGENTS.md`·`../sms/AGENTS.md`로 옮겨졌다).
 
 이 분리는 `backend/CLAUDE.md` "external을 infrastructure 아래로 들인 이유" 절의 **비채택 대안 (1) 기술별 추가 분할·(3) AWS 벤더 패키지 모으기를 명시적으로 번복**한 것이다. 번복 근거는 위 실사용 표(admin/ceo가 file 하나)와 무거운 SDK가 두 벤더에 국한된다는 점이다.
 
@@ -34,7 +34,7 @@
 | SNS (SMS) | `infrastructure:aws-sns` | `../aws-sns/AGENTS.md` |
 | 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` | `../oauth/AGENTS.md` |
 | 토스페이먼츠 연동 | `infrastructure:payment` | `../payment/AGENTS.md` |
-| 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` | `../messaging/AGENTS.md` |
+| 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` → 4분할(2026-09-26)로 `infrastructure:{mail,javamail,sms,solapi}` | `../mail/AGENTS.md`·`../javamail/AGENTS.md`·`../sms/AGENTS.md`·`../solapi/AGENTS.md` |
 | BBQ 메뉴 수집 · 원격 이미지 다운로드 | `infrastructure:bbq` | `../bbq/AGENTS.md` |
 | 행정동 경계 GeoJSON 수집 | `infrastructure:admdongkor` | `../admdongkor/AGENTS.md` |
 | `file/{FileStorageStrategy,FileStoragePortAdapter,FileStorageProperties}` | **삭제** — 벤더 어댑터(`FirebaseFileStorage`·`S3FileStorage`)가 도메인 포트 `FileStoragePort`를 직접 구현한다 | 아래 [과거 판단의 번복](#과거-판단의-번복--파일-저장-spi-삭제) |
@@ -56,14 +56,14 @@
 
 ## 코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지
 
-**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더 9모듈(oauth·payment·messaging·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*`로 그대로 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.
+**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더·채널 12모듈(oauth·payment·mail·javamail·sms·solapi·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*`로 그대로 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.
 
 ## 패키지 구조
 
 ```
 com.tastyhouse.restclient/
 └── config/
-    ├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth·payment·messaging·bbq·admdongkor를 경유해 web·batch에만 실린다)
+    ├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth·payment·solapi·bbq·admdongkor를 경유해 web·batch에만 실린다)
     ├── RestClientConfig.java        @Bean RestClientCustomizer restClientTimeoutCustomizer — 모든 Boot RestClient.Builder에 요청 팩토리 connect 5s / read 10s 적용
     └── HttpRequestFactories.java     public static ClientHttpRequestFactory withTimeouts(Duration connect, Duration read) — SimpleClientHttpRequestFactory(HttpURLConnection) 기반, 이 저장소에서 타임아웃 있는 요청 팩토리를 만드는 유일한 지점
 ```
@@ -98,7 +98,7 @@ com.tastyhouse.restclient/
 - **SPI 전용 모듈을 신설한다** — 인터페이스 1개(그것도 도메인 포트와 동형)를 위해 모듈을 하나 늘리는 것이라 얻는 것이 없다.
 - 도메인 포트 `FileStoragePort`가 이미 벤더 무관 계약이므로, 벤더 모듈은 `domain`만 의존하면 된다.
 
-**결과.** 코어(현 `infrastructure:restclient`)는 `config/`만 남은 순수 HTTP 코어가 됐다. `infrastructure:firebase`는 코어 의존을 끊어 `domain` + firebase-admin만 갖고, 스타터 `infrastructure:file-storage`는 `runtimeOnly project(':infrastructure:firebase')` 한 줄만 조립한다. 그 결과 파일 저장만 쓰는 **admin-api·ceo-api의 런타임 클래스패스에서 코어 모듈이 빠진다.** web은 oauth·payment·messaging을, batch는 crawling(현 bbq·admdongkor)을 경유해 코어를 계속 갖는다. **이후 3분할(2026-09-26)로 옛 `infrastructure:aws`는 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 나뉘었다** — `aws-ses`·`aws-sns`는 SES/SNS 실패를 `BusinessException`으로 던지므로(`MailProperties`는 messaging 소유라 `aws-ses`가 그쪽도 의존하는 이유다) 코어 의존을 유지하고, `aws-s3`는 domain + spring-cloud-aws-starter-s3만 가져 코어 의존이 없다.
+**결과.** 코어(현 `infrastructure:restclient`)는 `config/`만 남은 순수 HTTP 코어가 됐다. `infrastructure:firebase`는 코어 의존을 끊어 `domain` + firebase-admin만 갖고, 스타터 `infrastructure:file-storage`는 `runtimeOnly project(':infrastructure:firebase')` 한 줄만 조립한다. 그 결과 파일 저장만 쓰는 **admin-api·ceo-api의 런타임 클래스패스에서 코어 모듈이 빠진다.** web은 oauth·payment·messaging을, batch는 crawling(현 bbq·admdongkor)을 경유해 코어를 계속 갖는다. **이후 3분할(2026-09-26)로 옛 `infrastructure:aws`는 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 나뉘었다** — `aws-ses`·`aws-sns`는 SES/SNS 실패를 `BusinessException`으로 던지므로(당시 `MailProperties`는 messaging 소유라 `aws-ses`가 그쪽도 의존했다 — messaging 4분할로 `MailProperties`가 삭제돼 그 의존은 사라졌다) 코어 의존을 유지하고, `aws-s3`는 domain + spring-cloud-aws-starter-s3만 가져 코어 의존이 없다.
 
 **이후 RestClient 전환(모듈 리네임과 함께)으로 webflux는 완전히 제거됐다.** 이 모듈의 외부 의존은 `spring-web`·`spring-boot-starter-json`뿐이다(아래 §Dependencies).
 
@@ -112,11 +112,11 @@ com.tastyhouse.restclient/
 ### External
 - `spring-web` (`api`) — `RestClientAutoConfiguration`이 등록하는 `RestClient.Builder`를 코어의 `RestClientCustomizer`가 꾸민다. 벤더 어댑터가 이 좌표를 반복 선언하지 않도록 `api`로 노출한다.
 - `spring-boot-starter-json` (`api`) — Jackson. 벤더 어댑터가 wire DTO 역직렬화에 그대로 쓴다.
-- **webflux·reactor-netty·`WebClient`는 전면 제거됐다.** **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail` 의존도 없다** — 각각 aws-s3/aws-ses/aws-sns·firebase·oauth·messaging 모듈이 소유한다.
+- **webflux·reactor-netty·`WebClient`는 전면 제거됐다.** **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail` 의존도 없다** — 각각 aws-s3/aws-ses/aws-sns·firebase·oauth·javamail 모듈이 소유한다.
 
 ## 어댑터 작성 규칙 (10모듈 공통)
 
-이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}` 전부에 적용된다.
+이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,mail,javamail,sms,solapi,bbq,admdongkor}` 전부에 적용된다.
 
 - **외부 HTTP 호출은 코어가 customizer로 꾸민 Boot `RestClient.Builder`를 주입받아 생성자에서 한 번 build한다.** `restClientBuilder.baseUrl(...).build()`로 만든 `RestClient`를 필드로 보유한다(스레드 안전). WebClient·webflux·JDK `java.net.http.HttpClient` 직접 사용은 도입하지 않는다 — 타임아웃 있는 요청 팩토리를 만드는 유일한 지점은 코어의 `HttpRequestFactories.withTimeouts(...)`(`SimpleClientHttpRequestFactory`/`HttpURLConnection` 기반)다. **대용량 응답은 `exchange()` 스트리밍이다**(`retrieve().body(String/...)` 금지 — 선례: admdongkor의 `AdminDongBoundaryClient`).
 - **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`)는 프레임워크-프리이므로 `RestClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
@@ -132,7 +132,7 @@ com.tastyhouse.restclient/
 - **이 모듈은 설정만 갖는다 — 예외·에러코드를 두지 않는다.** 외부 연동 실패 코드는 도메인 `ErrorCode`가 소유한다. 새 채널 연동을 추가할 때 이 모듈에 예외 타입을 되살리지 않는다(위 [예외 계약 해체](#예외-계약-해체--도메인-errorcode로-흡수)).
 - **RestTemplate·WebClient 모듈을 미리 만들어 두지 않는다.** `infrastructure:aws-s3`/`aws-ses`/`aws-sns`가 "만들어 뒀지만 어느 앱도 안 쓰는" 선례이긴 하나, 그것들은 도메인 포트 뒤에서 설정 한 줄로 교체 가능한 구현체다. HTTP 클라이언트는 어댑터 코드가 직접 호출하는 라이브러리라 교체 = 어댑터 재작성이며, 미리 만들면 webflux·reactor-netty가 빌드 그래프로 되돌아온다. WebClient가 필요해지면 그때 `infrastructure:webclient`를 신설한다(1순위는 virtual threads + `RestClient`, 불가피하면 그 모듈 + 가드 예외만 도입).
 - **`com.tastyhouse.infrastructure.restclient`로 두지 않는다.** `infrastructure:persistence`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 경로도 스캔 대상에 넣어, 진입 설정을 persistence의 스캔이 다시 등록하는 이중 등록이 된다. Spring은 같은 클래스의 중복 스캔을 한 번만 등록하므로 **기동 실패로 이어지지는 않지만**, 등록 주체가 persistence 쪽으로 넘어가 `@AutoConfiguration`의 순서·조건 계약이 무력화된다(redis REGEX 제외와 같은 이유). 이 이동은 후속 프로그램의 stage B 대상이다 — `backend/CLAUDE.md`의 "후속 프로그램 — 벤더 패키지를 `com.tastyhouse.infrastructure.*`로 정렬" 절에서 `restclient`를 벤더·redis와 함께 stage B 대상으로 명시한다.
-- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `RestClientModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth·payment·messaging을, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
+- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `RestClientModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth·payment·solapi를, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/restclient/AGENTS.md`.
 - **가드 테스트**: `NoReactiveHttpClientTest`는 `src/test/java/com/tastyhouse/restclient/architecture/`로 이동했다.
 
@@ -142,7 +142,7 @@ com.tastyhouse.restclient/
 
 ### 자바 패키지 `com.tastyhouse.external..` 봉인 (벤더 9모듈 공통 — 코어는 대상 아님)
 
-**대상**: 벤더 9개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`oauth`·`payment`·`messaging`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.
+**대상**: 벤더·채널 12개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`oauth`·`payment`·`mail`·`javamail`·`sms`·`solapi`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.
 
 위 "코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지" 절과 같은 사실을, **가드로서** 다시 못박는다. 벤더 모듈을 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.
 

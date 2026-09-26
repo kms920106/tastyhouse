@@ -9,7 +9,8 @@ dependencies {
     runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':infrastructure:oauth')
     runtimeOnly project(':infrastructure:payment')
-    runtimeOnly project(':infrastructure:messaging')
+    runtimeOnly project(':infrastructure:mail')
+    runtimeOnly project(':infrastructure:sms')
     runtimeOnly project(':logging-module')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

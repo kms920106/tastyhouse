@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+}
+
+dependencies {
+    implementation project(':domain')
+
+    runtimeOnly project(':infrastructure:solapi')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}
+
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}

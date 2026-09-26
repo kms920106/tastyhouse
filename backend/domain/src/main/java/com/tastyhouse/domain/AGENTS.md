@@ -71,7 +71,8 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{external,firebase,aws-s3,
-                                          aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}
+                                          aws-ses,aws-sns,oauth,payment,mail,javamail,sms,solapi,
+                                          bbq,admdongkor}
                                           (외부 연동 port 구현)
 ```
 
@@ -183,8 +184,8 @@ public interface DomainEventPublisher {
 
 **출력 포트 (외부 연동 모듈이 기술별로 나눠 구현)**:
 ```java
-// domain/mail/port/MailSender.java        — infrastructure:messaging (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender)
-// domain/sms/port/SmsSender.java          — infrastructure:messaging (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender)
+// domain/mail/port/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
+// domain/sms/port/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
 // domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:payment
 ```

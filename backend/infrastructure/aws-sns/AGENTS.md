@@ -2,21 +2,19 @@
 
 # infrastructure:aws-sns
 
-AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `SmsSender`를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 구현(Solapi)은 `infrastructure:messaging`에 있고, 이 모듈은 그 AWS 대안이다.
+AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `SmsSender`를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 벤더(Solapi)는 `infrastructure:solapi`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:sms`가 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
-기본값이 `sms.provider: solapi`(`infrastructure:messaging`의 `application-messaging.yml`)라 SNS 경로가 활성화되지 않는다. `settings.gradle` 포함으로 **컴파일만 검증**되며, 어댑터 테스트가 없어 런타임 동작은 검증되지 않는다. 사용자 결정으로 수용된 한계다.
+기본값이 `sms.provider: solapi`(`infrastructure:sms`의 `application-sms.yml`)이고 채널 모듈이 solapi를 조립하므로 SNS 경로가 활성화되지 않는다. `settings.gradle` 포함으로 **컴파일만 검증**되며, 어댑터 테스트가 없어 런타임 동작은 검증되지 않는다. 사용자 결정으로 수용된 한계다.
 
 ## 이 모듈이 따로 있는 이유 (3분할, 2026-09-26)
 
 과거 S3·SES·SNS가 `infrastructure:aws` 한 모듈이었고, 활성화 경로가 다른 채널을 한 모듈에 둔 탓에 결함이 있었다(상세: `../aws-s3/AGENTS.md` §이 모듈이 따로 있는 이유). SMS를 메일과 독립적으로 AWS로 옮길 수 있게 SES와도 나눴다.
 
-## SNS로 전환하는 절차 (web-api 3단계)
+## SNS로 전환하는 절차 (채널 모듈 2파일)
 
-1. `web-api/build.gradle`에 `runtimeOnly project(':infrastructure:aws-sns')`
-2. `web-api/src/main/resources/application.yml`의 `spring.config.import`에 `- classpath:application-aws-sns.yml`
-3. `sms.provider=sns`
+**web-api를 건드리지 않는다.** 채널 모듈 `infrastructure:sms`의 `build.gradle`(`runtimeOnly` 대상을 `:infrastructure:aws-sns`로)과 `application-sms.yml`(import를 `classpath:application-aws-sns.yml`로, `sms.provider: sns`)만 바꾼다. 상세는 `../sms/AGENTS.md`의 "벤더 전환 절차".
 
 `.env`에는 `AWS_SNS_ACCESS_KEY`·`AWS_SNS_SECRET_KEY`가 이미 있다.
 
@@ -33,7 +31,7 @@ com.tastyhouse.external.aws.sns/
 
 ## yml — `application-aws-sns.yml`
 
-`sms.aws.sns.access-key` · `secret-key` · `region`. import하는 앱은 없다 — 전환 절차 2번으로 추가한다.
+`sms.aws.sns.access-key` · `secret-key` · `region`. 지금은 아무도 import하지 않는다 — 전환 시 채널의 `application-sms.yml`이 중첩 import한다.
 
 ## Dependencies
 
@@ -41,7 +39,7 @@ com.tastyhouse.external.aws.sns/
 - **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제되고 상수가 도메인 `ErrorCode`로 이관되면서 이 모듈은 도메인만 있으면 충분해졌다. `SnsSmsSender`는 발송 실패를 `new BusinessException(ErrorCode.SMS_SEND_API_ERROR/SMS_SEND_FAILED[, cause])`로 직접 던진다.
 - `domain` (implementation) — `SmsSender` 포트 + `ErrorCode`(`SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`)·`BusinessException`
 
-**`infrastructure:messaging`을 의존하지 않는다.** 옛 `infrastructure:aws`가 messaging을 가졌던 것은 SES의 `MailProperties` 때문이었고, SNS는 발신 번호를 읽지 않는다(`SnsConfig`가 `sms.aws.sns.*`만 읽는다). 발신 번호 지정이 필요해지면 `SmsProperties`를 쓰기 위해 그때 의존을 추가한다.
+**채널 모듈(`infrastructure:sms`)을 의존하지 않는다.** SNS는 발신 번호를 읽지 않는다(`SnsConfig`가 `sms.aws.sns.*`만 읽는다). 발신 번호 지정이 필요해지면 채널 모듈을 의존하지 말고 `@Value("${sms.sender-number}")`로 키를 읽는다 — 채널 모듈이 벤더를 `runtimeOnly`로 조립하므로 의존하면 순환이다(`../sms/AGENTS.md` 봉인 목록). 과거 `SmsProperties` record는 4분할과 함께 삭제됐다.
 
 ### External
 - `software.amazon.awssdk:sns` — 버전은 `implementation platform('software.amazon.awssdk:bom:2.21.46')`이 고정한다. 3분할 전 spring-cloud-aws BOM이 고정하던 값과 같아 SDK 버전은 바뀌지 않았다. `dependencyManagement` 블록이 아니라 `platform()`인 이유는 소비 앱으로 전파돼야 하기 때문이다(`../aws-s3/AGENTS.md` §Dependencies — 블록 방식은 web-api에서 버전 미해석 FAILED가 된다).
@@ -59,7 +57,7 @@ com.tastyhouse.external.aws.sns/
 
 **대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/external/aws/sns/`
 
-원래 패키지 `external.sms.sns`로 되돌리면 `infrastructure:messaging`의 `@ComponentScan`에 동반 스캔된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+원래 패키지 `external.sms.sns`로 되돌리면 채널 모듈 `infrastructure:sms`의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 

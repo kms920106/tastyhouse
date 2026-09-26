@@ -13,7 +13,8 @@ spring:
       - classpath:application-infrastructure.yml
       - classpath:application-file-storage.yml
       - classpath:application-payment.yml
-      - classpath:application-messaging.yml
+      - classpath:application-mail.yml
+      - classpath:application-sms.yml
       - classpath:application-redis.yml
       - optional:file:.env[.properties]
       - optional:file:backend/.env[.properties]

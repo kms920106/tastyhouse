@@ -6,7 +6,6 @@ plugins {
 dependencies {
     implementation platform('software.amazon.awssdk:bom:2.21.46')
 
-    implementation project(':infrastructure:messaging')
     implementation project(':domain')
 
     implementation 'software.amazon.awssdk:ses'

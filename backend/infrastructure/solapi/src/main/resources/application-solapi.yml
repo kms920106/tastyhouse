@@ -1,0 +1,7 @@
+sms:
+  solapi:
+    api-key: ${SOLAPI_API_KEY}
+    api-secret: ${SOLAPI_API_SECRET}
+    sender-number: ${sms.sender-number}
+    base-url: https://api.solapi.com
+    send-many-path: /messages/v4/send-many/detail

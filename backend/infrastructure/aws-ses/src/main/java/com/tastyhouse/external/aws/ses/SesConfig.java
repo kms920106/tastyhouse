@@ -10,7 +10,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
 
 import com.tastyhouse.domain.mail.port.MailSender;
-import com.tastyhouse.external.mail.MailProperties;
 
 @Configuration
 @ConditionalOnProperty(name = "mail.provider", havingValue = "ses")
@@ -31,7 +30,7 @@ public class SesConfig {
     }
 
     @Bean
-    public MailSender awsSesMailSender(SesClient sesClient, MailProperties mailProperties) {
-        return new SesMailSender(sesClient, mailProperties.senderAddress());
+    public MailSender awsSesMailSender(SesClient sesClient, @Value("${mail.sender-address}") String senderAddress) {
+        return new SesMailSender(sesClient, senderAddress);
     }
 }

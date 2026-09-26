@@ -2,23 +2,19 @@
 
 # infrastructure:aws-ses
 
-AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `MailSender`를 `SesMailSender`가 구현한다. 메일 채널의 기본 구현(JavaMail)은 `infrastructure:messaging`에 있고, 이 모듈은 그 AWS 대안이다.
+AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `MailSender`를 `SesMailSender`가 구현한다. 메일 채널의 기본 벤더(JavaMail)는 `infrastructure:javamail`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:mail`이 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
-기본값이 `mail.provider: javamail`(`infrastructure:messaging`의 `application-messaging.yml`)이라 SES 경로가 활성화되지 않는다. `settings.gradle` 포함으로 **컴파일만 검증**되며, 어댑터 테스트가 없어 런타임 동작(SDK 호출·자격증명·리전)은 검증되지 않는다. 사용자 결정으로 수용된 한계다.
+기본값이 `mail.provider: javamail`(`infrastructure:mail`의 `application-mail.yml`)이고 채널 모듈이 javamail을 조립하므로 SES 경로가 활성화되지 않는다. `settings.gradle` 포함으로 **컴파일만 검증**되며, 어댑터 테스트가 없어 런타임 동작(SDK 호출·자격증명·리전)은 검증되지 않는다. 사용자 결정으로 수용된 한계다.
 
 ## 이 모듈이 따로 있는 이유 (3분할, 2026-09-26)
 
-과거 S3·SES·SNS가 `infrastructure:aws` 한 모듈이었고, 그 탓에 파일 저장을 S3로 바꾸면 SES용 의존(external·messaging)이 4앱 전부에 실리는 결함이 있었다(상세: `../aws-s3/AGENTS.md` §이 모듈이 따로 있는 이유). 채널마다 모듈을 두어 각 활성화 경로가 자기 의존만 끌고 가게 했다. SES와 SNS는 활성화 지점(web-api)이 같지만, 메일·SMS를 서로 독립적으로 AWS로 옮길 수 있고 그때 web fat jar에 미사용 SDK가 실리지 않도록 이것도 나눴다.
+과거 S3·SES·SNS가 `infrastructure:aws` 한 모듈이었고, 그 탓에 파일 저장을 S3로 바꾸면 SES용 의존(당시 external·messaging)이 4앱 전부에 실리는 결함이 있었다(상세: `../aws-s3/AGENTS.md` §이 모듈이 따로 있는 이유). 채널마다 모듈을 두어 각 활성화 경로가 자기 의존만 끌고 가게 했다. SES와 SNS는 활성화 지점(web-api)이 같지만, 메일·SMS를 서로 독립적으로 AWS로 옮길 수 있고 그때 web fat jar에 미사용 SDK가 실리지 않도록 이것도 나눴다.
 
-## SES로 전환하는 절차 (web-api 3단계)
+## SES로 전환하는 절차 (채널 모듈 2파일)
 
-메일은 web 전용 채널이라 스타터를 거치지 않는다.
-
-1. `web-api/build.gradle`에 `runtimeOnly project(':infrastructure:aws-ses')`
-2. `web-api/src/main/resources/application.yml`의 `spring.config.import`에 `- classpath:application-aws-ses.yml`
-3. `mail.provider=ses` (`application-messaging.yml` 값 변경 또는 환경변수)
+**web-api를 건드리지 않는다.** 채널 모듈 `infrastructure:mail`의 `build.gradle`(`runtimeOnly` 대상을 `:infrastructure:aws-ses`로)과 `application-mail.yml`(import를 `classpath:application-aws-ses.yml`로, `mail.provider: ses`)만 바꾼다. 상세는 `../mail/AGENTS.md`의 "벤더 전환 절차". 과거 messaging 시절에는 web-api의 `build.gradle`·`application.yml`·provider 3곳을 고치는 절차였다(4분할, 2026-09-26로 변경).
 
 `.env`에는 `AWS_SES_ACCESS_KEY`·`AWS_SES_SECRET_KEY`가 이미 있다.
 
@@ -33,17 +29,17 @@ com.tastyhouse.external.aws.ses/
 └── SesMailSender.java                  MailSender 구현 (POJO — SesConfig가 @Bean으로 등록)
 ```
 
-`@ConfigurationProperties` record가 없어 `@EnableConfigurationProperties`를 달지 않는다. `SesConfig`가 `@Value`로 `mail.aws.ses.*`를 읽는다.
+`@ConfigurationProperties` record가 없어 `@EnableConfigurationProperties`를 달지 않는다. `SesConfig`가 `@Value`로 `mail.aws.ses.*`와 채널 값 `mail.sender-address`를 읽는다.
 
 ## yml — `application-aws-ses.yml`
 
-`mail.aws.ses.access-key` · `secret-key` · `region`. import하는 앱은 없다 — 전환 절차 2번으로 추가한다.
+`mail.aws.ses.access-key` · `secret-key` · `region`. 지금은 아무도 import하지 않는다 — 전환 시 채널의 `application-mail.yml`이 중첩 import한다.
 
 ## Dependencies
 
 ### Internal
-- **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다.** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.MAIL_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제되고 상수(`MAIL_SEND_FAILED`)가 도메인 `ErrorCode`로 이관되면서 이 모듈은 도메인만 있으면 충분해졌다. `SesMailSender`는 발송 실패를 `new BusinessException(ErrorCode.MAIL_SEND_FAILED[, cause])`로 직접 던진다. **다만 `infrastructure:messaging`을 여전히 의존하므로(아래) 런타임에는 `restclient`가 messaging을 통해 전이로 실린다** — compileClasspath에는 없다.
-- `infrastructure:messaging` (implementation) — **`MailProperties`(`mail.sender-address`) 하나 때문이다.** 발신자 주소는 벤더가 아니라 채널 모듈이 소유하므로 벤더 → 채널 방향이 정상이다. SNS 모듈은 이 의존이 없다.
+- **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다.** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.MAIL_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제되고 상수(`MAIL_SEND_FAILED`)가 도메인 `ErrorCode`로 이관되면서 이 모듈은 도메인만 있으면 충분해졌다. `SesMailSender`는 발송 실패를 `new BusinessException(ErrorCode.MAIL_SEND_FAILED[, cause])`로 직접 던진다. 4분할 전에는 messaging을 통해 런타임에 `restclient`가 전이로 실렸으나, 그 의존이 사라져 **직접·전이 모두 없다**.
+- **채널 모듈(`infrastructure:mail`)을 의존하지 않는다.** 과거 `infrastructure:messaging`을 `MailProperties`(`mail.sender-address`) 하나 때문에 의존했으나, 채널 모듈이 이 모듈을 `runtimeOnly`로 조립하는 구조에서는 순환이 되므로 `SesConfig`가 `@Value("${mail.sender-address}")`로 키만 읽는다(`../mail/AGENTS.md` 봉인 목록). 결과적으로 의존은 domain + SDK뿐이라 `aws-s3`·`aws-sns`와 동형이다.
 - `domain` (implementation) — `MailSender` 포트 + `ErrorCode`(`MAIL_SEND_FAILED`)·`BusinessException`
 
 ### External
@@ -62,7 +58,7 @@ com.tastyhouse.external.aws.ses/
 
 **대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/external/aws/ses/`
 
-원래 패키지 `external.mail.ses`로 되돌리면 `infrastructure:messaging`의 `@ComponentScan`에 동반 스캔되어 messaging을 받은 앱에 SES 빈이 딸려 올라온다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+원래 패키지 `external.mail.ses`로 되돌리면 채널 모듈 `infrastructure:mail`의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되어 mail을 받은 앱에 SES 빈이 딸려 올라온다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
