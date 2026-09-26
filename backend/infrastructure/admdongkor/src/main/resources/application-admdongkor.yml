@@ -1,0 +1,6 @@
+region:
+  admin-dong:
+    boundary:
+      source-url: ${ADMIN_DONG_BOUNDARY_SOURCE_URL:https://raw.githubusercontent.com/vuski/admdongkor/master/ver20260701/HangJeongDong_ver20260701.geojson}
+      timeout-seconds: ${ADMIN_DONG_BOUNDARY_TIMEOUT_SECONDS:180}
+      max-bytes: ${ADMIN_DONG_BOUNDARY_MAX_BYTES:134217728}

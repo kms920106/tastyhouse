@@ -25,8 +25,8 @@
 | `sms/sns` | → `infrastructure:aws-sns` (`external.aws.sns`로 **변경**) |
 | `file/firebase` | → `infrastructure:firebase` (`external.firebase`로 **변경**) |
 | `file/s3` | → `infrastructure:aws-s3` (`external.aws.s3`로 **변경**) |
-| `crawling/bbq`, `region/` | → `infrastructure:crawling` (패키지 불변) |
-| `file/RemoteImageDownloader` | → `infrastructure:crawling` (`external.crawling`으로 **변경**) |
+| `crawling/bbq`, `region/` | → `infrastructure:crawling` (패키지 불변) → 이후 2분할로 `infrastructure:bbq`(`external.bbq`)·`infrastructure:admdongkor`(`external.admdongkor`) |
+| `file/RemoteImageDownloader` | → `infrastructure:crawling` (`external.crawling`으로 **변경**) → 이후 `infrastructure:bbq`(`external.bbq`) |
 | `file/ByteArrayMultipartFile` | **삭제** — 당시 전략 인터페이스 `FileStorageStrategy`가 `byte[]`를 받게 되어 래퍼가 불필요해졌다 |
 | `file/{FileStorageStrategy,FileStoragePortAdapter,FileStorageProperties}` | **삭제 (벤더 어댑터가 `FileStoragePort`를 직접 구현)** — 전략 시그니처가 도메인 포트와 같아져 위임만 남았고, Properties는 주입처 0건이었다 |
 
@@ -39,10 +39,10 @@
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`) 또는 configtree 시크릿(`SECRETS_DIR`)으로 주입한다.
 
 ### Testing Requirements
-- 외부 호출은 모킹한다. 실네트워크 테스트는 `@Disabled`로 빌드 게이트에서 제외한다(선례: crawling 모듈의 `BbqApiClientTest`).
+- 외부 호출은 모킹한다. 실네트워크 테스트는 `@Disabled`로 빌드 게이트에서 제외한다(선례: bbq 모듈의 `BbqApiClientTest`).
 
 ### Common Patterns
-- HTTP 호출은 `WebClientConfig`가 제공하는 `WebClient.Builder`를 주입받아 구성한다. 대용량 응답은 예외이며 `HttpClient` + 스트리밍 파서를 쓴다(선례: crawling 모듈의 `AdminDongBoundaryClient`).
+- HTTP 호출은 `WebClientConfig`가 제공하는 `WebClient.Builder`를 주입받아 구성한다. 대용량 응답은 예외이며 `HttpClient` + 스트리밍 파서를 쓴다(선례: admdongkor 모듈의 `AdminDongBoundaryClient`).
 - provider 선택은 구현 클래스의 `@ConditionalOnProperty`로 한다(`file.provider`·`mail.provider`·`sms.provider`). 파일 저장의 `file.provider` 값은 스타터 `infrastructure:file-storage`가 소유하고, 파일 저장은 이 모듈을 거치지 않으므로 벤더를 바꿀 때 이 모듈은 손대지 않는다.
 
 ## Dependencies

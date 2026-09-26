@@ -31,23 +31,24 @@
 | 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` | `../oauth/AGENTS.md` |
 | 토스페이먼츠 연동 | `infrastructure:payment` | `../payment/AGENTS.md` |
 | 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` | `../messaging/AGENTS.md` |
-| BBQ 크롤링 · 행정동 경계 · 원격 이미지 다운로드 | `infrastructure:crawling` | `../crawling/AGENTS.md` |
+| BBQ 메뉴 수집 · 원격 이미지 다운로드 | `infrastructure:bbq` | `../bbq/AGENTS.md` |
+| 행정동 경계 GeoJSON 수집 | `infrastructure:admdongkor` | `../admdongkor/AGENTS.md` |
 | `file/{FileStorageStrategy,FileStoragePortAdapter,FileStorageProperties}` | **삭제** — 벤더 어댑터(`FirebaseFileStorage`·`S3FileStorage`)가 도메인 포트 `FileStoragePort`를 직접 구현한다 | 아래 [과거 판단의 번복](#과거-판단의-번복--파일-저장-spi-삭제) |
 
-형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 11개는 전부 driven(아웃바운드) 어댑터다. 여기에 챕터 03에서 신설된 `infrastructure:file-storage`(`../file-storage/AGENTS.md`)가 더해져 `infrastructure` 아래는 12개가 됐는데, 이 하나만 어댑터가 아니라 **자바 코드 없는 조립 전용 스타터**다.
+형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 12개는 전부 driven(아웃바운드) 어댑터다. 여기에 챕터 03에서 신설된 `infrastructure:file-storage`(`../file-storage/AGENTS.md`)가 더해져 `infrastructure` 아래는 13개가 됐는데, 이 하나만 어댑터가 아니라 **자바 코드 없는 조립 전용 스타터**다.
 
 **`application-external.yml`은 챕터 03에서 삭제됐다.** 담고 있던 것이 `file.provider` 한 줄뿐이었고, 그 값의 소유가 스타터 `infrastructure:file-storage`의 `application-file-storage.yml`로 옮겨갔기 때문이다. 당시 이 모듈에 남아 있던 바인딩 대상 `FileStorageProperties`(`file.*`)는 이후 주입처가 0건인 죽은 코드로 확인돼 삭제됐다 — 지금 `file.provider`는 벤더 구현의 `@ConditionalOnProperty` 문자열로만 소비된다.
 
 ## 자바 패키지는 `com.tastyhouse.external..`로 유지한다
 
-**9모듈로 나뉜 뒤에도 패키지 루트는 전부 `com.tastyhouse.external..`이다.** `com.tastyhouse.infrastructure.external`로 옮기지 않는 이유는 persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문이다 — 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). 모듈명 ≠ 패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
+**10모듈로 나뉜 뒤에도 패키지 루트는 전부 `com.tastyhouse.external..`이다.** `com.tastyhouse.infrastructure.external`로 옮기지 않는 이유는 persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문이다 — 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). 모듈명 ≠ 패키지명은 `infrastructure:persistence`=`com.tastyhouse.infrastructure..`, `security-core`/`security-module`=`com.tastyhouse.security..` 선례와 같다.
 
 ## 패키지 구조
 
 ```
 com.tastyhouse.external/
 ├── config/
-│   ├── ExternalModuleAutoConfiguration.java  진입점 — 챕터 02로 ExternalModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(oauth·payment·messaging·crawling을 경유해 web·batch에만 실린다)
+│   ├── ExternalModuleAutoConfiguration.java  진입점 — 챕터 02로 ExternalModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록(oauth·payment·messaging·bbq·admdongkor를 경유해 web·batch에만 실린다)
 │   └── WebClientConfig.java        WebClient.Builder 빈
 └── exception/
     ├── ExternalApiException.java   BusinessException 상속 (전용 핸들러를 두지 않는다)
@@ -64,7 +65,7 @@ com.tastyhouse.external/
 |---|---|---|
 | `external.file.firebase` | `external.firebase` | firebase |
 | `external.file.s3` | `external.aws.s3` | aws-s3 |
-| `external.file.RemoteImageDownloader` | `external.crawling.RemoteImageDownloader` | crawling |
+| `external.file.RemoteImageDownloader` | `external.crawling.RemoteImageDownloader` → (2분할 후) `external.bbq.RemoteImageDownloader` | crawling → bbq |
 
 같은 취지로 AWS 채널 어댑터도 `external.mail.ses` → `external.aws.ses`, `external.sms.sns` → `external.aws.sns`로 모았다(메시징 스캔에 딸려 오지 않게 하기 위함). split package는 없다 — `external.mail`(messaging) vs `external.aws.ses`(aws-ses), `external.firebase`(firebase) vs `external.aws.s3`(aws-s3)가 각각 다른 모듈에 온전히 속한다. `external.file` 패키지는 SPI 삭제로 어느 모듈에도 존재하지 않는다. **이후 3분할(2026-09-26)로 `external.aws.s3`·`external.aws.ses`·`external.aws.sns`는 옛 `:aws` 한 모듈이 아니라 각각 `aws-s3`·`aws-ses`·`aws-sns` 모듈이 소유한다** — 패키지 세그먼트는 그대로다.
 
@@ -89,15 +90,15 @@ com.tastyhouse.external/
 ### Internal
 - `domain` (implementation) — 예외 계약만 쓴다: `ExternalApiErrorCode`가 구현하는 `ErrorCodeSpec`, `ExternalApiException`이 상속하는 `BusinessException`. 과거 `FileStoragePortAdapter`가 구현하던 `com.tastyhouse.domain.file.port.FileStoragePort`는 이제 벤더 모듈(firebase·aws)이 직접 구현한다.
 
-**`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application')`이 있었으나, 그 어댑터들이 전부 oauth·crawling 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
+**`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application')`이 있었으나, 그 어댑터들이 전부 oauth·crawling(현 bbq·admdongkor) 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
 
 ### External
 - `spring-boot-starter-webflux` — `WebClientConfig`의 `WebClient.Builder`. Jackson도 이것이 전이로 제공한다.
 - **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail`·`spring-web` 의존은 전부 제거됐다** — 각각 aws-s3/aws-ses/aws-sns·firebase·oauth·messaging 모듈이 소유한다.
 
-## 어댑터 작성 규칙 (9모듈 공통)
+## 어댑터 작성 규칙 (10모듈 공통)
 
-이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,crawling}` 전부에 적용된다.
+이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}` 전부에 적용된다.
 
 - **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`)는 프레임워크-프리이므로 `WebClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
 - **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 상세는 `../oauth/AGENTS.md`.
@@ -107,17 +108,17 @@ com.tastyhouse.external/
 
 ## 주의
 
-- **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 스타터 `file-storage`를 포함한 10모듈 전부 같다.
-- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `ExternalModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth·payment·messaging을, batch는 crawling을 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
+- **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 스타터 `file-storage`를 포함한 11모듈 전부 같다.
+- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `ExternalModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth·payment·messaging을, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/external/AGENTS.md`.
 
 ## 봉인·가드 목록
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external..` 봉인 (외부 연동 9모듈 공통)
+### 자바 패키지 `com.tastyhouse.external..` 봉인 (외부 연동 10모듈 공통)
 
-**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/` 및 형제 모듈 8개의 같은 패키지 루트
+**대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/` 및 형제 모듈 9개의 같은 패키지 루트
 
 위 "자바 패키지는 `com.tastyhouse.external..`로 유지한다" 절과 같은 사실을, **가드로서** 다시 못박는다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.
 
@@ -135,7 +136,7 @@ com.tastyhouse.external/
 
 **대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/ExternalModuleAutoConfiguration.java`
 
-이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 이 클래스를 `@Import` 하지 않는다(앱이 직접 선언하지도 않고 어댑터 모듈을 통해 전이로 받는다). 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·크롤링은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`OAuthModuleAutoConfiguration`·`PaymentModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
+이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 이 클래스를 `@Import` 하지 않는다(앱이 직접 선언하지도 않고 어댑터 모듈을 통해 전이로 받는다). 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·외부 수집(BBQ·행정동 경계)은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`OAuthModuleAutoConfiguration`·`PaymentModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
 
 ### `ExternalApiException`이 `BusinessException`을 상속하는 이유 (결함 이력)
 
@@ -147,4 +148,4 @@ com.tastyhouse.external/
 
 **대상**: `backend/infrastructure/external/src/main/java/com/tastyhouse/external/config/WebClientConfig.java`
 
-비동기·논블로킹 HTTP 클라이언트(타임아웃·연결 풀 포함)를 코어가 등록한다. OAuth·결제 등 외부 연동 클라이언트가 `WebClient`를 주입받으므로, 이 설정을 코어에 두어 코어를 받는 모든 앱에서 빈이 등록되게 한다. **`maxInMemorySize`는 2MB(`2 * 1024 * 1024`)** 이며, 이보다 큰 응답을 다루는 어댑터는 `WebClient`가 아니라 `HttpClient` + 스트리밍 파서를 쓴다(선례: crawling 모듈의 `AdminDongBoundaryClient`).
+비동기·논블로킹 HTTP 클라이언트(타임아웃·연결 풀 포함)를 코어가 등록한다. OAuth·결제 등 외부 연동 클라이언트가 `WebClient`를 주입받으므로, 이 설정을 코어에 두어 코어를 받는 모든 앱에서 빈이 등록되게 한다. **`maxInMemorySize`는 2MB(`2 * 1024 * 1024`)** 이며, 이보다 큰 응답을 다루는 어댑터는 `WebClient`가 아니라 `HttpClient` + 스트리밍 파서를 쓴다(선례: admdongkor 모듈의 `AdminDongBoundaryClient`).

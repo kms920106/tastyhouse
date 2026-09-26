@@ -67,7 +67,7 @@ com.tastyhouse.external.aws.s3/
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **jar 실측으로 미포함을 확인한다**: 4개 앱 fat jar 어디에도 `aws-s3-0.0.1-SNAPSHOT.jar`·`spring-cloud-aws-*`가 있으면 안 된다(`unzip -l {앱}/build/libs/{앱}-0.0.1-SNAPSHOT.jar | grep BOOT-INF/lib/`).
-- **전환 리허설 실측(2026-09-26)**: 스타터를 임시로 aws-s3로 바꾸면 admin·ceo `runtimeClasspath`에 `infrastructure:messaging`·`infrastructure:external`·webflux가 0건이고(batch는 crawling 경유로 external·webflux를 원래 갖는다), 더미 자격증명(`S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY`)으로 admin-api가 `Started AdminApiApplication`까지 기동했다 — firebase가 클래스패스에 없으므로 `FileStoragePort`는 `S3FileStorage`다. 실제 업로드는 확인하지 않았다. ceo-api·batch-module 기동은 리허설하지 않았으므로 실제 전환 때 두 앱도 기동 확인 대상에 넣는다.
+- **전환 리허설 실측(2026-09-26)**: 스타터를 임시로 aws-s3로 바꾸면 admin·ceo `runtimeClasspath`에 `infrastructure:messaging`·`infrastructure:external`·webflux가 0건이고(batch는 bbq 경유로 external·webflux를 원래 갖는다 — 리허설 당시에는 crawling 경유), 더미 자격증명(`S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY`)으로 admin-api가 `Started AdminApiApplication`까지 기동했다 — firebase가 클래스패스에 없으므로 `FileStoragePort`는 `S3FileStorage`다. 실제 업로드는 확인하지 않았다. ceo-api·batch-module 기동은 리허설하지 않았으므로 실제 전환 때 두 앱도 기동 확인 대상에 넣는다.
 
 ## 봉인·가드 목록
 

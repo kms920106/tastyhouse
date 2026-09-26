@@ -58,8 +58,10 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### Internal
 - `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
 - `infrastructure:persistence` (**runtimeOnly**, 챕터 02 개정) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단. auto-configuration 전환으로 `@Import`용 컴파일 타임 참조가 사라져 `implementation`에서 내려갔다
-- `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터(챕터 03). 자바 코드 없이 `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:external`은 스타터가 아니라 아래 `infrastructure:crawling`을 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
-- `infrastructure:crawling` (**runtimeOnly**) — `external.crawling.bbq.BbqApiClient`(크롤링 HTTP 클라이언트)·`external.crawling.RemoteImageDownloader`·행정동 경계 클라이언트(`external.region`). **소스 참조는 `application`으로 옮겨갔고**, 이 모듈은 빈 스캔·설정(`application-crawling.yml`) 때문에 유지한다
+- `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터(챕터 03). 자바 코드 없이 `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:external`은 스타터가 아니라 아래 `infrastructure:bbq`·`infrastructure:admdongkor`를 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
+- `infrastructure:bbq` (**runtimeOnly**) — `external.bbq.BbqApiClient`(BBQ 메뉴 HTTP 클라이언트)·`external.bbq.RemoteImageDownloader`. 설정은 `application-bbq.yml`
+- `infrastructure:admdongkor` (**runtimeOnly**) — 행정동 경계 클라이언트 `external.admdongkor.AdminDongBoundaryClient`. 설정은 `application-admdongkor.yml`
+- 위 두 모듈은 2026-09-26에 옛 `infrastructure:crawling` 한 모듈을 나눈 것이다(근거는 `../infrastructure/admdongkor/AGENTS.md`). **소스 참조는 `application`으로 옮겨갔고**, 두 모듈은 빈 스캔·설정 때문에 유지한다
 - `logging-module` (**runtimeOnly**) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다. `runtimeOnly`에 걸린 `exclude`도 동일하게 적용된다(Gradle의 `exclude`는 의존 스코프와 무관하게 동작)
 - **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. web/admin/ceo와 달리 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). 도메인 타입이 다시 필요해지면 여기에 직접 선언한다
 - `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03)
@@ -69,7 +71,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 빈 배선 (챕터 02 개정 — auto-configuration)
 
-**과거 `BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합했다. 지금은 `@Import(BatchApplicationConfig.class)` 하나만 남는다.** `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)·`FirebaseModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration`·`LoggingModuleAutoConfiguration`은 전부 각자 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 auto-configuration이 되어, "쓰는 앱이 `@Import`한다"는 배선 방식 자체가 사라졌다. `BatchApplicationConfig`만 여전히 `@Import`하는 이유는 그것이 batch **앱 자신의 정체성**(`@ComponentScan` + 마커 필터)이라 자동 등록 대상이 아니기 때문이다(`application` 모듈은 auto-configuration을 갖지 않는다 — 위 `backend/CLAUDE.md`의 모듈 등록 컨벤션 참고).
+**과거 `BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합했다. 지금은 `@Import(BatchApplicationConfig.class)` 하나만 남는다.** `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)·`FirebaseModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`·`LoggingModuleAutoConfiguration`은 전부 각자 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 auto-configuration이 되어, "쓰는 앱이 `@Import`한다"는 배선 방식 자체가 사라졌다. `BatchApplicationConfig`만 여전히 `@Import`하는 이유는 그것이 batch **앱 자신의 정체성**(`@ComponentScan` + 마커 필터)이라 자동 등록 대상이 아니기 때문이다(`application` 모듈은 auto-configuration을 갖지 않는다 — 위 `backend/CLAUDE.md`의 모듈 등록 컨벤션 참고).
 
 **아래 §다음 절이 이 배선 변화의 핵심 — batch가 non-servlet인 이유를 이 문서가 유일하게 담보한다는 사실은 그대로 유효하다.**
 
@@ -83,7 +85,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 확인 방법은 그대로다: 배선을 건드렸으면 `java -jar --debug` 기동의 `CONDITIONS EVALUATION REPORT`를 본다. 다만 지금은 두 auto-configuration이 Negative로 **평가되는 것이 아니라 보고서에 아예 등장하지 않는 것**이 정상이다(클래스패스에 없으므로 후보에도 오르지 않는다).
 
-크롤링(`CrawlingModuleAutoConfiguration`)은 이 모듈이 실제로 쓰는 의도된 발화다. **Redis(`RedisModuleAutoConfiguration`)는 챕터 01부터 이 모듈에서 발화하지 않는다** — 과거 "전이로 끌려온 의도치 않은(그러나 무해한) 발화"였던 것이 전이 경로 소멸로 사라졌다(§챕터 02 감사표의 batch 행은 이 개정으로 갱신 대상이다).
+외부 수집(`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)은 이 모듈이 실제로 쓰는 의도된 발화다. **Redis(`RedisModuleAutoConfiguration`)는 챕터 01부터 이 모듈에서 발화하지 않는다** — 과거 "전이로 끌려온 의도치 않은(그러나 무해한) 발화"였던 것이 전이 경로 소멸로 사라졌다(§챕터 02 감사표의 batch 행은 이 개정으로 갱신 대상이다).
 
 > **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, `@Import`에서 모듈 하나를 빠뜨려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
 >
@@ -96,7 +98,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 설정 파일
 
-`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 두 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-crawling.yml`(크롤링, `infrastructure:crawling` 소유) — 을 `classpath:` import한다(챕터 03 이전에는 `application-external.yml`·`application-firebase.yml` 두 줄이었다) — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 세 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-bbq.yml`(BBQ 메뉴 수집, `infrastructure:bbq` 소유)·`application-admdongkor.yml`(행정동 경계 수집, `infrastructure:admdongkor` 소유) — 을 `classpath:` import한다(챕터 03 이전에는 `application-external.yml`·`application-firebase.yml` 두 줄이었다) — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
 
 ## 스케줄러 활성 상태 (트리거 7종 중 1종이 비활성)
 
@@ -124,7 +126,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 1. 메서드에 `@Scheduled(fixedDelay = 10000)` — 과거 주석으로 보존돼 있던 값(10초 고정 지연)
 2. `import org.springframework.scheduling.annotation.Scheduled;` — 이 import도 함께 주석 처리돼 있었으므로 복구해야 한다
 
-활성화한 뒤에는 `@SuppressWarnings("unused")` 두 개를 제거한다 — `@Scheduled`가 붙으면 더 이상 미사용이 아니다. 크롤링 대상이 남의 서비스이므로(`../infrastructure/crawling/AGENTS.md`), 켜기 전에 그 주기(10초)가 상대 서비스에 과한 부하인지부터 판단한다.
+활성화한 뒤에는 `@SuppressWarnings("unused")` 두 개를 제거한다 — `@Scheduled`가 붙으면 더 이상 미사용이 아니다. 크롤링 대상이 남의 서비스이므로(`../infrastructure/bbq/AGENTS.md`), 켜기 전에 그 주기(10초)가 상대 서비스에 과한 부하인지부터 판단한다.
 
 ### `GradeScheduler`·`RankScheduler`는 활성이다 — "비활성"으로 오해하지 말 것
 
@@ -182,7 +184,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 - **`ProductSoldOutReleaseScheduler` — 10분 주기.** 다른 배치가 하루 1회 새벽에 도는 것과 성격이 다르다. **"익일 가게 오픈 시간까지 품절"이 오픈 직후에 풀려야** 의미가 있고, 품절 기간 입력 단위가 10분이라 그보다 촘촘하게 돌 필요가 없다. 하루 1회로 두면 오전에 오픈한 가게가 다음 날 새벽까지 품절로 남는다.
 - **`ReviewBlindScheduler` — 매일 새벽 4시.** 랭킹 집계(3시)와 시간대를 분리해 두 잡이 겹치지 않게 한다.
-- **`AdminDongScheduler` — 매월 1일 04시.** 행정구역 개편은 연 몇 회 수준이라 잦은 실행이 의미 없고, **원천도 그 주기로만 갱신된다**(`../infrastructure/crawling/AGENTS.md` §region). 매월 1일 새벽에 한 번만 돌려 개편을 뒤늦게라도 따라잡게 하며, 다른 배치와 겹치지 않는 04시대를 쓴다.
+- **`AdminDongScheduler` — 매월 1일 04시.** 행정구역 개편은 연 몇 회 수준이라 잦은 실행이 의미 없고, **원천도 그 주기로만 갱신된다**(`../infrastructure/admdongkor/AGENTS.md` §수집 방식). 매월 1일 새벽에 한 번만 돌려 개편을 뒤늦게라도 따라잡게 하며, 다른 배치와 겹치지 않는 04시대를 쓴다.
 
 ### `adaptersShouldOnlyUseOwnAppUseCases`는 컴파일 게이트의 대체다
 

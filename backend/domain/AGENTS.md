@@ -6,7 +6,7 @@
 ## Purpose
 모든 도메인의 핵심을 담는 라이브러리 모듈(`java-library`). 순수 POJO 도메인 모델(Aggregate Root), Value Object, DomainEvent, Repository **write 포트**, 도메인 서비스(불변식 오케스트레이션·무상태 정책), 외부 어댑터용 **출력 포트**를 포함한다.
 
-**프레임워크를 전혀 모른다** — production 의존이 **하나도 없다**(Lombok까지 제거됨). Spring Web뿐 아니라 JPA·QueryDSL·`spring-tx`/`spring-orm`도 없으므로, `@Entity`/`@Transactional`/`@Service`/`@Component`/`com.querydsl.*`가 이 모듈에 단 한 곳도 없다. 예외의 HTTP 상태는 `int httpStatusCode`로, 낙관적 락 충돌은 `OptimisticLockConflictException`으로 표현한다. `web-api`/`admin-api`/`ceo-api`/`batch-module`/`infrastructure:persistence`/외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,crawling}`)/`security-module`이 이 모듈에 의존한다(역방향 의존은 없다).
+**프레임워크를 전혀 모른다** — production 의존이 **하나도 없다**(Lombok까지 제거됨). Spring Web뿐 아니라 JPA·QueryDSL·`spring-tx`/`spring-orm`도 없으므로, `@Entity`/`@Transactional`/`@Service`/`@Component`/`com.querydsl.*`가 이 모듈에 단 한 곳도 없다. 예외의 HTTP 상태는 `int httpStatusCode`로, 낙관적 락 충돌은 `OptimisticLockConflictException`으로 표현한다. `web-api`/`admin-api`/`ceo-api`/`batch-module`/`infrastructure:persistence`/외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}`)/`security-module`이 이 모듈에 의존한다(역방향 의존은 없다).
 
 > 과거 `core-module`(패키지 `com.tastyhouse.core`)이었으며, `application/` 계층(서비스·DTO)을 소비 모듈과 infrastructure-module로 해체하면서 `domain`(패키지 `com.tastyhouse.domain`)로 리네이밍되었다. 전환 기록은 루트 `AGENTS.md`와 `tasks/README.md` 참고.
 

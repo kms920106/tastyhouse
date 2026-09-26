@@ -139,7 +139,7 @@ com.tastyhouse.application/
 스펙은 "driven 클라이언트면 batch-module 잔류 + 인터페이스 분리"를 원칙으로 했으나, 확인 결과 **`crawling/bbq`는 driven 클라이언트가 아니라 application 계층 코드**였다.
 
 - `BbqProductSyncService`는 `@Service @Transactional`로 **트랜잭션 경계를 소유**하고, 저장 불변식은 도메인 서비스 `ProductRegistrationService`에 위임하며, 동기화 대상 탐색은 `ProductQueryPort`(읽기 포트)로 한다.
-- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:crawling`에 있다**(`external.crawling.bbq.BbqApiClient`·`external.crawling.RemoteImageDownloader`).
+- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:bbq`에 있다**(`external.bbq.BbqApiClient`·`external.bbq.RemoteImageDownloader`).
 - `BatchJobException`은 `BbqService`만 던지므로 함께 이동했다.
 
 batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`가 0개이고 잡 본문이 `*SchedulerService`에 담기며, 스케줄이 유일한 입력이라 Command record가 없고 인바운드 포트가 전부 `void foo()`다.
@@ -184,7 +184,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 ### Internal
 - `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
 - `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
-- **외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,crawling}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:crawling`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
+- **외부 연동 모듈(`infrastructure:{external,firebase,aws-s3,aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:oauth`(소셜 SPI)와 `infrastructure:bbq`·`infrastructure:admdongkor`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
 
 ### External
@@ -821,7 +821,7 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 - Command record에는 붙이지 않는다(소속은 `AppOwnership`이 유도한다).
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
-- 라이브러리 모듈 13개는 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
+- 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
   (4개 앱의 빈이 같은 jar에 있고 마커로만 갈린다).
 

@@ -16,7 +16,7 @@ com.tastyhouse.external.firebase/
 
 ## 어느 앱이 의존하는가
 
-**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·messaging)이나 batch(crawling) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
+**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·messaging)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
 
 ## 진입 설정과 스캔 범위
 

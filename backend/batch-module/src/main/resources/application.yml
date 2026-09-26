@@ -13,6 +13,7 @@ spring:
     import:
       - classpath:application-infrastructure.yml
       - classpath:application-file-storage.yml
-      - classpath:application-crawling.yml
+      - classpath:application-bbq.yml
+      - classpath:application-admdongkor.yml
       - optional:file:.env[.properties]
       - optional:file:backend/.env[.properties]

@@ -71,7 +71,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{external,firebase,aws-s3,
-                                          aws-ses,aws-sns,oauth,payment,messaging,crawling}
+                                          aws-ses,aws-sns,oauth,payment,messaging,bbq,admdongkor}
                                           (외부 연동 port 구현)
 ```
 

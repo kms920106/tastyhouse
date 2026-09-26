@@ -53,7 +53,7 @@ payment:
 ### External
 - `spring-boot-starter-webflux` — 토스 API 호출(`WebClient`). Jackson도 이것이 전이로 제공한다.
 
-**`application`에 의존하지 않는다** — 이 모듈이 구현하는 계약은 도메인 포트 하나뿐이고 아웃바운드 SPI가 없다(oauth·crawling과 다른 점).
+**`application`에 의존하지 않는다** — 이 모듈이 구현하는 계약은 도메인 포트 하나뿐이고 아웃바운드 SPI가 없다(oauth·bbq·admdongkor와 다른 점).
 
 ## 주의
 
