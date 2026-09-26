@@ -2,7 +2,7 @@
 
 # infrastructure:oauth
 
-소셜 로그인(카카오·네이버·애플·페이스북) 클라이언트를 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.oauth..`는 불변**이다(코어 스캔 범위가 `external.config`·`external.file`이라 동반 스캔 위험이 없고, web-api ArchUnit 규칙이 이 패키지 이름을 직접 참조한다).
+소셜 로그인(카카오·네이버·애플·페이스북) 클라이언트를 소유하는 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, **자바 패키지 `com.tastyhouse.external.oauth..`는 불변**이다(코어 스캔 범위가 `external.config` 하나라 — 파일 저장 SPI 삭제 전에는 `external.file`까지 둘 — 동반 스캔 위험이 없고, web-api ArchUnit 규칙이 이 패키지 이름을 직접 참조한다).
 
 ## 무엇을 소유하는가
 

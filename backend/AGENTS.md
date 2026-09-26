@@ -27,8 +27,8 @@
 | `domain/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
-| `infrastructure/external/` | **외부 연동 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`·파일 저장 SPI(`FileStorageStrategy`·`FileStoragePortAdapter`). 벤더·채널 구현은 아래 6모듈로 분리됐다. **앱이 직접 의존하지 않는다** — 파일 저장은 `infrastructure/file-storage/` 스타터를 통해 전이로 실린다 (see `infrastructure/external/AGENTS.md`) |
-| `infrastructure/file-storage/` | **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:external`(코어 SPI) + `infrastructure:firebase`(벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
+| `infrastructure/external/` | **외부 연동 HTTP 코어** — `WebClientConfig`·`ExternalApiException`/`ErrorCode`만 갖는다(파일 저장 SPI `FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`는 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하도록 바뀌며 삭제됐다). 벤더·채널 구현은 아래 6모듈로 분리됐다. **앱이 직접 의존하지 않는다** — web은 oauth·payment·messaging, batch는 crawling을 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/external/AGENTS.md`) |
+| `infrastructure/file-storage/` | **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:firebase`(`FileStoragePort` 벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
 | `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **앱이 직접 의존하지 않는다** — 스타터 `infrastructure:file-storage`가 의존하고 앱은 그 스타터만 본다 (see `infrastructure/firebase/AGENTS.md`) |
 | `infrastructure/aws/` | S3·SES·SNS 어댑터. **어느 앱도 의존하지 않는다** — provider 기본값이 전부 비-AWS라 컴파일만 검증한다. 전환 절차는 (see `infrastructure/aws/AGENTS.md`) |
 | `infrastructure/oauth/` | 소셜 로그인 클라이언트 4종(kakao·naver·apple·facebook) + `oauth/spi/`. **web-api만 의존** (see `infrastructure/oauth/AGENTS.md`) |
@@ -75,7 +75,7 @@ web-api ──┬─→ application (implementation)             ← 컨트롤�
           ├─→ domain (implementation)
           ├─→ infrastructure:persistence (runtimeOnly) ← DAO 구현체는 주입하지 않고, 챕터 02로 빈 스캔용 컴파일 참조도 필요 없어졌다(auto-configuration)
           ├─→ infrastructure:{file-storage,oauth,payment,messaging} (runtimeOnly) ← 실사용 어댑터만
-          │     ※ file-storage가 external+firebase를 전이로 끌어온다 — 앱은 벤더를 모른다
+          │     ※ file-storage가 firebase를 전이로 끌어온다 — 앱은 벤더를 모른다
           ├─→ security-module(→security-core 전이) / api-common-module (implementation) / logging-module (runtimeOnly)
 admin-api  ─(동일 패턴) ─→ application
 ceo-api    ─(동일 패턴) ─→ application
@@ -116,12 +116,12 @@ infrastructure:redis ─┬→ security-core (implementation)     ← (챕터 01
                       └→ api-common-module (implementation) ← RateLimitCounterPort 구현
    ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 두 계약의
      소유 모듈만 의존한다(adapter → port 방향)
-infrastructure:external ─→ domain (implementation)   ← 코어: FileStoragePort 구현 + 파일 저장 SPI
-   ↑ 아래 6모듈이 전부 이 코어를 implementation으로 의존한다(SPI·예외·WebClient 재사용)
-infrastructure:file-storage ─→ infrastructure:external, infrastructure:firebase (둘 다 runtimeOnly)
+infrastructure:external ─→ domain (implementation) + webflux   ← HTTP 코어: WebClient 빌더 + 외부 연동 예외(ErrorCodeSpec 구현)
+   ↑ firebase를 뺀 아래 5모듈이 이 코어를 implementation으로 의존한다(예외·WebClient 재사용)
+infrastructure:file-storage ─→ infrastructure:firebase (runtimeOnly)
    ← (챕터 03 신설) 자바 코드 없는 조립 전용 스타터. 앱 4개가 의존하는 유일한 파일 저장 좌표이며,
-     external·firebase는 여기를 통해 앱 runtimeClasspath에 전이로 실린다(compileClasspath에는 없다)
-infrastructure:firebase  ─→ infrastructure:external, domain        + firebase-admin
+     firebase는 여기를 통해 앱 runtimeClasspath에 전이로 실린다(compileClasspath에는 없다)
+infrastructure:firebase  ─→ domain                                 + firebase-admin   ← FileStoragePort 직접 구현
 infrastructure:aws       ─→ infrastructure:external, infrastructure:messaging(MailProperties), domain
                                                                           + awssdk:ses/sns, spring-cloud-aws-s3(+BOM)
 infrastructure:oauth     ─→ infrastructure:external, application(auth SPI), domain + jjwt
@@ -159,7 +159,7 @@ domain → 의존 없음 (production 의존 0개)
 - **모듈 등록은 `scanBasePackages`/`@Import` 조합이 아니라 auto-configuration이다 (챕터 02 개정)**: 과거 4개 앱의 `{Xxx}Application.java`는 `@Import({InfrastructureModuleConfig, RedisModuleConfig, ExternalModuleConfig, ...})`로 라이브러리 모듈 설정 클래스를 일일이 나열해 조합했다. 지금은 각 라이브러리 모듈이 `{Xxx}ModuleAutoConfiguration`(`@AutoConfiguration`) + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 **자기 자신을 등록**하고, 앱의 `@Import`는 그 앱 정체성인 `{App}ApplicationConfig` 하나만 남는다. "클래스패스 존재 = 활성화"가 새 원칙이며, 전이로 끌려온 앱에서도 안전하게 발화(또는 비발화)하도록 각 auto-configuration이 `@ConditionalOnWebApplication`·`@ConditionalOnBean`·`@ConditionalOnMissingBean` 등으로 스스로 답한다. 상세는 `backend/CLAUDE.md`의 모듈 등록 컨벤션 절 참고.
 - **`scanBasePackages`는 4개 앱 전부에서 사라졌다 (챕터 02)**: 과거에는 각 앱 자신 + `com.tastyhouse.infrastructure`·`com.tastyhouse.external`·`com.tastyhouse.security`(web/admin/ceo)·`com.tastyhouse.logging`을 나열했고, `domain`에는 `@Component`/`@Service`/`@Configuration`이 하나도 없어(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) domain 엔트리만 먼저 제거된 상태였다. auto-configuration 전환으로 라이브러리 모듈이 각자 자기 패키지를 스캔하게 되면서 **나열 자체가 없어졌고**, 4개 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)만 남는다. 도메인에 새 POJO 서비스를 추가할 때도 스캔 엔트리를 되살리지 말고 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean`을 추가한다.
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
-  - **계층 축**: `domain`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,file-storage,firebase,aws,oauth,payment,messaging,crawling}` 8모듈이 아웃바운드(driven) 어댑터다(`file-storage`만은 코드 없는 조립 스타터라 어댑터를 갖지 않고 external+firebase를 묶기만 한다).
+  - **계층 축**: `domain`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure:persistence`·`infrastructure:redis`와 `infrastructure:{external,file-storage,firebase,aws,oauth,payment,messaging,crawling}` 8모듈이 아웃바운드(driven) 어댑터다(`file-storage`만은 코드 없는 조립 스타터라 어댑터를 갖지 않고 firebase를 묶기만 한다).
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(같은 이름의 서비스가 여러 모듈에 공존하는 것이 정상).
   - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:external`과 그 벤더·채널 6모듈(`firebase`·`aws`·`oauth`·`payment`·`messaging`·`crawling`) + 조립 스타터 `file-storage`가 외부 시스템 연동 어댑터다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 이 중 `file-storage`를 뺀 7모듈이 `com.tastyhouse.external..`을 나눠 소유한다 — `file-storage`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다.
   - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.

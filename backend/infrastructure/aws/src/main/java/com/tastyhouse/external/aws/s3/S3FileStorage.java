@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.file.FileStorageStrategy;
+import com.tastyhouse.domain.file.port.FileStoragePort;
 
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "s3")
-public class S3FileStorage implements FileStorageStrategy {
+public class S3FileStorage implements FileStoragePort {
 
     private static final Logger log = LoggerFactory.getLogger(S3FileStorage.class);
 

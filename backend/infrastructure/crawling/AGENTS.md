@@ -30,7 +30,7 @@ com.tastyhouse.external/
 
 ## `RemoteImageDownloader`의 패키지가 바뀌었다
 
-`com.tastyhouse.external.file.RemoteImageDownloader` → **`com.tastyhouse.external.crawling.RemoteImageDownloader`**. 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔하므로, 그 자리에 남겨두면 파일 저장만 쓰는 admin/ceo에도 이 빈이 동반 스캔된다(`../external/AGENTS.md`의 패키지 예외 3건).
+`com.tastyhouse.external.file.RemoteImageDownloader` → **`com.tastyhouse.external.crawling.RemoteImageDownloader`**. 분리 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔했으므로, 그 자리에 남겨두면 파일 저장만 쓰는 admin/ceo에도 이 빈이 동반 스캔됐다(`../external/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI 삭제로 그 스캔은 없어졌고 `external.file` 패키지도 어느 모듈에도 남지 않았지만, 이 클래스는 소유 모듈의 패키지(`external.crawling`)에 둔다.
 
 **⚠️ 이 클래스는 persistence가 등록하는 빈에 런타임 의존한다.** 생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 의존하고 `infrastructure:persistence`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 의존하므로 성립한다 — 챕터 02 이후로는 `runtimeOnly` 의존 선언만으로 `PersistenceModuleAutoConfiguration`·`CrawlingModuleAutoConfiguration` 둘 다 자동 등록된다). 컴파일 의존은 `domain`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다.
 

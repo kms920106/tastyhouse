@@ -2,7 +2,7 @@
 
 # infrastructure:firebase
 
-Firebase Storage 파일 저장 전략을 소유하는 벤더 어댑터 모듈(`java-library`). `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔되기 때문이다(`../external/AGENTS.md`의 패키지 예외 3건).
+Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-library`). 도메인 포트 `com.tastyhouse.domain.file.port.FileStoragePort`를 **직접 구현**한다. `infrastructure:external` 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔됐기 때문이다(`../external/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI가 삭제되며 그 `external.file` 스캔은 없어졌다.
 
 ## 무엇을 소유하는가
 
@@ -10,7 +10,7 @@ Firebase Storage 파일 저장 전략을 소유하는 벤더 어댑터 모듈(`j
 com.tastyhouse.external.firebase/
 ├── FirebaseModuleAutoConfiguration.java  진입점 — 챕터 02로 FirebaseModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 ├── FirebaseStorageConfig.java      FirebaseApp 빈 (서비스 계정 JSON으로 초기화)
-├── FirebaseFileStorage.java        FileStorageStrategy 구현 (업로드·URL·삭제)
+├── FirebaseFileStorage.java        FileStoragePort 직접 구현 (업로드·URL·삭제)
 └── FirebaseStorageProperties.java  file.firebase.* 프로퍼티
 ```
 
@@ -22,7 +22,7 @@ com.tastyhouse.external.firebase/
 
 `FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.external.firebase")` + `@EnableConfigurationProperties(FirebaseStorageProperties.class)`를 갖는다. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
 
-**`@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")`는 `FirebaseFileStorage`·`FirebaseStorageConfig` 두 구현 클래스에 붙어 있고 진입 설정에는 없다.** 따라서 이 모듈이 클래스패스에 있더라도 `file.provider`가 `firebase`가 아니면 빈이 등록되지 않는다 — 그때는 다른 전략(S3)이 등록돼 있어야 하며, 아무 전략도 없으면 코어의 `FileStoragePortAdapter`가 `FileStorageStrategy`를 찾지 못해 **기동 시** 실패한다.
+**`@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")`는 `FirebaseFileStorage`·`FirebaseStorageConfig` 두 구현 클래스에 붙어 있고 진입 설정에는 없다.** 따라서 이 모듈이 클래스패스에 있더라도 `file.provider`가 `firebase`가 아니면 빈이 등록되지 않는다 — 그때는 다른 `FileStoragePort` 구현(S3)이 등록돼 있어야 하며, 구현이 하나도 없으면 `FileStoragePort`를 주입받는 persistence 빈(`FileUrlResolver`·`FileDomainConfig`)이 그 빈을 찾지 못해 **기동 시** 실패한다. 구현은 `file.provider`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나다.
 
 ## yml — `application-firebase.yml` (configtree 시크릿 로딩)
 
@@ -47,8 +47,9 @@ file:
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — 구현하는 `FileStorageStrategy` SPI와 `ExternalApiException`/`ExternalApiErrorCode`의 소유 모듈
-- `domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCodeSpec`)의 뿌리
+- `domain` (implementation) — 구현하는 포트 `FileStoragePort`와 예외 계약(`BusinessException`·`ErrorCode`). **내부 의존은 이것 하나뿐이다.**
+
+`infrastructure:external` 의존은 파일 저장 SPI 삭제와 함께 제거됐다 — 이 모듈은 external의 SPI도 예외(`ExternalApiException`)도 쓰지 않는다. 그래서 스타터를 통해 이 모듈만 받는 admin-api·ceo-api의 런타임 클래스패스에 external·webflux가 딸려 오지 않는다.
 
 ### External
 - `com.google.firebase:firebase-admin:9.10.0` — `FirebaseApp`·`Bucket`. **이 SDK를 클래스패스에 올리는 유일한 모듈이다**(분리 전에는 코어를 의존한 4개 앱이 자동으로 받았고, 지금도 4개 앱이 스타터를 통해 이 모듈을 전이로 받으므로 결과는 같지만 이유가 명시적이다).
@@ -56,8 +57,8 @@ file:
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선 (챕터 03 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 전략도 아니면 **기동 시** `FileStorageStrategy` 빈 부재로 실패한다.
-- **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FileStorageStrategy#getFileUrl`(Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. DB에는 URL이 아니라 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
+- **빈 배선 (챕터 03 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
+- **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FirebaseFileStorage#getFileUrl`(`FileStoragePort#getFileUrl` 구현, Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고 DB에는 URL이 아니라 그 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
 
 ## 봉인·가드 목록
 
@@ -73,7 +74,7 @@ file:
 
 **대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/`
 
-`external.file.firebase`로 되돌리면 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되고, `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 양쪽 모두 이동 금지 대상이다.
+`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 분리 당시에는 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되는 것이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈마다 겹치지 않는 하위 패키지(`external.firebase` / `external.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다.
 
 ## 코드 주석에서 이관된 설계 근거
 

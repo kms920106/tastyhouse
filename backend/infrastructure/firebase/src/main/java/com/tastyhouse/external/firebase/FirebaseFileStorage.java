@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.external.file.FileStorageStrategy;
+import com.tastyhouse.domain.file.port.FileStoragePort;
 
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
-public class FirebaseFileStorage implements FileStorageStrategy {
+public class FirebaseFileStorage implements FileStoragePort {
 
     private static final Logger log = LoggerFactory.getLogger(FirebaseFileStorage.class);
 

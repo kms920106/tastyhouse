@@ -25,7 +25,7 @@ com.tastyhouse.external/
         └── SmsDomainConfig.java       ← persistence에서 이관
 ```
 
-자바 패키지 `external.mail..`·`external.sms..`는 **불변**이다(코어 스캔 범위가 `external.config`·`external.file`이라 동반 스캔 위험이 없다). `MailDomainConfig`·`SmsDomainConfig`만 이관하며 패키지가 `com.tastyhouse.infrastructure.{mail,sms}.config` → `com.tastyhouse.external.messaging.config`로 바뀌었고, **내용은 불변**이다.
+자바 패키지 `external.mail..`·`external.sms..`는 **불변**이다(분리 당시 코어 스캔 범위가 `external.config`·`external.file`이라 동반 스캔 위험이 없었고, 파일 저장 SPI 삭제 후 코어 스캔은 `external.config` 하나로 더 좁아졌다). `MailDomainConfig`·`SmsDomainConfig`만 이관하며 패키지가 `com.tastyhouse.infrastructure.{mail,sms}.config` → `com.tastyhouse.external.messaging.config`로 바뀌었고, **내용은 불변**이다.
 
 ## 어느 앱이 의존하는가
 

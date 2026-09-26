@@ -185,8 +185,7 @@ public interface DomainEventPublisher {
 ```java
 // domain/mail/port/MailSender.java        — infrastructure:messaging (JavaMailAdapter) / infrastructure:aws (SesMailSender)
 // domain/sms/port/SmsSender.java          — infrastructure:messaging (SolapiSmsClient) / infrastructure:aws (SnsSmsSender)
-// domain/file/port/FileStoragePort.java   — infrastructure:external (FileStoragePortAdapter → FileStorageStrategy 위임)
-//                                           구현체는 infrastructure:firebase / infrastructure:aws
+// domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws (S3FileStorage) — file.provider 배타 선택
 // domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:payment
 ```
 

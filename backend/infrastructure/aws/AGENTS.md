@@ -48,11 +48,11 @@ SES·SNS·S3 어댑터에 대한 테스트가 없다. 따라서 이 모듈이 �
 
 ### 두 경로가 겹쳐도 충돌하지 않는다
 
-파일은 Firebase로 두고 메일만 SES로 바꾸는 조합처럼 한쪽만 전환하는 경우, `infrastructure:aws` jar가 web의 `runtimeClasspath`에 실리면서 S3 어댑터도 함께 올라온다. **그래도 문제되지 않는다** — `S3FileStorage`·`S3FileStorageConfig`는 `@ConditionalOnProperty(file.provider=s3)`를 달고 있고 스타터가 `file.provider: firebase`를 유지하므로 S3 전략은 등록되지 않는다. `FileStorageStrategy` 빈은 Firebase 구현 하나뿐이라 중복 주입도 없다.
+파일은 Firebase로 두고 메일만 SES로 바꾸는 조합처럼 한쪽만 전환하는 경우, `infrastructure:aws` jar가 web의 `runtimeClasspath`에 실리면서 S3 어댑터도 함께 올라온다. **그래도 문제되지 않는다** — `S3FileStorage`·`S3FileStorageConfig`는 `@ConditionalOnProperty(file.provider=s3)`를 달고 있고 스타터가 `file.provider: firebase`를 유지하므로 S3 구현은 등록되지 않는다. `FileStoragePort` 빈은 Firebase 구현 하나뿐이라 중복 주입도 없다.
 
 반대로 파일만 S3로 바꾸고 메일도 SES로 바꾼 경우에는 `application-aws.yml`이 **두 경로에서 import된다**(스타터의 중첩 import + web `application.yml`의 직접 import). 이것도 무해하다 — 같은 `classpath:` 리소스라 Spring이 같은 property source를 두 번 읽을 뿐 값이 달라지지 않는다.
 
-**모듈 없이 provider만 바꾸면 기동 시 실패한다 — 조용한 오동작은 없다.** 예컨대 `file.provider=s3`로만 바꾸고 스타터의 gradle 의존을 그대로 두면 firebase 전략은 `@ConditionalOnProperty`로 등록되지 않고 S3 전략은 클래스패스에 없으므로, 코어의 `FileStoragePortAdapter`가 `FileStorageStrategy` 빈을 찾지 못해 컨텍스트 로딩이 실패한다. 메일·SMS도 같다(`MailSender`/`SmsSender` 빈 부재 → `MailDomainConfig`/`SmsDomainConfig`의 도메인 서비스 빈 생성 실패). 이 "실패로 드러남"이 provider 전환의 안전장치다.
+**모듈 없이 provider만 바꾸면 기동 시 실패한다 — 조용한 오동작은 없다.** 예컨대 `file.provider=s3`로만 바꾸고 스타터의 gradle 의존을 그대로 두면 firebase 구현은 `@ConditionalOnProperty`로 등록되지 않고 S3 구현은 클래스패스에 없으므로, persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 컨텍스트 로딩이 실패한다(2026-09-26 실측: `FileUrlResolver`에서 먼저 실패). 메일·SMS도 같다(`MailSender`/`SmsSender` 빈 부재 → `MailDomainConfig`/`SmsDomainConfig`의 도메인 서비스 빈 생성 실패). 이 "실패로 드러남"이 provider 전환의 안전장치다.
 
 ## 무엇을 소유하는가
 
@@ -60,7 +60,7 @@ SES·SNS·S3 어댑터에 대한 테스트가 없다. 따라서 이 모듈이 �
 com.tastyhouse.external.aws/
 ├── AwsModuleAutoConfiguration.java   진입점 (챕터 02로 AwsModuleConfig에서 리네임 + @AutoConfiguration. 현재 어느 앱도 의존하지 않는다)
 ├── s3/
-│   ├── S3FileStorage.java            FileStorageStrategy 구현 @ConditionalOnProperty(file.provider=s3)
+│   ├── S3FileStorage.java            도메인 포트 FileStoragePort 직접 구현 @ConditionalOnProperty(file.provider=s3)
 │   ├── S3FileStorageConfig.java      S3 클라이언트 빈    @ConditionalOnProperty(file.provider=s3)
 │   └── S3FileStorageProperties.java  file.aws.s3.*
 ├── ses/
@@ -73,7 +73,7 @@ com.tastyhouse.external.aws/
 
 ### 패키지가 바뀐 이유
 
-세 어댑터의 원래 패키지는 `external.file.s3`·`external.mail.ses`·`external.sms.sns`였다. 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `external.file`을, `MessagingModuleAutoConfiguration`(구 `MessagingModuleConfig`)가 `external.mail`·`external.sms`를 스캔하므로 **그 하위에 남겨두면 코어·메시징을 import 한 앱에 AWS 빈이 동반 스캔된다.** 그래서 `external.aws.{s3,ses,sns}` 아래로 모았다(`../external/AGENTS.md`의 패키지 예외).
+세 어댑터의 원래 패키지는 `external.file.s3`·`external.mail.ses`·`external.sms.sns`였다. 분리 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `external.file`을, `MessagingModuleAutoConfiguration`(구 `MessagingModuleConfig`)가 `external.mail`·`external.sms`를 스캔했으므로 **그 하위에 남겨두면 코어·메시징을 import 한 앱에 AWS 빈이 동반 스캔됐다.** 그래서 `external.aws.{s3,ses,sns}` 아래로 모았다(`../external/AGENTS.md`의 패키지 예외). 이후 코어의 파일 저장 SPI 삭제로 `external.file` 스캔은 없어졌고(코어 스캔은 `external.config` 하나), 메시징 스캔은 그대로다.
 
 이 재배치는 `backend/CLAUDE.md`가 과거 "비채택 대안 (3) AWS 어댑터를 벤더 패키지로 모으기"로 기록했던 것을 **번복한 것**이다. 당시 근거("제공자 선택 축이 벤더가 아니라 채널이고 자격증명도 채널별로 따로여서 공유할 AWS 설정 코드가 없다")는 지금도 사실이다 — `mail.aws.ses.*`·`sms.aws.sns.*`·`file.aws.s3.*`가 각각 별도 자격증명을 갖는다. 바뀐 것은 **스캔 격리라는 새 요구**이며, 벤더 패키지는 그 수단이지 설정 공유를 위한 것이 아니다.
 
@@ -90,9 +90,9 @@ com.tastyhouse.external.aws/
 ## Dependencies
 
 ### Internal
-- `infrastructure:external` (implementation) — `FileStorageStrategy` SPI, `ExternalApiException`/`ExternalApiErrorCode`
+- `infrastructure:external` (implementation) — **`ExternalApiException`/`ExternalApiErrorCode` 때문이다.** `SesMailSender`·`SnsSmsSender`가 발송 실패를 이 예외로 던진다. 과거에는 S3가 구현하던 `FileStorageStrategy` SPI도 이 의존의 이유였으나, SPI 삭제로 `S3FileStorage`는 도메인 포트 `FileStoragePort`를 직접 구현한다(이 모듈이 external을 계속 갖는 이유는 SES/SNS뿐이다)
 - `infrastructure:messaging` (implementation) — **`MailProperties`(`mail.sender-address`) 하나 때문이다.** `SesMailSender`가 발신자 주소를 그 record에서 읽는다. 채널 공통 설정(발신자 주소·발신 번호)은 벤더가 아니라 채널 모듈이 소유하므로, 벤더 모듈이 채널 모듈을 의존하는 이 방향이 정상이다
-- `domain` (implementation) — 구현하는 `MailSender`·`SmsSender` 포트와 예외 계약
+- `domain` (implementation) — 구현하는 `MailSender`·`SmsSender`·`FileStoragePort` 포트와 예외 계약
 
 ### External
 - `software.amazon.awssdk:ses` · `software.amazon.awssdk:sns` · `io.awspring.cloud:spring-cloud-aws-s3`
@@ -112,7 +112,7 @@ com.tastyhouse.external.aws/
 
 **대상**: `backend/infrastructure/aws/src/main/java/com/tastyhouse/external/aws/{s3,ses,sns}/`
 
-원래 패키지(`external.file.s3`·`external.mail.ses`·`external.sms.sns`)로 되돌리면 코어·메시징의 `@ComponentScan`에 **동반 스캔되어 그 모듈을 받은 앱에 AWS 빈이 딸려 올라온다.** 반대로 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin-api·ceo-api·batch-module의 부팅이 깨진다. 위 "패키지가 바뀐 이유" 절의 배치는 스캔 격리를 위한 것이므로 정리 대상이 아니다.
+원래 패키지(`external.mail.ses`·`external.sms.sns`)로 되돌리면 메시징의 `@ComponentScan`에 **동반 스캔되어 그 모듈을 받은 앱에 AWS 빈이 딸려 올라온다.** `external.file.s3`는 분리 당시 코어의 `external.file` 스캔이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈별 하위 패키지 소유(split package 회피) 구조를 지키기 위해 되돌리지 않는다. 반대로 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin-api·ceo-api·batch-module의 부팅이 깨진다. 위 "패키지가 바뀐 이유" 절의 배치는 스캔 격리를 위한 것이므로 정리 대상이 아니다.
 
 ### 위 "AWS로 전환하는 절차"는 이 모듈의 유일한 활성화 경로다
 

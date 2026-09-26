@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly project(':infrastructure:external')
     runtimeOnly project(':infrastructure:firebase')
 }
 
