@@ -51,7 +51,7 @@ class BbqApiClientTest {
 
         assertThat(categories).extracting(BbqMenuCategoryResponse::getCategoryName)
             .containsExactly("치킨", "사이드");
-        assertThat(categories.get(0).getFullSize()).isTrue();
+        assertThat(categories.getFirst().getFullSize()).isTrue();
         server.verify();
     }
 

@@ -102,11 +102,9 @@ class RemoteImageDownloaderTest {
         throws IOException {
         exchange.getResponseHeaders().add("Content-Type", contentType);
         exchange.sendResponseHeaders(status, length);
-        try (OutputStream out = exchange.getResponseBody()) {
+        try (exchange; OutputStream out = exchange.getResponseBody()) {
             out.write(body);
         } catch (IOException ignored) {
-        } finally {
-            exchange.close();
         }
     }
 
