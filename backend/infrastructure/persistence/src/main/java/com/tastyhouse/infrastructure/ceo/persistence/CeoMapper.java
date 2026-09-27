@@ -1,33 +1,34 @@
 package com.tastyhouse.infrastructure.ceo.persistence;
 
-import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.application.ceo.port.out.write.CeoState;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class CeoMapper {
     private CeoMapper() {
     }
 
-    static Ceo toDomain(CeoJpaEntity entity) {
-        return Ceo.reconstitute(
+    static CeoState toState(CeoJpaEntity entity) {
+        return new CeoState(
             entity.getId(),
             entity.getUsername(),
             entity.getPassword(),
             entity.getName(),
             entity.getBusinessRegistrationNumber(),
-            entity.getPhoneNumber(),
+            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
             entity.getEmail(),
             entity.getStatus()
         );
     }
 
-    static CeoJpaEntity toEntity(Ceo domain) {
+    static CeoJpaEntity toEntity(CeoState state) {
         return CeoJpaEntity.create(
-            domain.getUsername(),
-            domain.getPassword(),
-            domain.getName(),
-            domain.getBusinessRegistrationNumber(),
-            domain.getPhoneNumber(),
-            domain.getEmail(),
-            domain.getStatus()
+            state.username(),
+            state.password(),
+            state.name(),
+            state.businessRegistrationNumber(),
+            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
+            state.email(),
+            state.status()
         );
     }
 }

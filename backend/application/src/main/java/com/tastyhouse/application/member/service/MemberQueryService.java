@@ -45,12 +45,12 @@ public class MemberQueryService implements MemberQueryUseCase {
 
     @Override
     public MemberPersonalInfoResult getPersonalInfo(Long memberId) {
-        return memberQueryPort.findPersonalInfoById(MemberId.of(memberId))
+        return memberQueryPort.findPersonalInfoById(MemberId.of(memberId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     private MemberWithProfileImageResult findProfile(Long memberId) {
-        return memberQueryPort.findMemberWithProfileImageById(MemberId.of(memberId))
+        return memberQueryPort.findMemberWithProfileImageById(MemberId.of(memberId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

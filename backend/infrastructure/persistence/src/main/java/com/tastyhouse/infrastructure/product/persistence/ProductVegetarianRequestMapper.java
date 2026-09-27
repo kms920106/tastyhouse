@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestState;
 
 final class ProductVegetarianRequestMapper {
     private ProductVegetarianRequestMapper() {
     }
 
-    static ProductVegetarianRequest toDomain(ProductVegetarianRequestJpaEntity entity) {
-        return ProductVegetarianRequest.reconstitute(
+    static ProductVegetarianRequestState toState(ProductVegetarianRequestJpaEntity entity) {
+        return new ProductVegetarianRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getProductId(),
             entity.getVegetarianType(),
             entity.getIngredients(),
             entity.getDescription(),
@@ -22,21 +20,21 @@ final class ProductVegetarianRequestMapper {
         );
     }
 
-    static ProductVegetarianRequestJpaEntity toEntity(ProductVegetarianRequest domain) {
+    static ProductVegetarianRequestJpaEntity toEntity(ProductVegetarianRequestState state) {
         return ProductVegetarianRequestJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getVegetarianType(),
-            domain.getIngredients(),
-            domain.getDescription(),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.productId(),
+            state.vegetarianType(),
+            state.ingredients(),
+            state.description(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
-    static void applyChanges(ProductVegetarianRequestJpaEntity entity, ProductVegetarianRequest domain) {
+    static void applyChanges(ProductVegetarianRequestJpaEntity entity, ProductVegetarianRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.status(),
+            state.rejectReason()
         );
     }
 }

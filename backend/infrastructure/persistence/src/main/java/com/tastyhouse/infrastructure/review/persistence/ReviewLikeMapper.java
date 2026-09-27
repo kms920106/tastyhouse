@@ -1,26 +1,23 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.review.model.ReviewLike;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeState;
 
 final class ReviewLikeMapper {
     private ReviewLikeMapper() {
     }
 
-    static ReviewLike toDomain(ReviewLikeJpaEntity entity) {
-        return ReviewLike.reconstitute(
+    static ReviewLikeState toState(ReviewLikeJpaEntity entity) {
+        return new ReviewLikeState(
             entity.getId(),
-            IdMapping.vo(entity.getReviewId(), ReviewId::of),
-            IdMapping.vo(entity.getMemberId(), MemberId::of)
+            entity.getReviewId(),
+            entity.getMemberId()
         );
     }
 
-    static ReviewLikeJpaEntity toEntity(ReviewLike domain) {
+    static ReviewLikeJpaEntity toEntity(ReviewLikeState state) {
         return ReviewLikeJpaEntity.create(
-            IdMapping.raw(domain.getReviewId(), ReviewId::value),
-            IdMapping.raw(domain.getMemberId(), MemberId::value)
+            state.reviewId(),
+            state.memberId()
         );
     }
 }

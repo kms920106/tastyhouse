@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.partnership.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRepository;
+import com.tastyhouse.application.partnership.store.PartnershipRepository;
 import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 
 @Service

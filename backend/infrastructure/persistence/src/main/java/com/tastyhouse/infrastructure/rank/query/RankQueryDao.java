@@ -18,9 +18,6 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.rank.model.RankType;
-import com.tastyhouse.domain.rank.vo.RankPeriodId;
-import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -78,7 +75,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
     }
 
     @Override
-    public List<MemberRankResult> findMemberRanks(RankType rankType, LocalDate baseDate, int limit) {
+    public List<MemberRankResult> findMemberRanks(String rankType, LocalDate baseDate, int limit) {
         return queryFactory
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
@@ -94,7 +91,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
     }
 
     @Override
-    public Optional<MemberRankResult> findMemberRank(Long memberId, RankType rankType, LocalDate baseDate) {
+    public Optional<MemberRankResult> findMemberRank(Long memberId, String rankType, LocalDate baseDate) {
         MemberRankResult result = queryFactory
             .select(memberRankProjection())
             .from(memberReviewRankJpaEntity)
@@ -121,34 +118,34 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
     }
 
     @Override
-    public Optional<RankPeriodResult> findPeriodById(RankPeriodId id) {
+    public Optional<RankPeriodResult> findPeriodById(Long id) {
         RankPeriodResult result = queryFactory
             .select(rankPeriodProjection())
             .from(rankPeriodJpaEntity)
-            .where(rankPeriodJpaEntity.id.eq(id.value()), rankPeriodJpaEntity.deleted.isFalse())
+            .where(rankPeriodJpaEntity.id.eq(id), rankPeriodJpaEntity.deleted.isFalse())
             .fetchOne();
 
         return Optional.ofNullable(result);
     }
 
     @Override
-    public List<RankPrizeManagementResult> findPrizesByPeriodId(RankPeriodId periodId) {
+    public List<RankPrizeManagementResult> findPrizesByPeriodId(Long periodId) {
         return queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
-            .where(rankPrizeJpaEntity.rankId.eq(periodId.value()), rankPrizeJpaEntity.deleted.isFalse())
+            .where(rankPrizeJpaEntity.rankId.eq(periodId), rankPrizeJpaEntity.deleted.isFalse())
             .orderBy(rankPrizeJpaEntity.prizeRank.asc())
             .fetch();
     }
 
     @Override
-    public Optional<RankPrizeManagementResult> findPrizeById(RankPrizeId id) {
+    public Optional<RankPrizeManagementResult> findPrizeById(Long id) {
         RankPrizeManagementResult result = queryFactory
             .select(rankPrizeManagementProjection())
             .from(rankPrizeJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
-            .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())
+            .where(rankPrizeJpaEntity.id.eq(id), rankPrizeJpaEntity.deleted.isFalse())
             .fetchOne();
 
         return Optional.ofNullable(result);

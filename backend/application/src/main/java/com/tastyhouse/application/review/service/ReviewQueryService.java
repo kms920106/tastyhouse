@@ -20,7 +20,6 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
@@ -123,21 +122,21 @@ public class ReviewQueryService implements ReviewQueryUseCase {
 
     @Override
     public boolean isLiked(Long reviewId, Long memberId) {
-        return reviewQueryPort.existsLike(ReviewId.of(reviewId), memberId);
+        return reviewQueryPort.existsLike(ReviewId.of(reviewId).value(), memberId);
     }
 
     @Override
     public ReviewCommentListView searchCommentsWithReplies(Long reviewId, Long viewerMemberId) {
         requireVisibleReview(reviewId, viewerMemberId);
 
-        List<ReviewCommentItemResult> comments = reviewQueryPort.findComments(ReviewId.of(reviewId));
+        List<ReviewCommentItemResult> comments = reviewQueryPort.findComments(ReviewId.of(reviewId).value());
 
         if (comments.isEmpty()) {
             return new ReviewCommentListView(List.of(), 0);
         }
 
-        List<ReviewCommentId> commentIds = comments.stream()
-            .map(comment -> ReviewCommentId.of(comment.id()))
+        List<Long> commentIds = comments.stream()
+            .map(comment -> ReviewCommentId.of(comment.id()).value())
             .toList();
 
         List<ReviewReplyItemResult> allReplies = reviewQueryPort.findVisibleReplies(commentIds);
@@ -258,12 +257,12 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         );
     }
 
-    private ReviewSortType resolveSortType(Long shopId, String sortType) {
+    private String resolveSortType(Long shopId, String sortType) {
         if (sortType != null) {
-            return ReviewSortType.from(sortType);
+            return ReviewSortType.from(sortType).name();
         }
         return shopReviewDisplaySettingQueryPort.findSortTypeByShopId(shopId)
-            .orElse(ReviewSortType.LATEST);
+            .orElse(ReviewSortType.LATEST.name());
     }
 
     @Override
@@ -361,7 +360,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     }
 
     private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId, Long viewerMemberId) {
-        return reviewQueryPort.findReviewDetail(reviewId, viewerMemberId).map(result -> {
+        return reviewQueryPort.findReviewDetail(reviewId.value(), viewerMemberId).map(result -> {
             List<Long> tagIds = reviewTagQueryPort.findTagIdsByReviewId(reviewId.value());
             if (tagIds.isEmpty()) {
                 return result;
@@ -376,7 +375,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
     }
 
     private PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(MemberId memberId, int page, int size) {
-        List<Long> followingMemberIds = memberFollowQueryPort.findFollowingIds(memberId);
+        List<Long> followingMemberIds = memberFollowQueryPort.findFollowingIds(memberId.value());
 
         if (followingMemberIds.isEmpty()) {
             return PageResult.empty(page, size);
@@ -387,7 +386,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
 
     private ReviewDetailView toReviewDetailView(ReviewDetailResult dto, Long viewerMemberId) {
         boolean author = viewerMemberId != null && viewerMemberId.equals(dto.memberId());
-        OrderMethod orderMethod = author ? dto.orderMethod() : null;
+        String orderMethod = author ? dto.orderMethod() : null;
 
         return new ReviewDetailView(
             dto.id(),
@@ -412,7 +411,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
             dto.ownerOnly(),
             dto.ownerReplyContent(),
             dto.ownerReplyCreatedAt(),
-            orderMethod == null ? null : orderMethod.name(),
+            orderMethod,
             author ? dto.deliveryRating() : null,
             author ? dto.deliveryComment() : null
         );

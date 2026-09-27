@@ -13,4 +13,18 @@ public record ReviewBlindRequestHistoryResult(
     LocalDateTime blindUntil,
     LocalDateTime createdAt
 ) {
+
+    public ReviewBlindRequestHistoryResult withDescriptions(String reasonDescription, String statusDescription) {
+        return new ReviewBlindRequestHistoryResult(
+            this.id,
+            this.reason,
+            reasonDescription,
+            this.detailReason,
+            this.status,
+            statusDescription,
+            this.rejectReason,
+            this.blindUntil,
+            this.createdAt
+        );
+    }
 }

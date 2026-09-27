@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.admin.persistence;
 
-import com.tastyhouse.domain.admin.model.Admin;
+import com.tastyhouse.application.admin.port.out.write.AdminState;
 
 final class AdminMapper {
     private AdminMapper() {
     }
 
-    static Admin toDomain(AdminJpaEntity entity) {
-        return Admin.reconstitute(
+    static AdminState toState(AdminJpaEntity entity) {
+        return new AdminState(
             entity.getId(),
             entity.getUsername(),
             entity.getPassword(),
@@ -17,13 +17,13 @@ final class AdminMapper {
         );
     }
 
-    static AdminJpaEntity toEntity(Admin domain) {
+    static AdminJpaEntity toEntity(AdminState state) {
         return AdminJpaEntity.create(
-            domain.getUsername(),
-            domain.getPassword(),
-            domain.getName(),
-            domain.getRole(),
-            domain.getStatus()
+            state.username(),
+            state.password(),
+            state.name(),
+            state.role(),
+            state.status()
         );
     }
 }

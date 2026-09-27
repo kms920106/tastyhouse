@@ -50,9 +50,9 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
             : startDate;
         validateDateRange(resolvedStartDate, resolvedEndDate, today);
 
-        ShopCeoAssignmentActionType actionTypeFilter = actionType == null
+        String actionTypeFilter = actionType == null
             ? null
-            : ShopCeoAssignmentActionType.from(actionType);
+            : ShopCeoAssignmentActionType.from(actionType).name();
 
         ShopCeoAssignmentHistorySearchCondition condition = ShopCeoAssignmentHistorySearchCondition.of(
             ceoId,
@@ -63,7 +63,12 @@ public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQue
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        return shopCeoAssignmentHistoryQueryPort.findShopAccessHistoryPage(condition, pageQuery);
+        return shopCeoAssignmentHistoryQueryPort.findShopAccessHistoryPage(condition, pageQuery)
+            .map(history -> history.withActionTypeDescription(actionTypeDescription(history.actionType())));
+    }
+
+    private static String actionTypeDescription(String actionType) {
+        return actionType == null ? null : ShopCeoAssignmentActionType.valueOf(actionType).getDescription();
     }
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate, LocalDate today) {

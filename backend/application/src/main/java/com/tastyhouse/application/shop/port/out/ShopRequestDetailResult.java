@@ -2,16 +2,13 @@ package com.tastyhouse.application.shop.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.shop.model.ShopRequestStatus;
-import com.tastyhouse.domain.shop.model.ShopRequestType;
-
 public record ShopRequestDetailResult(
     Long requestId,
     Long shopId,
-    ShopRequestType requestType,
+    String requestType,
     Long sourceRequestId,
     String summary,
-    ShopRequestStatus status,
+    String status,
     String rejectReason,
     String attachmentUrl,
     long commentCount,

@@ -38,7 +38,8 @@ public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiu
     public ShopDeliveryAreaRadiusPreviewResult previewRadius(Long ceoId, Long shopId, int radiusMeters) {
         ShopDeliveryAreaPolicy.validateRadius(radiusMeters);
 
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
+        ShopLocationResult shopLocation =
+            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
         GeoPoint center = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
         var circle = GeoCircle.approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS);

@@ -2,7 +2,7 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.OrderMethod;

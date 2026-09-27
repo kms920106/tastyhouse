@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.faq.persistence;
 
-import com.tastyhouse.domain.faq.model.Faq;
-import com.tastyhouse.domain.faq.vo.FaqCategoryId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.faq.port.out.write.FaqState;
 
 final class FaqMapper {
     private FaqMapper() {
     }
 
-    static Faq toDomain(FaqJpaEntity entity) {
-        return Faq.reconstitute(
+    static FaqState toState(FaqJpaEntity entity) {
+        return new FaqState(
             entity.getId(),
-            IdMapping.vo(entity.getFaqCategoryId(), FaqCategoryId::of),
+            entity.getFaqCategoryId(),
             entity.getQuestion(),
             entity.getAnswer(),
             entity.getSort(),
@@ -22,25 +20,25 @@ final class FaqMapper {
         );
     }
 
-    static FaqJpaEntity toEntity(Faq domain) {
+    static FaqJpaEntity toEntity(FaqState state) {
         return FaqJpaEntity.create(
-            IdMapping.raw(domain.getFaqCategoryId(), FaqCategoryId::value),
-            domain.getQuestion(),
-            domain.getAnswer(),
-            domain.getSort(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.faqCategoryId(),
+            state.question(),
+            state.answer(),
+            state.sort(),
+            state.visible(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(FaqJpaEntity entity, Faq domain) {
+    static void applyChanges(FaqJpaEntity entity, FaqState state) {
         entity.applyChanges(
-            IdMapping.raw(domain.getFaqCategoryId(), FaqCategoryId::value),
-            domain.getQuestion(),
-            domain.getAnswer(),
-            domain.getSort(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.faqCategoryId(),
+            state.question(),
+            state.answer(),
+            state.sort(),
+            state.visible(),
+            state.deleted()
         );
     }
 }

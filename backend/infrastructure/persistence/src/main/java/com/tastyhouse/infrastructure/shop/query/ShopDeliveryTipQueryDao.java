@@ -1,11 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,9 +14,14 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
-import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
-import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
+import com.tastyhouse.application.shop.port.out.DeliveryTipExtraTypeCodes;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRegionResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 
 import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryTipHolidayJpaEntity.shopDeliveryTipHolidayJpaEntity;
@@ -36,9 +35,14 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
     private static final double MAX_DELIVERY_DISTANCE_METERS = 5000.0;
 
     private final JPAQueryFactory queryFactory;
+    private final ShopDeliveryTipRangePolicy shopDeliveryTipRangePolicy;
 
-    public ShopDeliveryTipQueryDao(JPAQueryFactory queryFactory) {
+    public ShopDeliveryTipQueryDao(
+        JPAQueryFactory queryFactory,
+        ShopDeliveryTipRangePolicy shopDeliveryTipRangePolicy
+    ) {
         this.queryFactory = queryFactory;
+        this.shopDeliveryTipRangePolicy = shopDeliveryTipRangePolicy;
     }
 
     @Override
@@ -196,7 +200,7 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
 
     private int distanceUpperBound(ShopDeliveryTipSettingResult setting) {
         if (setting == null
-            || !DeliveryTipExtraType.DISTANCE.name().equals(setting.extraTipType())
+            || !DeliveryTipExtraTypeCodes.DISTANCE.equals(setting.extraTipType())
             || setting.baseDistanceMeters() == null
             || setting.surchargeUnit() == null
             || setting.surchargeAmount() == null) {
@@ -208,13 +212,13 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
             return 0;
         }
 
-        int unitMeters = DeliveryTipDistanceUnit.from(setting.surchargeUnit()).getUnitMeters();
+        int unitMeters = shopDeliveryTipRangePolicy.unitMetersOf(setting.surchargeUnit());
         int units = (int) Math.ceil(excessMeters / unitMeters);
-        return Math.min(units * setting.surchargeAmount(), DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND);
+        return Math.min(units * setting.surchargeAmount(), shopDeliveryTipRangePolicy.extraTipUpperBound());
     }
 
     private boolean usesRegion(ShopDeliveryTipSettingResult setting) {
-        return setting != null && DeliveryTipExtraType.REGION.name().equals(setting.extraTipType());
+        return setting != null && DeliveryTipExtraTypeCodes.REGION.equals(setting.extraTipType());
     }
 
     private Map<Long, ShopDeliveryTipSettingResult> findSettings(List<Long> shopIds) {

@@ -2,8 +2,8 @@ package com.tastyhouse.application.coupon.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
-import com.tastyhouse.application.coupon.port.out.write.MemberCouponRepository;
+import com.tastyhouse.application.coupon.store.CouponRepository;
+import com.tastyhouse.application.coupon.store.MemberCouponRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.coupon.event.MemberCouponIssuedEvent;
 import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;

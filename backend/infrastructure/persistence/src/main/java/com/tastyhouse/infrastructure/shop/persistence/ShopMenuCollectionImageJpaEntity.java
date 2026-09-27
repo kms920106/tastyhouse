@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -28,9 +25,8 @@ public class ShopMenuCollectionImageJpaEntity extends BaseEntity {
     @Column(name = "sort", nullable = false)
     private Integer sort;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ApprovalStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -42,7 +38,7 @@ public class ShopMenuCollectionImageJpaEntity extends BaseEntity {
         Long shopId,
         Long imageFileId,
         Integer sort,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         this.shopId = shopId;
@@ -56,13 +52,13 @@ public class ShopMenuCollectionImageJpaEntity extends BaseEntity {
         Long shopId,
         Long imageFileId,
         Integer sort,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         return new ShopMenuCollectionImageJpaEntity(shopId, imageFileId, sort, status, rejectReason);
     }
 
-    void applyChanges(Integer sort, ApprovalStatus status, String rejectReason) {
+    void applyChanges(Integer sort, String status, String rejectReason) {
         this.sort = sort;
         this.status = status;
         this.rejectReason = rejectReason;
@@ -84,7 +80,7 @@ public class ShopMenuCollectionImageJpaEntity extends BaseEntity {
         return this.sort;
     }
 
-    public ApprovalStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

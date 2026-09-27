@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopConvenienceInfoRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

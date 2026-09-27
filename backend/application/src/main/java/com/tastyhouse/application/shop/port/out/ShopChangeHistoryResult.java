@@ -14,4 +14,23 @@ public record ShopChangeHistoryResult(
     String newValue,
     LocalDateTime changedAt
 ) {
+
+    public ShopChangeHistoryResult withDescriptions(
+        String categoryDescription,
+        String changeTypeDescription,
+        String actionTypeDescription
+    ) {
+        return new ShopChangeHistoryResult(
+            this.id,
+            this.category,
+            categoryDescription,
+            this.changeType,
+            changeTypeDescription,
+            this.actionType,
+            actionTypeDescription,
+            this.previousValue,
+            this.newValue,
+            this.changedAt
+        );
+    }
 }

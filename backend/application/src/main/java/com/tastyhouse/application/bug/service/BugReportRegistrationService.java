@@ -2,8 +2,8 @@ package com.tastyhouse.application.bug.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.bug.port.out.write.BugReportImageRepository;
-import com.tastyhouse.application.bug.port.out.write.BugReportRepository;
+import com.tastyhouse.application.bug.store.BugReportImageRepository;
+import com.tastyhouse.application.bug.store.BugReportRepository;
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.model.BugReportImage;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;

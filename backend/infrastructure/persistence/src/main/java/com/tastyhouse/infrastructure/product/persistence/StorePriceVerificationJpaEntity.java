@@ -4,14 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -27,9 +24,8 @@ public class StorePriceVerificationJpaEntity extends BaseEntity {
     @Column(name = "price_list_file_id", nullable = false)
     private Long priceListFileId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private StorePriceVerificationStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -46,7 +42,7 @@ public class StorePriceVerificationJpaEntity extends BaseEntity {
     private StorePriceVerificationJpaEntity(
         Long shopId,
         Long priceListFileId,
-        StorePriceVerificationStatus status,
+        String status,
         String rejectReason,
         Long requestedByCeoId,
         LocalDateTime processedAt
@@ -62,7 +58,7 @@ public class StorePriceVerificationJpaEntity extends BaseEntity {
     static StorePriceVerificationJpaEntity create(
         Long shopId,
         Long priceListFileId,
-        StorePriceVerificationStatus status,
+        String status,
         String rejectReason,
         Long requestedByCeoId,
         LocalDateTime processedAt
@@ -78,7 +74,7 @@ public class StorePriceVerificationJpaEntity extends BaseEntity {
     }
 
     void applyChanges(
-        StorePriceVerificationStatus status,
+        String status,
         String rejectReason,
         LocalDateTime processedAt
     ) {
@@ -99,7 +95,7 @@ public class StorePriceVerificationJpaEntity extends BaseEntity {
         return this.priceListFileId;
     }
 
-    public StorePriceVerificationStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

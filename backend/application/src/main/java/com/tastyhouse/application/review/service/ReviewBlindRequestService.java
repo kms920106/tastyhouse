@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestAttachmentRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
+import com.tastyhouse.application.review.store.ReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.ceo.vo.CeoId;

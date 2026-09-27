@@ -40,11 +40,9 @@ public class ShopDeliveryAreaPolygonJpaEntity extends BaseEntity {
     @Column(name = "max_radius_meters", nullable = false)
     private Integer maxRadiusMeters;
 
-    @SuppressWarnings("unused")
     @Column(name = "ring_count", nullable = false)
     private Integer ringCount;
 
-    @SuppressWarnings("unused")
     @Column(name = "vertex_count", nullable = false)
     private Integer vertexCount;
 
@@ -127,5 +125,13 @@ public class ShopDeliveryAreaPolygonJpaEntity extends BaseEntity {
 
     public Integer getMaxRadiusMeters() {
         return this.maxRadiusMeters;
+    }
+
+    public Integer getRingCount() {
+        return this.ringCount;
+    }
+
+    public Integer getVertexCount() {
+        return this.vertexCount;
     }
 }

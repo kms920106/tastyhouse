@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.domain.member.model.MemberSocialAccount;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountState;
 
 final class MemberSocialAccountMapper {
     private MemberSocialAccountMapper() {
     }
 
-    static MemberSocialAccount toDomain(MemberSocialAccountJpaEntity entity) {
-        return MemberSocialAccount.reconstitute(
+    static MemberSocialAccountState toState(MemberSocialAccountJpaEntity entity) {
+        return new MemberSocialAccountState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getProvider(),
             entity.getProviderId(),
             entity.getProviderEmail(),
@@ -23,24 +21,24 @@ final class MemberSocialAccountMapper {
         );
     }
 
-    static MemberSocialAccountJpaEntity toEntity(MemberSocialAccount domain) {
+    static MemberSocialAccountJpaEntity toEntity(MemberSocialAccountState state) {
         return MemberSocialAccountJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getProvider(),
-            domain.getProviderId(),
-            domain.getProviderEmail(),
-            domain.getProviderNickname(),
-            domain.getProviderProfileImageUrl(),
-            domain.getLastLoginAt()
+            state.memberId(),
+            state.provider(),
+            state.providerId(),
+            state.providerEmail(),
+            state.providerNickname(),
+            state.providerProfileImageUrl(),
+            state.lastLoginAt()
         );
     }
 
-    static void applyChanges(MemberSocialAccountJpaEntity entity, MemberSocialAccount domain) {
+    static void applyChanges(MemberSocialAccountJpaEntity entity, MemberSocialAccountState state) {
         entity.applyChanges(
-            domain.getProviderEmail(),
-            domain.getProviderNickname(),
-            domain.getProviderProfileImageUrl(),
-            domain.getLastLoginAt()
+            state.providerEmail(),
+            state.providerNickname(),
+            state.providerProfileImageUrl(),
+            state.lastLoginAt()
         );
     }
 }

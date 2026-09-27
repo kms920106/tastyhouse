@@ -1,27 +1,25 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductAllergen;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenState;
 
 final class ProductAllergenMapper {
     private ProductAllergenMapper() {
     }
 
-    static ProductAllergen toDomain(ProductAllergenJpaEntity entity) {
-        return ProductAllergen.reconstitute(
+    static ProductAllergenState toState(ProductAllergenJpaEntity entity) {
+        return new ProductAllergenState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getProductId(),
             entity.getAllergenType(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ProductAllergenJpaEntity toEntity(ProductAllergen domain) {
+    static ProductAllergenJpaEntity toEntity(ProductAllergenState state) {
         return ProductAllergenJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getAllergenType()
+            state.productId(),
+            state.allergenType()
         );
     }
 }

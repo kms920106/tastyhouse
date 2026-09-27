@@ -37,6 +37,8 @@ import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResul
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
+import com.tastyhouse.application.order.port.out.OrderStatusCodes;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupTypeCodes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -68,11 +70,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.product.model.ProductOptionGroupType;
-import com.tastyhouse.domain.product.service.CupDepositPolicy;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.application.shared.port.out.DayTypeCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -156,18 +154,15 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
     private final EntityManager entityManager;
-    private final CupDepositPolicy cupDepositPolicy;
 
     public ProductQueryDao(
         JPAQueryFactory queryFactory,
         FileUrlResolver fileUrlResolver,
-        EntityManager entityManager,
-        CupDepositPolicy cupDepositPolicy
+        EntityManager entityManager
     ) {
         this.queryFactory = queryFactory;
         this.fileUrlResolver = fileUrlResolver;
         this.entityManager = entityManager;
-        this.cupDepositPolicy = cupDepositPolicy;
     }
 
     @Override
@@ -321,7 +316,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                         tuple.get(productOptionJpaEntity.additionalPrice),
                         Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
                         tuple.get(productOptionJpaEntity.cupCount),
-                        cupDepositPolicy.depositAmountOf(tuple.get(productOptionJpaEntity.cupCount)),
+                        null,
                         tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
                     ),
                     Collectors.toList()
@@ -415,7 +410,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 tuple.get(productCommonOptionGroupJpaEntity.minSelect),
                 tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
                 true,
-                ProductOptionGroupType.NORMAL.name(),
+                ProductOptionGroupTypeCodes.NORMAL,
                 optionsByGroupId.getOrDefault(tuple.get(productCommonOptionGroupJpaEntity.id), Collections.emptyList())
             ))
             .toList();
@@ -476,7 +471,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                     optionInfo.name(),
                     optionInfo.additionalPrice(),
                     optionInfo.cupCount(),
-                    cupDepositPolicy.depositAmountOf(optionInfo.cupCount()),
+                    null,
                     optionInfo.personalCupDiscountAmount()
                 ));
             }
@@ -1134,8 +1129,8 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .fetch());
     }
 
-    private static String groupTypeNameOf(ProductOptionGroupType groupType) {
-        return groupType == null ? ProductOptionGroupType.NORMAL.name() : groupType.name();
+    private static String groupTypeNameOf(String groupType) {
+        return groupType == null ? ProductOptionGroupTypeCodes.NORMAL : groupType;
     }
 
     private static Long toLong(Object value) {
@@ -1482,7 +1477,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     @Override
     public PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(
-        ApprovalStatus status,
+        String status,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -1515,7 +1510,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     @Override
     public PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(
-        ApprovalStatus status,
+        String status,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -1540,7 +1535,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     @Override
     public PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(
-        ApprovalStatus status,
+        String status,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -1667,15 +1662,15 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productVegetarianRequestJpaEntity.productId));
     }
 
-    private BooleanExpression imageChangeStatusEq(ApprovalStatus status) {
+    private BooleanExpression imageChangeStatusEq(String status) {
         return status != null ? productImageChangeRequestJpaEntity.status.eq(status) : null;
     }
 
-    private BooleanExpression vegetarianStatusEq(ApprovalStatus status) {
+    private BooleanExpression vegetarianStatusEq(String status) {
         return status != null ? productVegetarianRequestJpaEntity.status.eq(status) : null;
     }
 
-    private BooleanExpression representativeStatusEq(ApprovalStatus status) {
+    private BooleanExpression representativeStatusEq(String status) {
         return status != null ? productRepresentativeRequestJpaEntity.status.eq(status) : null;
     }
 
@@ -1733,7 +1728,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 .where(
                     orderProductJpaEntity.productId.eq(productJpaEntity.id),
                     orderJpaEntity.shopId.eq(shopIdExpression),
-                    orderJpaEntity.orderStatus.eq(OrderStatus.COMPLETED),
+                    orderJpaEntity.orderStatus.stringValue().eq(OrderStatusCodes.COMPLETED),
                     orderJpaEntity.createdAt.goe(now.minusDays(POPULAR_PRODUCT_WINDOW_DAYS))
                 )
         ).coalesce(0L);
@@ -1856,9 +1851,9 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     private BooleanExpression dayTypeMatches(java.time.DayOfWeek dayOfWeek) {
         boolean weekend = dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY;
-        return subExposureHour.dayType.eq(DayType.DAILY)
-            .or(subExposureHour.dayType.eq(weekend ? DayType.WEEKEND : DayType.WEEKDAY))
-            .or(subExposureHour.dayType.eq(DayType.valueOf(dayOfWeek.name())));
+        return subExposureHour.dayType.eq(DayTypeCodes.DAILY)
+            .or(subExposureHour.dayType.eq(weekend ? DayTypeCodes.WEEKEND : DayTypeCodes.WEEKDAY))
+            .or(subExposureHour.dayType.eq(dayOfWeek.name()));
     }
 
     private BooleanExpression coversTime(LocalTime time) {

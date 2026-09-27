@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopContentTopic;
-import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -24,12 +20,10 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
     private Long shopId;
 
     @Column(name = "content_type", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
-    @Enumerated(EnumType.STRING)
-    private ShopContentType contentType;
+    private String contentType;
 
     @Column(name = "topic", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    @Enumerated(EnumType.STRING)
-    private ShopContentTopic topic;
+    private String topic;
 
     @Column(name = "image_file_id")
     private Long imageFileId;
@@ -48,8 +42,8 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
 
     private ShopContentBoardJpaEntity(
         Long shopId,
-        ShopContentType contentType,
-        ShopContentTopic topic,
+        String contentType,
+        String topic,
         Long imageFileId,
         String youtubeUrl,
         String description,
@@ -66,8 +60,8 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
 
     static ShopContentBoardJpaEntity create(
         Long shopId,
-        ShopContentType contentType,
-        ShopContentTopic topic,
+        String contentType,
+        String topic,
         Long imageFileId,
         String youtubeUrl,
         String description,
@@ -76,7 +70,7 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
         return new ShopContentBoardJpaEntity(shopId, contentType, topic, imageFileId, youtubeUrl, description, hidden);
     }
 
-    void applyChanges(ShopContentTopic topic, Long imageFileId, String youtubeUrl, String description, boolean hidden) {
+    void applyChanges(String topic, Long imageFileId, String youtubeUrl, String description, boolean hidden) {
         this.topic = topic;
         this.imageFileId = imageFileId;
         this.youtubeUrl = youtubeUrl;
@@ -92,11 +86,11 @@ public class ShopContentBoardJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ShopContentType getContentType() {
+    public String getContentType() {
         return this.contentType;
     }
 
-    public ShopContentTopic getTopic() {
+    public String getTopic() {
         return this.topic;
     }
 

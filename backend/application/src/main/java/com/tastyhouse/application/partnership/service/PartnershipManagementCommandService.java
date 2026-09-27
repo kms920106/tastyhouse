@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRepository;
+import com.tastyhouse.application.partnership.store.PartnershipRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.partnership.model.PartnershipRequest;

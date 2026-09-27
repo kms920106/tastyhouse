@@ -1,19 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestState;
 
 final class ProductRepresentativeRequestMapper {
     private ProductRepresentativeRequestMapper() {
     }
 
-    static ProductRepresentativeRequest toDomain(ProductRepresentativeRequestJpaEntity entity) {
-        return ProductRepresentativeRequest.reconstitute(
+    static ProductRepresentativeRequestState toState(ProductRepresentativeRequestJpaEntity entity) {
+        return new ProductRepresentativeRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getProductId(),
+            entity.getShopId(),
             entity.getStatus(),
             entity.getRejectReason(),
             entity.getCreatedAt(),
@@ -21,22 +18,22 @@ final class ProductRepresentativeRequestMapper {
         );
     }
 
-    static ProductRepresentativeRequestJpaEntity toEntity(ProductRepresentativeRequest domain) {
+    static ProductRepresentativeRequestJpaEntity toEntity(ProductRepresentativeRequestState state) {
         return ProductRepresentativeRequestJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.productId(),
+            state.shopId(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
     static void applyChanges(
         ProductRepresentativeRequestJpaEntity entity,
-        ProductRepresentativeRequest domain
+        ProductRepresentativeRequestState state
     ) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.status(),
+            state.rejectReason()
         );
     }
 }

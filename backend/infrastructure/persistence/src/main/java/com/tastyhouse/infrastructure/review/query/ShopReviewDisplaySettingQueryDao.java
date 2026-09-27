@@ -9,8 +9,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.review.model.ReviewSortType;
-
 import static com.tastyhouse.infrastructure.review.persistence.QShopReviewDisplaySettingJpaEntity.shopReviewDisplaySettingJpaEntity;
 
 @Repository
@@ -22,7 +20,7 @@ public class ShopReviewDisplaySettingQueryDao implements ShopReviewDisplaySettin
     }
 
     @Override
-    public Optional<ReviewSortType> findSortTypeByShopId(Long shopId) {
+    public Optional<String> findSortTypeByShopId(Long shopId) {
         return Optional.ofNullable(queryFactory
             .select(shopReviewDisplaySettingJpaEntity.sortType)
             .from(shopReviewDisplaySettingJpaEntity)

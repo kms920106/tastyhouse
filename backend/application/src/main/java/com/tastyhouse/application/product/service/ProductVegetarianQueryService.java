@@ -56,7 +56,7 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
         boolean changeable = productVegetarianApprovalService.isShopCategoryAllowed(shopCategoryNames);
 
         return new ProductVegetarianStatusResult(
-            setting.vegetarianType() == null ? null : setting.vegetarianType().name(),
+            setting.vegetarianType(),
             requests,
             changeable
         );

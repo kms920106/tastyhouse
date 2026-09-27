@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourState;
 
 final class ShopBusinessHourMapper {
     private ShopBusinessHourMapper() {
     }
 
-    static ShopBusinessHour toDomain(ShopBusinessHourJpaEntity entity) {
-        return ShopBusinessHour.reconstitute(
+    static ShopBusinessHourState toState(ShopBusinessHourJpaEntity entity) {
+        return new ShopBusinessHourState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getDayType(),
             entity.getOpenTime(),
             entity.getCloseTime(),
@@ -20,24 +18,24 @@ final class ShopBusinessHourMapper {
         );
     }
 
-    static ShopBusinessHourJpaEntity toEntity(ShopBusinessHour domain) {
+    static ShopBusinessHourJpaEntity toEntity(ShopBusinessHourState state) {
         return ShopBusinessHourJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getDayType(),
-            domain.getOpenTime(),
-            domain.getCloseTime(),
-            domain.getIsClosed(),
-            domain.getIs24Hours()
+            state.shopId(),
+            state.dayType(),
+            state.openTime(),
+            state.closeTime(),
+            state.isClosed(),
+            state.is24Hours()
         );
     }
 
-    static void applyChanges(ShopBusinessHourJpaEntity entity, ShopBusinessHour domain) {
+    static void applyChanges(ShopBusinessHourJpaEntity entity, ShopBusinessHourState state) {
         entity.applyChanges(
-            domain.getDayType(),
-            domain.getOpenTime(),
-            domain.getCloseTime(),
-            domain.getIsClosed(),
-            domain.getIs24Hours()
+            state.dayType(),
+            state.openTime(),
+            state.closeTime(),
+            state.isClosed(),
+            state.is24Hours()
         );
     }
 }

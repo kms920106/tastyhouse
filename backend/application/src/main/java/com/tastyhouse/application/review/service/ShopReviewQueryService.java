@@ -18,6 +18,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.model.ReviewSortType;
@@ -90,8 +91,8 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateDateRange(startDate, endDate);
 
-        ReviewListTab tabFilter = tab == null ? ReviewListTab.ALL : ReviewListTab.from(tab);
-        OrderMethod orderMethodFilter = orderMethod == null ? null : OrderMethod.from(orderMethod);
+        String tabFilter = tab == null ? ReviewListTab.ALL.name() : ReviewListTab.from(tab).name();
+        String orderMethodFilter = orderMethod == null ? null : OrderMethod.from(orderMethod).name();
 
         ShopReviewManagementSearchCondition condition = ShopReviewManagementSearchCondition.of(
             shopId,
@@ -106,7 +107,10 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         PageQuery pageQuery = PageQuery.of(page, size);
 
         return shopReviewManagementQueryPort.findShopReviews(condition, pageQuery)
-
+            .map(result -> result.withDescriptions(
+                orderMethodDisplayName(result.orderMethod()),
+                blindStatusDescription(result.blindRequestStatus())
+            ))
             .map(this::toListItemViewResult);
     }
 
@@ -115,13 +119,21 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopReviewManagementDetailResult detail =
-            shopReviewManagementQueryPort.findShopReviewDetail(ReviewId.of(reviewId))
+            shopReviewManagementQueryPort.findShopReviewDetail(ReviewId.of(reviewId).value())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         if (!shopId.equals(detail.shopId())) {
             throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
         }
 
-        return toDetailViewResult(detail);
+        return toDetailViewResult(detail.withDescriptions(
+            orderMethodDisplayName(detail.orderMethod()),
+            detail.blindRequests().stream()
+                .map(history -> history.withDescriptions(
+                    blindReasonDescription(history.reason()),
+                    blindStatusDescription(history.status())
+                ))
+                .toList()
+        ));
     }
 
     @Override
@@ -168,7 +180,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
         return shopReviewDisplaySettingOwnerQueryPort.findSortTypeSettingByShopId(shopId)
             .map(this::toSortTypeView)
-            .orElseGet(() -> toSortTypeView(new ShopReviewSortTypeResult(ReviewSortType.LATEST, null)));
+            .orElseGet(() -> toSortTypeView(new ShopReviewSortTypeResult(ReviewSortType.LATEST.name(), null)));
     }
 
     @Override
@@ -220,12 +232,24 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         return value == null ? null : Math.round(value * 10) / 10.0;
     }
 
-    private ReviewSortType resolveSortType(Long shopId, String sortType) {
+    private String resolveSortType(Long shopId, String sortType) {
         if (sortType != null) {
-            return ReviewSortType.from(sortType);
+            return ReviewSortType.from(sortType).name();
         }
         return shopReviewDisplaySettingOwnerQueryPort.findSortTypeByShopId(shopId)
-            .orElse(ReviewSortType.LATEST);
+            .orElse(ReviewSortType.LATEST.name());
+    }
+
+    private static String orderMethodDisplayName(String orderMethod) {
+        return orderMethod == null ? null : OrderMethod.valueOf(orderMethod).getDisplayName();
+    }
+
+    private static String blindReasonDescription(String reason) {
+        return reason == null ? null : ReviewBlindReason.valueOf(reason).getDescription();
+    }
+
+    private static String blindStatusDescription(String status) {
+        return status == null ? null : ReviewBlindStatus.valueOf(status).getDescription();
     }
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
@@ -248,7 +272,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
     }
 
     private ShopReviewSortTypeView toSortTypeView(ShopReviewSortTypeResult result) {
-        ReviewSortType sortType = result.sortType();
+        ReviewSortType sortType = ReviewSortType.valueOf(result.sortType());
         return new ShopReviewSortTypeView(sortType.name(), describeSortType(sortType), result.updatedAt());
     }
 

@@ -69,4 +69,39 @@ public record ShopReviewManagementDetailResult(
             this.deliveryComment
         );
     }
+
+    public ShopReviewManagementDetailResult withDescriptions(
+        String orderMethodDisplayName,
+        List<ReviewBlindRequestHistoryResult> blindRequests
+    ) {
+        return new ShopReviewManagementDetailResult(
+            this.id,
+            this.shopId,
+            this.memberNickname,
+            this.totalRating,
+            this.content,
+            this.imageUrls,
+            this.productNames,
+            this.orderMethod,
+            orderMethodDisplayName,
+            this.hidden,
+            this.ownerOnly,
+            this.tasteRating,
+            this.amountRating,
+            this.priceRating,
+            this.atmosphereRating,
+            this.kindnessRating,
+            this.hygieneRating,
+            this.willRevisit,
+            this.tagNames,
+            this.ownerReplyId,
+            this.ownerReplyContent,
+            this.ownerReplyCreatedAt,
+            this.ownerReplyUpdatedAt,
+            blindRequests,
+            this.createdAt,
+            this.deliveryRating,
+            this.deliveryComment
+        );
+    }
 }

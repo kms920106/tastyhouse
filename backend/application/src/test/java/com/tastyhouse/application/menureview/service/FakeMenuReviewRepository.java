@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.menureview.port.out.write.MenuReviewRepository;
+import com.tastyhouse.application.menureview.store.MenuReviewRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.model.MenuReview;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;

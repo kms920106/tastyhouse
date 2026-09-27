@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;

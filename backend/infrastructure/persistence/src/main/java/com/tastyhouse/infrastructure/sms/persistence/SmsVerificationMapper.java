@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.sms.persistence;
 
-import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationState;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
+import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 final class SmsVerificationMapper {
     private SmsVerificationMapper() {
     }
 
-    static SmsVerification toDomain(SmsVerificationJpaEntity entity) {
-        return SmsVerification.reconstitute(
+    static SmsVerificationState toState(SmsVerificationJpaEntity entity) {
+        return new SmsVerificationState(
             entity.getId(),
-            entity.getPhoneNumber(),
-            entity.getVerificationCode(),
+            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
+            entity.getVerificationCode() == null ? null : entity.getVerificationCode().value(),
             entity.getStatus(),
             entity.getExpiresAt(),
             entity.getVerifiedAt(),
@@ -18,18 +20,18 @@ final class SmsVerificationMapper {
         );
     }
 
-    static SmsVerificationJpaEntity toEntity(SmsVerification domain) {
+    static SmsVerificationJpaEntity toEntity(SmsVerificationState state) {
         return SmsVerificationJpaEntity.create(
-            domain.getPhoneNumber(),
-            domain.getVerificationCode(),
-            domain.getStatus(),
-            domain.getExpiresAt(),
-            domain.getVerifiedAt(),
-            domain.getCreatedAt()
+            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
+            state.verificationCode() == null ? null : new VerificationCodeEmbeddable(state.verificationCode()),
+            state.status(),
+            state.expiresAt(),
+            state.verifiedAt(),
+            state.createdAt()
         );
     }
 
-    static void applyChanges(SmsVerificationJpaEntity entity, SmsVerification domain) {
-        entity.applyChanges(domain.getStatus(), domain.getVerifiedAt());
+    static void applyChanges(SmsVerificationJpaEntity entity, SmsVerificationState state) {
+        entity.applyChanges(state.status(), state.verifiedAt());
     }
 }

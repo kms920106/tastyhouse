@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;

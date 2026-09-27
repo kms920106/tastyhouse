@@ -16,7 +16,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -35,7 +34,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
     }
 
     @Override
-    public PageResult<BannerListItemResult> findVisibleBannersByType(BannerType type, PageQuery pageQuery) {
+    public PageResult<BannerListItemResult> findVisibleBannersByType(String type, PageQuery pageQuery) {
         LocalDateTime now = LocalDateTime.now();
 
         Long total = queryFactory
@@ -147,7 +146,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
         return Optional.ofNullable(detail);
     }
 
-    private BooleanExpression typeEq(BannerType type) {
+    private BooleanExpression typeEq(String type) {
         return type != null ? bannerJpaEntity.type.eq(type) : null;
     }
 

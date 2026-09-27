@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopPhoneNumberRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

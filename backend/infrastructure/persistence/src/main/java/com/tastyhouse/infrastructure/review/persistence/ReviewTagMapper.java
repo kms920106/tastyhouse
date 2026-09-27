@@ -1,18 +1,15 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.review.model.ReviewTag;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shop.vo.TagId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewTagState;
 
 final class ReviewTagMapper {
     private ReviewTagMapper() {
     }
 
-    static ReviewTagJpaEntity toEntity(ReviewTag domain) {
+    static ReviewTagJpaEntity toEntity(ReviewTagState state) {
         return ReviewTagJpaEntity.create(
-            IdMapping.raw(domain.getReviewId(), ReviewId::value),
-            IdMapping.raw(domain.getTagId(), TagId::value)
+            state.reviewId(),
+            state.tagId()
         );
     }
 }

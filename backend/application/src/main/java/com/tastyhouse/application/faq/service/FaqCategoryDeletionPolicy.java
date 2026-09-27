@@ -1,6 +1,6 @@
 package com.tastyhouse.application.faq.service;
 
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
+import com.tastyhouse.application.faq.store.FaqCategoryRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.faq.model.FaqCategory;

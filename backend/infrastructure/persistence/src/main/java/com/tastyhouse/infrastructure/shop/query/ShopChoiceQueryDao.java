@@ -22,7 +22,6 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
 import com.tastyhouse.application.product.port.out.ProductSimpleResult;
@@ -49,7 +48,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
     }
 
     @Override
-    public PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery) {
+    public PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery, int productLimit) {
         Long totalCount = queryFactory
             .select(shopChoiceJpaEntity.count())
             .from(shopChoiceJpaEntity)
@@ -82,7 +81,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
             .distinct()
             .toList();
 
-        Map<Long, List<ProductSimpleResult>> productsByShopId = productsByShopId(shopIds);
+        Map<Long, List<ProductSimpleResult>> productsByShopId = productsByShopId(shopIds, productLimit);
 
         List<EditorChoiceResult> content = shopChoices.stream()
             .map(tuple -> {
@@ -143,7 +142,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
             .fetch();
     }
 
-    private Map<Long, List<ProductSimpleResult>> productsByShopId(List<Long> shopIds) {
+    private Map<Long, List<ProductSimpleResult>> productsByShopId(List<Long> shopIds, int productLimit) {
         if (shopIds.isEmpty()) {
             return Map.of();
         }
@@ -191,7 +190,7 @@ public class ShopChoiceQueryDao implements ShopChoiceQueryPort, ShopChoiceManage
             .entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,
-                entry -> entry.getValue().stream().limit(EditorChoicePolicy.PRODUCT_LIMIT).toList()
+                entry -> entry.getValue().stream().limit(productLimit).toList()
             ));
     }
 }

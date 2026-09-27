@@ -39,18 +39,28 @@ public class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUs
         int page,
         int size
     ) {
-        ReviewBlindStatus blindStatus = status == null ? null : ReviewBlindStatus.from(status);
-        ReviewBlindReason blindReason = reason == null ? null : ReviewBlindReason.from(reason);
+        String blindStatus = status == null ? null : ReviewBlindStatus.from(status).name();
+        String blindReason = reason == null ? null : ReviewBlindReason.from(reason).name();
 
         ReviewBlindRequestSearchCondition condition = ReviewBlindRequestSearchCondition.of(
             shopId, blindStatus, blindReason, startDate, endDate
         );
-        return reviewBlindRequestManagementQueryPort.findBlindRequestPage(condition, PageQuery.of(page, size));
+        return reviewBlindRequestManagementQueryPort.findBlindRequestPage(condition, PageQuery.of(page, size))
+            .map(item -> item.withDescriptions(reasonDescription(item.reason()), statusDescription(item.status())));
     }
 
     @Override
     public ReviewBlindRequestDetailResult getBlindRequest(Long id) {
         return reviewBlindRequestManagementQueryPort.findBlindRequestDetail(id)
+            .map(detail -> detail.withDescriptions(reasonDescription(detail.reason()), statusDescription(detail.status())))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
+    }
+
+    private static String reasonDescription(String reason) {
+        return reason == null ? null : ReviewBlindReason.valueOf(reason).getDescription();
+    }
+
+    private static String statusDescription(String status) {
+        return status == null ? null : ReviewBlindStatus.valueOf(status).getDescription();
     }
 }

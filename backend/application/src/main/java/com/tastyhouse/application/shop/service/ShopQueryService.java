@@ -17,11 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -171,7 +172,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             return null;
         }
 
-        return memberDeliveryAddressQueryPort.findDefaultAdminDongId(MemberId.of(memberId)).orElse(null);
+        return memberDeliveryAddressQueryPort.findDefaultAdminDongId(MemberId.of(memberId).value()).orElse(null);
     }
 
     @Override
@@ -193,8 +194,12 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         int page,
         int size
     ) {
-        List<FoodType> foodTypeFilters = foodTypes == null ? null : foodTypes.stream().map(FoodType::from).toList();
-        List<Amenity> amenityFilters = amenities == null ? null : amenities.stream().map(Amenity::from).toList();
+        List<String> foodTypeFilters = foodTypes == null
+            ? null
+            : foodTypes.stream().map(FoodType::from).map(FoodType::name).toList();
+        List<String> amenityFilters = amenities == null
+            ? null
+            : amenities.stream().map(Amenity::from).map(Amenity::name).toList();
         PageResult<LatestShopItemResult> result = shopSearchQueryPort.findLatestShops(
             stationId,
             foodTypeFilters,
@@ -219,7 +224,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<EditorChoiceResult> searchEditorChoices(int page, int size) {
-        return shopChoiceQueryPort.findEditorChoices(PageQuery.of(page, size)).content();
+        return shopChoiceQueryPort.findEditorChoices(PageQuery.of(page, size), EditorChoicePolicy.PRODUCT_LIMIT).content();
     }
 
     private ShopBestListItemViewResult convertToBestShopListItemResult(BestShopItemResult dto, Map<Long, ShopOperatingStatus> statusMap) {
@@ -229,7 +234,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             dto.stationName(),
             dto.rating(),
             dto.imageUrl(),
-            dto.foodTypes().stream().map(Enum::name).toList(),
+            dto.foodTypes(),
             operatingStatusName(statusMap, dto.id()),
             dto.minOrderAmount(),
             dto.minDeliveryTip(),
@@ -247,7 +252,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             dto.createdAt(),
             dto.reviewCount(),
             dto.bookmarkCount(),
-            dto.foodTypes().stream().map(Enum::name).toList(),
+            dto.foodTypes(),
             operatingStatusName(statusMap, dto.id()),
             dto.minOrderAmount(),
             dto.minDeliveryTip(),
@@ -516,9 +521,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     @Override
     public ShopInfoViewResult getShopInfo(Long shopId) {
         findVisibleShop(shopId);
-        List<ShopBusinessHourResult> businessHours = shopBasicInfoQueryPort.findBusinessHours(shopId);
-        List<ShopBreakTimeResult> breakTimes = shopBasicInfoQueryPort.findBreakTimes(shopId);
-        List<ShopClosedDayResult> closedDays = shopBasicInfoQueryPort.findClosedDays(shopId);
+        List<ShopBusinessHourResult> businessHours =
+            ShopCodeDescriptions.ofBusinessHours(shopBasicInfoQueryPort.findBusinessHours(shopId));
+        List<ShopBreakTimeResult> breakTimes = ShopCodeDescriptions.ofBreakTimes(shopBasicInfoQueryPort.findBreakTimes(shopId));
+        List<ShopClosedDayResult> closedDays = ShopCodeDescriptions.ofClosedDays(shopBasicInfoQueryPort.findClosedDays(shopId));
         List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryPort.findAmenitiesWithCategory(shopId);
 
         String ownerMessage = null;
@@ -679,7 +685,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         Map<OrderMethod, ShopOperatingStatusResult> availabilities =
             shopOperatingStatusService.findOrderMethodAvailabilities(shopId, LocalDateTime.now());
 
-        return shopBasicInfoQueryPort.findOrderMethods(shopId).stream()
+        return ShopCodeDescriptions.ofOrderMethods(shopBasicInfoQueryPort.findOrderMethods(shopId)).stream()
             .map(dto -> toShopOrderMethodItemResult(dto, availabilities.get(OrderMethod.valueOf(dto.orderMethod()))))
             .toList();
     }

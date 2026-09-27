@@ -1,6 +1,6 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.application.shop.store.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

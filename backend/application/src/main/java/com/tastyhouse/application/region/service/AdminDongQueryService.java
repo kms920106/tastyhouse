@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.application.region.port.in.AdminDongQueryUseCase;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.geo.GeoPolygonTextCodec;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -21,7 +22,6 @@ import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
-import com.tastyhouse.application.shared.port.out.GeoRingsQueryPort;
 
 @Service
 @CeoApp
@@ -37,11 +37,9 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
     private static final int MAX_BOUNDARY_ITEMS = 200;
 
     private final AdminDongQueryPort adminDongQueryPort;
-    private final GeoRingsQueryPort geoRingsPort;
 
-    public AdminDongQueryService(AdminDongQueryPort adminDongQueryPort, GeoRingsQueryPort geoRingsPort) {
+    public AdminDongQueryService(AdminDongQueryPort adminDongQueryPort) {
         this.adminDongQueryPort = adminDongQueryPort;
-        this.geoRingsPort = geoRingsPort;
     }
 
     @Override
@@ -142,7 +140,7 @@ public class AdminDongQueryService implements AdminDongQueryUseCase {
     }
 
     private List<List<AdminDongBoundaryViewResult.Point>> toRings(String boundary) {
-        List<GeoRing> rings = geoRingsPort.resolveRings(boundary);
+        List<GeoRing> rings = GeoPolygonTextCodec.decodeRings(boundary);
         if (rings.isEmpty()) {
             return null;
         }

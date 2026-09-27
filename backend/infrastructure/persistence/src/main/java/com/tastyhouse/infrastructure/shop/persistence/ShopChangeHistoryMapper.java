@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopChangeHistory;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryState;
 
 final class ShopChangeHistoryMapper {
     private ShopChangeHistoryMapper() {
     }
 
-    static ShopChangeHistory toDomain(ShopChangeHistoryJpaEntity entity) {
-        return ShopChangeHistory.reconstitute(
+    static ShopChangeHistoryState toState(ShopChangeHistoryJpaEntity entity) {
+        return new ShopChangeHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getCategory(),
             entity.getChangeType(),
             entity.getActionType(),
@@ -23,16 +21,16 @@ final class ShopChangeHistoryMapper {
         );
     }
 
-    static ShopChangeHistoryJpaEntity toEntity(ShopChangeHistory domain) {
+    static ShopChangeHistoryJpaEntity toEntity(ShopChangeHistoryState state) {
         return ShopChangeHistoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getCategory(),
-            domain.getChangeType(),
-            domain.getActionType(),
-            domain.getActorType(),
-            domain.getActorId(),
-            domain.getPreviousValue(),
-            domain.getNewValue()
+            state.shopId(),
+            state.category(),
+            state.changeType(),
+            state.actionType(),
+            state.actorType(),
+            state.actorId(),
+            state.previousValue(),
+            state.newValue()
         );
     }
 }

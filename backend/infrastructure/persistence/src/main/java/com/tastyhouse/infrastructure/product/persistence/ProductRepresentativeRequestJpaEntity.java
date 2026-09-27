@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,9 +22,8 @@ public class ProductRepresentativeRequestJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ApprovalStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -38,7 +34,7 @@ public class ProductRepresentativeRequestJpaEntity extends BaseEntity {
     private ProductRepresentativeRequestJpaEntity(
         Long productId,
         Long shopId,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         this.productId = productId;
@@ -50,13 +46,13 @@ public class ProductRepresentativeRequestJpaEntity extends BaseEntity {
     static ProductRepresentativeRequestJpaEntity create(
         Long productId,
         Long shopId,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         return new ProductRepresentativeRequestJpaEntity(productId, shopId, status, rejectReason);
     }
 
-    void applyChanges(ApprovalStatus status, String rejectReason) {
+    void applyChanges(String status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;
     }
@@ -73,7 +69,7 @@ public class ProductRepresentativeRequestJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ApprovalStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

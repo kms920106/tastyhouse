@@ -5,8 +5,6 @@ import java.util.List;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.Amenity;
-import com.tastyhouse.domain.shop.model.FoodType;
 
 public interface ShopSearchQueryPort {
 
@@ -14,7 +12,7 @@ public interface ShopSearchQueryPort {
 
     PageResult<BestShopItemResult> findBestShops(Long deliveryAdminDongId, PageQuery pageQuery);
 
-    PageResult<LatestShopItemResult> findLatestShops(Long stationId, List<FoodType> foodTypes, List<Amenity> amenities, Long deliveryAdminDongId, PageQuery pageQuery);
+    PageResult<LatestShopItemResult> findLatestShops(Long stationId, List<String> foodTypes, List<String> amenities, Long deliveryAdminDongId, PageQuery pageQuery);
 
     PageResult<ShopBookmarkedItemResult> searchByKeywordWithBookmark(String keyword, Long memberId, Long deliveryAdminDongId, PageQuery pageQuery);
 

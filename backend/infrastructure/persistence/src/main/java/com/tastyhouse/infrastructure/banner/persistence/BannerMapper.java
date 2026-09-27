@@ -1,19 +1,17 @@
 package com.tastyhouse.infrastructure.banner.persistence;
 
-import com.tastyhouse.domain.banner.model.Banner;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.banner.port.out.write.BannerState;
 
 final class BannerMapper {
     private BannerMapper() {
     }
 
-    static Banner toDomain(BannerJpaEntity entity) {
-        return Banner.reconstitute(
+    static BannerState toState(BannerJpaEntity entity) {
+        return new BannerState(
             entity.getId(),
             entity.getType(),
             entity.getTitle(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.getLinkUrl(),
             entity.getStartDate(),
             entity.getEndDate(),
@@ -25,31 +23,31 @@ final class BannerMapper {
         );
     }
 
-    static BannerJpaEntity toEntity(Banner domain) {
+    static BannerJpaEntity toEntity(BannerState state) {
         return BannerJpaEntity.create(
-            domain.getType(),
-            domain.getTitle(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getLinkUrl(),
-            domain.getStartDate(),
-            domain.getEndDate(),
-            domain.getSort(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.type(),
+            state.title(),
+            state.imageFileId(),
+            state.linkUrl(),
+            state.startDate(),
+            state.endDate(),
+            state.sort(),
+            state.visible(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(BannerJpaEntity entity, Banner domain) {
+    static void applyChanges(BannerJpaEntity entity, BannerState state) {
         entity.applyChanges(
-            domain.getType(),
-            domain.getTitle(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getLinkUrl(),
-            domain.getStartDate(),
-            domain.getEndDate(),
-            domain.getSort(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.type(),
+            state.title(),
+            state.imageFileId(),
+            state.linkUrl(),
+            state.startDate(),
+            state.endDate(),
+            state.sort(),
+            state.visible(),
+            state.deleted()
         );
     }
 }

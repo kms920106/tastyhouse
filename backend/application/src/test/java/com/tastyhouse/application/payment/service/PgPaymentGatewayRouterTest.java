@@ -6,7 +6,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGateway;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
@@ -26,7 +25,7 @@ class PgPaymentGatewayRouterTest {
         GatewayStub kakao = new GatewayStub(PgProviderCode.KAKAO);
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(toss, kakao));
 
-        router.confirmPayment(PgProvider.KAKAO, 1L, "payment-key", "pg-order-1", 21000);
+        router.confirmPayment("KAKAO", 1L, "payment-key", "pg-order-1", 21000);
 
         assertThat(kakao.confirmCalls).containsExactly("pg-order-1");
         assertThat(toss.confirmCalls).isEmpty();
@@ -38,7 +37,7 @@ class PgPaymentGatewayRouterTest {
         GatewayStub toss = new GatewayStub(PgProviderCode.TOSS);
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(toss));
 
-        router.cancelPayment(PgProvider.TOSS, "tid-1", "고객 변심");
+        router.cancelPayment("TOSS", "tid-1", "고객 변심");
 
         assertThat(toss.cancelCalls).containsExactly("tid-1");
     }
@@ -48,7 +47,7 @@ class PgPaymentGatewayRouterTest {
     void unregisteredProvider_isRejected() {
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(new GatewayStub(PgProviderCode.TOSS)));
 
-        assertThatThrownBy(() -> router.confirmPayment(PgProvider.KAKAO, 1L, "payment-key", "pg-order-1", 21000))
+        assertThatThrownBy(() -> router.confirmPayment("KAKAO", 1L, "payment-key", "pg-order-1", 21000))
             .isInstanceOf(BusinessException.class)
             .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.PG_PROVIDER_UNSUPPORTED));
         assertThatThrownBy(() -> router.cancelPayment(null, "tid-1", "고객 변심"))
@@ -61,8 +60,8 @@ class PgPaymentGatewayRouterTest {
     void supports_reflectsRegisteredProviders() {
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(new GatewayStub(PgProviderCode.TOSS)));
 
-        assertThat(router.supports(PgProvider.TOSS)).isTrue();
-        assertThat(router.supports(PgProvider.KAKAO)).isFalse();
+        assertThat(router.supports("TOSS")).isTrue();
+        assertThat(router.supports("KAKAO")).isFalse();
         assertThat(router.supports(null)).isFalse();
     }
 
@@ -71,7 +70,7 @@ class PgPaymentGatewayRouterTest {
     void emptyGateways_supportNothing() {
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of());
 
-        assertThat(router.supports(PgProvider.TOSS)).isFalse();
+        assertThat(router.supports("TOSS")).isFalse();
     }
 
     @Test

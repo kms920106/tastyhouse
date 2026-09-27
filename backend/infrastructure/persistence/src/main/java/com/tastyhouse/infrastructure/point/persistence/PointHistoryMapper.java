@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.point.model.PointHistory;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.point.port.out.write.PointHistoryState;
 
 final class PointHistoryMapper {
     private PointHistoryMapper() {
     }
 
-    static PointHistory toDomain(PointHistoryJpaEntity entity) {
-        return PointHistory.reconstitute(
+    static PointHistoryState toState(PointHistoryJpaEntity entity) {
+        return new PointHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getPointType(),
             entity.getPointAmount(),
             entity.getReason(),
@@ -19,12 +17,12 @@ final class PointHistoryMapper {
         );
     }
 
-    static PointHistoryJpaEntity toEntity(PointHistory domain) {
+    static PointHistoryJpaEntity toEntity(PointHistoryState state) {
         return PointHistoryJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getPointType(),
-            domain.getPointAmount(),
-            domain.getReason()
+            state.memberId(),
+            state.pointType(),
+            state.pointAmount(),
+            state.reason()
         );
     }
 }

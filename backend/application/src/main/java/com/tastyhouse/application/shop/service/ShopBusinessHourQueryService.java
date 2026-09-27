@@ -27,12 +27,12 @@ public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCas
     @Override
     public List<ShopBusinessHourResult> getBusinessHours(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findBusinessHours(shopId);
+        return ShopCodeDescriptions.ofBusinessHours(shopBasicInfoQueryPort.findBusinessHours(shopId));
     }
 
     @Override
     public List<ShopBreakTimeResult> getBreakTimes(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findBreakTimes(shopId);
+        return ShopCodeDescriptions.ofBreakTimes(shopBasicInfoQueryPort.findBreakTimes(shopId));
     }
 }

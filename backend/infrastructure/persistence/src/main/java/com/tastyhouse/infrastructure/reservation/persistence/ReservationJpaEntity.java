@@ -5,15 +5,12 @@ import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -44,9 +41,8 @@ public class ReservationJpaEntity extends BaseEntity {
     @Column(name = "party_size", nullable = false)
     private Integer partySize;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ReservationStatus status;
+    private String status;
 
     @Column(name = "request", columnDefinition = "TEXT")
     private String request;
@@ -60,7 +56,7 @@ public class ReservationJpaEntity extends BaseEntity {
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
-        ReservationStatus status,
+        String status,
         String request
     ) {
         this.memberId = memberId;
@@ -78,13 +74,13 @@ public class ReservationJpaEntity extends BaseEntity {
         LocalDate reservationDate,
         LocalTime reservationTime,
         Integer partySize,
-        ReservationStatus status,
+        String status,
         String request
     ) {
         return new ReservationJpaEntity(memberId, shopId, reservationDate, reservationTime, partySize, status, request);
     }
 
-    void applyChanges(ReservationStatus status) {
+    void applyChanges(String status) {
         this.status = status;
     }
 
@@ -112,7 +108,7 @@ public class ReservationJpaEntity extends BaseEntity {
         return this.partySize;
     }
 
-    public ReservationStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

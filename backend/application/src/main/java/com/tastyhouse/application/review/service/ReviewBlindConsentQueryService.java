@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
 import com.tastyhouse.application.review.port.in.ReviewBlindConsentQueryUseCase;
@@ -30,6 +31,7 @@ public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUs
             throw new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
         }
 
-        return notice;
+        return notice.withReasonDescription(
+            notice.reason() == null ? null : ReviewBlindReason.valueOf(notice.reason()).getDescription());
     }
 }

@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopSuspension;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionState;
 
 final class ShopSuspensionMapper {
     private ShopSuspensionMapper() {
     }
 
-    static ShopSuspension toDomain(ShopSuspensionJpaEntity entity) {
-        return ShopSuspension.reconstitute(
+    static ShopSuspensionState toState(ShopSuspensionJpaEntity entity) {
+        return new ShopSuspensionState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getReason(),
             entity.getOrderMethod(),
             entity.getStartAt(),
@@ -22,18 +20,18 @@ final class ShopSuspensionMapper {
         );
     }
 
-    static ShopSuspensionJpaEntity toEntity(ShopSuspension domain) {
+    static ShopSuspensionJpaEntity toEntity(ShopSuspensionState state) {
         return ShopSuspensionJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getReason(),
-            domain.getOrderMethod(),
-            domain.getStartAt(),
-            domain.getEndAt(),
-            domain.getReleasedAt()
+            state.shopId(),
+            state.reason(),
+            state.orderMethod(),
+            state.startAt(),
+            state.endAt(),
+            state.releasedAt()
         );
     }
 
-    static void applyChanges(ShopSuspensionJpaEntity entity, ShopSuspension domain) {
-        entity.applyChanges(domain.getReleasedAt());
+    static void applyChanges(ShopSuspensionJpaEntity entity, ShopSuspensionState state) {
+        entity.applyChanges(state.releasedAt());
     }
 }

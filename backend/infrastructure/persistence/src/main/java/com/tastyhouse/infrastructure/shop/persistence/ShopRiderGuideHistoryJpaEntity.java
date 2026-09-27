@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.RiderGuideActionType;
-import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -23,16 +19,14 @@ public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "actor_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RiderGuideActorType actorType;
+    private String actorType;
 
     @Column(name = "actor_id", nullable = false)
     private Long actorId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RiderGuideActionType actionType;
+    private String actionType;
 
     @Column(name = "previous_visit_guide", length = 200)
     private String previousVisitGuide;
@@ -48,9 +42,9 @@ public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
 
     private ShopRiderGuideHistoryJpaEntity(
         Long shopId,
-        RiderGuideActorType actorType,
+        String actorType,
         Long actorId,
-        RiderGuideActionType actionType,
+        String actionType,
         String previousVisitGuide,
         String newVisitGuide,
         String reason
@@ -66,9 +60,9 @@ public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
 
     static ShopRiderGuideHistoryJpaEntity create(
         Long shopId,
-        RiderGuideActorType actorType,
+        String actorType,
         Long actorId,
-        RiderGuideActionType actionType,
+        String actionType,
         String previousVisitGuide,
         String newVisitGuide,
         String reason
@@ -85,7 +79,7 @@ public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public RiderGuideActorType getActorType() {
+    public String getActorType() {
         return this.actorType;
     }
 
@@ -93,7 +87,7 @@ public class ShopRiderGuideHistoryJpaEntity extends BaseEntity {
         return this.actorId;
     }
 
-    public RiderGuideActionType getActionType() {
+    public String getActionType() {
         return this.actionType;
     }
 

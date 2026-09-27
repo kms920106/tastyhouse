@@ -1,24 +1,22 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopOwnerMessageHistoryState;
 
 final class ShopOwnerMessageHistoryMapper {
     private ShopOwnerMessageHistoryMapper() {
     }
 
-    static ShopOwnerMessageHistoryJpaEntity toEntity(ShopOwnerMessageHistory domain) {
+    static ShopOwnerMessageHistoryJpaEntity toEntity(ShopOwnerMessageHistoryState state) {
         return ShopOwnerMessageHistoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getMessage()
+            state.shopId(),
+            state.message()
         );
     }
 
-    static ShopOwnerMessageHistory toDomain(ShopOwnerMessageHistoryJpaEntity entity) {
-        return ShopOwnerMessageHistory.reconstitute(
+    static ShopOwnerMessageHistoryState toState(ShopOwnerMessageHistoryJpaEntity entity) {
+        return new ShopOwnerMessageHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getMessage(),
             entity.getCreatedAt()
         );

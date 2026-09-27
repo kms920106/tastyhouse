@@ -33,7 +33,7 @@ public class EventManagementQueryService implements EventManagementQueryUseCase 
 
     @Override
     public PageResult<EventManagementListItemResult> getEvents(String name, String status, int page, int size) {
-        EventStatus eventStatus = status == null ? null : EventStatus.from(status);
+        String eventStatus = status == null ? null : EventStatus.from(status).name();
         EventSearchCondition condition = EventSearchCondition.of(name, eventStatus);
         PageQuery pageQuery = PageQuery.of(page, size);
         return eventManagementQueryPort.findAllEvents(condition, pageQuery);
@@ -41,7 +41,7 @@ public class EventManagementQueryService implements EventManagementQueryUseCase 
 
     @Override
     public EventManagementDetailResult getEvent(Long id) {
-        EventManagementDetailResult detail = eventManagementQueryPort.findEventDetailById(EventId.of(id))
+        EventManagementDetailResult detail = eventManagementQueryPort.findEventDetailById(EventId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
         requireResolvedFileUrl(detail.thumbnailImageFileId(), detail.thumbnailUrl());
         requireResolvedFileUrl(detail.bannerImageFileId(), detail.bannerUrl());
@@ -50,13 +50,13 @@ public class EventManagementQueryService implements EventManagementQueryUseCase 
 
     @Override
     public EventAnnouncementResult getAnnouncement(Long id) {
-        return eventManagementQueryPort.findAnnouncementByEventId(EventId.of(id))
+        return eventManagementQueryPort.findAnnouncementByEventId(EventId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
     }
 
     @Override
     public List<EventWinnerResult> getWinners(Long id) {
-        return eventManagementQueryPort.findWinnersByEventId(EventId.of(id));
+        return eventManagementQueryPort.findWinnersByEventId(EventId.of(id).value());
     }
 
     private void requireResolvedFileUrl(Long fileId, String fileUrl) {

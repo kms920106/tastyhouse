@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
@@ -26,9 +26,9 @@ class RankSettlementServiceTest {
     @DisplayName("조회 순서대로 1위부터 순위를 부여하고, 기존 랭킹 삭제 후 신규 랭킹을 적재한다")
     void settle_assignsRanksInOrderAndReplacesExisting() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of(
-            MemberReviewCount.of(MemberId.of(11L), 30L, LocalDateTime.of(2026, 7, 20, 10, 0)),
-            MemberReviewCount.of(MemberId.of(22L), 20L, LocalDateTime.of(2026, 7, 21, 10, 0)),
-            MemberReviewCount.of(MemberId.of(33L), 10L, LocalDateTime.of(2026, 7, 22, 10, 0))
+            MemberReviewCount.of(11L, 30L, LocalDateTime.of(2026, 7, 20, 10, 0)),
+            MemberReviewCount.of(22L, 20L, LocalDateTime.of(2026, 7, 21, 10, 0)),
+            MemberReviewCount.of(33L, 10L, LocalDateTime.of(2026, 7, 22, 10, 0))
         ));
         MemberReviewRankRepositoryStub repository = new MemberReviewRankRepositoryStub();
         RankSettlementService service = new RankSettlementService(repository, port);
@@ -51,7 +51,7 @@ class RankSettlementServiceTest {
     @DisplayName("적재 전에 같은 타입·기준일의 기존 랭킹을 먼저 삭제한다")
     void settle_deletesBeforeSaving() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of(
-            MemberReviewCount.of(MemberId.of(11L), 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
+            MemberReviewCount.of(11L, 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
         ));
         MemberReviewRankRepositoryStub repository = new MemberReviewRankRepositoryStub();
         RankSettlementService service = new RankSettlementService(repository, port);
@@ -68,7 +68,7 @@ class RankSettlementServiceTest {
     void settle_appliesLimit() {
         List<MemberReviewCount> counts = new ArrayList<>();
         for (long i = 1; i <= 10; i++) {
-            counts.add(MemberReviewCount.of(MemberId.of(i), 100L - i, LocalDateTime.of(2026, 7, 20, 10, 0)));
+            counts.add(MemberReviewCount.of(i, 100L - i, LocalDateTime.of(2026, 7, 20, 10, 0)));
         }
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(counts);
         MemberReviewRankRepositoryStub repository = new MemberReviewRankRepositoryStub();
@@ -136,7 +136,7 @@ class RankSettlementServiceTest {
     @DisplayName("settleAll은 전체·월간·주간 세 타입을 모두 집계한다")
     void settleAll_settlesEveryRankType() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of(
-            MemberReviewCount.of(MemberId.of(11L), 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
+            MemberReviewCount.of(11L, 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
         ));
         MemberReviewRankRepositoryStub repository = new MemberReviewRankRepositoryStub();
         RankSettlementService service = new RankSettlementService(repository, port);

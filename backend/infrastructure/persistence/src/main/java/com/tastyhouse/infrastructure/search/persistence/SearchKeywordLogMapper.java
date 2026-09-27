@@ -1,23 +1,23 @@
 package com.tastyhouse.infrastructure.search.persistence;
 
-import com.tastyhouse.domain.search.model.SearchKeywordLog;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogState;
 
 final class SearchKeywordLogMapper {
     private SearchKeywordLogMapper() {
     }
 
-    static SearchKeywordLog toDomain(SearchKeywordLogJpaEntity entity) {
-        return SearchKeywordLog.reconstitute(
+    static SearchKeywordLogState toState(SearchKeywordLogJpaEntity entity) {
+        return new SearchKeywordLogState(
             entity.getId(),
             entity.getKeyword(),
             entity.getSearchedAt()
         );
     }
 
-    static SearchKeywordLogJpaEntity toEntity(SearchKeywordLog domain) {
+    static SearchKeywordLogJpaEntity toEntity(SearchKeywordLogState state) {
         return SearchKeywordLogJpaEntity.create(
-            domain.getKeyword(),
-            domain.getSearchedAt()
+            state.keyword(),
+            state.searchedAt()
         );
     }
 }

@@ -2,17 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopChangeActionType;
-import com.tastyhouse.domain.shop.model.ShopChangeActorType;
-import com.tastyhouse.domain.shop.model.ShopChangeCategory;
-import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,21 +19,17 @@ public class ShopChangeHistoryJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false, length = 40, columnDefinition = "VARCHAR(40)")
-    private ShopChangeCategory category;
+    private String category;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "change_type", nullable = false, length = 40, columnDefinition = "VARCHAR(40)")
-    private ShopChangeType changeType;
+    private String changeType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopChangeActionType actionType;
+    private String actionType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "actor_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopChangeActorType actorType;
+    private String actorType;
 
     @Column(name = "actor_id", nullable = false)
     private Long actorId;
@@ -55,10 +45,10 @@ public class ShopChangeHistoryJpaEntity extends BaseEntity {
 
     private ShopChangeHistoryJpaEntity(
         Long shopId,
-        ShopChangeCategory category,
-        ShopChangeType changeType,
-        ShopChangeActionType actionType,
-        ShopChangeActorType actorType,
+        String category,
+        String changeType,
+        String actionType,
+        String actorType,
         Long actorId,
         String previousValue,
         String newValue
@@ -75,10 +65,10 @@ public class ShopChangeHistoryJpaEntity extends BaseEntity {
 
     static ShopChangeHistoryJpaEntity create(
         Long shopId,
-        ShopChangeCategory category,
-        ShopChangeType changeType,
-        ShopChangeActionType actionType,
-        ShopChangeActorType actorType,
+        String category,
+        String changeType,
+        String actionType,
+        String actorType,
         Long actorId,
         String previousValue,
         String newValue
@@ -95,19 +85,19 @@ public class ShopChangeHistoryJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ShopChangeCategory getCategory() {
+    public String getCategory() {
         return this.category;
     }
 
-    public ShopChangeType getChangeType() {
+    public String getChangeType() {
         return this.changeType;
     }
 
-    public ShopChangeActionType getActionType() {
+    public String getActionType() {
         return this.actionType;
     }
 
-    public ShopChangeActorType getActorType() {
+    public String getActorType() {
         return this.actorType;
     }
 

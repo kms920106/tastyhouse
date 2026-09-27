@@ -39,7 +39,7 @@ public class PartnershipQueryService implements PartnershipQueryUseCase {
         int page,
         int size
     ) {
-        PartnershipStatus partnershipStatus = status == null ? null : PartnershipStatus.from(status);
+        String partnershipStatus = status == null ? null : PartnershipStatus.from(status).name();
         PartnershipSearchCondition condition = PartnershipSearchCondition.of(businessName, contactName, contactPhone, partnershipStatus, startDate, endDate);
         PageQuery pageQuery = PageQuery.of(page, size);
         return partnershipQueryPort.findPartnershipRequests(condition, pageQuery);

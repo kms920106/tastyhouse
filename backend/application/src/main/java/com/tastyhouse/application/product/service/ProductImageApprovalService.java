@@ -5,9 +5,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductImageChangeRequestRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;

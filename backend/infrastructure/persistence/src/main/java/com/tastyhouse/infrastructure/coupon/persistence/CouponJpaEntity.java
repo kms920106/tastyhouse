@@ -4,15 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -35,9 +32,8 @@ public class CouponJpaEntity extends BaseEntity {
     @Column(name = "description", length = 500)
     private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "discount_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DiscountType discountType;
+    private String discountType;
 
     @Column(name = "discount_amount", nullable = false)
     private Integer discountAmount;
@@ -75,7 +71,7 @@ public class CouponJpaEntity extends BaseEntity {
     private CouponJpaEntity(
         String name,
         String description,
-        DiscountType discountType,
+        String discountType,
         Integer discountAmount,
         Integer maxDiscountAmount,
         Integer minOrderAmount,
@@ -105,7 +101,7 @@ public class CouponJpaEntity extends BaseEntity {
     static CouponJpaEntity create(
         String name,
         String description,
-        DiscountType discountType,
+        String discountType,
         Integer discountAmount,
         Integer maxDiscountAmount,
         Integer minOrderAmount,
@@ -127,7 +123,7 @@ public class CouponJpaEntity extends BaseEntity {
     void applyChanges(
         String name,
         String description,
-        DiscountType discountType,
+        String discountType,
         Integer discountAmount,
         Integer maxDiscountAmount,
         Integer minOrderAmount,
@@ -166,7 +162,7 @@ public class CouponJpaEntity extends BaseEntity {
         return this.description;
     }
 
-    public DiscountType getDiscountType() {
+    public String getDiscountType() {
         return this.discountType;
     }
 

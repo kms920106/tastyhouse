@@ -1,21 +1,19 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import com.tastyhouse.domain.event.model.Event;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.event.port.out.write.EventState;
 
 final class EventMapper {
     private EventMapper() {
     }
 
-    static Event toDomain(EventJpaEntity entity) {
-        return Event.reconstitute(
+    static EventState toState(EventJpaEntity entity) {
+        return new EventState(
             entity.getId(),
             entity.getName(),
             entity.getDescription(),
             entity.getSubtitle(),
-            IdMapping.vo(entity.getThumbnailImageFileId(), UploadedFileId::of),
-            IdMapping.vo(entity.getBannerImageFileId(), UploadedFileId::of),
+            entity.getThumbnailImageFileId(),
+            entity.getBannerImageFileId(),
             entity.getContentHtml(),
             entity.getStatus(),
             entity.getStartAt(),
@@ -26,33 +24,33 @@ final class EventMapper {
         );
     }
 
-    static EventJpaEntity toEntity(Event domain) {
+    static EventJpaEntity toEntity(EventState state) {
         return EventJpaEntity.create(
-            domain.getName(),
-            domain.getDescription(),
-            domain.getSubtitle(),
-            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
-            IdMapping.raw(domain.getBannerImageFileId(), UploadedFileId::value),
-            domain.getContentHtml(),
-            domain.getStatus(),
-            domain.getStartAt(),
-            domain.getEndAt(),
-            domain.isDeleted()
+            state.name(),
+            state.description(),
+            state.subtitle(),
+            state.thumbnailImageFileId(),
+            state.bannerImageFileId(),
+            state.contentHtml(),
+            state.status(),
+            state.startAt(),
+            state.endAt(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(EventJpaEntity entity, Event domain) {
+    static void applyChanges(EventJpaEntity entity, EventState state) {
         entity.applyChanges(
-            domain.getName(),
-            domain.getDescription(),
-            domain.getSubtitle(),
-            IdMapping.raw(domain.getThumbnailImageFileId(), UploadedFileId::value),
-            IdMapping.raw(domain.getBannerImageFileId(), UploadedFileId::value),
-            domain.getContentHtml(),
-            domain.getStatus(),
-            domain.getStartAt(),
-            domain.getEndAt(),
-            domain.isDeleted()
+            state.name(),
+            state.description(),
+            state.subtitle(),
+            state.thumbnailImageFileId(),
+            state.bannerImageFileId(),
+            state.contentHtml(),
+            state.status(),
+            state.startAt(),
+            state.endAt(),
+            state.deleted()
         );
     }
 }

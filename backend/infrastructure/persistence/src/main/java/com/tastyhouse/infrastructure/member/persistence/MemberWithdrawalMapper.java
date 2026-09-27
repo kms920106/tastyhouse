@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.domain.member.model.MemberWithdrawal;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalState;
 
 final class MemberWithdrawalMapper {
     private MemberWithdrawalMapper() {
     }
 
-    static MemberWithdrawal toDomain(MemberWithdrawalJpaEntity entity) {
-        return MemberWithdrawal.reconstitute(
+    static MemberWithdrawalState toState(MemberWithdrawalJpaEntity entity) {
+        return new MemberWithdrawalState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getReason(),
             entity.getReasonDetail(),
             entity.getCreatedAt(),
@@ -19,11 +17,11 @@ final class MemberWithdrawalMapper {
         );
     }
 
-    static MemberWithdrawalJpaEntity toEntity(MemberWithdrawal domain) {
+    static MemberWithdrawalJpaEntity toEntity(MemberWithdrawalState state) {
         return MemberWithdrawalJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getReason(),
-            domain.getReasonDetail()
+            state.memberId(),
+            state.reason(),
+            state.reasonDetail()
         );
     }
 }

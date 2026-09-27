@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
+import com.tastyhouse.application.member.referral.store.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;

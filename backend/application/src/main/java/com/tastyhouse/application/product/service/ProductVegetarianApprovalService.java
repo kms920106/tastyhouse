@@ -2,8 +2,8 @@ package com.tastyhouse.application.product.service;
 
 import java.util.Set;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;

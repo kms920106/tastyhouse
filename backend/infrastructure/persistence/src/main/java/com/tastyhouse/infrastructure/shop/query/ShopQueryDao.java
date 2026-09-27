@@ -37,21 +37,16 @@ import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.shared.port.out.ApprovalStatusCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.ShopContentType;
-import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
-import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.domain.shop.model.ClosedDayType;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
@@ -194,7 +189,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
     public PageResult<ShopContentBoardResult> findContentBoardPage(
         Long shopId,
         Boolean hidden,
-        ShopContentType contentType,
+        String contentType,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -246,7 +241,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return hidden != null ? shopContentBoardJpaEntity.hidden.eq(hidden) : null;
     }
 
-    private BooleanExpression contentBoardContentTypeEq(ShopContentType contentType) {
+    private BooleanExpression contentBoardContentTypeEq(String contentType) {
         return contentType != null ? shopContentBoardJpaEntity.contentType.eq(contentType) : null;
     }
 
@@ -267,7 +262,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
     }
 
     @Override
-    public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId, ShopImageType imageType) {
+    public List<ShopImageChangeRequestResult> findImageChangeRequests(Long shopId, String imageType) {
         return imageChangeRequestProjection()
             .where(
                 shopImageChangeRequestJpaEntity.shopId.eq(shopId),
@@ -279,8 +274,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
 
     @Override
     public PageResult<ShopImageChangeRequestResult> findImageChangeRequestPage(
-        ApprovalStatus status,
-        ShopImageType imageType,
+        String status,
+        String imageType,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -317,11 +312,11 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .leftJoin(imageChangeRequestImageFile).on(imageChangeRequestImageFile.id.eq(shopImageChangeRequestJpaEntity.imageFileId));
     }
 
-    private BooleanExpression imageChangeStatusEq(ApprovalStatus status) {
+    private BooleanExpression imageChangeStatusEq(String status) {
         return status != null ? shopImageChangeRequestJpaEntity.status.eq(status) : null;
     }
 
-    private BooleanExpression imageChangeImageTypeEq(ShopImageType imageType) {
+    private BooleanExpression imageChangeImageTypeEq(String imageType) {
         return imageType != null ? shopImageChangeRequestJpaEntity.imageType.eq(imageType) : null;
     }
 
@@ -541,7 +536,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
             .where(
                 shopMenuCollectionImageJpaEntity.shopId.eq(shopId),
-                shopMenuCollectionImageJpaEntity.status.eq(ApprovalStatus.APPROVED)
+                shopMenuCollectionImageJpaEntity.status.eq(ApprovalStatusCodes.APPROVED)
             )
             .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
             .fetch();
@@ -549,7 +544,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
 
     @Override
     public PageResult<ShopMenuCollectionImageRequestResult> findMenuCollectionImageRequestPage(
-        ApprovalStatus status,
+        String status,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -585,7 +580,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    private BooleanExpression menuCollectionImageStatusEq(ApprovalStatus status) {
+    private BooleanExpression menuCollectionImageStatusEq(String status) {
         return status != null ? shopMenuCollectionImageJpaEntity.status.eq(status) : null;
     }
 
@@ -631,8 +626,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopOrderMethodResult.class,
                 shopOrderMethodJpaEntity.id,
-                shopOrderMethodJpaEntity.orderMethod.stringValue(),
-                EnumLabelProjection.labelOf(shopOrderMethodJpaEntity.orderMethod, OrderMethod::getDisplayName)
+                shopOrderMethodJpaEntity.orderMethod,
+                Expressions.nullExpression(String.class)
             ))
             .from(shopOrderMethodJpaEntity)
             .where(shopOrderMethodJpaEntity.shopId.eq(shopId))
@@ -660,8 +655,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopBusinessHourResult.class,
                 shopBusinessHourJpaEntity.id,
-                shopBusinessHourJpaEntity.dayType.stringValue(),
-                EnumLabelProjection.labelOf(shopBusinessHourJpaEntity.dayType, DayType::getDescription),
+                shopBusinessHourJpaEntity.dayType,
+                Expressions.nullExpression(String.class),
                 shopBusinessHourJpaEntity.openTime,
                 shopBusinessHourJpaEntity.closeTime,
                 shopBusinessHourJpaEntity.isClosed,
@@ -678,8 +673,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopBreakTimeResult.class,
                 shopBreakTimeJpaEntity.id,
-                shopBreakTimeJpaEntity.dayType.stringValue(),
-                EnumLabelProjection.labelOf(shopBreakTimeJpaEntity.dayType, DayType::getDescription),
+                shopBreakTimeJpaEntity.dayType,
+                Expressions.nullExpression(String.class),
                 shopBreakTimeJpaEntity.startTime,
                 shopBreakTimeJpaEntity.endTime
             ))
@@ -694,8 +689,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopClosedDayResult.class,
                 shopClosedDayJpaEntity.id,
-                shopClosedDayJpaEntity.closedDayType.stringValue(),
-                EnumLabelProjection.labelOf(shopClosedDayJpaEntity.closedDayType, ClosedDayType::getDescription)
+                shopClosedDayJpaEntity.closedDayType,
+                Expressions.nullExpression(String.class)
             ))
             .from(shopClosedDayJpaEntity)
             .where(shopClosedDayJpaEntity.shopId.eq(shopId))

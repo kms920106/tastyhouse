@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
+import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -47,7 +48,7 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
             : startDate;
         validateDateRange(resolvedStartDate, resolvedEndDate, today);
 
-        CeoLoginResult resultFilter = result == null ? null : CeoLoginResult.from(result);
+        String resultFilter = result == null ? null : CeoLoginResult.from(result).name();
 
         CeoLoginHistorySearchCondition condition = CeoLoginHistorySearchCondition.of(
             ceoId,
@@ -57,7 +58,18 @@ public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase 
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        return ceoLoginHistoryQueryPort.findLoginHistoryPage(condition, pageQuery);
+        return ceoLoginHistoryQueryPort.findLoginHistoryPage(condition, pageQuery)
+            .map(history -> history.withDescriptions(
+                resultDescription(history.result()),
+                failureReasonDescription(history.failureReason())));
+    }
+
+    private static String resultDescription(String result) {
+        return result == null ? null : CeoLoginResult.valueOf(result).getDescription();
+    }
+
+    private static String failureReasonDescription(String failureReason) {
+        return failureReason == null ? null : CeoLoginFailureReason.valueOf(failureReason).getDescription();
     }
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate, LocalDate today) {

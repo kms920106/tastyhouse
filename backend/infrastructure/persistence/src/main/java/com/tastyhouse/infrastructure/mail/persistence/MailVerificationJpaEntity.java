@@ -6,16 +6,13 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.mail.model.MailVerificationStatus;
-import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 @Entity
 @Table(name = "MAIL_VERIFICATION", indexes = {
@@ -32,11 +29,10 @@ public class MailVerificationJpaEntity {
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "verification_code", nullable = false, length = 6))
-    private VerificationCode verificationCode;
+    private VerificationCodeEmbeddable verificationCode;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MailVerificationStatus status;
+    private String status;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
@@ -52,8 +48,8 @@ public class MailVerificationJpaEntity {
 
     private MailVerificationJpaEntity(
         String email,
-        VerificationCode verificationCode,
-        MailVerificationStatus status,
+        VerificationCodeEmbeddable verificationCode,
+        String status,
         LocalDateTime expiresAt,
         LocalDateTime verifiedAt,
         LocalDateTime createdAt
@@ -68,8 +64,8 @@ public class MailVerificationJpaEntity {
 
     static MailVerificationJpaEntity create(
         String email,
-        VerificationCode verificationCode,
-        MailVerificationStatus status,
+        VerificationCodeEmbeddable verificationCode,
+        String status,
         LocalDateTime expiresAt,
         LocalDateTime verifiedAt,
         LocalDateTime createdAt
@@ -77,7 +73,7 @@ public class MailVerificationJpaEntity {
         return new MailVerificationJpaEntity(email, verificationCode, status, expiresAt, verifiedAt, createdAt);
     }
 
-    void applyChanges(MailVerificationStatus status, LocalDateTime verifiedAt) {
+    void applyChanges(String status, LocalDateTime verifiedAt) {
         this.status = status;
         this.verifiedAt = verifiedAt;
     }
@@ -90,11 +86,11 @@ public class MailVerificationJpaEntity {
         return this.email;
     }
 
-    public VerificationCode getVerificationCode() {
+    public VerificationCodeEmbeddable getVerificationCode() {
         return this.verificationCode;
     }
 
-    public MailVerificationStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

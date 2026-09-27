@@ -25,6 +25,6 @@ public class ReferralQueryService implements ReferralQueryUseCase {
     @Override
     public List<MemberReferralResult> getMyReferrals(Long referrerId) {
         MemberId memberId = MemberId.of(referrerId);
-        return memberReferralQueryPort.findByReferrerId(memberId);
+        return memberReferralQueryPort.findByReferrerId(memberId.value());
     }
 }

@@ -3,8 +3,6 @@ package com.tastyhouse.application.review.port.out;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.model.OrderMethod;
-
 public record ReviewDetailResult(
     Long id,
     Long shopId,
@@ -28,7 +26,7 @@ public record ReviewDetailResult(
     List<String> tagNames,
     String ownerReplyContent,
     LocalDateTime ownerReplyCreatedAt,
-    OrderMethod orderMethod,
+    String orderMethod,
     Integer deliveryRating,
     String deliveryComment
 ) {
@@ -54,7 +52,7 @@ public record ReviewDetailResult(
         boolean ownerOnly,
         String ownerReplyContent,
         LocalDateTime ownerReplyCreatedAt,
-        OrderMethod orderMethod,
+        String orderMethod,
         Integer deliveryRating,
         String deliveryComment
     ) {

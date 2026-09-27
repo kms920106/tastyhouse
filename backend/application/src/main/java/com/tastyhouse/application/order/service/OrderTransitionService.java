@@ -1,6 +1,6 @@
 package com.tastyhouse.application.order.service;
 
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.order.store.OrderRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

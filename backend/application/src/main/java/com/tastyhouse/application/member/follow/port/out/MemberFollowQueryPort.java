@@ -1,22 +1,21 @@
 package com.tastyhouse.application.member.follow.port.out;
 
 import java.util.List;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface MemberFollowQueryPort {
 
-    PageResult<FollowMemberResult> findFollowingList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery);
+    PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, PageQuery pageQuery);
 
-    PageResult<FollowMemberResult> findFollowerList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery);
+    PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, PageQuery pageQuery);
 
-    boolean existsFollow(MemberId followerId, MemberId followingId);
+    boolean existsFollow(Long followerId, Long followingId);
 
-    long countFollowing(MemberId memberId);
+    long countFollowing(Long memberId);
 
-    long countFollower(MemberId memberId);
+    long countFollower(Long memberId);
 
-    List<Long> findFollowingIds(MemberId followerId);
+    List<Long> findFollowingIds(Long followerId);
 
 }

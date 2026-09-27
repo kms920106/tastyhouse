@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.admin.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.admin.model.AdminRole;
-import com.tastyhouse.domain.admin.model.AdminStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -29,18 +25,16 @@ public class AdminJpaEntity extends BaseEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private AdminRole role;
+    private String role;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private AdminStatus status;
+    private String status;
 
     protected AdminJpaEntity() {
     }
 
-    private AdminJpaEntity(String username, String password, String name, AdminRole role, AdminStatus status) {
+    private AdminJpaEntity(String username, String password, String name, String role, String status) {
         this.username = username;
         this.password = password;
         this.name = name;
@@ -48,7 +42,7 @@ public class AdminJpaEntity extends BaseEntity {
         this.status = status;
     }
 
-    static AdminJpaEntity create(String username, String password, String name, AdminRole role, AdminStatus status) {
+    static AdminJpaEntity create(String username, String password, String name, String role, String status) {
         return new AdminJpaEntity(username, password, name, role, status);
     }
 
@@ -68,11 +62,11 @@ public class AdminJpaEntity extends BaseEntity {
         return this.name;
     }
 
-    public AdminRole getRole() {
+    public String getRole() {
         return this.role;
     }
 
-    public AdminStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 }

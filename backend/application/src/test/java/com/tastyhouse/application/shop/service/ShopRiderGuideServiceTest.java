@@ -11,8 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.store.ShopRiderGuideRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -69,7 +69,7 @@ class ShopRiderGuideServiceTest {
         }
     }
 
-    private static class FakeShopRepository implements com.tastyhouse.application.shop.port.out.write.ShopRepository {
+    private static class FakeShopRepository implements com.tastyhouse.application.shop.store.ShopRepository {
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {

@@ -5,4 +5,12 @@ public record ShopClosedDayResult(
     String closedDayType,
     String closedDayTypeDescription
 ) {
+
+    public ShopClosedDayResult withClosedDayTypeDescription(String closedDayTypeDescription) {
+        return new ShopClosedDayResult(
+            this.id,
+            this.closedDayType,
+            closedDayTypeDescription
+        );
+    }
 }

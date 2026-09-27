@@ -11,10 +11,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupCommandUseCa
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;

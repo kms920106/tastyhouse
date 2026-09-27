@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopChangeHistoryQueryUseCase;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.application.shop.port.out.ShopChangeHistoryQueryPort;
@@ -55,8 +56,8 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
         LocalDate targetDate = resolveChangedDate(changedDate, today);
         LocalDate retentionFrom = today.minusMonths(RETENTION_MONTHS);
 
-        ShopChangeCategory categoryFilter = category == null ? null : ShopChangeCategory.from(category);
-        ShopChangeType changeTypeFilter = changeType == null ? null : ShopChangeType.from(changeType);
+        String categoryFilter = category == null ? null : ShopChangeCategory.from(category).name();
+        String changeTypeFilter = changeType == null ? null : ShopChangeType.from(changeType).name();
 
         ShopChangeHistorySearchCondition condition = new ShopChangeHistorySearchCondition(
             shopId,
@@ -67,7 +68,12 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
         );
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        return shopChangeHistoryQueryPort.findChangeHistoryPage(condition, pageQuery);
+        return shopChangeHistoryQueryPort.findChangeHistoryPage(condition, pageQuery)
+            .map(history -> history.withDescriptions(
+                history.category() == null ? null : ShopChangeCategory.valueOf(history.category()).getDescription(),
+                history.changeType() == null ? null : ShopChangeType.valueOf(history.changeType()).getDescription(),
+                history.actionType() == null ? null : ShopChangeActionType.valueOf(history.actionType()).getDescription()
+            ));
     }
 
     @Override

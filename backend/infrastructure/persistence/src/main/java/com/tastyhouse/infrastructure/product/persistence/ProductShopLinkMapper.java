@@ -1,38 +1,34 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductShopLink;
-import com.tastyhouse.domain.product.vo.ProductCategoryId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkState;
 
 final class ProductShopLinkMapper {
     private ProductShopLinkMapper() {
     }
 
-    static ProductShopLink toDomain(ProductShopLinkJpaEntity entity) {
-        return ProductShopLink.reconstitute(
+    static ProductShopLinkState toState(ProductShopLinkJpaEntity entity) {
+        return new ProductShopLinkState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getProductCategoryId(), ProductCategoryId::of),
+            entity.getProductId(),
+            entity.getShopId(),
+            entity.getProductCategoryId(),
             entity.getSort()
         );
     }
 
-    static ProductShopLinkJpaEntity toEntity(ProductShopLink domain) {
+    static ProductShopLinkJpaEntity toEntity(ProductShopLinkState state) {
         return ProductShopLinkJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getProductCategoryId(), ProductCategoryId::value),
-            domain.getSort()
+            state.productId(),
+            state.shopId(),
+            state.productCategoryId(),
+            state.sort()
         );
     }
 
-    static void applyChanges(ProductShopLinkJpaEntity entity, ProductShopLink domain) {
+    static void applyChanges(ProductShopLinkJpaEntity entity, ProductShopLinkState state) {
         entity.applyChanges(
-            IdMapping.raw(domain.getProductCategoryId(), ProductCategoryId::value),
-            domain.getSort()
+            state.productCategoryId(),
+            state.sort()
         );
     }
 }

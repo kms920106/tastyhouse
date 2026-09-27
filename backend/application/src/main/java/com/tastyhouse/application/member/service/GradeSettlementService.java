@@ -8,8 +8,9 @@ import java.util.Map;
 
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 public class GradeSettlementService {
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
@@ -48,7 +49,7 @@ public class GradeSettlementService {
 
         for (MemberReviewCount reviewCount : reviewCounts) {
             MemberGrade grade = MemberGrade.fromReviewCount(reviewCount.reviewCount().intValue());
-            gradeGroups.get(grade).add(reviewCount.memberId().value());
+            gradeGroups.get(grade).add(MemberId.of(reviewCount.memberId()).value());
         }
 
         return gradeGroups;

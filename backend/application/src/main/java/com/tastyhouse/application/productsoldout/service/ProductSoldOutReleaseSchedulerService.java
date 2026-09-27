@@ -10,9 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductCommonOptionRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductOption;

@@ -3,8 +3,8 @@ package com.tastyhouse.application.review.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.application.review.store.ReviewOwnerReplyRepository;
+import com.tastyhouse.application.review.store.ReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.ceo.vo.CeoId;

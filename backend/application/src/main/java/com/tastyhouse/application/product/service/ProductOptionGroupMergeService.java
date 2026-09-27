@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

@@ -28,7 +28,7 @@ public class BannerManagementQueryService implements BannerManagementQueryUseCas
 
     @Override
     public PageResult<BannerManagementListItemResult> getBanners(String type, String title, Boolean visible, int page, int size) {
-        BannerType bannerType = type == null ? null : BannerType.from(type);
+        String bannerType = type == null ? null : BannerType.from(type).name();
         BannerSearchCondition condition = BannerSearchCondition.of(bannerType, title, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
         return bannerManagementQueryPort.findAllBanners(condition, pageQuery);

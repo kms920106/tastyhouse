@@ -10,4 +10,15 @@ public record ShopCeoAssignmentHistoryResult(
     String actionTypeDescription,
     LocalDateTime occurredAt
 ) {
+
+    public ShopCeoAssignmentHistoryResult withActionTypeDescription(String actionTypeDescription) {
+        return new ShopCeoAssignmentHistoryResult(
+            this.id,
+            this.shopId,
+            this.shopName,
+            this.actionType,
+            actionTypeDescription,
+            this.occurredAt
+        );
+    }
 }

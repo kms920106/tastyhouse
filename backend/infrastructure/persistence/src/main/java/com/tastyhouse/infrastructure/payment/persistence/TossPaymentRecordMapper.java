@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import com.tastyhouse.domain.payment.model.TossPaymentRecord;
-import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordState;
 
 final class TossPaymentRecordMapper {
     private TossPaymentRecordMapper() {
     }
 
-    static TossPaymentRecord toDomain(TossPaymentRecordJpaEntity entity) {
-        return TossPaymentRecord.reconstitute(
+    static TossPaymentRecordState toState(TossPaymentRecordJpaEntity entity) {
+        return new TossPaymentRecordState(
             entity.getId(),
-            IdMapping.vo(entity.getPaymentId(), PaymentId::of),
+            entity.getPaymentId(),
             entity.getVersion(),
             entity.getPaymentKey(),
             entity.getType(),
@@ -70,63 +68,63 @@ final class TossPaymentRecordMapper {
         );
     }
 
-    static TossPaymentRecordJpaEntity toEntity(TossPaymentRecord domain) {
+    static TossPaymentRecordJpaEntity toEntity(TossPaymentRecordState state) {
         return TossPaymentRecordJpaEntity.create(
-            IdMapping.raw(domain.getPaymentId(), PaymentId::value),
-            domain.getVersion(),
-            domain.getPaymentKey(),
-            domain.getType(),
-            domain.getOrderId(),
-            domain.getOrderName(),
-            domain.getMId(),
-            domain.getCurrency(),
-            domain.getMethod(),
-            domain.getTotalAmount(),
-            domain.getBalanceAmount(),
-            domain.getStatus(),
-            domain.getRequestedAt(),
-            domain.getApprovedAt(),
-            domain.isUseEscrow(),
-            domain.getLastTransactionKey(),
-            domain.getSuppliedAmount(),
-            domain.getVat(),
-            domain.isCultureExpense(),
-            domain.getTaxFreeAmount(),
-            domain.getTaxExemptionAmount(),
-            domain.isPartialCancelable(),
-            domain.getCardAmount(),
-            domain.getCardIssuerCode(),
-            domain.getCardAcquirerCode(),
-            domain.getCardNumber(),
-            domain.getCardInstallmentPlanMonths(),
-            domain.getCardApproveNo(),
-            domain.isCardUseCardPoint(),
-            domain.getCardType(),
-            domain.getCardOwnerType(),
-            domain.getCardAcquireStatus(),
-            domain.isCardInterestFree(),
-            domain.getCardInterestPayer(),
-            domain.getVirtualAccountType(),
-            domain.getVirtualAccountNumber(),
-            domain.getVirtualAccountBankCode(),
-            domain.getVirtualAccountCustomerName(),
-            domain.getVirtualAccountDueDate(),
-            domain.getVirtualAccountRefundStatus(),
-            domain.isVirtualAccountExpired(),
-            domain.getVirtualAccountSettlementStatus(),
-            domain.getMobilePhoneCustomerMobilePhone(),
-            domain.getMobilePhoneSettlementStatus(),
-            domain.getMobilePhoneReceiptUrl(),
-            domain.getTransferBankCode(),
-            domain.getTransferSettlementStatus(),
-            domain.getEasyPayProvider(),
-            domain.getEasyPayAmount(),
-            domain.getEasyPayDiscountAmount(),
-            domain.getReceiptUrl(),
-            domain.getCheckoutUrl(),
-            domain.getFailureCode(),
-            domain.getFailureMessage(),
-            domain.getCountry()
+            state.paymentId(),
+            state.version(),
+            state.paymentKey(),
+            state.type(),
+            state.orderId(),
+            state.orderName(),
+            state.mId(),
+            state.currency(),
+            state.method(),
+            state.totalAmount(),
+            state.balanceAmount(),
+            state.status(),
+            state.requestedAt(),
+            state.approvedAt(),
+            state.useEscrow(),
+            state.lastTransactionKey(),
+            state.suppliedAmount(),
+            state.vat(),
+            state.cultureExpense(),
+            state.taxFreeAmount(),
+            state.taxExemptionAmount(),
+            state.partialCancelable(),
+            state.cardAmount(),
+            state.cardIssuerCode(),
+            state.cardAcquirerCode(),
+            state.cardNumber(),
+            state.cardInstallmentPlanMonths(),
+            state.cardApproveNo(),
+            state.cardUseCardPoint(),
+            state.cardType(),
+            state.cardOwnerType(),
+            state.cardAcquireStatus(),
+            state.cardInterestFree(),
+            state.cardInterestPayer(),
+            state.virtualAccountType(),
+            state.virtualAccountNumber(),
+            state.virtualAccountBankCode(),
+            state.virtualAccountCustomerName(),
+            state.virtualAccountDueDate(),
+            state.virtualAccountRefundStatus(),
+            state.virtualAccountExpired(),
+            state.virtualAccountSettlementStatus(),
+            state.mobilePhoneCustomerMobilePhone(),
+            state.mobilePhoneSettlementStatus(),
+            state.mobilePhoneReceiptUrl(),
+            state.transferBankCode(),
+            state.transferSettlementStatus(),
+            state.easyPayProvider(),
+            state.easyPayAmount(),
+            state.easyPayDiscountAmount(),
+            state.receiptUrl(),
+            state.checkoutUrl(),
+            state.failureCode(),
+            state.failureMessage(),
+            state.country()
         );
     }
 }

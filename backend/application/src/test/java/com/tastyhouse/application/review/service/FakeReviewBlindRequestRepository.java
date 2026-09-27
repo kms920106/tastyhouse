@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;

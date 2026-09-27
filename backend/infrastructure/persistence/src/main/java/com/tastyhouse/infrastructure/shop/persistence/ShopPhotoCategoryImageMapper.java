@@ -1,38 +1,35 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
-import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryImageState;
 
 final class ShopPhotoCategoryImageMapper {
     private ShopPhotoCategoryImageMapper() {
     }
 
-    static ShopPhotoCategoryImage toDomain(ShopPhotoCategoryImageJpaEntity entity) {
-        return ShopPhotoCategoryImage.reconstitute(
+    static ShopPhotoCategoryImageState toState(ShopPhotoCategoryImageJpaEntity entity) {
+        return new ShopPhotoCategoryImageState(
             entity.getId(),
-            IdMapping.vo(entity.getShopPhotoCategoryId(), ShopPhotoCategoryId::of),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getShopPhotoCategoryId(),
+            entity.getImageFileId(),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ShopPhotoCategoryImageJpaEntity toEntity(ShopPhotoCategoryImage domain) {
+    static ShopPhotoCategoryImageJpaEntity toEntity(ShopPhotoCategoryImageState state) {
         return ShopPhotoCategoryImageJpaEntity.create(
-            IdMapping.raw(domain.getShopPhotoCategoryId(), ShopPhotoCategoryId::value),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getSort(),
-            domain.isVisible()
+            state.shopPhotoCategoryId(),
+            state.imageFileId(),
+            state.sort(),
+            state.visible()
         );
     }
 
-    static void applyChanges(ShopPhotoCategoryImageJpaEntity entity, ShopPhotoCategoryImage domain) {
+    static void applyChanges(ShopPhotoCategoryImageJpaEntity entity, ShopPhotoCategoryImageState state) {
         entity.applyChanges(
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getSort(),
-            domain.isVisible()
+            state.imageFileId(),
+            state.sort(),
+            state.visible()
         );
     }
 }

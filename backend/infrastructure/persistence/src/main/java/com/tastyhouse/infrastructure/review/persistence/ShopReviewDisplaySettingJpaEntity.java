@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.review.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -22,23 +19,22 @@ public class ShopReviewDisplaySettingJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "sort_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ReviewSortType sortType;
+    private String sortType;
 
     protected ShopReviewDisplaySettingJpaEntity() {
     }
 
-    private ShopReviewDisplaySettingJpaEntity(Long shopId, ReviewSortType sortType) {
+    private ShopReviewDisplaySettingJpaEntity(Long shopId, String sortType) {
         this.shopId = shopId;
         this.sortType = sortType;
     }
 
-    static ShopReviewDisplaySettingJpaEntity create(Long shopId, ReviewSortType sortType) {
+    static ShopReviewDisplaySettingJpaEntity create(Long shopId, String sortType) {
         return new ShopReviewDisplaySettingJpaEntity(shopId, sortType);
     }
 
-    void applyChanges(ReviewSortType sortType) {
+    void applyChanges(String sortType) {
         this.sortType = sortType;
     }
 
@@ -50,7 +46,7 @@ public class ShopReviewDisplaySettingJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ReviewSortType getSortType() {
+    public String getSortType() {
         return this.sortType;
     }
 }

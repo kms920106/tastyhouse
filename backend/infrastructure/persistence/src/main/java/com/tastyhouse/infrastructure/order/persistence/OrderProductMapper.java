@@ -1,23 +1,19 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.order.model.OrderProduct;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.order.port.out.write.OrderProductState;
 
 final class OrderProductMapper {
     private OrderProductMapper() {
     }
 
-    static OrderProduct toDomain(OrderProductJpaEntity entity) {
-        return OrderProduct.reconstitute(
+    static OrderProductState toState(OrderProductJpaEntity entity) {
+        return new OrderProductState(
             entity.getId(),
-            IdMapping.vo(entity.getOrderId(), OrderId::of),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getOrderId(),
+            entity.getProductId(),
             entity.getName(),
             entity.getPriceName(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.getQuantity(),
             entity.getOriginalPrice(),
             entity.getDiscountPrice(),
@@ -27,27 +23,27 @@ final class OrderProductMapper {
         );
     }
 
-    static OrderProductJpaEntity toEntity(OrderProduct domain) {
+    static OrderProductJpaEntity toEntity(OrderProductState state) {
         return OrderProductJpaEntity.create(
-            IdMapping.raw(domain.getOrderId(), OrderId::value),
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getName(),
-            domain.getPriceName(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getQuantity(),
-            domain.getOriginalPrice(),
-            domain.getDiscountPrice(),
-            domain.getTotalOptionPrice(),
-            domain.getTotalPrice(),
-            domain.getCupDepositAmount()
+            state.orderId(),
+            state.productId(),
+            state.name(),
+            state.priceName(),
+            state.imageFileId(),
+            state.quantity(),
+            state.originalPrice(),
+            state.discountPrice(),
+            state.totalOptionPrice(),
+            state.totalPrice(),
+            state.cupDepositAmount()
         );
     }
 
-    static void applyChanges(OrderProductJpaEntity entity, OrderProduct domain) {
+    static void applyChanges(OrderProductJpaEntity entity, OrderProductState state) {
         entity.applyChanges(
-            domain.getTotalOptionPrice(),
-            domain.getTotalPrice(),
-            domain.getCupDepositAmount()
+            state.totalOptionPrice(),
+            state.totalPrice(),
+            state.cupDepositAmount()
         );
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
@@ -28,7 +27,7 @@ public class MemberReviewCountAdapter implements MemberReviewCountPort {
 
     private MemberReviewCount toMemberReviewCount(MemberReviewCountResult result) {
         return MemberReviewCount.of(
-            MemberId.of(result.memberId()),
+            result.memberId(),
             result.reviewCount(),
             result.lastReviewAt()
         );

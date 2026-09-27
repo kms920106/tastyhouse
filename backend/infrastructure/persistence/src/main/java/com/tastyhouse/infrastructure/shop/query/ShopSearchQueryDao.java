@@ -27,8 +27,6 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.Amenity;
-import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.shop.persistence.ShopJpaEntity;
 
@@ -134,8 +132,8 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
     @Override
     public PageResult<LatestShopItemResult> findLatestShops(
         Long stationId,
-        List<FoodType> foodTypes,
-        List<Amenity> amenities,
+        List<String> foodTypes,
+        List<String> amenities,
         Long deliveryAdminDongId,
         PageQuery pageQuery
     ) {
@@ -419,7 +417,7 @@ public class ShopSearchQueryDao implements ShopSearchQueryPort, ShopSearchManage
         return fileUrlResolver.resolveAll(filePathsByShopId);
     }
 
-    private Map<Long, List<FoodType>> foodTypesByShopId(List<Long> shopIds) {
+    private Map<Long, List<String>> foodTypesByShopId(List<Long> shopIds) {
         return queryFactory
             .select(shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType)
             .from(shopFoodTypeJpaEntity)

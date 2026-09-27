@@ -33,7 +33,8 @@ public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
     public ShopClosedDaysResult getClosedDays(Long ceoId, Long shopId) {
         Shop shop = shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        List<ShopClosedDayResult> regularClosedDays = shopBasicInfoQueryPort.findClosedDays(shopId);
+        List<ShopClosedDayResult> regularClosedDays =
+            ShopCodeDescriptions.ofClosedDays(shopBasicInfoQueryPort.findClosedDays(shopId));
         List<ShopTemporaryClosureResult> temporaryClosures = shopOwnerQueryPort.findTemporaryClosures(shopId);
 
         return new ShopClosedDaysResult(shop.isClosedOnPublicHolidays(), regularClosedDays, temporaryClosures);

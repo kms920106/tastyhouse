@@ -5,17 +5,11 @@ import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
-import com.tastyhouse.domain.order.vo.OrderSchedule;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -34,13 +28,11 @@ public class OrderJpaEntity extends BaseEntity {
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "order_method", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private OrderMethod orderMethod;
+    private String orderMethod;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private OrderStatus orderStatus;
+    private String orderStatus;
 
     @Column(name = "orderer_name", nullable = false, length = 100)
     private String ordererName;
@@ -85,14 +77,14 @@ public class OrderJpaEntity extends BaseEntity {
         @AttributeOverride(name = "longitude", column = @Column(name = "delivery_longitude", precision = 9, scale = 6)),
         @AttributeOverride(name = "distanceMeters", column = @Column(name = "delivery_distance_meters"))
     })
-    private OrderDeliveryDestination deliveryDestination;
+    private OrderDeliveryDestinationEmbeddable deliveryDestination;
 
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "scheduledAt", column = @Column(name = "scheduled_at")),
         @AttributeOverride(name = "scheduledSlotEndAt", column = @Column(name = "scheduled_slot_end_at"))
     })
-    private OrderSchedule schedule;
+    private OrderScheduleEmbeddable schedule;
 
     @Column(name = "member_coupon_id")
     private Long memberCouponId;
@@ -113,8 +105,8 @@ public class OrderJpaEntity extends BaseEntity {
         Long memberId,
         Long shopId,
         String orderNumber,
-        OrderMethod orderMethod,
-        OrderStatus orderStatus,
+        String orderMethod,
+        String orderStatus,
         String ordererName,
         String ordererPhone,
         String ordererEmail,
@@ -126,8 +118,8 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer cupDepositAmount,
         Integer finalAmount,
-        OrderDeliveryDestination deliveryDestination,
-        OrderSchedule schedule,
+        OrderDeliveryDestinationEmbeddable deliveryDestination,
+        OrderScheduleEmbeddable schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -161,8 +153,8 @@ public class OrderJpaEntity extends BaseEntity {
         Long memberId,
         Long shopId,
         String orderNumber,
-        OrderMethod orderMethod,
-        OrderStatus orderStatus,
+        String orderMethod,
+        String orderStatus,
         String ordererName,
         String ordererPhone,
         String ordererEmail,
@@ -174,8 +166,8 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer cupDepositAmount,
         Integer finalAmount,
-        OrderDeliveryDestination deliveryDestination,
-        OrderSchedule schedule,
+        OrderDeliveryDestinationEmbeddable deliveryDestination,
+        OrderScheduleEmbeddable schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -208,7 +200,7 @@ public class OrderJpaEntity extends BaseEntity {
     }
 
     void applyChanges(
-        OrderStatus orderStatus,
+        String orderStatus,
         Integer totalProductAmount,
         Integer productDiscountAmount,
         Integer couponDiscountAmount,
@@ -217,8 +209,8 @@ public class OrderJpaEntity extends BaseEntity {
         Integer deliveryTipAmount,
         Integer cupDepositAmount,
         Integer finalAmount,
-        OrderDeliveryDestination deliveryDestination,
-        OrderSchedule schedule,
+        OrderDeliveryDestinationEmbeddable deliveryDestination,
+        OrderScheduleEmbeddable schedule,
         Long memberCouponId,
         Integer usedPoint,
         Integer earnedPoint,
@@ -257,11 +249,11 @@ public class OrderJpaEntity extends BaseEntity {
         return this.orderNumber;
     }
 
-    public OrderMethod getOrderMethod() {
+    public String getOrderMethod() {
         return this.orderMethod;
     }
 
-    public OrderStatus getOrderStatus() {
+    public String getOrderStatus() {
         return this.orderStatus;
     }
 
@@ -309,11 +301,11 @@ public class OrderJpaEntity extends BaseEntity {
         return this.cupDepositAmount;
     }
 
-    public OrderDeliveryDestination getDeliveryDestination() {
+    public OrderDeliveryDestinationEmbeddable getDeliveryDestination() {
         return this.deliveryDestination;
     }
 
-    public OrderSchedule getSchedule() {
+    public OrderScheduleEmbeddable getSchedule() {
         return this.schedule;
     }
 

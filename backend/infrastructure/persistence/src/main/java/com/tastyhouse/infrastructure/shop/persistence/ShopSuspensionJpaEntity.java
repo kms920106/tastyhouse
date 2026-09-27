@@ -4,15 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,13 +21,11 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private SuspensionReason reason;
+    private String reason;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "order_method", length = 20, columnDefinition = "VARCHAR(20)")
-    private OrderMethod orderMethod;
+    private String orderMethod;
 
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
@@ -47,8 +41,8 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
 
     private ShopSuspensionJpaEntity(
         Long shopId,
-        SuspensionReason reason,
-        OrderMethod orderMethod,
+        String reason,
+        String orderMethod,
         LocalDateTime startAt,
         LocalDateTime endAt,
         LocalDateTime releasedAt
@@ -63,8 +57,8 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
 
     static ShopSuspensionJpaEntity create(
         Long shopId,
-        SuspensionReason reason,
-        OrderMethod orderMethod,
+        String reason,
+        String orderMethod,
         LocalDateTime startAt,
         LocalDateTime endAt,
         LocalDateTime releasedAt
@@ -84,11 +78,11 @@ public class ShopSuspensionJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public SuspensionReason getReason() {
+    public String getReason() {
         return this.reason;
     }
 
-    public OrderMethod getOrderMethod() {
+    public String getOrderMethod() {
         return this.orderMethod;
     }
 

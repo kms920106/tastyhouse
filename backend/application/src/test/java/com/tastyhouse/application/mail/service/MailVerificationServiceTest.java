@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.mail.store.MailVerificationRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.mail.model.MailVerification;

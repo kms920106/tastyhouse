@@ -1,19 +1,16 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageState;
 
 final class ShopMenuCollectionImageMapper {
     private ShopMenuCollectionImageMapper() {
     }
 
-    static ShopMenuCollectionImage toDomain(ShopMenuCollectionImageJpaEntity entity) {
-        return ShopMenuCollectionImage.reconstitute(
+    static ShopMenuCollectionImageState toState(ShopMenuCollectionImageJpaEntity entity) {
+        return new ShopMenuCollectionImageState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getShopId(),
+            entity.getImageFileId(),
             entity.getSort(),
             entity.getStatus(),
             entity.getRejectReason(),
@@ -22,21 +19,21 @@ final class ShopMenuCollectionImageMapper {
         );
     }
 
-    static ShopMenuCollectionImageJpaEntity toEntity(ShopMenuCollectionImage domain) {
+    static ShopMenuCollectionImageJpaEntity toEntity(ShopMenuCollectionImageState state) {
         return ShopMenuCollectionImageJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getSort(),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.shopId(),
+            state.imageFileId(),
+            state.sort(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
-    static void applyChanges(ShopMenuCollectionImageJpaEntity entity, ShopMenuCollectionImage domain) {
+    static void applyChanges(ShopMenuCollectionImageJpaEntity entity, ShopMenuCollectionImageState state) {
         entity.applyChanges(
-            domain.getSort(),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.sort(),
+            state.status(),
+            state.rejectReason()
         );
     }
 }

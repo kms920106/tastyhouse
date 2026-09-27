@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,9 +22,8 @@ public class ShopCeoAssignmentHistoryJpaEntity extends BaseEntity {
     @Column(name = "ceo_id", nullable = false)
     private Long ceoId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopCeoAssignmentActionType actionType;
+    private String actionType;
 
     @Column(name = "actor_admin_id", nullable = false)
     private Long actorAdminId;
@@ -38,7 +34,7 @@ public class ShopCeoAssignmentHistoryJpaEntity extends BaseEntity {
     private ShopCeoAssignmentHistoryJpaEntity(
         Long shopId,
         Long ceoId,
-        ShopCeoAssignmentActionType actionType,
+        String actionType,
         Long actorAdminId
     ) {
         this.shopId = shopId;
@@ -50,7 +46,7 @@ public class ShopCeoAssignmentHistoryJpaEntity extends BaseEntity {
     static ShopCeoAssignmentHistoryJpaEntity create(
         Long shopId,
         Long ceoId,
-        ShopCeoAssignmentActionType actionType,
+        String actionType,
         Long actorAdminId
     ) {
         return new ShopCeoAssignmentHistoryJpaEntity(shopId, ceoId, actionType, actorAdminId);
@@ -68,7 +64,7 @@ public class ShopCeoAssignmentHistoryJpaEntity extends BaseEntity {
         return this.ceoId;
     }
 
-    public ShopCeoAssignmentActionType getActionType() {
+    public String getActionType() {
         return this.actionType;
     }
 

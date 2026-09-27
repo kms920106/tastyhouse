@@ -41,20 +41,20 @@ public class PaymentQueryService implements PaymentQueryUseCase {
     }
 
     private PaymentResult loadPayment(Long id) {
-        return paymentQueryPort.findPaymentById(PaymentId.of(id))
+        return paymentQueryPort.findPaymentById(PaymentId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 
     @Override
     public PaymentViewResult getPaymentByOrderId(Long memberId, Long orderId) {
-        PaymentResult result = paymentQueryPort.findPaymentByOrderId(OrderId.of(orderId))
+        PaymentResult result = paymentQueryPort.findPaymentByOrderId(OrderId.of(orderId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
         return toPaymentViewResult(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
     }
 
     @Override
     public PaymentRefundViewResult getRefund(Long refundId) {
-        PaymentRefundResult result = paymentQueryPort.findRefundById(PaymentRefundId.of(refundId))
+        PaymentRefundResult result = paymentQueryPort.findRefundById(PaymentRefundId.of(refundId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));
         return toPaymentRefundViewResult(result);
     }
@@ -70,10 +70,10 @@ public class PaymentQueryService implements PaymentQueryUseCase {
         return new PaymentViewResult(
             result.id(),
             result.orderId(),
-            result.paymentMethod() == null ? null : result.paymentMethod().name(),
-            result.paymentStatus() == null ? null : result.paymentStatus().name(),
-            result.amount() == null ? null : result.amount().value(),
-            result.pgProvider() == null ? null : result.pgProvider().name(),
+            result.paymentMethod(),
+            result.paymentStatus(),
+            result.amount(),
+            result.pgProvider(),
             result.pgTid(),
             result.pgOrderId(),
             result.cardCompany(),
@@ -91,9 +91,9 @@ public class PaymentQueryService implements PaymentQueryUseCase {
         return new PaymentRefundViewResult(
             result.id(),
             result.paymentId(),
-            result.refundAmount() == null ? null : result.refundAmount().value(),
+            result.refundAmount(),
             result.refundReason(),
-            result.refundStatus() == null ? null : result.refundStatus().name(),
+            result.refundStatus(),
             result.pgRefundId(),
             result.refundedAt(),
             result.createdAt()

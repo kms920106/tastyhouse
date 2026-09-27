@@ -8,13 +8,12 @@ import java.util.List;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopCeoAssignmentHistoryJpaEntity.shopCeoAssignmentHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -54,8 +53,8 @@ public class ShopCeoAssignmentHistoryQueryDao implements ShopCeoAssignmentHistor
                 shopCeoAssignmentHistoryJpaEntity.id,
                 shopCeoAssignmentHistoryJpaEntity.shopId,
                 shopJpaEntity.name,
-                shopCeoAssignmentHistoryJpaEntity.actionType.stringValue(),
-                EnumLabelProjection.labelOf(shopCeoAssignmentHistoryJpaEntity.actionType, ShopCeoAssignmentActionType::getDescription),
+                shopCeoAssignmentHistoryJpaEntity.actionType,
+                Expressions.nullExpression(String.class),
                 shopCeoAssignmentHistoryJpaEntity.createdAt
             ))
             .from(shopCeoAssignmentHistoryJpaEntity)
@@ -77,7 +76,7 @@ public class ShopCeoAssignmentHistoryQueryDao implements ShopCeoAssignmentHistor
         return shopId != null ? shopCeoAssignmentHistoryJpaEntity.shopId.eq(shopId) : null;
     }
 
-    private BooleanExpression actionTypeEq(ShopCeoAssignmentActionType actionType) {
+    private BooleanExpression actionTypeEq(String actionType) {
         return actionType != null ? shopCeoAssignmentHistoryJpaEntity.actionType.eq(actionType) : null;
     }
 

@@ -6,6 +6,7 @@ import com.tastyhouse.application.reservation.port.out.ReservationResult;
 import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
 import com.querydsl.core.types.Projections;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,8 +17,6 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.reservation.model.ReservationStatus;
-import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -53,16 +52,16 @@ public class ReservationQueryDao implements ReservationQueryPort {
     }
 
     @Override
-    public Optional<ReservationResult> findReservationById(ReservationId id) {
+    public Optional<ReservationResult> findReservationById(Long id) {
         return Optional.ofNullable(
                 reservationQuery()
-                    .where(reservationJpaEntity.id.eq(id.value()))
+                    .where(reservationJpaEntity.id.eq(id))
                     .fetchOne()
             );
     }
 
     @Override
-    public Optional<ReservationDetailResult> findReservationDetailById(ReservationId id) {
+    public Optional<ReservationDetailResult> findReservationDetailById(Long id) {
         ReservationDetailResult result = queryFactory
             .select(Projections.constructor(ReservationDetailResult.class,
                 reservationJpaEntity.id,
@@ -86,7 +85,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
             .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationJpaEntity.shopId))
             .innerJoin(memberJpaEntity).on(memberJpaEntity.id.eq(reservationJpaEntity.memberId))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
-            .where(reservationJpaEntity.id.eq(id.value()))
+            .where(reservationJpaEntity.id.eq(id))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -108,14 +107,14 @@ public class ReservationQueryDao implements ReservationQueryPort {
     }
 
     @Override
-    public boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date) {
+    public boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses) {
         return queryFactory.selectOne()
             .from(reservationJpaEntity)
             .where(
                 reservationJpaEntity.memberId.eq(memberId),
                 reservationJpaEntity.shopId.eq(shopId),
                 reservationJpaEntity.reservationDate.eq(date),
-                reservationJpaEntity.status.in(ReservationStatus.blockingStatuses())
+                reservationJpaEntity.status.in(blockingStatuses)
             )
             .fetchFirst() != null;
     }

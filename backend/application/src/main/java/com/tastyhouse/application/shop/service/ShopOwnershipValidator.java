@@ -4,7 +4,7 @@ import com.tastyhouse.application.shared.marker.CeoApp;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

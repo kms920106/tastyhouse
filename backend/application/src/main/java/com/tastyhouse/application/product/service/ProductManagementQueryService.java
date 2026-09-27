@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.product.port.out.ProductCategoryResult;
@@ -24,9 +25,14 @@ import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
 public class ProductManagementQueryService implements ProductManagementQueryUseCase {
 
     private final ProductManagementQueryPort productManagementQueryPort;
+    private final CupDepositPolicy cupDepositPolicy;
 
-    public ProductManagementQueryService(ProductManagementQueryPort productManagementQueryPort) {
+    public ProductManagementQueryService(
+        ProductManagementQueryPort productManagementQueryPort,
+        CupDepositPolicy cupDepositPolicy
+    ) {
         this.productManagementQueryPort = productManagementQueryPort;
+        this.cupDepositPolicy = cupDepositPolicy;
     }
 
     @Override
@@ -52,7 +58,7 @@ public class ProductManagementQueryService implements ProductManagementQueryUseC
 
     @Override
     public ProductOptionsResult getProductOptions(Long id) {
-        return productManagementQueryPort.findProductOptions(id);
+        return ProductOptionDepositAmounts.of(productManagementQueryPort.findProductOptions(id), cupDepositPolicy);
     }
 
     @Override

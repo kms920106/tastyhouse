@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeState;
 
 final class ShopHygieneBadgeMapper {
     private ShopHygieneBadgeMapper() {
     }
 
-    static ShopHygieneBadge toDomain(ShopHygieneBadgeJpaEntity entity) {
-        return ShopHygieneBadge.reconstitute(
+    static ShopHygieneBadgeState toState(ShopHygieneBadgeJpaEntity entity) {
+        return new ShopHygieneBadgeState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getBadgeType(),
             entity.getCertifiedDate(),
             entity.getLastInspectionMonth(),
@@ -19,12 +17,12 @@ final class ShopHygieneBadgeMapper {
         );
     }
 
-    static ShopHygieneBadgeJpaEntity toEntity(ShopHygieneBadge domain) {
+    static ShopHygieneBadgeJpaEntity toEntity(ShopHygieneBadgeState state) {
         return ShopHygieneBadgeJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getBadgeType(),
-            domain.getCertifiedDate(),
-            domain.getLastInspectionMonth()
+            state.shopId(),
+            state.badgeType(),
+            state.certifiedDate(),
+            state.lastInspectionMonth()
         );
     }
 }

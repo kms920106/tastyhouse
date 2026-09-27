@@ -4,19 +4,15 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.rank.model.RankType;
-import com.tastyhouse.domain.rank.vo.RankPeriodId;
-import com.tastyhouse.domain.rank.vo.RankPrizeId;
-
 public interface RankManagementQueryPort {
 
-    List<MemberRankResult> findMemberRanks(RankType rankType, LocalDate baseDate, int limit);
+    List<MemberRankResult> findMemberRanks(String rankType, LocalDate baseDate, int limit);
 
     List<RankPeriodResult> findAllPeriods();
 
-    Optional<RankPeriodResult> findPeriodById(RankPeriodId id);
+    Optional<RankPeriodResult> findPeriodById(Long id);
 
-    List<RankPrizeManagementResult> findPrizesByPeriodId(RankPeriodId periodId);
+    List<RankPrizeManagementResult> findPrizesByPeriodId(Long periodId);
 
-    Optional<RankPrizeManagementResult> findPrizeById(RankPrizeId id);
+    Optional<RankPrizeManagementResult> findPrizeById(Long id);
 }

@@ -3,19 +3,12 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.payment.model.PaymentMethod;
-import com.tastyhouse.domain.payment.model.PaymentStatus;
-import com.tastyhouse.domain.payment.model.PgProvider;
-import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -28,21 +21,17 @@ public class PaymentJpaEntity extends BaseEntity {
     @Column(name = "order_id", nullable = false, unique = true)
     private Long orderId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private PaymentStatus paymentStatus;
+    private String paymentStatus;
 
-    @Convert(converter = AmountConverter.class)
     @Column(name = "amount", nullable = false)
-    private Amount amount;
+    private Integer amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "pg_provider", length = 30, columnDefinition = "VARCHAR(30)")
-    private PgProvider pgProvider;
+    private String pgProvider;
 
     @Column(name = "pg_tid", length = 100)
     private String pgTid;
@@ -76,10 +65,10 @@ public class PaymentJpaEntity extends BaseEntity {
 
     private PaymentJpaEntity(
         Long orderId,
-        PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus,
-        Amount amount,
-        PgProvider pgProvider,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String pgProvider,
         String pgTid,
         String pgOrderId,
         String cardCompany,
@@ -108,10 +97,10 @@ public class PaymentJpaEntity extends BaseEntity {
 
     static PaymentJpaEntity create(
         Long orderId,
-        PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus,
-        Amount amount,
-        PgProvider pgProvider,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String pgProvider,
         String pgTid,
         String pgOrderId,
         String cardCompany,
@@ -141,8 +130,8 @@ public class PaymentJpaEntity extends BaseEntity {
     }
 
     void applyChanges(
-        PaymentStatus paymentStatus,
-        PgProvider pgProvider,
+        String paymentStatus,
+        String pgProvider,
         String pgTid,
         String pgOrderId,
         String cardCompany,
@@ -174,19 +163,19 @@ public class PaymentJpaEntity extends BaseEntity {
         return this.orderId;
     }
 
-    public PaymentMethod getPaymentMethod() {
+    public String getPaymentMethod() {
         return this.paymentMethod;
     }
 
-    public PaymentStatus getPaymentStatus() {
+    public String getPaymentStatus() {
         return this.paymentStatus;
     }
 
-    public Amount getAmount() {
+    public Integer getAmount() {
         return this.amount;
     }
 
-    public PgProvider getPgProvider() {
+    public String getPgProvider() {
         return this.pgProvider;
     }
 

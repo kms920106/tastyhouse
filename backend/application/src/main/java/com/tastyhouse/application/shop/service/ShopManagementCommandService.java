@@ -83,9 +83,9 @@ import java.time.LocalTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopChoiceRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.TagRepository;
+import com.tastyhouse.application.shop.store.ShopChoiceRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.TagRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

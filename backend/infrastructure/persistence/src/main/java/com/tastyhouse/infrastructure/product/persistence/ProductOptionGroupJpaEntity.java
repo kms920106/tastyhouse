@@ -2,14 +2,12 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.ProductOptionGroupType;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupTypeCodes;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -46,9 +44,8 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "group_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ProductOptionGroupType groupType;
+    private String groupType;
 
     protected ProductOptionGroupJpaEntity() {
     }
@@ -63,7 +60,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         Integer maxSelect,
         Integer sort,
         boolean visible,
-        ProductOptionGroupType groupType
+        String groupType
     ) {
         this.productId = productId;
         this.name = name;
@@ -74,7 +71,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         this.maxSelect = maxSelect;
         this.sort = sort;
         this.visible = visible;
-        this.groupType = groupType != null ? groupType : ProductOptionGroupType.NORMAL;
+        this.groupType = groupType != null ? groupType : ProductOptionGroupTypeCodes.NORMAL;
     }
 
     static ProductOptionGroupJpaEntity create(
@@ -87,7 +84,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         Integer maxSelect,
         Integer sort,
         boolean visible,
-        ProductOptionGroupType groupType
+        String groupType
     ) {
         return new ProductOptionGroupJpaEntity(
             productId, name, description, required, multipleSelect, minSelect, maxSelect, sort, visible,
@@ -155,7 +152,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         return this.visible;
     }
 
-    public ProductOptionGroupType getGroupType() {
+    public String getGroupType() {
         return this.groupType;
     }
 }

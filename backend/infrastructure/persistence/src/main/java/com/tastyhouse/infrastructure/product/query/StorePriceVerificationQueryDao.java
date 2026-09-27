@@ -12,7 +12,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -36,7 +35,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
 
     @Override
     public PageResult<StorePriceVerificationListItemResult> findVerificationPage(
-        StorePriceVerificationStatus status,
+        String status,
         PageQuery pageQuery
     ) {
         Long total = queryFactory
@@ -112,7 +111,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
             .on(uploadedFileJpaEntity.id.eq(storePriceVerificationJpaEntity.priceListFileId));
     }
 
-    private BooleanExpression statusEq(StorePriceVerificationStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? storePriceVerificationJpaEntity.status.eq(status) : null;
     }
 }

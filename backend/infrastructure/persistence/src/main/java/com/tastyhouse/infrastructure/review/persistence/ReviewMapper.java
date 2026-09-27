@@ -1,22 +1,17 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.review.model.Review;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewState;
 
 final class ReviewMapper {
     private ReviewMapper() {
     }
 
-    static Review toDomain(ReviewJpaEntity entity) {
-        return Review.reconstitute(
+    static ReviewState toState(ReviewJpaEntity entity) {
+        return new ReviewState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(normalizeProductId(entity.getProductId()), ProductId::of),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getShopId(),
+            normalizeProductId(entity.getProductId()),
+            entity.getMemberId(),
             entity.getContent(),
             entity.getTotalRating(),
             entity.getTasteRating(),
@@ -26,7 +21,7 @@ final class ReviewMapper {
             entity.getKindnessRating(),
             entity.getHygieneRating(),
             entity.isWillRevisit(),
-            IdMapping.vo(entity.getOrderId(), OrderId::of),
+            entity.getOrderId(),
             entity.isHidden(),
             entity.isOwnerOnly(),
             entity.getDeliveryRating(),
@@ -35,25 +30,25 @@ final class ReviewMapper {
         );
     }
 
-    static ReviewJpaEntity toEntity(Review domain) {
+    static ReviewJpaEntity toEntity(ReviewState state) {
         return ReviewJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getContent(),
-            domain.getTotalRating(),
-            domain.getTasteRating(),
-            domain.getAmountRating(),
-            domain.getPriceRating(),
-            domain.getAtmosphereRating(),
-            domain.getKindnessRating(),
-            domain.getHygieneRating(),
-            domain.isWillRevisit(),
-            IdMapping.raw(domain.getOrderId(), OrderId::value),
-            domain.isHidden(),
-            domain.isOwnerOnly(),
-            domain.getDeliveryRating(),
-            domain.getDeliveryComment()
+            state.shopId(),
+            state.productId(),
+            state.memberId(),
+            state.content(),
+            state.totalRating(),
+            state.tasteRating(),
+            state.amountRating(),
+            state.priceRating(),
+            state.atmosphereRating(),
+            state.kindnessRating(),
+            state.hygieneRating(),
+            state.willRevisit(),
+            state.orderId(),
+            state.hidden(),
+            state.ownerOnly(),
+            state.deliveryRating(),
+            state.deliveryComment()
         );
     }
 
@@ -61,20 +56,20 @@ final class ReviewMapper {
         return rawProductId == null || rawProductId <= 0 ? null : rawProductId;
     }
 
-    static void applyChanges(ReviewJpaEntity entity, Review domain) {
+    static void applyChanges(ReviewJpaEntity entity, ReviewState state) {
         entity.applyChanges(
-            domain.getContent(),
-            domain.getTotalRating(),
-            domain.getTasteRating(),
-            domain.getAmountRating(),
-            domain.getPriceRating(),
-            domain.getAtmosphereRating(),
-            domain.getKindnessRating(),
-            domain.getHygieneRating(),
-            domain.isWillRevisit(),
-            domain.isHidden(),
-            domain.getDeliveryRating(),
-            domain.getDeliveryComment()
+            state.content(),
+            state.totalRating(),
+            state.tasteRating(),
+            state.amountRating(),
+            state.priceRating(),
+            state.atmosphereRating(),
+            state.kindnessRating(),
+            state.hygieneRating(),
+            state.willRevisit(),
+            state.hidden(),
+            state.deliveryRating(),
+            state.deliveryComment()
         );
     }
 }

@@ -4,14 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -22,8 +19,7 @@ public class BannerJpaEntity extends BaseEntity {
     private Long id;
 
     @Column(name = "type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    @Enumerated(EnumType.STRING)
-    private BannerType type;
+    private String type;
 
     @Column(name = "title", length = 100)
     private String title;
@@ -53,7 +49,7 @@ public class BannerJpaEntity extends BaseEntity {
     }
 
     private BannerJpaEntity(
-        BannerType type,
+        String type,
         String title,
         Long imageFileId,
         String linkUrl,
@@ -75,7 +71,7 @@ public class BannerJpaEntity extends BaseEntity {
     }
 
     static BannerJpaEntity create(
-        BannerType type,
+        String type,
         String title,
         Long imageFileId,
         String linkUrl,
@@ -89,7 +85,7 @@ public class BannerJpaEntity extends BaseEntity {
     }
 
     void applyChanges(
-        BannerType type,
+        String type,
         String title,
         Long imageFileId,
         String linkUrl,
@@ -114,7 +110,7 @@ public class BannerJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public BannerType getType() {
+    public String getType() {
         return this.type;
     }
 

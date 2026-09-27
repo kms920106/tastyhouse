@@ -9,7 +9,7 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopContentBoard;

@@ -50,14 +50,14 @@ class PaymentCommandServiceTest {
     @DisplayName("취소: 담당 게이트웨이가 있는 PG의 완료 결제는 그 PG로 취소를 요청한 뒤 DB를 취소한다")
     void cancelPayment_callsPgWhenProviderSupported() {
         givenTarget(PaymentCancellationTarget.cancellable(true, PgProvider.TOSS, "tid-1"));
-        when(pgPaymentGateway.supports(PgProvider.TOSS)).thenReturn(true);
-        when(pgPaymentGateway.cancelPayment(PgProvider.TOSS, "tid-1", "고객 변심"))
+        when(pgPaymentGateway.supports("TOSS")).thenReturn(true);
+        when(pgPaymentGateway.cancelPayment("TOSS", "tid-1", "고객 변심"))
             .thenReturn(new PgCancelResult(true, null, null));
 
         PaymentCancelResult result = service.cancelPayment(command());
 
         assertThat(result.cancelCode()).isEqualTo(PaymentCancelCode.SUCCESS.name());
-        verify(pgPaymentGateway).cancelPayment(PgProvider.TOSS, "tid-1", "고객 변심");
+        verify(pgPaymentGateway).cancelPayment("TOSS", "tid-1", "고객 변심");
         verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString());
     }
 
@@ -65,7 +65,7 @@ class PaymentCommandServiceTest {
     @DisplayName("취소: 담당 게이트웨이가 없는 PG의 완료 결제는 PG를 부르지 않고 DB만 취소해 SUCCESS를 돌려준다")
     void cancelPayment_skipsPgWhenProviderUnsupported() {
         givenTarget(PaymentCancellationTarget.cancellable(true, PgProvider.KAKAO, "tid-9"));
-        when(pgPaymentGateway.supports(PgProvider.KAKAO)).thenReturn(false);
+        when(pgPaymentGateway.supports("KAKAO")).thenReturn(false);
 
         PaymentCancelResult result = service.cancelPayment(command());
 
@@ -78,8 +78,8 @@ class PaymentCommandServiceTest {
     @DisplayName("취소: PG가 취소를 거절하면 DB를 바꾸지 않고 CANCEL_FAILED를 돌려준다")
     void cancelPayment_returnsCancelFailedWhenPgRejects() {
         givenTarget(PaymentCancellationTarget.cancellable(true, PgProvider.TOSS, "tid-1"));
-        when(pgPaymentGateway.supports(PgProvider.TOSS)).thenReturn(true);
-        when(pgPaymentGateway.cancelPayment(PgProvider.TOSS, "tid-1", "고객 변심"))
+        when(pgPaymentGateway.supports("TOSS")).thenReturn(true);
+        when(pgPaymentGateway.cancelPayment("TOSS", "tid-1", "고객 변심"))
             .thenReturn(new PgCancelResult(false, "REJECT", "취소 불가"));
 
         PaymentCancelResult result = service.cancelPayment(command());

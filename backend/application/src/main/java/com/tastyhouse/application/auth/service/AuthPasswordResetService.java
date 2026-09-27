@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.application.member.service.MemberCommandService;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

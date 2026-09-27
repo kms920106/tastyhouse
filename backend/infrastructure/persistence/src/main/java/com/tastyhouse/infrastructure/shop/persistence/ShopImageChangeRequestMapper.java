@@ -1,20 +1,17 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestState;
 
 final class ShopImageChangeRequestMapper {
     private ShopImageChangeRequestMapper() {
     }
 
-    static ShopImageChangeRequest toDomain(ShopImageChangeRequestJpaEntity entity) {
-        return ShopImageChangeRequest.reconstitute(
+    static ShopImageChangeRequestState toState(ShopImageChangeRequestJpaEntity entity) {
+        return new ShopImageChangeRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getImageType(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.getStatus(),
             entity.getRejectReason(),
             entity.getCreatedAt(),
@@ -22,20 +19,20 @@ final class ShopImageChangeRequestMapper {
         );
     }
 
-    static ShopImageChangeRequestJpaEntity toEntity(ShopImageChangeRequest domain) {
+    static ShopImageChangeRequestJpaEntity toEntity(ShopImageChangeRequestState state) {
         return ShopImageChangeRequestJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getImageType(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.shopId(),
+            state.imageType(),
+            state.imageFileId(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
-    static void applyChanges(ShopImageChangeRequestJpaEntity entity, ShopImageChangeRequest domain) {
+    static void applyChanges(ShopImageChangeRequestJpaEntity entity, ShopImageChangeRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.status(),
+            state.rejectReason()
         );
     }
 }

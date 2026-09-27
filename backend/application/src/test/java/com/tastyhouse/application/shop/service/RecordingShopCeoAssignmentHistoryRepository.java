@@ -3,7 +3,7 @@ package com.tastyhouse.application.shop.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryRepository;
+import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 
 class RecordingShopCeoAssignmentHistoryRepository implements ShopCeoAssignmentHistoryRepository {

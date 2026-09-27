@@ -4,18 +4,13 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.member.model.MemberGender;
-import com.tastyhouse.domain.member.model.MemberGrade;
-import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 @Entity
 @Table(name = "MEMBER")
@@ -39,17 +34,15 @@ public class MemberJpaEntity extends BaseEntity {
     @Column(name = "birth_date", nullable = false)
     private Integer birthDate;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
-    private MemberGender gender;
+    private String gender;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
-    private PhoneNumber phoneNumber;
+    private PhoneNumberEmbeddable phoneNumber;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberGrade memberGrade;
+    private String memberGrade;
 
     @Column(name = "profile_image_file_id")
     private Long profileImageFileId;
@@ -66,9 +59,8 @@ public class MemberJpaEntity extends BaseEntity {
     @Column(name = "event_info_enabled", nullable = false)
     private boolean eventInfoEnabled;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberStatus memberStatus;
+    private String memberStatus;
 
     protected MemberJpaEntity() {
     }
@@ -79,15 +71,15 @@ public class MemberJpaEntity extends BaseEntity {
         String nickname,
         String fullName,
         Integer birthDate,
-        MemberGender gender,
-        PhoneNumber phoneNumber,
-        MemberGrade memberGrade,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
+        String memberGrade,
         Long profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled,
-        MemberStatus memberStatus
+        String memberStatus
     ) {
         this.username = username;
         this.password = password;
@@ -111,15 +103,15 @@ public class MemberJpaEntity extends BaseEntity {
         String nickname,
         String fullName,
         Integer birthDate,
-        MemberGender gender,
-        PhoneNumber phoneNumber,
-        MemberGrade memberGrade,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
+        String memberGrade,
         Long profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled,
-        MemberStatus memberStatus
+        String memberStatus
     ) {
         return new MemberJpaEntity(
             username, password, nickname, fullName, birthDate, gender, phoneNumber,
@@ -133,14 +125,14 @@ public class MemberJpaEntity extends BaseEntity {
         String nickname,
         String fullName,
         Integer birthDate,
-        MemberGender gender,
-        PhoneNumber phoneNumber,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
         Long profileImageFileId,
         String statusMessage,
         boolean pushNotificationEnabled,
         boolean marketingInfoEnabled,
         boolean eventInfoEnabled,
-        MemberStatus memberStatus
+        String memberStatus
     ) {
         this.password = password;
         this.nickname = nickname;
@@ -180,15 +172,15 @@ public class MemberJpaEntity extends BaseEntity {
         return this.birthDate;
     }
 
-    public MemberGender getGender() {
+    public String getGender() {
         return this.gender;
     }
 
-    public PhoneNumber getPhoneNumber() {
+    public PhoneNumberEmbeddable getPhoneNumber() {
         return this.phoneNumber;
     }
 
-    public MemberGrade getMemberGrade() {
+    public String getMemberGrade() {
         return this.memberGrade;
     }
 
@@ -212,7 +204,7 @@ public class MemberJpaEntity extends BaseEntity {
         return this.eventInfoEnabled;
     }
 
-    public MemberStatus getMemberStatus() {
+    public String getMemberStatus() {
         return this.memberStatus;
     }
 }

@@ -67,7 +67,7 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
     @Override
     public List<ShopOrderMethodResult> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return shopBasicInfoQueryPort.findOrderMethods(shopId);
+        return ShopCodeDescriptions.ofOrderMethods(shopBasicInfoQueryPort.findOrderMethods(shopId));
     }
 
     private static String nameOf(OrderUnavailableReason reason) {

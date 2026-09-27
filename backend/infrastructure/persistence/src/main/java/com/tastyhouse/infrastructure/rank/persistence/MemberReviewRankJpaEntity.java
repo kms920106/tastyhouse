@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,7 +12,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -45,9 +42,8 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
     @Column(name = "rank_no", nullable = false)
     private Integer rankNo;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "rank_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RankType rankType;
+    private String rankType;
 
     @Column(name = "base_date", nullable = false)
     private LocalDate baseDate;
@@ -62,7 +58,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         Long memberId,
         Integer reviewCount,
         Integer rankNo,
-        RankType rankType,
+        String rankType,
         LocalDate baseDate,
         LocalDateTime lastReviewAt
     ) {
@@ -78,7 +74,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         Long memberId,
         Integer reviewCount,
         Integer rankNo,
-        RankType rankType,
+        String rankType,
         LocalDate baseDate,
         LocalDateTime lastReviewAt
     ) {
@@ -101,7 +97,7 @@ public class MemberReviewRankJpaEntity extends BaseEntity {
         return this.rankNo;
     }
 
-    public RankType getRankType() {
+    public String getRankType() {
         return this.rankType;
     }
 

@@ -1,15 +1,14 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.member.port.out.write.MemberState;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class MemberMapper {
     private MemberMapper() {
     }
 
-    static Member toDomain(MemberJpaEntity entity) {
-        return Member.reconstitute(
+    static MemberState toState(MemberJpaEntity entity) {
+        return new MemberState(
             entity.getId(),
             entity.getUsername(),
             entity.getPassword(),
@@ -17,9 +16,9 @@ final class MemberMapper {
             entity.getFullName(),
             entity.getBirthDate(),
             entity.getGender(),
-            entity.getPhoneNumber(),
+            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
             entity.getMemberGrade(),
-            IdMapping.vo(entity.getProfileImageFileId(), UploadedFileId::of),
+            entity.getProfileImageFileId(),
             entity.getStatusMessage(),
             entity.isPushNotificationEnabled(),
             entity.isMarketingInfoEnabled(),
@@ -30,39 +29,43 @@ final class MemberMapper {
         );
     }
 
-    static MemberJpaEntity toEntity(Member domain) {
+    static MemberJpaEntity toEntity(MemberState state) {
         return MemberJpaEntity.create(
-            domain.getUsername(),
-            domain.getPassword(),
-            domain.getNickname(),
-            domain.getFullName(),
-            domain.getBirthDate(),
-            domain.getGender(),
-            domain.getPhoneNumber(),
-            domain.getMemberGrade(),
-            IdMapping.raw(domain.getProfileImageFileId(), UploadedFileId::value),
-            domain.getStatusMessage(),
-            domain.isPushNotificationEnabled(),
-            domain.isMarketingInfoEnabled(),
-            domain.isEventInfoEnabled(),
-            domain.getMemberStatus()
+            state.username(),
+            state.password(),
+            state.nickname(),
+            state.fullName(),
+            state.birthDate(),
+            state.gender(),
+            phoneNumberOf(state),
+            state.memberGrade(),
+            state.profileImageFileId(),
+            state.statusMessage(),
+            state.pushNotificationEnabled(),
+            state.marketingInfoEnabled(),
+            state.eventInfoEnabled(),
+            state.memberStatus()
         );
     }
 
-    static void applyChanges(MemberJpaEntity entity, Member domain) {
+    static void applyChanges(MemberJpaEntity entity, MemberState state) {
         entity.applyChanges(
-            domain.getPassword(),
-            domain.getNickname(),
-            domain.getFullName(),
-            domain.getBirthDate(),
-            domain.getGender(),
-            domain.getPhoneNumber(),
-            IdMapping.raw(domain.getProfileImageFileId(), UploadedFileId::value),
-            domain.getStatusMessage(),
-            domain.isPushNotificationEnabled(),
-            domain.isMarketingInfoEnabled(),
-            domain.isEventInfoEnabled(),
-            domain.getMemberStatus()
+            state.password(),
+            state.nickname(),
+            state.fullName(),
+            state.birthDate(),
+            state.gender(),
+            phoneNumberOf(state),
+            state.profileImageFileId(),
+            state.statusMessage(),
+            state.pushNotificationEnabled(),
+            state.marketingInfoEnabled(),
+            state.eventInfoEnabled(),
+            state.memberStatus()
         );
+    }
+
+    private static PhoneNumberEmbeddable phoneNumberOf(MemberState state) {
+        return state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber());
     }
 }

@@ -12,8 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;

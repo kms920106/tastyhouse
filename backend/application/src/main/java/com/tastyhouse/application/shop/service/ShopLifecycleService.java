@@ -2,9 +2,9 @@ package com.tastyhouse.application.shop.service;
 
 import java.math.BigDecimal;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.application.shop.port.out.write.StationRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;

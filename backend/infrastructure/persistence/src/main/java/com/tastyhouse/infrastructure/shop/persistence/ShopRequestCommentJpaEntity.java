@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -22,9 +19,8 @@ public class ShopRequestCommentJpaEntity extends BaseEntity {
     @Column(name = "shop_request_index_id", nullable = false)
     private Long shopRequestIndexId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "author_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopRequestCommentAuthorType authorType;
+    private String authorType;
 
     @Column(name = "author_id", nullable = false)
     private Long authorId;
@@ -37,7 +33,7 @@ public class ShopRequestCommentJpaEntity extends BaseEntity {
 
     private ShopRequestCommentJpaEntity(
         Long shopRequestIndexId,
-        ShopRequestCommentAuthorType authorType,
+        String authorType,
         Long authorId,
         String content
     ) {
@@ -49,7 +45,7 @@ public class ShopRequestCommentJpaEntity extends BaseEntity {
 
     static ShopRequestCommentJpaEntity create(
         Long shopRequestIndexId,
-        ShopRequestCommentAuthorType authorType,
+        String authorType,
         Long authorId,
         String content
     ) {
@@ -64,7 +60,7 @@ public class ShopRequestCommentJpaEntity extends BaseEntity {
         return this.shopRequestIndexId;
     }
 
-    public ShopRequestCommentAuthorType getAuthorType() {
+    public String getAuthorType() {
         return this.authorType;
     }
 

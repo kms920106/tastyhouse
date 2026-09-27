@@ -1,37 +1,36 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import com.tastyhouse.domain.event.model.EventWinner;
-import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.event.port.out.write.EventWinnerState;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class EventWinnerMapper {
     private EventWinnerMapper() {
     }
 
-    static EventWinner toDomain(EventWinnerJpaEntity entity) {
-        return EventWinner.reconstitute(
+    static EventWinnerState toState(EventWinnerJpaEntity entity) {
+        return new EventWinnerState(
             entity.getId(),
-            IdMapping.vo(entity.getEventId(), EventId::of),
+            entity.getEventId(),
             entity.getRankNo(),
             entity.getWinnerName(),
-            entity.getPhoneNumber(),
+            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
             entity.getAnnouncedAt(),
             entity.isDeleted()
         );
     }
 
-    static EventWinnerJpaEntity toEntity(EventWinner domain) {
+    static EventWinnerJpaEntity toEntity(EventWinnerState state) {
         return EventWinnerJpaEntity.create(
-            IdMapping.raw(domain.getEventId(), EventId::value),
-            domain.getRankNo(),
-            domain.getWinnerName(),
-            domain.getPhoneNumber(),
-            domain.getAnnouncedAt(),
-            domain.isDeleted()
+            state.eventId(),
+            state.rankNo(),
+            state.winnerName(),
+            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
+            state.announcedAt(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(EventWinnerJpaEntity entity, EventWinner domain) {
-        entity.applyChanges(domain.isDeleted());
+    static void applyChanges(EventWinnerJpaEntity entity, EventWinnerState state) {
+        entity.applyChanges(state.deleted());
     }
 }

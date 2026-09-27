@@ -1,31 +1,29 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductFeedbackRead;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadState;
 
 final class ProductFeedbackReadMapper {
     private ProductFeedbackReadMapper() {
     }
 
-    static ProductFeedbackRead toDomain(ProductFeedbackReadJpaEntity entity) {
-        return ProductFeedbackRead.reconstitute(
+    static ProductFeedbackReadState toState(ProductFeedbackReadJpaEntity entity) {
+        return new ProductFeedbackReadState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getReadAt(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ProductFeedbackReadJpaEntity toEntity(ProductFeedbackRead domain) {
+    static ProductFeedbackReadJpaEntity toEntity(ProductFeedbackReadState state) {
         return ProductFeedbackReadJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getReadAt()
+            state.shopId(),
+            state.readAt()
         );
     }
 
-    static void applyChanges(ProductFeedbackReadJpaEntity entity, ProductFeedbackRead domain) {
-        entity.applyChanges(domain.getReadAt());
+    static void applyChanges(ProductFeedbackReadJpaEntity entity, ProductFeedbackReadState state) {
+        entity.applyChanges(state.readAt());
     }
 }

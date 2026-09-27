@@ -11,7 +11,6 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.persistence.QMemberDeliveryAddressJpaEntity.memberDeliveryAddressJpaEntity;
 import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
@@ -25,7 +24,7 @@ public class MemberDeliveryAddressQueryDao implements MemberDeliveryAddressQuery
     }
 
     @Override
-    public List<MemberDeliveryAddressItemResult> findByMemberId(MemberId memberId) {
+    public List<MemberDeliveryAddressItemResult> findByMemberId(Long memberId) {
         return queryFactory
             .select(Projections.constructor(MemberDeliveryAddressItemResult.class,
                 memberDeliveryAddressJpaEntity.id,
@@ -42,18 +41,18 @@ public class MemberDeliveryAddressQueryDao implements MemberDeliveryAddressQuery
             .from(memberDeliveryAddressJpaEntity)
             .leftJoin(adminDongJpaEntity)
             .on(memberDeliveryAddressJpaEntity.adminDongId.eq(adminDongJpaEntity.id))
-            .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()))
+            .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId))
             .orderBy(memberDeliveryAddressJpaEntity.defaultAddress.desc(), memberDeliveryAddressJpaEntity.id.asc())
             .fetch();
     }
 
     @Override
-    public Optional<Long> findDefaultAdminDongId(MemberId memberId) {
+    public Optional<Long> findDefaultAdminDongId(Long memberId) {
         return Optional.ofNullable(queryFactory
             .select(memberDeliveryAddressJpaEntity.adminDongId)
             .from(memberDeliveryAddressJpaEntity)
             .where(
-                memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()),
+                memberDeliveryAddressJpaEntity.memberId.eq(memberId),
                 memberDeliveryAddressJpaEntity.defaultAddress.isTrue(),
                 memberDeliveryAddressJpaEntity.adminDongId.isNotNull()
             )

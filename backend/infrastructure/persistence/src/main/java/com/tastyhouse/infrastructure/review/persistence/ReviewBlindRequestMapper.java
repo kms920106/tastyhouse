@@ -1,21 +1,17 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.review.model.ReviewBlindRequest;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestState;
 
 final class ReviewBlindRequestMapper {
     private ReviewBlindRequestMapper() {
     }
 
-    static ReviewBlindRequest toDomain(ReviewBlindRequestJpaEntity entity) {
-        return ReviewBlindRequest.reconstitute(
+    static ReviewBlindRequestState toState(ReviewBlindRequestJpaEntity entity) {
+        return new ReviewBlindRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getReviewId(), ReviewId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getCeoId(), CeoId::of),
+            entity.getReviewId(),
+            entity.getShopId(),
+            entity.getCeoId(),
             entity.getReason(),
             entity.getDetailReason(),
             entity.getStatus(),
@@ -25,24 +21,24 @@ final class ReviewBlindRequestMapper {
         );
     }
 
-    static ReviewBlindRequestJpaEntity toEntity(ReviewBlindRequest domain) {
+    static ReviewBlindRequestJpaEntity toEntity(ReviewBlindRequestState state) {
         return ReviewBlindRequestJpaEntity.create(
-            IdMapping.raw(domain.getReviewId(), ReviewId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getCeoId(), CeoId::value),
-            domain.getReason(),
-            domain.getDetailReason(),
-            domain.getStatus(),
-            domain.getRejectReason(),
-            domain.getBlindUntil()
+            state.reviewId(),
+            state.shopId(),
+            state.ceoId(),
+            state.reason(),
+            state.detailReason(),
+            state.status(),
+            state.rejectReason(),
+            state.blindUntil()
         );
     }
 
-    static void applyChanges(ReviewBlindRequestJpaEntity entity, ReviewBlindRequest domain) {
+    static void applyChanges(ReviewBlindRequestJpaEntity entity, ReviewBlindRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason(),
-            domain.getBlindUntil()
+            state.status(),
+            state.rejectReason(),
+            state.blindUntil()
         );
     }
 }

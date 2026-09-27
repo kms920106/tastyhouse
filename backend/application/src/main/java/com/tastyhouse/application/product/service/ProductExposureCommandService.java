@@ -14,7 +14,7 @@ import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

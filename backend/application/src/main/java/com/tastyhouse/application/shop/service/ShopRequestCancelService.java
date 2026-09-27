@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

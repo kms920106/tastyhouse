@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopRequestComment;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentState;
 
 final class ShopRequestCommentMapper {
     private ShopRequestCommentMapper() {
     }
 
-    static ShopRequestComment toDomain(ShopRequestCommentJpaEntity entity) {
-        return ShopRequestComment.reconstitute(
+    static ShopRequestCommentState toState(ShopRequestCommentJpaEntity entity) {
+        return new ShopRequestCommentState(
             entity.getId(),
             entity.getShopRequestIndexId(),
             entity.getAuthorType(),
@@ -17,12 +17,12 @@ final class ShopRequestCommentMapper {
         );
     }
 
-    static ShopRequestCommentJpaEntity toEntity(ShopRequestComment domain) {
+    static ShopRequestCommentJpaEntity toEntity(ShopRequestCommentState state) {
         return ShopRequestCommentJpaEntity.create(
-            domain.getShopRequestIndexId(),
-            domain.getAuthorType(),
-            domain.getAuthorId(),
-            domain.getContent()
+            state.shopRequestIndexId(),
+            state.authorType(),
+            state.authorId(),
+            state.content()
         );
     }
 }

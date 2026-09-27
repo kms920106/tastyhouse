@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.reservation.store.ReservationRepository;
+import com.tastyhouse.application.reservation.store.ReservationSlotRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

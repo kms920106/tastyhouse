@@ -33,7 +33,7 @@ public class PointManagementQueryService implements PointManagementQueryUseCase 
 
     @Override
     public PageResult<PointHistoryResult> getPointHistories(Long memberId, String type, int page, int size) {
-        PointType pointType = type == null ? null : PointType.from(type);
+        String pointType = type == null ? null : PointType.from(type).name();
         PointSearchCondition condition = PointSearchCondition.of(memberId, pointType);
         PageQuery pageQuery = PageQuery.of(page, size);
         return pointManagementQueryPort.findPointHistoryPage(condition, pageQuery);

@@ -46,9 +46,9 @@ public class OrderManagementQueryService implements OrderManagementQueryUseCase 
     ) {
         OrderSearchCondition condition = OrderSearchCondition.of(
             shopId,
-            orderStatus == null ? null : OrderStatus.from(orderStatus),
-            orderMethod == null ? null : OrderMethod.from(orderMethod),
-            paymentStatus == null ? null : PaymentStatus.valueOf(paymentStatus),
+            orderStatus == null ? null : OrderStatus.from(orderStatus).name(),
+            orderMethod == null ? null : OrderMethod.from(orderMethod).name(),
+            paymentStatus == null ? null : PaymentStatus.valueOf(paymentStatus).name(),
             orderNumber,
             ordererName,
             startDate,
@@ -60,7 +60,7 @@ public class OrderManagementQueryService implements OrderManagementQueryUseCase 
 
     @Override
     public OrderDetailResult getOrder(Long id) {
-        return orderManagementQueryPort.findOrderDetail(OrderId.of(id))
+        return orderManagementQueryPort.findOrderDetail(OrderId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
     }
 }

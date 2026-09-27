@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
+import com.tastyhouse.application.file.store.UploadedFileRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

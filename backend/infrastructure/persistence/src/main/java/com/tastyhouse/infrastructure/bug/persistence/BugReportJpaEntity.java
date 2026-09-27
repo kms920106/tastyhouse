@@ -4,18 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.bug.model.BugReportCategory;
-import com.tastyhouse.domain.bug.model.BugReportPlatform;
-import com.tastyhouse.domain.bug.model.BugReportPriority;
-import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -43,17 +37,14 @@ public class BugReportJpaEntity extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportStatus status;
+    private String status;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "category", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportCategory category;
+    private String category;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "priority", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportPriority priority;
+    private String priority;
 
     @Column(name = "assignee_admin_id")
     private Long assigneeAdminId;
@@ -67,9 +58,8 @@ public class BugReportJpaEntity extends BaseEntity {
     @Column(name = "app_version", length = 30)
     private String appVersion;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "platform", length = 20, columnDefinition = "VARCHAR(20)")
-    private BugReportPlatform platform;
+    private String platform;
 
     @Column(name = "os_version", length = 30)
     private String osVersion;
@@ -82,14 +72,14 @@ public class BugReportJpaEntity extends BaseEntity {
         String device,
         String title,
         String content,
-        BugReportStatus status,
-        BugReportCategory category,
-        BugReportPriority priority,
+        String status,
+        String category,
+        String priority,
         Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
-        BugReportPlatform platform,
+        String platform,
         String osVersion
     ) {
         this.memberId = memberId;
@@ -112,14 +102,14 @@ public class BugReportJpaEntity extends BaseEntity {
         String device,
         String title,
         String content,
-        BugReportStatus status,
-        BugReportCategory category,
-        BugReportPriority priority,
+        String status,
+        String category,
+        String priority,
         Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt,
         String appVersion,
-        BugReportPlatform platform,
+        String platform,
         String osVersion
     ) {
         return new BugReportJpaEntity(
@@ -132,9 +122,9 @@ public class BugReportJpaEntity extends BaseEntity {
     void applyChanges(
         String title,
         String content,
-        BugReportStatus status,
-        BugReportCategory category,
-        BugReportPriority priority,
+        String status,
+        String category,
+        String priority,
         Long assigneeAdminId,
         String adminAnswer,
         LocalDateTime resolvedAt
@@ -169,15 +159,15 @@ public class BugReportJpaEntity extends BaseEntity {
         return this.content;
     }
 
-    public BugReportStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 
-    public BugReportCategory getCategory() {
+    public String getCategory() {
         return this.category;
     }
 
-    public BugReportPriority getPriority() {
+    public String getPriority() {
         return this.priority;
     }
 
@@ -197,7 +187,7 @@ public class BugReportJpaEntity extends BaseEntity {
         return this.appVersion;
     }
 
-    public BugReportPlatform getPlatform() {
+    public String getPlatform() {
         return this.platform;
     }
 

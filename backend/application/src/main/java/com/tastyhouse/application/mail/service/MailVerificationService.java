@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.mail.store.MailVerificationRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

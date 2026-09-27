@@ -54,7 +54,7 @@ public class ReviewManagementQueryService implements ReviewManagementQueryUseCas
     @Override
     public ReviewManagementDetailResult getReview(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        ReviewManagementDetailResult detail = reviewManagementQueryPort.findReviewManagementDetail(reviewId)
+        ReviewManagementDetailResult detail = reviewManagementQueryPort.findReviewManagementDetail(reviewId.value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         List<Long> tagIds = reviewTagQueryPort.findTagIdsByReviewId(reviewId.value());
@@ -68,13 +68,13 @@ public class ReviewManagementQueryService implements ReviewManagementQueryUseCas
     @Override
     public List<ReviewCommentListItemResult> getComments(Long id) {
         ReviewId reviewId = ReviewId.of(id);
-        return reviewManagementQueryPort.findCommentsIncludingHidden(reviewId);
+        return reviewManagementQueryPort.findCommentsIncludingHidden(reviewId.value());
     }
 
     @Override
     public List<ReviewReplyListItemResult> getReplies(List<ReviewCommentListItemResult> comments) {
-        List<ReviewCommentId> commentIds = comments.stream()
-            .map(comment -> ReviewCommentId.of(comment.id()))
+        List<Long> commentIds = comments.stream()
+            .map(comment -> ReviewCommentId.of(comment.id()).value())
             .toList();
         return reviewManagementQueryPort.findRepliesIncludingHidden(commentIds);
     }

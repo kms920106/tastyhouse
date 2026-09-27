@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ProhibitedWord;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordState;
 
 final class ProhibitedWordMapper {
     private ProhibitedWordMapper() {
     }
 
-    static ProhibitedWord toDomain(ProhibitedWordJpaEntity entity) {
-        return ProhibitedWord.reconstitute(
+    static ProhibitedWordState toState(ProhibitedWordJpaEntity entity) {
+        return new ProhibitedWordState(
             entity.getId(),
             entity.getWord(),
             entity.getReason()

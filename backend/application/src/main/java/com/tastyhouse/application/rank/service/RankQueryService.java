@@ -48,7 +48,7 @@ public class RankQueryService implements RankQueryUseCase {
         RankType type = parseRankType(rankType);
         LocalDate baseDate = LocalDate.now();
 
-        return rankQueryPort.findMemberRanks(type, baseDate, limit);
+        return rankQueryPort.findMemberRanks(type.name(), baseDate, limit);
     }
 
     @Override
@@ -57,12 +57,12 @@ public class RankQueryService implements RankQueryUseCase {
         LocalDate baseDate = LocalDate.now();
         MemberId id = MemberId.of(memberId);
 
-        return rankQueryPort.findMemberRank(memberId, type, baseDate)
+        return rankQueryPort.findMemberRank(memberId, type.name(), baseDate)
             .orElseGet(() -> unrankedMemberResult(id));
     }
 
     private MemberRankResult unrankedMemberResult(MemberId memberId) {
-        MemberWithProfileImageResult member = memberQueryPort.findMemberWithProfileImageById(memberId)
+        MemberWithProfileImageResult member = memberQueryPort.findMemberWithProfileImageById(memberId.value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return new MemberRankResult(

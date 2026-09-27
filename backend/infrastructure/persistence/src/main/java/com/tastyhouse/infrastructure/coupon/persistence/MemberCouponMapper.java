@@ -1,39 +1,36 @@
 package com.tastyhouse.infrastructure.coupon.persistence;
 
-import com.tastyhouse.domain.coupon.model.MemberCoupon;
-import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponState;
 
 final class MemberCouponMapper {
     private MemberCouponMapper() {
     }
 
-    static MemberCoupon toDomain(MemberCouponJpaEntity entity) {
-        return MemberCoupon.reconstitute(
+    static MemberCouponState toState(MemberCouponJpaEntity entity) {
+        return new MemberCouponState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
-            IdMapping.vo(entity.getCouponId(), CouponId::of),
+            entity.getMemberId(),
+            entity.getCouponId(),
             entity.isUsed(),
             entity.getUsedAt(),
             entity.getExpiredAt()
         );
     }
 
-    static MemberCouponJpaEntity toEntity(MemberCoupon domain) {
+    static MemberCouponJpaEntity toEntity(MemberCouponState state) {
         return MemberCouponJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            IdMapping.raw(domain.getCouponId(), CouponId::value),
-            domain.isUsed(),
-            domain.getUsedAt(),
-            domain.getExpiredAt()
+            state.memberId(),
+            state.couponId(),
+            state.used(),
+            state.usedAt(),
+            state.expiredAt()
         );
     }
 
-    static void applyChanges(MemberCouponJpaEntity entity, MemberCoupon domain) {
+    static void applyChanges(MemberCouponJpaEntity entity, MemberCouponState state) {
         entity.applyChanges(
-            domain.isUsed(),
-            domain.getUsedAt()
+            state.used(),
+            state.usedAt()
         );
     }
 }

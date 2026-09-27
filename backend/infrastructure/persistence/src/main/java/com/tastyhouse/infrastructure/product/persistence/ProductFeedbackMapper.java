@@ -1,21 +1,17 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.product.model.ProductFeedback;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackState;
 
 final class ProductFeedbackMapper {
     private ProductFeedbackMapper() {
     }
 
-    static ProductFeedback toDomain(ProductFeedbackJpaEntity entity) {
-        return ProductFeedback.reconstitute(
+    static ProductFeedbackState toState(ProductFeedbackJpaEntity entity) {
+        return new ProductFeedbackState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getProductId(),
+            entity.getShopId(),
+            entity.getMemberId(),
             entity.getFeedbackType(),
             entity.getContent(),
             entity.getCreatedAt(),
@@ -23,13 +19,13 @@ final class ProductFeedbackMapper {
         );
     }
 
-    static ProductFeedbackJpaEntity toEntity(ProductFeedback domain) {
+    static ProductFeedbackJpaEntity toEntity(ProductFeedbackState state) {
         return ProductFeedbackJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getFeedbackType(),
-            domain.getContent()
+            state.productId(),
+            state.shopId(),
+            state.memberId(),
+            state.feedbackType(),
+            state.content()
         );
     }
 }

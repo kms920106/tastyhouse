@@ -4,15 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -31,9 +28,8 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "provider", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberSocialProvider provider;
+    private String provider;
 
     @Column(name = "provider_id", nullable = false, length = 100)
     private String providerId;
@@ -55,7 +51,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
 
     private MemberSocialAccountJpaEntity(
         Long memberId,
-        MemberSocialProvider provider,
+        String provider,
         String providerId,
         String providerEmail,
         String providerNickname,
@@ -73,7 +69,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
 
     static MemberSocialAccountJpaEntity create(
         Long memberId,
-        MemberSocialProvider provider,
+        String provider,
         String providerId,
         String providerEmail,
         String providerNickname,
@@ -105,7 +101,7 @@ public class MemberSocialAccountJpaEntity extends BaseEntity {
         return this.memberId;
     }
 
-    public MemberSocialProvider getProvider() {
+    public String getProvider() {
         return this.provider;
     }
 

@@ -1,30 +1,28 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingState;
 
 final class ShopReviewDisplaySettingMapper {
     private ShopReviewDisplaySettingMapper() {
     }
 
-    static ShopReviewDisplaySetting toDomain(ShopReviewDisplaySettingJpaEntity entity) {
-        return ShopReviewDisplaySetting.reconstitute(
+    static ShopReviewDisplaySettingState toState(ShopReviewDisplaySettingJpaEntity entity) {
+        return new ShopReviewDisplaySettingState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getSortType(),
             entity.getUpdatedAt()
         );
     }
 
-    static ShopReviewDisplaySettingJpaEntity toEntity(ShopReviewDisplaySetting domain) {
+    static ShopReviewDisplaySettingJpaEntity toEntity(ShopReviewDisplaySettingState state) {
         return ShopReviewDisplaySettingJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getSortType()
+            state.shopId(),
+            state.sortType()
         );
     }
 
-    static void applyChanges(ShopReviewDisplaySettingJpaEntity entity, ShopReviewDisplaySetting domain) {
-        entity.applyChanges(domain.getSortType());
+    static void applyChanges(ShopReviewDisplaySettingJpaEntity entity, ShopReviewDisplaySettingState state) {
+        entity.applyChanges(state.sortType());
     }
 }

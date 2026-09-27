@@ -28,9 +28,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.review.model.ReviewSortType;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.review.port.out.ReviewSortTypeCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -237,7 +235,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
         var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
@@ -323,7 +321,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
         var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
@@ -527,7 +525,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId, Long viewerMemberId) {
+    public Optional<ReviewDetailResult> findReviewDetail(Long reviewId, Long viewerMemberId) {
         ReviewDetailResult result = queryFactory
             .select(Projections.constructor(ReviewDetailResult.class,
                 reviewJpaEntity.id,
@@ -550,7 +548,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
                 reviewJpaEntity.ownerOnly,
                 reviewOwnerReplyJpaEntity.content,
                 reviewOwnerReplyJpaEntity.createdAt,
-                orderJpaEntity.orderMethod,
+                orderJpaEntity.orderMethod.stringValue(),
                 reviewJpaEntity.deliveryRating,
                 reviewJpaEntity.deliveryComment
             ))
@@ -563,14 +561,14 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .leftJoin(orderJpaEntity).on(reviewJpaEntity.orderId.eq(orderJpaEntity.id))
             .where(
-                reviewJpaEntity.id.eq(reviewId.value()),
+                reviewJpaEntity.id.eq(reviewId),
                 reviewJpaEntity.hidden.isFalse(),
                 visibleToViewer(viewerMemberId)
             )
             .fetchOne();
 
         if (result != null) {
-            List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
+            List<String> imageUrls = findImageUrlsByReviewId(reviewId);
             result = result.withImageUrls(imageUrls);
         }
 
@@ -742,19 +740,19 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public boolean existsLike(ReviewId reviewId, Long memberId) {
+    public boolean existsLike(Long reviewId, Long memberId) {
         return queryFactory
             .selectOne()
             .from(reviewLikeJpaEntity)
             .where(
-                reviewLikeJpaEntity.reviewId.eq(reviewId.value()),
+                reviewLikeJpaEntity.reviewId.eq(reviewId),
                 reviewLikeJpaEntity.memberId.eq(memberId)
             )
             .fetchFirst() != null;
     }
 
     @Override
-    public List<ReviewCommentItemResult> findComments(ReviewId reviewId) {
+    public List<ReviewCommentItemResult> findComments(Long reviewId) {
         return queryFactory
             .select(Projections.constructor(ReviewCommentItemResult.class,
                 reviewCommentJpaEntity.id,
@@ -769,18 +767,16 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .leftJoin(memberJpaEntity)
             .on(reviewCommentJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(reviewCommentJpaEntity.reviewId.eq(reviewId.value()))
+            .where(reviewCommentJpaEntity.reviewId.eq(reviewId))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
             .fetch();
     }
 
     @Override
-    public List<ReviewReplyItemResult> findVisibleReplies(List<ReviewCommentId> commentIds) {
+    public List<ReviewReplyItemResult> findVisibleReplies(List<Long> commentIds) {
         if (commentIds.isEmpty()) {
             return List.of();
         }
-
-        List<Long> ids = commentIds.stream().map(ReviewCommentId::value).toList();
 
         return queryFactory
             .select(Projections.constructor(ReviewReplyItemResult.class,
@@ -801,7 +797,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .leftJoin(replyToMember)
             .on(reviewReplyJpaEntity.replyToMemberId.eq(replyToMember.id))
             .where(
-                reviewReplyJpaEntity.commentId.in(ids),
+                reviewReplyJpaEntity.commentId.in(commentIds),
                 reviewReplyJpaEntity.hidden.eq(false)
             )
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
@@ -855,16 +851,17 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
         return total == null ? 0L : total;
     }
 
-    private void applySort(JPAQuery<LatestReviewListItemResult> query, ReviewSortType sortType) {
+    private void applySort(JPAQuery<LatestReviewListItemResult> query, String sortType) {
         switch (sortType) {
-            case RECOMMENDED -> query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
+            case ReviewSortTypeCodes.RECOMMENDED -> query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
                 .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
                     memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
                     productJpaEntity.id, productJpaEntity.name,
                     reviewOwnerReplyJpaEntity.content, reviewOwnerReplyJpaEntity.createdAt)
                 .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
-            case OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc());
-            case LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc());
+            case ReviewSortTypeCodes.OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc());
+            case ReviewSortTypeCodes.LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc());
+            default -> throw new IllegalStateException("알 수 없는 리뷰 정렬 유형입니다: " + sortType);
         }
     }
 

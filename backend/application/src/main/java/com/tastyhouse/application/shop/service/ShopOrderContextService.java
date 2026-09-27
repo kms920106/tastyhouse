@@ -3,9 +3,9 @@ package com.tastyhouse.application.shop.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

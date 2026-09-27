@@ -10,11 +10,11 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
+import com.tastyhouse.application.product.store.ProductExposureHourRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductPriceRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

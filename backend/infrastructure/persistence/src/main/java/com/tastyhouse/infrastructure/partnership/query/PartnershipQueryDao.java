@@ -14,7 +14,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -113,7 +112,7 @@ public class PartnershipQueryDao implements PartnershipQueryPort {
         return StringUtils.hasText(contactPhone) ? partnershipRequestJpaEntity.contactPhone.containsIgnoreCase(contactPhone) : null;
     }
 
-    private BooleanExpression statusEq(PartnershipStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? partnershipRequestJpaEntity.status.eq(status) : null;
     }
 

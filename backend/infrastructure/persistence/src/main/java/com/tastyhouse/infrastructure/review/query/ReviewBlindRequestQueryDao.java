@@ -6,6 +6,7 @@ import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
+import com.tastyhouse.application.review.port.out.ReviewBlindStatusCodes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,12 +19,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -73,9 +71,9 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 reviewBlindRequestJpaEntity.shopId,
                 shopJpaEntity.name,
                 reviewBlindRequestJpaEntity.reason.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.status.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
                 reviewJpaEntity.totalRating,
@@ -102,10 +100,10 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 reviewBlindRequestJpaEntity.shopId,
                 shopJpaEntity.name,
                 reviewBlindRequestJpaEntity.reason.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.status.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.rejectReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
@@ -143,7 +141,7 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 reviewJpaEntity.createdAt,
                 shopJpaEntity.name,
                 reviewBlindRequestJpaEntity.reason.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.memberId
@@ -153,7 +151,7 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reviewBlindRequestJpaEntity.shopId))
             .where(
                 reviewBlindRequestJpaEntity.reviewId.eq(reviewId),
-                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatus.APPROVED)
+                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatusCodes.APPROVED)
             )
             .orderBy(reviewBlindRequestJpaEntity.id.desc())
             .fetchFirst();
@@ -203,11 +201,11 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
         return shopId != null ? reviewBlindRequestJpaEntity.shopId.eq(shopId) : null;
     }
 
-    private BooleanExpression statusEq(ReviewBlindStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? reviewBlindRequestJpaEntity.status.eq(status) : null;
     }
 
-    private BooleanExpression reasonEq(ReviewBlindReason reason) {
+    private BooleanExpression reasonEq(String reason) {
         return reason != null ? reviewBlindRequestJpaEntity.reason.eq(reason) : null;
     }
 

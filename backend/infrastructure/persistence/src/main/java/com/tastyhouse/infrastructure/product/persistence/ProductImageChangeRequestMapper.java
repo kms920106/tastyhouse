@@ -1,19 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestState;
 
 final class ProductImageChangeRequestMapper {
     private ProductImageChangeRequestMapper() {
     }
 
-    static ProductImageChangeRequest toDomain(ProductImageChangeRequestJpaEntity entity) {
-        return ProductImageChangeRequest.reconstitute(
+    static ProductImageChangeRequestState toState(ProductImageChangeRequestJpaEntity entity) {
+        return new ProductImageChangeRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getProductId(),
+            entity.getImageFileId(),
             entity.getStatus(),
             entity.getRejectReason(),
             entity.getCreatedAt(),
@@ -21,19 +18,19 @@ final class ProductImageChangeRequestMapper {
         );
     }
 
-    static ProductImageChangeRequestJpaEntity toEntity(ProductImageChangeRequest domain) {
+    static ProductImageChangeRequestJpaEntity toEntity(ProductImageChangeRequestState state) {
         return ProductImageChangeRequestJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.productId(),
+            state.imageFileId(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
-    static void applyChanges(ProductImageChangeRequestJpaEntity entity, ProductImageChangeRequest domain) {
+    static void applyChanges(ProductImageChangeRequestJpaEntity entity, ProductImageChangeRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.status(),
+            state.rejectReason()
         );
     }
 }

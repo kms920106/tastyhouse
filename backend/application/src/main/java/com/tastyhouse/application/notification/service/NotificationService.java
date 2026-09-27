@@ -3,7 +3,7 @@ package com.tastyhouse.application.notification.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.application.notification.port.out.write.NotificationRepository;
+import com.tastyhouse.application.notification.store.NotificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

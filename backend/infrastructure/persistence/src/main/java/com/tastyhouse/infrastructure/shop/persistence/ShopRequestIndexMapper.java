@@ -1,24 +1,21 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopRequestIndex;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexState;
 
 final class ShopRequestIndexMapper {
     private ShopRequestIndexMapper() {
     }
 
-    static ShopRequestIndex toDomain(ShopRequestIndexJpaEntity entity) {
-        return ShopRequestIndex.reconstitute(
+    static ShopRequestIndexState toState(ShopRequestIndexJpaEntity entity) {
+        return new ShopRequestIndexState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getRequestType(),
             entity.getSourceRequestId(),
             entity.getSummary(),
             entity.getStatus(),
             entity.getRejectReason(),
-            IdMapping.vo(entity.getAttachmentFileId(), UploadedFileId::of),
+            entity.getAttachmentFileId(),
             entity.getRequestedByCeoId(),
             entity.getProcessedAt(),
             entity.getCreatedAt(),
@@ -26,21 +23,21 @@ final class ShopRequestIndexMapper {
         );
     }
 
-    static ShopRequestIndexJpaEntity toEntity(ShopRequestIndex domain) {
+    static ShopRequestIndexJpaEntity toEntity(ShopRequestIndexState state) {
         return ShopRequestIndexJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getRequestType(),
-            domain.getSourceRequestId(),
-            domain.getSummary(),
-            domain.getStatus(),
-            domain.getRejectReason(),
-            IdMapping.raw(domain.getAttachmentFileId(), UploadedFileId::value),
-            domain.getRequestedByCeoId(),
-            domain.getProcessedAt()
+            state.shopId(),
+            state.requestType(),
+            state.sourceRequestId(),
+            state.summary(),
+            state.status(),
+            state.rejectReason(),
+            state.attachmentFileId(),
+            state.requestedByCeoId(),
+            state.processedAt()
         );
     }
 
-    static void applyChanges(ShopRequestIndexJpaEntity entity, ShopRequestIndex domain) {
-        entity.applyChanges(domain.getStatus(), domain.getRejectReason(), domain.getProcessedAt());
+    static void applyChanges(ShopRequestIndexJpaEntity entity, ShopRequestIndexState state) {
+        entity.applyChanges(state.status(), state.rejectReason(), state.processedAt());
     }
 }

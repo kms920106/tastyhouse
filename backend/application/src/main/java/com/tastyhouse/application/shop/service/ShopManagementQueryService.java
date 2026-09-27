@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
@@ -88,17 +89,17 @@ public class ShopManagementQueryService implements ShopManagementQueryUseCase {
 
     @Override
     public List<ShopBusinessHourResult> getBusinessHours(Long id) {
-        return shopBasicInfoQueryPort.findBusinessHours(id);
+        return ShopCodeDescriptions.ofBusinessHours(shopBasicInfoQueryPort.findBusinessHours(id));
     }
 
     @Override
     public List<ShopBreakTimeResult> getBreakTimes(Long id) {
-        return shopBasicInfoQueryPort.findBreakTimes(id);
+        return ShopCodeDescriptions.ofBreakTimes(shopBasicInfoQueryPort.findBreakTimes(id));
     }
 
     @Override
     public List<ShopClosedDayResult> getClosedDays(Long id) {
-        return shopBasicInfoQueryPort.findClosedDays(id);
+        return ShopCodeDescriptions.ofClosedDays(shopBasicInfoQueryPort.findClosedDays(id));
     }
 
     @Override
@@ -128,7 +129,7 @@ public class ShopManagementQueryService implements ShopManagementQueryUseCase {
 
     @Override
     public List<ShopOrderMethodResult> getOrderMethods(Long id) {
-        return shopBasicInfoQueryPort.findOrderMethods(id);
+        return ShopCodeDescriptions.ofOrderMethods(shopBasicInfoQueryPort.findOrderMethods(id));
     }
 
     @Override
@@ -148,7 +149,7 @@ public class ShopManagementQueryService implements ShopManagementQueryUseCase {
 
     @Override
     public PageResult<EditorChoiceResult> getShopChoices(int page, int size) {
-        return shopChoiceManagementQueryPort.findEditorChoices(PageQuery.of(page, size));
+        return shopChoiceManagementQueryPort.findEditorChoices(PageQuery.of(page, size), EditorChoicePolicy.PRODUCT_LIMIT);
     }
 
     @Override

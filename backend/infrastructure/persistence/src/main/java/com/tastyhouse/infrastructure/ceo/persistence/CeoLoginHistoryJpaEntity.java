@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.ceo.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
-import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -23,13 +19,11 @@ public class CeoLoginHistoryJpaEntity extends BaseEntity {
     @Column(name = "ceo_id", nullable = false)
     private Long ceoId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "result", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private CeoLoginResult result;
+    private String result;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "failure_reason", length = 20, columnDefinition = "VARCHAR(20)")
-    private CeoLoginFailureReason failureReason;
+    private String failureReason;
 
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
@@ -42,8 +36,8 @@ public class CeoLoginHistoryJpaEntity extends BaseEntity {
 
     private CeoLoginHistoryJpaEntity(
         Long ceoId,
-        CeoLoginResult result,
-        CeoLoginFailureReason failureReason,
+        String result,
+        String failureReason,
         String ipAddress,
         String userAgent
     ) {
@@ -56,8 +50,8 @@ public class CeoLoginHistoryJpaEntity extends BaseEntity {
 
     static CeoLoginHistoryJpaEntity create(
         Long ceoId,
-        CeoLoginResult result,
-        CeoLoginFailureReason failureReason,
+        String result,
+        String failureReason,
         String ipAddress,
         String userAgent
     ) {
@@ -72,11 +66,11 @@ public class CeoLoginHistoryJpaEntity extends BaseEntity {
         return this.ceoId;
     }
 
-    public CeoLoginResult getResult() {
+    public String getResult() {
         return this.result;
     }
 
-    public CeoLoginFailureReason getFailureReason() {
+    public String getFailureReason() {
         return this.failureReason;
     }
 

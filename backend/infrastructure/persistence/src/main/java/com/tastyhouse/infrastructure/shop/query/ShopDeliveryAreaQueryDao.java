@@ -1,9 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaItemResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonResult;
-import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -14,8 +10,10 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 
 import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryAreaJpaEntity.shopDeliveryAreaJpaEntity;
@@ -69,8 +67,8 @@ public class ShopDeliveryAreaQueryDao implements ShopDeliveryAreaQueryPort {
     }
 
     @Override
-    public ShopLocationResult findShopLocation(Long ceoId, Long shopId) {
-        ShopLocationResult result = queryFactory
+    public Optional<ShopLocationResult> findShopLocation(Long ceoId, Long shopId) {
+        return Optional.ofNullable(queryFactory
             .select(Projections.constructor(ShopLocationResult.class,
                 shopJpaEntity.id,
                 shopJpaEntity.latitude,
@@ -78,18 +76,7 @@ public class ShopDeliveryAreaQueryDao implements ShopDeliveryAreaQueryPort {
             ))
             .from(shopJpaEntity)
             .where(shopJpaEntity.id.eq(shopId), shopJpaEntity.ceoId.eq(ceoId))
-            .fetchOne();
-
-        if (result == null) {
-            throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
-        }
-        if (result.latitude() == null || result.longitude() == null) {
-            throw new BusinessException(
-                ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
-                "가게 좌표가 등록돼 있지 않아 배달지역을 설정할 수 없습니다."
-            );
-        }
-        return result;
+            .fetchOne());
     }
 
     @Override

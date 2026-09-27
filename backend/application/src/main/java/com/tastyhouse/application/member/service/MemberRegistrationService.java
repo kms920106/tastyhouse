@@ -2,7 +2,7 @@ package com.tastyhouse.application.member.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.BusinessException;

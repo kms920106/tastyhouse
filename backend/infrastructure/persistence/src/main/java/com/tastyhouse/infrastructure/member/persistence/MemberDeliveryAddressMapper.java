@@ -1,23 +1,20 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressState;
 
 final class MemberDeliveryAddressMapper {
     private MemberDeliveryAddressMapper() {
     }
 
-    static MemberDeliveryAddress toDomain(MemberDeliveryAddressJpaEntity entity) {
-        return MemberDeliveryAddress.reconstitute(
+    static MemberDeliveryAddressState toState(MemberDeliveryAddressJpaEntity entity) {
+        return new MemberDeliveryAddressState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getAlias(),
             entity.getRoadAddress(),
             entity.getLotAddress(),
             entity.getDetailAddress(),
-            IdMapping.vo(entity.getAdminDongId(), AdminDongId::of),
+            entity.getAdminDongId(),
             entity.getLatitude(),
             entity.getLongitude(),
             entity.isDefaultAddress(),
@@ -26,30 +23,30 @@ final class MemberDeliveryAddressMapper {
         );
     }
 
-    static MemberDeliveryAddressJpaEntity toEntity(MemberDeliveryAddress domain) {
+    static MemberDeliveryAddressJpaEntity toEntity(MemberDeliveryAddressState state) {
         return MemberDeliveryAddressJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getAlias(),
-            domain.getRoadAddress(),
-            domain.getLotAddress(),
-            domain.getDetailAddress(),
-            IdMapping.raw(domain.getAdminDongId(), AdminDongId::value),
-            domain.getLatitude(),
-            domain.getLongitude(),
-            domain.isDefaultAddress()
+            state.memberId(),
+            state.alias(),
+            state.roadAddress(),
+            state.lotAddress(),
+            state.detailAddress(),
+            state.adminDongId(),
+            state.latitude(),
+            state.longitude(),
+            state.defaultAddress()
         );
     }
 
-    static void applyChanges(MemberDeliveryAddressJpaEntity entity, MemberDeliveryAddress domain) {
+    static void applyChanges(MemberDeliveryAddressJpaEntity entity, MemberDeliveryAddressState state) {
         entity.applyChanges(
-            domain.getAlias(),
-            domain.getRoadAddress(),
-            domain.getLotAddress(),
-            domain.getDetailAddress(),
-            IdMapping.raw(domain.getAdminDongId(), AdminDongId::value),
-            domain.getLatitude(),
-            domain.getLongitude(),
-            domain.isDefaultAddress()
+            state.alias(),
+            state.roadAddress(),
+            state.lotAddress(),
+            state.detailAddress(),
+            state.adminDongId(),
+            state.latitude(),
+            state.longitude(),
+            state.defaultAddress()
         );
     }
 }

@@ -57,7 +57,7 @@ public class CouponQueryService implements CouponQueryUseCase {
             dto.couponId(),
             dto.name(),
             dto.description(),
-            dto.discountType().name(),
+            dto.discountType(),
             dto.discountAmount(),
             dto.maxDiscountAmount(),
             dto.minOrderAmount(),

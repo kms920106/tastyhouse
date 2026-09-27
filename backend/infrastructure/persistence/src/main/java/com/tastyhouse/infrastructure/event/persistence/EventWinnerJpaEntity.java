@@ -12,8 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 @Entity
 @Table(
@@ -39,7 +39,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
-    private PhoneNumber phoneNumber;
+    private PhoneNumberEmbeddable phoneNumber;
 
     @Column(name = "announced_at", nullable = false)
     private LocalDateTime announcedAt;
@@ -54,7 +54,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
         Long eventId,
         Integer rankNo,
         String winnerName,
-        PhoneNumber phoneNumber,
+        PhoneNumberEmbeddable phoneNumber,
         LocalDateTime announcedAt,
         boolean deleted
     ) {
@@ -70,7 +70,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
         Long eventId,
         Integer rankNo,
         String winnerName,
-        PhoneNumber phoneNumber,
+        PhoneNumberEmbeddable phoneNumber,
         LocalDateTime announcedAt,
         boolean deleted
     ) {
@@ -97,7 +97,7 @@ public class EventWinnerJpaEntity extends BaseEntity {
         return this.winnerName;
     }
 
-    public PhoneNumber getPhoneNumber() {
+    public PhoneNumberEmbeddable getPhoneNumber() {
         return this.phoneNumber;
     }
 

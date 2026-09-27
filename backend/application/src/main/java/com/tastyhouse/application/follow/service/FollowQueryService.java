@@ -33,31 +33,31 @@ public class FollowQueryService implements FollowQueryUseCase {
     @Override
     public boolean isFollowing(Long viewerMemberId, Long targetMemberId) {
         return memberFollowQueryPort.existsFollow(
-            MemberId.of(viewerMemberId), MemberId.of(targetMemberId)
+            MemberId.of(viewerMemberId).value(), MemberId.of(targetMemberId).value()
         );
     }
 
     @Override
     public long countFollowing(Long memberId) {
-        return memberFollowQueryPort.countFollowing(MemberId.of(memberId));
+        return memberFollowQueryPort.countFollowing(MemberId.of(memberId).value());
     }
 
     @Override
     public long countFollower(Long memberId) {
-        return memberFollowQueryPort.countFollower(MemberId.of(memberId));
+        return memberFollowQueryPort.countFollower(MemberId.of(memberId).value());
     }
 
     @Override
     public PageResult<FollowMemberResult> getFollowingList(Long memberId, Long viewerMemberId, int page, int size) {
         return memberFollowQueryPort.findFollowingList(
-            MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size)
+            MemberId.of(memberId).value(), toViewerId(viewerMemberId), PageQuery.of(page, size)
         );
     }
 
     @Override
     public PageResult<FollowMemberResult> getFollowerList(Long memberId, Long viewerMemberId, int page, int size) {
         return memberFollowQueryPort.findFollowerList(
-            MemberId.of(memberId), toViewerId(viewerMemberId), PageQuery.of(page, size)
+            MemberId.of(memberId).value(), toViewerId(viewerMemberId), PageQuery.of(page, size)
         );
     }
 
@@ -78,7 +78,7 @@ public class FollowQueryService implements FollowQueryUseCase {
             ));
     }
 
-    private MemberId toViewerId(Long viewerMemberId) {
-        return viewerMemberId == null ? null : MemberId.of(viewerMemberId);
+    private Long toViewerId(Long viewerMemberId) {
+        return viewerMemberId == null ? null : MemberId.of(viewerMemberId).value();
     }
 }

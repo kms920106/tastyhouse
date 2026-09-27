@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.notification.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.notification.model.Notification;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.notification.port.out.write.NotificationState;
 
 final class NotificationMapper {
     private NotificationMapper() {
     }
 
-    static Notification toDomain(NotificationJpaEntity entity) {
-        return Notification.reconstitute(
+    static NotificationState toState(NotificationJpaEntity entity) {
+        return new NotificationState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getType(),
             entity.getTitle(),
             entity.getBody(),
@@ -24,20 +22,20 @@ final class NotificationMapper {
         );
     }
 
-    static NotificationJpaEntity toEntity(Notification domain) {
+    static NotificationJpaEntity toEntity(NotificationState state) {
         return NotificationJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getType(),
-            domain.getTitle(),
-            domain.getBody(),
-            domain.getTargetType(),
-            domain.getTargetId(),
-            domain.isRead(),
-            domain.getReadAt()
+            state.memberId(),
+            state.type(),
+            state.title(),
+            state.body(),
+            state.targetType(),
+            state.targetId(),
+            state.read(),
+            state.readAt()
         );
     }
 
-    static void applyChanges(NotificationJpaEntity entity, Notification domain) {
-        entity.applyChanges(domain.isRead(), domain.getReadAt());
+    static void applyChanges(NotificationJpaEntity entity, NotificationState state) {
+        entity.applyChanges(state.read(), state.readAt());
     }
 }

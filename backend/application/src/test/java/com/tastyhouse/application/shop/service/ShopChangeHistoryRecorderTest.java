@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.store.ShopChangeHistoryRepository;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeActorType;

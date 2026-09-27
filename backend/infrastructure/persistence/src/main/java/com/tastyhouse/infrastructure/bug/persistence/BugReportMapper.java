@@ -1,25 +1,22 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
-import com.tastyhouse.domain.admin.vo.AdminId;
-import com.tastyhouse.domain.bug.model.BugReport;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.bug.port.out.write.BugReportState;
 
 final class BugReportMapper {
     private BugReportMapper() {
     }
 
-    static BugReport toDomain(BugReportJpaEntity entity) {
-        return BugReport.reconstitute(
+    static BugReportState toState(BugReportJpaEntity entity) {
+        return new BugReportState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getDevice(),
             entity.getTitle(),
             entity.getContent(),
             entity.getStatus(),
             entity.getCategory(),
             entity.getPriority(),
-            IdMapping.vo(entity.getAssigneeAdminId(), AdminId::of),
+            entity.getAssigneeAdminId(),
             entity.getAdminAnswer(),
             entity.getResolvedAt(),
             entity.getAppVersion(),
@@ -30,34 +27,34 @@ final class BugReportMapper {
         );
     }
 
-    static BugReportJpaEntity toEntity(BugReport domain) {
+    static BugReportJpaEntity toEntity(BugReportState state) {
         return BugReportJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getDevice(),
-            domain.getTitle(),
-            domain.getContent(),
-            domain.getStatus(),
-            domain.getCategory(),
-            domain.getPriority(),
-            IdMapping.raw(domain.getAssigneeAdminId(), AdminId::value),
-            domain.getAdminAnswer(),
-            domain.getResolvedAt(),
-            domain.getAppVersion(),
-            domain.getPlatform(),
-            domain.getOsVersion()
+            state.memberId(),
+            state.device(),
+            state.title(),
+            state.content(),
+            state.status(),
+            state.category(),
+            state.priority(),
+            state.assigneeAdminId(),
+            state.adminAnswer(),
+            state.resolvedAt(),
+            state.appVersion(),
+            state.platform(),
+            state.osVersion()
         );
     }
 
-    static void applyChanges(BugReportJpaEntity entity, BugReport domain) {
+    static void applyChanges(BugReportJpaEntity entity, BugReportState state) {
         entity.applyChanges(
-            domain.getTitle(),
-            domain.getContent(),
-            domain.getStatus(),
-            domain.getCategory(),
-            domain.getPriority(),
-            IdMapping.raw(domain.getAssigneeAdminId(), AdminId::value),
-            domain.getAdminAnswer(),
-            domain.getResolvedAt()
+            state.title(),
+            state.content(),
+            state.status(),
+            state.category(),
+            state.priority(),
+            state.assigneeAdminId(),
+            state.adminAnswer(),
+            state.resolvedAt()
         );
     }
 }

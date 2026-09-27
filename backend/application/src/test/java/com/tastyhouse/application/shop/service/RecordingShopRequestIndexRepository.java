@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
+import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 

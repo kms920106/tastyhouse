@@ -4,14 +4,11 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.HygieneBadgeType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -24,9 +21,8 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "badge_type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private HygieneBadgeType badgeType;
+    private String badgeType;
 
     @Column(name = "certified_date", nullable = false)
     private LocalDate certifiedDate;
@@ -37,14 +33,14 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
     protected ShopHygieneBadgeJpaEntity() {
     }
 
-    private ShopHygieneBadgeJpaEntity(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    private ShopHygieneBadgeJpaEntity(Long shopId, String badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         this.shopId = shopId;
         this.badgeType = badgeType;
         this.certifiedDate = certifiedDate;
         this.lastInspectionMonth = lastInspectionMonth;
     }
 
-    static ShopHygieneBadgeJpaEntity create(Long shopId, HygieneBadgeType badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
+    static ShopHygieneBadgeJpaEntity create(Long shopId, String badgeType, LocalDate certifiedDate, String lastInspectionMonth) {
         return new ShopHygieneBadgeJpaEntity(shopId, badgeType, certifiedDate, lastInspectionMonth);
     }
 
@@ -56,7 +52,7 @@ public class ShopHygieneBadgeJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public HygieneBadgeType getBadgeType() {
+    public String getBadgeType() {
         return this.badgeType;
     }
 

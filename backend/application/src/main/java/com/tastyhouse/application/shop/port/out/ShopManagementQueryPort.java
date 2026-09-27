@@ -3,19 +3,16 @@ package com.tastyhouse.application.shop.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.ShopContentType;
-import com.tastyhouse.domain.shop.model.ShopImageType;
 
 public interface ShopManagementQueryPort {
 
-    PageResult<ShopContentBoardResult> findContentBoardPage(Long shopId, Boolean hidden, ShopContentType contentType, PageQuery pageQuery);
+    PageResult<ShopContentBoardResult> findContentBoardPage(Long shopId, Boolean hidden, String contentType, PageQuery pageQuery);
 
-    PageResult<ShopImageChangeRequestResult> findImageChangeRequestPage(ApprovalStatus status, ShopImageType imageType, PageQuery pageQuery);
+    PageResult<ShopImageChangeRequestResult> findImageChangeRequestPage(String status, String imageType, PageQuery pageQuery);
 
-    PageResult<ShopMenuCollectionImageRequestResult> findMenuCollectionImageRequestPage(ApprovalStatus status, PageQuery pageQuery);
+    PageResult<ShopMenuCollectionImageRequestResult> findMenuCollectionImageRequestPage(String status, PageQuery pageQuery);
 
     List<ShopAmenityCategoryResult> findAllAmenityCategories();
 

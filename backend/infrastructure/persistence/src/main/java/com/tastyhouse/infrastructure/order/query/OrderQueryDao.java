@@ -21,13 +21,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.application.payment.port.out.PaymentStatusCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
@@ -52,10 +48,10 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
     }
 
     @Override
-    public PageResult<OrderListItemResult> findOrders(MemberId memberId, PageQuery pageQuery) {
+    public PageResult<OrderListItemResult> findOrders(Long memberId, PageQuery pageQuery) {
         BooleanExpression paymentJoinCondition = paymentJpaEntity.orderId
             .eq(orderJpaEntity.id)
-            .and(paymentJpaEntity.paymentStatus.in(PaymentStatus.COMPLETED, PaymentStatus.CANCELLED));
+            .and(paymentJpaEntity.paymentStatus.in(PaymentStatusCodes.COMPLETED, PaymentStatusCodes.CANCELLED));
 
         List<OrderListItemResult> content = queryFactory
             .select(Projections.constructor(OrderListItemResult.class,
@@ -74,7 +70,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .leftJoin(orderProductJpaEntity).on(orderProductJpaEntity.orderId.eq(orderJpaEntity.id))
-            .where(orderJpaEntity.memberId.eq(memberId.value()))
+            .where(orderJpaEntity.memberId.eq(memberId))
             .groupBy(
                 orderJpaEntity.id,
                 shopJpaEntity.name,
@@ -93,7 +89,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .select(orderJpaEntity.count())
             .from(orderJpaEntity)
             .innerJoin(paymentJpaEntity).on(paymentJoinCondition)
-            .where(orderJpaEntity.memberId.eq(memberId.value()))
+            .where(orderJpaEntity.memberId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
@@ -170,7 +166,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
     }
 
     @Override
-    public Optional<OrderDetailResult> findOrderDetail(OrderId orderId) {
+    public Optional<OrderDetailResult> findOrderDetail(Long orderId) {
         OrderDetailResult detail = queryFactory
             .select(Projections.constructor(OrderDetailResult.class,
                 orderJpaEntity.id,
@@ -198,7 +194,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             ))
             .from(orderJpaEntity)
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(orderJpaEntity.shopId))
-            .where(orderJpaEntity.id.eq(orderId.value()))
+            .where(orderJpaEntity.id.eq(orderId))
             .fetchOne();
 
         if (detail == null) {
@@ -212,7 +208,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
         );
     }
 
-    private List<OrderProductResult> findOrderProducts(OrderId orderId) {
+    private List<OrderProductResult> findOrderProducts(Long orderId) {
         List<OrderProductResult> orderProducts = queryFactory
             .select(Projections.constructor(OrderProductResult.class,
                 orderProductJpaEntity.id,
@@ -229,7 +225,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .from(orderProductJpaEntity)
             .leftJoin(ORDER_PRODUCT_IMAGE_FILE)
                 .on(ORDER_PRODUCT_IMAGE_FILE.id.eq(orderProductJpaEntity.imageFileId))
-            .where(orderProductJpaEntity.orderId.eq(orderId.value()))
+            .where(orderProductJpaEntity.orderId.eq(orderId))
             .orderBy(orderProductJpaEntity.id.asc())
             .fetch();
 
@@ -266,9 +262,9 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
             .toList();
     }
 
-    private OrderPaymentResult findPayment(OrderId orderId) {
-        PaymentProjection row = queryFactory
-            .select(Projections.constructor(PaymentProjection.class,
+    private OrderPaymentResult findPayment(Long orderId) {
+        return queryFactory
+            .select(Projections.constructor(OrderPaymentResult.class,
                 paymentJpaEntity.id,
                 paymentJpaEntity.paymentMethod,
                 paymentJpaEntity.paymentStatus,
@@ -279,34 +275,19 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
                 paymentJpaEntity.receiptUrl
             ))
             .from(paymentJpaEntity)
-            .where(paymentJpaEntity.orderId.eq(orderId.value()))
+            .where(paymentJpaEntity.orderId.eq(orderId))
             .fetchOne();
-
-        return row == null ? null : withUnwrappedAmount(row);
-    }
-
-    private OrderPaymentResult withUnwrappedAmount(PaymentProjection row) {
-        return new OrderPaymentResult(
-            row.id(),
-            row.paymentMethod() != null ? row.paymentMethod().name() : null,
-            row.paymentStatus() != null ? row.paymentStatus().name() : null,
-            row.amount() == null ? null : row.amount().value(),
-            row.cardCompany(),
-            row.cardNumber(),
-            row.approvedAt(),
-            row.receiptUrl()
-        );
     }
 
     private BooleanExpression shopIdEq(Long shopId) {
         return shopId != null ? orderJpaEntity.shopId.eq(shopId) : null;
     }
 
-    private BooleanExpression orderStatusEq(OrderStatus orderStatus) {
+    private BooleanExpression orderStatusEq(String orderStatus) {
         return orderStatus != null ? orderJpaEntity.orderStatus.eq(orderStatus) : null;
     }
 
-    private BooleanExpression orderMethodEq(OrderMethod orderMethod) {
+    private BooleanExpression orderMethodEq(String orderMethod) {
         return orderMethod != null ? orderJpaEntity.orderMethod.eq(orderMethod) : null;
     }
 

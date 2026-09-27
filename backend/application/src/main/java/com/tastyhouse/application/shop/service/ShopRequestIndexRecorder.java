@@ -2,7 +2,7 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
+import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;

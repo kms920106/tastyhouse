@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.holiday.port.out.write.PublicHolidayRepository;
+import com.tastyhouse.application.holiday.store.PublicHolidayRepository;
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
 
 public class PublicHolidayCalendar {

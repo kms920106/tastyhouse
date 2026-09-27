@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
+import com.tastyhouse.application.product.store.ProductCategoryRepository;
 import com.tastyhouse.application.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;

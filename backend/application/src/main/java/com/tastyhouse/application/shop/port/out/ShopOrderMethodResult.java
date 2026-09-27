@@ -5,4 +5,12 @@ public record ShopOrderMethodResult(
     String orderMethod,
     String orderMethodDisplayName
 ) {
+
+    public ShopOrderMethodResult withOrderMethodDisplayName(String orderMethodDisplayName) {
+        return new ShopOrderMethodResult(
+            this.id,
+            this.orderMethod,
+            orderMethodDisplayName
+        );
+    }
 }

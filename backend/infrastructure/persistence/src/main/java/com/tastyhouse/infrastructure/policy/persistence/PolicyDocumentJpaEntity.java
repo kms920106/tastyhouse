@@ -4,14 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -21,9 +18,8 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
-    private PolicyType type;
+    private String type;
 
     @Column(name = "version", nullable = false, length = 20)
     private String version;
@@ -53,7 +49,7 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
     }
 
     private PolicyDocumentJpaEntity(
-        PolicyType type,
+        String type,
         String version,
         String title,
         String content,
@@ -75,7 +71,7 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
     }
 
     static PolicyDocumentJpaEntity create(
-        PolicyType type,
+        String type,
         String version,
         String title,
         String content,
@@ -101,7 +97,7 @@ public class PolicyDocumentJpaEntity extends BaseEntity {
         return this.id;
     }
 
-    public PolicyType getType() {
+    public String getType() {
         return this.type;
     }
 

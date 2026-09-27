@@ -18,8 +18,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -85,7 +83,7 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
     }
 
     @Override
-    public Optional<ReviewManagementDetailResult> findReviewManagementDetail(ReviewId reviewId) {
+    public Optional<ReviewManagementDetailResult> findReviewManagementDetail(Long reviewId) {
         ReviewManagementDetailResult result = queryFactory
             .select(Projections.constructor(ReviewManagementDetailResult.class,
                 reviewJpaEntity.id,
@@ -113,11 +111,11 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             .innerJoin(stationJpaEntity).on(shopStationId().eq(stationJpaEntity.id))
             .innerJoin(memberJpaEntity).on(reviewJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(reviewJpaEntity.id.eq(reviewId.value()))
+            .where(reviewJpaEntity.id.eq(reviewId))
             .fetchOne();
 
         if (result != null) {
-            List<String> imageUrls = findImageUrlsByReviewId(reviewId.value());
+            List<String> imageUrls = findImageUrlsByReviewId(reviewId);
             result = result.withImageUrls(imageUrls);
         }
 
@@ -125,7 +123,7 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
     }
 
     @Override
-    public List<ReviewCommentListItemResult> findCommentsIncludingHidden(ReviewId reviewId) {
+    public List<ReviewCommentListItemResult> findCommentsIncludingHidden(Long reviewId) {
         return queryFactory
             .select(Projections.constructor(ReviewCommentListItemResult.class,
                 reviewCommentJpaEntity.id,
@@ -137,18 +135,16 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             ))
             .from(reviewCommentJpaEntity)
             .leftJoin(memberJpaEntity).on(reviewCommentJpaEntity.memberId.eq(memberJpaEntity.id))
-            .where(reviewCommentJpaEntity.reviewId.eq(reviewId.value()))
+            .where(reviewCommentJpaEntity.reviewId.eq(reviewId))
             .orderBy(reviewCommentJpaEntity.createdAt.desc())
             .fetch();
     }
 
     @Override
-    public List<ReviewReplyListItemResult> findRepliesIncludingHidden(List<ReviewCommentId> commentIds) {
+    public List<ReviewReplyListItemResult> findRepliesIncludingHidden(List<Long> commentIds) {
         if (commentIds.isEmpty()) {
             return List.of();
         }
-
-        List<Long> ids = commentIds.stream().map(ReviewCommentId::value).toList();
 
         return queryFactory
             .select(Projections.constructor(ReviewReplyListItemResult.class,
@@ -165,7 +161,7 @@ public class ReviewManagementQueryDao implements ReviewManagementQueryPort {
             .from(reviewReplyJpaEntity)
             .leftJoin(memberJpaEntity).on(reviewReplyJpaEntity.memberId.eq(memberJpaEntity.id))
             .leftJoin(replyToMember).on(reviewReplyJpaEntity.replyToMemberId.eq(replyToMember.id))
-            .where(reviewReplyJpaEntity.commentId.in(ids))
+            .where(reviewReplyJpaEntity.commentId.in(commentIds))
             .orderBy(reviewReplyJpaEntity.createdAt.asc())
             .fetch();
     }

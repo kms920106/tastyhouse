@@ -1,35 +1,31 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryState;
 
 final class ProductOptionGroupMergeHistoryMapper {
     private ProductOptionGroupMergeHistoryMapper() {
     }
 
-    static ProductOptionGroupMergeHistory toDomain(ProductOptionGroupMergeHistoryJpaEntity entity) {
-        return ProductOptionGroupMergeHistory.reconstitute(
+    static ProductOptionGroupMergeHistoryState toState(ProductOptionGroupMergeHistoryJpaEntity entity) {
+        return new ProductOptionGroupMergeHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getBaseOptionGroupId(), ProductOptionGroupId::of),
-            IdMapping.vo(entity.getMergedOptionGroupId(), ProductOptionGroupId::of),
+            entity.getShopId(),
+            entity.getBaseOptionGroupId(),
+            entity.getMergedOptionGroupId(),
             entity.getMergedGroupName(),
             entity.getEntryType(),
-            IdMapping.vo(entity.getActorCeoId(), CeoId::of)
+            entity.getActorCeoId()
         );
     }
 
-    static ProductOptionGroupMergeHistoryJpaEntity toEntity(ProductOptionGroupMergeHistory domain) {
+    static ProductOptionGroupMergeHistoryJpaEntity toEntity(ProductOptionGroupMergeHistoryState state) {
         return ProductOptionGroupMergeHistoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getBaseOptionGroupId(), ProductOptionGroupId::value),
-            IdMapping.raw(domain.getMergedOptionGroupId(), ProductOptionGroupId::value),
-            domain.getMergedGroupName(),
-            domain.getEntryType(),
-            IdMapping.raw(domain.getActorCeoId(), CeoId::value)
+            state.shopId(),
+            state.baseOptionGroupId(),
+            state.mergedOptionGroupId(),
+            state.mergedGroupName(),
+            state.entryType(),
+            state.actorCeoId()
         );
     }
 }

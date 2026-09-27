@@ -11,8 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.review.store.ReviewOwnerReplyRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

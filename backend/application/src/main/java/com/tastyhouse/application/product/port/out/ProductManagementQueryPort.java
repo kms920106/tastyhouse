@@ -3,7 +3,6 @@ package com.tastyhouse.application.product.port.out;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -11,11 +10,11 @@ public interface ProductManagementQueryPort {
 
     PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery);
 
-    PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(ApprovalStatus status, PageQuery pageQuery);
+    PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(String status, PageQuery pageQuery);
 
-    PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(ApprovalStatus status, PageQuery pageQuery);
+    PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(String status, PageQuery pageQuery);
 
-    PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(ApprovalStatus status, PageQuery pageQuery);
+    PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(String status, PageQuery pageQuery);
 
     ProductOptionsResult findProductOptions(Long productId);
 

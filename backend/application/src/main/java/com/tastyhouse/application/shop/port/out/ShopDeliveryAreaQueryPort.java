@@ -12,7 +12,7 @@ public interface ShopDeliveryAreaQueryPort {
 
     Set<Long> findAdminDongIdsBySource(Long shopId, String source);
 
-    ShopLocationResult findShopLocation(Long ceoId, Long shopId);
+    Optional<ShopLocationResult> findShopLocation(Long ceoId, Long shopId);
 
     Optional<ShopDeliveryAreaPolygonResult> findPolygon(Long shopId);
 

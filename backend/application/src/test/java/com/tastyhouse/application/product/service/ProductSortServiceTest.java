@@ -10,8 +10,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductCategoryRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;

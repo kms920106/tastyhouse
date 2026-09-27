@@ -4,6 +4,8 @@ import com.tastyhouse.application.review.port.out.ShopReviewManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestHistoryResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewListTabCodes;
+import com.tastyhouse.application.review.port.out.ReviewSortTypeCodes;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementSearchCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,19 +25,12 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.review.model.ReviewListTab;
-import com.tastyhouse.domain.review.model.ReviewSortType;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
-import com.tastyhouse.domain.review.model.ReviewBlindReason;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -103,13 +98,13 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
                 Expressions.constant(List.<String>of()),
                 Expressions.constant(List.<String>of()),
                 orderJpaEntity.orderMethod.stringValue(),
-                EnumLabelProjection.labelOf(orderJpaEntity.orderMethod, OrderMethod::getDisplayName),
+                Expressions.nullExpression(String.class),
                 reviewJpaEntity.hidden,
                 reviewJpaEntity.ownerOnly,
                 reviewOwnerReplyJpaEntity.content,
                 reviewOwnerReplyJpaEntity.createdAt,
-                EnumLabelProjection.labelOf(latestBlindRequestStatus(), ReviewBlindStatus::name),
-                EnumLabelProjection.labelOf(latestBlindRequestStatus(), ReviewBlindStatus::getDescription),
+                latestBlindRequestStatus(),
+                Expressions.nullExpression(String.class),
                 reviewJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
@@ -132,8 +127,8 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
     }
 
     @Override
-    public Optional<ShopReviewManagementDetailResult> findShopReviewDetail(ReviewId reviewId) {
-        Long id = reviewId.value();
+    public Optional<ShopReviewManagementDetailResult> findShopReviewDetail(Long reviewId) {
+        Long id = reviewId;
 
         ShopReviewManagementDetailResult detail = queryFactory
             .select(Projections.constructor(ShopReviewManagementDetailResult.class,
@@ -145,7 +140,7 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
                 Expressions.constant(List.<String>of()),
                 Expressions.constant(List.<String>of()),
                 orderJpaEntity.orderMethod.stringValue(),
-                EnumLabelProjection.labelOf(orderJpaEntity.orderMethod, OrderMethod::getDisplayName),
+                Expressions.nullExpression(String.class),
                 reviewJpaEntity.hidden,
                 reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.tasteRating,
@@ -188,21 +183,21 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
     }
 
     @Override
-    public List<ReviewBlindRequestHistoryResult> findBlindRequestHistory(ReviewId reviewId) {
+    public List<ReviewBlindRequestHistoryResult> findBlindRequestHistory(Long reviewId) {
         return queryFactory
             .select(Projections.constructor(ReviewBlindRequestHistoryResult.class,
                 reviewBlindRequestJpaEntity.id,
                 reviewBlindRequestJpaEntity.reason.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.status.stringValue(),
-                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
+                Expressions.nullExpression(String.class),
                 reviewBlindRequestJpaEntity.rejectReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewBlindRequestJpaEntity.createdAt
             ))
             .from(reviewBlindRequestJpaEntity)
-            .where(reviewBlindRequestJpaEntity.reviewId.eq(reviewId.value()))
+            .where(reviewBlindRequestJpaEntity.reviewId.eq(reviewId))
             .orderBy(reviewBlindRequestJpaEntity.createdAt.desc(), reviewBlindRequestJpaEntity.id.desc())
             .fetch();
     }
@@ -279,9 +274,9 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
             .fetch();
     }
 
-    private void applySort(JPAQuery<ShopReviewManagementListItemResult> query, ReviewSortType sortType) {
+    private void applySort(JPAQuery<ShopReviewManagementListItemResult> query, String sortType) {
         switch (sortType) {
-            case RECOMMENDED -> query
+            case ReviewSortTypeCodes.RECOMMENDED -> query
                 .leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
                 .groupBy(
                     reviewJpaEntity.id,
@@ -296,12 +291,13 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
                     reviewJpaEntity.createdAt
                 )
                 .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
-            case OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc(), reviewJpaEntity.id.asc());
-            case LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc(), reviewJpaEntity.id.desc());
+            case ReviewSortTypeCodes.OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc(), reviewJpaEntity.id.asc());
+            case ReviewSortTypeCodes.LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc(), reviewJpaEntity.id.desc());
+            default -> throw new IllegalStateException("알 수 없는 리뷰 정렬 유형입니다: " + sortType);
         }
     }
 
-    private Expression<ReviewBlindStatus> latestBlindRequestStatus() {
+    private Expression<String> latestBlindRequestStatus() {
         return JPAExpressions
             .select(subBlindRequest.status)
             .from(subBlindRequest)
@@ -313,15 +309,15 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
             ));
     }
 
-    private BooleanExpression tabPredicate(ReviewListTab tab) {
+    private BooleanExpression tabPredicate(String tab) {
         if (tab == null) {
             return null;
         }
         return switch (tab) {
-            case ALL -> null;
-            case UNANSWERED -> reviewOwnerReplyJpaEntity.id.isNull();
-            case BLINDED -> reviewJpaEntity.hidden.isTrue();
-            case OWNER_ONLY -> reviewJpaEntity.ownerOnly.isTrue();
+            case ReviewListTabCodes.UNANSWERED -> reviewOwnerReplyJpaEntity.id.isNull();
+            case ReviewListTabCodes.BLINDED -> reviewJpaEntity.hidden.isTrue();
+            case ReviewListTabCodes.OWNER_ONLY -> reviewJpaEntity.ownerOnly.isTrue();
+            default -> null;
         };
     }
 
@@ -341,8 +337,8 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
         return rating != null ? reviewJpaEntity.totalRating.floor().intValue().eq(rating) : null;
     }
 
-    private BooleanExpression orderMethodEq(OrderMethod orderMethod) {
-        return orderMethod != null ? orderJpaEntity.orderMethod.eq(orderMethod) : null;
+    private BooleanExpression orderMethodEq(String orderMethod) {
+        return orderMethod != null ? orderJpaEntity.orderMethod.stringValue().eq(orderMethod) : null;
     }
 
     private BooleanExpression hasImageEq(Boolean hasImage) {

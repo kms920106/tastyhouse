@@ -1,25 +1,23 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopClosedDay;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopClosedDayState;
 
 final class ShopClosedDayMapper {
     private ShopClosedDayMapper() {
     }
 
-    static ShopClosedDay toDomain(ShopClosedDayJpaEntity entity) {
-        return ShopClosedDay.reconstitute(
+    static ShopClosedDayState toState(ShopClosedDayJpaEntity entity) {
+        return new ShopClosedDayState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getClosedDayType()
         );
     }
 
-    static ShopClosedDayJpaEntity toEntity(ShopClosedDay domain) {
+    static ShopClosedDayJpaEntity toEntity(ShopClosedDayState state) {
         return ShopClosedDayJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getClosedDayType()
+            state.shopId(),
+            state.closedDayType()
         );
     }
 }

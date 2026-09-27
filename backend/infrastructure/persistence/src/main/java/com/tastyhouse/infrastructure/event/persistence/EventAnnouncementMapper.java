@@ -1,37 +1,35 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import com.tastyhouse.domain.event.model.EventAnnouncement;
-import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementState;
 
 final class EventAnnouncementMapper {
     private EventAnnouncementMapper() {
     }
 
-    static EventAnnouncement toDomain(EventAnnouncementJpaEntity entity) {
-        return EventAnnouncement.reconstitute(
+    static EventAnnouncementState toState(EventAnnouncementJpaEntity entity) {
+        return new EventAnnouncementState(
             entity.getId(),
-            IdMapping.vo(entity.getEventId(), EventId::of),
+            entity.getEventId(),
             entity.getName(),
             entity.getContent(),
             entity.getAnnouncedAt()
         );
     }
 
-    static EventAnnouncementJpaEntity toEntity(EventAnnouncement domain) {
+    static EventAnnouncementJpaEntity toEntity(EventAnnouncementState state) {
         return EventAnnouncementJpaEntity.create(
-            IdMapping.raw(domain.getEventId(), EventId::value),
-            domain.getName(),
-            domain.getContent(),
-            domain.getAnnouncedAt()
+            state.eventId(),
+            state.name(),
+            state.content(),
+            state.announcedAt()
         );
     }
 
-    static void applyChanges(EventAnnouncementJpaEntity entity, EventAnnouncement domain) {
+    static void applyChanges(EventAnnouncementJpaEntity entity, EventAnnouncementState state) {
         entity.applyChanges(
-            domain.getName(),
-            domain.getContent(),
-            domain.getAnnouncedAt()
+            state.name(),
+            state.content(),
+            state.announcedAt()
         );
     }
 }

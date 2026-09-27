@@ -33,6 +33,6 @@ public class BannerQueryService implements BannerQueryUseCase {
     }
 
     private PageResult<BannerListItemResult> getBannersByType(BannerType type, int page, int size) {
-        return bannerQueryPort.findVisibleBannersByType(type, PageQuery.of(page, size));
+        return bannerQueryPort.findVisibleBannersByType(type.name(), PageQuery.of(page, size));
     }
 }

@@ -8,7 +8,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface ShopChoiceManagementQueryPort {
 
-    PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery);
+    PageResult<EditorChoiceResult> findEditorChoices(PageQuery pageQuery, int productLimit);
 
     List<StationResult> findAllStations();
 

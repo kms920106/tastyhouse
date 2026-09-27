@@ -30,7 +30,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = promoteStatus(status);
+        String approvalStatus = demoteStatus(status);
 
         return productManagementQueryPort.findImageChangeRequestPage(approvalStatus, PageQuery.of(page, size));
     }
@@ -41,7 +41,7 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = promoteStatus(status);
+        String approvalStatus = demoteStatus(status);
 
         return productManagementQueryPort.findVegetarianRequestPage(approvalStatus, PageQuery.of(page, size));
     }
@@ -52,12 +52,12 @@ public class ProductApprovalQueryService implements ProductApprovalQueryUseCase 
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = promoteStatus(status);
+        String approvalStatus = demoteStatus(status);
 
         return productManagementQueryPort.findRepresentativeRequestPage(approvalStatus, PageQuery.of(page, size));
     }
 
-    private ApprovalStatus promoteStatus(String status) {
-        return status == null ? null : ApprovalStatus.valueOf(status);
+    private String demoteStatus(String status) {
+        return status == null ? null : ApprovalStatus.valueOf(status).name();
     }
 }

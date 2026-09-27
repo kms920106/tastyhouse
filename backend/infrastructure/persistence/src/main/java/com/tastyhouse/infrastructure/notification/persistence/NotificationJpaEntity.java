@@ -4,15 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.notification.model.NotificationTargetType;
-import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,9 +21,8 @@ public class NotificationJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private NotificationType type;
+    private String type;
 
     @Column(name = "title", nullable = false, length = 100)
     private String title;
@@ -35,9 +30,8 @@ public class NotificationJpaEntity extends BaseEntity {
     @Column(name = "body", nullable = false, length = 500)
     private String body;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "target_type", length = 30, columnDefinition = "VARCHAR(30)")
-    private NotificationTargetType targetType;
+    private String targetType;
 
     @Column(name = "target_id")
     private Long targetId;
@@ -53,10 +47,10 @@ public class NotificationJpaEntity extends BaseEntity {
 
     private NotificationJpaEntity(
         Long memberId,
-        NotificationType type,
+        String type,
         String title,
         String body,
-        NotificationTargetType targetType,
+        String targetType,
         Long targetId,
         boolean read,
         LocalDateTime readAt
@@ -73,10 +67,10 @@ public class NotificationJpaEntity extends BaseEntity {
 
     static NotificationJpaEntity create(
         Long memberId,
-        NotificationType type,
+        String type,
         String title,
         String body,
-        NotificationTargetType targetType,
+        String targetType,
         Long targetId,
         boolean read,
         LocalDateTime readAt
@@ -97,7 +91,7 @@ public class NotificationJpaEntity extends BaseEntity {
         return this.memberId;
     }
 
-    public NotificationType getType() {
+    public String getType() {
         return this.type;
     }
 
@@ -109,7 +103,7 @@ public class NotificationJpaEntity extends BaseEntity {
         return this.body;
     }
 
-    public NotificationTargetType getTargetType() {
+    public String getTargetType() {
         return this.targetType;
     }
 

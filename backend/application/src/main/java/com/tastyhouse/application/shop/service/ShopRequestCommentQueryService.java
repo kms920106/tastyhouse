@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
@@ -28,6 +29,14 @@ public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUs
         shopRequestManagementQueryPort.findRequestDetail(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestManagementQueryPort.findComments(requestId);
+        return withAuthorTypeDescriptions(shopRequestManagementQueryPort.findComments(requestId));
+    }
+
+    private static List<ShopRequestCommentResult> withAuthorTypeDescriptions(List<ShopRequestCommentResult> comments) {
+        return comments.stream()
+            .map(comment -> comment.withAuthorTypeDescription(comment.authorType() == null
+                ? null
+                : ShopRequestCommentAuthorType.valueOf(comment.authorType()).getDescription()))
+            .toList();
     }
 }

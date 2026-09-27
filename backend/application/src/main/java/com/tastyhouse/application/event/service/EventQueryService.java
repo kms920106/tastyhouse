@@ -31,12 +31,12 @@ public class EventQueryService implements EventQueryUseCase {
     @Override
     public PageResult<EventListItemResult> getEventList(String status, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return eventQueryPort.findEventListItemsByStatus(EventStatus.from(status), pageQuery);
+        return eventQueryPort.findEventListItemsByStatus(EventStatus.from(status).name(), pageQuery);
     }
 
     @Override
     public EventDetailResult getEventDetail(Long eventId) {
-        return eventQueryPort.findEventBannerById(EventId.of(eventId))
+        return eventQueryPort.findEventBannerById(EventId.of(eventId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
     }
 

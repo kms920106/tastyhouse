@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.holiday.persistence;
 
-import com.tastyhouse.domain.holiday.model.PublicHoliday;
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayState;
 
 final class PublicHolidayMapper {
     private PublicHolidayMapper() {
     }
 
-    static PublicHoliday toDomain(PublicHolidayJpaEntity entity) {
-        return PublicHoliday.reconstitute(
+    static PublicHolidayState toState(PublicHolidayJpaEntity entity) {
+        return new PublicHolidayState(
             entity.getId(),
             entity.getHolidayDate(),
             entity.getName()

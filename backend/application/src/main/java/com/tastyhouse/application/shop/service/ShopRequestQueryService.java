@@ -29,9 +29,12 @@ import com.tastyhouse.application.shop.port.out.ShopRequestTypeView;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 
@@ -65,8 +68,8 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateDateRange(startDate, endDate);
 
-        ShopRequestType requestTypeFilter = requestType == null ? null : ShopRequestType.from(requestType);
-        ShopRequestStatus statusFilter = status == null ? null : ShopRequestStatus.from(status);
+        String requestTypeFilter = requestType == null ? null : ShopRequestType.from(requestType).name();
+        String statusFilter = status == null ? null : ShopRequestStatus.from(status).name();
 
         ShopRequestSearchCondition condition = ShopRequestSearchCondition.of(
             shopId,
@@ -89,7 +92,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
             .filter(row -> shopId.equals(row.shopId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return switch (detail.requestType()) {
+        return switch (ShopRequestType.valueOf(detail.requestType())) {
             case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResult(detail);
             case DELIVERY_AREA_ADJUSTMENT -> toAdjustmentDetailResult(detail);
             case REVIEW_BLIND -> toReviewBlindDetailResult(detail);
@@ -105,7 +108,15 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
             .filter(row -> shopId.equals(row.shopId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
-        return shopRequestQueryPort.findComments(detail.requestId());
+        return withAuthorTypeDescriptions(shopRequestQueryPort.findComments(detail.requestId()));
+    }
+
+    private static List<ShopRequestCommentResult> withAuthorTypeDescriptions(List<ShopRequestCommentResult> comments) {
+        return comments.stream()
+            .map(comment -> comment.withAuthorTypeDescription(comment.authorType() == null
+                ? null
+                : ShopRequestCommentAuthorType.valueOf(comment.authorType()).getDescription()))
+            .toList();
     }
 
     @Override
@@ -133,11 +144,14 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     private ShopRequestDetailViewResult toImageChangeDetailResult(ShopRequestDetailResult detail) {
         ShopRequestImageChangeDetailResult source =
             shopRequestQueryPort.findImageChangeDetail(detail.sourceRequestId())
+                .map(result -> result.withImageTypeDescription(result.imageType() == null
+                    ? null
+                    : ShopImageType.valueOf(result.imageType()).getDescription()))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return toDetailViewResult(
             detail,
-            toRequestStatus(source.status()),
+            toRequestStatus(ApprovalStatus.valueOf(source.status())),
             source.rejectReason(),
             source,
             null,
@@ -157,6 +171,9 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     private ShopRequestDetailViewResult toReviewBlindDetailResult(ShopRequestDetailResult detail) {
         ShopRequestReviewBlindDetailResult source =
             shopRequestQueryPort.findReviewBlindDetail(detail.sourceRequestId())
+                .map(result -> result.withReasonDescription(result.reason() == null
+                    ? null
+                    : ReviewBlindReason.valueOf(result.reason()).getDescription()))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return toDetailViewResult(
@@ -172,7 +189,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     private ShopRequestDetailViewResult toStorePriceVerificationDetailResult(ShopRequestDetailResult detail) {
         return toDetailViewResult(
             detail,
-            detail.status(),
+            ShopRequestStatus.valueOf(detail.status()),
             detail.rejectReason(),
             null,
             null,
@@ -187,7 +204,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
         return toDetailViewResult(
             detail,
-            toRequestStatus(source.status()),
+            toRequestStatus(DeliveryAreaAdjustmentStatus.valueOf(source.status())),
             source.rejectReason(),
             null,
             source,
@@ -213,7 +230,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         ShopRequestAdjustmentDetailResult deliveryAreaAdjustment,
         ShopRequestReviewBlindDetailResult reviewBlind
     ) {
-        ShopRequestType requestType = detail.requestType();
+        ShopRequestType requestType = ShopRequestType.valueOf(detail.requestType());
         return new ShopRequestDetailViewResult(
             detail.requestId(),
             requestType.name(),
@@ -236,15 +253,17 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     }
 
     private ShopRequestListItemViewResult toListItemViewResult(ShopRequestListItemResult row) {
+        ShopRequestType requestType = ShopRequestType.valueOf(row.requestType());
+        ShopRequestStatus status = ShopRequestStatus.valueOf(row.status());
         return new ShopRequestListItemViewResult(
             row.requestId(),
-            row.requestType().name(),
-            row.requestType().getDescription(),
+            requestType.name(),
+            requestType.getDescription(),
             row.summary(),
-            row.status().name(),
-            row.status().getDescription(),
+            status.name(),
+            status.getDescription(),
             row.rejectReason(),
-            row.requestType().isContractAmending(),
+            requestType.isContractAmending(),
             row.hasAttachment(),
             row.commentCount(),
             row.requestedAt(),

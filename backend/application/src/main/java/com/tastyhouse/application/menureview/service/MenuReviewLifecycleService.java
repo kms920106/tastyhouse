@@ -2,7 +2,7 @@ package com.tastyhouse.application.menureview.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.menureview.port.out.write.MenuReviewRepository;
+import com.tastyhouse.application.menureview.store.MenuReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

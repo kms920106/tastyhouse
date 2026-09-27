@@ -2,15 +2,12 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -44,9 +41,8 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
     @Column(name = "consent_file_id", nullable = false)
     private Long consentFileId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DeliveryAreaAdjustmentStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -61,7 +57,7 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         String franchiseName,
         String reason,
         Long consentFileId,
-        DeliveryAreaAdjustmentStatus status,
+        String status,
         String rejectReason
     ) {
         this.shopId = shopId;
@@ -81,7 +77,7 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         String franchiseName,
         String reason,
         Long consentFileId,
-        DeliveryAreaAdjustmentStatus status,
+        String status,
         String rejectReason
     ) {
         return new ShopDeliveryAreaAdjustmentRequestJpaEntity(
@@ -96,7 +92,7 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         );
     }
 
-    void applyChanges(DeliveryAreaAdjustmentStatus status, String rejectReason) {
+    void applyChanges(String status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;
     }
@@ -129,7 +125,7 @@ public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
         return this.consentFileId;
     }
 
-    public DeliveryAreaAdjustmentStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

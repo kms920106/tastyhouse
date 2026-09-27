@@ -1,6 +1,6 @@
 package com.tastyhouse.application.ceo.service;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
+import com.tastyhouse.application.ceo.store.CeoLoginHistoryRepository;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;

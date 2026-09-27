@@ -4,15 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -46,9 +43,8 @@ public class EventJpaEntity extends BaseEntity {
     @Column(name = "content_html", columnDefinition = "TEXT")
     private String contentHtml;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private EventStatus status;
+    private String status;
 
     @Column(name = "start_at", nullable = false)
     private LocalDateTime startAt;
@@ -69,7 +65,7 @@ public class EventJpaEntity extends BaseEntity {
         Long thumbnailImageFileId,
         Long bannerImageFileId,
         String contentHtml,
-        EventStatus status,
+        String status,
         LocalDateTime startAt,
         LocalDateTime endAt,
         boolean deleted
@@ -93,7 +89,7 @@ public class EventJpaEntity extends BaseEntity {
         Long thumbnailImageFileId,
         Long bannerImageFileId,
         String contentHtml,
-        EventStatus status,
+        String status,
         LocalDateTime startAt,
         LocalDateTime endAt,
         boolean deleted
@@ -119,7 +115,7 @@ public class EventJpaEntity extends BaseEntity {
         Long thumbnailImageFileId,
         Long bannerImageFileId,
         String contentHtml,
-        EventStatus status,
+        String status,
         LocalDateTime startAt,
         LocalDateTime endAt,
         boolean deleted
@@ -164,7 +160,7 @@ public class EventJpaEntity extends BaseEntity {
         return this.contentHtml;
     }
 
-    public EventStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

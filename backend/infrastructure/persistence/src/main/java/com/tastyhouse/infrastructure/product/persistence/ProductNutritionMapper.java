@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductNutrition;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionState;
 
 final class ProductNutritionMapper {
     private ProductNutritionMapper() {
     }
 
-    static ProductNutrition toDomain(ProductNutritionJpaEntity entity) {
-        return ProductNutrition.reconstitute(
+    static ProductNutritionState toState(ProductNutritionJpaEntity entity) {
+        return new ProductNutritionState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getProductId(),
             entity.getServingSize(),
             entity.getTotalAmount(),
             entity.getFlavor(),
@@ -32,44 +30,44 @@ final class ProductNutritionMapper {
         );
     }
 
-    static ProductNutritionJpaEntity toEntity(ProductNutrition domain) {
+    static ProductNutritionJpaEntity toEntity(ProductNutritionState state) {
         return ProductNutritionJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getServingSize(),
-            domain.getTotalAmount(),
-            domain.getFlavor(),
-            domain.getSize(),
-            domain.getCalorie(),
-            domain.getSugars(),
-            domain.getProtein(),
-            domain.getSaturatedFat(),
-            domain.getNatrium(),
-            domain.getCarbohydrate(),
-            domain.getCholesterol(),
-            domain.getFat(),
-            domain.getTransFat(),
-            domain.getCaffeine(),
-            domain.isSetMenu()
+            state.productId(),
+            state.servingSize(),
+            state.totalAmount(),
+            state.flavor(),
+            state.size(),
+            state.calorie(),
+            state.sugars(),
+            state.protein(),
+            state.saturatedFat(),
+            state.natrium(),
+            state.carbohydrate(),
+            state.cholesterol(),
+            state.fat(),
+            state.transFat(),
+            state.caffeine(),
+            state.setMenu()
         );
     }
 
-    static void applyChanges(ProductNutritionJpaEntity entity, ProductNutrition domain) {
+    static void applyChanges(ProductNutritionJpaEntity entity, ProductNutritionState state) {
         entity.applyChanges(
-            domain.getServingSize(),
-            domain.getTotalAmount(),
-            domain.getFlavor(),
-            domain.getSize(),
-            domain.getCalorie(),
-            domain.getSugars(),
-            domain.getProtein(),
-            domain.getSaturatedFat(),
-            domain.getNatrium(),
-            domain.getCarbohydrate(),
-            domain.getCholesterol(),
-            domain.getFat(),
-            domain.getTransFat(),
-            domain.getCaffeine(),
-            domain.isSetMenu()
+            state.servingSize(),
+            state.totalAmount(),
+            state.flavor(),
+            state.size(),
+            state.calorie(),
+            state.sugars(),
+            state.protein(),
+            state.saturatedFat(),
+            state.natrium(),
+            state.carbohydrate(),
+            state.cholesterol(),
+            state.fat(),
+            state.transFat(),
+            state.caffeine(),
+            state.setMenu()
         );
     }
 }

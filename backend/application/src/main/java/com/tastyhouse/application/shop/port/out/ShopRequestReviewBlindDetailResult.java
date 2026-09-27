@@ -10,4 +10,17 @@ public record ShopRequestReviewBlindDetailResult(
     String status,
     String rejectReason
 ) {
+
+    public ShopRequestReviewBlindDetailResult withReasonDescription(String reasonDescription) {
+        return new ShopRequestReviewBlindDetailResult(
+            this.reviewId,
+            this.reason,
+            reasonDescription,
+            this.detailReason,
+            this.reviewContent,
+            this.reviewTotalRating,
+            this.status,
+            this.rejectReason
+        );
+    }
 }

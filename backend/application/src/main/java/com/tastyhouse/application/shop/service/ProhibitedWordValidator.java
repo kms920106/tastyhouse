@@ -2,7 +2,7 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;

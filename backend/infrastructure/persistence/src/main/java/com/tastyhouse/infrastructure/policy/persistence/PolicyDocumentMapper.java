@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.policy.persistence;
 
-import com.tastyhouse.domain.policy.model.PolicyDocument;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentState;
 
 final class PolicyDocumentMapper {
     private PolicyDocumentMapper() {
     }
 
-    static PolicyDocument toDomain(PolicyDocumentJpaEntity entity) {
-        return PolicyDocument.reconstitute(
+    static PolicyDocumentState toState(PolicyDocumentJpaEntity entity) {
+        return new PolicyDocumentState(
             entity.getId(),
             entity.getType(),
             entity.getVersion(),
@@ -23,28 +23,28 @@ final class PolicyDocumentMapper {
         );
     }
 
-    static PolicyDocumentJpaEntity toEntity(PolicyDocument domain) {
+    static PolicyDocumentJpaEntity toEntity(PolicyDocumentState state) {
         return PolicyDocumentJpaEntity.create(
-            domain.getType(),
-            domain.getVersion(),
-            domain.getTitle(),
-            domain.getContent(),
-            domain.isCurrent(),
-            domain.isMandatory(),
-            domain.getEffectiveDate(),
-            domain.getCreatedBy(),
-            domain.getUpdatedBy()
+            state.type(),
+            state.version(),
+            state.title(),
+            state.content(),
+            state.current(),
+            state.mandatory(),
+            state.effectiveDate(),
+            state.createdBy(),
+            state.updatedBy()
         );
     }
 
-    static void applyChanges(PolicyDocumentJpaEntity entity, PolicyDocument domain) {
+    static void applyChanges(PolicyDocumentJpaEntity entity, PolicyDocumentState state) {
         entity.applyChanges(
-            domain.getTitle(),
-            domain.getContent(),
-            domain.isMandatory(),
-            domain.getEffectiveDate(),
-            domain.getUpdatedBy(),
-            domain.isCurrent()
+            state.title(),
+            state.content(),
+            state.mandatory(),
+            state.effectiveDate(),
+            state.updatedBy(),
+            state.current()
         );
     }
 }

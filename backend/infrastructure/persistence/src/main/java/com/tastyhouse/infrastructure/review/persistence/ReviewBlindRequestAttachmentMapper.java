@@ -1,28 +1,25 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
-import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentState;
 
 final class ReviewBlindRequestAttachmentMapper {
     private ReviewBlindRequestAttachmentMapper() {
     }
 
-    static ReviewBlindRequestAttachment toDomain(ReviewBlindRequestAttachmentJpaEntity entity) {
-        return ReviewBlindRequestAttachment.reconstitute(
+    static ReviewBlindRequestAttachmentState toState(ReviewBlindRequestAttachmentJpaEntity entity) {
+        return new ReviewBlindRequestAttachmentState(
             entity.getId(),
-            IdMapping.vo(entity.getBlindRequestId(), ReviewBlindRequestId::of),
-            IdMapping.vo(entity.getAttachmentFileId(), UploadedFileId::of),
+            entity.getBlindRequestId(),
+            entity.getAttachmentFileId(),
             entity.getSort()
         );
     }
 
-    static ReviewBlindRequestAttachmentJpaEntity toEntity(ReviewBlindRequestAttachment domain) {
+    static ReviewBlindRequestAttachmentJpaEntity toEntity(ReviewBlindRequestAttachmentState state) {
         return ReviewBlindRequestAttachmentJpaEntity.create(
-            IdMapping.raw(domain.getBlindRequestId(), ReviewBlindRequestId::value),
-            IdMapping.raw(domain.getAttachmentFileId(), UploadedFileId::value),
-            domain.getSort()
+            state.blindRequestId(),
+            state.attachmentFileId(),
+            state.sort()
         );
     }
 }

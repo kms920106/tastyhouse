@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.ceo.port.in.CeoOwnerQueryUseCase;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.store.CeoRepository;
 import com.tastyhouse.domain.ceo.model.Ceo;
 
 @Service

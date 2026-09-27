@@ -13,7 +13,7 @@ import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationRepository;
+import com.tastyhouse.application.sms.store.SmsVerificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.sms.model.SmsVerification;

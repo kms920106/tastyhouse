@@ -14,7 +14,7 @@ import com.tastyhouse.application.shop.port.in.ShopBusinessHourCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.DayType;

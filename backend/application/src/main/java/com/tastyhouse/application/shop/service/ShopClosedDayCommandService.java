@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopHolidayClosureUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

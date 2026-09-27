@@ -28,12 +28,12 @@ public class ShopMenuCollectionImageManagementQueryService implements ShopMenuCo
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = promoteStatus(status);
+        String approvalStatus = promoteStatus(status);
 
         return shopManagementQueryPort.findMenuCollectionImageRequestPage(approvalStatus, PageQuery.of(page, size));
     }
 
-    private ApprovalStatus promoteStatus(String status) {
-        return status == null ? null : ApprovalStatus.valueOf(status);
+    private String promoteStatus(String status) {
+        return status == null ? null : ApprovalStatus.valueOf(status).name();
     }
 }

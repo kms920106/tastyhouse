@@ -1,31 +1,28 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryState;
 
 final class ShopCeoAssignmentHistoryMapper {
     private ShopCeoAssignmentHistoryMapper() {
     }
 
-    static ShopCeoAssignmentHistory toDomain(ShopCeoAssignmentHistoryJpaEntity entity) {
-        return ShopCeoAssignmentHistory.reconstitute(
+    static ShopCeoAssignmentHistoryState toState(ShopCeoAssignmentHistoryJpaEntity entity) {
+        return new ShopCeoAssignmentHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getCeoId(), CeoId::of),
+            entity.getShopId(),
+            entity.getCeoId(),
             entity.getActionType(),
             entity.getActorAdminId(),
             entity.getCreatedAt()
         );
     }
 
-    static ShopCeoAssignmentHistoryJpaEntity toEntity(ShopCeoAssignmentHistory domain) {
+    static ShopCeoAssignmentHistoryJpaEntity toEntity(ShopCeoAssignmentHistoryState state) {
         return ShopCeoAssignmentHistoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getCeoId(), CeoId::value),
-            domain.getActionType(),
-            domain.getActorAdminId()
+            state.shopId(),
+            state.ceoId(),
+            state.actionType(),
+            state.actorAdminId()
         );
     }
 }

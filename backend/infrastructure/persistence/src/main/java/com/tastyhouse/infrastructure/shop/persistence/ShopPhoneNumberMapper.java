@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberState;
 
 final class ShopPhoneNumberMapper {
     private ShopPhoneNumberMapper() {
     }
 
-    static ShopPhoneNumber toDomain(ShopPhoneNumberJpaEntity entity) {
-        return ShopPhoneNumber.reconstitute(
+    static ShopPhoneNumberState toState(ShopPhoneNumberJpaEntity entity) {
+        return new ShopPhoneNumberState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getPhoneNumber(),
             entity.isPrimary(),
             entity.isVirtual(),
@@ -20,16 +18,16 @@ final class ShopPhoneNumberMapper {
         );
     }
 
-    static ShopPhoneNumberJpaEntity toEntity(ShopPhoneNumber domain) {
+    static ShopPhoneNumberJpaEntity toEntity(ShopPhoneNumberState state) {
         return ShopPhoneNumberJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getPhoneNumber(),
-            domain.isPrimary(),
-            domain.isVirtual()
+            state.shopId(),
+            state.phoneNumber(),
+            state.primary(),
+            state.virtual()
         );
     }
 
-    static void applyChanges(ShopPhoneNumberJpaEntity entity, ShopPhoneNumber domain) {
-        entity.applyChanges(domain.isPrimary());
+    static void applyChanges(ShopPhoneNumberJpaEntity entity, ShopPhoneNumberState state) {
+        entity.applyChanges(state.primary());
     }
 }

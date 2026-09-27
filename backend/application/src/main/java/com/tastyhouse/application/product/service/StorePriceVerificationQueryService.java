@@ -33,7 +33,7 @@ public class StorePriceVerificationQueryService implements StorePriceVerificatio
         int page,
         int size
     ) {
-        StorePriceVerificationStatus verificationStatus = promoteStatus(status);
+        String verificationStatus = demoteStatus(status);
 
         return storePriceVerificationQueryPort.findVerificationPage(verificationStatus, PageQuery.of(page, size));
     }
@@ -50,7 +50,7 @@ public class StorePriceVerificationQueryService implements StorePriceVerificatio
         return storePriceVerificationQueryPort.findVerificationItems(verificationId);
     }
 
-    private StorePriceVerificationStatus promoteStatus(String status) {
-        return status == null ? null : StorePriceVerificationStatus.from(status);
+    private String demoteStatus(String status) {
+        return status == null ? null : StorePriceVerificationStatus.from(status).name();
     }
 }

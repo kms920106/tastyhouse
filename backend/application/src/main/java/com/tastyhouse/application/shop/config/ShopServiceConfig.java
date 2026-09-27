@@ -1,36 +1,44 @@
 package com.tastyhouse.application.shop.config;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
+import com.tastyhouse.application.ceo.store.CeoRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionStatePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureStatePort;
 import com.tastyhouse.application.shop.port.out.write.StationRepository;
+import com.tastyhouse.application.shop.port.out.write.TagStatePort;
 import com.tastyhouse.application.shop.service.CachingProhibitedWordRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ReplyPhraseProhibitedWordValidatorAdapter;
@@ -61,6 +69,66 @@ import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.application.shop.service.ShopRequestIndexSyncAdapter;
 import com.tastyhouse.application.shop.service.ShopRiderGuideService;
 import com.tastyhouse.application.shop.service.ShopRiderGuideValidator;
+import com.tastyhouse.application.shop.service.StorePriceVerificationAdapter;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordStore;
+import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
+import com.tastyhouse.application.shop.store.ShopBookmarkStore;
+import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
+import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryStore;
+import com.tastyhouse.application.shop.store.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.store.ShopChangeHistoryStore;
+import com.tastyhouse.application.shop.store.ShopChoiceRepository;
+import com.tastyhouse.application.shop.store.ShopChoiceStore;
+import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.store.ShopContentBoardStore;
+import com.tastyhouse.application.shop.store.ShopConvenienceInfoRepository;
+import com.tastyhouse.application.shop.store.ShopConvenienceInfoStore;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaAdjustmentRequestStore;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaPolygonRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaPolygonStore;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaStore;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipStore;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopDetailStore;
+import com.tastyhouse.application.shop.store.ShopHygieneBadgeRepository;
+import com.tastyhouse.application.shop.store.ShopHygieneBadgeStore;
+import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.store.ShopImageChangeRequestStore;
+import com.tastyhouse.application.shop.store.ShopMenuCollectionImageRepository;
+import com.tastyhouse.application.shop.store.ShopMenuCollectionImageStore;
+import com.tastyhouse.application.shop.store.ShopNoticeImageRepository;
+import com.tastyhouse.application.shop.store.ShopNoticeImageStore;
+import com.tastyhouse.application.shop.store.ShopNoticeRepository;
+import com.tastyhouse.application.shop.store.ShopNoticeStore;
+import com.tastyhouse.application.shop.store.ShopOrderNoticeRepository;
+import com.tastyhouse.application.shop.store.ShopOrderNoticeStore;
+import com.tastyhouse.application.shop.store.ShopOriginInfoRepository;
+import com.tastyhouse.application.shop.store.ShopOriginInfoStore;
+import com.tastyhouse.application.shop.store.ShopPhoneNumberRepository;
+import com.tastyhouse.application.shop.store.ShopPhoneNumberStore;
+import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopRequestCommentRepository;
+import com.tastyhouse.application.shop.store.ShopRequestCommentStore;
+import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
+import com.tastyhouse.application.shop.store.ShopRequestIndexStore;
+import com.tastyhouse.application.shop.store.ShopRiderGuideRepository;
+import com.tastyhouse.application.shop.store.ShopRiderGuideStore;
+import com.tastyhouse.application.shop.store.ShopStore;
+import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.store.ShopSuspensionStore;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureStore;
+import com.tastyhouse.application.shop.store.TagRepository;
+import com.tastyhouse.application.shop.store.TagStore;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
+import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
@@ -425,5 +493,156 @@ public class ShopServiceConfig {
         ProhibitedWordValidator prohibitedWordValidator
     ) {
         return new ReplyPhraseProhibitedWordValidatorAdapter(prohibitedWordValidator);
+    }
+
+    @Bean
+    public ProhibitedWordRepository prohibitedWordRepository(ProhibitedWordStatePort prohibitedWordStatePort) {
+        return new ProhibitedWordStore(prohibitedWordStatePort);
+    }
+
+    @Bean
+    public ShopBookmarkRepository shopBookmarkRepository(ShopBookmarkStatePort shopBookmarkStatePort) {
+        return new ShopBookmarkStore(shopBookmarkStatePort);
+    }
+
+    @Bean
+    public ShopCeoAssignmentHistoryRepository shopCeoAssignmentHistoryRepository(ShopCeoAssignmentHistoryStatePort shopCeoAssignmentHistoryStatePort) {
+        return new ShopCeoAssignmentHistoryStore(shopCeoAssignmentHistoryStatePort);
+    }
+
+    @Bean
+    public ShopChangeHistoryRepository shopChangeHistoryRepository(ShopChangeHistoryStatePort shopChangeHistoryStatePort) {
+        return new ShopChangeHistoryStore(shopChangeHistoryStatePort);
+    }
+
+    @Bean
+    public ShopChoiceRepository shopChoiceRepository(ShopChoiceStatePort shopChoiceStatePort) {
+        return new ShopChoiceStore(shopChoiceStatePort);
+    }
+
+    @Bean
+    public ShopContentBoardRepository shopContentBoardRepository(ShopContentBoardStatePort shopContentBoardStatePort) {
+        return new ShopContentBoardStore(shopContentBoardStatePort);
+    }
+
+    @Bean
+    public ShopConvenienceInfoRepository shopConvenienceInfoRepository(ShopConvenienceInfoStatePort shopConvenienceInfoStatePort) {
+        return new ShopConvenienceInfoStore(shopConvenienceInfoStatePort);
+    }
+
+    @Bean
+    public ShopHygieneBadgeRepository shopHygieneBadgeRepository(ShopHygieneBadgeStatePort shopHygieneBadgeStatePort) {
+        return new ShopHygieneBadgeStore(shopHygieneBadgeStatePort);
+    }
+
+    @Bean
+    public ShopOriginInfoRepository shopOriginInfoRepository(ShopOriginInfoStatePort shopOriginInfoStatePort) {
+        return new ShopOriginInfoStore(shopOriginInfoStatePort);
+    }
+
+    @Bean
+    public ShopPhoneNumberRepository shopPhoneNumberRepository(ShopPhoneNumberStatePort shopPhoneNumberStatePort) {
+        return new ShopPhoneNumberStore(shopPhoneNumberStatePort);
+    }
+
+    @Bean
+    public TagRepository tagRepository(TagStatePort tagStatePort) {
+        return new TagStore(tagStatePort);
+    }
+
+    @Bean
+    public ShopRequestCommentRepository shopRequestCommentRepository(ShopRequestCommentStatePort shopRequestCommentStatePort) {
+        return new ShopRequestCommentStore(shopRequestCommentStatePort);
+    }
+
+    @Bean
+    public ShopSuspensionRepository shopSuspensionRepository(ShopSuspensionStatePort shopSuspensionStatePort) {
+        return new ShopSuspensionStore(shopSuspensionStatePort);
+    }
+
+    @Bean
+    public ShopTemporaryClosureRepository shopTemporaryClosureRepository(ShopTemporaryClosureStatePort shopTemporaryClosureStatePort) {
+        return new ShopTemporaryClosureStore(shopTemporaryClosureStatePort);
+    }
+
+    @Bean
+    public ShopNoticeRepository shopNoticeRepository(ShopNoticeStatePort shopNoticeStatePort) {
+        return new ShopNoticeStore(shopNoticeStatePort);
+    }
+
+    @Bean
+    public ShopNoticeImageRepository shopNoticeImageRepository(ShopNoticeImageStatePort shopNoticeImageStatePort) {
+        return new ShopNoticeImageStore(shopNoticeImageStatePort);
+    }
+
+    @Bean
+    public ShopOrderNoticeRepository shopOrderNoticeRepository(ShopOrderNoticeStatePort shopOrderNoticeStatePort) {
+        return new ShopOrderNoticeStore(shopOrderNoticeStatePort);
+    }
+
+    @Bean
+    public ShopRequestIndexRepository shopRequestIndexRepository(ShopRequestIndexStatePort shopRequestIndexStatePort) {
+        return new ShopRequestIndexStore(shopRequestIndexStatePort);
+    }
+
+    @Bean
+    public ShopImageChangeRequestRepository shopImageChangeRequestRepository(ShopImageChangeRequestStatePort shopImageChangeRequestStatePort) {
+        return new ShopImageChangeRequestStore(shopImageChangeRequestStatePort);
+    }
+
+    @Bean
+    public ShopMenuCollectionImageRepository shopMenuCollectionImageRepository(ShopMenuCollectionImageStatePort shopMenuCollectionImageStatePort) {
+        return new ShopMenuCollectionImageStore(shopMenuCollectionImageStatePort);
+    }
+
+    @Bean
+    public ShopRiderGuideRepository shopRiderGuideRepository(ShopRiderGuideStatePort shopRiderGuideStatePort) {
+        return new ShopRiderGuideStore(shopRiderGuideStatePort);
+    }
+
+    @Bean
+    public ShopDetailRepository shopDetailRepository(ShopDetailStatePort shopDetailStatePort) {
+        return new ShopDetailStore(shopDetailStatePort);
+    }
+
+    @Bean
+    public ShopRepository shopRepository(ShopStatePort shopStatePort) {
+        return new ShopStore(shopStatePort);
+    }
+
+    @Bean
+    public ShopDeliveryAreaRepository shopDeliveryAreaRepository(ShopDeliveryAreaStatePort shopDeliveryAreaStatePort) {
+        return new ShopDeliveryAreaStore(shopDeliveryAreaStatePort);
+    }
+
+    @Bean
+    public ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository(ShopDeliveryAreaPolygonStatePort shopDeliveryAreaPolygonStatePort) {
+        return new ShopDeliveryAreaPolygonStore(shopDeliveryAreaPolygonStatePort);
+    }
+
+    @Bean
+    public ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository(ShopDeliveryAreaAdjustmentRequestStatePort shopDeliveryAreaAdjustmentRequestStatePort) {
+        return new ShopDeliveryAreaAdjustmentRequestStore(shopDeliveryAreaAdjustmentRequestStatePort);
+    }
+
+    @Bean
+    public ShopDeliveryTipStore shopDeliveryTipStore(ShopDeliveryTipStatePort shopDeliveryTipStatePort) {
+        return new ShopDeliveryTipStore(shopDeliveryTipStatePort);
+    }
+
+    @Bean
+    public StorePriceVerificationAdapter storePriceVerificationAdapter(ShopRepository shopRepository) {
+        return new StorePriceVerificationAdapter(shopRepository);
+    }
+
+    @Bean
+    public ShopDeliveryTipRangePolicy shopDeliveryTipRangePolicy() {
+        return new ShopDeliveryTipRangePolicy(
+            DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND,
+            Arrays.stream(DeliveryTipDistanceUnit.values())
+                .collect(Collectors.toMap(DeliveryTipDistanceUnit::name, DeliveryTipDistanceUnit::getUnitMeters)),
+            code -> new BusinessException(ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
+                ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code)
+        );
     }
 }

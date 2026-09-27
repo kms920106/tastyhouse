@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;

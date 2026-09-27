@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import com.tastyhouse.domain.payment.model.PaymentRefund;
-import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundState;
 
 final class PaymentRefundMapper {
     private PaymentRefundMapper() {
     }
 
-    static PaymentRefund toDomain(PaymentRefundJpaEntity entity) {
-        return PaymentRefund.reconstitute(
+    static PaymentRefundState toState(PaymentRefundJpaEntity entity) {
+        return new PaymentRefundState(
             entity.getId(),
-            IdMapping.vo(entity.getPaymentId(), PaymentId::of),
+            entity.getPaymentId(),
             entity.getRefundAmount(),
             entity.getRefundReason(),
             entity.getRefundStatus(),
@@ -21,14 +19,14 @@ final class PaymentRefundMapper {
         );
     }
 
-    static PaymentRefundJpaEntity toEntity(PaymentRefund domain) {
+    static PaymentRefundJpaEntity toEntity(PaymentRefundState state) {
         return PaymentRefundJpaEntity.create(
-            IdMapping.raw(domain.getPaymentId(), PaymentId::value),
-            domain.getRefundAmount(),
-            domain.getRefundReason(),
-            domain.getRefundStatus(),
-            domain.getPgRefundId(),
-            domain.getRefundedAt()
+            state.paymentId(),
+            state.refundAmount(),
+            state.refundReason(),
+            state.refundStatus(),
+            state.pgRefundId(),
+            state.refundedAt()
         );
     }
 }

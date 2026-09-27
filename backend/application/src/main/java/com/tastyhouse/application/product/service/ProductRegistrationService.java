@@ -2,14 +2,14 @@ package com.tastyhouse.application.product.service;
 
 import java.math.BigDecimal;
 
-import com.tastyhouse.application.product.port.out.write.ProductBbqRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkRepository;
+import com.tastyhouse.application.product.store.ProductBbqRepository;
+import com.tastyhouse.application.product.store.ProductCategoryRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductShopLinkRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;

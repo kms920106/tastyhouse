@@ -11,7 +11,6 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -26,7 +25,7 @@ public class PolicyQueryDao implements PolicyQueryPort {
     }
 
     @Override
-    public Optional<PolicyDocumentResult> findCurrentByType(PolicyType type) {
+    public Optional<PolicyDocumentResult> findCurrentByType(String type) {
         PolicyDocumentResult result = queryFactory
             .select(policyDocumentDetailProjection())
             .from(policyDocumentJpaEntity)
@@ -40,7 +39,7 @@ public class PolicyQueryDao implements PolicyQueryPort {
     }
 
     @Override
-    public Optional<PolicyDocumentResult> findByTypeAndVersion(PolicyType type, String version) {
+    public Optional<PolicyDocumentResult> findByTypeAndVersion(String type, String version) {
         PolicyDocumentResult result = queryFactory
             .select(policyDocumentDetailProjection())
             .from(policyDocumentJpaEntity)
@@ -54,7 +53,7 @@ public class PolicyQueryDao implements PolicyQueryPort {
     }
 
     @Override
-    public PageResult<PolicyListItemResult> findAllByType(PolicyType type, PageQuery pageQuery) {
+    public PageResult<PolicyListItemResult> findAllByType(String type, PageQuery pageQuery) {
         Long total = queryFactory
             .select(policyDocumentJpaEntity.id.count())
             .from(policyDocumentJpaEntity)

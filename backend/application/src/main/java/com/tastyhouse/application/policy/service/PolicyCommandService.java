@@ -9,7 +9,7 @@ import com.tastyhouse.application.policy.port.in.PolicyActivateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyCommandUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyUpdateCommand;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentRepository;
+import com.tastyhouse.application.policy.store.PolicyDocumentRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.policy.model.PolicyDocument;

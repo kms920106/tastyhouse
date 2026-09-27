@@ -3,8 +3,6 @@ package com.tastyhouse.application.shop.port.out;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.shop.model.FoodType;
-
 public record LatestShopItemResult(
     Long id,
     String name,
@@ -14,7 +12,7 @@ public record LatestShopItemResult(
     LocalDateTime createdAt,
     Long reviewCount,
     Long bookmarkCount,
-    List<FoodType> foodTypes,
+    List<String> foodTypes,
     int minOrderAmount,
     int minDeliveryTip,
     int maxDeliveryTip

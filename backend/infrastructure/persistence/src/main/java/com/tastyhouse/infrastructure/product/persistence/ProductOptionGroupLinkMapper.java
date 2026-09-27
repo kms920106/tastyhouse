@@ -1,32 +1,29 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkState;
 
 final class ProductOptionGroupLinkMapper {
     private ProductOptionGroupLinkMapper() {
     }
 
-    static ProductOptionGroupLink toDomain(ProductOptionGroupLinkJpaEntity entity) {
-        return ProductOptionGroupLink.reconstitute(
+    static ProductOptionGroupLinkState toState(ProductOptionGroupLinkJpaEntity entity) {
+        return new ProductOptionGroupLinkState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getOptionGroupId(), ProductOptionGroupId::of),
+            entity.getProductId(),
+            entity.getOptionGroupId(),
             entity.getSort()
         );
     }
 
-    static ProductOptionGroupLinkJpaEntity toEntity(ProductOptionGroupLink domain) {
+    static ProductOptionGroupLinkJpaEntity toEntity(ProductOptionGroupLinkState state) {
         return ProductOptionGroupLinkJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getOptionGroupId(), ProductOptionGroupId::value),
-            domain.getSort()
+            state.productId(),
+            state.optionGroupId(),
+            state.sort()
         );
     }
 
-    static void applyChanges(ProductOptionGroupLinkJpaEntity entity, ProductOptionGroupLink domain) {
-        entity.applyChanges(domain.getSort());
+    static void applyChanges(ProductOptionGroupLinkJpaEntity entity, ProductOptionGroupLinkState state) {
+        entity.applyChanges(state.sort());
     }
 }

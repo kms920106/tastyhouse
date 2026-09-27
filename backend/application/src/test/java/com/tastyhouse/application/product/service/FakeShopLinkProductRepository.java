@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;

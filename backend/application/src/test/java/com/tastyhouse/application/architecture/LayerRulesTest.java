@@ -75,8 +75,10 @@ class LayerRulesTest {
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopQueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminQueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerQueryService")
-            .should().dependOnClassesThat().resideInAnyPackage("com.tastyhouse.application..port.out.write..")
-            .because("QueryService는 write 포트를 주입하지 않는다(CQRS 교차 주입 금지)");
+            .should().dependOnClassesThat().resideInAnyPackage(
+                "com.tastyhouse.application..port.out.write..",
+                "com.tastyhouse.application..store..")
+            .because("QueryService는 write 포트도 Store(도메인 타입 리포지토리)도 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -205,11 +207,10 @@ class LayerRulesTest {
             .should().onlyDependOnClassesThat()
             .resideInAnyPackage(
                 "java..",
-                "com.tastyhouse.domain..",
                 "com.tastyhouse.application..port.out.."
             )
-            .because("읽기 계약은 도메인 타입만 참조한다 — application-common-module에서 "
-                + "빌드 게이트로 강제되던 프레임워크-프리를 규칙으로 승계한다");
+            .because("port.out(읽기 계약·State·StatePort)은 infrastructure가 보는 유일한 application 표면이다 — "
+                + "도메인 타입을 참조하면 persistence가 domain을 다시 알게 된다(엄격 레이어드)");
 
         rule.check(classes);
     }

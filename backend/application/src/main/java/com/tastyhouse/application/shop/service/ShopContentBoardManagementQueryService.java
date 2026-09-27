@@ -30,7 +30,7 @@ public class ShopContentBoardManagementQueryService implements ShopContentBoardM
         int page,
         int size
     ) {
-        ShopContentType type = contentType == null ? null : ShopContentType.from(contentType);
+        String type = contentType == null ? null : ShopContentType.from(contentType).name();
 
         return shopManagementQueryPort.findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
     }

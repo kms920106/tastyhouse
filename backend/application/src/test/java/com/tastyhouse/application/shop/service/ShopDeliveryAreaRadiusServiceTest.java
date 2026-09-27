@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;

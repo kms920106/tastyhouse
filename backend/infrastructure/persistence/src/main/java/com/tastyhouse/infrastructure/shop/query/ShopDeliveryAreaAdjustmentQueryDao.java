@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -42,7 +41,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
 
     @Override
     public PageResult<ShopDeliveryAreaAdjustmentListItemResult> findAdjustmentRequestPage(
-        DeliveryAreaAdjustmentStatus status,
+        String status,
         Long shopId,
         PageQuery pageQuery
     ) {
@@ -112,7 +111,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopDeliveryAreaAdjustmentRequestJpaEntity.consentFileId));
     }
 
-    private BooleanExpression statusEq(DeliveryAreaAdjustmentStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? shopDeliveryAreaAdjustmentRequestJpaEntity.status.eq(status) : null;
     }
 

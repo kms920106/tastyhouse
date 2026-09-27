@@ -10,10 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.store.ShopConvenienceInfoRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;

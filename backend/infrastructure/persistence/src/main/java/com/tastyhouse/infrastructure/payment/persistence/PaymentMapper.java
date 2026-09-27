@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.payment.model.Payment;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.payment.port.out.write.PaymentState;
 
 final class PaymentMapper {
     private PaymentMapper() {
     }
 
-    static Payment toDomain(PaymentJpaEntity entity) {
-        return Payment.reconstitute(
+    static PaymentState toState(PaymentJpaEntity entity) {
+        return new PaymentState(
             entity.getId(),
-            IdMapping.vo(entity.getOrderId(), OrderId::of),
+            entity.getOrderId(),
             entity.getPaymentMethod(),
             entity.getPaymentStatus(),
             entity.getAmount(),
@@ -29,38 +27,38 @@ final class PaymentMapper {
         );
     }
 
-    static PaymentJpaEntity toEntity(Payment domain) {
+    static PaymentJpaEntity toEntity(PaymentState state) {
         return PaymentJpaEntity.create(
-            IdMapping.raw(domain.getOrderId(), OrderId::value),
-            domain.getPaymentMethod(),
-            domain.getPaymentStatus(),
-            domain.getAmount(),
-            domain.getPgProvider(),
-            domain.getPgTid(),
-            domain.getPgOrderId(),
-            domain.getCardCompany(),
-            domain.getCardNumber(),
-            domain.getInstallmentMonths(),
-            domain.getApprovedAt(),
-            domain.getCancelledAt(),
-            domain.getCancelReason(),
-            domain.getReceiptUrl()
+            state.orderId(),
+            state.paymentMethod(),
+            state.paymentStatus(),
+            state.amount(),
+            state.pgProvider(),
+            state.pgTid(),
+            state.pgOrderId(),
+            state.cardCompany(),
+            state.cardNumber(),
+            state.installmentMonths(),
+            state.approvedAt(),
+            state.cancelledAt(),
+            state.cancelReason(),
+            state.receiptUrl()
         );
     }
 
-    static void applyChanges(PaymentJpaEntity entity, Payment domain) {
+    static void applyChanges(PaymentJpaEntity entity, PaymentState state) {
         entity.applyChanges(
-            domain.getPaymentStatus(),
-            domain.getPgProvider(),
-            domain.getPgTid(),
-            domain.getPgOrderId(),
-            domain.getCardCompany(),
-            domain.getCardNumber(),
-            domain.getInstallmentMonths(),
-            domain.getApprovedAt(),
-            domain.getCancelledAt(),
-            domain.getCancelReason(),
-            domain.getReceiptUrl()
+            state.paymentStatus(),
+            state.pgProvider(),
+            state.pgTid(),
+            state.pgOrderId(),
+            state.cardCompany(),
+            state.cardNumber(),
+            state.installmentMonths(),
+            state.approvedAt(),
+            state.cancelledAt(),
+            state.cancelReason(),
+            state.receiptUrl()
         );
     }
 }

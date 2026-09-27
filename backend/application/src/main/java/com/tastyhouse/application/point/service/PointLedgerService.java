@@ -2,8 +2,8 @@ package com.tastyhouse.application.point.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.point.port.out.write.PointHistoryRepository;
-import com.tastyhouse.application.point.port.out.write.PointRepository;
+import com.tastyhouse.application.point.store.PointHistoryRepository;
+import com.tastyhouse.application.point.store.PointRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

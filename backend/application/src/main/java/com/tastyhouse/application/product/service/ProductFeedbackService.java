@@ -2,9 +2,9 @@ package com.tastyhouse.application.product.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadRepository;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductFeedbackReadRepository;
+import com.tastyhouse.application.product.store.ProductFeedbackRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

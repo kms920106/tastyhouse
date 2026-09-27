@@ -2,6 +2,7 @@ package com.tastyhouse.infrastructure.product.query;
 
 import com.tastyhouse.application.product.port.out.ProductFeedbackQueryPort;
 import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
+import com.tastyhouse.application.product.port.out.ProductFeedbackTypeCodes;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -12,7 +13,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -87,17 +87,17 @@ public class ProductFeedbackQueryDao implements ProductFeedbackQueryPort {
 
     private ProductFeedbackSummaryResult toSummary(Tuple row, Map<Long, List<String>> contentsByProductId) {
         Long productId = row.get(productFeedbackJpaEntity.productId);
-        ProductFeedbackType feedbackType = row.get(productFeedbackJpaEntity.feedbackType);
+        String feedbackType = row.get(productFeedbackJpaEntity.feedbackType);
         Long rowCount = row.get(productFeedbackJpaEntity.count());
 
-        List<String> contents = feedbackType == ProductFeedbackType.ETC
+        List<String> contents = ProductFeedbackTypeCodes.ETC.equals(feedbackType)
             ? contentsByProductId.getOrDefault(productId, List.of())
             : List.of();
 
         return new ProductFeedbackSummaryResult(
             productId,
             row.get(productJpaEntity.name),
-            feedbackType.name(),
+            feedbackType,
             rowCount == null ? 0 : rowCount.intValue(),
             contents
         );
@@ -105,7 +105,7 @@ public class ProductFeedbackQueryDao implements ProductFeedbackQueryPort {
 
     private Map<Long, List<String>> findEtcContents(Long shopId, LocalDateTime since, List<Tuple> rows) {
         List<Long> etcProductIds = rows.stream()
-            .filter(row -> row.get(productFeedbackJpaEntity.feedbackType) == ProductFeedbackType.ETC)
+            .filter(row -> ProductFeedbackTypeCodes.ETC.equals(row.get(productFeedbackJpaEntity.feedbackType)))
             .map(row -> row.get(productFeedbackJpaEntity.productId))
             .distinct()
             .toList();
@@ -120,7 +120,7 @@ public class ProductFeedbackQueryDao implements ProductFeedbackQueryPort {
             .where(
                 productFeedbackJpaEntity.shopId.eq(shopId),
                 productFeedbackJpaEntity.createdAt.goe(since),
-                productFeedbackJpaEntity.feedbackType.eq(ProductFeedbackType.ETC),
+                productFeedbackJpaEntity.feedbackType.eq(ProductFeedbackTypeCodes.ETC),
                 productFeedbackJpaEntity.productId.in(etcProductIds),
                 productFeedbackJpaEntity.content.isNotNull()
             )

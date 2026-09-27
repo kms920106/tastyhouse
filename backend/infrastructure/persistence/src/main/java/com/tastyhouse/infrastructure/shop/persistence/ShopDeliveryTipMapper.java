@@ -1,22 +1,19 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
-import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
-import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
-import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
-import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipHolidayState;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionState;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipScheduleState;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSettingState;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipTierState;
 
 final class ShopDeliveryTipMapper {
     private ShopDeliveryTipMapper() {
     }
 
-    static ShopDeliveryTipSetting toDomain(ShopDeliveryTipSettingJpaEntity entity) {
-        return ShopDeliveryTipSetting.reconstitute(
+    static ShopDeliveryTipSettingState toState(ShopDeliveryTipSettingJpaEntity entity) {
+        return new ShopDeliveryTipSettingState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getExtraTipType(),
             entity.getBaseDistanceMeters(),
             entity.getSurchargeUnit(),
@@ -26,65 +23,65 @@ final class ShopDeliveryTipMapper {
         );
     }
 
-    static ShopDeliveryTipSettingJpaEntity toEntity(ShopDeliveryTipSetting domain) {
+    static ShopDeliveryTipSettingJpaEntity toEntity(ShopDeliveryTipSettingState state) {
         return ShopDeliveryTipSettingJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getExtraTipType(),
-            domain.getBaseDistanceMeters(),
-            domain.getSurchargeUnit(),
-            domain.getSurchargeAmount()
+            state.shopId(),
+            state.extraTipType(),
+            state.baseDistanceMeters(),
+            state.surchargeUnit(),
+            state.surchargeAmount()
         );
     }
 
-    static void applyChanges(ShopDeliveryTipSettingJpaEntity entity, ShopDeliveryTipSetting domain) {
+    static void applyChanges(ShopDeliveryTipSettingJpaEntity entity, ShopDeliveryTipSettingState state) {
         entity.applyChanges(
-            domain.getExtraTipType(),
-            domain.getBaseDistanceMeters(),
-            domain.getSurchargeUnit(),
-            domain.getSurchargeAmount()
+            state.extraTipType(),
+            state.baseDistanceMeters(),
+            state.surchargeUnit(),
+            state.surchargeAmount()
         );
     }
 
-    static ShopDeliveryTipTier toDomain(ShopDeliveryTipTierJpaEntity entity) {
-        return ShopDeliveryTipTier.reconstitute(
+    static ShopDeliveryTipTierState toState(ShopDeliveryTipTierJpaEntity entity) {
+        return new ShopDeliveryTipTierState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getTierOrder(),
             entity.getMinOrderAmount(),
             entity.getTipAmount()
         );
     }
 
-    static ShopDeliveryTipTierJpaEntity toEntity(ShopDeliveryTipTier domain) {
+    static ShopDeliveryTipTierJpaEntity toEntity(ShopDeliveryTipTierState state) {
         return ShopDeliveryTipTierJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getTierOrder(),
-            domain.getMinOrderAmount(),
-            domain.getTipAmount()
+            state.shopId(),
+            state.tierOrder(),
+            state.minOrderAmount(),
+            state.tipAmount()
         );
     }
 
-    static ShopDeliveryTipRegion toDomain(ShopDeliveryTipRegionJpaEntity entity) {
-        return ShopDeliveryTipRegion.reconstitute(
+    static ShopDeliveryTipRegionState toState(ShopDeliveryTipRegionJpaEntity entity) {
+        return new ShopDeliveryTipRegionState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getAdminDongId(), AdminDongId::of),
+            entity.getShopId(),
+            entity.getAdminDongId(),
             entity.getTipAmount()
         );
     }
 
-    static ShopDeliveryTipRegionJpaEntity toEntity(ShopDeliveryTipRegion domain) {
+    static ShopDeliveryTipRegionJpaEntity toEntity(ShopDeliveryTipRegionState state) {
         return ShopDeliveryTipRegionJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getAdminDongId(), AdminDongId::value),
-            domain.getTipAmount()
+            state.shopId(),
+            state.adminDongId(),
+            state.tipAmount()
         );
     }
 
-    static ShopDeliveryTipSchedule toDomain(ShopDeliveryTipScheduleJpaEntity entity) {
-        return ShopDeliveryTipSchedule.reconstitute(
+    static ShopDeliveryTipScheduleState toState(ShopDeliveryTipScheduleJpaEntity entity) {
+        return new ShopDeliveryTipScheduleState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getDayType(),
             entity.getStartTime(),
             entity.getEndTime(),
@@ -92,32 +89,32 @@ final class ShopDeliveryTipMapper {
         );
     }
 
-    static ShopDeliveryTipScheduleJpaEntity toEntity(ShopDeliveryTipSchedule domain) {
+    static ShopDeliveryTipScheduleJpaEntity toEntity(ShopDeliveryTipScheduleState state) {
         return ShopDeliveryTipScheduleJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getDayType(),
-            domain.getStartTime(),
-            domain.getEndTime(),
-            domain.getTipAmount()
+            state.shopId(),
+            state.dayType(),
+            state.startTime(),
+            state.endTime(),
+            state.tipAmount()
         );
     }
 
-    static ShopDeliveryTipHoliday toDomain(ShopDeliveryTipHolidayJpaEntity entity) {
-        return ShopDeliveryTipHoliday.reconstitute(
+    static ShopDeliveryTipHolidayState toState(ShopDeliveryTipHolidayJpaEntity entity) {
+        return new ShopDeliveryTipHolidayState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getTipAmount()
         );
     }
 
-    static ShopDeliveryTipHolidayJpaEntity toEntity(ShopDeliveryTipHoliday domain) {
+    static ShopDeliveryTipHolidayJpaEntity toEntity(ShopDeliveryTipHolidayState state) {
         return ShopDeliveryTipHolidayJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getTipAmount()
+            state.shopId(),
+            state.tipAmount()
         );
     }
 
-    static void applyChanges(ShopDeliveryTipHolidayJpaEntity entity, ShopDeliveryTipHoliday domain) {
-        entity.applyChanges(domain.getTipAmount());
+    static void applyChanges(ShopDeliveryTipHolidayJpaEntity entity, ShopDeliveryTipHolidayState state) {
+        entity.applyChanges(state.tipAmount());
     }
 }

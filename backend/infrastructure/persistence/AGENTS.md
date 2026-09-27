@@ -6,7 +6,25 @@
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
-`domain`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxRepository` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 03b까지 domain 모델 그대로)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+> **(덩어리 03b) 이 모듈은 `domain`을 모른다 — `XxxState` record를 저장한다.** `build.gradle`의 프로젝트 의존은 `implementation project(':application')` 하나이고(`api project(':domain')` 제거), `com.tastyhouse.domain..` import는 main·test 모두 0건이다(`architecture/LayerRulesTest#infrastructureShouldNotDependOnDomain`). 도메인 모델 ↔ State 변환은 `application/<ctx>/store/`가 한다(`../../application/AGENTS.md`의 "덩어리 03b" 절).
+>
+> | 항목 | before (03a까지) | after (03b) |
+> |---|---|---|
+> | 구현하는 write 포트 | `application/<ctx>/port/out/write/XxxRepository`(도메인 모델 시그니처) | **`application/<ctx>/port/out/write/XxxStatePort`**(`XxxState`·`Long`·`String` 시그니처, 메서드 이름은 Repository와 같음) |
+> | 구현 클래스 | `<ctx>/persistence/XxxRepositoryImpl` | **`<ctx>/persistence/XxxStatePortImpl`**(`git mv` 개명, `@Repository` 유지) — 105개. 예외: 도메인 타입을 쓰지 않는 `shop/persistence/StationRepositoryImpl`(`StationRepository#existsById(Long)`)만 이름·포트 그대로 |
+> | 매퍼 `XxxMapper` | `toDomain(entity)`·`toEntity(domain)`·`applyChanges(entity, domain)` | **`toState(entity)`·`toEntity(state)`·`applyChanges(entity, state)`** |
+> | 엔티티 enum 필드 | 도메인 enum + `@Enumerated(EnumType.STRING)` | **`String`**, `@Enumerated` 0건. `@Column(... columnDefinition = "VARCHAR(n)")`은 글자 하나 바꾸지 않음(DDL 불변) |
+> | `@Embedded` 대상 | domain VO record(`PhoneNumber` 등) | **이 모듈 소유 `@Embeddable` record `XxxEmbeddable`** 5종 |
+> | DAO의 enum 상수 비교 | `.eq(OrderStatus.COMPLETED)` | `.eq(OrderStatusCodes.COMPLETED)`(`application/<ctx>/port/out/XxxCodes`) |
+> | 도메인 예외·정책 | 일부 어댑터·DAO가 `BusinessException`·`ErrorCode`·도메인 정책 호출 | **0건** — `Optional`/`boolean`/원자료를 돌려주고 application이 판정·예외화 |
+> | 삭제 | — | `shared/persistence/IdMapping`(+`IdMappingTest`) · `shared/query/EnumLabelProjection` · `shared/query/GeoRingsResolver`(+ 계약 `application/shared/port/out/GeoRingsQueryPort`) · `order/query/PaymentProjection` · `payment/persistence/AmountConverter` |
+> | 이동 | — | `shared/persistence/GeoPolygonTextCodec`(+테스트) → `domain/src/main/java/com/tastyhouse/domain/shared/geo/GeoPolygonTextCodec.java` · `StorePriceVerificationAdapter` → `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java` |
+>
+> **(03b) 감수한 동작 차이 — enum 문자열 앞뒤 공백.** 03a까지는 Hibernate `@Enumerated(STRING)`이 복원할 때 `EnumJavaType.fromName`에서 `Enum.valueOf(cls, value.trim())`을 호출해, DB 값에 앞뒤 공백이 있어도(`'ACTIVE '`) 정상 복원했다. 03b부터는 엔티티 필드가 `String`이고 `application/<ctx>/store/*StateMapper.toDomain`이 `Enum.valueOf(state.x())`를 trim 없이 호출하므로, 같은 값은 `IllegalArgumentException`(500)이 된다. 앱이 쓰는 값은 전부 `name()`이라 공백이 생기지 않으므로, 수동 입력·레거시 데이터에만 해당하는 차이로 보고 감수했다. 이런 데이터가 발견되면 StateMapper를 고치지 말고 데이터를 정정한다.
+
+> **이 문서 본문의 `XxxRepositoryImpl`은 `XxxStatePortImpl`로, "매퍼의 `toDomain`"은 "매퍼의 `toState`"로 읽는다**(예: `FaqCategoryRepositoryImpl` → `FaqCategoryStatePortImpl`, `ReservationSlotRepositoryImpl` → `ReservationSlotStatePortImpl`). 규칙의 내용(load-copy-save, PK 조회에 소프트 삭제 필터 금지, 벌크 delete 등)은 그대로다. 이름만이 아니라 **내용이 바뀐 절**에는 해당 위치에 "(번복됨 — 03b)"를 달았다.
+
+~~`domain`의 순수 도메인 모델을 영속화하고~~ **(03b) `application`이 도메인 모델에서 만든 `XxxState`를 영속화하고**, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxRepository` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 03b까지 domain 모델 그대로. **03b로 이 모듈이 구현하는 것은 `XxxStatePort`가 됐다**)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
@@ -18,13 +36,15 @@ com.tastyhouse.infrastructure/
 │                                         @EnableJpaAuditing + @EnableTransactionManagement
 ├── config/QueryDslConfig.java            JPAQueryFactory 빈
 ├── shared/persistence/BaseEntity.java    @MappedSuperclass — @CreatedDate/@LastModifiedDate 감사 필드
+├── shared/persistence/{PhoneNumber,VerificationCode}Embeddable.java   (03b) 여러 엔티티가 공유하는 @Embeddable record
 └── <도메인>/
-    ├── persistence/                      write 어댑터
-    │   ├── XxxJpaEntity.java             @Entity — DB 매핑 전용(비즈니스 행위 없음), BaseEntity 상속
-    │   ├── XxxMapper.java                도메인 ↔ 엔티티 변환 (package-private, toDomain/toEntity/applyChanges)
+    ├── persistence/                      write 어댑터 (03b — domain을 모른다)
+    │   ├── XxxJpaEntity.java             @Entity — DB 매핑 전용(비즈니스 행위 없음), BaseEntity 상속. enum 컬럼은 String 필드
+    │   ├── XxxEmbeddable.java            (03b) @Embeddable record — 이 컨텍스트 전용 복합 컬럼(컴포넌트 알파벳순)
+    │   ├── XxxMapper.java                XxxState ↔ 엔티티 변환 (package-private, toState/toEntity(state)/applyChanges(entity, state))
     │   ├── XxxJpaRepository.java         Spring Data JpaRepository<XxxJpaEntity, Long>
-    │   ├── XxxRepositoryImpl.java        @Repository — domain XxxRepository(write 포트) 구현
-    │   └── XxxIdConverter.java           AttributeConverter<XxxId, Long> (@Convert FK VO 매핑)
+    │   └── XxxStatePortImpl.java         @Repository — application XxxStatePort(port/out/write) 구현, load-copy-save
+    │                                     (03b 이전 XxxRepositoryImpl. XxxIdConverter는 정책 B로 이미 삭제)
     └── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**
         └── XxxQueryDao.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
                                           (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
@@ -39,15 +59,16 @@ com.tastyhouse.infrastructure/
 
 - **패키지 루트는 `com.tastyhouse.infrastructure`** — **챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`으로 스스로 스캔**해 빈(RepositoryImpl·QueryDao·Config)을 등록한다(`redis` 하위 패키지는 `excludeFilters`로 제외 — 그쪽은 `RedisModuleAutoConfiguration`이 갖는다). 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄만 갖는다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
 - **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
-- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다.
+- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. **(03b)** `XxxState`·`XxxSnapshot`·`XxxStatePort`(`..port.out.write..`)와 `XxxCodes`(`..port.out..`)도 같은 예외로 보인다. 도메인 타입을 쓰는 `application/<ctx>/store/`(`XxxRepository`·`XxxStore`)는 `port.out` 밖이라 이 모듈이 볼 수 없다 — 그래야 한다.
+- **이 모듈은 `domain`을 참조하지 않는다 (덩어리 03b 신설)**: `LayerRulesTest#infrastructureShouldNotDependOnDomain`. `build.gradle`에서 `:domain`을 뺐으므로 컴파일 게이트가 1차 방어선이다. 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 이 모듈에 domain을 되살리지 말고, 원자료를 돌려주고 application의 Store·QueryService가 판정하게 한다.
 - **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
 - **Q타입 생성 위치 (개정됨)**: `QXxxJpaEntity`(엔티티)는 이 모듈에서 생성된다(`build/generated/sources/annotationProcessor/java/main`). **`QXxxResult`(Result DTO의 Q타입)는 더 이상 생성되지 않는다** — Result record가 QueryDSL을 모르는 계약 모듈로 이관되며 `@QueryProjection`을 뗐고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건). 계약 소유 모듈 어디에도 apt가 없어 Q타입이 생성되지 않는다.
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 `mail`·`sms` 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
-- **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`).
-- **저장 시맨틱은 load-copy-save**: `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
-- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl`). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
+- **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`). **(번복됨 — 03b) `@Embedded` 대상은 domain VO가 아니라 이 모듈의 `@Embeddable` record다** — `shared/persistence/PhoneNumberEmbeddable(String value)`·`shared/persistence/VerificationCodeEmbeddable`·`product/persistence/ProductDiscountInfoEmbeddable`·`order/persistence/OrderDeliveryDestinationEmbeddable`·`order/persistence/OrderScheduleEmbeddable`. 이름 규칙은 `<domain VO 이름>Embeddable`, 위치는 쓰는 엔티티와 같은 패키지(여러 컨텍스트가 쓰면 `shared/persistence/`). 컴포넌트 이름은 domain VO와 같게 두어 `@AttributeOverride(name = ...)`를 한 글자도 바꾸지 않았고, **컴포넌트 선언 순서는 알파벳순**(`EmbeddedRecordComponentOrderTest`), 그 안의 enum·VO 컴포넌트는 원시 타입(`String`·`Long`·`Integer`·`BigDecimal`)이다. State 쪽에서는 이 값이 `XxxSnapshot` record(예: `OrderDeliveryDestinationSnapshot`)나 원시 컴포넌트로 온다.
+- **저장 시맨틱은 load-copy-save**: **(03b — 위치만)** 아래 `save(domain)`은 지금 `XxxStatePortImpl#save(XxxState)`다(`state.id() == null`이면 `XxxMapper.toEntity(state)` insert, 아니면 PK 조회 후 `XxxMapper.applyChanges(entity, state)`, 반환은 `XxxMapper.toState(entity)`). `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
+- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotStatePortImpl` — 03b 이전 `ReservationSlotRepositoryImpl`). 예외 타입이 `application/shared/port/out/`에 있어 domain 없이 던질 수 있다(03a가 03b를 위해 옮겨 둔 것). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
-- **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
+- **엔티티 enum 매핑**: ~~항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지.~~ **(번복됨 — 03b)** 엔티티는 domain enum을 모르므로 **enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`**이다(`@Enumerated` 0건). 저장값은 여전히 **상수명 문자열**이다 — 강등(`name()`)·승격(`valueOf`)은 `application/<ctx>/store/XxxStateMapper`가 한다(ORDINAL 금지 취지의 승계). 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, 03b가 `@Column`을 글자 하나 바꾸지 않았고 `n`이 `schema.sql` 길이의 문서이므로 **떼지 않는다**. DAO에서 상수와 비교할 때는 리터럴이 아니라 `application/<ctx>/port/out/XxxCodes`(공용은 `application/shared/port/out/ApprovalStatusCodes`·`DayTypeCodes`) 상수를 쓴다 — `EnumCodeConstantsTest`가 도메인 enum과 1:1을 검사한다. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙"의 번복 표기.
 - **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordRepository`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
   - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. 과거 함께 잔류하던 주입 없는 `MailVerificationEventListener`·`SmsVerificationEventListener`는 다른 리스너 10종과 함께 `application`의 `com.tastyhouse.application.{mail,sms}.listener`로 이동했다(`../../application/AGENTS.md` 참고).
 
@@ -61,7 +82,7 @@ com.tastyhouse.infrastructure/
   - **모듈 진입점인 `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지 — 앱의 `@Import` 때문이 아니라 챕터 02로 그 필요 자체가 사라졌다). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, 리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다. ~~이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다.~~ **(03a)** 발행 구현도 `application`의 `shared/event/`로 옮겨가 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
-reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
+reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeStatePortImpl`(03b 이전 `NoticeRepositoryImpl`) — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/{NoticeState,NoticeStatePort}`·`application/notice/store/{NoticeRepository,NoticeStore,NoticeStateMapper}`), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
@@ -185,8 +206,8 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 ## Dependencies
 
 ### Internal
-- `domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/event`·`shared/exception`·`exception` 참조. ~~`shared/page`~~ **(덩어리 01로 이동 — 아래 `application` 줄)**
-- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다
+- ~~`domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/event`·`shared/exception`·`exception` 참조. `shared/page` (덩어리 01로 이동 — 아래 `application` 줄)~~ **(번복됨 — 덩어리 03b) `domain` 의존은 제거됐다.** 도메인 모델은 `XxxState`로, 도메인 enum은 `String`+`XxxCodes`로, `@Embedded` VO는 `XxxEmbeddable`로, 도메인 예외는 `Optional`/`boolean` 반환 + application 판정으로 대체됐다. `api`였던 탓에 이 모듈을 의존하는 쪽으로 domain이 전이되던 경로도 함께 사라졌다
+- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다. **(03b)** 지금은 이 한 줄이 이 모듈의 **유일한 프로젝트 의존**이며(`implementation project(':application')`), 보는 범위는 `..port.out..`(읽기 계약 + `port/out/write`의 `XxxState`·`XxxSnapshot`·`XxxStatePort` + `XxxCodes` + `OptimisticLockConflictException`)뿐이다
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
@@ -207,7 +228,7 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 
 `..persistence..`(write 어댑터)는 `..query..`(read 모델)를 의존하지 않는다. **반대 방향(`..query..` → `..persistence..`)은 정상이다** — DAO가 같은 모듈의 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태다. 금지하는 것은 그 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
 
-봉인 구성원 3개 — 전부 *도메인 출력 포트 어댑터*다.
+봉인 구성원 3개 — 전부 *도메인 출력 포트 어댑터*다. **(03b 재판정 — 3건 유지)** 이 모듈이 domain을 끊으면서 세 어댑터가 채우는 값 타입이 domain에서 application `port.out`(예: `application/rank/port/out/MemberReviewCount`)으로 바뀌었지만, 여전히 `..persistence..`에서 `..query..`의 DAO·Result를 부르므로 위반이 해소되지 않았다. 짝 테스트 `sealedPersistenceToQueryShouldNotBeStale`가 통과하는 것이 그 증거다.
 
 - `com.tastyhouse.infrastructure.product.persistence.ProductReviewStatisticsAdapter`
 - `com.tastyhouse.infrastructure.rank.persistence.MemberReviewCountAdapter`
@@ -318,6 +339,17 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 ### enum 필드는 문자열로 투영한다 — `.stringValue()`와 `EnumLabelProjection` (덩어리 01)
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`의 `Projections.constructor(...)` 인자 중 enum 컬럼 · `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/query/EnumLabelProjection.java` → `labelOf(Expression<E>, Function<E, String>)`·`map(Tuple)` · `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java` → `trailingPropertyName`
+
+> **(번복됨 — 덩어리 03b) `EnumLabelProjection`은 삭제됐고, 라벨은 이 모듈이 아니라 QueryService가 채운다.** 이 모듈이 domain enum(`Status::getDescription`)을 참조할 수 없게 됐기 때문이다.
+>
+> | 항목 | 덩어리 01 (아래 본문) | 03b 이후 |
+> |---|---|---|
+> | enum 컬럼 투영 | `x.status.stringValue()` | 엔티티 필드가 `String`이라 `x.status`(`StringPath`)를 그대로 투영한다. 이미 붙어 있는 `.stringValue()`는 결과가 같아 남겨 둔 곳이 있다 — 지우든 두든 동작은 같다 |
+> | 라벨 슬롯(`{field}Description`/`{field}DisplayName`) | `EnumLabelProjection.labelOf(x.status, Status::getDescription)` | **`Expressions.nullExpression(String.class)`**로 자리만 채우고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)로 채운다. 참고: `.../shop/query/ShopQueryDao.java`·`.../shop/query/ShopCeoAssignmentHistoryQueryDao.java`의 `nullExpression` 슬롯 ↔ `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopChangeHistoryQueryService.java` |
+> | 상관 서브쿼리가 enum을 돌려줄 때 | `labelOf(..., ReviewBlindStatus::name)` | `Expression<String>`을 그대로 반환(`ShopReviewManagementQueryDao#latestBlindRequestStatus`) — 컬럼이 이미 문자열이다 |
+> | 테스트 | `ProjectionConstructorMatchingTest`가 `labelOf` 래퍼 인자를 이름 판정에서 제외 | 그 분기는 삭제됐다. `.stringValue()` 꼬리 벗기기(`STRING_VALUE_SUFFIX`)는 남아 있는 호출 때문에 유지 |
+>
+> **라벨 슬롯이 `null`로 도착하는 것은 정상**이다 — QueryService가 wither를 부르지 않으면 응답의 표시 문구가 비므로, 라벨 컴포넌트를 추가할 때는 DAO의 `nullExpression`과 QueryService의 채우기를 **한 벌로** 넣는다. 아래 본문은 덩어리 01 시점 기록이다.
 
 표현 계층이 domain을 끊으면서(덩어리 01) 읽기 계약 `*Result`의 도메인 enum 필드가 `String`이 됐다. 강등은 **Result를 채우는 이 모듈의 투영식**이 한다.
 
@@ -488,12 +520,14 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryDao.java`
 → `withUnwrappedAmount(PaymentProjection)`
 
+> **(번복됨 — 덩어리 03b) 이 봉인은 대상이 사라졌다.** `AmountConverter`가 삭제되고 `PaymentJpaEntity.amount`가 `Integer` 필드가 되어 QueryDSL이 `NumberPath<Integer>`를 만든다. DAO는 `paymentJpaEntity.amount`를 `OrderPaymentResult`에 **직접** 투영하고, `withUnwrappedAmount`·`PaymentProjection`은 삭제됐다. 읽기 계약이 `Integer`라는 결론(api 모듈이 `Amount`를 만지지 않는다)은 그대로이며, 지금은 엔티티에 VO가 없어 **되돌릴 방법 자체가 없다**. 아래는 당시 기록이다.
+
 이 언랩이 읽기 계약을 경계 타입(`Integer`)으로 유지해 **api 모듈이 `Amount.value()`를 호출하지 않게 한다.** 제거하고 Result에 `Amount`를 그대로 담으면 `apiModuleShouldBeDomainModelFree`가 다시 깨진다 — **이 자리가 그 규칙의 유일한 비-enum 위반이었다**(챕터 07).
 
 ### `@Embedded` record VO — 컴포넌트 선언 순서는 이름 알파벳 오름차순이다
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/shared/persistence/EmbeddedRecordComponentOrderTest.java`
-→ `@Embedded`로 매핑되는 모든 record VO (`PhoneNumber` · `ProductDiscountInfo` · `OrderDeliveryDestination` · `VerificationCode` 등)
+→ `@Embedded`로 매핑되는 모든 record ~~VO (`PhoneNumber` · `ProductDiscountInfo` · `OrderDeliveryDestination` · `VerificationCode` 등)~~ **(03b — 대상이 이 모듈의 `@Embeddable` record로 바뀜)** `shared/persistence/PhoneNumberEmbeddable` · `shared/persistence/VerificationCodeEmbeddable` · `product/persistence/ProductDiscountInfoEmbeddable` · `order/persistence/OrderDeliveryDestinationEmbeddable` · `order/persistence/OrderScheduleEmbeddable`. 가드가 `@Entity`의 `@Embedded` 필드 타입을 스캔하므로 목록 변경에 테스트 수정은 필요 없었다. 아래 본문의 domain VO 이름은 `…Embeddable`로 읽는다
 
 **새 embeddable record를 만들거나 기존 record에 컴포넌트를 끼워 넣을 때 선언 순서를 알파벳순으로 유지한다.** "읽기 좋은 순서"로 재배치하지 않는다.
 
@@ -726,6 +760,8 @@ IDE·정적분석이 "assigned but never accessed" / "never used" / "never assig
 
 `@Enumerated(EnumType.STRING)`에서 **`columnDefinition = "VARCHAR(n)"`을 중복으로 보고 지우면 앱이 부팅하지 못한다.** Hibernate 6의 `MySQLDialect`가 네이티브 `ENUM(...)`을 기대해 `ddl-auto: validate`가 `wrong column type ... but expecting [enum (...)]`으로 거부한다(`BugReport` 장애 선례). `n`은 `backend/schema.sql`과 일치해야 하며, 스키마 쪽 길이를 바꾸면 여기도 함께 바꾼다.
 
+**(번복됨 — 덩어리 03b, 금지는 유지·근거만 변경)** 이 필드들은 이제 `@Enumerated` 없는 `String`이라, `columnDefinition`을 지워도 Hibernate가 `VARCHAR`를 기대하므로 **부팅은 실패하지 않는다** — 위 "앱이 부팅하지 못한다"는 03b 이전의 사실이다. 그래도 **떼지 않는다**: 03b가 `@Column`을 글자 하나 바꾸지 않는 것을 불변식으로 삼았고, `n`이 `schema.sql` 길이와의 대응을 코드에 남기는 유일한 자리이기 때문이다. 대상 목록은 위 12개가 아니라 **enum 상수를 저장하는 모든 `String` 컬럼**으로 읽는다(03b로 `@Enumerated`였던 전 필드가 같은 형태가 됐다).
+
 #### `applyChanges`를 "일관성"을 이유로 추가하지 않는다
 
 **대상**: append-only 이력·불변 사실 기록·replace-all 컬렉션·read-only 마스터 엔티티 전부. 대표 예 — `.../shop/persistence/ShopChangeHistoryJpaEntity.java` · `.../product/persistence/ProductOptionGroupMergeHistoryJpaEntity.java` · `.../product/persistence/ProductOptionGroupMergeExclusionJpaEntity.java` · `.../product/persistence/ProductFeedbackJpaEntity.java` · `.../product/persistence/StorePriceVerificationItemJpaEntity.java` · `.../payment/persistence/PaymentRefundJpaEntity.java` · `.../payment/persistence/TossPaymentRecordJpaEntity.java` · `.../rank/persistence/MemberReviewRankJpaEntity.java` · `.../review/persistence/ReviewBlindRequestAttachmentJpaEntity.java` · `.../shop/persistence/ShopNoticeImageJpaEntity.java`
@@ -794,6 +830,8 @@ derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **
 
 `XxxId.of(entity.getXxxId())`처럼 직접 호출하면 **컴파일은 통과하고, 그 FK가 실제로 null인 행을 읽을 때만 예외가 난다** — 빈 테이블이나 FK가 항상 채워진 샘플 데이터로는 잡히지 않는다. **nullable 여부와 무관하게 모든 매퍼가 이 헬퍼를 쓴다** — 컬럼별로 형태를 나누면 위험한 직접 호출이 흔해 보여 눈에 띄지 않게 된다.
 
+**(번복됨 — 덩어리 03b) `IdMapping`(+`IdMappingTest`)은 삭제됐고, 이 금지는 application으로 옮겨 갔다.** 이 모듈의 매퍼는 `XxxState`의 `Long` 컴포넌트를 엔티티의 `Long` 필드에 그대로 옮기므로 VO를 만들 일이 없다. VO 승격은 `application/<ctx>/store/XxxStateMapper#toDomain`이 **모든 FK에 삼항 null 가드**(`state.ceoId() == null ? null : CeoId.of(state.ceoId())`)로 하고, 언패킹도 `#toState`가 같은 형태로 한다 — 금지의 취지("직접 `of` 호출 금지, nullable 여부로 형태를 나누지 않는다")는 그 삼항 형태로 승계된다. 규칙 전문은 `backend/CLAUDE.md` "ID VO 경계 규칙"의 번복 표기.
+
 #### FK 컬럼에 `@Convert`로 VO를 매핑하지 않는다
 
 **대상**: `.../ceo/persistence/CeoReplyPhraseJpaEntity.java` → `ceo_id` · `.../menureview/persistence/MenuReviewJpaEntity.java` → 크로스 애그리거트 FK 전부
@@ -824,7 +862,9 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `GeoPolygonTextCodec`의 실패를 조용히 넘기지 않는다
 
-**대상**: `.../shared/persistence/GeoPolygonTextCodec.java` → `decode`
+**대상**: ~~`.../shared/persistence/GeoPolygonTextCodec.java`~~ **(03b로 이동)** `backend/domain/src/main/java/com/tastyhouse/domain/shared/geo/GeoPolygonTextCodec.java` → `decode`
+
+> **(번복됨 — 덩어리 03b, 위치만)** 코덱은 이 모듈을 떠나 `domain`의 `shared/geo/`로 갔고 테스트(`GeoPolygonTextCodecTest`)도 `domain/src/test/.../shared/geo/`로 함께 옮겼다. 이 모듈의 매퍼가 `GeoRing`/`GeoPolygon`(domain 타입)을 인코딩할 수 없게 됐기 때문이다. 지금 인코딩·디코딩은 application이 한다 — `application/shop/store/ShopDeliveryAreaPolygonStateMapper`·`application/region/store/AdminDongStateMapper`(write 경로), `application/shop/service/ShopDeliveryAreaPolygonQueryService`·`application/region/service/AdminDongQueryService`(read 경로). 이 모듈은 인코딩된 문자열(`XxxSnapshot.encodedRings`)만 `LONGTEXT` 컬럼에 옮긴다. **실패를 조용히 넘기지 않는다는 금지 자체는 그대로**이며, 이제 `domain/AGENTS.md`의 봉인 항목이다.
 
 형식이 깨진 입력은 `IllegalArgumentException`으로 실패시킨다 — **조용히 건너뛰면 도형의 일부가 사라진 채 복원되어, 점주가 그린 것과 다른 배달지역이 저장된 것처럼 보인다.** 저장 형식은 "경도 위도" 순서이고 `GeoPoint`는 (위도, 경도) 순서이므로 복원 시 뒤집는 자리를 지우지 않는다.
 
@@ -832,7 +872,9 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `AdminDongRepositoryImpl`의 두 방어선을 제거하지 않는다
 
-**대상**: `.../region/persistence/AdminDongRepositoryImpl.java` → `synchronize` · `deactivateMissing`
+**대상**: ~~`.../region/persistence/AdminDongRepositoryImpl.java`~~ **(03b 개명)** `.../region/persistence/AdminDongStatePortImpl.java` → `synchronize` · `deactivateMissing` · `AdminDongJpaRepository`의 `...ActiveIsTrue` 파생 쿼리
+
+> **(03b)** 두 방어선(`is_active = 1` 필터·빈 목록 동기화 차단)과 제자리 갱신은 `AdminDongStatePortImpl`에 그대로 있다. **바뀐 것은 마지막 항목(바운딩박스 파생)의 위치다** — 경계 인코딩과 바운딩박스 계산이 domain 기하 타입을 필요로 해 application `region/store/AdminDongStateMapper#toBoundarySnapshot`으로 옮겨 갔고, `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 한 record로 **경계와 박스를 한 번에** 넘긴다. 그래서 "두 값을 각각 받으면 어긋난다"는 위험은 Snapshot 하나로 구조적으로 막히고, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 그 Snapshot을 컬럼에 그대로 옮긴다(경계가 없으면 Snapshot이 `null`이라 박스도 함께 `null`).
 
 - **모든 조회의 `is_active = 1` 필터** — 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.** 빠지면 폐지된 행정동이 "검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는" 비대칭이 되살아난다.
 - **빈 목록 동기화 차단** — 원천을 못 읽었을 때 마스터를 비우면 **전국 배달지역이 통째로 죽는다.**
@@ -841,21 +883,21 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `ReviewMapper`의 `product_id == 0` 분기를 지우지 않는다
 
-**대상**: `.../review/persistence/ReviewMapper.java` → `toDomain`
+**대상**: `.../review/persistence/ReviewMapper.java` → ~~`toDomain`~~ **(03b)** `toState` · `normalizeProductId`
 
-`REVIEW.product_id`는 NOT NULL이지만 삭제된 `REVIEW_PRODUCT` 애그리거트의 레거시 값으로 `0`이 광범위하게 남아 있고, `ProductId` VO는 0을 거부한다. **이 분기를 지우면 그 행을 읽는 순간 예외가 난다.**
+`REVIEW.product_id`는 NOT NULL이지만 삭제된 `REVIEW_PRODUCT` 애그리거트의 레거시 값으로 `0`이 광범위하게 남아 있고, `ProductId` VO는 0을 거부한다. **이 분기를 지우면 그 행을 읽는 순간 예외가 난다.** **(03b)** 분기는 이 모듈에 남았다 — `ReviewMapper#toState`가 `normalizeProductId`로 `null`·`0` 이하를 `null`로 정규화해 `ReviewState.productId`에 싣고, application `review/store/ReviewStateMapper#toDomain`은 `null`이면 승격을 건너뛴다. 레거시 **저장값**의 정규화라 영속 계층이 갖는 것이 맞다.
 
 #### 위치 기반 전달이 많은 매퍼는 순서를 3중 대조한다
 
 **대상**: `.../product/persistence/ProductNutritionMapper.java`(수치 14개) · `.../payment/persistence/TossPaymentRecordMapper.java`(필드 60여 개)
 
-타입이 같아 **위치를 착각해도 컴파일은 통과하고 값만 조용히 뒤바뀐다.** 고칠 때는 도메인 getter 순서 · 엔티티 파라미터 순서 · 매퍼 호출 인자 순서를 하나씩 대조한다.
+타입이 같아 **위치를 착각해도 컴파일은 통과하고 값만 조용히 뒤바뀐다.** 고칠 때는 도메인 getter 순서 · 엔티티 파라미터 순서 · 매퍼 호출 인자 순서를 하나씩 대조한다. **(03b)** 대조 대상이 한 겹 늘었다 — 도메인 `reconstitute` 순서 = `XxxState` 컴포넌트 순서(application `StateRecordArityTest`는 **개수만** 검사한다) · application `XxxStateMapper` 인자 순서 · 이 모듈 `XxxMapper`의 `toState`/`toEntity` 인자 순서. 도메인 ↔ State 쪽 뒤바뀜은 application의 round-trip 테스트(`ProductNutritionStateMapperTest`·`TossPaymentRecordStateMapperTest` 등, 모든 필드를 서로 다른 값으로 채움)가 잡고, State ↔ 엔티티 쪽은 여전히 이 3중 대조가 유일한 방어선이다.
 
 `.../product/persistence/ProductNutritionJpaEntity.java`의 14개 수치를 **`@Embedded` record로 묶지 않는다** — record 컴포넌트 선언 순서가 어긋나면 값이 조용히 뒤바뀌는데(`EmbeddedRecordComponentOrderTest`가 잡는 사고), 평면 필드는 `@Column`이 이름으로 매핑하므로 그 위험이 구조적으로 없다. `.../shop/persistence/ShopRiderGuideJpaEntity.java`의 픽업 위치 5개 컬럼도 같은 이유로 평면이다.
 
 #### 예약 슬롯의 낙관적 락 배선을 바꾸지 않는다
 
-**대상**: `.../reservation/persistence/ReservationSlotRepositoryImpl.java` · `.../reservation/persistence/ReservationSlotJpaRepository.java`
+**대상**: `.../reservation/persistence/ReservationSlotStatePortImpl.java`(03b 이전 `ReservationSlotRepositoryImpl`) · `.../reservation/persistence/ReservationSlotJpaRepository.java`
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역하는 자리도 유지한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
 
@@ -1207,7 +1249,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 **대상**: `.../reservation/query/ReservationQueryDao.java`
 
-- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다.
+- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다. **(번복됨 — 03b, 형태만)** 이 DAO는 domain을 볼 수 없으므로 차단 상태를 **파라미터 `Collection<String> blockingStatuses`로 받는다**(`existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses)`). 목록은 호출하는 application이 `ReservationStatus.blockingStatuses()`에서 `name()`으로 만들어 넘긴다 — `application/reservation/service/ReservationQueryService`(읽기 경로)·`application/reservation/store/ReservationStore`(write 포트 `existsBlockingByMemberShopDate`). "단일 원천은 도메인"이라는 취지는 그대로이며, **이 DAO에 상태 문자열 목록을 하드코딩하지 않는다.**
 - `findSlotOccupancies`는 **행이 존재하는 슬롯만** 돌려준다. 행이 없는 시간대는 예약 0건이므로 결과에 없고, **소비 측이 전체 슬롯 목록과 병합해 기본 정원으로 채운다.**
 - 가게·파일을 join으로 함께 투영해, 과거 예약을 도메인 모델로 읽은 뒤 가게를 건당 다시 조회하던 목록 크기만큼의 반복 조회를 없앴다.
 
@@ -1656,6 +1698,8 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 → `withUnwrappedAmount(PaymentProjection)`
 
+> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter`가 사라져 `PAYMENT.amount`가 `NumberPath<Integer>`가 됐고, `OrderQueryDao`는 `paymentJpaEntity.amount`를 직접 투영한다. `withUnwrappedAmount`·`PaymentProjection`은 더 이상 없다. 아래는 당시 근거다.
+
 `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성하므로 **투영은 VO로 받을 수밖에 없고**, `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 넣을 수 없다. 그래서 fetch 직후에 푼다. 파일 URL은 `urlOf`로 투영식 안에서 변환하지만, 이 언랩은 **URL 변환이 아니므로** 그 전환 대상이 아니다(02 롤아웃에서도 건드리지 않았다).
 
 **이 언랩이 읽기 계약을 경계 타입으로 유지해, api 모듈이 `Amount.value()`를 호출하지 않게 한다**(챕터 07 — `apiModuleShouldBeDomainModelFree`의 유일한 비-enum 위반이었다).
@@ -1878,6 +1922,8 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 
 **대상**: `.../shared/query/GeoRingsResolver.java`
 
+> **(번복됨 — 덩어리 03b) `GeoRingsResolver`와 그 계약 `application/shared/port/out/GeoRingsQueryPort`는 삭제됐다.** 아래 첫 항목의 전제("좌표 인코딩 형식은 영속 계층의 지식")가 번복됐기 때문이다 — 이 모듈이 domain 기하 타입(`GeoRing`)을 만들 수 없게 되면서 형식 지식은 코덱과 함께 `domain/shared/geo/GeoPolygonTextCodec`으로 옮겨 갔고, 디코딩은 이제 **QueryService가 코덱을 직접 호출**한다(`application/region/service/AdminDongQueryService`·`application/shop/service/ShopDeliveryAreaPolygonQueryService`의 `GeoPolygonTextCodec.decodeRings(...)`). 별도 빈이 필요했던 이유(api가 `..persistence..`를 볼 수 없다)도 사라졌다 — 코덱은 domain의 정적 유틸이고 QueryService는 domain을 본다. **api가 저장 형식을 모른다는 결론은 그대로**다(api는 여전히 디코딩된 `*ViewResult`만 받는다). 경계 미보유·도형 미설정이 정상 상태라는 규칙도 코덱(`decodeRings`가 값 없으면 빈 목록)과 QueryService에 그대로 있다. 아래는 당시 근거다.
+
 - **왜 별도 빈인가**: 좌표 인코딩 형식은 영속 계층의 지식이라 `GeoPolygonTextCodec`이 `..persistence..`에 있는데, api 모듈은 그 패키지에 의존할 수 없다(ArchUnit `shouldNotDependOnInfrastructurePersistence`). 그렇다고 api가 인코딩 형식을 알게 하면 **저장 형식이 바뀔 때 api까지 함께 고쳐야 한다.**
 - 그래서 `FileUrlResolver`와 같은 형태를 취한다 — **read 측이 소비자가 바로 쓸 수 있는 형태까지 완성해서 내려보낸다.** api는 도메인 기하 타입만 받고 저장 형식을 알지 않는다.
 - 소비 모듈은 이 클래스가 아니라 계약인 `GeoRingsQueryPort`를 주입한다 — 읽기 경로 포트화로 api 모듈은 `com.tastyhouse.infrastructure..query..`에 의존하지 않는다.
@@ -1899,6 +1945,8 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 #### `PaymentProjection` — VO를 그대로 받는 infra 내부 중간 투영
 
 **대상**: `.../order/query/PaymentProjection.java`
+
+> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter` 삭제로 `PAYMENT.amount`가 `NumberPath<Integer>`가 되어 중간 투영이 필요 없어졌다(위 `OrderQueryDao#withUnwrappedAmount` 번복 표기와 같은 사유). 아래는 당시 기록이다.
 
 읽기 계약 `OrderPaymentResult`는 경계 타입 `Integer`를 싣지만, `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 생성하는 path는 `SimplePath<Amount>`다. 그래서 **투영 단계에서는 VO로 받고 `OrderQueryDao#withUnwrappedAmount`가 fetch 직후 언랩한다.**
 
@@ -1928,6 +1976,16 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 
 JPA 엔티티(`XxxJpaEntity`)는 DB 매핑(테이블·컬럼·감사 필드)만 담당하고 비즈니스 행위를 갖지 않는다. 도메인 모델은 프레임워크-프리를 유지해야 하므로 **도메인↔엔티티 변환 책임을 infrastructure 쪽 `XxxMapper`가 전담**한다. 매퍼의 방향은 셋으로 고정돼 있다.
 
+> **(번복됨 — 덩어리 03b) 변환이 두 단계로 갈렸다 — 이 모듈의 매퍼는 `XxxState` ↔ 엔티티만 한다.** 도메인 ↔ State는 application `<ctx>/store/XxxStateMapper`(`toDomain(state)`·`toState(domain)`)가 맡는다. 이유는 이 모듈이 domain을 볼 수 없게 된 것 하나다(엄격 레이어드). 방향이 셋이라는 것, `applyChanges`의 부재가 "update 경로 없음"의 구조적 표현이라는 것은 그대로다.
+>
+> | 메서드 (03b 이후) | 경로 | 비고 |
+> |---|---|---|
+> | `toState(entity)` | 조회 | 엔티티를 `XxxState`로 옮긴다(도메인 재구성은 application이) |
+> | `toEntity(state)` | 신규 저장 | 변경 없음 — 인자만 State |
+> | `applyChanges(entity, state)` | 갱신 | 변경 없음 — 인자만 State. 기존에 복사하지 않던 필드(`version`·감사 필드 등)는 계속 복사하지 않는다 |
+>
+> 아래 표는 03b 이전 기록이다.
+
 | 메서드 | 경로 | 비고 |
 |---|---|---|
 | `toDomain(entity)` | 조회 | 엔티티를 도메인 모델로 재구성한다 |
@@ -1938,7 +1996,7 @@ JPA 엔티티(`XxxJpaEntity`)는 DB 매핑(테이블·컬럼·감사 필드)만 
 
 #### 저장은 detached merge가 아니라 load-copy-save다
 
-→ `*RepositoryImpl#save`
+→ `*RepositoryImpl#save` — **(03b)** 지금은 `*StatePortImpl#save(XxxState)`. load-copy-save가 이 메서드 안에 그대로 있다(`state.id()`로 분기)
 
 id가 없으면 insert, 있으면 **PK로 managed 엔티티를 조회(같은 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해 dirty checking으로 flush**한다. detached 인스턴스를 그대로 `save`(merge)하면 `@CreatedDate(updatable = false)` 감사 필드가 파손되고, 경우에 따라 새 행이 중복 생성된다. **이 경로를 merge로 바꾸지 않는다.**
 
@@ -1962,6 +2020,8 @@ CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 �
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/persistence/IdMapping.java`
 
+> **(번복됨 — 덩어리 03b) 제목의 후반("VO 변환은 `IdMapping`이 전담한다")은 폐기됐다. 전반("FK는 raw `Long`")은 그대로다.** `IdMapping`과 `IdMappingTest`는 삭제됐다 — 이 모듈에 `XxxId`가 존재하지 않으므로(엔티티도 `XxxState`도 `Long`) 변환할 VO가 없다. 승격·언패킹은 application `<ctx>/store/XxxStateMapper`가 **모든 FK에 삼항 null 가드**로 한다(`state.ceoId() == null ? null : CeoId.of(state.ceoId())` / `shop.getCeoId() == null ? null : shop.getCeoId().value()`). 아래 "왜 필요한가"의 nullable FK 목록과 "컬럼별로 형태를 나누지 않는다"는 근거는 그 삼항 가드에 그대로 적용된다. 참고 구현: `backend/application/src/main/java/com/tastyhouse/application/shop/store/ShopStateMapper.java`.
+
 엔티티의 FK 컬럼은 `@Convert`로 VO를 매핑하지 않고 **raw `Long`으로 둔다** — VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 query DAO의 조인·투영이 깨진다(`CeoReplyPhraseJpaEntity.ceo_id`·`MenuReviewJpaEntity`의 FK 전부가 이 이유로 raw다).
 
 승격·언패킹은 예외 없이 `IdMapping`을 거친다.
@@ -1974,6 +2034,8 @@ CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 �
 #### enum 컬럼은 `@Enumerated(STRING)` + `columnDefinition` 병기가 필수다
 
 → `CeoLoginHistoryJpaEntity` · `NotificationJpaEntity` · `ProductFeedbackJpaEntity` · `ProductOptionGroupJpaEntity.groupType` · `ProductOptionGroupMergeHistoryJpaEntity` · `ShopCeoAssignmentHistoryJpaEntity` · `ShopChangeHistoryJpaEntity` · `ShopDeliveryAreaAdjustmentRequestJpaEntity.status` · `ShopDeliveryTipSettingJpaEntity` · `ShopRequestIndexJpaEntity` · `ShopRequestCommentJpaEntity` · `ShopRiderGuideHistoryJpaEntity`
+
+> **(번복됨 — 덩어리 03b) 엔티티에 `@Enumerated`는 없다 — enum 컬럼은 `String` 필드다.** `@Column(length = n, columnDefinition = "VARCHAR(n)")`은 글자 하나 바꾸지 않고 남겼다. 필드가 `String`이면 Hibernate가 `VARCHAR`를 기대하므로 아래 "부팅을 거부한다"는 더 이상 일어나지 않지만, `n`이 `schema.sql` 길이와의 대응 기록이라 **떼지 않는다**(위 [봉인 항목](#enum-컬럼의-columndefinition을-떼지-않는다)). 상수명 문자열 저장(ORDINAL 금지 취지)은 application StateMapper의 `name()`/`valueOf`가, DAO의 상수 비교는 `application/<ctx>/port/out/XxxCodes`가 맡는다. 아래는 03b 이전 기록이다.
 
 `@Enumerated(EnumType.STRING)`에 **`columnDefinition = "VARCHAR(n)"`을 함께 적지 않으면** Hibernate 6의 `MySQLDialect`가 네이티브 `ENUM(...)` 컬럼을 기대해 `ddl-auto: validate`가 `wrong column type ... but expecting [enum (...)]`으로 **부팅을 거부한다**(`BugReport` 장애 선례). `n`은 `backend/schema.sql`의 길이와 일치해야 한다 — 알려진 값은 `CeoLoginHistory` result/failureReason 20, `ShopCeoAssignmentHistory` actionType 20, `ShopChangeHistory` category/changeType 40 · actionType/actorType 20, `ShopRequestIndex` requestType 40 · status 20이다.
 
@@ -2069,7 +2131,7 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 → `ReplyPhraseProhibitedWordValidatorAdapter` · `StorePriceVerificationAdapter` · `ShopRequestIndexSyncAdapter` · `MemberGradeReviewCountAdapter` · `MemberReviewCountAdapter` · `ProductReviewStatisticsAdapter` · `KeywordCountAdapter`
 
-domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 `ShopServiceConfig`가 등록한다** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
+domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 `ShopServiceConfig`가 등록한다** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **(03b) `StorePriceVerificationAdapter`도 떠났다** — `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`(마커 없는 POJO, `ShopServiceConfig`가 `@Bean` 등록). 실제로는 JPA가 아니라 `ShopRepository`(도메인 모델 `Shop` 로드·`verifyStorePrice()`·저장)와 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 쓰는 서비스 연결부라, domain을 모르는 이 모듈에 둘 수 없다. 이 모듈에 남은 것은 집계 조회 어댑터 4종뿐이며, 이들은 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채운다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
 
 - `ReplyPhraseProhibitedWordValidatorAdapter` — 검수 규칙 자체는 shop 컨텍스트의 `ProhibitedWordValidator`에 그대로 위임한다. 주입받는 빈은 `ShopServiceConfig`(구 `ShopDomainConfig`)가 캐싱 데코레이터로 감싸 등록한 것이라 검증마다 금칙어 전량을 다시 읽지 않는다.
 - `StorePriceVerificationAdapter` — 인증 요청 애그리거트는 product 소유지만(승인의 본체가 `PRODUCT_PRICE`를 채우는 일이므로) 인증 ON/OFF는 가게 단위 상태라 `SHOP`에 있다. 이 플래그만 좁은 포트로 뽑는다. `@Repository`가 아니라 `@Component`인 이유는 도메인 write 포트 구현이 아니라 출력 포트 어댑터이기 때문이다.
@@ -2078,8 +2140,10 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 #### `GeoPolygonTextCodec` — 폴리곤을 `LONGTEXT`에 담는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/persistence/GeoPolygonTextCodec.java`
+**대상**: ~~`backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/persistence/GeoPolygonTextCodec.java`~~ **(03b 이동)** `backend/domain/src/main/java/com/tastyhouse/domain/shared/geo/GeoPolygonTextCodec.java`
 → `encode` · `encodeRings` · `decode` · `decodeRings` · `COORDINATE_SCALE`
+
+> **(번복됨 — 덩어리 03b) 이 절의 정본은 `backend/domain/AGENTS.md`의 "`GeoPolygonTextCodec` — 폴리곤·경계를 `LONGTEXT` 문자열로 담는 형식" 절로 옮겼다.** 형식·`GEOMETRY`/JSON 비채택 근거·"경도 위도" 순서·실패 정책은 그대로이며 그쪽에 이관했다. **번복되는 것은 두 문장이다** — "이 코덱은 그 경계 안쪽(영속 계층)에만 존재한다"와 마지막 문단의 "`ShopDeliveryAreaPolygonMapper`·`AdminDongMapper`가 위임한다". 지금 코덱은 domain의 정적 유틸이고 위임하는 쪽은 application(`shop/store/ShopDeliveryAreaPolygonStateMapper`·`region/store/AdminDongStateMapper`·두 QueryService)이며, 이 모듈의 매퍼는 인코딩된 문자열만 옮긴다. "좌표 형식은 영속 계층의 지식"이라는 판단을 뒤집은 이유: persistence가 domain 기하 타입(`GeoRing`·`GeoPolygon`)을 볼 수 없게 되면 인코딩·디코딩할 쪽이 domain 타입을 아는 계층이어야 하고, 형식은 순수 문자열 규칙이라 프레임워크-프리 domain에 두어도 잃는 것이 없다. 아래는 이관 전 원문이다.
 
 인코딩 형식은 **링 구분 `;` · 점 구분 `,` · 점 내부는 `"경도 위도"`(공백 1칸) · 소수점 6자리 고정**이다. 정밀도는 위경도 저장 컬럼(`DECIMAL(9,6)`)과 맞췄다.
 
@@ -2095,8 +2159,10 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 #### `AdminDongRepositoryImpl` — 행정동 마스터 동기화
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/persistence/AdminDongRepositoryImpl.java`
-→ `synchronize` · `SAVE_BATCH_SIZE` · `deactivateMissing`
+**대상**: ~~`.../region/persistence/AdminDongRepositoryImpl.java`~~ **(03b 개명)** `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/persistence/AdminDongStatePortImpl.java`
+→ `synchronize(List<AdminDongState>)` · `SAVE_BATCH_SIZE` · `deactivateMissing`
+
+> **(03b)** 아래 동기화 규칙 4개는 `AdminDongStatePortImpl`에 그대로 있다. **"`AdminDongJpaEntity`·`AdminDongMapper` 쪽 규칙" 중 둘은 application으로 옮겨 갔다** — ① 바운딩박스 파생(`GeoBoundingBox.enclosing`)과 경계 인코딩은 `application/region/store/AdminDongStateMapper#toBoundarySnapshot`이 하고, 결과를 `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 하나로 넘긴다. 경계와 박스가 한 record라 "두 값을 각각 받으면 어긋난다"는 위험이 구조적으로 막히며, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 Snapshot을 컬럼에 옮기기만 한다(같은 헬퍼를 쓴다는 규칙은 "Snapshot을 같은 방식으로 펼친다"로 승계 — 둘 다 Snapshot이 `null`이면 6개 컬럼을 `null`로 둔다). ② 대표점 `GeoPoint` 승격(위경도 둘 다 있을 때만)과 경계 디코딩(빈 값 → 빈 목록)은 `AdminDongStateMapper#toCenter`·`toDomain`이 한다. 좌표·경계 컬럼 nullable, `findAllWithinBoundingBox` 프리필터 규칙은 그대로다(메서드는 이제 원시 위경도 4개를 받는다).
 
 쓰기는 `synchronize`(동기화 배치 전용) 하나뿐이며 건별 저장 경로가 없다.
 
@@ -2115,7 +2181,7 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 #### 낙관적 락은 슬롯 예약에만 있고, 예외는 프레임워크-프리로 번역한다
 
-→ `ReservationSlotJpaEntity.version` · `ReservationSlotRepositoryImpl#save` · `ReservationSlotJpaRepository#findByShopIdAndSlotDateAndSlotTime`
+→ `ReservationSlotJpaEntity.version` · `ReservationSlotStatePortImpl#save`(03b 이전 `ReservationSlotRepositoryImpl#save`) · `ReservationSlotJpaRepository#findByShopIdAndSlotDateAndSlotTime`
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** managed 엔티티의 `@Version`이 flush 시 검증·증가되므로 load-copy-save가 낙관적 락 동작을 그대로 보존한다. `save`의 dirty checking 변경은 명시적 `flush` 시점에 검증되므로 충돌도 거기서 나며, `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
 
@@ -2133,17 +2199,17 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 write 포트 `ShopDeliveryTipRepository`가 5종을 한 인터페이스로 묶었으므로 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
 
-이 어댑터는 `ShopDeliveryTipRegionLookup`도 함께 구현한다 — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
+이 어댑터는 `ShopDeliveryTipRegionLookup`도 함께 구현한다 **(03b — 도메인 타입을 쓰는 `ShopDeliveryTipRegionLookup`은 `application/shop/store/`로 옮겨졌고 application Store가 구현한다. 이 모듈의 `ShopDeliveryTipStatePortImpl`은 원시 타입 `ShopDeliveryTipStatePort` 하나로 두 용도의 조회를 함께 제공하므로, "같은 테이블을 읽는 쿼리를 두 곳에 만들지 않는다"는 취지는 유지된다)** — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
 
 `ShopDeliveryTipSettingJpaEntity`가 거리별 설정(기본배달거리·할증 단위·할증액)을 별도 테이블로 쪼개지 않고 인라인한 이유는 `UNIQUE(shop_id)` 행 하나가 **거리별↔지역별 배타성의 물리적 단일 소유자**가 되게 하기 위해서다.
 
-`ShopDeliveryAreaJpaEntity.source`가 필요한 이유는 폴리곤 재저장 시 **도형에서 파생된 행만 골라 교체**하기 위해서다 — 구분이 없으면 점주가 손으로 추가한 행까지 함께 지워진다. DDL이 `VARCHAR(20) NOT NULL DEFAULT 'MANUAL'`이라 기존 행이 자동으로 채워지고 구버전 백엔드로 롤백해도 INSERT가 계속 성공하며, 매퍼는 `source`가 null인 행을 `MANUAL`로 본다(배포 전환 구간 방어).
+`ShopDeliveryAreaJpaEntity.source`가 필요한 이유는 폴리곤 재저장 시 **도형에서 파생된 행만 골라 교체**하기 위해서다 — 구분이 없으면 점주가 손으로 추가한 행까지 함께 지워진다. DDL이 `VARCHAR(20) NOT NULL DEFAULT 'MANUAL'`이라 기존 행이 자동으로 채워지고 구버전 백엔드로 롤백해도 INSERT가 계속 성공하며, 매퍼는 `source`가 null인 행을 `MANUAL`로 본다(배포 전환 구간 방어). **(03b)** 이 null → `MANUAL` 판정은 enum 승격과 함께 `application/shop/store/ShopDeliveryAreaStateMapper#toDomain`으로 옮겨 갔다(이 모듈은 문자열을 그대로 싣는다).
 
 #### 레거시 값을 VO 승격에서 걸러내는 자리
 
-→ `ReviewMapper#toDomain`
+→ ~~`ReviewMapper#toDomain`~~ **(03b)** `ReviewMapper#toState` · `ReviewMapper#normalizeProductId` (+ application `review/store/ReviewStateMapper#toDomain`)
 
-`REVIEW.product_id`는 컬럼이 NOT NULL이지만, 삭제된 `REVIEW_PRODUCT` 애그리거트의 레거시 값으로 `0`이 광범위하게 남아 있다. `ProductId` VO는 0을 양수가 아니라며 거부하므로 **0을 null과 동일하게 "상품 미상"으로 취급해 승격을 건너뛴다.**
+`REVIEW.product_id`는 컬럼이 NOT NULL이지만, 삭제된 `REVIEW_PRODUCT` 애그리거트의 레거시 값으로 `0`이 광범위하게 남아 있다. `ProductId` VO는 0을 양수가 아니라며 거부하므로 **0을 null과 동일하게 "상품 미상"으로 취급해 승격을 건너뛴다.** **(03b)** 정규화(`null`·`0` 이하 → `null`)는 이 모듈의 `ReviewMapper#toState`에 남고, 승격 건너뛰기(`null`이면 `ProductId`를 만들지 않음)는 application `ReviewStateMapper#toDomain`이 한다. 레거시 **저장값**을 거르는 일이라 영속 계층이 소유한다.
 
 #### 모듈 스캔·auto-configuration
 

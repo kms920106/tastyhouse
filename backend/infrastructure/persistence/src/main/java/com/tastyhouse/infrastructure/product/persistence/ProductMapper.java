@@ -1,23 +1,21 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.vo.ProductCategoryId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductDiscountInfoSnapshot;
+import com.tastyhouse.application.product.port.out.write.ProductState;
 
 final class ProductMapper {
     private ProductMapper() {
     }
 
-    static Product toDomain(ProductJpaEntity entity) {
-        return Product.reconstitute(
+    static ProductState toState(ProductJpaEntity entity) {
+        return new ProductState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getProductCategoryId(), ProductCategoryId::of),
+            entity.getShopId(),
+            entity.getProductCategoryId(),
             entity.getName(),
             entity.getDescription(),
             entity.getOriginalPrice(),
-            entity.getDiscountInfo(),
+            toSnapshot(entity.getDiscountInfo()),
             entity.getRating(),
             entity.getReviewCount(),
             entity.isRepresentative(),
@@ -39,56 +37,68 @@ final class ProductMapper {
         );
     }
 
-    static ProductJpaEntity toEntity(Product domain) {
+    static ProductJpaEntity toEntity(ProductState state) {
         return ProductJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getProductCategoryId(), ProductCategoryId::value),
-            domain.getName(),
-            domain.getDescription(),
-            domain.getOriginalPrice(),
-            domain.getDiscountInfo(),
-            domain.getRating(),
-            domain.getReviewCount(),
-            domain.isRepresentative(),
-            domain.getSpiciness(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible(),
-            domain.getSort(),
-            domain.isRatingExcluded(),
-            domain.isDeleted(),
-            domain.getComposition(),
-            domain.isSingleServing(),
-            domain.getExposureStartDate(),
-            domain.getExposureEndDate(),
-            domain.getVegetarianType(),
-            domain.getWeightText()
+            state.shopId(),
+            state.productCategoryId(),
+            state.name(),
+            state.description(),
+            state.originalPrice(),
+            toEmbeddable(state.discountInfo()),
+            state.rating(),
+            state.reviewCount(),
+            state.representative(),
+            state.spiciness(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible(),
+            state.sort(),
+            state.ratingExcluded(),
+            state.deleted(),
+            state.composition(),
+            state.singleServing(),
+            state.exposureStartDate(),
+            state.exposureEndDate(),
+            state.vegetarianType(),
+            state.weightText()
         );
     }
 
-    static void applyChanges(ProductJpaEntity entity, Product domain) {
+    static void applyChanges(ProductJpaEntity entity, ProductState state) {
         entity.applyChanges(
-            IdMapping.raw(domain.getProductCategoryId(), ProductCategoryId::value),
-            domain.getName(),
-            domain.getDescription(),
-            domain.getOriginalPrice(),
-            domain.getDiscountInfo(),
-            domain.getRating(),
-            domain.getReviewCount(),
-            domain.isRepresentative(),
-            domain.getSpiciness(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible(),
-            domain.getSort(),
-            domain.isRatingExcluded(),
-            domain.isDeleted(),
-            domain.getComposition(),
-            domain.isSingleServing(),
-            domain.getExposureStartDate(),
-            domain.getExposureEndDate(),
-            domain.getVegetarianType(),
-            domain.getWeightText()
+            state.productCategoryId(),
+            state.name(),
+            state.description(),
+            state.originalPrice(),
+            toEmbeddable(state.discountInfo()),
+            state.rating(),
+            state.reviewCount(),
+            state.representative(),
+            state.spiciness(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible(),
+            state.sort(),
+            state.ratingExcluded(),
+            state.deleted(),
+            state.composition(),
+            state.singleServing(),
+            state.exposureStartDate(),
+            state.exposureEndDate(),
+            state.vegetarianType(),
+            state.weightText()
         );
+    }
+
+    private static ProductDiscountInfoSnapshot toSnapshot(ProductDiscountInfoEmbeddable embeddable) {
+        return embeddable == null
+            ? null
+            : new ProductDiscountInfoSnapshot(embeddable.discountPrice(), embeddable.discountRate());
+    }
+
+    private static ProductDiscountInfoEmbeddable toEmbeddable(ProductDiscountInfoSnapshot snapshot) {
+        return snapshot == null
+            ? null
+            : new ProductDiscountInfoEmbeddable(snapshot.discountPrice(), snapshot.discountRate());
     }
 }

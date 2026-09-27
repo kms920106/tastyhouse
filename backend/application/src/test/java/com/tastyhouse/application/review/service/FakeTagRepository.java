@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.TagRepository;
+import com.tastyhouse.application.shop.store.TagRepository;
 import com.tastyhouse.domain.shop.model.Tag;
 
 public class FakeTagRepository implements TagRepository {

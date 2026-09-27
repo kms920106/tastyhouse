@@ -5,16 +5,15 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shop.port.out.write.ShopState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 class ShopMapperTest {
     @Test
-    @DisplayName("nullable FK가 전부 null인 엔티티를 도메인으로 재구성해도 예외가 나지 않는다")
-    void toDomainDoesNotThrowWhenNullableFksAreNull() {
+    @DisplayName("nullable FK가 전부 null인 엔티티를 State로 변환해도 예외가 나지 않고 FK는 null로 남는다")
+    void toStateDoesNotThrowWhenNullableFksAreNull() {
         ShopJpaEntity entity = ShopJpaEntity.create(
             null,
             1L,
@@ -36,21 +35,21 @@ class ShopMapperTest {
             false
         );
 
-        assertThatCode(() -> ShopMapper.toDomain(entity)).doesNotThrowAnyException();
+        assertThatCode(() -> ShopMapper.toState(entity)).doesNotThrowAnyException();
 
-        Shop domain = ShopMapper.toDomain(entity);
-        assertThat(domain.getCeoId()).isNull();
-        assertThat(domain.getThumbnailImageFileId()).isNull();
-        assertThat(domain.getTrademarkImageFileId()).isNull();
+        ShopState state = ShopMapper.toState(entity);
+        assertThat(state.ceoId()).isNull();
+        assertThat(state.thumbnailImageFileId()).isNull();
+        assertThat(state.trademarkImageFileId()).isNull();
     }
 
     @Test
-    @DisplayName("nullable VO가 전부 null인 도메인을 엔티티로 변환해도 예외가 나지 않는다")
-    void toEntityDoesNotThrowWhenNullableVosAreNull() {
-        Shop domain = Shop.reconstitute(
+    @DisplayName("nullable FK가 전부 null인 State를 엔티티로 변환해도 예외가 나지 않는다")
+    void toEntityDoesNotThrowWhenNullableFksAreNull() {
+        ShopState state = new ShopState(
             null,
             null,
-            StationId.of(1L),
+            1L,
             "가게",
             BigDecimal.ONE,
             BigDecimal.ONE,
@@ -71,9 +70,9 @@ class ShopMapperTest {
             null
         );
 
-        assertThatCode(() -> ShopMapper.toEntity(domain)).doesNotThrowAnyException();
+        assertThatCode(() -> ShopMapper.toEntity(state)).doesNotThrowAnyException();
 
-        ShopJpaEntity entity = ShopMapper.toEntity(domain);
+        ShopJpaEntity entity = ShopMapper.toEntity(state);
         assertThat(entity.getCeoId()).isNull();
         assertThat(entity.getThumbnailImageFileId()).isNull();
         assertThat(entity.getTrademarkImageFileId()).isNull();

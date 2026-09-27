@@ -2,9 +2,9 @@ package com.tastyhouse.application.product.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.product.port.out.write.ProductAllergenRepository;
-import com.tastyhouse.application.product.port.out.write.ProductNutritionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductAllergenRepository;
+import com.tastyhouse.application.product.store.ProductNutritionRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.AllergenType;

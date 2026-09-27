@@ -9,10 +9,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.DayType;

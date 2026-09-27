@@ -18,8 +18,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.coupon.model.DiscountType;
-import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -78,7 +76,7 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
     }
 
     @Override
-    public Optional<CouponDetailResult> findCouponDetailById(CouponId couponId) {
+    public Optional<CouponDetailResult> findCouponDetailById(Long couponId) {
         CouponDetailResult detail = queryFactory
             .select(Projections.constructor(CouponDetailResult.class,
                 couponJpaEntity.id,
@@ -98,18 +96,18 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
                 couponJpaEntity.updatedAt
             ))
             .from(couponJpaEntity)
-            .where(couponJpaEntity.id.eq(couponId.value()), couponJpaEntity.deleted.isFalse())
+            .where(couponJpaEntity.id.eq(couponId), couponJpaEntity.deleted.isFalse())
             .fetchOne();
 
         return Optional.ofNullable(detail);
     }
 
     @Override
-    public PageResult<MemberCouponItemResult> findIssuedMemberCoupons(CouponId couponId, PageQuery pageQuery) {
+    public PageResult<MemberCouponItemResult> findIssuedMemberCoupons(Long couponId, PageQuery pageQuery) {
         Long total = queryFactory
             .select(memberCouponJpaEntity.id.count())
             .from(memberCouponJpaEntity)
-            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
+            .where(memberCouponJpaEntity.couponId.eq(couponId))
             .fetchOne();
 
         List<MemberCouponItemResult> content = queryFactory
@@ -122,7 +120,7 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
                 memberCouponJpaEntity.createdAt
             ))
             .from(memberCouponJpaEntity)
-            .where(memberCouponJpaEntity.couponId.eq(couponId.value()))
+            .where(memberCouponJpaEntity.couponId.eq(couponId))
             .orderBy(memberCouponJpaEntity.id.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -174,7 +172,7 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
         return StringUtils.hasText(name) ? couponJpaEntity.name.containsIgnoreCase(name) : null;
     }
 
-    private BooleanExpression discountTypeEq(DiscountType discountType) {
+    private BooleanExpression discountTypeEq(String discountType) {
         return discountType != null ? couponJpaEntity.discountType.eq(discountType) : null;
     }
 

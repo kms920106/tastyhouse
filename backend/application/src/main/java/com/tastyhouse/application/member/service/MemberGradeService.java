@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.member.port.out.MyGradeResult;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;

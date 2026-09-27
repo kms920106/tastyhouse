@@ -12,7 +12,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -35,13 +34,13 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
     }
 
     @Override
-    public PageResult<FollowMemberResult> findFollowingList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery) {
+    public PageResult<FollowMemberResult> findFollowingList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
         List<FollowMemberResult> content = queryFactory
             .select(followMemberProjection(viewerMemberId))
             .from(memberFollowJpaEntity)
             .join(memberJpaEntity).on(memberFollowJpaEntity.followingId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(memberFollowJpaEntity.followerId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followerId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -50,20 +49,20 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
             .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followerId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followerId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
     @Override
-    public PageResult<FollowMemberResult> findFollowerList(MemberId memberId, MemberId viewerMemberId, PageQuery pageQuery) {
+    public PageResult<FollowMemberResult> findFollowerList(Long memberId, Long viewerMemberId, PageQuery pageQuery) {
         List<FollowMemberResult> content = queryFactory
             .select(followMemberProjection(viewerMemberId))
             .from(memberFollowJpaEntity)
             .join(memberJpaEntity).on(memberFollowJpaEntity.followerId.eq(memberJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(memberJpaEntity.profileImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(memberFollowJpaEntity.followingId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followingId.eq(memberId))
             .orderBy(memberFollowJpaEntity.createdAt.desc())
             .offset((long) pageQuery.page() * pageQuery.size())
             .limit(pageQuery.size())
@@ -72,13 +71,13 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
         Long total = queryFactory
             .select(memberFollowJpaEntity.count())
             .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followingId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followingId.eq(memberId))
             .fetchOne();
 
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
-    private ConstructorExpression<FollowMemberResult> followMemberProjection(MemberId viewerMemberId) {
+    private ConstructorExpression<FollowMemberResult> followMemberProjection(Long viewerMemberId) {
         return Projections.constructor(FollowMemberResult.class,
             memberJpaEntity.id,
             memberJpaEntity.nickname,
@@ -88,27 +87,27 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
         );
     }
 
-    private BooleanExpression isFollowedByViewer(MemberId viewerMemberId) {
+    private BooleanExpression isFollowedByViewer(Long viewerMemberId) {
         if (viewerMemberId == null) {
             return Expressions.FALSE;
         }
         return JPAExpressions.selectOne()
             .from(viewerFollow)
             .where(
-                viewerFollow.followerId.eq(viewerMemberId.value()),
+                viewerFollow.followerId.eq(viewerMemberId),
                 viewerFollow.followingId.eq(memberJpaEntity.id)
             )
             .exists();
     }
 
     @Override
-    public boolean existsFollow(MemberId followerId, MemberId followingId) {
+    public boolean existsFollow(Long followerId, Long followingId) {
         Integer found = queryFactory
             .selectOne()
             .from(memberFollowJpaEntity)
             .where(
-                memberFollowJpaEntity.followerId.eq(followerId.value()),
-                memberFollowJpaEntity.followingId.eq(followingId.value())
+                memberFollowJpaEntity.followerId.eq(followerId),
+                memberFollowJpaEntity.followingId.eq(followingId)
             )
             .fetchFirst();
 
@@ -116,33 +115,33 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
     }
 
     @Override
-    public long countFollowing(MemberId memberId) {
+    public long countFollowing(Long memberId) {
         Long count = queryFactory
             .select(memberFollowJpaEntity.count())
             .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followerId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followerId.eq(memberId))
             .fetchOne();
 
         return count != null ? count : 0L;
     }
 
     @Override
-    public long countFollower(MemberId memberId) {
+    public long countFollower(Long memberId) {
         Long count = queryFactory
             .select(memberFollowJpaEntity.count())
             .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followingId.eq(memberId.value()))
+            .where(memberFollowJpaEntity.followingId.eq(memberId))
             .fetchOne();
 
         return count != null ? count : 0L;
     }
 
     @Override
-    public List<Long> findFollowingIds(MemberId followerId) {
+    public List<Long> findFollowingIds(Long followerId) {
         return queryFactory
             .select(memberFollowJpaEntity.followingId)
             .from(memberFollowJpaEntity)
-            .where(memberFollowJpaEntity.followerId.eq(followerId.value()))
+            .where(memberFollowJpaEntity.followerId.eq(followerId))
             .fetch();
     }
 }

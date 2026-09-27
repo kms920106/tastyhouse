@@ -1,37 +1,35 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopBreakTime;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopBreakTimeState;
 
 final class ShopBreakTimeMapper {
     private ShopBreakTimeMapper() {
     }
 
-    static ShopBreakTime toDomain(ShopBreakTimeJpaEntity entity) {
-        return ShopBreakTime.reconstitute(
+    static ShopBreakTimeState toState(ShopBreakTimeJpaEntity entity) {
+        return new ShopBreakTimeState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getDayType(),
             entity.getStartTime(),
             entity.getEndTime()
         );
     }
 
-    static ShopBreakTimeJpaEntity toEntity(ShopBreakTime domain) {
+    static ShopBreakTimeJpaEntity toEntity(ShopBreakTimeState state) {
         return ShopBreakTimeJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getDayType(),
-            domain.getStartTime(),
-            domain.getEndTime()
+            state.shopId(),
+            state.dayType(),
+            state.startTime(),
+            state.endTime()
         );
     }
 
-    static void applyChanges(ShopBreakTimeJpaEntity entity, ShopBreakTime domain) {
+    static void applyChanges(ShopBreakTimeJpaEntity entity, ShopBreakTimeState state) {
         entity.applyChanges(
-            domain.getDayType(),
-            domain.getStartTime(),
-            domain.getEndTime()
+            state.dayType(),
+            state.startTime(),
+            state.endTime()
         );
     }
 }

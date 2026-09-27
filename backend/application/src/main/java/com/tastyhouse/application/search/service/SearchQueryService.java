@@ -76,7 +76,7 @@ public class SearchQueryService implements SearchQueryUseCase {
         String keyword = validateKeyword(query);
         PageQuery pageQuery = PageQuery.of(page, size);
         Long deliveryAdminDongId = memberDeliveryAddressQueryPort
-            .findDefaultAdminDongId(MemberId.of(memberId))
+            .findDefaultAdminDongId(MemberId.of(memberId).value())
             .orElse(null);
         return shopSearchQueryPort.searchByKeywordWithBookmark(keyword, memberId, deliveryAdminDongId, pageQuery);
     }

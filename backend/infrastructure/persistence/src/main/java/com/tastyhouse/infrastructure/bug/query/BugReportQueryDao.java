@@ -15,9 +15,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.bug.model.BugReportCategory;
-import com.tastyhouse.domain.bug.model.BugReportPriority;
-import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -57,9 +54,9 @@ public class BugReportQueryDao implements BugReportQueryPort {
                 bugReportJpaEntity.memberId,
                 bugReportJpaEntity.device,
                 bugReportJpaEntity.title,
-                bugReportJpaEntity.status.stringValue(),
-                bugReportJpaEntity.category.stringValue(),
-                bugReportJpaEntity.priority.stringValue(),
+                bugReportJpaEntity.status,
+                bugReportJpaEntity.category,
+                bugReportJpaEntity.priority,
                 JPAExpressions
                     .select(bugReportImageJpaEntity.count())
                     .from(bugReportImageJpaEntity)
@@ -146,15 +143,15 @@ public class BugReportQueryDao implements BugReportQueryPort {
         return memberId != null ? bugReportJpaEntity.memberId.eq(memberId) : null;
     }
 
-    private BooleanExpression statusEq(BugReportStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? bugReportJpaEntity.status.eq(status) : null;
     }
 
-    private BooleanExpression categoryEq(BugReportCategory category) {
+    private BooleanExpression categoryEq(String category) {
         return category != null ? bugReportJpaEntity.category.eq(category) : null;
     }
 
-    private BooleanExpression priorityEq(BugReportPriority priority) {
+    private BooleanExpression priorityEq(String priority) {
         return priority != null ? bugReportJpaEntity.priority.eq(priority) : null;
     }
 
@@ -166,22 +163,18 @@ public class BugReportQueryDao implements BugReportQueryPort {
             projection.device(),
             projection.title(),
             projection.content(),
-            nameOf(projection.status()),
-            nameOf(projection.category()),
-            nameOf(projection.priority()),
+            projection.status(),
+            projection.category(),
+            projection.priority(),
             projection.assigneeAdminId(),
             projection.adminAnswer(),
             projection.resolvedAt(),
             projection.appVersion(),
-            nameOf(projection.platform()),
+            projection.platform(),
             projection.osVersion(),
             images,
             projection.createdAt(),
             projection.updatedAt()
         );
-    }
-
-    private static String nameOf(Enum<?> value) {
-        return value != null ? value.name() : null;
     }
 }

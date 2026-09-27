@@ -19,8 +19,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.event.model.EventStatus;
-import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
@@ -42,7 +40,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
     }
 
     @Override
-    public PageResult<EventListItemResult> findEventListItemsByStatus(EventStatus status, PageQuery pageQuery) {
+    public PageResult<EventListItemResult> findEventListItemsByStatus(String status, PageQuery pageQuery) {
         List<EventListItemResult> content = queryFactory
             .select(Projections.constructor(EventListItemResult.class,
                 eventJpaEntity.id,
@@ -69,14 +67,14 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
     }
 
     @Override
-    public Optional<EventDetailResult> findEventBannerById(EventId eventId) {
+    public Optional<EventDetailResult> findEventBannerById(Long eventId) {
         EventDetailResult result = queryFactory
             .select(Projections.constructor(EventDetailResult.class,
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
             ))
             .from(eventJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.bannerImageFileId.eq(uploadedFileJpaEntity.id))
-            .where(eventJpaEntity.id.eq(eventId.value()))
+            .where(eventJpaEntity.id.eq(eventId))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -121,7 +119,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
     }
 
     @Override
-    public Optional<EventManagementDetailResult> findEventDetailById(EventId eventId) {
+    public Optional<EventManagementDetailResult> findEventDetailById(Long eventId) {
         QUploadedFileJpaEntity thumbnailFile = new QUploadedFileJpaEntity("thumbnailFile");
         QUploadedFileJpaEntity bannerFile = new QUploadedFileJpaEntity("bannerFile");
 
@@ -147,14 +145,14 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .from(eventJpaEntity)
             .leftJoin(thumbnailFile).on(thumbnailFile.id.eq(eventJpaEntity.thumbnailImageFileId))
             .leftJoin(bannerFile).on(bannerFile.id.eq(eventJpaEntity.bannerImageFileId))
-            .where(eventJpaEntity.id.eq(eventId.value()), eventJpaEntity.deleted.isFalse())
+            .where(eventJpaEntity.id.eq(eventId), eventJpaEntity.deleted.isFalse())
             .fetchOne();
 
         return Optional.ofNullable(detail);
     }
 
     @Override
-    public List<EventWinnerResult> findWinnersByEventId(EventId eventId) {
+    public List<EventWinnerResult> findWinnersByEventId(Long eventId) {
         return queryFactory
             .select(Projections.constructor(EventWinnerResult.class,
                 eventWinnerJpaEntity.id,
@@ -165,15 +163,15 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
                 eventWinnerJpaEntity.announcedAt
             ))
             .from(eventWinnerJpaEntity)
-            .where(eventWinnerJpaEntity.eventId.eq(eventId.value()), eventWinnerJpaEntity.deleted.isFalse())
+            .where(eventWinnerJpaEntity.eventId.eq(eventId), eventWinnerJpaEntity.deleted.isFalse())
             .orderBy(eventWinnerJpaEntity.rankNo.asc())
             .fetch();
     }
 
     @Override
-    public Optional<EventAnnouncementResult> findAnnouncementByEventId(EventId eventId) {
+    public Optional<EventAnnouncementResult> findAnnouncementByEventId(Long eventId) {
         EventAnnouncementResult result = selectAnnouncement()
-            .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
+            .where(eventAnnouncementJpaEntity.eventId.eq(eventId))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -211,7 +209,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
         return StringUtils.hasText(name) ? eventJpaEntity.name.containsIgnoreCase(name) : null;
     }
 
-    private BooleanExpression statusEq(EventStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? eventJpaEntity.status.eq(status) : null;
     }
 }

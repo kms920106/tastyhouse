@@ -53,7 +53,7 @@ public class ShopTrademarkQueryService implements ShopTrademarkQueryUseCase {
         ShopImageType imageType
     ) {
         List<ShopImageChangeRequestResult> requests =
-            shopOwnerQueryPort.findImageChangeRequests(shopId, imageType);
+            shopOwnerQueryPort.findImageChangeRequests(shopId, imageType.name());
         return new ShopImageStatusResult(currentImageUrl, requests);
     }
 }

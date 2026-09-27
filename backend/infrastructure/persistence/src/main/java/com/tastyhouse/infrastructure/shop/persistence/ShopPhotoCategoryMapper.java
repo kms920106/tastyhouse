@@ -1,29 +1,27 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryState;
 
 final class ShopPhotoCategoryMapper {
     private ShopPhotoCategoryMapper() {
     }
 
-    static ShopPhotoCategory toDomain(ShopPhotoCategoryJpaEntity entity) {
-        return ShopPhotoCategory.reconstitute(
+    static ShopPhotoCategoryState toState(ShopPhotoCategoryJpaEntity entity) {
+        return new ShopPhotoCategoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getName()
         );
     }
 
-    static ShopPhotoCategoryJpaEntity toEntity(ShopPhotoCategory domain) {
+    static ShopPhotoCategoryJpaEntity toEntity(ShopPhotoCategoryState state) {
         return ShopPhotoCategoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getName()
+            state.shopId(),
+            state.name()
         );
     }
 
-    static void applyChanges(ShopPhotoCategoryJpaEntity entity, ShopPhotoCategory domain) {
-        entity.applyChanges(domain.getName());
+    static void applyChanges(ShopPhotoCategoryJpaEntity entity, ShopPhotoCategoryState state) {
+        entity.applyChanges(state.name());
     }
 }

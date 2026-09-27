@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.partnership.persistence;
 
-import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipRequestState;
 
 final class PartnershipRequestMapper {
     private PartnershipRequestMapper() {
     }
 
-    static PartnershipRequest toDomain(PartnershipRequestJpaEntity entity) {
-        return PartnershipRequest.reconstitute(
+    static PartnershipRequestState toState(PartnershipRequestJpaEntity entity) {
+        return new PartnershipRequestState(
             entity.getId(),
             entity.getBusinessName(),
             entity.getAddress(),
@@ -22,23 +22,23 @@ final class PartnershipRequestMapper {
         );
     }
 
-    static PartnershipRequestJpaEntity toEntity(PartnershipRequest domain) {
+    static PartnershipRequestJpaEntity toEntity(PartnershipRequestState state) {
         return PartnershipRequestJpaEntity.create(
-            domain.getBusinessName(),
-            domain.getAddress(),
-            domain.getAddressDetail(),
-            domain.getContactName(),
-            domain.getContactPhone(),
-            domain.getConsultationRequestedAt(),
-            domain.getStatus(),
-            domain.isDeleted()
+            state.businessName(),
+            state.address(),
+            state.addressDetail(),
+            state.contactName(),
+            state.contactPhone(),
+            state.consultationRequestedAt(),
+            state.status(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(PartnershipRequestJpaEntity entity, PartnershipRequest domain) {
+    static void applyChanges(PartnershipRequestJpaEntity entity, PartnershipRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.isDeleted()
+            state.status(),
+            state.deleted()
         );
     }
 }

@@ -1,43 +1,41 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityCategoryState;
 
 final class ShopAmenityCategoryMapper {
     private ShopAmenityCategoryMapper() {
     }
 
-    static ShopAmenityCategory toDomain(ShopAmenityCategoryJpaEntity entity) {
-        return ShopAmenityCategory.reconstitute(
+    static ShopAmenityCategoryState toState(ShopAmenityCategoryJpaEntity entity) {
+        return new ShopAmenityCategoryState(
             entity.getId(),
             entity.getAmenity(),
             entity.getDisplayName(),
-            IdMapping.vo(entity.getActiveImageFileId(), UploadedFileId::of),
-            IdMapping.vo(entity.getInactiveImageFileId(), UploadedFileId::of),
+            entity.getActiveImageFileId(),
+            entity.getInactiveImageFileId(),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ShopAmenityCategoryJpaEntity toEntity(ShopAmenityCategory domain) {
+    static ShopAmenityCategoryJpaEntity toEntity(ShopAmenityCategoryState state) {
         return ShopAmenityCategoryJpaEntity.create(
-            domain.getAmenity(),
-            domain.getDisplayName(),
-            IdMapping.raw(domain.getActiveImageFileId(), UploadedFileId::value),
-            IdMapping.raw(domain.getInactiveImageFileId(), UploadedFileId::value),
-            domain.getSort(),
-            domain.isVisible()
+            state.amenity(),
+            state.displayName(),
+            state.activeImageFileId(),
+            state.inactiveImageFileId(),
+            state.sort(),
+            state.visible()
         );
     }
 
-    static void applyChanges(ShopAmenityCategoryJpaEntity entity, ShopAmenityCategory domain) {
+    static void applyChanges(ShopAmenityCategoryJpaEntity entity, ShopAmenityCategoryState state) {
         entity.applyChanges(
-            domain.getDisplayName(),
-            IdMapping.raw(domain.getActiveImageFileId(), UploadedFileId::value),
-            IdMapping.raw(domain.getInactiveImageFileId(), UploadedFileId::value),
-            domain.getSort(),
-            domain.isVisible()
+            state.displayName(),
+            state.activeImageFileId(),
+            state.inactiveImageFileId(),
+            state.sort(),
+            state.visible()
         );
     }
 }

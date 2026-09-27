@@ -10,9 +10,9 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;

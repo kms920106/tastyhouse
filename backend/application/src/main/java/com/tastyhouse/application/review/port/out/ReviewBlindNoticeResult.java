@@ -30,4 +30,19 @@ public record ReviewBlindNoticeResult(
             this.reviewMemberId
         );
     }
+
+    public ReviewBlindNoticeResult withReasonDescription(String reasonDescription) {
+        return new ReviewBlindNoticeResult(
+            this.reviewId,
+            this.content,
+            this.imageUrls,
+            this.createdAt,
+            this.shopName,
+            this.reason,
+            reasonDescription,
+            this.detailReason,
+            this.blindUntil,
+            this.reviewMemberId
+        );
+    }
 }

@@ -4,14 +4,10 @@ import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import com.tastyhouse.domain.shared.model.DayType;
 
 @Entity
 @Table(name = "SHOP_BUSINESS_HOUR")
@@ -23,9 +19,8 @@ public class ShopBusinessHourJpaEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType;
+    private String dayType;
 
     @Column(name = "open_time")
     private LocalTime openTime;
@@ -44,7 +39,7 @@ public class ShopBusinessHourJpaEntity {
 
     private ShopBusinessHourJpaEntity(
         Long shopId,
-        DayType dayType,
+        String dayType,
         LocalTime openTime,
         LocalTime closeTime,
         Boolean isClosed,
@@ -60,7 +55,7 @@ public class ShopBusinessHourJpaEntity {
 
     static ShopBusinessHourJpaEntity create(
         Long shopId,
-        DayType dayType,
+        String dayType,
         LocalTime openTime,
         LocalTime closeTime,
         Boolean isClosed,
@@ -69,7 +64,7 @@ public class ShopBusinessHourJpaEntity {
         return new ShopBusinessHourJpaEntity(shopId, dayType, openTime, closeTime, isClosed, is24Hours);
     }
 
-    void applyChanges(DayType dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
+    void applyChanges(String dayType, LocalTime openTime, LocalTime closeTime, Boolean isClosed, Boolean is24Hours) {
         this.dayType = dayType;
         this.openTime = openTime;
         this.closeTime = closeTime;
@@ -85,7 +80,7 @@ public class ShopBusinessHourJpaEntity {
         return this.shopId;
     }
 
-    public DayType getDayType() {
+    public String getDayType() {
         return this.dayType;
     }
 

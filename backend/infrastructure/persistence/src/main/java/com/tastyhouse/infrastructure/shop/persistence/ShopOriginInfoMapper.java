@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopOriginInfo;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoState;
 
 final class ShopOriginInfoMapper {
     private ShopOriginInfoMapper() {
     }
 
-    static ShopOriginInfo toDomain(ShopOriginInfoJpaEntity entity) {
-        return ShopOriginInfo.reconstitute(
+    static ShopOriginInfoState toState(ShopOriginInfoJpaEntity entity) {
+        return new ShopOriginInfoState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getSourceType(),
             entity.getContent(),
             entity.getUrl(),
@@ -20,16 +18,16 @@ final class ShopOriginInfoMapper {
         );
     }
 
-    static ShopOriginInfoJpaEntity toEntity(ShopOriginInfo domain) {
+    static ShopOriginInfoJpaEntity toEntity(ShopOriginInfoState state) {
         return ShopOriginInfoJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getSourceType(),
-            domain.getContent(),
-            domain.getUrl()
+            state.shopId(),
+            state.sourceType(),
+            state.content(),
+            state.url()
         );
     }
 
-    static void applyChanges(ShopOriginInfoJpaEntity entity, ShopOriginInfo domain) {
-        entity.applyChanges(domain.getSourceType(), domain.getContent(), domain.getUrl());
+    static void applyChanges(ShopOriginInfoJpaEntity entity, ShopOriginInfoState state) {
+        entity.applyChanges(state.sourceType(), state.content(), state.url());
     }
 }

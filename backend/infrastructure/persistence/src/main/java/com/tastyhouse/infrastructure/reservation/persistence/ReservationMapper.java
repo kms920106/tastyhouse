@@ -1,19 +1,16 @@
 package com.tastyhouse.infrastructure.reservation.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.reservation.model.Reservation;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.reservation.port.out.write.ReservationState;
 
 final class ReservationMapper {
     private ReservationMapper() {
     }
 
-    static Reservation toDomain(ReservationJpaEntity entity) {
-        return Reservation.reconstitute(
+    static ReservationState toState(ReservationJpaEntity entity) {
+        return new ReservationState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getMemberId(),
+            entity.getShopId(),
             entity.getReservationDate(),
             entity.getReservationTime(),
             entity.getPartySize(),
@@ -23,19 +20,19 @@ final class ReservationMapper {
         );
     }
 
-    static ReservationJpaEntity toEntity(Reservation domain) {
+    static ReservationJpaEntity toEntity(ReservationState state) {
         return ReservationJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getReservationDate(),
-            domain.getReservationTime(),
-            domain.getPartySize(),
-            domain.getStatus(),
-            domain.getRequest()
+            state.memberId(),
+            state.shopId(),
+            state.reservationDate(),
+            state.reservationTime(),
+            state.partySize(),
+            state.status(),
+            state.request()
         );
     }
 
-    static void applyChanges(ReservationJpaEntity entity, Reservation domain) {
-        entity.applyChanges(domain.getStatus());
+    static void applyChanges(ReservationJpaEntity entity, ReservationState state) {
+        entity.applyChanges(state.status());
     }
 }

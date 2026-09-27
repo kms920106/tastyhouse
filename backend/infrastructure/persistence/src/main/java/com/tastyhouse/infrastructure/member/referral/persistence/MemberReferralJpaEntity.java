@@ -2,8 +2,6 @@ package com.tastyhouse.infrastructure.member.referral.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,7 +9,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -37,24 +34,23 @@ public class MemberReferralJpaEntity extends BaseEntity {
     @Column(name = "referee_id", nullable = false)
     private Long refereeId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private MemberReferralStatus status;
+    private String status;
 
     protected MemberReferralJpaEntity() {
     }
 
-    private MemberReferralJpaEntity(Long referrerId, Long refereeId, MemberReferralStatus status) {
+    private MemberReferralJpaEntity(Long referrerId, Long refereeId, String status) {
         this.referrerId = referrerId;
         this.refereeId = refereeId;
         this.status = status;
     }
 
-    static MemberReferralJpaEntity create(Long referrerId, Long refereeId, MemberReferralStatus status) {
+    static MemberReferralJpaEntity create(Long referrerId, Long refereeId, String status) {
         return new MemberReferralJpaEntity(referrerId, refereeId, status);
     }
 
-    void applyChanges(MemberReferralStatus status) {
+    void applyChanges(String status) {
         this.status = status;
     }
 
@@ -70,7 +66,7 @@ public class MemberReferralJpaEntity extends BaseEntity {
         return this.refereeId;
     }
 
-    public MemberReferralStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 }

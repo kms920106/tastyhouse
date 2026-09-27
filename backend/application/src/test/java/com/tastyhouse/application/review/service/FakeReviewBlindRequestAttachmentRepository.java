@@ -3,7 +3,7 @@ package com.tastyhouse.application.review.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentRepository;
+import com.tastyhouse.application.review.store.ReviewBlindRequestAttachmentRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
 
 public class FakeReviewBlindRequestAttachmentRepository implements ReviewBlindRequestAttachmentRepository {

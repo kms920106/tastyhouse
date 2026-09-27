@@ -8,14 +8,12 @@ import java.util.List;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 
 import static com.tastyhouse.infrastructure.ceo.persistence.QCeoLoginHistoryJpaEntity.ceoLoginHistoryJpaEntity;
 
@@ -51,10 +49,10 @@ public class CeoLoginHistoryQueryDao implements CeoLoginHistoryQueryPort {
         List<CeoLoginHistoryResult> content = queryFactory
             .select(Projections.constructor(CeoLoginHistoryResult.class,
                 ceoLoginHistoryJpaEntity.id,
-                ceoLoginHistoryJpaEntity.result.stringValue(),
-                EnumLabelProjection.labelOf(ceoLoginHistoryJpaEntity.result, CeoLoginResult::getDescription),
-                ceoLoginHistoryJpaEntity.failureReason.stringValue(),
-                EnumLabelProjection.labelOf(ceoLoginHistoryJpaEntity.failureReason, CeoLoginFailureReason::getDescription),
+                ceoLoginHistoryJpaEntity.result,
+                Expressions.nullExpression(String.class),
+                ceoLoginHistoryJpaEntity.failureReason,
+                Expressions.nullExpression(String.class),
                 ceoLoginHistoryJpaEntity.ipAddress,
                 ceoLoginHistoryJpaEntity.userAgent,
                 ceoLoginHistoryJpaEntity.createdAt
@@ -69,7 +67,7 @@ public class CeoLoginHistoryQueryDao implements CeoLoginHistoryQueryPort {
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    private BooleanExpression resultEq(CeoLoginResult result) {
+    private BooleanExpression resultEq(String result) {
         return result != null ? ceoLoginHistoryJpaEntity.result.eq(result) : null;
     }
 

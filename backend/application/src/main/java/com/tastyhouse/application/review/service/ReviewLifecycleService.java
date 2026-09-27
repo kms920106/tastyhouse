@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.write.ReviewImageRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewLikeRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewTagRepository;
+import com.tastyhouse.application.review.store.ReviewImageRepository;
+import com.tastyhouse.application.review.store.ReviewLikeRepository;
+import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.store.ReviewTagRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shop.port.out.write.TagRepository;
+import com.tastyhouse.application.shop.store.TagRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

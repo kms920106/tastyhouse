@@ -1,21 +1,17 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.product.vo.ProductPriceId;
-import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationItemState;
 
 final class StorePriceVerificationItemMapper {
     private StorePriceVerificationItemMapper() {
     }
 
-    static StorePriceVerificationItem toDomain(StorePriceVerificationItemJpaEntity entity) {
-        return StorePriceVerificationItem.reconstitute(
+    static StorePriceVerificationItemState toState(StorePriceVerificationItemJpaEntity entity) {
+        return new StorePriceVerificationItemState(
             entity.getId(),
-            IdMapping.vo(entity.getVerificationId(), StorePriceVerificationId::of),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getProductPriceId(), ProductPriceId::of),
+            entity.getVerificationId(),
+            entity.getProductId(),
+            entity.getProductPriceId(),
             entity.getStorePrice(),
             entity.isApplyPickupSamePrice(),
             entity.getCreatedAt(),
@@ -23,13 +19,13 @@ final class StorePriceVerificationItemMapper {
         );
     }
 
-    static StorePriceVerificationItemJpaEntity toEntity(StorePriceVerificationItem domain) {
+    static StorePriceVerificationItemJpaEntity toEntity(StorePriceVerificationItemState state) {
         return StorePriceVerificationItemJpaEntity.create(
-            IdMapping.raw(domain.getVerificationId(), StorePriceVerificationId::value),
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getProductPriceId(), ProductPriceId::value),
-            domain.getStorePrice(),
-            domain.isApplyPickupSamePrice()
+            state.verificationId(),
+            state.productId(),
+            state.productPriceId(),
+            state.storePrice(),
+            state.applyPickupSamePrice()
         );
     }
 }

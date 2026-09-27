@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.tastyhouse.domain.review.model.ReviewSortType;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -19,15 +16,15 @@ public interface ReviewQueryPort {
 
     PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(List<Long> followingMemberIds, PageQuery pageQuery);
 
-    PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType);
+    PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
 
-    PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortType sortType);
+    PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType);
 
     List<LatestReviewListItemResult> findReviewsByShopIdAndRating(Long shopId, Integer rating, int limit);
 
     List<LatestReviewListItemResult> findReviewsByProductIdAndRating(Long productId, Integer rating, int limit);
 
-    Optional<ReviewDetailResult> findReviewDetail(ReviewId reviewId, Long viewerMemberId);
+    Optional<ReviewDetailResult> findReviewDetail(Long reviewId, Long viewerMemberId);
 
     PageResult<MyReviewListItemResult> findMyReviews(Long memberId, PageQuery pageQuery);
 
@@ -41,9 +38,9 @@ public interface ReviewQueryPort {
 
     Optional<Long> findProductIdByReviewId(Long reviewId);
 
-    boolean existsLike(ReviewId reviewId, Long memberId);
+    boolean existsLike(Long reviewId, Long memberId);
 
-    List<ReviewCommentItemResult> findComments(ReviewId reviewId);
+    List<ReviewCommentItemResult> findComments(Long reviewId);
 
-    List<ReviewReplyItemResult> findVisibleReplies(List<ReviewCommentId> commentIds);
+    List<ReviewReplyItemResult> findVisibleReplies(List<Long> commentIds);
 }

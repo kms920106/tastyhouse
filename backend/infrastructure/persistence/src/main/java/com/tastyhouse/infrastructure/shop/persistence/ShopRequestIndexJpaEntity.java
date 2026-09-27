@@ -4,15 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.ShopRequestStatus;
-import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -25,9 +21,8 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "request_type", nullable = false, length = 40, columnDefinition = "VARCHAR(40)")
-    private ShopRequestType requestType;
+    private String requestType;
 
     @Column(name = "source_request_id", nullable = false)
     private Long sourceRequestId;
@@ -35,9 +30,8 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
     @Column(name = "summary", nullable = false)
     private String summary;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopRequestStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -56,10 +50,10 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
 
     private ShopRequestIndexJpaEntity(
         Long shopId,
-        ShopRequestType requestType,
+        String requestType,
         Long sourceRequestId,
         String summary,
-        ShopRequestStatus status,
+        String status,
         String rejectReason,
         Long attachmentFileId,
         Long requestedByCeoId,
@@ -78,10 +72,10 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
 
     static ShopRequestIndexJpaEntity create(
         Long shopId,
-        ShopRequestType requestType,
+        String requestType,
         Long sourceRequestId,
         String summary,
-        ShopRequestStatus status,
+        String status,
         String rejectReason,
         Long attachmentFileId,
         Long requestedByCeoId,
@@ -91,7 +85,7 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
             attachmentFileId, requestedByCeoId, processedAt);
     }
 
-    void applyChanges(ShopRequestStatus status, String rejectReason, LocalDateTime processedAt) {
+    void applyChanges(String status, String rejectReason, LocalDateTime processedAt) {
         this.status = status;
         this.rejectReason = rejectReason;
         this.processedAt = processedAt;
@@ -105,7 +99,7 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ShopRequestType getRequestType() {
+    public String getRequestType() {
         return this.requestType;
     }
 
@@ -117,7 +111,7 @@ public class ShopRequestIndexJpaEntity extends BaseEntity {
         return this.summary;
     }
 
-    public ShopRequestStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

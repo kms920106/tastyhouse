@@ -1,28 +1,26 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureState;
 
 final class ShopTemporaryClosureMapper {
     private ShopTemporaryClosureMapper() {
     }
 
-    static ShopTemporaryClosure toDomain(ShopTemporaryClosureJpaEntity entity) {
-        return ShopTemporaryClosure.reconstitute(
+    static ShopTemporaryClosureState toState(ShopTemporaryClosureJpaEntity entity) {
+        return new ShopTemporaryClosureState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getStartDate(),
             entity.getEndDate(),
             entity.getCreatedAt()
         );
     }
 
-    static ShopTemporaryClosureJpaEntity toEntity(ShopTemporaryClosure domain) {
+    static ShopTemporaryClosureJpaEntity toEntity(ShopTemporaryClosureState state) {
         return ShopTemporaryClosureJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getStartDate(),
-            domain.getEndDate()
+            state.shopId(),
+            state.startDate(),
+            state.endDate()
         );
     }
 }

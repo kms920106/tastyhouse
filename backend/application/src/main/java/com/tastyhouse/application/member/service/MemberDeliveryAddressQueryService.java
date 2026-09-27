@@ -24,6 +24,6 @@ public class MemberDeliveryAddressQueryService implements MemberDeliveryAddressQ
 
     @Override
     public List<MemberDeliveryAddressItemResult> getMyDeliveryAddresses(Long memberId) {
-        return memberDeliveryAddressQueryPort.findByMemberId(MemberId.of(memberId));
+        return memberDeliveryAddressQueryPort.findByMemberId(MemberId.of(memberId).value());
     }
 }

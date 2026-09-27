@@ -52,9 +52,9 @@ public class BugReportQueryService implements BugReportQueryUseCase {
             title,
             content,
             memberId,
-            status == null ? null : BugReportStatus.from(status),
-            category == null ? null : BugReportCategory.from(category),
-            priority == null ? null : BugReportPriority.from(priority)
+            status == null ? null : BugReportStatus.from(status).name(),
+            category == null ? null : BugReportCategory.from(category).name(),
+            priority == null ? null : BugReportPriority.from(priority).name()
         );
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<BugReportListItemResult> pageResult = bugReportQueryPort.findBugReports(condition, pageQuery);
@@ -73,7 +73,7 @@ public class BugReportQueryService implements BugReportQueryUseCase {
         BugReportDetailResult detail = bugReportQueryPort.findDetailById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
 
-        MemberWithProfileImageResult member = memberManagementQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()))
+        MemberWithProfileImageResult member = memberManagementQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()).value())
             .orElse(null);
 
         return new BugReportDetailWithMemberResult(detail, member);

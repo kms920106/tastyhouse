@@ -8,7 +8,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveComman
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

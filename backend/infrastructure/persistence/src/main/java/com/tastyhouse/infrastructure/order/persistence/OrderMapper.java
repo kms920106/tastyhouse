@@ -1,20 +1,18 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.order.port.out.write.OrderDeliveryDestinationSnapshot;
+import com.tastyhouse.application.order.port.out.write.OrderScheduleSnapshot;
+import com.tastyhouse.application.order.port.out.write.OrderState;
 
 final class OrderMapper {
     private OrderMapper() {
     }
 
-    static Order toDomain(OrderJpaEntity entity) {
-        return Order.reconstitute(
+    static OrderState toState(OrderJpaEntity entity) {
+        return new OrderState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getMemberId(),
+            entity.getShopId(),
             entity.getOrderNumber(),
             entity.getOrderMethod(),
             entity.getOrderStatus(),
@@ -29,9 +27,9 @@ final class OrderMapper {
             entity.getDeliveryTipAmount(),
             entity.getCupDepositAmount(),
             entity.getFinalAmount(),
-            entity.getDeliveryDestination(),
-            entity.getSchedule(),
-            IdMapping.vo(entity.getMemberCouponId(), MemberCouponId::of),
+            toSnapshot(entity.getDeliveryDestination()),
+            toSnapshot(entity.getSchedule()),
+            entity.getMemberCouponId(),
             entity.getUsedPoint(),
             entity.getEarnedPoint(),
             entity.isDeleted(),
@@ -40,50 +38,90 @@ final class OrderMapper {
         );
     }
 
-    static OrderJpaEntity toEntity(Order domain) {
+    static OrderJpaEntity toEntity(OrderState state) {
         return OrderJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getOrderNumber(),
-            domain.getOrderMethod(),
-            domain.getOrderStatus(),
-            domain.getOrdererName(),
-            domain.getOrdererPhone(),
-            domain.getOrdererEmail(),
-            domain.getTotalProductAmount(),
-            domain.getProductDiscountAmount(),
-            domain.getCouponDiscountAmount(),
-            domain.getPointDiscountAmount(),
-            domain.getTotalDiscountAmount(),
-            domain.getDeliveryTipAmount(),
-            domain.getCupDepositAmount(),
-            domain.getFinalAmount(),
-            domain.getDeliveryDestination(),
-            domain.getSchedule(),
-            IdMapping.raw(domain.getMemberCouponId(), MemberCouponId::value),
-            domain.getUsedPoint(),
-            domain.getEarnedPoint(),
-            domain.isDeleted()
+            state.memberId(),
+            state.shopId(),
+            state.orderNumber(),
+            state.orderMethod(),
+            state.orderStatus(),
+            state.ordererName(),
+            state.ordererPhone(),
+            state.ordererEmail(),
+            state.totalProductAmount(),
+            state.productDiscountAmount(),
+            state.couponDiscountAmount(),
+            state.pointDiscountAmount(),
+            state.totalDiscountAmount(),
+            state.deliveryTipAmount(),
+            state.cupDepositAmount(),
+            state.finalAmount(),
+            toEmbeddable(state.deliveryDestination()),
+            toEmbeddable(state.schedule()),
+            state.memberCouponId(),
+            state.usedPoint(),
+            state.earnedPoint(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(OrderJpaEntity entity, Order domain) {
+    static void applyChanges(OrderJpaEntity entity, OrderState state) {
         entity.applyChanges(
-            domain.getOrderStatus(),
-            domain.getTotalProductAmount(),
-            domain.getProductDiscountAmount(),
-            domain.getCouponDiscountAmount(),
-            domain.getPointDiscountAmount(),
-            domain.getTotalDiscountAmount(),
-            domain.getDeliveryTipAmount(),
-            domain.getCupDepositAmount(),
-            domain.getFinalAmount(),
-            domain.getDeliveryDestination(),
-            domain.getSchedule(),
-            IdMapping.raw(domain.getMemberCouponId(), MemberCouponId::value),
-            domain.getUsedPoint(),
-            domain.getEarnedPoint(),
-            domain.isDeleted()
+            state.orderStatus(),
+            state.totalProductAmount(),
+            state.productDiscountAmount(),
+            state.couponDiscountAmount(),
+            state.pointDiscountAmount(),
+            state.totalDiscountAmount(),
+            state.deliveryTipAmount(),
+            state.cupDepositAmount(),
+            state.finalAmount(),
+            toEmbeddable(state.deliveryDestination()),
+            toEmbeddable(state.schedule()),
+            state.memberCouponId(),
+            state.usedPoint(),
+            state.earnedPoint(),
+            state.deleted()
         );
+    }
+
+    private static OrderDeliveryDestinationSnapshot toSnapshot(OrderDeliveryDestinationEmbeddable embeddable) {
+        return embeddable == null
+            ? null
+            : new OrderDeliveryDestinationSnapshot(
+                embeddable.adminDongId(),
+                embeddable.detailAddress(),
+                embeddable.distanceMeters(),
+                embeddable.latitude(),
+                embeddable.longitude(),
+                embeddable.lotAddress(),
+                embeddable.roadAddress()
+            );
+    }
+
+    private static OrderDeliveryDestinationEmbeddable toEmbeddable(OrderDeliveryDestinationSnapshot snapshot) {
+        return snapshot == null
+            ? null
+            : new OrderDeliveryDestinationEmbeddable(
+                snapshot.adminDongId(),
+                snapshot.detailAddress(),
+                snapshot.distanceMeters(),
+                snapshot.latitude(),
+                snapshot.longitude(),
+                snapshot.lotAddress(),
+                snapshot.roadAddress()
+            );
+    }
+
+    private static OrderScheduleSnapshot toSnapshot(OrderScheduleEmbeddable embeddable) {
+        return embeddable == null
+            ? null
+            : new OrderScheduleSnapshot(embeddable.scheduledAt(), embeddable.scheduledSlotEndAt());
+    }
+
+    private static OrderScheduleEmbeddable toEmbeddable(OrderScheduleSnapshot snapshot) {
+        return snapshot == null
+            ? null
+            : new OrderScheduleEmbeddable(snapshot.scheduledAt(), snapshot.scheduledSlotEndAt());
     }
 }

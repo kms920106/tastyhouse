@@ -2,13 +2,11 @@ package com.tastyhouse.application.partnership.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.partnership.model.PartnershipStatus;
-
 public record PartnershipSearchCondition(
     String businessName,
     String contactName,
     String contactPhone,
-    PartnershipStatus status,
+    String status,
     LocalDateTime startDate,
     LocalDateTime endDate
 ) {
@@ -17,7 +15,7 @@ public record PartnershipSearchCondition(
         String businessName,
         String contactName,
         String contactPhone,
-        PartnershipStatus status,
+        String status,
         LocalDateTime startDate,
         LocalDateTime endDate
     ) {

@@ -43,8 +43,8 @@ public class MemberManagementQueryService implements MemberManagementQueryUseCas
             nickname,
             username,
             phone,
-            status == null ? null : MemberStatus.from(status),
-            grade == null ? null : MemberGrade.from(grade)
+            status == null ? null : MemberStatus.from(status).name(),
+            grade == null ? null : MemberGrade.from(grade).name()
         );
         PageQuery pageQuery = PageQuery.of(page, size);
         return memberManagementQueryPort.findMembers(condition, pageQuery);
@@ -52,10 +52,10 @@ public class MemberManagementQueryService implements MemberManagementQueryUseCas
 
     @Override
     public MemberManagementDetailWithProfileImageResult getMember(Long id) {
-        MemberManagementDetailResult member = memberManagementQueryPort.findManagementDetailById(MemberId.of(id))
+        MemberManagementDetailResult member = memberManagementQueryPort.findManagementDetailById(MemberId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        String profileImageUrl = memberManagementQueryPort.findProfileImageUrl(MemberId.of(member.id())).orElse(null);
+        String profileImageUrl = memberManagementQueryPort.findProfileImageUrl(MemberId.of(member.id()).value()).orElse(null);
 
         return new MemberManagementDetailWithProfileImageResult(member, profileImageUrl);
     }

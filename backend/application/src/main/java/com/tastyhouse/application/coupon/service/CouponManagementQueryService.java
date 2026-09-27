@@ -36,7 +36,7 @@ public class CouponManagementQueryService implements CouponManagementQueryUseCas
         int page,
         int size
     ) {
-        DiscountType type = discountType == null ? null : DiscountType.from(discountType);
+        String type = discountType == null ? null : DiscountType.from(discountType).name();
         CouponSearchCondition condition = CouponSearchCondition.of(name, type, visible);
         PageQuery pageQuery = PageQuery.of(page, size);
 
@@ -45,7 +45,7 @@ public class CouponManagementQueryService implements CouponManagementQueryUseCas
 
     @Override
     public CouponDetailResult getCoupon(Long id) {
-        return couponManagementQueryPort.findCouponDetailById(CouponId.of(id))
+        return couponManagementQueryPort.findCouponDetailById(CouponId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 
@@ -53,6 +53,6 @@ public class CouponManagementQueryService implements CouponManagementQueryUseCas
     public PageResult<MemberCouponItemResult> getIssuedCoupons(Long id, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
 
-        return couponManagementQueryPort.findIssuedMemberCoupons(CouponId.of(id), pageQuery);
+        return couponManagementQueryPort.findIssuedMemberCoupons(CouponId.of(id).value(), pageQuery);
     }
 }

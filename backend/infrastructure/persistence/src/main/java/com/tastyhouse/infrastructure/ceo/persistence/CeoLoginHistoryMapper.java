@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.ceo.persistence;
 
-import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
-import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryState;
 
 final class CeoLoginHistoryMapper {
     private CeoLoginHistoryMapper() {
     }
 
-    static CeoLoginHistory toDomain(CeoLoginHistoryJpaEntity entity) {
-        return CeoLoginHistory.reconstitute(
+    static CeoLoginHistoryState toState(CeoLoginHistoryJpaEntity entity) {
+        return new CeoLoginHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getCeoId(), CeoId::of),
+            entity.getCeoId(),
             entity.getResult(),
             entity.getFailureReason(),
             entity.getIpAddress(),
@@ -20,13 +18,13 @@ final class CeoLoginHistoryMapper {
         );
     }
 
-    static CeoLoginHistoryJpaEntity toEntity(CeoLoginHistory domain) {
+    static CeoLoginHistoryJpaEntity toEntity(CeoLoginHistoryState state) {
         return CeoLoginHistoryJpaEntity.create(
-            IdMapping.raw(domain.getCeoId(), CeoId::value),
-            domain.getResult(),
-            domain.getFailureReason(),
-            domain.getIpAddress(),
-            domain.getUserAgent()
+            state.ceoId(),
+            state.result(),
+            state.failureReason(),
+            state.ipAddress(),
+            state.userAgent()
         );
     }
 }

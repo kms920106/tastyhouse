@@ -9,4 +9,14 @@ public record ShopRequestCommentResult(
     String content,
     LocalDateTime createdAt
 ) {
+
+    public ShopRequestCommentResult withAuthorTypeDescription(String authorTypeDescription) {
+        return new ShopRequestCommentResult(
+            this.commentId,
+            this.authorType,
+            authorTypeDescription,
+            this.content,
+            this.createdAt
+        );
+    }
 }

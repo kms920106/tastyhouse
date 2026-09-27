@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeRepository;
+import com.tastyhouse.application.shop.store.ShopHygieneBadgeRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.HygieneBadgeType;

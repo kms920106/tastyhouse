@@ -8,15 +8,12 @@ import java.util.List;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.ShopChangeCategory;
-import com.tastyhouse.domain.shop.model.ShopChangeType;
-import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
-import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChangeHistoryJpaEntity.shopChangeHistoryJpaEntity;
 
@@ -53,12 +50,12 @@ public class ShopChangeHistoryQueryDao implements ShopChangeHistoryQueryPort {
         List<ShopChangeHistoryResult> content = queryFactory
             .select(Projections.constructor(ShopChangeHistoryResult.class,
                 shopChangeHistoryJpaEntity.id,
-                shopChangeHistoryJpaEntity.category.stringValue(),
-                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.category, ShopChangeCategory::getDescription),
-                shopChangeHistoryJpaEntity.changeType.stringValue(),
-                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.changeType, ShopChangeType::getDescription),
-                shopChangeHistoryJpaEntity.actionType.stringValue(),
-                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.actionType, ShopChangeActionType::getDescription),
+                shopChangeHistoryJpaEntity.category,
+                Expressions.nullExpression(String.class),
+                shopChangeHistoryJpaEntity.changeType,
+                Expressions.nullExpression(String.class),
+                shopChangeHistoryJpaEntity.actionType,
+                Expressions.nullExpression(String.class),
                 shopChangeHistoryJpaEntity.previousValue,
                 shopChangeHistoryJpaEntity.newValue,
                 shopChangeHistoryJpaEntity.createdAt
@@ -73,11 +70,11 @@ public class ShopChangeHistoryQueryDao implements ShopChangeHistoryQueryPort {
         return PageResult.of(content, total, pageQuery.page(), pageQuery.size());
     }
 
-    private BooleanExpression categoryEq(ShopChangeCategory category) {
+    private BooleanExpression categoryEq(String category) {
         return category != null ? shopChangeHistoryJpaEntity.category.eq(category) : null;
     }
 
-    private BooleanExpression changeTypeEq(ShopChangeType changeType) {
+    private BooleanExpression changeTypeEq(String changeType) {
         return changeType != null ? shopChangeHistoryJpaEntity.changeType.eq(changeType) : null;
     }
 

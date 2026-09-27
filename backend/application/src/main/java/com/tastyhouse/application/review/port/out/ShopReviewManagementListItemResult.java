@@ -60,4 +60,27 @@ public record ShopReviewManagementListItemResult(
             this.createdAt
         );
     }
+
+    public ShopReviewManagementListItemResult withDescriptions(
+        String orderMethodDisplayName,
+        String blindRequestStatusDescription
+    ) {
+        return new ShopReviewManagementListItemResult(
+            this.id,
+            this.memberNickname,
+            this.totalRating,
+            this.content,
+            this.imageUrls,
+            this.productNames,
+            this.orderMethod,
+            orderMethodDisplayName,
+            this.hidden,
+            this.ownerOnly,
+            this.ownerReplyContent,
+            this.ownerReplyCreatedAt,
+            this.blindRequestStatus,
+            blindRequestStatusDescription,
+            this.createdAt
+        );
+    }
 }

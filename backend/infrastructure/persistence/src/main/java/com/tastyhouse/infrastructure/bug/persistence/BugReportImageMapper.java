@@ -1,28 +1,25 @@
 package com.tastyhouse.infrastructure.bug.persistence;
 
-import com.tastyhouse.domain.bug.model.BugReportImage;
-import com.tastyhouse.domain.bug.vo.BugReportId;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.bug.port.out.write.BugReportImageState;
 
 final class BugReportImageMapper {
     private BugReportImageMapper() {
     }
 
-    static BugReportImage toDomain(BugReportImageJpaEntity entity) {
-        return BugReportImage.reconstitute(
+    static BugReportImageState toState(BugReportImageJpaEntity entity) {
+        return new BugReportImageState(
             entity.getId(),
-            IdMapping.vo(entity.getBugReportId(), BugReportId::of),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getBugReportId(),
+            entity.getImageFileId(),
             entity.getSort()
         );
     }
 
-    static BugReportImageJpaEntity toEntity(BugReportImage domain) {
+    static BugReportImageJpaEntity toEntity(BugReportImageState state) {
         return BugReportImageJpaEntity.create(
-            IdMapping.raw(domain.getBugReportId(), BugReportId::value),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getSort()
+            state.bugReportId(),
+            state.imageFileId(),
+            state.sort()
         );
     }
 }

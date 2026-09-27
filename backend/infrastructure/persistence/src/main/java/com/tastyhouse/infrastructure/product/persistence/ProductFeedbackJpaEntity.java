@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -28,9 +25,8 @@ public class ProductFeedbackJpaEntity extends BaseEntity {
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "feedback_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ProductFeedbackType feedbackType;
+    private String feedbackType;
 
     @Column(name = "content", length = 500)
     private String content;
@@ -42,7 +38,7 @@ public class ProductFeedbackJpaEntity extends BaseEntity {
         Long productId,
         Long shopId,
         Long memberId,
-        ProductFeedbackType feedbackType,
+        String feedbackType,
         String content
     ) {
         this.productId = productId;
@@ -56,7 +52,7 @@ public class ProductFeedbackJpaEntity extends BaseEntity {
         Long productId,
         Long shopId,
         Long memberId,
-        ProductFeedbackType feedbackType,
+        String feedbackType,
         String content
     ) {
         return new ProductFeedbackJpaEntity(productId, shopId, memberId, feedbackType, content);
@@ -78,7 +74,7 @@ public class ProductFeedbackJpaEntity extends BaseEntity {
         return this.memberId;
     }
 
-    public ProductFeedbackType getFeedbackType() {
+    public String getFeedbackType() {
         return this.feedbackType;
     }
 

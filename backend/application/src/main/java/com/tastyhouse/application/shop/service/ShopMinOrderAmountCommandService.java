@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;

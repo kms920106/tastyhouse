@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.ceo.store.CeoRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

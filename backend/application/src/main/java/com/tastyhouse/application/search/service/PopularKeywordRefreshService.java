@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
-import com.tastyhouse.application.search.port.out.write.PopularKeywordRepository;
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogRepository;
+import com.tastyhouse.application.search.store.PopularKeywordRepository;
+import com.tastyhouse.application.search.store.SearchKeywordLogRepository;
 import com.tastyhouse.domain.search.model.PopularKeyword;
 
 public class PopularKeywordRefreshService {

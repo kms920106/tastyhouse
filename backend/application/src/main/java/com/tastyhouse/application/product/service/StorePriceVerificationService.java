@@ -8,9 +8,9 @@ import java.util.Map;
 
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationRepository;
+import com.tastyhouse.application.product.store.ProductPriceRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

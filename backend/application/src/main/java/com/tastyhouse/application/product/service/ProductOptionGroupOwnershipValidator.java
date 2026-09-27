@@ -4,8 +4,8 @@ import com.tastyhouse.application.shared.marker.CeoApp;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductOption;

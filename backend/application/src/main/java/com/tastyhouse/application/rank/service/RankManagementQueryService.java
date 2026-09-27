@@ -34,7 +34,7 @@ public class RankManagementQueryService implements RankManagementQueryUseCase {
         RankType rankType = RankType.from(type);
         LocalDate baseDate = LocalDate.now();
 
-        return rankManagementQueryPort.findMemberRanks(rankType, baseDate, limit);
+        return rankManagementQueryPort.findMemberRanks(rankType.name(), baseDate, limit);
     }
 
     @Override
@@ -44,18 +44,18 @@ public class RankManagementQueryService implements RankManagementQueryUseCase {
 
     @Override
     public RankPeriodResult getPeriod(Long id) {
-        return rankManagementQueryPort.findPeriodById(RankPeriodId.of(id))
+        return rankManagementQueryPort.findPeriodById(RankPeriodId.of(id).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
     }
 
     @Override
     public List<RankPrizeManagementResult> getPrizesByPeriod(Long periodId) {
-        return rankManagementQueryPort.findPrizesByPeriodId(RankPeriodId.of(periodId));
+        return rankManagementQueryPort.findPrizesByPeriodId(RankPeriodId.of(periodId).value());
     }
 
     @Override
     public RankPrizeManagementResult getPrize(Long prizeId) {
-        return rankManagementQueryPort.findPrizeById(RankPrizeId.of(prizeId))
+        return rankManagementQueryPort.findPrizeById(RankPrizeId.of(prizeId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

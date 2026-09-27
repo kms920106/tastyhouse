@@ -1,6 +1,6 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.store.ShopChangeHistoryRepository;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;

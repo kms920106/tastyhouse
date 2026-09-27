@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -23,16 +19,14 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "image_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ShopImageType imageType;
+    private String imageType;
 
     @Column(name = "image_file_id", nullable = false)
     private Long imageFileId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ApprovalStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -42,9 +36,9 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
 
     private ShopImageChangeRequestJpaEntity(
         Long shopId,
-        ShopImageType imageType,
+        String imageType,
         Long imageFileId,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         this.shopId = shopId;
@@ -56,15 +50,15 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
 
     static ShopImageChangeRequestJpaEntity create(
         Long shopId,
-        ShopImageType imageType,
+        String imageType,
         Long imageFileId,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         return new ShopImageChangeRequestJpaEntity(shopId, imageType, imageFileId, status, rejectReason);
     }
 
-    void applyChanges(ApprovalStatus status, String rejectReason) {
+    void applyChanges(String status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;
     }
@@ -77,7 +71,7 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public ShopImageType getImageType() {
+    public String getImageType() {
         return this.imageType;
     }
 
@@ -85,7 +79,7 @@ public class ShopImageChangeRequestJpaEntity extends BaseEntity {
         return this.imageFileId;
     }
 
-    public ApprovalStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

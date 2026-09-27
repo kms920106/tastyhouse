@@ -1,45 +1,43 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shared.geo.GeoPoint;
-import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.GeoPolygonTextCodec;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonCenterSnapshot;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonShapeSnapshot;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonState;
 
 final class ShopDeliveryAreaPolygonMapper {
     private ShopDeliveryAreaPolygonMapper() {
     }
 
-    static ShopDeliveryAreaPolygon toDomain(ShopDeliveryAreaPolygonJpaEntity entity) {
-        return ShopDeliveryAreaPolygon.reconstitute(
+    static ShopDeliveryAreaPolygonState toState(ShopDeliveryAreaPolygonJpaEntity entity) {
+        return new ShopDeliveryAreaPolygonState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            GeoPolygonTextCodec.decode(entity.getRings()),
-            GeoPoint.of(entity.getCenterLatitude(), entity.getCenterLongitude()),
+            entity.getShopId(),
+            new ShopDeliveryAreaPolygonShapeSnapshot(entity.getRings(), entity.getRingCount(), entity.getVertexCount()),
+            new ShopDeliveryAreaPolygonCenterSnapshot(entity.getCenterLatitude(), entity.getCenterLongitude()),
             entity.getMaxRadiusMeters()
         );
     }
 
-    static ShopDeliveryAreaPolygonJpaEntity toEntity(ShopDeliveryAreaPolygon domain) {
+    static ShopDeliveryAreaPolygonJpaEntity toEntity(ShopDeliveryAreaPolygonState state) {
         return ShopDeliveryAreaPolygonJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            GeoPolygonTextCodec.encode(domain.getPolygon()),
-            domain.getCenter().latitude(),
-            domain.getCenter().longitude(),
-            domain.getMaxRadiusMeters(),
-            domain.getRingCount(),
-            domain.getVertexCount()
+            state.shopId(),
+            state.polygon().encodedRings(),
+            state.center().latitude(),
+            state.center().longitude(),
+            state.maxRadiusMeters(),
+            state.polygon().ringCount(),
+            state.polygon().vertexCount()
         );
     }
 
-    static void applyChanges(ShopDeliveryAreaPolygonJpaEntity entity, ShopDeliveryAreaPolygon domain) {
+    static void applyChanges(ShopDeliveryAreaPolygonJpaEntity entity, ShopDeliveryAreaPolygonState state) {
         entity.applyChanges(
-            GeoPolygonTextCodec.encode(domain.getPolygon()),
-            domain.getCenter().latitude(),
-            domain.getCenter().longitude(),
-            domain.getMaxRadiusMeters(),
-            domain.getRingCount(),
-            domain.getVertexCount()
+            state.polygon().encodedRings(),
+            state.center().latitude(),
+            state.center().longitude(),
+            state.maxRadiusMeters(),
+            state.polygon().ringCount(),
+            state.polygon().vertexCount()
         );
     }
 }

@@ -16,4 +16,21 @@ public record ReviewBlindRequestListItemResult(
     Double reviewTotalRating,
     LocalDateTime createdAt
 ) {
+
+    public ReviewBlindRequestListItemResult withDescriptions(String reasonDescription, String statusDescription) {
+        return new ReviewBlindRequestListItemResult(
+            this.id,
+            this.reviewId,
+            this.shopId,
+            this.shopName,
+            this.reason,
+            reasonDescription,
+            this.status,
+            statusDescription,
+            this.blindUntil,
+            this.reviewContent,
+            this.reviewTotalRating,
+            this.createdAt
+        );
+    }
 }

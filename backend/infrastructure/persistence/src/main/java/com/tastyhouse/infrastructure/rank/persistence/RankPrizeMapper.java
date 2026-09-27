@@ -1,46 +1,43 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.rank.model.RankPrize;
-import com.tastyhouse.domain.rank.vo.RankPeriodId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeState;
 
 final class RankPrizeMapper {
     private RankPrizeMapper() {
     }
 
-    static RankPrize toDomain(RankPrizeJpaEntity entity) {
-        return RankPrize.reconstitute(
+    static RankPrizeState toState(RankPrizeJpaEntity entity) {
+        return new RankPrizeState(
             entity.getId(),
-            IdMapping.vo(entity.getRankId(), RankPeriodId::of),
+            entity.getRankId(),
             entity.getPrizeRank(),
             entity.getName(),
             entity.getBrand(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.isDeleted(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static RankPrizeJpaEntity toEntity(RankPrize domain) {
+    static RankPrizeJpaEntity toEntity(RankPrizeState state) {
         return RankPrizeJpaEntity.create(
-            IdMapping.raw(domain.getRankId(), RankPeriodId::value),
-            domain.getPrizeRank(),
-            domain.getName(),
-            domain.getBrand(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.isDeleted()
+            state.rankId(),
+            state.prizeRank(),
+            state.name(),
+            state.brand(),
+            state.imageFileId(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(RankPrizeJpaEntity entity, RankPrize domain) {
+    static void applyChanges(RankPrizeJpaEntity entity, RankPrizeState state) {
         entity.applyChanges(
-            domain.getPrizeRank(),
-            domain.getName(),
-            domain.getBrand(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.isDeleted()
+            state.prizeRank(),
+            state.name(),
+            state.brand(),
+            state.imageFileId(),
+            state.deleted()
         );
     }
 }

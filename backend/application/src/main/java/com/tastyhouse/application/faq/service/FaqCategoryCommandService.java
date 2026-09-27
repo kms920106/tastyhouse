@@ -9,7 +9,7 @@ import com.tastyhouse.application.faq.port.in.FaqCategoryCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
+import com.tastyhouse.application.faq.store.FaqCategoryRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.faq.model.FaqCategory;

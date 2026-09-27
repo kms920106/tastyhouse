@@ -1,29 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
-import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaState;
 
 final class ShopDeliveryAreaMapper {
     private ShopDeliveryAreaMapper() {
     }
 
-    static ShopDeliveryArea toDomain(ShopDeliveryAreaJpaEntity entity) {
-        return ShopDeliveryArea.reconstitute(
+    static ShopDeliveryAreaState toState(ShopDeliveryAreaJpaEntity entity) {
+        return new ShopDeliveryAreaState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getAdminDongId(), AdminDongId::of),
-            entity.getSource() == null ? DeliveryAreaSource.MANUAL : entity.getSource()
+            entity.getShopId(),
+            entity.getAdminDongId(),
+            entity.getSource()
         );
     }
 
-    static ShopDeliveryAreaJpaEntity toEntity(ShopDeliveryArea domain) {
+    static ShopDeliveryAreaJpaEntity toEntity(ShopDeliveryAreaState state) {
         return ShopDeliveryAreaJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getAdminDongId(), AdminDongId::value),
-            domain.getSource()
+            state.shopId(),
+            state.adminDongId(),
+            state.source()
         );
     }
 }

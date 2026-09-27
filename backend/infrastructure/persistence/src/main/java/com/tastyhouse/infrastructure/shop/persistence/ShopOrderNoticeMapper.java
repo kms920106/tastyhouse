@@ -1,18 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopOrderNotice;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.shop.vo.ShopOrderNoticeId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeState;
 
 final class ShopOrderNoticeMapper {
     private ShopOrderNoticeMapper() {
     }
 
-    static ShopOrderNotice toDomain(ShopOrderNoticeJpaEntity entity) {
-        return ShopOrderNotice.reconstitute(
-            IdMapping.vo(entity.getId(), ShopOrderNoticeId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+    static ShopOrderNoticeState toState(ShopOrderNoticeJpaEntity entity) {
+        return new ShopOrderNoticeState(
+            entity.getId(),
+            entity.getShopId(),
             entity.getContent(),
             entity.isHidden(),
             entity.getHiddenReason(),
@@ -21,20 +18,20 @@ final class ShopOrderNoticeMapper {
         );
     }
 
-    static ShopOrderNoticeJpaEntity toEntity(ShopOrderNotice domain) {
+    static ShopOrderNoticeJpaEntity toEntity(ShopOrderNoticeState state) {
         return ShopOrderNoticeJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getContent(),
-            domain.isHidden(),
-            domain.getHiddenReason()
+            state.shopId(),
+            state.content(),
+            state.hidden(),
+            state.hiddenReason()
         );
     }
 
-    static void applyChanges(ShopOrderNoticeJpaEntity entity, ShopOrderNotice domain) {
+    static void applyChanges(ShopOrderNoticeJpaEntity entity, ShopOrderNoticeState state) {
         entity.applyChanges(
-            domain.getContent(),
-            domain.isHidden(),
-            domain.getHiddenReason()
+            state.content(),
+            state.hidden(),
+            state.hiddenReason()
         );
     }
 }

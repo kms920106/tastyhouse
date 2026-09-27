@@ -32,7 +32,7 @@ public class ShopDeliveryAreaAdjustmentManagementQueryService implements ShopDel
         int page,
         int size
     ) {
-        DeliveryAreaAdjustmentStatus adjustmentStatus = status == null ? null : DeliveryAreaAdjustmentStatus.from(status);
+        String adjustmentStatus = status == null ? null : DeliveryAreaAdjustmentStatus.from(status).name();
 
         return shopDeliveryAreaAdjustmentManagementQueryPort
             .findAdjustmentRequestPage(adjustmentStatus, shopId, PageQuery.of(page, size));

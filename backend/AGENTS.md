@@ -25,7 +25,7 @@
 | Directory | Purpose |
 |-----------|---------|
 | `domain/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트 타입/포트 없는 순수 계산기·정책 + `shared`·`exception`. **(덩어리 03a) write 포트·출력 포트·포트 주입 도메인 서비스·`DomainEventPublisher`는 `application`으로 이동**. **프레임워크-프리(production 의존 0개)** (see `domain/AGENTS.md`) |
-| `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) (~~도메인 서비스 빈 등록 `<ctx>/config/<Ctx>DomainConfig` + 이벤트 발행 어댑터 `SpringDomainEventPublisher`~~ **덩어리 03a로 `application`의 `<ctx>/config/<Ctx>ServiceConfig`·`shared/event`로 이동**). 리스너는 없다(`application`의 `<ctx>/listener`로 이동). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
+| `infrastructure/persistence/` | ~~domain 포트의~~ **(03b) application `port.out`의** DB 어댑터 — **domain을 모른다** — `<ctx>/persistence`(write: JPA 엔티티 · State↔엔티티 매퍼 · `XxxStatePortImpl`) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) (~~도메인 서비스 빈 등록 `<ctx>/config/<Ctx>DomainConfig` + 이벤트 발행 어댑터 `SpringDomainEventPublisher`~~ **덩어리 03a로 `application`의 `<ctx>/config/<Ctx>ServiceConfig`·`shared/event`로 이동**). 리스너는 없다(`application`의 `<ctx>/listener`로 이동). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `security-core`의 `RateLimitCounterPort` 구현) + 토큰 저장소 어댑터 6종(`token/`). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
 | `infrastructure/restclient/` | **외부 연동 HTTP 코어**(구 `infrastructure/external/` → `infrastructure/http-client/`를 거쳐 리네임) — Boot `RestClient.Builder`를 꾸미는 `RestClientConfig`만 갖는다(파일 저장 SPI `FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`는 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하도록 바뀌며 삭제됐고, 예외 계약 `ExternalApiException`/`ExternalApiErrorCode`도 완전히 해체돼 도메인 `ErrorCode`로 이관됐다 — 이 모듈에는 이제 예외·에러코드가 없다). `WebClient`/webflux는 전면 제거하고 Spring `RestClient`로 통일했다. 벤더·채널 구현은 아래 16모듈로 분리됐다. **앱이 직접 의존하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi, batch는 bbq·admdongkor를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/restclient/AGENTS.md`) |
 | `infrastructure/file-storage/` | **[조립·스타터]** **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:firebase`(`FileStoragePort` 벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
@@ -122,8 +122,10 @@ application ─┬→ domain (implementation)   ← 공유 읽기 계약 55개�
      서블릿 스택(security-module·starter-web)은 여전히 없다
 
 ── 공유 모듈 ──
-infrastructure:persistence ─┬→ domain (api)
-                            └→ application (implementation) ← QueryDao가 앱 단독 {Ctx}QueryPort를 구현
+infrastructure:persistence ──→ application (implementation) ← QueryDao가 {Ctx}QueryPort를, XxxStatePortImpl이 XxxStatePort를 구현
+   ※ (번복됨 — 덩어리 03b) 과거의 `─┬→ domain (api)` 간선은 삭제됐다. persistence는 application의 port.out
+     (읽기 계약·XxxState·XxxStatePort·XxxCodes)만 보고 domain을 모른다 — 도메인 모델 ↔ State 변환은
+     application/<ctx>/store/의 XxxStore가 한다. LayerRulesTest#infrastructureShouldNotDependOnDomain이 2차 방어선
 infrastructure:redis ──→ security-core (implementation)     ← 토큰 저장소 포트 6종(챕터 01) + RateLimitCounterPort를 구현하는 어댑터
    ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 계약의
      소유 모듈만 의존한다(adapter → port 방향). 과거의 api-common-module (implementation) ← RateLimitCounterPort 구현
@@ -187,7 +189,7 @@ api-common-module ─┬→ domain (api)                  ← PageResult가 Pagi
      옮겨가 지금은 infrastructure:redis → security-core ← api-common-module이다(구현과 표현이 서로를 모른다)
 domain → 의존 없음 (production 의존 0개)
 ```
-- **`domain`은 프레임워크를 모른다**: 다른 모듈에 의존하지 않으며, Spring(Web/tx/orm)·JPA·QueryDSL 전부 의존이 없다. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로, 낙관적 락 충돌은 프레임워크-프리 `OptimisticLockConflictException`으로 표현한다(스프링 예외 번역은 `infrastructure:persistence`의 `RepositoryImpl` 담당). persistence·조회·이벤트 발행·도메인 서비스 빈 등록은 전부 `infrastructure:persistence`가 전담한다.
+- **`domain`은 프레임워크를 모른다**: 다른 모듈에 의존하지 않으며, Spring(Web/tx/orm)·JPA·QueryDSL 전부 의존이 없다. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로, 낙관적 락 충돌은 프레임워크-프리 `OptimisticLockConflictException`으로 표현한다(스프링 예외 번역은 `infrastructure:persistence`의 `RepositoryImpl` 담당). persistence·조회·이벤트 발행·도메인 서비스 빈 등록은 전부 `infrastructure:persistence`가 전담한다. **(번복됨 — 03a·03b)** 이벤트 발행·도메인 서비스 빈 등록은 03a로 `application`으로 갔고, 03b로 persistence는 domain을 아예 모른다 — 저장은 `application/<ctx>/store/XxxStore` → `application/<ctx>/port/out/write/XxxStatePort` → persistence `XxxStatePortImpl`(구 `XxxRepositoryImpl`, 낙관적 락 번역도 `ReservationSlotStatePortImpl`) 순서로 흐른다.
 - **읽기 계약은 전부 `application`이 소유한다 (챕터 04 — 소비자 수 판정 폐기)**: 패키지 `com.tastyhouse.application.<ctx>.port.out`을 이 한 모듈이 단독 소유한다. 한때 소유 모듈을 소비 앱 수로 갈라(한 앱이면 `{앱}-application`, 2개 이상이면 `domain`) split package가 됐으나, application 모듈 통합으로 근거였던 앱 간 수평 의존 회피가 무의미해져 공유 계약 55개를 되돌렸다. 패키지를 바꾼 적이 없으므로 소비 측 import와 ArchUnit 패키지 규칙은 그때도 지금도 무변경이다.
   - **프레임워크-프리는 ArchUnit이 강제한다**: `application`은 spring starter를 받아 컴파일 게이트가 없으므로, `LayerRulesTest#readContractsShouldBeFrameworkFree`가 계약 전체(공유분 55개 포함)를 검사한다. `domain`의 컴파일 게이트가 공유 계약을 막아 주던 시절의 `ReadContractPurityTest`와 persistence의 `ReadContractSingleOwnerTest`는 split package와 함께 삭제됐다 — 같은 모듈 안의 FQCN 중복은 컴파일 에러라 가드가 필요 없다.
 - **application 모듈이 읽기 계약을 보는 경로 (개정 — 과거 "infra를 컴파일 타임에 본다"는 서술의 번복)**: `{도메인}QueryService`는 이제 infra DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입한다. 계약이 전부 자기 모듈에 있으므로 이를 위한 추가 의존 선언은 없다(챕터 04로 공유 계약까지 돌아왔다). api 모듈은 `com.tastyhouse.infrastructure..`를 **전혀 import하지 않는다** — 각 모듈 `LayerRulesTest`가 이를 강제한다. `infrastructure:persistence`는 여전히 빈 스캔 대상이라(챕터 02 이후 앱의 `scanBasePackages`가 아니라 `PersistenceModuleAutoConfiguration`이 스캔한다) 실행 모듈의 **런타임** 의존 그래프에는 남아 있지만, `runtimeOnly`로 내려가 **컴파일 클래스패스에도, 소스 코드 레벨의 import 대상에도 없다.**
@@ -215,7 +217,7 @@ domain → 의존 없음 (production 의존 0개)
 
 ### Common Patterns
 - 계층 배치: `domain`의 `<ctx>/{model,vo,event,repository,service,port}` / `infrastructure:persistence`의 `<ctx>/{persistence,query,listener}` / api 모듈의 `<ctx>/adapter/in/web/`(컨트롤러 + `request/` + **`response/`** — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 전부) / `{앱}-application`의 `<ctx>/{port/in,service}`.
-- 식별자 강타입화: `record MemberId(Long value)`(domain) + `AttributeConverter`(`infrastructure:persistence`의 `<ctx>/persistence/XxxIdConverter`)로 JPA 매핑.
+- 식별자 강타입화: `record MemberId(Long value)`(domain) + `AttributeConverter`(`infrastructure:persistence`의 `<ctx>/persistence/XxxIdConverter`)로 JPA 매핑. **(번복됨 — 정책 B 이후 `*IdConverter` 삭제, 03b로 `IdMapping`·`AmountConverter`도 삭제)** 엔티티·`XxxState`는 raw `Long`이고, `XxxId` 승격·언패킹은 `application/<ctx>/store/XxxStateMapper`가 null 가드와 함께 한다(`backend/CLAUDE.md` "ID VO 경계 규칙").
 - BC 간 통신은 도메인 서비스 호출 또는 `DomainEvent`로만. 이벤트 발행은 domain 포트 `DomainEventPublisher`(`domain/shared/event/`)를 통하고, 스프링 구현(`SpringDomainEventPublisher`)은 `infrastructure:persistence`에, 리스너(`<ctx>/listener/`, `@Component @SharedApp` + `@TransactionalEventListener(AFTER_COMMIT)`)는 `application`에 있다.
 - CQS: 쓰기 `{도메인}CommandService`(`@Transactional`) / 읽기 `{도메인}QueryService`(`@Transactional(readOnly = true)`) — 트랜잭션 경계는 `{앱}-application`의 서비스가 소유한다(domain 서비스는 POJO라 `@Transactional`을 갖지 않는다).
 

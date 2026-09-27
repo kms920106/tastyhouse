@@ -22,7 +22,6 @@ import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
-import com.tastyhouse.application.shared.port.out.GeoRingsQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBlockedView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
@@ -32,6 +31,8 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
+import com.tastyhouse.domain.shared.geo.GeoPolygonTextCodec;
+import com.tastyhouse.domain.shared.geo.GeoRing;
 
 @Service
 @CeoApp
@@ -44,21 +45,19 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
 
     private final AdminDongQueryPort adminDongQueryPort;
     private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;
-    private final GeoRingsQueryPort geoRingsPort;
 
     public ShopDeliveryAreaPolygonQueryService(
         AdminDongQueryPort adminDongQueryPort,
-        ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort,
-        GeoRingsQueryPort geoRingsPort
+        ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort
     ) {
         this.adminDongQueryPort = adminDongQueryPort;
         this.shopDeliveryAreaQueryPort = shopDeliveryAreaQueryPort;
-        this.geoRingsPort = geoRingsPort;
     }
 
     @Override
     public ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId) {
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
+        ShopLocationResult shopLocation =
+            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
         ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryPort.findPolygon(shopId).orElse(null);
 
         if (stored == null) {
@@ -72,7 +71,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
             );
         }
 
-        GeoPolygon polygon = geoRingsPort.resolvePolygon(stored.rings());
+        List<GeoRing> storedRings = GeoPolygonTextCodec.decodeRings(stored.rings());
+        GeoPolygon polygon = storedRings.isEmpty() ? null : GeoPolygon.of(storedRings);
         GeoPoint storedCenter = GeoPoint.of(stored.centerLatitude(), stored.centerLongitude());
         GeoPoint currentLocation = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
@@ -100,7 +100,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         Long shopId,
         List<List<GeoPointCommand>> rings
     ) {
-        ShopLocationResult shopLocation = shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId);
+        ShopLocationResult shopLocation =
+            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
         GeoPolygon polygon = ShopDeliveryAreaGeoMapper.toPolygon(rings);
         ShopDeliveryAreaPolicy.validateShape(polygon);
 
@@ -170,7 +171,7 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
                 null,
                 true,
                 candidateCenter,
-                geoRingsPort.resolveRings(candidate.boundary())
+                GeoPolygonTextCodec.decodeRings(candidate.boundary())
             ));
         }
         return domainCandidates;

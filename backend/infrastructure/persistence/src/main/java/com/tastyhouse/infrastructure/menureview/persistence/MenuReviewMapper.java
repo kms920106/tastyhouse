@@ -1,25 +1,19 @@
 package com.tastyhouse.infrastructure.menureview.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.menureview.model.MenuReview;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.order.vo.OrderProductId;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewState;
 
 final class MenuReviewMapper {
     private MenuReviewMapper() {
     }
 
-    static MenuReview toDomain(MenuReviewJpaEntity entity) {
-        return MenuReview.reconstitute(
+    static MenuReviewState toState(MenuReviewJpaEntity entity) {
+        return new MenuReviewState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
-            IdMapping.vo(entity.getOrderId(), OrderId::of),
-            IdMapping.vo(entity.getOrderProductId(), OrderProductId::of),
+            entity.getMemberId(),
+            entity.getShopId(),
+            entity.getProductId(),
+            entity.getOrderId(),
+            entity.getOrderProductId(),
             entity.getRating(),
             entity.getComment(),
             entity.isHidden(),
@@ -28,24 +22,24 @@ final class MenuReviewMapper {
         );
     }
 
-    static MenuReviewJpaEntity toEntity(MenuReview domain) {
+    static MenuReviewJpaEntity toEntity(MenuReviewState state) {
         return MenuReviewJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            IdMapping.raw(domain.getOrderId(), OrderId::value),
-            IdMapping.raw(domain.getOrderProductId(), OrderProductId::value),
-            domain.getRating(),
-            domain.getComment(),
-            domain.isHidden()
+            state.memberId(),
+            state.shopId(),
+            state.productId(),
+            state.orderId(),
+            state.orderProductId(),
+            state.rating(),
+            state.comment(),
+            state.hidden()
         );
     }
 
-    static void applyChanges(MenuReviewJpaEntity entity, MenuReview domain) {
+    static void applyChanges(MenuReviewJpaEntity entity, MenuReviewState state) {
         entity.applyChanges(
-            domain.getRating(),
-            domain.getComment(),
-            domain.isHidden()
+            state.rating(),
+            state.comment(),
+            state.hidden()
         );
     }
 }

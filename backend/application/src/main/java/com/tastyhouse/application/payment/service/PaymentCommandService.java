@@ -94,7 +94,7 @@ public class PaymentCommandService implements PaymentCommandUseCase {
         PgConfirmationTarget target = paymentConfirmationExecutor.prepareInNewTx(memberIdVo, pgOrderId, amount);
 
         PgConfirmResult result = pgPaymentGateway.confirmPayment(
-            pgProvider,
+            pgProvider.name(),
             target.paymentId(), paymentKey, target.pgOrderId(), target.amount()
         );
 
@@ -148,8 +148,9 @@ public class PaymentCommandService implements PaymentCommandUseCase {
             return target.rejectCode();
         }
 
-        boolean pgCancelAttempted = target.pgCancelRequired() && pgPaymentGateway.supports(target.pgProvider());
-        if (pgCancelAttempted && !requestPgCancel(target.pgProvider(), target.pgTid(), cancelReason)) {
+        String pgProvider = target.pgProvider() == null ? null : target.pgProvider().name();
+        boolean pgCancelAttempted = target.pgCancelRequired() && pgPaymentGateway.supports(pgProvider);
+        if (pgCancelAttempted && !requestPgCancel(pgProvider, target.pgTid(), cancelReason)) {
             log.error("결제 취소 실패 — paymentId={}, cancelCode={}", id, PaymentCancelCode.CANCEL_FAILED);
             return PaymentCancelCode.CANCEL_FAILED;
         }
@@ -190,7 +191,7 @@ public class PaymentCommandService implements PaymentCommandUseCase {
             .value();
     }
 
-    private boolean requestPgCancel(PgProvider pgProvider, String pgTid, String cancelReason) {
+    private boolean requestPgCancel(String pgProvider, String pgTid, String cancelReason) {
         try {
             PgCancelResult cancelResult = pgPaymentGateway.cancelPayment(pgProvider, pgTid, cancelReason);
             if (!cancelResult.success()) {

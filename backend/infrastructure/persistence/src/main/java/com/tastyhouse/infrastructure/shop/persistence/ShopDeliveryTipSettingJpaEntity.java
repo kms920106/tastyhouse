@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
-import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -23,16 +19,14 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "extra_tip_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DeliveryTipExtraType extraTipType;
+    private String extraTipType;
 
     @Column(name = "base_distance_meters")
     private Integer baseDistanceMeters;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "surcharge_unit", length = 20, columnDefinition = "VARCHAR(20)")
-    private DeliveryTipDistanceUnit surchargeUnit;
+    private String surchargeUnit;
 
     @Column(name = "surcharge_amount")
     private Integer surchargeAmount;
@@ -42,9 +36,9 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
 
     private ShopDeliveryTipSettingJpaEntity(
         Long shopId,
-        DeliveryTipExtraType extraTipType,
+        String extraTipType,
         Integer baseDistanceMeters,
-        DeliveryTipDistanceUnit surchargeUnit,
+        String surchargeUnit,
         Integer surchargeAmount
     ) {
         this.shopId = shopId;
@@ -56,9 +50,9 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
 
     static ShopDeliveryTipSettingJpaEntity create(
         Long shopId,
-        DeliveryTipExtraType extraTipType,
+        String extraTipType,
         Integer baseDistanceMeters,
-        DeliveryTipDistanceUnit surchargeUnit,
+        String surchargeUnit,
         Integer surchargeAmount
     ) {
         return new ShopDeliveryTipSettingJpaEntity(
@@ -67,9 +61,9 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
     }
 
     void applyChanges(
-        DeliveryTipExtraType extraTipType,
+        String extraTipType,
         Integer baseDistanceMeters,
-        DeliveryTipDistanceUnit surchargeUnit,
+        String surchargeUnit,
         Integer surchargeAmount
     ) {
         this.extraTipType = extraTipType;
@@ -86,7 +80,7 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public DeliveryTipExtraType getExtraTipType() {
+    public String getExtraTipType() {
         return this.extraTipType;
     }
 
@@ -94,7 +88,7 @@ public class ShopDeliveryTipSettingJpaEntity extends BaseEntity {
         return this.baseDistanceMeters;
     }
 
-    public DeliveryTipDistanceUnit getSurchargeUnit() {
+    public String getSurchargeUnit() {
         return this.surchargeUnit;
     }
 

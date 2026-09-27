@@ -11,7 +11,8 @@ import java.util.List;
 
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 
@@ -44,6 +45,7 @@ public class RankSettlementService {
         LocalDateTime endAt = periodEndAt(rankType, baseDate);
 
         List<MemberReviewCount> reviewCounts = memberReviewCountPort.countReviewsByMemberWithPeriod(startAt, endAt);
+        reviewCounts.forEach(reviewCount -> MemberId.of(reviewCount.memberId()));
         List<MemberReviewRank> ranks = buildRanks(reviewCounts.stream().limit(limit).toList(), rankType, baseDate);
 
         memberReviewRankRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
@@ -61,7 +63,7 @@ public class RankSettlementService {
         for (int i = 0; i < reviewCounts.size(); i++) {
             MemberReviewCount reviewCount = reviewCounts.get(i);
             ranks.add(MemberReviewRank.of(
-                reviewCount.memberId(),
+                MemberId.of(reviewCount.memberId()),
                 reviewCount.reviewCount().intValue(),
                 i + 1,
                 rankType,

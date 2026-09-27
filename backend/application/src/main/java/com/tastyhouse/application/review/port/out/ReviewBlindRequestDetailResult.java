@@ -48,4 +48,28 @@ public record ReviewBlindRequestDetailResult(
             this.createdAt
         );
     }
+
+    public ReviewBlindRequestDetailResult withDescriptions(String reasonDescription, String statusDescription) {
+        return new ReviewBlindRequestDetailResult(
+            this.id,
+            this.reviewId,
+            this.shopId,
+            this.shopName,
+            this.reason,
+            reasonDescription,
+            this.detailReason,
+            this.status,
+            statusDescription,
+            this.rejectReason,
+            this.blindUntil,
+            this.reviewContent,
+            this.reviewTotalRating,
+            this.reviewImageUrls,
+            this.attachmentUrls,
+            this.reviewMemberNickname,
+            this.reviewHidden,
+            this.reviewCreatedAt,
+            this.createdAt
+        );
+    }
 }

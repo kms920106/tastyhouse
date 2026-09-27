@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -22,19 +19,18 @@ public class ProductAllergenJpaEntity extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "allergen_type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
-    private AllergenType allergenType;
+    private String allergenType;
 
     protected ProductAllergenJpaEntity() {
     }
 
-    private ProductAllergenJpaEntity(Long productId, AllergenType allergenType) {
+    private ProductAllergenJpaEntity(Long productId, String allergenType) {
         this.productId = productId;
         this.allergenType = allergenType;
     }
 
-    static ProductAllergenJpaEntity create(Long productId, AllergenType allergenType) {
+    static ProductAllergenJpaEntity create(Long productId, String allergenType) {
         return new ProductAllergenJpaEntity(productId, allergenType);
     }
 
@@ -46,7 +42,7 @@ public class ProductAllergenJpaEntity extends BaseEntity {
         return this.productId;
     }
 
-    public AllergenType getAllergenType() {
+    public String getAllergenType() {
         return this.allergenType;
     }
 }

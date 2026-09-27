@@ -10,7 +10,7 @@ import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
+import com.tastyhouse.application.coupon.store.CouponRepository;
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;

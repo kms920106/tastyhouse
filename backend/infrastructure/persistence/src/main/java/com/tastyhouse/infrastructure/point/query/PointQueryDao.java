@@ -13,7 +13,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -88,7 +87,7 @@ public class PointQueryDao implements PointQueryPort, PointManagementQueryPort {
         return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
     }
 
-    private BooleanExpression pointTypeEq(PointType pointType) {
+    private BooleanExpression pointTypeEq(String pointType) {
         return pointType != null ? pointHistoryJpaEntity.pointType.eq(pointType) : null;
     }
 }

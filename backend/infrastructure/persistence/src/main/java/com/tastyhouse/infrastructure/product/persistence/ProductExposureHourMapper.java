@@ -1,29 +1,27 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductExposureHour;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourState;
 
 final class ProductExposureHourMapper {
     private ProductExposureHourMapper() {
     }
 
-    static ProductExposureHour toDomain(ProductExposureHourJpaEntity entity) {
-        return ProductExposureHour.reconstitute(
+    static ProductExposureHourState toState(ProductExposureHourJpaEntity entity) {
+        return new ProductExposureHourState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getProductId(),
             entity.getDayType(),
             entity.getStartTime(),
             entity.getEndTime()
         );
     }
 
-    static ProductExposureHourJpaEntity toEntity(ProductExposureHour domain) {
+    static ProductExposureHourJpaEntity toEntity(ProductExposureHourState state) {
         return ProductExposureHourJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getDayType(),
-            domain.getStartTime(),
-            domain.getEndTime()
+            state.productId(),
+            state.dayType(),
+            state.startTime(),
+            state.endTime()
         );
     }
 }

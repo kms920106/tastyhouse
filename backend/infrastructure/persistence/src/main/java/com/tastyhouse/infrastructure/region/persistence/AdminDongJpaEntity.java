@@ -11,7 +11,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
-import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 
 @Entity
 @Table(
@@ -48,19 +47,15 @@ public class AdminDongJpaEntity {
     @Column(name = "center_longitude", precision = 9, scale = 6)
     private BigDecimal centerLongitude;
 
-    @SuppressWarnings("unused")
     @Column(name = "boundary_min_latitude", precision = 9, scale = 6)
     private BigDecimal boundaryMinLatitude;
 
-    @SuppressWarnings("unused")
     @Column(name = "boundary_max_latitude", precision = 9, scale = 6)
     private BigDecimal boundaryMaxLatitude;
 
-    @SuppressWarnings("unused")
     @Column(name = "boundary_min_longitude", precision = 9, scale = 6)
     private BigDecimal boundaryMinLongitude;
 
-    @SuppressWarnings("unused")
     @Column(name = "boundary_max_longitude", precision = 9, scale = 6)
     private BigDecimal boundaryMaxLongitude;
 
@@ -78,8 +73,11 @@ public class AdminDongJpaEntity {
         boolean active,
         BigDecimal centerLatitude,
         BigDecimal centerLongitude,
-        GeoBoundingBox boundingBox,
-        String boundary
+        String boundary,
+        BigDecimal boundaryMinLatitude,
+        BigDecimal boundaryMaxLatitude,
+        BigDecimal boundaryMinLongitude,
+        BigDecimal boundaryMaxLongitude
     ) {
         AdminDongJpaEntity entity = new AdminDongJpaEntity();
         entity.code = code;
@@ -89,7 +87,8 @@ public class AdminDongJpaEntity {
         entity.active = active;
         entity.centerLatitude = centerLatitude;
         entity.centerLongitude = centerLongitude;
-        entity.applyBoundary(boundingBox, boundary);
+        entity.applyBoundary(
+            boundary, boundaryMinLatitude, boundaryMaxLatitude, boundaryMinLongitude, boundaryMaxLongitude);
         return entity;
     }
 
@@ -100,8 +99,11 @@ public class AdminDongJpaEntity {
         boolean active,
         BigDecimal centerLatitude,
         BigDecimal centerLongitude,
-        GeoBoundingBox boundingBox,
-        String boundary
+        String boundary,
+        BigDecimal boundaryMinLatitude,
+        BigDecimal boundaryMaxLatitude,
+        BigDecimal boundaryMinLongitude,
+        BigDecimal boundaryMaxLongitude
     ) {
         this.sidoName = sidoName;
         this.sigunguName = sigunguName;
@@ -109,19 +111,26 @@ public class AdminDongJpaEntity {
         this.active = active;
         this.centerLatitude = centerLatitude;
         this.centerLongitude = centerLongitude;
-        applyBoundary(boundingBox, boundary);
+        applyBoundary(
+            boundary, boundaryMinLatitude, boundaryMaxLatitude, boundaryMinLongitude, boundaryMaxLongitude);
     }
 
     void deactivate() {
         this.active = false;
     }
 
-    private void applyBoundary(GeoBoundingBox boundingBox, String boundary) {
+    private void applyBoundary(
+        String boundary,
+        BigDecimal boundaryMinLatitude,
+        BigDecimal boundaryMaxLatitude,
+        BigDecimal boundaryMinLongitude,
+        BigDecimal boundaryMaxLongitude
+    ) {
         this.boundary = boundary;
-        this.boundaryMinLatitude = boundingBox == null ? null : boundingBox.minLatitude();
-        this.boundaryMaxLatitude = boundingBox == null ? null : boundingBox.maxLatitude();
-        this.boundaryMinLongitude = boundingBox == null ? null : boundingBox.minLongitude();
-        this.boundaryMaxLongitude = boundingBox == null ? null : boundingBox.maxLongitude();
+        this.boundaryMinLatitude = boundaryMinLatitude;
+        this.boundaryMaxLatitude = boundaryMaxLatitude;
+        this.boundaryMinLongitude = boundaryMinLongitude;
+        this.boundaryMaxLongitude = boundaryMaxLongitude;
     }
 
     public Long getId() {
@@ -158,5 +167,21 @@ public class AdminDongJpaEntity {
 
     public String getBoundary() {
         return this.boundary;
+    }
+
+    public BigDecimal getBoundaryMinLatitude() {
+        return this.boundaryMinLatitude;
+    }
+
+    public BigDecimal getBoundaryMaxLatitude() {
+        return this.boundaryMaxLatitude;
+    }
+
+    public BigDecimal getBoundaryMinLongitude() {
+        return this.boundaryMinLongitude;
+    }
+
+    public BigDecimal getBoundaryMaxLongitude() {
+        return this.boundaryMaxLongitude;
     }
 }

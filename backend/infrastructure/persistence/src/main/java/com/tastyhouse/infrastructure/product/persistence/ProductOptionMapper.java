@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductOption;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductOptionState;
 
 final class ProductOptionMapper {
     private ProductOptionMapper() {
     }
 
-    static ProductOption toDomain(ProductOptionJpaEntity entity) {
-        return ProductOption.reconstitute(
+    static ProductOptionState toState(ProductOptionJpaEntity entity) {
+        return new ProductOptionState(
             entity.getId(),
-            IdMapping.vo(entity.getOptionGroupId(), ProductOptionGroupId::of),
+            entity.getOptionGroupId(),
             entity.getName(),
             entity.getAdditionalPrice(),
             entity.getSort(),
@@ -23,30 +21,30 @@ final class ProductOptionMapper {
         );
     }
 
-    static ProductOptionJpaEntity toEntity(ProductOption domain) {
+    static ProductOptionJpaEntity toEntity(ProductOptionState state) {
         return ProductOptionJpaEntity.create(
-            IdMapping.raw(domain.getOptionGroupId(), ProductOptionGroupId::value),
-            domain.getName(),
-            domain.getAdditionalPrice(),
-            domain.getSort(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible(),
-            domain.getCupCount(),
-            domain.getPersonalCupDiscountAmount()
+            state.optionGroupId(),
+            state.name(),
+            state.additionalPrice(),
+            state.sort(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible(),
+            state.cupCount(),
+            state.personalCupDiscountAmount()
         );
     }
 
-    static void applyChanges(ProductOptionJpaEntity entity, ProductOption domain) {
+    static void applyChanges(ProductOptionJpaEntity entity, ProductOptionState state) {
         entity.applyChanges(
-            domain.getName(),
-            domain.getAdditionalPrice(),
-            domain.getSort(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible(),
-            domain.getCupCount(),
-            domain.getPersonalCupDiscountAmount()
+            state.name(),
+            state.additionalPrice(),
+            state.sort(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible(),
+            state.cupCount(),
+            state.personalCupDiscountAmount()
         );
     }
 }

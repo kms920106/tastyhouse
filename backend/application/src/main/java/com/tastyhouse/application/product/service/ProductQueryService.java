@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductPrice;
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -51,17 +52,20 @@ public class ProductQueryService implements ProductQueryUseCase {
     private final ReviewQueryPort reviewQueryPort;
     private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
     private final MenuReviewStatisticsQueryPort menuReviewStatisticsQueryPort;
+    private final CupDepositPolicy cupDepositPolicy;
 
     public ProductQueryService(
         ProductQueryPort productQueryPort,
         ReviewQueryPort reviewQueryPort,
         ReviewStatisticsQueryPort reviewStatisticsQueryPort,
-        MenuReviewStatisticsQueryPort menuReviewStatisticsQueryPort
+        MenuReviewStatisticsQueryPort menuReviewStatisticsQueryPort,
+        CupDepositPolicy cupDepositPolicy
     ) {
         this.productQueryPort = productQueryPort;
         this.reviewQueryPort = reviewQueryPort;
         this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
         this.menuReviewStatisticsQueryPort = menuReviewStatisticsQueryPort;
+        this.cupDepositPolicy = cupDepositPolicy;
     }
 
     @Override
@@ -118,7 +122,7 @@ public class ProductQueryService implements ProductQueryUseCase {
     @Override
     public ProductOptionsResult findProductOptions(Long productId) {
         loadProductDetail(productId);
-        return productQueryPort.findProductOptions(productId);
+        return ProductOptionDepositAmounts.of(productQueryPort.findProductOptions(productId), cupDepositPolicy);
     }
 
     @Override
@@ -128,7 +132,8 @@ public class ProductQueryService implements ProductQueryUseCase {
             .toList();
 
         OrderMethod orderMethod = OrderMethod.from(query.orderMethod());
-        List<ProductBatchResult> results = productQueryPort.findProductsBatch(items);
+        List<ProductBatchResult> results =
+            ProductOptionDepositAmounts.of(productQueryPort.findProductsBatch(items), cupDepositPolicy);
         Map<Long, List<ProductPriceView>> pricesByProductId =
             findBatchPricesByProductId(results, orderMethod);
 
@@ -249,7 +254,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryPort.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST);
+            reviewQueryPort.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST.name());
 
         Long totalReviewCount = reviewStatisticsQueryPort.countVisibleByProductId(productId);
 

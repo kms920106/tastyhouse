@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.application.review.store.ReviewRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;

@@ -38,6 +38,16 @@ class LayerRulesTest {
         rule.check(classes);
     }
 
+    @Test
+    void infrastructureShouldNotDependOnDomain() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
+            .because("엄격 레이어드 — persistence는 application(port.out의 State·읽기 계약)만 본다. "
+                + "도메인 모델 ↔ State 변환은 application Store가 맡는다");
+
+        rule.check(classes);
+    }
+
     private static final Set<String> SEALED_PERSISTENCE_TO_QUERY = Set.of(
         "com.tastyhouse.infrastructure.product.persistence.ProductReviewStatisticsAdapter",
         "com.tastyhouse.infrastructure.rank.persistence.MemberReviewCountAdapter",

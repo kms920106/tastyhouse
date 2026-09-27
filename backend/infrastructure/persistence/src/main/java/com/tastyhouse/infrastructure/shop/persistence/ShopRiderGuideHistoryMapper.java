@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideHistoryState;
 
 final class ShopRiderGuideHistoryMapper {
     private ShopRiderGuideHistoryMapper() {
     }
 
-    static ShopRiderGuideHistory toDomain(ShopRiderGuideHistoryJpaEntity entity) {
-        return ShopRiderGuideHistory.reconstitute(
+    static ShopRiderGuideHistoryState toState(ShopRiderGuideHistoryJpaEntity entity) {
+        return new ShopRiderGuideHistoryState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getActorType(),
             entity.getActorId(),
             entity.getActionType(),
@@ -22,15 +20,15 @@ final class ShopRiderGuideHistoryMapper {
         );
     }
 
-    static ShopRiderGuideHistoryJpaEntity toEntity(ShopRiderGuideHistory domain) {
+    static ShopRiderGuideHistoryJpaEntity toEntity(ShopRiderGuideHistoryState state) {
         return ShopRiderGuideHistoryJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getActorType(),
-            domain.getActorId(),
-            domain.getActionType(),
-            domain.getPreviousVisitGuide(),
-            domain.getNewVisitGuide(),
-            domain.getReason()
+            state.shopId(),
+            state.actorType(),
+            state.actorId(),
+            state.actionType(),
+            state.previousVisitGuide(),
+            state.newVisitGuide(),
+            state.reason()
         );
     }
 }

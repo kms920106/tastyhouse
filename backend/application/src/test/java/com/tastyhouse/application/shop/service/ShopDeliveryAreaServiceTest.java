@@ -17,10 +17,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;

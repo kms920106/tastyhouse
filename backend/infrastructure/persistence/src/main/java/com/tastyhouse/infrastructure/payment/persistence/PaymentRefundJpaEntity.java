@@ -3,17 +3,12 @@ package com.tastyhouse.infrastructure.payment.persistence;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.payment.model.RefundStatus;
-import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -26,16 +21,14 @@ public class PaymentRefundJpaEntity extends BaseEntity {
     @Column(name = "payment_id", nullable = false)
     private Long paymentId;
 
-    @Convert(converter = AmountConverter.class)
     @Column(name = "refund_amount", nullable = false)
-    private Amount refundAmount;
+    private Integer refundAmount;
 
     @Column(name = "refund_reason", length = 500)
     private String refundReason;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "refund_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private RefundStatus refundStatus;
+    private String refundStatus;
 
     @Column(name = "pg_refund_id", length = 100)
     private String pgRefundId;
@@ -48,9 +41,9 @@ public class PaymentRefundJpaEntity extends BaseEntity {
 
     private PaymentRefundJpaEntity(
         Long paymentId,
-        Amount refundAmount,
+        Integer refundAmount,
         String refundReason,
-        RefundStatus refundStatus,
+        String refundStatus,
         String pgRefundId,
         LocalDateTime refundedAt
     ) {
@@ -64,9 +57,9 @@ public class PaymentRefundJpaEntity extends BaseEntity {
 
     static PaymentRefundJpaEntity create(
         Long paymentId,
-        Amount refundAmount,
+        Integer refundAmount,
         String refundReason,
-        RefundStatus refundStatus,
+        String refundStatus,
         String pgRefundId,
         LocalDateTime refundedAt
     ) {
@@ -81,7 +74,7 @@ public class PaymentRefundJpaEntity extends BaseEntity {
         return this.paymentId;
     }
 
-    public Amount getRefundAmount() {
+    public Integer getRefundAmount() {
         return this.refundAmount;
     }
 
@@ -89,7 +82,7 @@ public class PaymentRefundJpaEntity extends BaseEntity {
         return this.refundReason;
     }
 
-    public RefundStatus getRefundStatus() {
+    public String getRefundStatus() {
         return this.refundStatus;
     }
 

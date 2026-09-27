@@ -2,21 +2,18 @@ package com.tastyhouse.application.shop.port.out;
 
 import java.time.LocalDate;
 
-import com.tastyhouse.domain.shop.model.ShopRequestStatus;
-import com.tastyhouse.domain.shop.model.ShopRequestType;
-
 public record ShopRequestSearchCondition(
     Long shopId,
-    ShopRequestType requestType,
-    ShopRequestStatus status,
+    String requestType,
+    String status,
     LocalDate startDate,
     LocalDate endDate
 ) {
 
     public static ShopRequestSearchCondition of(
         Long shopId,
-        ShopRequestType requestType,
-        ShopRequestStatus status,
+        String requestType,
+        String status,
         LocalDate startDate,
         LocalDate endDate
     ) {

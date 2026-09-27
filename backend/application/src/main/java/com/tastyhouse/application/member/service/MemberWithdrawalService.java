@@ -2,8 +2,8 @@ package com.tastyhouse.application.member.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.member.port.out.write.MemberWithdrawalRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.store.MemberWithdrawalRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

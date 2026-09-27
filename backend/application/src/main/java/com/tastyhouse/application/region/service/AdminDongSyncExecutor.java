@@ -7,7 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.domain.region.model.AdminDong;
 

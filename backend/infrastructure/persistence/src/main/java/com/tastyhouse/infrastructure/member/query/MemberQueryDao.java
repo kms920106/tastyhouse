@@ -6,6 +6,7 @@ import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.member.port.out.MemberSearchCondition;
+import com.tastyhouse.application.member.port.out.MemberStatusCodes;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.ConstructorExpression;
@@ -23,9 +24,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.member.model.MemberGrade;
-import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -109,24 +107,24 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
     }
 
     @Override
-    public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(MemberId memberId) {
+    public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(Long memberId) {
         return Optional.ofNullable(
                 queryFactory
                     .select(memberWithProfileImageProjection())
                     .from(memberJpaEntity)
                     .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-                    .where(memberJpaEntity.id.eq(memberId.value()))
+                    .where(memberJpaEntity.id.eq(memberId))
                     .fetchOne()
             );
     }
 
     @Override
-    public Optional<String> findProfileImageUrl(MemberId memberId) {
+    public Optional<String> findProfileImageUrl(Long memberId) {
         String filePath = queryFactory
             .select(uploadedFileJpaEntity.filePath)
             .from(memberJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-            .where(memberJpaEntity.id.eq(memberId.value()))
+            .where(memberJpaEntity.id.eq(memberId))
             .fetchOne();
 
         return Optional.ofNullable(fileUrlResolver.resolve(filePath));
@@ -180,16 +178,16 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
         return StringUtils.hasText(phone) ? memberJpaEntity.phoneNumber.value.containsIgnoreCase(phone) : null;
     }
 
-    private BooleanExpression statusEq(MemberStatus status) {
+    private BooleanExpression statusEq(String status) {
         return status != null ? memberJpaEntity.memberStatus.eq(status) : null;
     }
 
-    private BooleanExpression gradeEq(MemberGrade grade) {
+    private BooleanExpression gradeEq(String grade) {
         return grade != null ? memberJpaEntity.memberGrade.eq(grade) : null;
     }
 
     @Override
-    public Optional<MemberPersonalInfoResult> findPersonalInfoById(MemberId memberId) {
+    public Optional<MemberPersonalInfoResult> findPersonalInfoById(Long memberId) {
         MemberPersonalInfoResult result = queryFactory
             .select(Projections.constructor(MemberPersonalInfoResult.class,
                 memberJpaEntity.username,
@@ -202,7 +200,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
                 memberJpaEntity.eventInfoEnabled
             ))
             .from(memberJpaEntity)
-            .where(memberJpaEntity.id.eq(memberId.value()))
+            .where(memberJpaEntity.id.eq(memberId))
             .fetchOne();
 
         return Optional.ofNullable(result);
@@ -226,7 +224,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
             .from(memberJpaEntity)
             .where(
                 memberJpaEntity.phoneNumber.value.eq(phoneNumber),
-                memberJpaEntity.memberStatus.ne(MemberStatus.DELETED)
+                memberJpaEntity.memberStatus.ne(MemberStatusCodes.DELETED)
             )
             .fetchFirst();
 
@@ -234,7 +232,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
     }
 
     @Override
-    public Optional<MemberManagementDetailResult> findManagementDetailById(MemberId memberId) {
+    public Optional<MemberManagementDetailResult> findManagementDetailById(Long memberId) {
         MemberManagementDetailResult result = queryFactory
             .select(Projections.constructor(MemberManagementDetailResult.class,
                 memberJpaEntity.id,
@@ -253,7 +251,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
                 memberJpaEntity.createdAt
             ))
             .from(memberJpaEntity)
-            .where(memberJpaEntity.id.eq(memberId.value()))
+            .where(memberJpaEntity.id.eq(memberId))
             .fetchOne();
 
         return Optional.ofNullable(result);

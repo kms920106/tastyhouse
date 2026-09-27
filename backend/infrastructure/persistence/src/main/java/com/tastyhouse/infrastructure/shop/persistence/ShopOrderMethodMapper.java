@@ -1,25 +1,23 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopOrderMethod;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodState;
 
 final class ShopOrderMethodMapper {
     private ShopOrderMethodMapper() {
     }
 
-    static ShopOrderMethod toDomain(ShopOrderMethodJpaEntity entity) {
-        return ShopOrderMethod.reconstitute(
+    static ShopOrderMethodState toState(ShopOrderMethodJpaEntity entity) {
+        return new ShopOrderMethodState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getOrderMethod()
         );
     }
 
-    static ShopOrderMethodJpaEntity toEntity(ShopOrderMethod domain) {
+    static ShopOrderMethodJpaEntity toEntity(ShopOrderMethodState state) {
         return ShopOrderMethodJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getOrderMethod()
+            state.shopId(),
+            state.orderMethod()
         );
     }
 }

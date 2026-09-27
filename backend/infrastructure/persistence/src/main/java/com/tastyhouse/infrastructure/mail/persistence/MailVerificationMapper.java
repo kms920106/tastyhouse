@@ -1,16 +1,17 @@
 package com.tastyhouse.infrastructure.mail.persistence;
 
-import com.tastyhouse.domain.mail.model.MailVerification;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationState;
+import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 final class MailVerificationMapper {
     private MailVerificationMapper() {
     }
 
-    static MailVerification toDomain(MailVerificationJpaEntity entity) {
-        return MailVerification.reconstitute(
+    static MailVerificationState toState(MailVerificationJpaEntity entity) {
+        return new MailVerificationState(
             entity.getId(),
             entity.getEmail(),
-            entity.getVerificationCode(),
+            entity.getVerificationCode() == null ? null : entity.getVerificationCode().value(),
             entity.getStatus(),
             entity.getExpiresAt(),
             entity.getVerifiedAt(),
@@ -18,18 +19,18 @@ final class MailVerificationMapper {
         );
     }
 
-    static MailVerificationJpaEntity toEntity(MailVerification domain) {
+    static MailVerificationJpaEntity toEntity(MailVerificationState state) {
         return MailVerificationJpaEntity.create(
-            domain.getEmail(),
-            domain.getVerificationCode(),
-            domain.getStatus(),
-            domain.getExpiresAt(),
-            domain.getVerifiedAt(),
-            domain.getCreatedAt()
+            state.email(),
+            state.verificationCode() == null ? null : new VerificationCodeEmbeddable(state.verificationCode()),
+            state.status(),
+            state.expiresAt(),
+            state.verifiedAt(),
+            state.createdAt()
         );
     }
 
-    static void applyChanges(MailVerificationJpaEntity entity, MailVerification domain) {
-        entity.applyChanges(domain.getStatus(), domain.getVerifiedAt());
+    static void applyChanges(MailVerificationJpaEntity entity, MailVerificationState state) {
+        entity.applyChanges(state.status(), state.verifiedAt());
     }
 }

@@ -1,37 +1,34 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.review.model.ReviewReply;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyState;
 
 final class ReviewReplyMapper {
     private ReviewReplyMapper() {
     }
 
-    static ReviewReply toDomain(ReviewReplyJpaEntity entity) {
-        return ReviewReply.reconstitute(
+    static ReviewReplyState toState(ReviewReplyJpaEntity entity) {
+        return new ReviewReplyState(
             entity.getId(),
-            IdMapping.vo(entity.getCommentId(), ReviewCommentId::of),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
-            IdMapping.vo(entity.getReplyToMemberId(), MemberId::of),
+            entity.getCommentId(),
+            entity.getMemberId(),
+            entity.getReplyToMemberId(),
             entity.getContent(),
             entity.isHidden(),
             entity.getCreatedAt()
         );
     }
 
-    static ReviewReplyJpaEntity toEntity(ReviewReply domain) {
+    static ReviewReplyJpaEntity toEntity(ReviewReplyState state) {
         return ReviewReplyJpaEntity.create(
-            IdMapping.raw(domain.getCommentId(), ReviewCommentId::value),
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            IdMapping.raw(domain.getReplyToMemberId(), MemberId::value),
-            domain.getContent(),
-            domain.isHidden()
+            state.commentId(),
+            state.memberId(),
+            state.replyToMemberId(),
+            state.content(),
+            state.hidden()
         );
     }
 
-    static void applyChanges(ReviewReplyJpaEntity entity, ReviewReply domain) {
-        entity.applyChanges(domain.isHidden());
+    static void applyChanges(ReviewReplyJpaEntity entity, ReviewReplyState state) {
+        entity.applyChanges(state.hidden());
     }
 }

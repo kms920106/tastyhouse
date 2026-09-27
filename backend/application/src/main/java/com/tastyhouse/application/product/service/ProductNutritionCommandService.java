@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.product.port.in.ProductNutritionCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductNutritionUpdateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

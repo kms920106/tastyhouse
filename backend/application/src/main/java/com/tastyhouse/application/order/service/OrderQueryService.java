@@ -41,12 +41,12 @@ public class OrderQueryService implements OrderQueryUseCase {
 
     @Override
     public PageResult<OrderListItemResult> getOrderList(Long memberId, int page, int size) {
-        return orderQueryPort.findOrders(MemberId.of(memberId), PageQuery.of(page, size));
+        return orderQueryPort.findOrders(MemberId.of(memberId).value(), PageQuery.of(page, size));
     }
 
     @Override
     public OrderDetailViewResult getOrderDetail(Long memberId, Long orderId) {
-        OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId))
+        OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId).value())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!memberId.equals(result.memberId())) {

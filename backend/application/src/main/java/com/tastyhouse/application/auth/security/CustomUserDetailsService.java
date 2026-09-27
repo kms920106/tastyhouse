@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.member.model.Member;
 
 @Service

@@ -11,4 +11,16 @@ public record ShopBusinessHourResult(
     Boolean closed,
     Boolean allDay
 ) {
+
+    public ShopBusinessHourResult withDayTypeDescription(String dayTypeDescription) {
+        return new ShopBusinessHourResult(
+            this.id,
+            this.dayType,
+            dayTypeDescription,
+            this.openTime,
+            this.closeTime,
+            this.closed,
+            this.allDay
+        );
+    }
 }

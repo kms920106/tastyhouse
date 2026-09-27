@@ -7,9 +7,15 @@ import com.tastyhouse.application.coupon.service.CouponIssueService;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.application.member.service.OrdererLookupService;
-import com.tastyhouse.application.order.port.out.write.OrderProductOptionRepository;
-import com.tastyhouse.application.order.port.out.write.OrderProductRepository;
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.order.port.out.write.OrderProductOptionStatePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductStatePort;
+import com.tastyhouse.application.order.port.out.write.OrderStatePort;
+import com.tastyhouse.application.order.store.OrderProductOptionRepository;
+import com.tastyhouse.application.order.store.OrderProductOptionStore;
+import com.tastyhouse.application.order.store.OrderProductRepository;
+import com.tastyhouse.application.order.store.OrderProductStore;
+import com.tastyhouse.application.order.store.OrderRepository;
+import com.tastyhouse.application.order.store.OrderStore;
 import com.tastyhouse.application.order.service.OrderPlacementService;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.point.service.PointLedgerService;
@@ -20,6 +26,23 @@ import com.tastyhouse.application.shop.service.ShopOrderContextService;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class OrderServiceConfig {
+    @Bean
+    public OrderRepository orderRepository(OrderStatePort orderStatePort) {
+        return new OrderStore(orderStatePort);
+    }
+
+    @Bean
+    public OrderProductRepository orderProductRepository(OrderProductStatePort orderProductStatePort) {
+        return new OrderProductStore(orderProductStatePort);
+    }
+
+    @Bean
+    public OrderProductOptionRepository orderProductOptionRepository(
+        OrderProductOptionStatePort orderProductOptionStatePort
+    ) {
+        return new OrderProductOptionStore(orderProductOptionStatePort);
+    }
+
     @Bean
     public OrderPlacementService orderPlacementService(
         OrderRepository orderRepository,

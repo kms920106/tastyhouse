@@ -1,57 +1,52 @@
 package com.tastyhouse.infrastructure.region.persistence;
 
-import java.util.List;
-
-import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
-import com.tastyhouse.domain.shared.geo.GeoPoint;
-import com.tastyhouse.domain.shared.geo.GeoRing;
-import com.tastyhouse.infrastructure.shared.persistence.GeoPolygonTextCodec;
+import com.tastyhouse.application.region.port.out.write.AdminDongBoundarySnapshot;
+import com.tastyhouse.application.region.port.out.write.AdminDongCenterSnapshot;
+import com.tastyhouse.application.region.port.out.write.AdminDongState;
 
 final class AdminDongMapper {
     private AdminDongMapper() {
     }
 
-    static AdminDongJpaEntity toEntity(AdminDong adminDong) {
-        GeoPoint center = adminDong.getCenter();
+    static AdminDongJpaEntity toEntity(AdminDongState state) {
+        AdminDongCenterSnapshot center = state.center();
+        AdminDongBoundarySnapshot boundary = state.boundary();
         return AdminDongJpaEntity.create(
-            adminDong.getCode(),
-            adminDong.getSidoName(),
-            adminDong.getSigunguName(),
-            adminDong.getDongName(),
-            adminDong.isActive(),
+            state.code(),
+            state.sidoName(),
+            state.sigunguName(),
+            state.dongName(),
+            state.active(),
             center == null ? null : center.latitude(),
             center == null ? null : center.longitude(),
-            toBoundingBox(adminDong.getBoundary()),
-            GeoPolygonTextCodec.encodeRings(adminDong.getBoundary())
+            boundary == null ? null : boundary.encodedRings(),
+            boundary == null ? null : boundary.minLatitude(),
+            boundary == null ? null : boundary.maxLatitude(),
+            boundary == null ? null : boundary.minLongitude(),
+            boundary == null ? null : boundary.maxLongitude()
         );
     }
 
-    static void applyChanges(AdminDongJpaEntity entity, AdminDong adminDong) {
-        GeoPoint center = adminDong.getCenter();
+    static void applyChanges(AdminDongJpaEntity entity, AdminDongState state) {
+        AdminDongCenterSnapshot center = state.center();
+        AdminDongBoundarySnapshot boundary = state.boundary();
         entity.applyChanges(
-            adminDong.getSidoName(),
-            adminDong.getSigunguName(),
-            adminDong.getDongName(),
-            adminDong.isActive(),
+            state.sidoName(),
+            state.sigunguName(),
+            state.dongName(),
+            state.active(),
             center == null ? null : center.latitude(),
             center == null ? null : center.longitude(),
-            toBoundingBox(adminDong.getBoundary()),
-            GeoPolygonTextCodec.encodeRings(adminDong.getBoundary())
+            boundary == null ? null : boundary.encodedRings(),
+            boundary == null ? null : boundary.minLatitude(),
+            boundary == null ? null : boundary.maxLatitude(),
+            boundary == null ? null : boundary.minLongitude(),
+            boundary == null ? null : boundary.maxLongitude()
         );
     }
 
-    private static GeoBoundingBox toBoundingBox(List<GeoRing> boundary) {
-        if (boundary.isEmpty()) {
-            return null;
-        }
-
-        List<GeoPoint> points = boundary.stream().flatMap(ring -> ring.points().stream()).toList();
-        return GeoBoundingBox.enclosing(points);
-    }
-
-    static AdminDong toDomain(AdminDongJpaEntity entity) {
-        return AdminDong.reconstitute(
+    static AdminDongState toState(AdminDongJpaEntity entity) {
+        return new AdminDongState(
             entity.getId(),
             entity.getCode(),
             entity.getSidoName(),
@@ -59,14 +54,27 @@ final class AdminDongMapper {
             entity.getDongName(),
             entity.isActive(),
             toCenter(entity),
-            GeoPolygonTextCodec.decodeRings(entity.getBoundary())
+            toBoundary(entity)
         );
     }
 
-    private static GeoPoint toCenter(AdminDongJpaEntity entity) {
+    private static AdminDongCenterSnapshot toCenter(AdminDongJpaEntity entity) {
         if (entity.getCenterLatitude() == null || entity.getCenterLongitude() == null) {
             return null;
         }
-        return GeoPoint.of(entity.getCenterLatitude(), entity.getCenterLongitude());
+        return new AdminDongCenterSnapshot(entity.getCenterLatitude(), entity.getCenterLongitude());
+    }
+
+    private static AdminDongBoundarySnapshot toBoundary(AdminDongJpaEntity entity) {
+        if (entity.getBoundary() == null) {
+            return null;
+        }
+        return new AdminDongBoundarySnapshot(
+            entity.getBoundary(),
+            entity.getBoundaryMinLatitude(),
+            entity.getBoundaryMaxLatitude(),
+            entity.getBoundaryMinLongitude(),
+            entity.getBoundaryMaxLongitude()
+        );
     }
 }

@@ -1,27 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopNoticeImage;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageState;
 
 final class ShopNoticeImageMapper {
     private ShopNoticeImageMapper() {
     }
 
-    static ShopNoticeImage toDomain(ShopNoticeImageJpaEntity entity) {
-        return ShopNoticeImage.reconstitute(
+    static ShopNoticeImageState toState(ShopNoticeImageJpaEntity entity) {
+        return new ShopNoticeImageState(
             entity.getId(),
             entity.getShopNoticeId(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.getSortOrder()
         );
     }
 
-    static ShopNoticeImageJpaEntity toEntity(ShopNoticeImage domain) {
+    static ShopNoticeImageJpaEntity toEntity(ShopNoticeImageState state) {
         return ShopNoticeImageJpaEntity.create(
-            domain.getShopNoticeId(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getSortOrder()
+            state.shopNoticeId(),
+            state.imageFileId(),
+            state.sortOrder()
         );
     }
 }

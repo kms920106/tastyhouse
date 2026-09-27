@@ -87,16 +87,16 @@ public class PolicyQueryService implements PolicyDetailQueryUseCase, PolicyVersi
     }
 
     private PolicyDocumentResult getLatestByType(PolicyType type) {
-        return policyQueryPort.findCurrentByType(type)
+        return policyQueryPort.findCurrentByType(type.name())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_CURRENT_NOT_FOUND));
     }
 
     private PolicyDocumentResult getByTypeAndVersion(PolicyType type, String version) {
-        return policyQueryPort.findByTypeAndVersion(type, version)
+        return policyQueryPort.findByTypeAndVersion(type.name(), version)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
     }
 
     private PageResult<PolicyListItemResult> getListByType(PolicyType type, int page, int size) {
-        return policyQueryPort.findAllByType(type, PageQuery.of(page, size));
+        return policyQueryPort.findAllByType(type.name(), PageQuery.of(page, size));
     }
 }

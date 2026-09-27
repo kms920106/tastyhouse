@@ -8,15 +8,11 @@ import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.VegetarianType;
-import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -46,7 +42,7 @@ public class ProductJpaEntity extends BaseEntity {
         @AttributeOverride(name = "discountPrice", column = @Column(name = "discount_price")),
         @AttributeOverride(name = "discountRate", column = @Column(name = "discount_rate"))
     })
-    private ProductDiscountInfo discountInfo;
+    private ProductDiscountInfoEmbeddable discountInfo;
 
     @Column(name = "rating")
     private Double rating;
@@ -90,9 +86,8 @@ public class ProductJpaEntity extends BaseEntity {
     @Column(name = "exposure_end_date")
     private LocalDate exposureEndDate;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "vegetarian_type", length = 20, columnDefinition = "VARCHAR(20)")
-    private VegetarianType vegetarianType;
+    private String vegetarianType;
 
     @Column(name = "weight_text", length = 50)
     private String weightText;
@@ -106,7 +101,7 @@ public class ProductJpaEntity extends BaseEntity {
         String name,
         String description,
         Integer originalPrice,
-        ProductDiscountInfo discountInfo,
+        ProductDiscountInfoEmbeddable discountInfo,
         Double rating,
         Integer reviewCount,
         boolean representative,
@@ -121,7 +116,7 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType,
+        String vegetarianType,
         String weightText
     ) {
         this.shopId = shopId;
@@ -154,7 +149,7 @@ public class ProductJpaEntity extends BaseEntity {
         String name,
         String description,
         Integer originalPrice,
-        ProductDiscountInfo discountInfo,
+        ProductDiscountInfoEmbeddable discountInfo,
         Double rating,
         Integer reviewCount,
         boolean representative,
@@ -169,7 +164,7 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType,
+        String vegetarianType,
         String weightText
     ) {
         return new ProductJpaEntity(
@@ -184,7 +179,7 @@ public class ProductJpaEntity extends BaseEntity {
         String name,
         String description,
         Integer originalPrice,
-        ProductDiscountInfo discountInfo,
+        ProductDiscountInfoEmbeddable discountInfo,
         Double rating,
         Integer reviewCount,
         boolean representative,
@@ -199,7 +194,7 @@ public class ProductJpaEntity extends BaseEntity {
         boolean singleServing,
         LocalDate exposureStartDate,
         LocalDate exposureEndDate,
-        VegetarianType vegetarianType,
+        String vegetarianType,
         String weightText
     ) {
         this.productCategoryId = productCategoryId;
@@ -249,7 +244,7 @@ public class ProductJpaEntity extends BaseEntity {
         return this.originalPrice;
     }
 
-    public ProductDiscountInfo getDiscountInfo() {
+    public ProductDiscountInfoEmbeddable getDiscountInfo() {
         return this.discountInfo;
     }
 
@@ -309,7 +304,7 @@ public class ProductJpaEntity extends BaseEntity {
         return this.exposureEndDate;
     }
 
-    public VegetarianType getVegetarianType() {
+    public String getVegetarianType() {
         return this.vegetarianType;
     }
 

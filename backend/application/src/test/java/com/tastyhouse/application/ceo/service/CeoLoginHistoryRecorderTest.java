@@ -6,7 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
+import com.tastyhouse.application.ceo.store.CeoLoginHistoryRepository;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;

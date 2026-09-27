@@ -1,21 +1,18 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopContentBoard;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardState;
 
 final class ShopContentBoardMapper {
     private ShopContentBoardMapper() {
     }
 
-    static ShopContentBoard toDomain(ShopContentBoardJpaEntity entity) {
-        return ShopContentBoard.reconstitute(
+    static ShopContentBoardState toState(ShopContentBoardJpaEntity entity) {
+        return new ShopContentBoardState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getContentType(),
             entity.getTopic(),
-            IdMapping.vo(entity.getImageFileId(), UploadedFileId::of),
+            entity.getImageFileId(),
             entity.getYoutubeUrl(),
             entity.getDescription(),
             entity.isHidden(),
@@ -24,25 +21,25 @@ final class ShopContentBoardMapper {
         );
     }
 
-    static ShopContentBoardJpaEntity toEntity(ShopContentBoard domain) {
+    static ShopContentBoardJpaEntity toEntity(ShopContentBoardState state) {
         return ShopContentBoardJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getContentType(),
-            domain.getTopic(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getYoutubeUrl(),
-            domain.getDescription(),
-            domain.isHidden()
+            state.shopId(),
+            state.contentType(),
+            state.topic(),
+            state.imageFileId(),
+            state.youtubeUrl(),
+            state.description(),
+            state.hidden()
         );
     }
 
-    static void applyChanges(ShopContentBoardJpaEntity entity, ShopContentBoard domain) {
+    static void applyChanges(ShopContentBoardJpaEntity entity, ShopContentBoardState state) {
         entity.applyChanges(
-            domain.getTopic(),
-            IdMapping.raw(domain.getImageFileId(), UploadedFileId::value),
-            domain.getYoutubeUrl(),
-            domain.getDescription(),
-            domain.isHidden()
+            state.topic(),
+            state.imageFileId(),
+            state.youtubeUrl(),
+            state.description(),
+            state.hidden()
         );
     }
 }

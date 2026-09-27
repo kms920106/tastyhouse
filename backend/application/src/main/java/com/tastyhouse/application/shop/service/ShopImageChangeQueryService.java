@@ -30,8 +30,8 @@ public class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase 
         int page,
         int size
     ) {
-        ApprovalStatus approvalStatus = status == null ? null : ApprovalStatus.valueOf(status);
-        ShopImageType type = imageType == null ? null : ShopImageType.from(imageType);
+        String approvalStatus = status == null ? null : ApprovalStatus.valueOf(status).name();
+        String type = imageType == null ? null : ShopImageType.from(imageType).name();
 
         return shopManagementQueryPort.findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
     }

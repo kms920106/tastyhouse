@@ -2,15 +2,11 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.VegetarianType;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -23,9 +19,8 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "vegetarian_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private VegetarianType vegetarianType;
+    private String vegetarianType;
 
     @Column(name = "ingredients", nullable = false, length = 1000)
     private String ingredients;
@@ -33,9 +28,8 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ApprovalStatus status;
+    private String status;
 
     @Column(name = "reject_reason", length = 500)
     private String rejectReason;
@@ -45,10 +39,10 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
 
     private ProductVegetarianRequestJpaEntity(
         Long productId,
-        VegetarianType vegetarianType,
+        String vegetarianType,
         String ingredients,
         String description,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         this.productId = productId;
@@ -61,10 +55,10 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
 
     static ProductVegetarianRequestJpaEntity create(
         Long productId,
-        VegetarianType vegetarianType,
+        String vegetarianType,
         String ingredients,
         String description,
-        ApprovalStatus status,
+        String status,
         String rejectReason
     ) {
         return new ProductVegetarianRequestJpaEntity(
@@ -72,7 +66,7 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
         );
     }
 
-    void applyChanges(ApprovalStatus status, String rejectReason) {
+    void applyChanges(String status, String rejectReason) {
         this.status = status;
         this.rejectReason = rejectReason;
     }
@@ -85,7 +79,7 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
         return this.productId;
     }
 
-    public VegetarianType getVegetarianType() {
+    public String getVegetarianType() {
         return this.vegetarianType;
     }
 
@@ -97,7 +91,7 @@ public class ProductVegetarianRequestJpaEntity extends BaseEntity {
         return this.description;
     }
 
-    public ApprovalStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

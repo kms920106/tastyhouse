@@ -12,4 +12,17 @@ public record CeoLoginHistoryResult(
     String userAgent,
     LocalDateTime loggedInAt
 ) {
+
+    public CeoLoginHistoryResult withDescriptions(String resultDescription, String failureReasonDescription) {
+        return new CeoLoginHistoryResult(
+            this.id,
+            this.result,
+            resultDescription,
+            this.failureReason,
+            failureReasonDescription,
+            this.ipAddress,
+            this.userAgent,
+            this.loggedInAt
+        );
+    }
 }

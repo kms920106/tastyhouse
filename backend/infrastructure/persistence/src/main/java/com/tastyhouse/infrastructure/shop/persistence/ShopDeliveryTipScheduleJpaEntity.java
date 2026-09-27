@@ -4,14 +4,11 @@ import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -24,9 +21,8 @@ public class ShopDeliveryTipScheduleJpaEntity extends BaseEntity {
     @Column(name = "shop_id", nullable = false)
     private Long shopId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "day_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private DayType dayType;
+    private String dayType;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;
@@ -42,7 +38,7 @@ public class ShopDeliveryTipScheduleJpaEntity extends BaseEntity {
 
     private ShopDeliveryTipScheduleJpaEntity(
         Long shopId,
-        DayType dayType,
+        String dayType,
         LocalTime startTime,
         LocalTime endTime,
         int tipAmount
@@ -56,7 +52,7 @@ public class ShopDeliveryTipScheduleJpaEntity extends BaseEntity {
 
     static ShopDeliveryTipScheduleJpaEntity create(
         Long shopId,
-        DayType dayType,
+        String dayType,
         LocalTime startTime,
         LocalTime endTime,
         int tipAmount
@@ -72,7 +68,7 @@ public class ShopDeliveryTipScheduleJpaEntity extends BaseEntity {
         return this.shopId;
     }
 
-    public DayType getDayType() {
+    public String getDayType() {
         return this.dayType;
     }
 

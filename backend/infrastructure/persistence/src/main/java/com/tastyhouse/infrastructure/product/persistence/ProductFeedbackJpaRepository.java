@@ -4,13 +4,11 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.tastyhouse.domain.product.model.ProductFeedbackType;
-
 public interface ProductFeedbackJpaRepository extends JpaRepository<ProductFeedbackJpaEntity, Long> {
     boolean existsByMemberIdAndProductIdAndFeedbackTypeAndCreatedAtAfter(
         Long memberId,
         Long productId,
-        ProductFeedbackType feedbackType,
+        String feedbackType,
         LocalDateTime since
     );
 

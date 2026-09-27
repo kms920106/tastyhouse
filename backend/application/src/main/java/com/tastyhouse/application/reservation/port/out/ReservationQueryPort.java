@@ -1,10 +1,9 @@
 package com.tastyhouse.application.reservation.port.out;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-
-import com.tastyhouse.domain.reservation.vo.ReservationId;
 
 public interface ReservationQueryPort {
 
@@ -12,11 +11,11 @@ public interface ReservationQueryPort {
 
     List<ReservationResult> findReservationsByShopId(Long shopId);
 
-    Optional<ReservationResult> findReservationById(ReservationId id);
+    Optional<ReservationResult> findReservationById(Long id);
 
-    Optional<ReservationDetailResult> findReservationDetailById(ReservationId id);
+    Optional<ReservationDetailResult> findReservationDetailById(Long id);
 
     List<SlotOccupancyResult> findSlotOccupancies(Long shopId, LocalDate date);
 
-    boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date);
+    boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses);
 }

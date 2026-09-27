@@ -1,26 +1,23 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shop.model.ShopBookmark;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkState;
 
 final class ShopBookmarkMapper {
     private ShopBookmarkMapper() {
     }
 
-    static ShopBookmark toDomain(ShopBookmarkJpaEntity entity) {
-        return ShopBookmark.reconstitute(
+    static ShopBookmarkState toState(ShopBookmarkJpaEntity entity) {
+        return new ShopBookmarkState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
-            IdMapping.vo(entity.getMemberId(), MemberId::of)
+            entity.getShopId(),
+            entity.getMemberId()
         );
     }
 
-    static ShopBookmarkJpaEntity toEntity(ShopBookmark domain) {
+    static ShopBookmarkJpaEntity toEntity(ShopBookmarkState state) {
         return ShopBookmarkJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            IdMapping.raw(domain.getMemberId(), MemberId::value)
+            state.shopId(),
+            state.memberId()
         );
     }
 }

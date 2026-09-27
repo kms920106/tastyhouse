@@ -1,34 +1,32 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopChoice;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceState;
 
 final class ShopChoiceMapper {
     private ShopChoiceMapper() {
     }
 
-    static ShopChoice toDomain(ShopChoiceJpaEntity entity) {
-        return ShopChoice.reconstitute(
+    static ShopChoiceState toState(ShopChoiceJpaEntity entity) {
+        return new ShopChoiceState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getTitle(),
             entity.getContent()
         );
     }
 
-    static ShopChoiceJpaEntity toEntity(ShopChoice domain) {
+    static ShopChoiceJpaEntity toEntity(ShopChoiceState state) {
         return ShopChoiceJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getTitle(),
-            domain.getContent()
+            state.shopId(),
+            state.title(),
+            state.content()
         );
     }
 
-    static void applyChanges(ShopChoiceJpaEntity entity, ShopChoice domain) {
+    static void applyChanges(ShopChoiceJpaEntity entity, ShopChoiceState state) {
         entity.applyChanges(
-            domain.getTitle(),
-            domain.getContent()
+            state.title(),
+            state.content()
         );
     }
 }

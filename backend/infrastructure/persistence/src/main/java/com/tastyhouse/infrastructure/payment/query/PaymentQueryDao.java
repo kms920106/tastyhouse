@@ -10,10 +10,6 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.domain.payment.vo.PaymentRefundId;
-
 import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentRefundJpaEntity.paymentRefundJpaEntity;
@@ -27,25 +23,25 @@ public class PaymentQueryDao implements PaymentQueryPort {
     }
 
     @Override
-    public Optional<PaymentResult> findPaymentByOrderId(OrderId orderId) {
+    public Optional<PaymentResult> findPaymentByOrderId(Long orderId) {
         return Optional.ofNullable(
             selectPayment()
-                .where(paymentJpaEntity.orderId.eq(orderId.value()))
+                .where(paymentJpaEntity.orderId.eq(orderId))
                 .fetchOne()
         );
     }
 
     @Override
-    public Optional<PaymentResult> findPaymentById(PaymentId paymentId) {
+    public Optional<PaymentResult> findPaymentById(Long paymentId) {
         return Optional.ofNullable(
             selectPayment()
-                .where(paymentJpaEntity.id.eq(paymentId.value()))
+                .where(paymentJpaEntity.id.eq(paymentId))
                 .fetchOne()
         );
     }
 
     @Override
-    public Optional<PaymentRefundResult> findRefundById(PaymentRefundId refundId) {
+    public Optional<PaymentRefundResult> findRefundById(Long refundId) {
         return Optional.ofNullable(
             queryFactory
                 .select(Projections.constructor(PaymentRefundResult.class,
@@ -59,7 +55,7 @@ public class PaymentQueryDao implements PaymentQueryPort {
                     paymentRefundJpaEntity.createdAt
                 ))
                 .from(paymentRefundJpaEntity)
-                .where(paymentRefundJpaEntity.id.eq(refundId.value()))
+                .where(paymentRefundJpaEntity.id.eq(refundId))
                 .fetchOne()
         );
     }

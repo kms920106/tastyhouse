@@ -4,16 +4,13 @@ import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.ceo.model.CeoStatus;
-import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 @Entity
 @Table(name = "CEO")
@@ -36,14 +33,13 @@ public class CeoJpaEntity extends BaseEntity {
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "phone_number", length = 11))
-    private PhoneNumber phoneNumber;
+    private PhoneNumberEmbeddable phoneNumber;
 
     @Column(name = "email", length = 200)
     private String email;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private CeoStatus status;
+    private String status;
 
     protected CeoJpaEntity() {
     }
@@ -53,9 +49,9 @@ public class CeoJpaEntity extends BaseEntity {
         String password,
         String name,
         String businessRegistrationNumber,
-        PhoneNumber phoneNumber,
+        PhoneNumberEmbeddable phoneNumber,
         String email,
-        CeoStatus status
+        String status
     ) {
         this.username = username;
         this.password = password;
@@ -71,9 +67,9 @@ public class CeoJpaEntity extends BaseEntity {
         String password,
         String name,
         String businessRegistrationNumber,
-        PhoneNumber phoneNumber,
+        PhoneNumberEmbeddable phoneNumber,
         String email,
-        CeoStatus status
+        String status
     ) {
         return new CeoJpaEntity(username, password, name, businessRegistrationNumber, phoneNumber, email, status);
     }
@@ -98,7 +94,7 @@ public class CeoJpaEntity extends BaseEntity {
         return this.businessRegistrationNumber;
     }
 
-    public PhoneNumber getPhoneNumber() {
+    public PhoneNumberEmbeddable getPhoneNumber() {
         return this.phoneNumber;
     }
 
@@ -106,7 +102,7 @@ public class CeoJpaEntity extends BaseEntity {
         return this.email;
     }
 
-    public CeoStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 }

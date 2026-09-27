@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductCommonOption;
-import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionState;
 
 final class ProductCommonOptionMapper {
     private ProductCommonOptionMapper() {
     }
 
-    static ProductCommonOption toDomain(ProductCommonOptionJpaEntity entity) {
-        return ProductCommonOption.reconstitute(
+    static ProductCommonOptionState toState(ProductCommonOptionJpaEntity entity) {
+        return new ProductCommonOptionState(
             entity.getId(),
-            IdMapping.vo(entity.getOptionGroupId(), ProductOptionGroupId::of),
+            entity.getOptionGroupId(),
             entity.getName(),
             entity.getAdditionalPrice(),
             entity.getSort(),
@@ -21,26 +19,26 @@ final class ProductCommonOptionMapper {
         );
     }
 
-    static ProductCommonOptionJpaEntity toEntity(ProductCommonOption domain) {
+    static ProductCommonOptionJpaEntity toEntity(ProductCommonOptionState state) {
         return ProductCommonOptionJpaEntity.create(
-            IdMapping.raw(domain.getOptionGroupId(), ProductOptionGroupId::value),
-            domain.getName(),
-            domain.getAdditionalPrice(),
-            domain.getSort(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible()
+            state.optionGroupId(),
+            state.name(),
+            state.additionalPrice(),
+            state.sort(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible()
         );
     }
 
-    static void applyChanges(ProductCommonOptionJpaEntity entity, ProductCommonOption domain) {
+    static void applyChanges(ProductCommonOptionJpaEntity entity, ProductCommonOptionState state) {
         entity.applyChanges(
-            domain.getName(),
-            domain.getAdditionalPrice(),
-            domain.getSort(),
-            domain.isSoldOut(),
-            domain.getSoldOutUntil(),
-            domain.isVisible()
+            state.name(),
+            state.additionalPrice(),
+            state.sort(),
+            state.soldOut(),
+            state.soldOutUntil(),
+            state.visible()
         );
     }
 }

@@ -4,14 +4,11 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -39,9 +36,8 @@ public class PartnershipRequestJpaEntity extends BaseEntity {
     @Column(name = "consultation_requested_at", nullable = false)
     private LocalDateTime consultationRequestedAt;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private PartnershipStatus status;
+    private String status;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted;
@@ -56,7 +52,7 @@ public class PartnershipRequestJpaEntity extends BaseEntity {
         String contactName,
         String contactPhone,
         LocalDateTime consultationRequestedAt,
-        PartnershipStatus status,
+        String status,
         boolean deleted
     ) {
         this.businessName = businessName;
@@ -76,7 +72,7 @@ public class PartnershipRequestJpaEntity extends BaseEntity {
         String contactName,
         String contactPhone,
         LocalDateTime consultationRequestedAt,
-        PartnershipStatus status,
+        String status,
         boolean deleted
     ) {
         return new PartnershipRequestJpaEntity(
@@ -85,7 +81,7 @@ public class PartnershipRequestJpaEntity extends BaseEntity {
         );
     }
 
-    void applyChanges(PartnershipStatus status, boolean deleted) {
+    void applyChanges(String status, boolean deleted) {
         this.status = status;
         this.deleted = deleted;
     }
@@ -118,7 +114,7 @@ public class PartnershipRequestJpaEntity extends BaseEntity {
         return this.consultationRequestedAt;
     }
 
-    public PartnershipStatus getStatus() {
+    public String getStatus() {
         return this.status;
     }
 

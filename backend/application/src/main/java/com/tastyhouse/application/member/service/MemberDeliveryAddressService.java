@@ -3,8 +3,8 @@ package com.tastyhouse.application.member.service;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;

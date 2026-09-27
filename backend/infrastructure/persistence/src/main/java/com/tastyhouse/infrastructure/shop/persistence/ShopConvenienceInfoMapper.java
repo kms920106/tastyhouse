@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoState;
 
 final class ShopConvenienceInfoMapper {
     private ShopConvenienceInfoMapper() {
     }
 
-    static ShopConvenienceInfo toDomain(ShopConvenienceInfoJpaEntity entity) {
-        return ShopConvenienceInfo.reconstitute(
+    static ShopConvenienceInfoState toState(ShopConvenienceInfoJpaEntity entity) {
+        return new ShopConvenienceInfoState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.isParkingAvailable(),
             entity.isParkingPaid(),
             entity.isValetAvailable(),
@@ -24,28 +22,28 @@ final class ShopConvenienceInfoMapper {
         );
     }
 
-    static ShopConvenienceInfoJpaEntity toEntity(ShopConvenienceInfo domain) {
+    static ShopConvenienceInfoJpaEntity toEntity(ShopConvenienceInfoState state) {
         return ShopConvenienceInfoJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.isParkingAvailable(),
-            domain.isParkingPaid(),
-            domain.isValetAvailable(),
-            domain.isValetPaid(),
-            domain.getDirectionsGuide(),
-            domain.getDisplayLatitude(),
-            domain.getDisplayLongitude()
+            state.shopId(),
+            state.parkingAvailable(),
+            state.parkingPaid(),
+            state.valetAvailable(),
+            state.valetPaid(),
+            state.directionsGuide(),
+            state.displayLatitude(),
+            state.displayLongitude()
         );
     }
 
-    static void applyChanges(ShopConvenienceInfoJpaEntity entity, ShopConvenienceInfo domain) {
+    static void applyChanges(ShopConvenienceInfoJpaEntity entity, ShopConvenienceInfoState state) {
         entity.applyChanges(
-            domain.isParkingAvailable(),
-            domain.isParkingPaid(),
-            domain.isValetAvailable(),
-            domain.isValetPaid(),
-            domain.getDirectionsGuide(),
-            domain.getDisplayLatitude(),
-            domain.getDisplayLongitude()
+            state.parkingAvailable(),
+            state.parkingPaid(),
+            state.valetAvailable(),
+            state.valetPaid(),
+            state.directionsGuide(),
+            state.displayLatitude(),
+            state.displayLongitude()
         );
     }
 }

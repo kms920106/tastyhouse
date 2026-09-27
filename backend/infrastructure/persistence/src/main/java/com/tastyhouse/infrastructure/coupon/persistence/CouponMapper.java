@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.coupon.persistence;
 
-import com.tastyhouse.domain.coupon.model.Coupon;
+import com.tastyhouse.application.coupon.port.out.write.CouponState;
 
 final class CouponMapper {
     private CouponMapper() {
     }
 
-    static Coupon toDomain(CouponJpaEntity entity) {
-        return Coupon.reconstitute(
+    static CouponState toState(CouponJpaEntity entity) {
+        return new CouponState(
             entity.getId(),
             entity.getName(),
             entity.getDescription(),
@@ -27,39 +27,39 @@ final class CouponMapper {
         );
     }
 
-    static CouponJpaEntity toEntity(Coupon domain) {
+    static CouponJpaEntity toEntity(CouponState state) {
         return CouponJpaEntity.create(
-            domain.getName(),
-            domain.getDescription(),
-            domain.getDiscountType(),
-            domain.getDiscountAmount(),
-            domain.getMaxDiscountAmount(),
-            domain.getMinOrderAmount(),
-            domain.getMaxDiscountCount(),
-            domain.getIssueStartAt(),
-            domain.getIssueEndAt(),
-            domain.getUseStartAt(),
-            domain.getUseEndAt(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.name(),
+            state.description(),
+            state.discountType(),
+            state.discountAmount(),
+            state.maxDiscountAmount(),
+            state.minOrderAmount(),
+            state.maxDiscountCount(),
+            state.issueStartAt(),
+            state.issueEndAt(),
+            state.useStartAt(),
+            state.useEndAt(),
+            state.visible(),
+            state.deleted()
         );
     }
 
-    static void applyChanges(CouponJpaEntity entity, Coupon domain) {
+    static void applyChanges(CouponJpaEntity entity, CouponState state) {
         entity.applyChanges(
-            domain.getName(),
-            domain.getDescription(),
-            domain.getDiscountType(),
-            domain.getDiscountAmount(),
-            domain.getMaxDiscountAmount(),
-            domain.getMinOrderAmount(),
-            domain.getMaxDiscountCount(),
-            domain.getIssueStartAt(),
-            domain.getIssueEndAt(),
-            domain.getUseStartAt(),
-            domain.getUseEndAt(),
-            domain.isVisible(),
-            domain.isDeleted()
+            state.name(),
+            state.description(),
+            state.discountType(),
+            state.discountAmount(),
+            state.maxDiscountAmount(),
+            state.minOrderAmount(),
+            state.maxDiscountCount(),
+            state.issueStartAt(),
+            state.issueEndAt(),
+            state.useStartAt(),
+            state.useEndAt(),
+            state.visible(),
+            state.deleted()
         );
     }
 }

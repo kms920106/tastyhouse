@@ -2,14 +2,11 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -31,9 +28,8 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
     @Column(name = "merged_group_name", nullable = false, length = 100)
     private String mergedGroupName;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "entry_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
-    private ProductOptionGroupMergeEntryType entryType;
+    private String entryType;
 
     @Column(name = "actor_ceo_id", nullable = false)
     private Long actorCeoId;
@@ -46,7 +42,7 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
         Long baseOptionGroupId,
         Long mergedOptionGroupId,
         String mergedGroupName,
-        ProductOptionGroupMergeEntryType entryType,
+        String entryType,
         Long actorCeoId
     ) {
         this.shopId = shopId;
@@ -62,7 +58,7 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
         Long baseOptionGroupId,
         Long mergedOptionGroupId,
         String mergedGroupName,
-        ProductOptionGroupMergeEntryType entryType,
+        String entryType,
         Long actorCeoId
     ) {
         return new ProductOptionGroupMergeHistoryJpaEntity(
@@ -90,7 +86,7 @@ public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
         return this.mergedGroupName;
     }
 
-    public ProductOptionGroupMergeEntryType getEntryType() {
+    public String getEntryType() {
         return this.entryType;
     }
 

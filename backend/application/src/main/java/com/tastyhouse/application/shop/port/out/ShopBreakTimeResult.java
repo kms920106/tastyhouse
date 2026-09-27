@@ -9,4 +9,14 @@ public record ShopBreakTimeResult(
     LocalTime startTime,
     LocalTime endTime
 ) {
+
+    public ShopBreakTimeResult withDayTypeDescription(String dayTypeDescription) {
+        return new ShopBreakTimeResult(
+            this.id,
+            this.dayType,
+            dayTypeDescription,
+            this.startTime,
+            this.endTime
+        );
+    }
 }

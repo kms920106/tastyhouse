@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.ceo.port.in.CeoCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoCreateCommand;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.store.CeoRepository;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;

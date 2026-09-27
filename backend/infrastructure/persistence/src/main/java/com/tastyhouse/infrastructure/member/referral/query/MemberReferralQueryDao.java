@@ -8,7 +8,6 @@ import java.util.List;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 
@@ -21,7 +20,7 @@ public class MemberReferralQueryDao implements MemberReferralQueryPort {
     }
 
     @Override
-    public List<MemberReferralResult> findByReferrerId(MemberId referrerId) {
+    public List<MemberReferralResult> findByReferrerId(Long referrerId) {
         return queryFactory
             .select(Projections.constructor(MemberReferralResult.class,
                 memberReferralJpaEntity.id,
@@ -31,7 +30,7 @@ public class MemberReferralQueryDao implements MemberReferralQueryPort {
                 memberReferralJpaEntity.createdAt
             ))
             .from(memberReferralJpaEntity)
-            .where(memberReferralJpaEntity.referrerId.eq(referrerId.value()))
+            .where(memberReferralJpaEntity.referrerId.eq(referrerId))
             .orderBy(memberReferralJpaEntity.createdAt.desc())
             .fetch();
     }

@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
@@ -110,7 +110,7 @@ class GradeSettlementServiceTest {
     }
 
     private static MemberReviewCount reviewCount(long memberId, long count) {
-        return MemberReviewCount.of(MemberId.of(memberId), count);
+        return MemberReviewCount.of(memberId, count);
     }
 
     private static class MemberReviewCountPortFake implements MemberReviewCountPort {

@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.shop.model.ShopRiderGuide;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideState;
 
 final class ShopRiderGuideMapper {
     private ShopRiderGuideMapper() {
     }
 
-    static ShopRiderGuide toDomain(ShopRiderGuideJpaEntity entity) {
-        return ShopRiderGuide.reconstitute(
+    static ShopRiderGuideState toState(ShopRiderGuideJpaEntity entity) {
+        return new ShopRiderGuideState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getVisitGuide(),
             entity.getPickupRoadAddress(),
             entity.getPickupLotAddress(),
@@ -23,26 +21,26 @@ final class ShopRiderGuideMapper {
         );
     }
 
-    static ShopRiderGuideJpaEntity toEntity(ShopRiderGuide domain) {
+    static ShopRiderGuideJpaEntity toEntity(ShopRiderGuideState state) {
         return ShopRiderGuideJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getVisitGuide(),
-            domain.getPickupRoadAddress(),
-            domain.getPickupLotAddress(),
-            domain.getPickupDetailAddress(),
-            domain.getPickupLatitude(),
-            domain.getPickupLongitude()
+            state.shopId(),
+            state.visitGuide(),
+            state.pickupRoadAddress(),
+            state.pickupLotAddress(),
+            state.pickupDetailAddress(),
+            state.pickupLatitude(),
+            state.pickupLongitude()
         );
     }
 
-    static void applyChanges(ShopRiderGuideJpaEntity entity, ShopRiderGuide domain) {
+    static void applyChanges(ShopRiderGuideJpaEntity entity, ShopRiderGuideState state) {
         entity.applyChanges(
-            domain.getVisitGuide(),
-            domain.getPickupRoadAddress(),
-            domain.getPickupLotAddress(),
-            domain.getPickupDetailAddress(),
-            domain.getPickupLatitude(),
-            domain.getPickupLongitude()
+            state.visitGuide(),
+            state.pickupRoadAddress(),
+            state.pickupLotAddress(),
+            state.pickupDetailAddress(),
+            state.pickupLatitude(),
+            state.pickupLongitude()
         );
     }
 }

@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.domain.product.model.ProductPrice;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.product.port.out.write.ProductPriceState;
 
 final class ProductPriceMapper {
     private ProductPriceMapper() {
     }
 
-    static ProductPrice toDomain(ProductPriceJpaEntity entity) {
-        return ProductPrice.reconstitute(
+    static ProductPriceState toState(ProductPriceJpaEntity entity) {
+        return new ProductPriceState(
             entity.getId(),
-            IdMapping.vo(entity.getProductId(), ProductId::of),
+            entity.getProductId(),
             entity.getPriceName(),
             entity.getDeliveryPrice(),
             entity.getStorePrice(),
@@ -23,26 +21,26 @@ final class ProductPriceMapper {
         );
     }
 
-    static ProductPriceJpaEntity toEntity(ProductPrice domain) {
+    static ProductPriceJpaEntity toEntity(ProductPriceState state) {
         return ProductPriceJpaEntity.create(
-            IdMapping.raw(domain.getProductId(), ProductId::value),
-            domain.getPriceName(),
-            domain.getDeliveryPrice(),
-            domain.getStorePrice(),
-            domain.getPickupPrice(),
-            domain.getSort(),
-            domain.getPickupPriceSetAt()
+            state.productId(),
+            state.priceName(),
+            state.deliveryPrice(),
+            state.storePrice(),
+            state.pickupPrice(),
+            state.sort(),
+            state.pickupPriceSetAt()
         );
     }
 
-    static void applyChanges(ProductPriceJpaEntity entity, ProductPrice domain) {
+    static void applyChanges(ProductPriceJpaEntity entity, ProductPriceState state) {
         entity.applyChanges(
-            domain.getPriceName(),
-            domain.getDeliveryPrice(),
-            domain.getStorePrice(),
-            domain.getPickupPrice(),
-            domain.getSort(),
-            domain.getPickupPriceSetAt()
+            state.priceName(),
+            state.deliveryPrice(),
+            state.storePrice(),
+            state.pickupPrice(),
+            state.sort(),
+            state.pickupPriceSetAt()
         );
     }
 }

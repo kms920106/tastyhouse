@@ -1,17 +1,15 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.rank.model.MemberReviewRank;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
 
 final class MemberReviewRankMapper {
     private MemberReviewRankMapper() {
     }
 
-    static MemberReviewRank toDomain(MemberReviewRankJpaEntity entity) {
-        return MemberReviewRank.reconstitute(
+    static MemberReviewRankState toState(MemberReviewRankJpaEntity entity) {
+        return new MemberReviewRankState(
             entity.getId(),
-            IdMapping.vo(entity.getMemberId(), MemberId::of),
+            entity.getMemberId(),
             entity.getReviewCount(),
             entity.getRankNo(),
             entity.getRankType(),
@@ -22,14 +20,14 @@ final class MemberReviewRankMapper {
         );
     }
 
-    static MemberReviewRankJpaEntity toEntity(MemberReviewRank domain) {
+    static MemberReviewRankJpaEntity toEntity(MemberReviewRankState state) {
         return MemberReviewRankJpaEntity.create(
-            IdMapping.raw(domain.getMemberId(), MemberId::value),
-            domain.getReviewCount(),
-            domain.getRankNo(),
-            domain.getRankType(),
-            domain.getBaseDate(),
-            domain.getLastReviewAt()
+            state.memberId(),
+            state.reviewCount(),
+            state.rankNo(),
+            state.rankType(),
+            state.baseDate(),
+            state.lastReviewAt()
         );
     }
 }

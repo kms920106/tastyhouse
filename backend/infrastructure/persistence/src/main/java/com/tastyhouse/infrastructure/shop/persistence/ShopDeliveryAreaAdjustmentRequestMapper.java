@@ -1,23 +1,20 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestState;
 
 final class ShopDeliveryAreaAdjustmentRequestMapper {
     private ShopDeliveryAreaAdjustmentRequestMapper() {
     }
 
-    static ShopDeliveryAreaAdjustmentRequest toDomain(ShopDeliveryAreaAdjustmentRequestJpaEntity entity) {
-        return ShopDeliveryAreaAdjustmentRequest.reconstitute(
+    static ShopDeliveryAreaAdjustmentRequestState toState(ShopDeliveryAreaAdjustmentRequestJpaEntity entity) {
+        return new ShopDeliveryAreaAdjustmentRequestState(
             entity.getId(),
-            IdMapping.vo(entity.getShopId(), ShopId::of),
+            entity.getShopId(),
             entity.getCounterpartShopName(),
             entity.getCounterpartBusinessNumber(),
             entity.getFranchiseName(),
             entity.getReason(),
-            IdMapping.vo(entity.getConsentFileId(), UploadedFileId::of),
+            entity.getConsentFileId(),
             entity.getStatus(),
             entity.getRejectReason(),
             entity.getCreatedAt(),
@@ -25,23 +22,23 @@ final class ShopDeliveryAreaAdjustmentRequestMapper {
         );
     }
 
-    static ShopDeliveryAreaAdjustmentRequestJpaEntity toEntity(ShopDeliveryAreaAdjustmentRequest domain) {
+    static ShopDeliveryAreaAdjustmentRequestJpaEntity toEntity(ShopDeliveryAreaAdjustmentRequestState state) {
         return ShopDeliveryAreaAdjustmentRequestJpaEntity.create(
-            IdMapping.raw(domain.getShopId(), ShopId::value),
-            domain.getCounterpartShopName(),
-            domain.getCounterpartBusinessNumber(),
-            domain.getFranchiseName(),
-            domain.getReason(),
-            IdMapping.raw(domain.getConsentFileId(), UploadedFileId::value),
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.shopId(),
+            state.counterpartShopName(),
+            state.counterpartBusinessNumber(),
+            state.franchiseName(),
+            state.reason(),
+            state.consentFileId(),
+            state.status(),
+            state.rejectReason()
         );
     }
 
-    static void applyChanges(ShopDeliveryAreaAdjustmentRequestJpaEntity entity, ShopDeliveryAreaAdjustmentRequest domain) {
+    static void applyChanges(ShopDeliveryAreaAdjustmentRequestJpaEntity entity, ShopDeliveryAreaAdjustmentRequestState state) {
         entity.applyChanges(
-            domain.getStatus(),
-            domain.getRejectReason()
+            state.status(),
+            state.rejectReason()
         );
     }
 }

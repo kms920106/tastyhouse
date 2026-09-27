@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.reservation.model.ReservationStatus;
-
 public record ReservationDetailResult(
     Long id,
     Long shopId,
@@ -20,7 +18,7 @@ public record ReservationDetailResult(
     LocalDate reservationDate,
     LocalTime reservationTime,
     Integer partySize,
-    ReservationStatus status,
+    String status,
     String request,
     LocalDateTime createdAt
 ) {

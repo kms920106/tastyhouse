@@ -1,7 +1,7 @@
 package com.tastyhouse.application.ceo.service;
 
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
+import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;

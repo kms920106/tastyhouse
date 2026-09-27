@@ -1,6 +1,6 @@
 package com.tastyhouse.application.member.referral.service;
 
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
+import com.tastyhouse.application.member.referral.store.MemberReferralRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
