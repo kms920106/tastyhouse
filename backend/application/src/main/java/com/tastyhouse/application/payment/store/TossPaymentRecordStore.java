@@ -1,7 +1,7 @@
 package com.tastyhouse.application.payment.store;
 
-import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordStatePort;
 import com.tastyhouse.domain.payment.model.TossPaymentRecord;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordStatePort;
 
 public class TossPaymentRecordStore implements TossPaymentRecordRepository {
     private final TossPaymentRecordStatePort tossPaymentRecordStatePort;

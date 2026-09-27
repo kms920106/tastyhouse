@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
 
 class FakeProductOptionGroupLinkRepository implements ProductOptionGroupLinkRepository {
     private final List<ProductOptionGroupLink> links = new ArrayList<>();

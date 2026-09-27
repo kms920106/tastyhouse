@@ -1,8 +1,8 @@
 package com.tastyhouse.application.payment.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.payment.port.out.PaymentRefundViewResult;
 import com.tastyhouse.application.payment.port.out.PaymentViewResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @WebApp
 public interface PaymentQueryUseCase {

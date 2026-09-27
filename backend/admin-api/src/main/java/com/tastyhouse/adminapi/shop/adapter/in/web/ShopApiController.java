@@ -1,27 +1,47 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.application.shop.port.in.ShopAmenityManagementAssignCommand;
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.tastyhouse.application.auth.security.AdminUserDetails;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopAmenityAssignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopAmenityManagementAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityManagementUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityUnassignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteUseCase;
-import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeCreateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeUpdateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourCreateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopCeoAssignCommand;
@@ -36,10 +56,10 @@ import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopCloseCommand;
 import com.tastyhouse.application.shop.port.in.ShopCloseUseCase;
-import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayCreateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopCupDepositChangeCommand;
@@ -52,6 +72,7 @@ import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateCommand
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignUseCase;
+import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodUnassignCommand;
@@ -74,29 +95,11 @@ import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 import com.tastyhouse.application.shop.port.in.TagCreateUseCase;
 import com.tastyhouse.application.shop.port.in.TagDeleteCommand;
 import com.tastyhouse.application.shop.port.in.TagDeleteUseCase;
-
-import java.util.List;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityCategoryCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityCategoryUpdateRequest;
@@ -135,10 +138,6 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryIma
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.StationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
-import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
-import com.tastyhouse.application.shop.port.out.ShopListItemResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Admin", description = "가게 관리자 API")
 @RestController

@@ -1,10 +1,11 @@
 package com.tastyhouse.application;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(

@@ -10,12 +10,12 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.rank.port.out.MemberReviewCount;
-import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.application.rank.port.out.MemberReviewCount;
+import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
+import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

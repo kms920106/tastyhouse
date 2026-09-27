@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeStatePort;
 import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeStatePort;
 
 public class ShopHygieneBadgeStore implements ShopHygieneBadgeRepository {
     private final ShopHygieneBadgeStatePort shopHygieneBadgeStatePort;

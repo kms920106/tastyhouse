@@ -1,11 +1,11 @@
 package com.tastyhouse.application.sms.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.sms.port.in.SmsVerificationCommandUseCase;
 import com.tastyhouse.application.sms.port.in.SmsVerificationConfirmCommand;
 import com.tastyhouse.application.sms.port.in.SmsVerificationSendCommand;

@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 
 public class Reservation {
     private final Long id;

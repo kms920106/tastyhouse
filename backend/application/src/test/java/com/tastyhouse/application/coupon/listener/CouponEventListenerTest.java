@@ -7,12 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import com.tastyhouse.domain.coupon.event.MemberCouponIssuedEvent;
 import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

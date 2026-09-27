@@ -1,10 +1,10 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestState;
 import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestState;
 
 final class ProductRepresentativeRequestStateMapper {
     private ProductRepresentativeRequestStateMapper() {

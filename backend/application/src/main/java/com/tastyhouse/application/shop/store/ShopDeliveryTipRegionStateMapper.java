@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionState;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionState;
 
 final class ShopDeliveryTipRegionStateMapper {
     private ShopDeliveryTipRegionStateMapper() {

@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

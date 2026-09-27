@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.adminapi.common.response.FileResponse;
 import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.adminapi.common.response.FileResponse;
 
 @Schema(description = "배너 목록 항목 응답")
 public record BannerListItemResponse(

@@ -1,16 +1,5 @@
 package com.tastyhouse.infrastructure.order.query;
 
-import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
-import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
-import com.tastyhouse.application.order.port.out.OrderQueryPort;
-import com.tastyhouse.application.order.port.out.OrderDetailResult;
-import com.tastyhouse.application.order.port.out.OrderListItemResult;
-import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
-import com.tastyhouse.application.order.port.out.OrderPaymentResult;
-import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
-import com.tastyhouse.application.order.port.out.OrderProductResult;
-import com.tastyhouse.application.order.port.out.OrderSearchCondition;
-import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -18,10 +7,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.order.port.out.OrderDetailResult;
+import com.tastyhouse.application.order.port.out.OrderListItemResult;
+import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
+import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
+import com.tastyhouse.application.order.port.out.OrderPaymentResult;
+import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
+import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
+import com.tastyhouse.application.order.port.out.OrderProductResult;
+import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.order.port.out.OrderSearchCondition;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;

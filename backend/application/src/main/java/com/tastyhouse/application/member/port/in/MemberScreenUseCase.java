@@ -1,17 +1,16 @@
 package com.tastyhouse.application.member.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-
-import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
-import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
-import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 import com.tastyhouse.application.coupon.port.out.MyCouponListItemResult;
+import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
 import com.tastyhouse.application.member.port.out.MemberStatsResult;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.application.member.port.out.MyGradeResult;
+import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 
 @WebApp
 public interface MemberScreenUseCase {

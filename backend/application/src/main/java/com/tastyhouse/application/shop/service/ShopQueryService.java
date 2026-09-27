@@ -1,7 +1,5 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,13 +14,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
-import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -39,19 +30,24 @@ import com.tastyhouse.domain.shop.model.ScheduledOrderPolicy;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
+import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.vo.ShopId;
-
+import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
+import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.service.ProductQueryService;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
 import com.tastyhouse.application.review.service.ReviewQueryService;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderInfoQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSearchQueryUseCase;
@@ -99,6 +95,8 @@ import com.tastyhouse.application.shop.port.out.ShopReviewStatisticsViewResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 @Service
 @WebApp

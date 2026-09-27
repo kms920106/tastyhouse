@@ -17,8 +17,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.application.payment.port.out.PgProviderCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,6 +1,5 @@
 package com.tastyhouse.application.referral.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +9,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.referral.port.out.MemberReferralQueryPort;
 import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
 import com.tastyhouse.application.referral.port.in.ReferralQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopAmenityCategoryState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityCategoryState;
 
 final class ShopAmenityCategoryStateMapper {
     private ShopAmenityCategoryStateMapper() {

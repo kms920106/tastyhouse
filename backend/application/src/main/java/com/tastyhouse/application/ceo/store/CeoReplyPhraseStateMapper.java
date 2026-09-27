@@ -1,8 +1,8 @@
 package com.tastyhouse.application.ceo.store;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseState;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseState;
 
 final class CeoReplyPhraseStateMapper {
     private CeoReplyPhraseStateMapper() {

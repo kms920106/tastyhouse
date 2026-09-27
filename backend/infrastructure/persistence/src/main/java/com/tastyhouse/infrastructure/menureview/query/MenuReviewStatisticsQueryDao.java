@@ -1,14 +1,15 @@
 package com.tastyhouse.infrastructure.menureview.query;
 
-import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
-import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResult;
-import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResult;
+import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
 
 import static com.tastyhouse.infrastructure.menureview.persistence.QMenuReviewJpaEntity.menuReviewJpaEntity;
 

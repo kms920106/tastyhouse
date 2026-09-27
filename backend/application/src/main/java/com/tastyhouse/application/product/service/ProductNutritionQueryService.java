@@ -1,16 +1,16 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.product.model.AllergenType;
-import com.tastyhouse.application.product.port.out.ProductNutritionResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
-import com.tastyhouse.application.product.port.out.ProductNutritionView;
 import com.tastyhouse.application.product.port.in.ProductNutritionQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductNutritionResult;
+import com.tastyhouse.application.product.port.out.ProductNutritionView;
+import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

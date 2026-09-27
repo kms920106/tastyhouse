@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.product.port.in.ProductNutritionQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductNutritionView;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionResponse;
 
 @Tag(name = "Product Nutrition", description = "메뉴 영양성분·알레르기 API")

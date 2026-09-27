@@ -4,11 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankStatePort;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankStatePort;
 
 public class MemberReviewRankStore implements MemberReviewRankRepository {
     private final MemberReviewRankStatePort memberReviewRankStatePort;

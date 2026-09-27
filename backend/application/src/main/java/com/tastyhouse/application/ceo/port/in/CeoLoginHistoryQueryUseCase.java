@@ -1,9 +1,9 @@
 package com.tastyhouse.application.ceo.port.in;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.time.LocalDate;
 
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @CeoApp

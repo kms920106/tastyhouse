@@ -1,18 +1,18 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
 
 @Service
 @AdminApp

@@ -1,18 +1,17 @@
 package com.tastyhouse.application.follow.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-
+import com.tastyhouse.application.follow.port.in.FollowQueryUseCase;
+import com.tastyhouse.application.follow.port.out.FollowMemberSearchResult;
 import com.tastyhouse.application.member.follow.port.out.FollowMemberResult;
 import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
-import com.tastyhouse.application.follow.port.out.FollowMemberSearchResult;
-import com.tastyhouse.application.follow.port.in.FollowQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

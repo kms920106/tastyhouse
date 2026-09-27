@@ -1,6 +1,5 @@
 package com.tastyhouse.application.bug.store;
 
-import com.tastyhouse.application.bug.port.out.write.BugReportState;
 import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
@@ -8,6 +7,7 @@ import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.bug.port.out.write.BugReportState;
 
 final class BugReportStateMapper {
     private BugReportStateMapper() {

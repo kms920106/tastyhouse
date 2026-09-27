@@ -3,6 +3,9 @@ package com.tastyhouse.application.product.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.tastyhouse.domain.product.service.CupDepositPolicy;
+import com.tastyhouse.domain.product.service.ProductExposureCalculator;
+import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
@@ -93,9 +96,6 @@ import com.tastyhouse.application.product.store.ProductVegetarianRequestStore;
 import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
 import com.tastyhouse.application.product.store.StorePriceVerificationStore;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.domain.product.service.CupDepositPolicy;
-import com.tastyhouse.domain.product.service.ProductExposureCalculator;
-import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
 
 @Configuration(proxyBeanMethods = false)
 @SharedApp

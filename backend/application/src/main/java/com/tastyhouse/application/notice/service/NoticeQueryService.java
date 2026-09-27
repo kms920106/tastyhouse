@@ -1,14 +1,14 @@
 package com.tastyhouse.application.notice.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.notice.port.in.NoticeQueryUseCase;
 import com.tastyhouse.application.notice.port.out.NoticeListItemResult;
 import com.tastyhouse.application.notice.port.out.NoticeQueryPort;
-import com.tastyhouse.application.notice.port.in.NoticeQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

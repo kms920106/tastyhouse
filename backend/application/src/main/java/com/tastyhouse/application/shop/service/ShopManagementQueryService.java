@@ -1,20 +1,22 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shop.service.EditorChoicePolicy;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
@@ -24,17 +26,15 @@ import com.tastyhouse.application.shop.port.out.ShopFoodTypeAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopManagementDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagementResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
-import com.tastyhouse.application.shop.port.out.ShopManagementDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.StationResult;
 import com.tastyhouse.application.shop.port.out.TagResult;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 
 @Service
 @AdminApp

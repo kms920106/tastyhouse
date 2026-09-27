@@ -1,9 +1,9 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.application.product.port.out.write.ProductImageState;
 
 final class ProductImageStateMapper {
     private ProductImageStateMapper() {

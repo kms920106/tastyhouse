@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoLoginHistorySearchRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItemResponse;
-import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
-import com.tastyhouse.application.auth.security.CeoUserDetails;
 
 @Tag(name = "Ceo Login History", description = "점주 개인정보 접속기록(로그인 이력) 조회 API")
 @RestController

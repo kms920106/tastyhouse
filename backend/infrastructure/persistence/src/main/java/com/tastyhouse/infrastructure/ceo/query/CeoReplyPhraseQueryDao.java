@@ -1,12 +1,13 @@
 package com.tastyhouse.infrastructure.ceo.query;
 
-import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseQueryPort;
-import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 import java.util.List;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 
 import static com.tastyhouse.infrastructure.ceo.persistence.QCeoReplyPhraseJpaEntity.ceoReplyPhraseJpaEntity;
 

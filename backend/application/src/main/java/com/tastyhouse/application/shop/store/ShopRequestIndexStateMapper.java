@@ -1,11 +1,11 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexState;
 
 final class ShopRequestIndexStateMapper {
     private ShopRequestIndexStateMapper() {

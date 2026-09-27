@@ -1,16 +1,16 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
-import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
 
 @Service
 @AdminApp

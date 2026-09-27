@@ -1,6 +1,5 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Component
 @CeoApp

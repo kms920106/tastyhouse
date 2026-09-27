@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOwnerMessageHistoryState;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopOwnerMessageHistoryState;
 
 final class ShopOwnerMessageHistoryStateMapper {
     private ShopOwnerMessageHistoryStateMapper() {

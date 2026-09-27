@@ -2,9 +2,9 @@ package com.tastyhouse.application.notice.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.notice.port.out.write.NoticeStatePort;
 import com.tastyhouse.domain.notice.model.Notice;
 import com.tastyhouse.domain.notice.vo.NoticeId;
+import com.tastyhouse.application.notice.port.out.write.NoticeStatePort;
 
 public class NoticeStore implements NoticeRepository {
     private final NoticeStatePort noticeStatePort;

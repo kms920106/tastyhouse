@@ -3,9 +3,10 @@ package com.tastyhouse.domain.review.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ReviewImageTest {
     @Test

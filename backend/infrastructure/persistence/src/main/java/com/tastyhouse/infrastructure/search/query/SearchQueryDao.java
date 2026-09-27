@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.search.query;
 
-import com.tastyhouse.application.search.port.out.SearchQueryPort;
-import com.tastyhouse.application.search.port.out.KeywordCountResult;
-import com.tastyhouse.application.search.port.out.PopularKeywordResult;
-import com.tastyhouse.application.search.port.out.RecommendedKeywordResult;
-import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.search.port.out.KeywordCountResult;
+import com.tastyhouse.application.search.port.out.PopularKeywordResult;
+import com.tastyhouse.application.search.port.out.RecommendedKeywordResult;
+import com.tastyhouse.application.search.port.out.SearchQueryPort;
 
 import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 import static com.tastyhouse.infrastructure.search.persistence.QRecommendedKeywordJpaEntity.recommendedKeywordJpaEntity;

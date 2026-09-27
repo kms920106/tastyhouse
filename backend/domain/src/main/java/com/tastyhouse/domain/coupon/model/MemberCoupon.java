@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberCoupon {
     private final Long id;

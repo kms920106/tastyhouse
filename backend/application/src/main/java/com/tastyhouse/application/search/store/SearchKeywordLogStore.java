@@ -2,8 +2,8 @@ package com.tastyhouse.application.search.store;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogStatePort;
 import com.tastyhouse.domain.search.model.SearchKeywordLog;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogStatePort;
 
 public class SearchKeywordLogStore implements SearchKeywordLogRepository {
     private final SearchKeywordLogStatePort searchKeywordLogStatePort;

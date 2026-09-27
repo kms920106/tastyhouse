@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeState;
 import com.tastyhouse.domain.shop.model.HygieneBadgeType;
 import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeState;
 
 final class ShopHygieneBadgeStateMapper {
     private ShopHygieneBadgeStateMapper() {

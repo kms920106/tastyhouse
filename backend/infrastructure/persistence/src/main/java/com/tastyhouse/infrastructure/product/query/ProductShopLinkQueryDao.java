@@ -1,12 +1,13 @@
 package com.tastyhouse.infrastructure.product.query;
 
-import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
-import com.tastyhouse.application.product.port.out.ProductShopLinkResult;
-import com.querydsl.core.types.Projections;
 import java.util.List;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.product.port.out.ProductShopLinkQueryPort;
+import com.tastyhouse.application.product.port.out.ProductShopLinkResult;
 
 import static com.tastyhouse.infrastructure.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;

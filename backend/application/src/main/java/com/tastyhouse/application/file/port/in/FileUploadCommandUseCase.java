@@ -1,7 +1,8 @@
 package com.tastyhouse.application.file.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @WebApp
 public interface FileUploadCommandUseCase {

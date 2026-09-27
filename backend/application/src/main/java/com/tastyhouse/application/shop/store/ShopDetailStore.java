@@ -3,7 +3,6 @@ package com.tastyhouse.application.shop.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDetailStatePort;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
@@ -17,6 +16,7 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailStatePort;
 
 public class ShopDetailStore implements ShopDetailRepository {
     private final ShopDetailStatePort shopDetailStatePort;

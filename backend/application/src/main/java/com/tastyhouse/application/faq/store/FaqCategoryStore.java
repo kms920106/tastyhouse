@@ -2,9 +2,9 @@ package com.tastyhouse.application.faq.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryStatePort;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryStatePort;
 
 public class FaqCategoryStore implements FaqCategoryRepository {
     private final FaqCategoryStatePort faqCategoryStatePort;

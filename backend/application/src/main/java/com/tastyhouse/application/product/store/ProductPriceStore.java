@@ -3,11 +3,11 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductPriceStatePort;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductPriceStatePort;
 
 public class ProductPriceStore implements ProductPriceRepository {
     private final ProductPriceStatePort productPriceStatePort;

@@ -1,11 +1,10 @@
 package com.tastyhouse.adminapi.review.adapter.in.web.request;
 
-import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand;
 
 @Schema(description = "리뷰 게시중단 요청 반려 요청")
 public record ReviewBlindRequestRejectRequest(

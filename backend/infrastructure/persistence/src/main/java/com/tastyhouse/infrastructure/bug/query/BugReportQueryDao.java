@@ -1,20 +1,20 @@
 package com.tastyhouse.infrastructure.bug.query;
 
-import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
-import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
-import com.tastyhouse.application.bug.port.out.BugReportImageResult;
-import com.tastyhouse.application.bug.port.out.BugReportListItemResult;
-import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
-import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
+import com.tastyhouse.application.bug.port.out.BugReportImageResult;
+import com.tastyhouse.application.bug.port.out.BugReportListItemResult;
+import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
+import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

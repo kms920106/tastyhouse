@@ -4,11 +4,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.menureview.store.MenuReviewRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.model.MenuReview;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
+import com.tastyhouse.application.menureview.store.MenuReviewRepository;
 
 class FakeMenuReviewRepository implements MenuReviewRepository {
     private final Map<Long, MenuReview> menuReviews = new LinkedHashMap<>();

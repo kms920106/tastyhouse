@@ -1,10 +1,10 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestState;
 import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
 import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestState;
 
 final class ProductVegetarianRequestStateMapper {
     private ProductVegetarianRequestStateMapper() {

@@ -2,11 +2,11 @@ package com.tastyhouse.domain.sms.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 
 public class SmsVerification {
     public static final int EXPIRATION_MINUTES = 5;

@@ -3,8 +3,8 @@ package com.tastyhouse.application.review.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.review.store.ReviewBlindRequestAttachmentRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
+import com.tastyhouse.application.review.store.ReviewBlindRequestAttachmentRepository;
 
 public class FakeReviewBlindRequestAttachmentRepository implements ReviewBlindRequestAttachmentRepository {
     private final List<ReviewBlindRequestAttachment> attachments = new ArrayList<>();

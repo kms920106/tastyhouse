@@ -14,20 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductAvailabilitySearchRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductHiddenRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionHiddenRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionReleaseRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOutRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOutUntilRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductReleaseRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutUntilRequest;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityGroupResponse;
-import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityGroupResponse;
+import com.tastyhouse.application.product.port.in.ProductAvailabilityQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductHideCommand;
 import com.tastyhouse.application.product.port.in.ProductHideUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionHideCommand;
@@ -41,10 +29,22 @@ import com.tastyhouse.application.product.port.in.ProductOptionSoldOutUseCase;
 import com.tastyhouse.application.product.port.in.ProductReleaseCommand;
 import com.tastyhouse.application.product.port.in.ProductReleaseUseCase;
 import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerUseCase;
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeUseCase;
-import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerUseCase;
-import com.tastyhouse.application.product.port.in.ProductAvailabilityQueryUseCase;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductAvailabilitySearchRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductHiddenRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionHiddenRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionReleaseRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOutRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionSoldOutUntilRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductReleaseRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductSoldOutUntilRequest;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityChangeResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailabilityGroupResponse;
+import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvailabilityGroupResponse;
 
 @Tag(name = "Ceo Product Availability", description = "점주 메뉴·옵션 품절·숨김 관리 API")
 @RestController

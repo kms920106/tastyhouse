@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopBreakTime {
     private final Long id;

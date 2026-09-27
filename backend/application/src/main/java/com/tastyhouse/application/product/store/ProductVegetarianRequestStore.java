@@ -3,11 +3,11 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestStatePort;
 import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestStatePort;
 
 public class ProductVegetarianRequestStore implements ProductVegetarianRequestRepository {
     private final ProductVegetarianRequestStatePort productVegetarianRequestStatePort;

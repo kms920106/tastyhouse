@@ -10,6 +10,15 @@ dependencies {
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
+tasks.named('test') {
+    inputs.files(fileTree(rootProject.projectDir) {
+        include '**/*.java'
+        exclude '**/build/**'
+        exclude '**/bin/**'
+        exclude '**/.gradle/**'
+    }).withPropertyName('importOrderSources').withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
 }

@@ -1,14 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoOwnerQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 @Service
 @CeoApp

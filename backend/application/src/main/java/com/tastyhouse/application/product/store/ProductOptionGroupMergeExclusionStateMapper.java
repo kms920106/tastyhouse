@@ -1,9 +1,9 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionState;
 
 final class ProductOptionGroupMergeExclusionStateMapper {
     private ProductOptionGroupMergeExclusionStateMapper() {

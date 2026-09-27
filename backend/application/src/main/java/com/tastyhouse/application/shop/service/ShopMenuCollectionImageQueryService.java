@@ -1,15 +1,15 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageExposureResult;
 import com.tastyhouse.application.shop.port.out.ShopQueryPort;
-import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageQueryUseCase;
 
 @Service
 @WebApp

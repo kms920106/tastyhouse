@@ -10,17 +10,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopOperatingStatusCalculatorGoldenTest {
     private final ShopOperatingStatusCalculator calculator = new ShopOperatingStatusCalculator();

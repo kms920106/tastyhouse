@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordState;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordState;
 
 final class ProhibitedWordStateMapper {
     private ProhibitedWordStateMapper() {

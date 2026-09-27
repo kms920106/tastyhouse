@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.grade.port.in.GradeQueryUseCase;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResponse;
 
 @Tag(name = "Grade", description = "등급 정책 API")

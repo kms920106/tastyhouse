@@ -1,9 +1,9 @@
 package com.tastyhouse.application.member.store;
 
-import com.tastyhouse.application.member.port.out.write.MemberWithdrawalState;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalState;
 
 final class MemberWithdrawalStateMapper {
     private MemberWithdrawalStateMapper() {

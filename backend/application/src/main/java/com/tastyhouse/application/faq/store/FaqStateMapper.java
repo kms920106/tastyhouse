@@ -1,8 +1,8 @@
 package com.tastyhouse.application.faq.store;
 
-import com.tastyhouse.application.faq.port.out.write.FaqState;
 import com.tastyhouse.domain.faq.model.Faq;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
+import com.tastyhouse.application.faq.port.out.write.FaqState;
 
 final class FaqStateMapper {
     private FaqStateMapper() {

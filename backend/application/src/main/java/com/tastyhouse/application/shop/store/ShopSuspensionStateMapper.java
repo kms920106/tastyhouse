@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionState;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionState;
 
 final class ShopSuspensionStateMapper {
     private ShopSuspensionStateMapper() {

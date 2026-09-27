@@ -3,8 +3,9 @@ package com.tastyhouse.domain.product.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductCommonOptionTest {
     @Test

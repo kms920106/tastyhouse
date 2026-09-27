@@ -1,8 +1,5 @@
 package com.tastyhouse.application.region.service;
 
-import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
-import com.tastyhouse.application.shared.marker.BatchApp;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,18 +7,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.application.region.port.out.AdminDongBoundaryFetchResult;
-import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
-import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
-import com.tastyhouse.application.region.port.out.BoundaryCoordinate;
-import com.tastyhouse.application.region.port.out.BoundaryRing;
-import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.geo.InteriorPoint;
+import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryFetchResult;
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
+import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
+import com.tastyhouse.application.region.port.out.BoundaryCoordinate;
+import com.tastyhouse.application.region.port.out.BoundaryRing;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Service
 @BatchApp

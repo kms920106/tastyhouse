@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.TagCreateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+
+import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 
 @Schema(description = "태그 등록 요청")
 public record TagCreateRequest(

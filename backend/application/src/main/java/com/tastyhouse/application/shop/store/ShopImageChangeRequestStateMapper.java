@@ -1,11 +1,11 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestState;
 
 final class ShopImageChangeRequestStateMapper {
     private ShopImageChangeRequestStateMapper() {

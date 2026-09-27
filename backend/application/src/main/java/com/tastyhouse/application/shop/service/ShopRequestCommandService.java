@@ -1,10 +1,9 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopRequestCancelCommand;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentOwnerCreateCommand;

@@ -2,9 +2,9 @@ package com.tastyhouse.application.search.store;
 
 import java.util.List;
 
+import com.tastyhouse.domain.search.model.PopularKeyword;
 import com.tastyhouse.application.search.port.out.write.PopularKeywordState;
 import com.tastyhouse.application.search.port.out.write.PopularKeywordStatePort;
-import com.tastyhouse.domain.search.model.PopularKeyword;
 
 public class PopularKeywordStore implements PopularKeywordRepository {
     private final PopularKeywordStatePort popularKeywordStatePort;

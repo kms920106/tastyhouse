@@ -1,8 +1,9 @@
 package com.tastyhouse.application.shop.port.in;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
+import com.tastyhouse.application.shared.marker.AdminApp;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityAssignmentResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
@@ -20,7 +21,6 @@ import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagement
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
 import com.tastyhouse.application.shop.port.out.TagResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface ShopManagementQueryUseCase {

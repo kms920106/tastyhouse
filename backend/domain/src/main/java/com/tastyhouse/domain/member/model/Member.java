@@ -2,10 +2,10 @@ package com.tastyhouse.domain.member.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 public class Member {

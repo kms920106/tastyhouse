@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
+import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -22,12 +28,6 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.request.PartnershipSea
 import com.tastyhouse.adminapi.partnership.adapter.in.web.request.PartnershipStatusUpdateRequest;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
-import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
-import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
-import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
 
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController

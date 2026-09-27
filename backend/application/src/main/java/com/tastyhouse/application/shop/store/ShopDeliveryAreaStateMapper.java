@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaState;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaState;
 
 final class ShopDeliveryAreaStateMapper {
     private ShopDeliveryAreaStateMapper() {

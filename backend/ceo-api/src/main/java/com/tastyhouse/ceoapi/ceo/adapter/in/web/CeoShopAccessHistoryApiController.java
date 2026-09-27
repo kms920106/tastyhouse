@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
-import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoShopAccessHistorySearchRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryListItemResponse;
-import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
-import com.tastyhouse.application.auth.security.CeoUserDetails;
 
 @Tag(name = "Ceo Shop Access History", description = "점주 시스템 접근권한 부여·말소 이력 조회 API")
 @RestController

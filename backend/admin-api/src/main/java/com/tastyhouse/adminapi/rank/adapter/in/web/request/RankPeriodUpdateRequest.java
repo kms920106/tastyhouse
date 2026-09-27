@@ -1,11 +1,11 @@
 package com.tastyhouse.adminapi.rank.adapter.in.web.request;
 
-import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
-
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
 
 @Schema(description = "랭킹 기간 수정 요청")
 public record RankPeriodUpdateRequest(

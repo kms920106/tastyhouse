@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryStatePort;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryStatePort;
 
 public class ShopChangeHistoryStore implements ShopChangeHistoryRepository {
     private final ShopChangeHistoryStatePort shopChangeHistoryStatePort;

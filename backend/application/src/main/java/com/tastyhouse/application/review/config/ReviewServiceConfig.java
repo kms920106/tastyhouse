@@ -38,9 +38,9 @@ import com.tastyhouse.application.review.store.ShopReviewDisplaySettingRepositor
 import com.tastyhouse.application.review.store.ShopReviewDisplaySettingStore;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.application.shop.store.TagRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
+import com.tastyhouse.application.shop.store.TagRepository;
 
 @Configuration(proxyBeanMethods = false)
 @SharedApp

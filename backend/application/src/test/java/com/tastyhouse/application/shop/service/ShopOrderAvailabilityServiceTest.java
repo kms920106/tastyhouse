@@ -9,10 +9,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.DayType;
@@ -37,6 +33,10 @@ import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

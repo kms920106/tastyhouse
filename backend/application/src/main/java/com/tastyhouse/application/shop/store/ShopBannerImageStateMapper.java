@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBannerImageState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopBannerImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopBannerImageState;
 
 final class ShopBannerImageStateMapper {
     private ShopBannerImageStateMapper() {

@@ -1,6 +1,5 @@
 package com.tastyhouse.application.review.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -12,8 +11,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.review.port.in.ShopReviewQueryUseCase;
-import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -24,25 +21,28 @@ import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.review.port.in.ShopReviewQueryUseCase;
 import com.tastyhouse.application.review.port.out.ReviewBlindReasonView;
 import com.tastyhouse.application.review.port.out.ReviewSortSpec;
-import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
+import com.tastyhouse.application.review.port.out.ShopReviewDetailViewResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementSearchCondition;
-import com.tastyhouse.application.review.port.out.ShopReviewDetailViewResult;
-import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 import com.tastyhouse.application.review.port.out.ShopReviewMonthlyStatResult;
 import com.tastyhouse.application.review.port.out.ShopReviewReplyWindow;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewTabFilter;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @CeoApp

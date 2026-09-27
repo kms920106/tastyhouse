@@ -1,7 +1,5 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -9,13 +7,14 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
-import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
-import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 
 @Service
 @CeoApp

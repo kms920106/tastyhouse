@@ -2,10 +2,10 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideStatePort;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideStatePort;
 
 public class ShopRiderGuideStore implements ShopRiderGuideRepository {
     private final ShopRiderGuideStatePort shopRiderGuideStatePort;

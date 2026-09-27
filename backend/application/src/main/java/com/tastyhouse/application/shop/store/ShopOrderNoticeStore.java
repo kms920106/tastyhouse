@@ -2,9 +2,9 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeStatePort;
 import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeStatePort;
 
 public class ShopOrderNoticeStore implements ShopOrderNoticeRepository {
     private final ShopOrderNoticeStatePort shopOrderNoticeStatePort;

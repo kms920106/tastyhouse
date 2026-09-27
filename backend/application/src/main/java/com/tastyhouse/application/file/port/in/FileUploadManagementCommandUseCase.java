@@ -1,7 +1,8 @@
 package com.tastyhouse.application.file.port.in;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.tastyhouse.application.shared.marker.AdminApp;
 
 @AdminApp
 public interface FileUploadManagementCommandUseCase {

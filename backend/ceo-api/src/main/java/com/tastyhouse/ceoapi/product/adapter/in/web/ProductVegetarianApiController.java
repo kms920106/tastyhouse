@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductVegetarianRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianStatusResponse;
-import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
-import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
-import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
 
 @Tag(name = "Ceo Product Vegetarian", description = "점주 메뉴 채식 설정 API")
 @RestController

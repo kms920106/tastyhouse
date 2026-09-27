@@ -6,8 +6,8 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonViewResult;
 import com.tastyhouse.application.shop.port.out.GeoPointView;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonViewResult;
 
 @Schema(description = "배달지역 도형 조회 결과")
 public record ShopDeliveryAreaPolygonResponse(

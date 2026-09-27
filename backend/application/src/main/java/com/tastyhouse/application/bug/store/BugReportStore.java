@@ -2,9 +2,9 @@ package com.tastyhouse.application.bug.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.bug.port.out.write.BugReportStatePort;
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.vo.BugReportId;
+import com.tastyhouse.application.bug.port.out.write.BugReportStatePort;
 
 public class BugReportStore implements BugReportRepository {
     private final BugReportStatePort bugReportStatePort;

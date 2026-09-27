@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
 
 @Schema(description = "편의시설 카테고리 수정 요청")
 public record ShopAmenityCategoryUpdateRequest(

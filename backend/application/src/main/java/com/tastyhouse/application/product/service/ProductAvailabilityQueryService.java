@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,14 +8,15 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
+import com.tastyhouse.domain.product.model.ProductOptionType;
 import com.tastyhouse.application.product.port.in.ProductAvailabilityQueryUseCase;
-import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult;
 import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
 import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
-import com.tastyhouse.domain.product.model.ProductOptionType;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @CeoApp

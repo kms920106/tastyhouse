@@ -1,23 +1,23 @@
 package com.tastyhouse.infrastructure.rank.query;
 
-import com.tastyhouse.application.rank.port.out.RankManagementQueryPort;
-import com.tastyhouse.application.rank.port.out.RankQueryPort;
-import com.tastyhouse.application.rank.port.out.MemberRankResult;
-import com.tastyhouse.application.rank.port.out.RankDurationResult;
-import com.tastyhouse.application.rank.port.out.RankPeriodResult;
-import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
-import com.tastyhouse.application.rank.port.out.RankPrizeResult;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.ConstructorExpression;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankDurationResult;
+import com.tastyhouse.application.rank.port.out.RankManagementQueryPort;
+import com.tastyhouse.application.rank.port.out.RankPeriodResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeResult;
+import com.tastyhouse.application.rank.port.out.RankQueryPort;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

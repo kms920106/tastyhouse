@@ -1,22 +1,22 @@
 package com.tastyhouse.infrastructure.reservation.query;
 
-import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
-import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
-import com.tastyhouse.application.reservation.port.out.ReservationResult;
-import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
-import com.querydsl.core.types.Projections;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
+import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
+import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

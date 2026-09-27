@@ -1,13 +1,13 @@
 package com.tastyhouse.adminapi.event.adapter.in.web.request;
 
-import com.tastyhouse.application.event.port.in.EventUpdateCommand;
-
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.event.port.in.EventUpdateCommand;
 
 @Schema(description = "이벤트 수정 요청")
 public record EventUpdateRequest(

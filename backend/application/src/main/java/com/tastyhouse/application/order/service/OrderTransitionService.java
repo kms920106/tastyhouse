@@ -1,6 +1,5 @@
 package com.tastyhouse.application.order.service;
 
-import com.tastyhouse.application.order.store.OrderRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -8,6 +7,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.application.order.store.OrderRepository;
 
 public class OrderTransitionService {
     private final OrderRepository orderRepository;

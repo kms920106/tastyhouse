@@ -1,13 +1,12 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;
-import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectCommand;
-import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
 
 @Schema(description = "메뉴 승인요청 반려 요청")
 public record ProductApprovalRejectRequest(

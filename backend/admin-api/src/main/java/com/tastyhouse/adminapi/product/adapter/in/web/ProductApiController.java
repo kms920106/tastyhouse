@@ -16,6 +16,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.product.port.in.ProductCategoryCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductDeactivateCommand;
+import com.tastyhouse.application.product.port.in.ProductDeactivateUseCase;
+import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductImageCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductManagementCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductManagementUpdateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
+import com.tastyhouse.application.product.port.out.ProductListItemResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -32,25 +51,6 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductDetailResp
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
-import com.tastyhouse.application.product.port.out.ProductListItemResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductCategoryCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductManagementCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductDeactivateCommand;
-import com.tastyhouse.application.product.port.in.ProductDeactivateUseCase;
-import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductImageCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
-import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementUpdateCommand;
-import com.tastyhouse.application.product.port.in.ProductManagementUpdateUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
 
 @Tag(name = "Product Admin", description = "상품 관리자 API")
 @RestController

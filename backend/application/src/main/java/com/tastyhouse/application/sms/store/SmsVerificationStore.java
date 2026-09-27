@@ -2,9 +2,9 @@ package com.tastyhouse.application.sms.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationStatePort;
 import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationStatePort;
 
 public class SmsVerificationStore implements SmsVerificationRepository {
     private final SmsVerificationStatePort smsVerificationStatePort;

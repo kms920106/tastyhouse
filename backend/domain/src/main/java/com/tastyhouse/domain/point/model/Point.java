@@ -1,8 +1,8 @@
 package com.tastyhouse.domain.point.model;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 public class Point {
     private final Long id;

@@ -1,15 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberPrimaryDesignateCommand;
-import com.tastyhouse.domain.shop.model.ShopChangeActor;
 
 @Service
 @CeoApp

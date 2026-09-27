@@ -1,8 +1,8 @@
 package com.tastyhouse.application.product.service;
 
+import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductReviewStatsService {
     private final ProductRepository productRepository;

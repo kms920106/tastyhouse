@@ -1,14 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementQueryPort;
-import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 
 @Service
 @AdminApp

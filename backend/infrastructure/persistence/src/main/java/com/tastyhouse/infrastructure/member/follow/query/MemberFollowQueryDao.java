@@ -1,17 +1,17 @@
 package com.tastyhouse.infrastructure.member.follow.query;
 
-import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
-import com.tastyhouse.application.member.follow.port.out.FollowMemberResult;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.ConstructorExpression;
 import java.util.List;
 
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.follow.port.out.FollowMemberResult;
+import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

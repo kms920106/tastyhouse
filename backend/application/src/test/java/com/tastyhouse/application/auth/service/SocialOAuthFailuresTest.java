@@ -4,10 +4,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
-import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
+import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

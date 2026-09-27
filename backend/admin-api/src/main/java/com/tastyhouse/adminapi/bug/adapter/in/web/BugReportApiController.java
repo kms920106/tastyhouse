@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
+import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
+import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
+import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -23,13 +30,6 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportSearchRequest
 import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportStatusUpdateRequest;
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResponse;
-import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
-import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
-import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
-import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController

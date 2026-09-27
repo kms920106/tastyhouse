@@ -3,14 +3,14 @@ package com.tastyhouse.domain.order.model;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 
 public class Order {
     private final Long id;

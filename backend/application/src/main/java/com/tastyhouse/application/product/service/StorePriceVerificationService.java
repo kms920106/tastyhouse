@@ -6,11 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
-import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.store.ProductPriceRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -20,13 +15,17 @@ import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
+import com.tastyhouse.domain.product.service.StorePriceUnverifiedItem;
+import com.tastyhouse.domain.product.service.StorePriceVerificationItemSpec;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
-
-import com.tastyhouse.domain.product.service.StorePriceUnverifiedItem;
-import com.tastyhouse.domain.product.service.StorePriceVerificationItemSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
+import com.tastyhouse.application.product.store.ProductPriceRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
 
 public class StorePriceVerificationService {
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =

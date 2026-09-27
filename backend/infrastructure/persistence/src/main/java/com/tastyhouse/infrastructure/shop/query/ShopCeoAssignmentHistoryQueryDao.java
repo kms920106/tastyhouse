@@ -1,8 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
-import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,6 +11,9 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistorySearchCondition;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopCeoAssignmentHistoryJpaEntity.shopCeoAssignmentHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;

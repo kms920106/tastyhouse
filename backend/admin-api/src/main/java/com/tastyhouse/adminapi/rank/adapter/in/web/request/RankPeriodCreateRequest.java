@@ -1,11 +1,11 @@
 package com.tastyhouse.adminapi.rank.adapter.in.web.request;
 
-import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
-
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
 
 @Schema(description = "랭킹 기간 등록 요청")
 public record RankPeriodCreateRequest(

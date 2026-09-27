@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignCommand;
 
 @Schema(description = "가게 음식종류 지정 요청")
 public record ShopFoodTypeAssignRequest(

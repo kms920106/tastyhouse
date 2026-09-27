@@ -1,14 +1,5 @@
 package com.tastyhouse.infrastructure.member.query;
 
-import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
-import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
-import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
-import com.tastyhouse.application.member.port.out.MemberQueryPort;
-import com.tastyhouse.application.member.port.out.MemberListItemResult;
-import com.tastyhouse.application.member.port.out.MemberSearchCondition;
-import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.ConstructorExpression;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +7,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -23,6 +16,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.application.member.port.out.MemberListItemResult;
+import com.tastyhouse.application.member.port.out.MemberManagementDetailResult;
+import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
+import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
+import com.tastyhouse.application.member.port.out.MemberQueryPort;
+import com.tastyhouse.application.member.port.out.MemberSearchCondition;
+import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

@@ -1,16 +1,16 @@
 package com.tastyhouse.application.shop.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopBestListItemViewResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
+import com.tastyhouse.application.shop.port.out.ShopLatestListItemViewResult;
 import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
-import com.tastyhouse.application.shop.port.out.ShopBestListItemViewResult;
-import com.tastyhouse.application.shop.port.out.ShopLatestListItemViewResult;
 
 @WebApp
 public interface ShopSearchQueryUseCase {

@@ -1,7 +1,5 @@
 package com.tastyhouse.application.ceo.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +7,7 @@ import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseDeleteCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
 @CeoApp

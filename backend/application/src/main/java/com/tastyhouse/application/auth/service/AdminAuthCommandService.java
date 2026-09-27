@@ -1,6 +1,5 @@
 package com.tastyhouse.application.auth.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,6 +10,7 @@ import com.tastyhouse.application.auth.port.in.AdminAuthCommandUseCase;
 import com.tastyhouse.application.auth.port.in.AdminAuthLoginCommand;
 import com.tastyhouse.application.auth.port.out.AdminJwtResult;
 import com.tastyhouse.application.auth.token.AdminTokenService;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
 @AdminApp

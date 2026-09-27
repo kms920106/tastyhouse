@@ -1,15 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
+import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Component
 @CeoApp

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.store.ShopOriginInfoRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.OriginSourceType;
@@ -15,6 +13,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopOriginInfoRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 public class ShopOriginInfoService {
     private final ShopOriginInfoRepository shopOriginInfoRepository;

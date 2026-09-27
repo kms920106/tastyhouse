@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,17 +18,21 @@ import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.menureview.port.out.MenuReviewStatisticsQueryPort;
+import com.tastyhouse.application.product.port.in.ProductBatchQuery;
+import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ProductBatchItem;
+import com.tastyhouse.application.product.port.out.ProductBatchItemView;
 import com.tastyhouse.application.product.port.out.ProductBatchResult;
 import com.tastyhouse.application.product.port.out.ProductCategoryResult;
 import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductDetailView;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
 import com.tastyhouse.application.product.port.out.ProductPriceResult;
+import com.tastyhouse.application.product.port.out.ProductPriceView;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductReviewStatisticsView;
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
@@ -38,13 +41,10 @@ import com.tastyhouse.application.review.port.out.ProductReviewStatisticsResult;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
-import com.tastyhouse.application.product.port.out.ProductBatchItemView;
-import com.tastyhouse.application.product.port.out.ProductDetailView;
-import com.tastyhouse.application.product.port.out.ProductPriceView;
-import com.tastyhouse.application.product.port.out.ProductReviewStatisticsView;
-import com.tastyhouse.application.product.port.in.ProductBatchQuery;
-import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 import com.tastyhouse.application.review.service.ReviewSortSpecs;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

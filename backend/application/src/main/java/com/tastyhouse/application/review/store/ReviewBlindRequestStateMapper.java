@@ -1,12 +1,12 @@
 package com.tastyhouse.application.review.store;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestState;
 
 final class ReviewBlindRequestStateMapper {
     private ReviewBlindRequestStateMapper() {

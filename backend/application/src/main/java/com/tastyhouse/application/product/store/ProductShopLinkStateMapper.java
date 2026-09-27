@@ -1,10 +1,10 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkState;
 import com.tastyhouse.domain.product.model.ProductShopLink;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkState;
 
 final class ProductShopLinkStateMapper {
     private ProductShopLinkStateMapper() {

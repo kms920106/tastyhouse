@@ -1,21 +1,21 @@
 package com.tastyhouse.application.ceo.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @CeoApp

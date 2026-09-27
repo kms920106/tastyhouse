@@ -1,17 +1,17 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.product.port.in.ProductApprovalQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
-import com.tastyhouse.application.product.port.in.ProductApprovalQueryUseCase;
+import com.tastyhouse.application.shared.marker.AdminApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @AdminApp

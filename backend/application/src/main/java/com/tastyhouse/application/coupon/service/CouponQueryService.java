@@ -1,6 +1,5 @@
 package com.tastyhouse.application.coupon.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -8,10 +7,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.coupon.port.in.CouponQueryUseCase;
 import com.tastyhouse.application.coupon.port.out.CouponQueryPort;
 import com.tastyhouse.application.coupon.port.out.MemberCouponResult;
-import com.tastyhouse.application.coupon.port.in.CouponQueryUseCase;
 import com.tastyhouse.application.coupon.port.out.MyCouponListItemResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

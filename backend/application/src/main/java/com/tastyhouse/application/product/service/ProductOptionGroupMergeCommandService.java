@@ -1,7 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -10,12 +8,6 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.application.product.store.ProductOptionGroupMergeExclusionRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
-import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -26,6 +18,13 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
 import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
+import com.tastyhouse.application.product.store.ProductOptionGroupMergeExclusionRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @CeoApp

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.mail.store;
 
-import com.tastyhouse.application.mail.port.out.write.MailVerificationState;
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationState;
 
 final class MailVerificationStateMapper {
     private MailVerificationStateMapper() {

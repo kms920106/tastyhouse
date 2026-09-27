@@ -1,6 +1,5 @@
 package com.tastyhouse.application.reservation.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,15 +17,16 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.service.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
-import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
-import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
-import com.tastyhouse.application.reservation.port.out.ReservationResult;
-import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
 import com.tastyhouse.application.reservation.port.in.ReservationQueryUseCase;
 import com.tastyhouse.application.reservation.port.out.ReservationCompleteDetailResult;
+import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
 import com.tastyhouse.application.reservation.port.out.ReservationDetailViewResult;
+import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
 import com.tastyhouse.application.reservation.port.out.ReservationSlotAvailabilityResult;
 import com.tastyhouse.application.reservation.port.out.ReservationSlotResult;
+import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

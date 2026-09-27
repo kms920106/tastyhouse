@@ -2,9 +2,9 @@ package com.tastyhouse.domain.mail.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
 public class MailVerification {

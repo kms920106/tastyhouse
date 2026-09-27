@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageState;
 
 final class ShopNoticeImageStateMapper {
     private ShopNoticeImageStateMapper() {

@@ -5,9 +5,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.product.store.ProductImageChangeRequestRepository;
-import com.tastyhouse.application.product.store.ProductImageRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -16,6 +13,9 @@ import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.product.store.ProductImageChangeRequestRepository;
+import com.tastyhouse.application.product.store.ProductImageRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
 
 public class ProductImageApprovalService {
     private final ProductImageChangeRequestRepository requestRepository;

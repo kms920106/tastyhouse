@@ -1,10 +1,10 @@
 package com.tastyhouse.application.sms.store;
 
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationState;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationState;
 
 final class SmsVerificationStateMapper {
     private SmsVerificationStateMapper() {

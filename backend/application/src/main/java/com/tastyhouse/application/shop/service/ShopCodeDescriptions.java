@@ -2,13 +2,13 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
+import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
-import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shop.model.ClosedDayType;
 
 final class ShopCodeDescriptions {
     private ShopCodeDescriptions() {

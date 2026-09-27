@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.faq.adapter.in.web.request;
 
-import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
 
 @Schema(description = "FAQ 카테고리 수정 요청")
 public record FaqCategoryUpdateRequest(

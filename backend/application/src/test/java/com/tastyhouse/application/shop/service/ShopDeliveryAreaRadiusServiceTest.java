@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.region.store.AdminDongRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
@@ -29,6 +25,10 @@ import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.region.store.AdminDongRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

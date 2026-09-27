@@ -1,9 +1,9 @@
 package com.tastyhouse.application.member.store;
 
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountState;
 import com.tastyhouse.domain.member.model.MemberSocialAccount;
 import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountState;
 
 final class MemberSocialAccountStateMapper {
     private MemberSocialAccountStateMapper() {

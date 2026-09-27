@@ -1,7 +1,5 @@
 package com.tastyhouse.adminapi.coupon.adapter.in.web.request;
 
-import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
-
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,6 +7,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 
 @Schema(description = "쿠폰 등록 요청")
 public record CouponCreateRequest(

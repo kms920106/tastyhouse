@@ -4,11 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductStatePort;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductStatePort;
 
 public class ProductStore implements ProductRepository {
     private final ProductStatePort productStatePort;

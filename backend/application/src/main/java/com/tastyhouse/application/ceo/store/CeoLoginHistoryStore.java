@@ -1,7 +1,7 @@
 package com.tastyhouse.application.ceo.store;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryStatePort;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryStatePort;
 
 public class CeoLoginHistoryStore implements CeoLoginHistoryRepository {
     private final CeoLoginHistoryStatePort ceoLoginHistoryStatePort;

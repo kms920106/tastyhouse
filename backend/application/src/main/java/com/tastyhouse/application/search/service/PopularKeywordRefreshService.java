@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.tastyhouse.domain.search.model.PopularKeyword;
 import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
 import com.tastyhouse.application.search.store.PopularKeywordRepository;
 import com.tastyhouse.application.search.store.SearchKeywordLogRepository;
-import com.tastyhouse.domain.search.model.PopularKeyword;
 
 public class PopularKeywordRefreshService {
     private static final int AGGREGATION_WINDOW_DAYS = 7;

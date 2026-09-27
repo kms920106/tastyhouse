@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
 import com.tastyhouse.application.bug.port.out.BugReportDetailWithMemberResult;
 import com.tastyhouse.application.bug.port.out.BugReportImageResult;
-
 import com.tastyhouse.adminapi.common.response.FileResponse;
 
 @Schema(description = "버그 제보 상세 응답")

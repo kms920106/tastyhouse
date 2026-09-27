@@ -2,9 +2,6 @@ package com.tastyhouse.application.member.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.member.store.MemberWithdrawalRepository;
-import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.event.MemberWithdrawnEvent;
@@ -12,6 +9,9 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.store.MemberWithdrawalRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberWithdrawalService {
     private final MemberRepository memberRepository;

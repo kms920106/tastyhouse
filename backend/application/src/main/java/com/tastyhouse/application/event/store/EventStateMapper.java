@@ -1,9 +1,9 @@
 package com.tastyhouse.application.event.store;
 
-import com.tastyhouse.application.event.port.out.write.EventState;
 import com.tastyhouse.domain.event.model.Event;
 import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.application.event.port.out.write.EventState;
 
 final class EventStateMapper {
     private EventStateMapper() {

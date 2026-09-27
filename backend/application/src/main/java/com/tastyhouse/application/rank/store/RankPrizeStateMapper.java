@@ -1,9 +1,9 @@
 package com.tastyhouse.application.rank.store;
 
-import com.tastyhouse.application.rank.port.out.write.RankPrizeState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeState;
 
 final class RankPrizeStateMapper {
     private RankPrizeStateMapper() {

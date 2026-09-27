@@ -1,10 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +10,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopRiderGuideHistoryJpaEntity.shopRiderGuideHistoryJpaEntity;

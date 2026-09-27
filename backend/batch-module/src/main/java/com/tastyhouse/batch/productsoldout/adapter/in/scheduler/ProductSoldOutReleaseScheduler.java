@@ -1,10 +1,11 @@
 package com.tastyhouse.batch.productsoldout.adapter.in.scheduler;
 
-import com.tastyhouse.application.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.tastyhouse.application.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 
 @Component
 public class ProductSoldOutReleaseScheduler {

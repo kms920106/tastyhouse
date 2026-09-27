@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberState;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberState;
 
 final class ShopPhoneNumberStateMapper {
     private ShopPhoneNumberStateMapper() {

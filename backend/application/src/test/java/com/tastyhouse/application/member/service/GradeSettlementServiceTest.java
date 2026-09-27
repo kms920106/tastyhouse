@@ -10,13 +10,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.member.port.out.MemberReviewCount;
-import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.port.out.MemberReviewCount;
+import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
+import com.tastyhouse.application.member.store.MemberRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

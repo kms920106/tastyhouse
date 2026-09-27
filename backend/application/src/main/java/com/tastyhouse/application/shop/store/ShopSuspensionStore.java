@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionStatePort;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionStatePort;
 
 public class ShopSuspensionStore implements ShopSuspensionRepository {
     private final ShopSuspensionStatePort shopSuspensionStatePort;

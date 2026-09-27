@@ -1,13 +1,14 @@
 package com.tastyhouse.infrastructure.review.query;
 
-import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
-import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
-import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import java.util.Optional;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 
 import static com.tastyhouse.infrastructure.review.persistence.QShopReviewDisplaySettingJpaEntity.shopReviewDisplaySettingJpaEntity;
 

@@ -2,12 +2,12 @@ package com.tastyhouse.domain.payment.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PgOrderId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 
 public class Payment {
     private final Long id;

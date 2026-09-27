@@ -1,7 +1,7 @@
 package com.tastyhouse.application.rank.store;
 
-import com.tastyhouse.application.rank.port.out.write.RankPeriodState;
 import com.tastyhouse.domain.rank.model.RankPeriod;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodState;
 
 final class RankPeriodStateMapper {
     private RankPeriodStateMapper() {

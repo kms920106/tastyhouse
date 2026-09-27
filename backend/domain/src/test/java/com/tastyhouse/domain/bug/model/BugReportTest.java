@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.vo.BugReportId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

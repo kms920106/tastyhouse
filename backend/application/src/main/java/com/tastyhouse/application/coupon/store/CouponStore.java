@@ -2,9 +2,9 @@ package com.tastyhouse.application.coupon.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.coupon.port.out.write.CouponStatePort;
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.vo.CouponId;
+import com.tastyhouse.application.coupon.port.out.write.CouponStatePort;
 
 public class CouponStore implements CouponRepository {
     private final CouponStatePort couponStatePort;

@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,12 +8,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
-import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
+import com.tastyhouse.application.shared.marker.AdminApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @AdminApp

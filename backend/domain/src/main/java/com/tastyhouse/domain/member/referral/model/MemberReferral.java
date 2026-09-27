@@ -2,10 +2,10 @@ package com.tastyhouse.domain.member.referral.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.referral.vo.ReferralId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberReferral {
     private final Long id;

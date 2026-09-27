@@ -2,13 +2,13 @@ package com.tastyhouse.application.bug.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.bug.store.BugReportImageRepository;
-import com.tastyhouse.application.bug.store.BugReportRepository;
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.model.BugReportImage;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.bug.store.BugReportImageRepository;
+import com.tastyhouse.application.bug.store.BugReportRepository;
 
 public class BugReportRegistrationService {
     private final BugReportRepository bugReportRepository;

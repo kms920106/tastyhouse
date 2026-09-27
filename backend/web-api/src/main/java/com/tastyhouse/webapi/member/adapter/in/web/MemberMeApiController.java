@@ -16,15 +16,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.apicommon.common.PageRequest;
-import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
-import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
 import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePasswordRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePersonalInfoRequest;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdateProfileRequest;
@@ -39,7 +40,6 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewCountResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.MyReviewListItemResponse;
 import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItemResponse;
-import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/members")

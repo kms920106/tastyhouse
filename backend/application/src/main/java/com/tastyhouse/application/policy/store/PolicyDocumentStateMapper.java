@@ -1,8 +1,8 @@
 package com.tastyhouse.application.policy.store;
 
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentState;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentState;
 
 final class PolicyDocumentStateMapper {
     private PolicyDocumentStateMapper() {

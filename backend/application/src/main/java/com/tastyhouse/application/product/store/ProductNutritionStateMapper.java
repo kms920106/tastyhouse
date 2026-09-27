@@ -1,8 +1,8 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductNutritionState;
 import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionState;
 
 final class ProductNutritionStateMapper {
     private ProductNutritionStateMapper() {

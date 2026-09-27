@@ -1,11 +1,11 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryState;
 
 final class ProductOptionGroupMergeHistoryStateMapper {
     private ProductOptionGroupMergeHistoryStateMapper() {

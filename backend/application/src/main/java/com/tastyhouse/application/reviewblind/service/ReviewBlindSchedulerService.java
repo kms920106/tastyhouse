@@ -1,8 +1,5 @@
 package com.tastyhouse.application.reviewblind.service;
 
-import com.tastyhouse.application.reviewblind.port.in.ExpireBlindedReviewsUseCase;
-import com.tastyhouse.application.shared.marker.BatchApp;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.application.review.service.ReviewBlindRequestService;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
+import com.tastyhouse.application.review.service.ReviewBlindRequestService;
+import com.tastyhouse.application.reviewblind.port.in.ExpireBlindedReviewsUseCase;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Service
 @BatchApp

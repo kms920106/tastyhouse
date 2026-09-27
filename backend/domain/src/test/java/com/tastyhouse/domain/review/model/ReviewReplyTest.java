@@ -6,9 +6,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 class ReviewReplyTest {
     @Test

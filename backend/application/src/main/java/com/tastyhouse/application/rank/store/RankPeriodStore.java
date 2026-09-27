@@ -2,9 +2,9 @@ package com.tastyhouse.application.rank.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.rank.port.out.write.RankPeriodStatePort;
 import com.tastyhouse.domain.rank.model.RankPeriod;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodStatePort;
 
 public class RankPeriodStore implements RankPeriodRepository {
     private final RankPeriodStatePort rankPeriodStatePort;

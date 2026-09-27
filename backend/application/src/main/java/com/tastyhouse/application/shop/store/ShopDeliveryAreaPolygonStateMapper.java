@@ -1,12 +1,12 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonCenterSnapshot;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonShapeSnapshot;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonState;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygonTextCodec;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonCenterSnapshot;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonShapeSnapshot;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonState;
 
 final class ShopDeliveryAreaPolygonStateMapper {
     private ShopDeliveryAreaPolygonStateMapper() {

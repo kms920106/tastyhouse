@@ -1,8 +1,8 @@
 package com.tastyhouse.application.member.follow.store;
 
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowState;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowState;
 
 final class MemberFollowStateMapper {
     private MemberFollowStateMapper() {

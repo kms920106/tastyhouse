@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.coupon.adapter.in.web.request;
 
-import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
+import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 
 @Schema(description = "쿠폰 회원 발급 요청")
 public record CouponIssueRequest(

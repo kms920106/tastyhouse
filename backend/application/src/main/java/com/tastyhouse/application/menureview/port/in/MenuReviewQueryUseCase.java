@@ -1,12 +1,11 @@
 package com.tastyhouse.application.menureview.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
-
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import com.tastyhouse.application.menureview.port.out.MenuReviewListItemResult;
 import com.tastyhouse.application.menureview.port.out.MenuReviewWritableItemResult;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @WebApp
 public interface MenuReviewQueryUseCase {

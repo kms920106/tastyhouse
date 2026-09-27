@@ -11,9 +11,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -29,6 +26,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

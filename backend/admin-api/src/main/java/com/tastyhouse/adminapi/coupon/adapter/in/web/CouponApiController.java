@@ -16,6 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
+import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
+import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
+import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
+import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -26,15 +35,6 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.request.CouponUpdateRequest
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponDetailResponse;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponListItemResponse;
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemResponse;
-import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
-import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
-import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
-import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
-import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
-import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
 
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController

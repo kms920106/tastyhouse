@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryImageState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
+import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryImageState;
 
 final class ShopPhotoCategoryImageStateMapper {
     private ShopPhotoCategoryImageStateMapper() {

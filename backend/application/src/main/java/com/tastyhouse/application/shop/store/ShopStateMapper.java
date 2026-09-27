@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shop.port.out.write.ShopState;
 
 final class ShopStateMapper {
     private ShopStateMapper() {

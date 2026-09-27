@@ -1,22 +1,22 @@
 package com.tastyhouse.infrastructure.faq.query;
 
-import com.tastyhouse.application.faq.port.out.FaqManagementQueryPort;
-import com.tastyhouse.application.faq.port.out.FaqQueryPort;
-import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
-import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
-import com.tastyhouse.application.faq.port.out.FaqDetailResult;
-import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
-import com.tastyhouse.application.faq.port.out.FaqResult;
-import com.tastyhouse.application.faq.port.out.FaqSearchCondition;
-import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
+import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
+import com.tastyhouse.application.faq.port.out.FaqDetailResult;
+import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
+import com.tastyhouse.application.faq.port.out.FaqManagementQueryPort;
+import com.tastyhouse.application.faq.port.out.FaqQueryPort;
+import com.tastyhouse.application.faq.port.out.FaqResult;
+import com.tastyhouse.application.faq.port.out.FaqSearchCondition;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 

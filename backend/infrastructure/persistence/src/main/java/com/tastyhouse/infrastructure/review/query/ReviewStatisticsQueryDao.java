@@ -1,8 +1,5 @@
 package com.tastyhouse.infrastructure.review.query;
 
-import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
-import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
-import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +12,10 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 

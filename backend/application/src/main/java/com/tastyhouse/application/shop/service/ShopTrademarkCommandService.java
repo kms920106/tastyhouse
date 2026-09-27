@@ -1,17 +1,16 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopThumbnailChangeRequestCommand;
 import com.tastyhouse.application.shop.port.in.ShopTrademarkChangeRequestCommand;
 import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
-import com.tastyhouse.domain.shop.model.ShopChangeActor;
-import com.tastyhouse.domain.shop.model.ShopImageType;
 
 @Service
 @CeoApp

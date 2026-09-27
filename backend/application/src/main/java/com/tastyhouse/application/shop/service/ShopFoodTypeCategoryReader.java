@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 
 @Component

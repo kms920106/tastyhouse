@@ -1,13 +1,13 @@
 package com.tastyhouse.application.reservation.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.tastyhouse.application.reservation.port.out.ReservationResult;
 import com.tastyhouse.application.reservation.port.out.ReservationCompleteDetailResult;
 import com.tastyhouse.application.reservation.port.out.ReservationDetailViewResult;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
 import com.tastyhouse.application.reservation.port.out.ReservationSlotAvailabilityResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @WebApp
 public interface ReservationQueryUseCase {

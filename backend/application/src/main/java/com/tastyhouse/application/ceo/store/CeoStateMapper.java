@@ -1,9 +1,9 @@
 package com.tastyhouse.application.ceo.store;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoState;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.model.CeoStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
+import com.tastyhouse.application.ceo.port.out.write.CeoState;
 
 final class CeoStateMapper {
     private CeoStateMapper() {

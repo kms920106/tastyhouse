@@ -11,8 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.holiday.store.PublicHolidayRepository;
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
+import com.tastyhouse.application.holiday.store.PublicHolidayRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

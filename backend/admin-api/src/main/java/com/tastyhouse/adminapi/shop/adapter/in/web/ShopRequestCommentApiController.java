@@ -1,8 +1,5 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.application.shop.port.in.ShopRequestCommentCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopRequestCommentManagementCreateCommand;
-
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.AdminUserDetails;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentResponse;
-import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
 
 @Tag(name = "Admin Shop Request Comment", description = "관리자 요청건 문의 답변 API")
 @RestController

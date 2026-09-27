@@ -1,21 +1,20 @@
 package com.tastyhouse.application.auth.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
-
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.event.store;
 
-import com.tastyhouse.application.event.port.out.write.EventWinnerState;
 import com.tastyhouse.domain.event.model.EventWinner;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
+import com.tastyhouse.application.event.port.out.write.EventWinnerState;
 
 final class EventWinnerStateMapper {
     private EventWinnerStateMapper() {

@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.List;
 
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageStatePort;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageStatePort;
 
 public class ShopNoticeImageStore implements ShopNoticeImageRepository {
     private final ShopNoticeImageStatePort shopNoticeImageStatePort;

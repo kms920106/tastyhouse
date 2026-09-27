@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
-
 import com.tastyhouse.adminapi.common.response.FileResponse;
 
 @Schema(description = "이벤트 상세 응답")

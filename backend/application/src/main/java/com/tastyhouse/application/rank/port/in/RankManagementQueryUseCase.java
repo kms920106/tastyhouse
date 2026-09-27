@@ -1,11 +1,11 @@
 package com.tastyhouse.application.rank.port.in;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
 import com.tastyhouse.application.rank.port.out.MemberRankResult;
 import com.tastyhouse.application.rank.port.out.RankPeriodResult;
 import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
 @AdminApp
 public interface RankManagementQueryUseCase {

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.bug.store;
 
-import com.tastyhouse.application.bug.port.out.write.BugReportImageState;
 import com.tastyhouse.domain.bug.model.BugReportImage;
 import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.application.bug.port.out.write.BugReportImageState;
 
 final class BugReportImageStateMapper {
     private BugReportImageStateMapper() {

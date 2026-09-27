@@ -6,8 +6,6 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.order.port.out.write.OrderDeliveryDestinationSnapshot;
-import com.tastyhouse.application.order.port.out.write.OrderState;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
@@ -16,6 +14,8 @@ import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.order.port.out.write.OrderDeliveryDestinationSnapshot;
+import com.tastyhouse.application.order.port.out.write.OrderState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

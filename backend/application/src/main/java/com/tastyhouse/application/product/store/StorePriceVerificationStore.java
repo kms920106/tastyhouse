@@ -3,12 +3,12 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationStatePort;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationStatePort;
 
 public class StorePriceVerificationStore implements StorePriceVerificationRepository {
     private final StorePriceVerificationStatePort storePriceVerificationStatePort;

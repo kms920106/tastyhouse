@@ -3,10 +3,10 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageStatePort;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.application.product.port.out.write.ProductImageStatePort;
 
 public class ProductImageStore implements ProductImageRepository {
     private final ProductImageStatePort productImageStatePort;

@@ -1,9 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +11,10 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryPort;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

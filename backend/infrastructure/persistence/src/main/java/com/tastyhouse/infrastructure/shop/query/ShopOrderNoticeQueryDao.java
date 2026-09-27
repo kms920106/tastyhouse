@@ -1,14 +1,15 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import java.util.Optional;
 
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderNoticeJpaEntity.shopOrderNoticeJpaEntity;
 

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.member.referral.store;
 
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralState;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralState;
 
 final class MemberReferralStateMapper {
     private MemberReferralStateMapper() {

@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureState;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureState;
 
 final class ShopTemporaryClosureStateMapper {
     private ShopTemporaryClosureStateMapper() {

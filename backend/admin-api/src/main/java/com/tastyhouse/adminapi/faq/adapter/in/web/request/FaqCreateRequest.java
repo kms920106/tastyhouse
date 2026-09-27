@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.faq.adapter.in.web.request;
 
-import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
 
 @Schema(description = "FAQ 항목 생성 요청")
 public record FaqCreateRequest(

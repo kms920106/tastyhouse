@@ -1,11 +1,11 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.model.ShopContentTopic;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardState;
 
 final class ShopContentBoardStateMapper {
     private ShopContentBoardStateMapper() {

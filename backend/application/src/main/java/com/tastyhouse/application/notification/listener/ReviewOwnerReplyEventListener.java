@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.domain.review.event.ReviewOwnerReplyCreatedEvent;
 import com.tastyhouse.application.notification.service.NotificationService;
 import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.domain.review.event.ReviewOwnerReplyCreatedEvent;
 
 @Component
 @SharedApp

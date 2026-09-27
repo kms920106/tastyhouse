@@ -1,15 +1,8 @@
 package com.tastyhouse.application.bug.service;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
-import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
-import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
-import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.application.bug.store.BugReportRepository;
 import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
@@ -19,6 +12,12 @@ import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
+import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
+import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
+import com.tastyhouse.application.bug.store.BugReportRepository;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
 @AdminApp

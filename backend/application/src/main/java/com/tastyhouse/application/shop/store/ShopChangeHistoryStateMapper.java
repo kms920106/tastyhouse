@@ -1,12 +1,12 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryState;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActorType;
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryState;
 
 final class ShopChangeHistoryStateMapper {
     private ShopChangeHistoryStateMapper() {

@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
+
 import com.tastyhouse.domain.shared.model.OrderMethod;
 
 public record ScheduledOrderSlot(

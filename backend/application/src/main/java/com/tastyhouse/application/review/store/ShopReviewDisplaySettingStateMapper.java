@@ -1,9 +1,9 @@
 package com.tastyhouse.application.review.store;
 
-import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingState;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingState;
 
 final class ShopReviewDisplaySettingStateMapper {
     private ShopReviewDisplaySettingStateMapper() {

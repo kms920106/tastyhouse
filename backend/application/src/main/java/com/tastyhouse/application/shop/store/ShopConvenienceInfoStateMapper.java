@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoState;
 import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoState;
 
 final class ShopConvenienceInfoStateMapper {
     private ShopConvenienceInfoStateMapper() {

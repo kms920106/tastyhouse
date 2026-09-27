@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.TagStatePort;
 import com.tastyhouse.domain.shop.model.Tag;
+import com.tastyhouse.application.shop.port.out.write.TagStatePort;
 
 public class TagStore implements TagRepository {
     private final TagStatePort tagStatePort;

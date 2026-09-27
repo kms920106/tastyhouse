@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.domain.member.referral.event.ReferralRegisteredEvent;
 import com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService;
 import com.tastyhouse.application.point.service.PointLedgerService;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.domain.member.referral.event.ReferralRegisteredEvent;
 
 @Component
 @SharedApp

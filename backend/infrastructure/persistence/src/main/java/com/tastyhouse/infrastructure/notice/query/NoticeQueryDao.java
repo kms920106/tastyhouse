@@ -1,21 +1,22 @@
 package com.tastyhouse.infrastructure.notice.query;
 
-import com.tastyhouse.application.notice.port.out.NoticeDetailResult;
-import com.tastyhouse.application.notice.port.out.NoticeManagementQueryPort;
-import com.tastyhouse.application.notice.port.out.NoticeQueryPort;
-import com.tastyhouse.application.notice.port.out.NoticeListItemResult;
-import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
-import com.tastyhouse.application.notice.port.out.NoticeSearchCondition;
+import java.util.List;
+import java.util.Optional;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
+import com.tastyhouse.application.notice.port.out.NoticeDetailResult;
+import com.tastyhouse.application.notice.port.out.NoticeListItemResult;
+import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
+import com.tastyhouse.application.notice.port.out.NoticeManagementQueryPort;
+import com.tastyhouse.application.notice.port.out.NoticeQueryPort;
+import com.tastyhouse.application.notice.port.out.NoticeSearchCondition;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;
 

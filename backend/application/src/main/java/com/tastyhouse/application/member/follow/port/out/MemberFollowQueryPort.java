@@ -1,6 +1,7 @@
 package com.tastyhouse.application.member.follow.port.out;
 
 import java.util.List;
+
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 

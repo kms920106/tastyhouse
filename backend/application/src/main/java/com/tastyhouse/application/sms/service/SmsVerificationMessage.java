@@ -1,7 +1,7 @@
 package com.tastyhouse.application.sms.service;
 
-import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.domain.sms.model.SmsVerification;
 
 final class SmsVerificationMessage {
     private static final String BODY_TEMPLATE = "[TASTY HOUSE] 인증번호 [%s]를 입력해주세요. (%d분 내 유효)";

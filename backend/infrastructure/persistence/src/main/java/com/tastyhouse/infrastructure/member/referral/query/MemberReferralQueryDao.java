@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.member.referral.query;
 
-import com.tastyhouse.application.member.referral.port.out.MemberReferralQueryPort;
-import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
-import com.querydsl.core.types.Projections;
 import java.util.List;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.referral.port.out.MemberReferralQueryPort;
+import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
 
 import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 

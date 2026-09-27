@@ -9,9 +9,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;

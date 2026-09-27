@@ -1,12 +1,12 @@
 package com.tastyhouse.application.event.port.in;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
 import com.tastyhouse.application.event.port.out.EventWinnerResult;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp

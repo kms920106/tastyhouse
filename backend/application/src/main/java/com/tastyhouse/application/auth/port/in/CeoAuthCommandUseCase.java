@@ -1,7 +1,7 @@
 package com.tastyhouse.application.auth.port.in;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.auth.port.out.CeoJwtResult;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @CeoApp
 public interface CeoAuthCommandUseCase {

@@ -7,11 +7,11 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService;
-import com.tastyhouse.application.point.service.PointLedgerService;
 import com.tastyhouse.domain.member.referral.event.ReferralRegisteredEvent;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService;
+import com.tastyhouse.application.point.service.PointLedgerService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

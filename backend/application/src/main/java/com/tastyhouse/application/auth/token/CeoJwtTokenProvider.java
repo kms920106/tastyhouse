@@ -1,10 +1,10 @@
 package com.tastyhouse.application.auth.token;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.security.jwt.JwtProperties;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.security.jwt.JwtProperties;
 
 @Component
 @CeoApp

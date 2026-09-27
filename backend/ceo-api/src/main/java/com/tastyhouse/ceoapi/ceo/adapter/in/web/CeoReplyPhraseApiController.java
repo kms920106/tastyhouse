@@ -16,15 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
-import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoReplyPhraseCreateRequest;
-import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
+import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseDeleteCommand;
-import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseQueryUseCase;
-import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoReplyPhraseCreateRequest;
+import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 
 @Tag(name = "Ceo Reply Phrase", description = "점주 자주 쓰는 문구 API")
 @RestController

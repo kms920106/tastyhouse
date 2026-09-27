@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
 
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotStatePort;
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotStatePort;
 
 public class ReservationSlotStore implements ReservationSlotRepository {
     private final ReservationSlotStatePort reservationSlotStatePort;

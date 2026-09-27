@@ -1,9 +1,5 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
-
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,15 +15,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardHideRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController

@@ -1,12 +1,12 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
-import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 @Service
 @WebApp

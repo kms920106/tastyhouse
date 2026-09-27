@@ -1,6 +1,5 @@
 package com.tastyhouse.application.member.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,6 +7,7 @@ import com.tastyhouse.application.follow.service.FollowQueryService;
 import com.tastyhouse.application.member.port.in.MemberStatsQueryUseCase;
 import com.tastyhouse.application.member.port.out.MemberStatsResult;
 import com.tastyhouse.application.review.service.ReviewQueryService;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

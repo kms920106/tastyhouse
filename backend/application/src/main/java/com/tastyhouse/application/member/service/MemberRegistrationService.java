@@ -2,15 +2,15 @@ package com.tastyhouse.application.member.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
-import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
+import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberRegistrationService {
     private final MemberRepository memberRepository;

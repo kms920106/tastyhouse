@@ -3,12 +3,12 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestStatePort;
 import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestStatePort;
 
 public class ProductRepresentativeRequestStore implements ProductRepresentativeRequestRepository {
     private final ProductRepresentativeRequestStatePort productRepresentativeRequestStatePort;

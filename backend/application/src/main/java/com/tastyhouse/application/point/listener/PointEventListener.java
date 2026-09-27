@@ -6,10 +6,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
 @SharedApp

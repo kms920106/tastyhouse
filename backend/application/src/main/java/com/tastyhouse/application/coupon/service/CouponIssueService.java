@@ -2,9 +2,6 @@ package com.tastyhouse.application.coupon.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.coupon.store.CouponRepository;
-import com.tastyhouse.application.coupon.store.MemberCouponRepository;
-import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.coupon.event.MemberCouponIssuedEvent;
 import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;
 import com.tastyhouse.domain.coupon.model.Coupon;
@@ -16,6 +13,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.coupon.store.CouponRepository;
+import com.tastyhouse.application.coupon.store.MemberCouponRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class CouponIssueService {
     private final CouponRepository couponRepository;

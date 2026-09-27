@@ -3,10 +3,11 @@ package com.tastyhouse.domain.product.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.product.vo.BbqCategoryId;
 import com.tastyhouse.domain.product.vo.BbqMenuId;
 import com.tastyhouse.domain.product.vo.ProductId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductBbqTest {
     @Test

@@ -16,6 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.rank.port.in.RankAggregateCommand;
+import com.tastyhouse.application.rank.port.in.RankCommandUseCase;
+import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
+import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
+import com.tastyhouse.application.rank.port.in.RankPeriodDeleteCommand;
+import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankAggregateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPeriodCreateRequest;
@@ -28,15 +37,6 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodDetailResp
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodListItemResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeDetailResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemResponse;
-import com.tastyhouse.application.rank.port.in.RankAggregateCommand;
-import com.tastyhouse.application.rank.port.in.RankCommandUseCase;
-import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
-import com.tastyhouse.application.rank.port.in.RankPeriodDeleteCommand;
-import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
-import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
-import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
-import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
 
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController

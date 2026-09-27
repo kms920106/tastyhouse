@@ -2,9 +2,9 @@ package com.tastyhouse.application.mail.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.mail.port.out.write.MailVerificationStatePort;
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationStatePort;
 
 public class MailVerificationStore implements MailVerificationRepository {
     private final MailVerificationStatePort mailVerificationStatePort;

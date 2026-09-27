@@ -5,8 +5,8 @@ import java.time.LocalTime;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryTipSchedule {
     private final Long id;

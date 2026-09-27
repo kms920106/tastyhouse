@@ -1,17 +1,16 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateCommand;
-import com.tastyhouse.domain.shop.model.ShopChangeActor;
 
 @Service
 @CeoApp

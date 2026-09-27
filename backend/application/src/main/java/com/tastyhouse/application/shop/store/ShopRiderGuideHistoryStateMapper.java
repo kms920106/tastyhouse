@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideHistoryState;
 import com.tastyhouse.domain.shop.model.RiderGuideActionType;
 import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideHistoryState;
 
 final class ShopRiderGuideHistoryStateMapper {
     private ShopRiderGuideHistoryStateMapper() {

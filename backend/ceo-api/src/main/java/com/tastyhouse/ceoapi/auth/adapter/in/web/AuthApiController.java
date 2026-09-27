@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.auth.port.in.CeoAuthCommandUseCase;
+import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.ClientIpResolver;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
@@ -18,8 +20,6 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.LoginRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.request.RefreshTokenRequest;
 import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
-import com.tastyhouse.application.auth.port.in.CeoAuthCommandUseCase;
-import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController

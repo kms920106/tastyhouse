@@ -1,9 +1,9 @@
 package com.tastyhouse.application.review.store;
 
-import com.tastyhouse.application.review.port.out.write.ReviewImageState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.model.ReviewImage;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.review.port.out.write.ReviewImageState;
 
 final class ReviewImageStateMapper {
     private ReviewImageStateMapper() {

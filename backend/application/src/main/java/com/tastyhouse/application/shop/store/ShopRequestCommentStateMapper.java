@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentState;
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentState;
 
 final class ShopRequestCommentStateMapper {
     private ShopRequestCommentStateMapper() {

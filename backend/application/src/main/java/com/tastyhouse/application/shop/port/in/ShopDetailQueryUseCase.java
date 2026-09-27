@@ -1,14 +1,14 @@
 package com.tastyhouse.application.shop.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
-import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
-import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
 import com.tastyhouse.application.shop.port.out.ShopDetailViewResult;
 import com.tastyhouse.application.shop.port.out.ShopInfoViewResult;
+import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryViewResult;
 import com.tastyhouse.application.shop.port.out.ShopProductCategoryViewResult;
 import com.tastyhouse.application.shop.port.out.ShopReviewStatisticsViewResult;

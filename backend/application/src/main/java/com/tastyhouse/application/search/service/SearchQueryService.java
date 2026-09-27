@@ -1,6 +1,5 @@
 package com.tastyhouse.application.search.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,19 +8,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
+import com.tastyhouse.application.product.service.ProductQueryService;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
 import com.tastyhouse.application.review.port.out.SearchReviewItemResult;
+import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
 import com.tastyhouse.application.search.port.out.PopularKeywordResult;
 import com.tastyhouse.application.search.port.out.RecommendedKeywordResult;
 import com.tastyhouse.application.search.port.out.SearchQueryPort;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
-import com.tastyhouse.application.product.service.ProductQueryService;
-import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
 
 @Service
 @WebApp

@@ -1,7 +1,7 @@
 package com.tastyhouse.application.notice.store;
 
-import com.tastyhouse.application.notice.port.out.write.NoticeState;
 import com.tastyhouse.domain.notice.model.Notice;
+import com.tastyhouse.application.notice.port.out.write.NoticeState;
 
 final class NoticeStateMapper {
     private NoticeStateMapper() {

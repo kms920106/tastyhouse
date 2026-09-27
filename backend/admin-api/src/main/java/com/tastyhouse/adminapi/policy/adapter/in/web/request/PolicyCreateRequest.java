@@ -2,11 +2,11 @@ package com.tastyhouse.adminapi.policy.adapter.in.web.request;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
 
 @Schema(description = "약관 생성 요청")
 public record PolicyCreateRequest(

@@ -1,10 +1,10 @@
 package com.tastyhouse.application.ceo.store;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryState;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryState;
 
 final class CeoLoginHistoryStateMapper {
     private CeoLoginHistoryStateMapper() {

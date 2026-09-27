@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.application.notification.service.NotificationService;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 
 @Component
 @SharedApp

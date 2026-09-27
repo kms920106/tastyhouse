@@ -1,9 +1,9 @@
 package com.tastyhouse.application.banner.store;
 
-import com.tastyhouse.application.banner.port.out.write.BannerState;
 import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.application.banner.port.out.write.BannerState;
 
 final class BannerStateMapper {
     private BannerStateMapper() {

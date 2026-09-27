@@ -1,19 +1,18 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopRiderGuideOwnerQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideResult;
 import com.tastyhouse.application.shop.port.out.ShopVisitGuideValidationResult;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shop.model.Shop;
 
 @Service
 @CeoApp

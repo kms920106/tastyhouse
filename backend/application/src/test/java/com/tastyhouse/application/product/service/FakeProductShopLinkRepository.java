@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.tastyhouse.application.product.store.ProductShopLinkRepository;
 import com.tastyhouse.domain.product.model.ProductShopLink;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductShopLinkRepository;
 
 class FakeProductShopLinkRepository implements ProductShopLinkRepository {
     private final List<ProductShopLink> links = new ArrayList<>();

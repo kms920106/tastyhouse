@@ -2,10 +2,10 @@ package com.tastyhouse.application.policy.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentStatePort;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentStatePort;
 
 public class PolicyDocumentStore implements PolicyDocumentRepository {
     private final PolicyDocumentStatePort policyDocumentStatePort;

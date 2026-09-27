@@ -1,15 +1,15 @@
 package com.tastyhouse.application.banner.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.banner.model.BannerType;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.banner.port.in.BannerQueryUseCase;
 import com.tastyhouse.application.banner.port.out.BannerListItemResult;
 import com.tastyhouse.application.banner.port.out.BannerQueryPort;
-import com.tastyhouse.application.banner.port.in.BannerQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

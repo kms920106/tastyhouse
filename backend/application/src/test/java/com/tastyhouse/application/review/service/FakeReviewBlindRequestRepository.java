@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
 
 public class FakeReviewBlindRequestRepository implements ReviewBlindRequestRepository {
     private static final List<ReviewBlindStatus> TERMINATED_STATUSES = List.of(

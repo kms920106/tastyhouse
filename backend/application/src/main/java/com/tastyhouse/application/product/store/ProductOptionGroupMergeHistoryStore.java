@@ -2,9 +2,9 @@ package com.tastyhouse.application.product.store;
 
 import java.util.List;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryStatePort;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryStatePort;
 
 public class ProductOptionGroupMergeHistoryStore implements ProductOptionGroupMergeHistoryRepository {
     private final ProductOptionGroupMergeHistoryStatePort productOptionGroupMergeHistoryStatePort;

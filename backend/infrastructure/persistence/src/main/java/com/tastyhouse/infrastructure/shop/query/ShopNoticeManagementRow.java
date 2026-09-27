@@ -1,7 +1,8 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import java.time.LocalDateTime;
+
+import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 
 public record ShopNoticeManagementRow(
     Long id,

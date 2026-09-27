@@ -8,10 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -25,6 +21,10 @@ import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
+import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.store.ProductOptionRepository;
 
 public class ProductOptionGroupMergeService {
     private final ProductOptionGroupRepository optionGroupRepository;

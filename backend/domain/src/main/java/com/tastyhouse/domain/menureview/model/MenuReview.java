@@ -2,14 +2,14 @@ package com.tastyhouse.domain.menureview.model;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 
 public class MenuReview {
     private static final int MIN_RATING = 1;

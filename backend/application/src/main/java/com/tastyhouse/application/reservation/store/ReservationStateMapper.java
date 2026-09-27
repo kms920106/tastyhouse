@@ -1,10 +1,10 @@
 package com.tastyhouse.application.reservation.store;
 
-import com.tastyhouse.application.reservation.port.out.write.ReservationState;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.reservation.port.out.write.ReservationState;
 
 final class ReservationStateMapper {
     private ReservationStateMapper() {

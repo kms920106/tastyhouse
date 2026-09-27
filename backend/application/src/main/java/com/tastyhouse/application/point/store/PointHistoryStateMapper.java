@@ -1,9 +1,9 @@
 package com.tastyhouse.application.point.store;
 
-import com.tastyhouse.application.point.port.out.write.PointHistoryState;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.PointHistory;
 import com.tastyhouse.domain.point.model.PointType;
+import com.tastyhouse.application.point.port.out.write.PointHistoryState;
 
 final class PointHistoryStateMapper {
     private PointHistoryStateMapper() {

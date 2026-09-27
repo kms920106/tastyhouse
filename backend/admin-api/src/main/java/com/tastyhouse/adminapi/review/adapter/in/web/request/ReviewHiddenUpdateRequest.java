@@ -1,12 +1,11 @@
 package com.tastyhouse.adminapi.review.adapter.in.web.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+
 import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeCommand;
 import com.tastyhouse.application.review.port.in.ReviewHiddenChangeCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
-
-import jakarta.validation.constraints.NotNull;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "숨김 여부 변경 요청")
 public record ReviewHiddenUpdateRequest(

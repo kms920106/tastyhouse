@@ -1,9 +1,9 @@
 package com.tastyhouse.application.rank.store;
 
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
 
 final class MemberReviewRankStateMapper {
     private MemberReviewRankStateMapper() {

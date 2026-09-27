@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import com.tastyhouse.application.product.store.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
@@ -16,6 +15,7 @@ import com.tastyhouse.domain.product.service.ProductAvailabilityChangeResult;
 import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductRepository;
 
 public class ProductDeletionService {
     private final ProductRepository productRepository;

@@ -4,12 +4,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.reservation.port.out.write.ReservationStatePort;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.reservation.port.out.write.ReservationStatePort;
 
 public class ReservationStore implements ReservationRepository {
     private final ReservationStatePort reservationStatePort;

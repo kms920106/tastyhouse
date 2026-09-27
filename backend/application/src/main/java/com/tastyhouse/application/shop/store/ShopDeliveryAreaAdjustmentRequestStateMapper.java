@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestState;
 
 final class ShopDeliveryAreaAdjustmentRequestStateMapper {
     private ShopDeliveryAreaAdjustmentRequestStateMapper() {

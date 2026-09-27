@@ -5,11 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.reservation.store.ReservationRepository;
-import com.tastyhouse.application.reservation.store.ReservationSlotRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -21,6 +16,11 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.reservation.store.ReservationRepository;
+import com.tastyhouse.application.reservation.store.ReservationSlotRepository;
+import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 public class ReservationBookingService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");

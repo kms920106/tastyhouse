@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoState;
 import com.tastyhouse.domain.shop.model.OriginSourceType;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoState;
 
 final class ShopOriginInfoStateMapper {
     private ShopOriginInfoStateMapper() {

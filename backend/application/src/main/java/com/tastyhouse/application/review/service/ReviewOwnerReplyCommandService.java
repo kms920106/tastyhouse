@@ -1,7 +1,5 @@
 package com.tastyhouse.application.review.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
@@ -11,6 +9,7 @@ import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyUpdateCommand;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service

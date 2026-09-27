@@ -2,7 +2,6 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalTime;
 
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -16,6 +15,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
 
 public class ShopBusinessHourService {
     private static final int MAX_REGULAR_CLOSED_DAY_COUNT = 15;

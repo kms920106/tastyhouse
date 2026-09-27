@@ -1,14 +1,13 @@
 package com.tastyhouse.application.partnership.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.application.partnership.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
 import com.tastyhouse.application.partnership.store.PartnershipRepository;
-import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

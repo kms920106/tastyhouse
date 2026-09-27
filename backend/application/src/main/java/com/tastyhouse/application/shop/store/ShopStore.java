@@ -2,9 +2,9 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopStatePort;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopStatePort;
 
 public class ShopStore implements ShopRepository {
     private final ShopStatePort shopStatePort;

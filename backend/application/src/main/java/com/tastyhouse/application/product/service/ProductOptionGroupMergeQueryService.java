@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -13,11 +12,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
-import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
@@ -25,6 +23,8 @@ import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePrevie
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @CeoApp

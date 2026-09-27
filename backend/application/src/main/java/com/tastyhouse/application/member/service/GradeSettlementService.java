@@ -6,11 +6,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tastyhouse.domain.member.model.MemberGrade;
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
 import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.domain.member.model.MemberGrade;
-import com.tastyhouse.domain.member.vo.MemberId;
 
 public class GradeSettlementService {
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);

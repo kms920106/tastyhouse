@@ -1,10 +1,9 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
-
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Component
 @WebApp

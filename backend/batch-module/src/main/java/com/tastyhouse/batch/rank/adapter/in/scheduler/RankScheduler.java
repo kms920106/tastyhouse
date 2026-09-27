@@ -1,10 +1,11 @@
 package com.tastyhouse.batch.rank.adapter.in.scheduler;
 
-import com.tastyhouse.application.rank.port.in.AggregateRanksUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import com.tastyhouse.application.rank.port.in.AggregateRanksUseCase;
 
 @Component
 public class RankScheduler {

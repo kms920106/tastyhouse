@@ -2,8 +2,8 @@ package com.tastyhouse.application.event.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.event.port.out.write.EventWinnerStatePort;
 import com.tastyhouse.domain.event.model.EventWinner;
+import com.tastyhouse.application.event.port.out.write.EventWinnerStatePort;
 
 public class EventWinnerStore implements EventWinnerRepository {
     private final EventWinnerStatePort eventWinnerStatePort;

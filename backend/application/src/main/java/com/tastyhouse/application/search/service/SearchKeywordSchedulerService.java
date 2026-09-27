@@ -1,10 +1,10 @@
 package com.tastyhouse.application.search.service;
 
-import com.tastyhouse.application.search.port.in.AggregatePopularKeywordsUseCase;
-import com.tastyhouse.application.shared.marker.BatchApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.application.search.port.in.AggregatePopularKeywordsUseCase;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Service
 @BatchApp

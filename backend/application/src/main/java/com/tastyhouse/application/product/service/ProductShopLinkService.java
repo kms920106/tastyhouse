@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.tastyhouse.application.product.store.ProductCategoryRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.application.product.store.ProductShopLinkRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -18,6 +15,9 @@ import com.tastyhouse.domain.product.service.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductCategoryRepository;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductShopLinkRepository;
 
 public class ProductShopLinkService {
     private final ProductRepository productRepository;

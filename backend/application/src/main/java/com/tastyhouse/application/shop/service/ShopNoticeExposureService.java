@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.store.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopNoticeRepository;
 
 public class ShopNoticeExposureService {
     private final ShopNoticeRepository shopNoticeRepository;

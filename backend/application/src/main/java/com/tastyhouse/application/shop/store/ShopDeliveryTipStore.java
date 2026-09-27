@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipStatePort;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
@@ -14,6 +13,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipStatePort;
 
 public class ShopDeliveryTipStore implements ShopDeliveryTipRepository, ShopDeliveryTipRegionLookup {
     private final ShopDeliveryTipStatePort shopDeliveryTipStatePort;

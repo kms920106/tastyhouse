@@ -1,7 +1,5 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -15,6 +13,8 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 public class ShopImageApprovalService {
     private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;

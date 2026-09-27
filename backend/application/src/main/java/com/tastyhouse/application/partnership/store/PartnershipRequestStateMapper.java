@@ -1,8 +1,8 @@
 package com.tastyhouse.application.partnership.store;
 
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRequestState;
 import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.domain.partnership.model.PartnershipStatus;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipRequestState;
 
 final class PartnershipRequestStateMapper {
     private PartnershipRequestStateMapper() {

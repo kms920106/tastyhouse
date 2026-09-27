@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.notice.adapter.in.web.request;
 
-import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
 
 @Schema(description = "공지사항 수정 요청")
 public record NoticeUpdateRequest(

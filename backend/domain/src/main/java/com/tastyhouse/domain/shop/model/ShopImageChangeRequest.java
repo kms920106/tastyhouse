@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopImageChangeRequest {

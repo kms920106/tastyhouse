@@ -3,10 +3,10 @@ package com.tastyhouse.application.shop.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestStatePort;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestStatePort;
 
 public class ShopDeliveryAreaAdjustmentRequestStore implements ShopDeliveryAreaAdjustmentRequestRepository {
     private final ShopDeliveryAreaAdjustmentRequestStatePort shopDeliveryAreaAdjustmentRequestStatePort;

@@ -3,7 +3,6 @@ package com.tastyhouse.adminapi.rank.adapter.in.web.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
-
 import com.tastyhouse.adminapi.common.response.FileResponse;
 
 @Schema(description = "랭킹 경품 목록 항목 응답")

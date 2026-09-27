@@ -1,9 +1,7 @@
 package com.tastyhouse.application.review.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.Optional;
 
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
@@ -12,6 +10,8 @@ import com.tastyhouse.application.review.port.out.ReviewDetailView;
 import com.tastyhouse.application.review.port.out.ReviewProductView;
 import com.tastyhouse.application.review.port.out.ReviewSubmitResultView;
 import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @WebApp
 public interface ReviewQueryUseCase {

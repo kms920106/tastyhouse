@@ -9,8 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.ceo.store.CeoRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
@@ -20,6 +18,8 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.ceo.store.CeoRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

@@ -1,13 +1,13 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
-
 import java.math.BigDecimal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
 
 @Schema(description = "라이더 픽업 위치 교정 요청")
 public record ShopRiderPickupLocationUpdateRequest(

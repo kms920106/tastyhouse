@@ -1,7 +1,7 @@
 package com.tastyhouse.application.point.store;
 
-import com.tastyhouse.application.point.port.out.write.PointHistoryStatePort;
 import com.tastyhouse.domain.point.model.PointHistory;
+import com.tastyhouse.application.point.port.out.write.PointHistoryStatePort;
 
 public class PointHistoryStore implements PointHistoryRepository {
     private final PointHistoryStatePort pointHistoryStatePort;

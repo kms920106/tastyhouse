@@ -1,6 +1,5 @@
 package com.tastyhouse.application.auth.security;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -11,8 +10,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
 import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
 @CeoApp

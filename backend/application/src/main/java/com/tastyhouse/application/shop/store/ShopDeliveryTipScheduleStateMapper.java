@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipScheduleState;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipScheduleState;
 
 final class ShopDeliveryTipScheduleStateMapper {
     private ShopDeliveryTipScheduleStateMapper() {

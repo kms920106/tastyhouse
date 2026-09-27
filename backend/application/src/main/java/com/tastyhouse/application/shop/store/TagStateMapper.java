@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.TagState;
 import com.tastyhouse.domain.shop.model.Tag;
+import com.tastyhouse.application.shop.port.out.write.TagState;
 
 final class TagStateMapper {
     private TagStateMapper() {

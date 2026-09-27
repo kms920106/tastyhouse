@@ -1,16 +1,15 @@
 package com.tastyhouse.application.follow.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.follow.port.in.FollowCancelCommand;
 import com.tastyhouse.application.follow.port.in.FollowCommandUseCase;
 import com.tastyhouse.application.follow.port.in.FollowCreateCommand;
 import com.tastyhouse.application.follow.port.in.FollowerRemoveCommand;
 import com.tastyhouse.application.member.follow.service.MemberFollowService;
-import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureStatePort;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureStatePort;
 
 public class ShopTemporaryClosureStore implements ShopTemporaryClosureRepository {
     private final ShopTemporaryClosureStatePort shopTemporaryClosureStatePort;

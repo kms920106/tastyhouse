@@ -1,8 +1,9 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 
 public record ShopRiderGuidePickupPresenceResult(
     Long shopId,

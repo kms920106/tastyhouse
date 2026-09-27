@@ -1,10 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 
 @Schema(description = "가게 콘텐츠보드 숨김 처리 요청")
 public record ShopContentBoardHideRequest(

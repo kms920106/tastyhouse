@@ -9,9 +9,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
@@ -21,10 +21,10 @@ import com.tastyhouse.domain.shop.model.ShopOperatingStatus;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopOperatingStatusCalculatorTest {
     private final ShopOperatingStatusCalculator calculator = new ShopOperatingStatusCalculator();

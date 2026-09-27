@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopClosedDayState;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopClosedDayState;
 
 final class ShopClosedDayStateMapper {
     private ShopClosedDayStateMapper() {

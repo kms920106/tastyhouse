@@ -1,15 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
-import com.tastyhouse.application.shop.port.out.BestShopItemResult;
-import com.tastyhouse.application.shop.port.out.LatestShopItemResult;
-import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
-import com.tastyhouse.application.shop.port.out.ShopListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
-import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
-import com.querydsl.core.types.Projections;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
@@ -27,6 +18,15 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.BestShopItemResult;
+import com.tastyhouse.application.shop.port.out.LatestShopItemResult;
+import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
+import com.tastyhouse.application.shop.port.out.ShopListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopMapMarkerResult;
+import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
+import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.shop.persistence.ShopJpaEntity;
 

@@ -1,8 +1,8 @@
 package com.tastyhouse.application.auth.service;
 
-import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
 
 public final class SocialOAuthFailures {
 

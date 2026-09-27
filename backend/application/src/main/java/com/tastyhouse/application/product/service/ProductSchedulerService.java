@@ -1,7 +1,5 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.BatchApp;
-import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,13 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
 import com.tastyhouse.application.crawling.bbq.BbqOptionGroupRegistration;
 import com.tastyhouse.application.crawling.bbq.BbqOptionRegistration;
 import com.tastyhouse.application.crawling.bbq.BbqProductSyncService;
 import com.tastyhouse.application.crawling.bbq.BbqService;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.SubOptionItemDetailResponse;
+import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
+import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Service
 @BatchApp

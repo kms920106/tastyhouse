@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.port.in;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 
 @AdminApp
 public interface ShopMenuCollectionImageManagementQueryUseCase {

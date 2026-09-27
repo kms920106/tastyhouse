@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.member.adapter.in.web.request;
 
-import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+
+import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
 
 @Schema(description = "회원 강제 탈퇴 요청")
 public record MemberWithdrawRequest(

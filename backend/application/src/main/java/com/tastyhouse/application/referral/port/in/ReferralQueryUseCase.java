@@ -1,9 +1,9 @@
 package com.tastyhouse.application.referral.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import com.tastyhouse.application.member.referral.port.out.MemberReferralResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @WebApp
 public interface ReferralQueryUseCase {

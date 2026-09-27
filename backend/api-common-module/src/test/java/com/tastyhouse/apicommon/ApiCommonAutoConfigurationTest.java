@@ -13,10 +13,10 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration;
 import com.tastyhouse.apicommon.exception.GlobalExceptionHandler;
 import com.tastyhouse.apicommon.ratelimit.ApiCommonRateLimitAutoConfiguration;
 import com.tastyhouse.apicommon.ratelimit.RateLimitAspect;
-import com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration;
 import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,15 +1,15 @@
 package com.tastyhouse.application.auth.token;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.application.auth.port.out.CeoJwtResult;
-import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.auth.port.out.CeoJwtResult;
+import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRepository;
 import com.tastyhouse.security.token.RefreshTokenRepository;

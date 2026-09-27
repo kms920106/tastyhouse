@@ -3,11 +3,11 @@ package com.tastyhouse.application.member.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.member.port.out.write.MemberStatePort;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.port.out.write.MemberStatePort;
 
 public class MemberStore implements MemberRepository {
     private final MemberStatePort memberStatePort;

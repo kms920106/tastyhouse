@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentStatePort;
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentStatePort;
 
 public class ShopRequestCommentStore implements ShopRequestCommentRepository {
     private final ShopRequestCommentStatePort shopRequestCommentStatePort;

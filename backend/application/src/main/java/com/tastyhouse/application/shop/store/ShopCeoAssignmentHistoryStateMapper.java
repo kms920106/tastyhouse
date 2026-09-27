@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryState;
 
 final class ShopCeoAssignmentHistoryStateMapper {
     private ShopCeoAssignmentHistoryStateMapper() {

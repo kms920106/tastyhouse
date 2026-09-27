@@ -2,9 +2,9 @@ package com.tastyhouse.application.review.store;
 
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.write.ReviewTagStatePort;
 import com.tastyhouse.domain.review.model.ReviewTag;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.review.port.out.write.ReviewTagStatePort;
 
 public class ReviewTagStore implements ReviewTagRepository {
     private final ReviewTagStatePort reviewTagStatePort;

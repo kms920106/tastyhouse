@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSettingState;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSettingState;
 
 final class ShopDeliveryTipSettingStateMapper {
     private ShopDeliveryTipSettingStateMapper() {

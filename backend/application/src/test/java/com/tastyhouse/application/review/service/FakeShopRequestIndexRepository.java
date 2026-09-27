@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
+import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 
 public class FakeShopRequestIndexRepository implements ShopRequestIndexRepository {
     private final Map<Long, ShopRequestIndex> indexes = new HashMap<>();

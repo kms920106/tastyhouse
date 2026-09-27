@@ -1,8 +1,8 @@
 package com.tastyhouse.application.reservation.store;
 
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotState;
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotState;
 
 final class ReservationSlotStateMapper {
     private ReservationSlotStateMapper() {

@@ -9,12 +9,12 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.rank.port.out.MemberReviewCount;
-import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.application.rank.port.out.MemberReviewCount;
+import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
+import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
 
 public class RankSettlementService {
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);

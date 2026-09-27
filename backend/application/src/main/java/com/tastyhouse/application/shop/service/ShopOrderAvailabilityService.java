@@ -2,7 +2,6 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -10,6 +9,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
 
 public class ShopOrderAvailabilityService {
     private final ShopOperatingStatusService shopOperatingStatusService;

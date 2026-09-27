@@ -2,8 +2,6 @@ package com.tastyhouse.application.product.service;
 
 import java.util.Set;
 
-import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.application.product.store.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
@@ -12,6 +10,8 @@ import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.store.ProductVegetarianRequestRepository;
 
 public class ProductVegetarianApprovalService {
     private static final Set<String> DISALLOWED_SHOP_CATEGORIES = Set.of(

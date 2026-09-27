@@ -1,6 +1,5 @@
 package com.tastyhouse.application.auth.security;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.application.admin.service.AdminQueryService;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
 @AdminApp

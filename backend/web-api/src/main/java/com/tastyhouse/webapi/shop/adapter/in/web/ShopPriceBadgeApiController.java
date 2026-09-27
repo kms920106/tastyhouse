@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.shop.port.in.ShopPriceBadgeQueryUseCase;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse;
 
 @Tag(name = "Shop Price Badge", description = "가게 매장가격 뱃지 API")

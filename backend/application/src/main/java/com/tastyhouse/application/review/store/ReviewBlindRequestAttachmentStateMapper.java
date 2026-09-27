@@ -1,9 +1,9 @@
 package com.tastyhouse.application.review.store;
 
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentState;
 
 final class ReviewBlindRequestAttachmentStateMapper {
     private ReviewBlindRequestAttachmentStateMapper() {

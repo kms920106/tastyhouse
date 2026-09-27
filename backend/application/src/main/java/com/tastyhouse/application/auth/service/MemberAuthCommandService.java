@@ -1,23 +1,23 @@
 package com.tastyhouse.application.auth.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.member.model.MemberGender;
-import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.application.auth.service.apple.AppleSocialLoginService;
-import com.tastyhouse.application.auth.service.facebook.FacebookSocialLoginService;
-import com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService;
-import com.tastyhouse.application.auth.service.naver.NaverSocialLoginService;
-import com.tastyhouse.application.auth.port.in.MemberAuthCommandUseCase;
+import com.tastyhouse.domain.member.model.MemberGender;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.application.auth.port.in.AuthSignUpCommand;
 import com.tastyhouse.application.auth.port.in.AuthSocialSignUpCommand;
+import com.tastyhouse.application.auth.port.in.MemberAuthCommandUseCase;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.port.out.SocialLinkResult;
 import com.tastyhouse.application.auth.port.out.SocialLoginResult;
+import com.tastyhouse.application.auth.service.apple.AppleSocialLoginService;
+import com.tastyhouse.application.auth.service.facebook.FacebookSocialLoginService;
+import com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService;
+import com.tastyhouse.application.auth.service.naver.NaverSocialLoginService;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

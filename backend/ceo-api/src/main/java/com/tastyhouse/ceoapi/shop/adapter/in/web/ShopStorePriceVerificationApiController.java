@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequestCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
 
 @Tag(name = "Ceo Shop Store Price Verification", description = "점주 매장 가격 인증 관리 API")
 @RestController

@@ -1,18 +1,16 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
-
-import com.tastyhouse.application.shared.marker.AdminApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.application.shared.marker.AdminApp;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
+import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
 
 @Service
 @AdminApp

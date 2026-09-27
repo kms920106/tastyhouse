@@ -6,8 +6,8 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
 import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
+import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
 
 @Schema(description = "점주 리뷰 목록 항목")
 public record ShopReviewListItemResponse(

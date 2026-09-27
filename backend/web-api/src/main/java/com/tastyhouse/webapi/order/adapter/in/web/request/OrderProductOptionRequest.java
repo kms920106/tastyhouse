@@ -1,9 +1,9 @@
 package com.tastyhouse.webapi.order.adapter.in.web.request;
 
-import com.tastyhouse.application.order.port.in.OrderLineOptionCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.order.port.in.OrderLineOptionCommand;
 
 @Schema(description = "주문 상품 옵션 요청")
 public record OrderProductOptionRequest(

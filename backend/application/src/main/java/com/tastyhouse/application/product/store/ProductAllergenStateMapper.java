@@ -1,9 +1,9 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductAllergenState;
 import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenState;
 
 final class ProductAllergenStateMapper {
     private ProductAllergenStateMapper() {

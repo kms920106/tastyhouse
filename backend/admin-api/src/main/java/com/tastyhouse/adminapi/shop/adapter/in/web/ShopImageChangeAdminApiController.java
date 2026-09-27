@@ -1,9 +1,5 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web;
 
-import com.tastyhouse.application.shop.port.in.ShopImageChangeApproveCommand;
-import com.tastyhouse.application.shop.port.in.ShopImageChangeCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectCommand;
-
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,15 +14,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeApproveCommand;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectCommand;
+import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRejectRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeRequestSearchRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
-import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController

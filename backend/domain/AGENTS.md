@@ -169,6 +169,20 @@ domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨�
 - `MySQL GEOMETRY`·JSON으로 되돌리지 않는다 — 근거는 아래 "`GeoPolygonTextCodec` — 폴리곤·경계를 `LONGTEXT` 문자열로 담는 형식" 절.
 - 회귀 테스트는 `backend/domain/src/test/java/com/tastyhouse/domain/shared/geo/GeoPolygonTextCodecTest.java`(persistence에서 함께 이동)다.
 
+### import 순서 가드 — `ImportOrderConventionTest`
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ImportOrderConventionTest.java`
+→ `importsFollowConvention` · `TOP_SEGMENT_RANK` · `PRESENTATION_SHARED_SEGMENTS` · `MINIMUM_SCANNED_FILES`
+짝 설정: `backend/domain/build.gradle` → `tasks.named('test')`의 `importOrderSources` 입력
+
+backend 전체 `*.java`를 **소스 파일로** 읽어(`build`·`bin`·`.gradle` 제외) import 블록이 `backend/CLAUDE.md` "코딩 스타일 (import 순서)" 규칙대로인지 검사한다. 클래스패스가 아니라 소스를 읽는 이유는 import 순서가 바이트코드에 남지 않기 때문이다. 규칙은 `backend/import_order.py`의 `key`/`render`와 같다.
+
+- **순위 표는 세 곳에 있다** — `backend/CLAUDE.md`의 표, 이 테스트의 `TOP_SEGMENT_RANK`·`PRESENTATION_SHARED_SEGMENTS`, `backend/import_order.py`의 `RANK`·`PRESENTATION_SHARED`. **표를 바꾸면 세 곳을 함께 바꾼다.**
+- **표에 없는 최상위 세그먼트는 실패시킨다.** 새 모듈이 생겼는데 순위가 정해지지 않은 상태를 드러내기 위해서다. 테스트를 느슨하게 바꾸지 말고 순위를 정해 세 곳에 추가한다.
+- **`MINIMUM_SCANNED_FILES`(3000) 단정을 지우지 않는다.** backend 루트(`settings.gradle`이 있는 디렉터리)를 잘못 찾아 0개를 스캔하고 공허하게 통과하는 것을 막는다(`allowEmptyShould(true)` 금지와 같은 취지).
+- **`build.gradle`의 `importOrderSources` 입력 선언을 지우지 않는다.** import 순서만 바꾼 변경은 바이트코드가 같아서, 이 선언이 없으면 Gradle이 `:domain:test`를 UP-TO-DATE로 건너뛰어 위반이 통과한다(실측 확인).
+- **모듈 하나만 빌드하면(`./gradlew :ceo-api:build`) 이 테스트는 돌지 않는다.** 전체 `./gradlew build`나 `:domain:test`에서만 잡힌다. 모듈마다 복사하는 방식은 유지비가 커서 채택하지 않았다.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거. 챕터 03(domain 모듈) 이관분 -->

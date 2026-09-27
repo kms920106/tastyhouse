@@ -11,20 +11,20 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
-import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
+import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.product.adapter.in.web.response.ProductSummaryResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.request.SearchKeywordRequest;
 import com.tastyhouse.webapi.search.adapter.in.web.response.SearchPopularKeywordResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.response.SearchRecommendedKeywordResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.response.SearchReviewListItemResponse;
 import com.tastyhouse.webapi.search.adapter.in.web.response.SearchShopListItemResponse;
-import com.tastyhouse.webapi.security.CurrentUser;
 
 @RestController
 @RequestMapping("/api/search")

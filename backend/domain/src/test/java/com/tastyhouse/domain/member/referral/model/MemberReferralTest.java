@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.member.referral.vo.ReferralId;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

@@ -3,10 +3,6 @@ package com.tastyhouse.application.shop.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -22,6 +18,10 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 
 public class ScheduledOrderSlotService {
     private final ShopRepository shopRepository;

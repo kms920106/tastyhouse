@@ -5,8 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
 
-import com.tastyhouse.adminapi.config.AdminSeedProperties;
 import com.tastyhouse.application.AdminApplicationConfig;
+import com.tastyhouse.adminapi.config.AdminSeedProperties;
 
 @SpringBootApplication
 @Import(AdminApplicationConfig.class)

@@ -1,7 +1,7 @@
 package com.tastyhouse.application.file.store;
 
-import com.tastyhouse.application.file.port.out.write.UploadedFileState;
 import com.tastyhouse.domain.file.model.UploadedFile;
+import com.tastyhouse.application.file.port.out.write.UploadedFileState;
 
 final class UploadedFileStateMapper {
     private UploadedFileStateMapper() {

@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkStatePort;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkStatePort;
 
 public class ShopBookmarkStore implements ShopBookmarkRepository {
     private final ShopBookmarkStatePort shopBookmarkStatePort;

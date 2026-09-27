@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.store.ProductCategoryRepository;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.store.ProductCategoryRepository;
 
 class FakeShopLinkProductCategoryRepository implements ProductCategoryRepository {
     private final Map<Long, ProductCategory> categories = new HashMap<>();

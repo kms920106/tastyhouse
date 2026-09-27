@@ -1,8 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopChangeHistoryQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
-import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,6 +11,9 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
+import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChangeHistoryJpaEntity.shopChangeHistoryJpaEntity;
 

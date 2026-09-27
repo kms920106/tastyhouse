@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopCupDepositChangeCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.shop.port.in.ShopCupDepositChangeCommand;
 
 @Schema(description = "일회용컵 보증금제 대상 사업자 지정/해제 요청")
 public record ShopCupDepositRequest(

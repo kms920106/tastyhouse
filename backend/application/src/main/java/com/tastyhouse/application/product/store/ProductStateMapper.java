@@ -1,12 +1,12 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductDiscountInfoSnapshot;
-import com.tastyhouse.application.product.port.out.write.ProductState;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductDiscountInfoSnapshot;
+import com.tastyhouse.application.product.port.out.write.ProductState;
 
 final class ProductStateMapper {
     private ProductStateMapper() {

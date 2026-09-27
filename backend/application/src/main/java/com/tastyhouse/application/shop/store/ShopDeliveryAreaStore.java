@@ -6,11 +6,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaStatePort;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaStatePort;
 
 public class ShopDeliveryAreaStore implements ShopDeliveryAreaRepository {
     private final ShopDeliveryAreaStatePort shopDeliveryAreaStatePort;

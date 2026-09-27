@@ -3,7 +3,6 @@ package com.tastyhouse.application.notification.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.application.notification.store.NotificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -13,6 +12,7 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.notification.store.NotificationRepository;
 
 public class NotificationService {
     private final NotificationRepository notificationRepository;

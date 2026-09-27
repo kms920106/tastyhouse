@@ -10,10 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -24,6 +20,10 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
+import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

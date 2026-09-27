@@ -6,11 +6,11 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ShopState;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shop.port.out.write.ShopState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

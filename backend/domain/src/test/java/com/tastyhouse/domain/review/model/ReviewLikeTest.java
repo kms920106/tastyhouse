@@ -4,9 +4,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.review.vo.ReviewId;
 
 class ReviewLikeTest {
     @Test

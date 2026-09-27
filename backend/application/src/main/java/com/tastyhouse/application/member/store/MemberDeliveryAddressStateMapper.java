@@ -1,9 +1,9 @@
 package com.tastyhouse.application.member.store;
 
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressState;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.vo.AdminDongId;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressState;
 
 final class MemberDeliveryAddressStateMapper {
     private MemberDeliveryAddressStateMapper() {

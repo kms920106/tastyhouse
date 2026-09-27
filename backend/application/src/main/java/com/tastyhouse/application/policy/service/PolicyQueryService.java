@@ -1,19 +1,19 @@
 package com.tastyhouse.application.policy.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.policy.model.PolicyType;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.policy.port.in.PolicyDetailQueryUseCase;
+import com.tastyhouse.application.policy.port.in.PolicyVersionListQueryUseCase;
 import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
 import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
 import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
-import com.tastyhouse.application.policy.port.in.PolicyDetailQueryUseCase;
-import com.tastyhouse.application.policy.port.in.PolicyVersionListQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

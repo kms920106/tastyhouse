@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
+import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
 
 class RecordingShopCeoAssignmentHistoryRepository implements ShopCeoAssignmentHistoryRepository {
     private final List<ShopCeoAssignmentHistory> saved = new ArrayList<>();

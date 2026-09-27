@@ -1,13 +1,13 @@
 package com.tastyhouse.application.ceo.service;
 
-import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
+import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
 
 public class CeoReplyPhraseService {
     private static final int MAX_PHRASE_COUNT = 5;

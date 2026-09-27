@@ -1,8 +1,8 @@
 package com.tastyhouse.application.payment.store;
 
-import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordState;
 import com.tastyhouse.domain.payment.model.TossPaymentRecord;
 import com.tastyhouse.domain.payment.vo.PaymentId;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordState;
 
 final class TossPaymentRecordStateMapper {
     private TossPaymentRecordStateMapper() {

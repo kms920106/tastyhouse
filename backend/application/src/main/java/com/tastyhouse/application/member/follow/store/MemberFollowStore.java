@@ -2,9 +2,9 @@ package com.tastyhouse.application.member.follow.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowStatePort;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowStatePort;
 
 public class MemberFollowStore implements MemberFollowRepository {
     private final MemberFollowStatePort memberFollowStatePort;

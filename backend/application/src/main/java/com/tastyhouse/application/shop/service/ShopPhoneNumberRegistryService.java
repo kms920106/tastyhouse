@@ -2,8 +2,6 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
-import com.tastyhouse.application.shop.store.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -14,6 +12,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopPhoneNumberRepository;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 public class ShopPhoneNumberRegistryService {
     private static final int MAX_PHONE_NUMBER_COUNT = 10;

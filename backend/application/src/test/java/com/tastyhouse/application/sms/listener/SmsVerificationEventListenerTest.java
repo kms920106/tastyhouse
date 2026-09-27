@@ -7,9 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import com.tastyhouse.domain.sms.event.SmsVerifiedEvent;
 import com.tastyhouse.domain.sms.vo.SmsVerificationId;
+import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

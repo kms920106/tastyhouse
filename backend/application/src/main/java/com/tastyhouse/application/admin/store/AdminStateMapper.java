@@ -1,9 +1,9 @@
 package com.tastyhouse.application.admin.store;
 
-import com.tastyhouse.application.admin.port.out.write.AdminState;
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.domain.admin.model.AdminRole;
 import com.tastyhouse.domain.admin.model.AdminStatus;
+import com.tastyhouse.application.admin.port.out.write.AdminState;
 
 final class AdminStateMapper {
     private AdminStateMapper() {

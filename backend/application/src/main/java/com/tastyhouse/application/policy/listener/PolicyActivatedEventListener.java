@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
 @SharedApp

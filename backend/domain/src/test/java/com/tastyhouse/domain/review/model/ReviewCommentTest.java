@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.vo.ReviewId;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.tastyhouse.domain.review.vo.ReviewId;
 
 class ReviewCommentTest {
     @Test

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -24,6 +23,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

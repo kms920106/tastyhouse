@@ -2,9 +2,6 @@ package com.tastyhouse.application.point.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.point.store.PointHistoryRepository;
-import com.tastyhouse.application.point.store.PointRepository;
-import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
@@ -14,6 +11,9 @@ import com.tastyhouse.domain.point.event.PointUsedEvent;
 import com.tastyhouse.domain.point.model.Point;
 import com.tastyhouse.domain.point.model.PointHistory;
 import com.tastyhouse.domain.point.model.PointType;
+import com.tastyhouse.application.point.store.PointHistoryRepository;
+import com.tastyhouse.application.point.store.PointRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PointLedgerService {
     private static final String USE_ON_ORDER_REASON = "주문 결제 사용";

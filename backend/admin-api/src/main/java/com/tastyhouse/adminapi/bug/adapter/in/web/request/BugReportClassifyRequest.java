@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.bug.adapter.in.web.request;
 
-import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+
+import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 
 @Schema(description = "버그 제보 분류/우선순위 지정 요청")
 public record BugReportClassifyRequest(

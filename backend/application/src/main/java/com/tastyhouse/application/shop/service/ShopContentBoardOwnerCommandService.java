@@ -1,17 +1,9 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
-import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -23,6 +15,13 @@ import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.model.ShopContentTopic;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
+import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
 
 @Service
 @CeoApp

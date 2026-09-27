@@ -7,9 +7,9 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
+import com.tastyhouse.application.shop.port.in.GeoPointCommand;
 import com.tastyhouse.application.shop.port.out.GeoPointView;
 import com.tastyhouse.application.shop.port.out.ShopLocationResult;
-import com.tastyhouse.application.shop.port.in.GeoPointCommand;
 
 final class ShopDeliveryAreaGeoMapper {
 

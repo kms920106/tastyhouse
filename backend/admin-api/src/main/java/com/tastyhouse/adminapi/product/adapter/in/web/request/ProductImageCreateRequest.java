@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.product.adapter.in.web.request;
 
-import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
 
 @Schema(description = "상품 이미지 등록 요청")
 public record ProductImageCreateRequest(

@@ -1,7 +1,7 @@
 package com.tastyhouse.application.search.store;
 
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogState;
 import com.tastyhouse.domain.search.model.SearchKeywordLog;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogState;
 
 final class SearchKeywordLogStateMapper {
     private SearchKeywordLogStateMapper() {

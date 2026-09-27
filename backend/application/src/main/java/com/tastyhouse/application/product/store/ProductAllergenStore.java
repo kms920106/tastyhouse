@@ -2,9 +2,9 @@ package com.tastyhouse.application.product.store;
 
 import java.util.List;
 
-import com.tastyhouse.application.product.port.out.write.ProductAllergenStatePort;
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenStatePort;
 
 public class ProductAllergenStore implements ProductAllergenRepository {
     private final ProductAllergenStatePort productAllergenStatePort;

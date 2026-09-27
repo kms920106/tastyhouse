@@ -1,7 +1,5 @@
 package com.tastyhouse.application.auth.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -16,6 +14,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.application.auth.port.in.CeoAuthCommandUseCase;
 import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 import com.tastyhouse.application.auth.port.out.CeoJwtResult;
@@ -25,8 +25,7 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.application.ceo.store.CeoRepository;
-import com.tastyhouse.domain.ceo.model.Ceo;
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
 @CeoApp

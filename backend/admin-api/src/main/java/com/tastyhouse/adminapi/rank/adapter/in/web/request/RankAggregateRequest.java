@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.rank.adapter.in.web.request;
 
-import com.tastyhouse.application.rank.port.in.RankAggregateCommand;
-
 import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.tastyhouse.application.rank.port.in.RankAggregateCommand;
 
 @Schema(description = "랭킹 수동 집계 요청")
 public record RankAggregateRequest(

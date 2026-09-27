@@ -2,9 +2,9 @@ package com.tastyhouse.application.rank.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.rank.port.out.write.RankPrizeStatePort;
 import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeStatePort;
 
 public class RankPrizeStore implements RankPrizeRepository {
     private final RankPrizeStatePort rankPrizeStatePort;

@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.ceo.port.in.CeoManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.ceo.adapter.in.web.response.CeoListItemResponse;
-import com.tastyhouse.application.ceo.port.in.CeoManagementQueryUseCase;
 
 @Tag(name = "Ceo Admin", description = "점주 관리자 API")
 @RestController

@@ -1,11 +1,5 @@
 package com.tastyhouse.infrastructure.review.query;
 
-import com.tastyhouse.application.review.port.out.ReviewManagementQueryPort;
-import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewManagementDetailResult;
-import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +12,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewManagementDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewManagementQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
+import com.tastyhouse.application.review.port.out.ReviewSearchCondition;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeCategoryState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
+import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeCategoryState;
 
 final class ShopFoodTypeCategoryStateMapper {
     private ShopFoodTypeCategoryStateMapper() {

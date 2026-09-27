@@ -2,9 +2,9 @@ package com.tastyhouse.application.ceo.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoStatePort;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.application.ceo.port.out.write.CeoStatePort;
 
 public class CeoStore implements CeoRepository {
     private final CeoStatePort ceoStatePort;

@@ -1077,8 +1077,9 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 ### 적용 시점과 현재 코드 상태
 
 - **신규 작성하는 파일과 수정하는 파일은 반드시 이 규칙을 따릅니다.** 파일을 수정할 때는 그 파일의 import 블록 전체를 이 규칙대로 다시 정렬합니다.
-- **기존 코드는 아직 이 규칙과 어긋난 파일이 많습니다.** 2026-09-27 기준 backend Java 4,020개 중 약 1,101개(27%)가 위반 상태입니다(그룹 순서 502 · 그룹 내부 순서 590 · 빈 줄 9). 그러므로 **옆 파일의 import 순서를 근거로 삼지 않습니다.** 판단 기준은 이 문서뿐입니다.
-- 일괄 재정렬과 강제용 가드 테스트는 후속 작업으로 예정돼 있습니다. 완료되면 이 문단을 "가드 테스트가 강제한다"로 바꿉니다.
+- **기존 코드는 전부 이 규칙대로 재정렬됐고, `ImportOrderConventionTest`가 강제합니다.** 2026-09-27에 위반 파일 1,101개(그룹 순서 502 · 그룹 내부 순서 590 · 빈 줄 9)를 일괄 재정렬했습니다. 가드 테스트는 `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ImportOrderConventionTest.java`이며, backend 전체 `*.java` 소스 파일을 읽어 import 블록을 검사하므로 위반이 하나라도 있으면 `./gradlew build`가 실패합니다. 상세(모듈 하나만 빌드하면 돌지 않는 점, 순위 표 동기화)는 `backend/domain/AGENTS.md`의 "봉인·가드 목록" 절을 참고합니다.
+- 위반을 고칠 때는 `backend` 디렉터리에서 `python3 import_order.py check`(검사만)·`python3 import_order.py fix [경로...]`(import 블록만 재작성)를 씁니다. 가드 테스트와 같은 규칙입니다.
+- **아래 순위 표를 바꾸면 `ImportOrderConventionTest`의 `TOP_SEGMENT_RANK`·`PRESENTATION_SHARED_SEGMENTS`와 `backend/import_order.py`의 `RANK`·`PRESENTATION_SHARED`를 함께 바꿉니다.** 새 최상위 패키지(`com.tastyhouse.{새 이름}`)가 생기면 순위가 정해지지 않았다는 이유로 가드 테스트가 실패하는데, 이것은 의도된 동작입니다.
 - 미사용 import 정리는 아래 [미사용 import 제거 규칙](#미사용-import-제거-규칙-파일을-건드리면-그-파일의-미사용-import까지-정리)을 함께 따릅니다.
 
 **참고 자료 (Spring 공식 소스)**:

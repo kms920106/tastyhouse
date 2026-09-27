@@ -1,8 +1,8 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.store.ShopRequestCommentRepository;
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
+import com.tastyhouse.application.shop.store.ShopRequestCommentRepository;
 
 public class ShopRequestCommentService {
     private final ShopRequestCommentRepository shopRequestCommentRepository;

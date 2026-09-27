@@ -1,9 +1,9 @@
 package com.tastyhouse.application.review.store;
 
-import com.tastyhouse.application.review.port.out.write.ReviewTagState;
 import com.tastyhouse.domain.review.model.ReviewTag;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.TagId;
+import com.tastyhouse.application.review.port.out.write.ReviewTagState;
 
 final class ReviewTagStateMapper {
     private ReviewTagStateMapper() {

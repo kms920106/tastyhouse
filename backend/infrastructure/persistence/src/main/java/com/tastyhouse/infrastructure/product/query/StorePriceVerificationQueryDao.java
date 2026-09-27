@@ -1,8 +1,5 @@
 package com.tastyhouse.infrastructure.product.query;
 
-import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
-import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
-import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +9,9 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;

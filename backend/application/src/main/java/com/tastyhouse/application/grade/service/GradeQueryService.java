@@ -1,6 +1,5 @@
 package com.tastyhouse.application.grade.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.application.grade.port.in.GradeQueryUseCase;
 import com.tastyhouse.application.grade.port.out.GradeInfoResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

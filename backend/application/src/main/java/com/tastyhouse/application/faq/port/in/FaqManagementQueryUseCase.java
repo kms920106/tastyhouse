@@ -1,11 +1,11 @@
 package com.tastyhouse.application.faq.port.in;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
 import java.util.List;
 
 import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
 import com.tastyhouse.application.faq.port.out.FaqDetailResult;
 import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp

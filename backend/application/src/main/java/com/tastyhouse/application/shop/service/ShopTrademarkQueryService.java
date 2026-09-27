@@ -1,18 +1,18 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.domain.shop.model.ShopImageType;
-import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
-import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.application.shop.port.out.ShopImageStatusResult;
+import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
+import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
 
 @Service
 @CeoApp

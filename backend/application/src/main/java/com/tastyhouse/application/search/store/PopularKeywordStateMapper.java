@@ -1,7 +1,7 @@
 package com.tastyhouse.application.search.store;
 
-import com.tastyhouse.application.search.port.out.write.PopularKeywordState;
 import com.tastyhouse.domain.search.model.PopularKeyword;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordState;
 
 final class PopularKeywordStateMapper {
     private PopularKeywordStateMapper() {

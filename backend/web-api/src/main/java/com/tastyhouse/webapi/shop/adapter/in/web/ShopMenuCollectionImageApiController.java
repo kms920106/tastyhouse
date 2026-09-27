@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImageResponse;
 
 @Tag(name = "Shop Menu Collection Image", description = "메뉴모음컷 조회 API")

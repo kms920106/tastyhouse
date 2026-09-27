@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardStatePort;
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardStatePort;
 
 public class ShopContentBoardStore implements ShopContentBoardRepository {
     private final ShopContentBoardStatePort shopContentBoardStatePort;

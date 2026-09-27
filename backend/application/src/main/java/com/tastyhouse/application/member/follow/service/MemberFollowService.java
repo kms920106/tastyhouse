@@ -1,12 +1,12 @@
 package com.tastyhouse.application.member.follow.service;
 
-import com.tastyhouse.application.member.follow.store.MemberFollowRepository;
-import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.follow.store.MemberFollowRepository;
+import com.tastyhouse.application.member.store.MemberRepository;
 
 public class MemberFollowService {
     private final MemberFollowRepository memberFollowRepository;

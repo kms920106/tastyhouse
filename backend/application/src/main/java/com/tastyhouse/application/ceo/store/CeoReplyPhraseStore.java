@@ -3,10 +3,10 @@ package com.tastyhouse.application.ceo.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseStatePort;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseStatePort;
 
 public class CeoReplyPhraseStore implements CeoReplyPhraseRepository {
     private final CeoReplyPhraseStatePort ceoReplyPhraseStatePort;

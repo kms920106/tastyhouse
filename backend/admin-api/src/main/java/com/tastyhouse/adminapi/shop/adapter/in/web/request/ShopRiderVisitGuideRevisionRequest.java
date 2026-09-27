@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionCommand;
 
 @Schema(description = "라이더 안내 문구 수정 요청 조치")
 public record ShopRiderVisitGuideRevisionRequest(

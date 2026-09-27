@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.notice.adapter.in.web.request;
 
-import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+
+import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
 
 @Schema(description = "공지사항 생성 요청")
 public record NoticeCreateRequest(

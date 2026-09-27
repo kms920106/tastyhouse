@@ -4,8 +4,8 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.product.port.out.ProductNutritionViewResult;
 import com.tastyhouse.application.product.port.out.ProductNutritionResult;
+import com.tastyhouse.application.product.port.out.ProductNutritionViewResult;
 
 @Schema(description = "메뉴 영양성분·알레르기")
 public record ProductNutritionResponse(

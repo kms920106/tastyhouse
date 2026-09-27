@@ -2,12 +2,12 @@ package com.tastyhouse.adminapi.banner.adapter.in.web.request;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
 
 @Schema(description = "배너 수정 요청")
 public record BannerUpdateRequest(

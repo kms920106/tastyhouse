@@ -1,17 +1,16 @@
 package com.tastyhouse.application.product.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.in.ProductPriceQueryUseCase;
-import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
-import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.in.ProductPriceQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @CeoApp

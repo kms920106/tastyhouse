@@ -14,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
+import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductExposureRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResponse;
-import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
-import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
-import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
 
 @Tag(name = "Ceo Product Exposure", description = "점주 메뉴 노출기간 관리 API")
 @RestController

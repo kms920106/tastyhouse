@@ -1,11 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopChoiceManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
-import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
-import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
-import com.tastyhouse.application.shop.port.out.StationResult;
-import com.tastyhouse.application.shop.port.out.TagResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +14,17 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.ProductSimpleResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopChoiceManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopChoiceQueryPort;
+import com.tastyhouse.application.shop.port.out.StationResult;
+import com.tastyhouse.application.shop.port.out.TagResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity;
-import com.tastyhouse.application.product.port.out.ProductSimpleResult;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity.productImageJpaEntity;

@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkState;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkState;
 
 final class ShopBookmarkStateMapper {
     private ShopBookmarkStateMapper() {

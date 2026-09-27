@@ -2,7 +2,6 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -12,6 +11,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
 
 public class ShopRequestIndexRecorder {
     private final ShopRequestIndexRepository shopRequestIndexRepository;

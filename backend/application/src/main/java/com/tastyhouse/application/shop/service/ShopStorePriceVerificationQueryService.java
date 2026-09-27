@@ -1,17 +1,16 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.service.StorePriceVerificationService;
-import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewResult;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.service.StorePriceVerificationService;
+import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewResult;
 
 @Service
 @CeoApp

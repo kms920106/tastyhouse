@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.application.auth.port.in.CeoAuthLoginCommand;
 import com.tastyhouse.application.auth.port.out.CeoJwtResult;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
@@ -23,8 +25,6 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.application.ceo.store.CeoRepository;
-import com.tastyhouse.domain.ceo.model.Ceo;
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

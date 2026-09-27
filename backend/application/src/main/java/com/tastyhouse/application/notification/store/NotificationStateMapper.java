@@ -1,10 +1,10 @@
 package com.tastyhouse.application.notification.store;
 
-import com.tastyhouse.application.notification.port.out.write.NotificationState;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.notification.model.Notification;
 import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
+import com.tastyhouse.application.notification.port.out.write.NotificationState;
 
 final class NotificationStateMapper {
     private NotificationStateMapper() {

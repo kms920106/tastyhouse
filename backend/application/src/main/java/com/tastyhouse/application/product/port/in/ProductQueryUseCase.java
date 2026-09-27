@@ -1,15 +1,15 @@
 package com.tastyhouse.application.product.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.product.port.out.ProductOptionsResult;
-import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
-import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.product.port.out.ProductBatchItemView;
 import com.tastyhouse.application.product.port.out.ProductDetailView;
+import com.tastyhouse.application.product.port.out.ProductOptionsResult;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsView;
+import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @WebApp
 public interface ProductQueryUseCase {

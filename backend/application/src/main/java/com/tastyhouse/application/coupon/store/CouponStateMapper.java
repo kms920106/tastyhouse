@@ -1,8 +1,8 @@
 package com.tastyhouse.application.coupon.store;
 
-import com.tastyhouse.application.coupon.port.out.write.CouponState;
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
+import com.tastyhouse.application.coupon.port.out.write.CouponState;
 
 final class CouponStateMapper {
     private CouponStateMapper() {

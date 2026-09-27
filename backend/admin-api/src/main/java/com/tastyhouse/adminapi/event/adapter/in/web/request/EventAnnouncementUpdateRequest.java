@@ -1,13 +1,13 @@
 package com.tastyhouse.adminapi.event.adapter.in.web.request;
 
-import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
-
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
 
 @Schema(description = "당첨자 발표 공지 수정 요청")
 public record EventAnnouncementUpdateRequest(

@@ -1,8 +1,5 @@
 package com.tastyhouse.infrastructure.ceo.query;
 
-import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
-import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
-import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,6 +9,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
+import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 

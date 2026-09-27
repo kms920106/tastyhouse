@@ -6,12 +6,12 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonState;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonState;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

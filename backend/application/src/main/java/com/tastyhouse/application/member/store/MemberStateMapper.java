@@ -1,12 +1,12 @@
 package com.tastyhouse.application.member.store;
 
-import com.tastyhouse.application.member.port.out.write.MemberState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
+import com.tastyhouse.application.member.port.out.write.MemberState;
 
 final class MemberStateMapper {
     private MemberStateMapper() {

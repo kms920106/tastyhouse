@@ -1,9 +1,9 @@
 package com.tastyhouse.application.shop.store;
 
-import com.tastyhouse.application.shop.port.out.write.ShopAmenityState;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityState;
 
 final class ShopAmenityStateMapper {
     private ShopAmenityStateMapper() {

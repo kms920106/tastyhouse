@@ -1,10 +1,10 @@
 package com.tastyhouse.application.ceo.service;
 
-import com.tastyhouse.application.ceo.store.CeoLoginHistoryRepository;
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.application.ceo.store.CeoLoginHistoryRepository;
 
 public class CeoLoginHistoryRecorder {
     private static final int USER_AGENT_MAX_LENGTH = 500;

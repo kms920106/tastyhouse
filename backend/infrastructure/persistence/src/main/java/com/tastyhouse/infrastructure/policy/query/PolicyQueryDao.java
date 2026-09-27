@@ -1,16 +1,16 @@
 package com.tastyhouse.infrastructure.policy.query;
 
-import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
-import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
-import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
-import com.querydsl.core.types.ConstructorExpression;
-import com.querydsl.core.types.Projections;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
+import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
+import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 

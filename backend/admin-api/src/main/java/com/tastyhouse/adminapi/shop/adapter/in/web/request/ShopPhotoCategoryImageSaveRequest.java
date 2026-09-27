@@ -1,10 +1,10 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
 
 @Schema(description = "가게 포토 카테고리 이미지 등록/수정 요청")
 public record ShopPhotoCategoryImageSaveRequest(

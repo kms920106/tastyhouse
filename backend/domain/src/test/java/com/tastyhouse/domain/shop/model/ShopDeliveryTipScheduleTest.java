@@ -10,8 +10,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;

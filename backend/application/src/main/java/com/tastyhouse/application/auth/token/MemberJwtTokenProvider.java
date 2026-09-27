@@ -1,6 +1,5 @@
 package com.tastyhouse.application.auth.token;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.Date;
 
 import io.jsonwebtoken.Claims;
@@ -10,9 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.jwt.JwtProperties;
 import com.tastyhouse.security.jwt.TokenType;
-import com.tastyhouse.application.auth.security.MemberUserDetails;
 
 @Component
 @WebApp

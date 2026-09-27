@@ -3,8 +3,9 @@ package com.tastyhouse.domain.shop.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopFoodTypeCategoryTest {
 

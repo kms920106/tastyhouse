@@ -2,9 +2,9 @@ package com.tastyhouse.application.review.store;
 
 import java.util.List;
 
-import com.tastyhouse.application.review.port.out.write.ReviewImageStatePort;
 import com.tastyhouse.domain.review.model.ReviewImage;
 import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.application.review.port.out.write.ReviewImageStatePort;
 
 public class ReviewImageStore implements ReviewImageRepository {
     private final ReviewImageStatePort reviewImageStatePort;

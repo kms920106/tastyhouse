@@ -3,9 +3,10 @@ package com.tastyhouse.domain.product.model;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.vo.ProductId;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductImageTest {
     @Test

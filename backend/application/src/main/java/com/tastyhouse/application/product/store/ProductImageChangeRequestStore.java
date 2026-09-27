@@ -3,11 +3,11 @@ package com.tastyhouse.application.product.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestStatePort;
 import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestStatePort;
 
 public class ProductImageChangeRequestStore implements ProductImageChangeRequestRepository {
     private final ProductImageChangeRequestStatePort productImageChangeRequestStatePort;

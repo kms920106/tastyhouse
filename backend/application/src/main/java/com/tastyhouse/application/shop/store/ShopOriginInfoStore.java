@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoStatePort;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoStatePort;
 
 public class ShopOriginInfoStore implements ShopOriginInfoRepository {
     private final ShopOriginInfoStatePort shopOriginInfoStatePort;

@@ -4,8 +4,8 @@ import java.time.LocalTime;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopBusinessHour {
     private static final long MIN_DURATION_MINUTES = 60;

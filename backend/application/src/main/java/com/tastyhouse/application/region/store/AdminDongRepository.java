@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 public interface AdminDongRepository {
     AdminDongSyncResult synchronize(List<AdminDong> adminDongs);

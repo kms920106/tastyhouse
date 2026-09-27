@@ -1,7 +1,8 @@
 package com.tastyhouse.application.product.port.in;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.util.List;
+
+import com.tastyhouse.application.shared.marker.CeoApp;
 
 @CeoApp
 public interface ProductRepresentativeCommandUseCase {

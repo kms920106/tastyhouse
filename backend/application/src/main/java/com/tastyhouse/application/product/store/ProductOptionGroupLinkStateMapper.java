@@ -1,9 +1,9 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkState;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkState;
 
 final class ProductOptionGroupLinkStateMapper {
     private ProductOptionGroupLinkStateMapper() {

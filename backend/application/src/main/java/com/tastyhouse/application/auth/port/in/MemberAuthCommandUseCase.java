@@ -1,10 +1,10 @@
 package com.tastyhouse.application.auth.port.in;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.port.out.SocialLinkResult;
 import com.tastyhouse.application.auth.port.out.SocialLoginResult;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @WebApp
 public interface MemberAuthCommandUseCase {

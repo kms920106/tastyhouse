@@ -1,10 +1,10 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.store.ShopCeoAssignmentHistoryRepository;
 
 public class ShopCeoAssignmentRecorder {
     private final ShopCeoAssignmentHistoryRepository shopCeoAssignmentHistoryRepository;

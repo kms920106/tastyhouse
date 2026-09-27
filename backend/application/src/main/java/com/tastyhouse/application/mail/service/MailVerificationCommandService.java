@@ -1,6 +1,5 @@
 package com.tastyhouse.application.mail.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -9,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.mail.port.in.MailVerificationCommandUseCase;
 import com.tastyhouse.application.mail.port.in.MailVerificationConfirmCommand;
 import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

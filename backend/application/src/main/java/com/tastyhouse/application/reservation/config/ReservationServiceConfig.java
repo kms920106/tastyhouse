@@ -12,8 +12,8 @@ import com.tastyhouse.application.reservation.store.ReservationSlotRepository;
 import com.tastyhouse.application.reservation.store.ReservationSlotStore;
 import com.tastyhouse.application.reservation.store.ReservationStore;
 import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.application.shop.store.ShopRepository;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
+import com.tastyhouse.application.shop.store.ShopRepository;
 
 @Configuration(proxyBeanMethods = false)
 @SharedApp

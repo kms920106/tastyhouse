@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoStatePort;
 import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoStatePort;
 
 public class ShopConvenienceInfoStore implements ShopConvenienceInfoRepository {
     private final ShopConvenienceInfoStatePort shopConvenienceInfoStatePort;

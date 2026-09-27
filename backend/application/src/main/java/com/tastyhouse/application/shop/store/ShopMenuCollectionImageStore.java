@@ -3,10 +3,10 @@ package com.tastyhouse.application.shop.store;
 import java.util.List;
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageStatePort;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageStatePort;
 
 public class ShopMenuCollectionImageStore implements ShopMenuCollectionImageRepository {
     private final ShopMenuCollectionImageStatePort shopMenuCollectionImageStatePort;

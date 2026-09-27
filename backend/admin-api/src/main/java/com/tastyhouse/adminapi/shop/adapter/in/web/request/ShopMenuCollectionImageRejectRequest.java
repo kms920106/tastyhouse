@@ -1,11 +1,10 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectCommand;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectCommand;
 
 @Schema(description = "메뉴모음컷 반려 요청")
 public record ShopMenuCollectionImageRejectRequest(

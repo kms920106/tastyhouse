@@ -1,12 +1,12 @@
 package com.tastyhouse.application.payment.store;
 
-import com.tastyhouse.application.payment.port.out.write.PaymentState;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.Payment;
 import com.tastyhouse.domain.payment.model.PaymentMethod;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.domain.payment.vo.Amount;
+import com.tastyhouse.application.payment.port.out.write.PaymentState;
 
 final class PaymentStateMapper {
     private PaymentStateMapper() {

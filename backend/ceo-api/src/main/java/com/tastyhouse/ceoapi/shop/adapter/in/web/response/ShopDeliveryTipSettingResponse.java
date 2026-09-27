@@ -4,8 +4,8 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipOwnerViewResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
 
 @Schema(description = "가게 배달팁 설정 통합 응답")
 public record ShopDeliveryTipSettingResponse(

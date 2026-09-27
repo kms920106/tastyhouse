@@ -1,10 +1,10 @@
 package com.tastyhouse.application.ceo.port.in;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
 import java.time.LocalDate;
 
-import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
 
 @CeoApp
 public interface CeoShopAccessHistoryQueryUseCase {

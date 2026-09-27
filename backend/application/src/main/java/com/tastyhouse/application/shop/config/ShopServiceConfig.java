@@ -6,6 +6,15 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
+import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
+import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
+import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
+import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
+import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.application.ceo.store.CeoRepository;
 import com.tastyhouse.application.region.store.AdminDongRepository;
 import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
@@ -125,15 +134,6 @@ import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
 import com.tastyhouse.application.shop.store.ShopTemporaryClosureStore;
 import com.tastyhouse.application.shop.store.TagRepository;
 import com.tastyhouse.application.shop.store.TagStore;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
-import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
-import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
-import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
-import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
-import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
-import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 
 @Configuration(proxyBeanMethods = false)
 @SharedApp

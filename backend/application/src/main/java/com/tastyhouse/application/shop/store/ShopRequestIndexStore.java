@@ -2,9 +2,9 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexStatePort;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexStatePort;
 
 public class ShopRequestIndexStore implements ShopRequestIndexRepository {
     private final ShopRequestIndexStatePort shopRequestIndexStatePort;

@@ -1,6 +1,5 @@
 package com.tastyhouse.application.review.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,32 +19,33 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.shared.port.out.page.PageQuery;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.order.port.out.OrderProductOwnershipResult;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
-import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.product.port.out.ProductDetailResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewCommentItemResult;
+import com.tastyhouse.application.review.port.out.ReviewCommentListView;
 import com.tastyhouse.application.review.port.out.ReviewDetailResult;
+import com.tastyhouse.application.review.port.out.ReviewDetailView;
+import com.tastyhouse.application.review.port.out.ReviewProductView;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
-import com.tastyhouse.application.review.port.out.ReviewTagQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewReplyItemResult;
+import com.tastyhouse.application.review.port.out.ReviewSortSpec;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewSubmitResultView;
+import com.tastyhouse.application.review.port.out.ReviewTagQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
-import com.tastyhouse.application.review.port.out.ReviewCommentListView;
-import com.tastyhouse.application.review.port.out.ReviewDetailView;
-import com.tastyhouse.application.review.port.out.ReviewProductView;
-import com.tastyhouse.application.review.port.out.ReviewSubmitResultView;
-import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
-import com.tastyhouse.application.review.port.out.ReviewSortSpec;
-import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @WebApp

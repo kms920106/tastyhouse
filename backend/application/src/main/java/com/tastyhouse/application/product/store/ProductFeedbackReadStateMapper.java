@@ -1,8 +1,8 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadState;
 import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadState;
 
 final class ProductFeedbackReadStateMapper {
     private ProductFeedbackReadStateMapper() {

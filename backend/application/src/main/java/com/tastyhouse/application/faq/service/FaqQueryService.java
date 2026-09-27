@@ -1,15 +1,15 @@
 package com.tastyhouse.application.faq.service;
 
-import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.faq.port.in.FaqQueryUseCase;
 import com.tastyhouse.application.faq.port.out.FaqCategoryResult;
 import com.tastyhouse.application.faq.port.out.FaqQueryPort;
 import com.tastyhouse.application.faq.port.out.FaqResult;
-import com.tastyhouse.application.faq.port.in.FaqQueryUseCase;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp

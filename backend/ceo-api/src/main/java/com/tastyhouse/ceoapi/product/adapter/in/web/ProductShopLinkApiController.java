@@ -18,17 +18,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.product.port.in.ProductShopLinkCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductShopLinkCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductShopLinkDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductShopLinkQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductShopLinkReplaceCommand;
+import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkReplaceRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResponse;
-import com.tastyhouse.application.product.port.in.ProductShopLinkCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductShopLinkCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductShopLinkDeleteCommand;
-import com.tastyhouse.application.product.port.in.ProductShopLinkReplaceCommand;
-import com.tastyhouse.application.product.port.in.ProductShopLinkQueryUseCase;
 
 @Tag(name = "Ceo Product Shop Link", description = "점주 메뉴-가게 연결 관리 API")
 @RestController

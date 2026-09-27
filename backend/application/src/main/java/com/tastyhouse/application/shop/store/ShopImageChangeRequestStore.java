@@ -2,10 +2,10 @@ package com.tastyhouse.application.shop.store;
 
 import java.util.Optional;
 
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestStatePort;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestStatePort;
 
 public class ShopImageChangeRequestStore implements ShopImageChangeRequestRepository {
     private final ShopImageChangeRequestStatePort shopImageChangeRequestStatePort;

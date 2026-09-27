@@ -1,7 +1,5 @@
 package com.tastyhouse.application.product.store;
 
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationItemState;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationState;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
@@ -10,6 +8,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationItemState;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationState;
 
 final class StorePriceVerificationStateMapper {
     private StorePriceVerificationStateMapper() {

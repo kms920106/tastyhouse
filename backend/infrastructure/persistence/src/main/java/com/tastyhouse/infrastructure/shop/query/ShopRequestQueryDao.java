@@ -1,14 +1,5 @@
 package com.tastyhouse.infrastructure.shop.query;
 
-import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
-import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestListItemResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestReviewBlindDetailResult;
-import com.tastyhouse.application.shop.port.out.ShopRequestSearchCondition;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +15,15 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestAdjustmentDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestListItemResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRequestQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopRequestReviewBlindDetailResult;
+import com.tastyhouse.application.shop.port.out.ShopRequestSearchCondition;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;

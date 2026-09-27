@@ -1,9 +1,9 @@
 package com.tastyhouse.adminapi.shop.adapter.in.web.request;
 
-import com.tastyhouse.application.shop.port.in.ShopCeoAssignCommand;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+
+import com.tastyhouse.application.shop.port.in.ShopCeoAssignCommand;
 
 @Schema(description = "가게 담당 점주 배정 요청")
 public record ShopCeoAssignRequest(

@@ -2,7 +2,6 @@ package com.tastyhouse.webapi.shop.adapter.in.web.response;
 
 import java.util.List;
 import java.util.Map;
-
 import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.point.port.in.PointCommandUseCase;
+import com.tastyhouse.application.point.port.in.PointDeductCommand;
+import com.tastyhouse.application.point.port.in.PointEarnCommand;
+import com.tastyhouse.application.point.port.in.PointManagementQueryUseCase;
+import com.tastyhouse.application.point.port.out.PointHistoryResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -22,12 +28,6 @@ import com.tastyhouse.adminapi.point.adapter.in.web.request.PointEarnRequest;
 import com.tastyhouse.adminapi.point.adapter.in.web.request.PointSearchRequest;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointBalanceResponse;
 import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryResponse;
-import com.tastyhouse.application.point.port.out.PointHistoryResult;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.point.port.in.PointCommandUseCase;
-import com.tastyhouse.application.point.port.in.PointDeductCommand;
-import com.tastyhouse.application.point.port.in.PointEarnCommand;
-import com.tastyhouse.application.point.port.in.PointManagementQueryUseCase;
 
 @Tag(name = "Point Admin", description = "포인트 관리자 API")
 @RestController
