@@ -4,5 +4,5 @@ spring:
       - classpath:application-javamail.yml
 
 mail:
-  provider: javamail # javamail | ses
+  provider: javamail
   sender-address: ${MAIL_SENDER_ADDRESS}

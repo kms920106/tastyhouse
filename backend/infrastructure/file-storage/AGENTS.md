@@ -34,11 +34,15 @@ backend/infrastructure/file-storage/
 
 ## 벤더 전환 절차 (Firebase → S3)
 
-**앱을 건드리지 않는다.** 이 모듈의 두 파일만 바꾼다.
+**앱을 건드리지 않는다.** 이 모듈의 두 파일에서 세 곳을 바꾼다. **①②③은 항상 함께 바꾼다** — 이 모듈은 벤더를 하나만 `runtimeOnly`로 싣기 때문에, 셋 중 하나라도 빠지면 켤 수 있는 벤더가 없다.
 
 1. `build.gradle`: `runtimeOnly project(':infrastructure:firebase')` → `runtimeOnly project(':infrastructure:aws-s3')`
-2. `application-file-storage.yml`: import를 `classpath:application-aws-s3.yml`로, `file.provider: s3`로
-3. `.env`에 `S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY` 추가
+2. `application-file-storage.yml`의 `spring.config.import`: `classpath:application-firebase.yml` → `classpath:application-aws-s3.yml`
+3. `application-file-storage.yml`의 `file.provider`: `firebase` → `s3`
+
+그 밖에 `.env`에 `S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY`를 추가한다. 벤더 쪽에서 본 같은 절차는 `../aws-s3/AGENTS.md`의 "S3로 전환하는 절차 (앱 무수정)"에 있다.
+
+**`file.provider` 줄에 허용값 주석(`# firebase | s3`)을 달지 않는다.** 벤더 코드에 정의된 값은 `firebase`·`s3` 둘이지만 이 모듈이 벤더를 하나만 싣기 때문에 지금 켤 수 있는 값은 `firebase` 하나뿐이다. 값만 `s3`로 바꾸면 `FileStoragePort` 빈이 없어 기동이 실패하므로, 나열은 거짓 선택지다.
 
 **해소됨(2026-09-26)**: 과거 `infrastructure:aws`가 external·messaging을 implementation으로 가져 전환 시 admin·ceo에 전이로 실릴 위험이 실측으로 확인됐고, `aws-s3` 분리로 해소했다 — `aws-s3`의 의존은 domain과 spring-cloud-aws-starter-s3뿐이다.
 

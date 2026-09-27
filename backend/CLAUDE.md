@@ -23,32 +23,38 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
      (패키지는 com.tastyhouse.application..port.out). 챕터 04로 공유 계약 55개가 domain에서
      돌아오면서 split package가 끝났다
    ↑ 구현
-아웃바운드 어댑터        infrastructure:persistence  JPA 어댑터 + QueryPort 구현 DAO + listener
-                         infrastructure:redis        Redis 연결·템플릿 + rate limiting
+아웃바운드 어댑터 16      infrastructure:persistence  JPA 어댑터 + QueryPort 구현 DAO + listener
+(driven)                 infrastructure:redis        Redis 연결·템플릿 + rate limiting
                          infrastructure:restclient   외부 연동 HTTP 코어 — RestClient customizer만 (예외·에러코드 없음, 파일 저장 무관)
-                           ├ :file-storage 파일 저장 스타터 — 코드 없음, firebase 조립 (4개 앱 전부)
+                                                     ※ 포트를 구현하지 않지만 벤더가 쓰는 기술 코어라 이 칸에 둔다
                            ├ :firebase   Firebase Storage 파일 저장      (앱이 아니라 :file-storage가 의존)
                            ├ :aws-s3     S3(파일 저장)                    (의존하는 앱 없음 — 컴파일만 검증)
                            ├ :aws-ses    SES(메일)                        (의존하는 앱 없음 — 컴파일만 검증)
                            ├ :aws-sns    SNS(SMS)                         (의존하는 앱 없음 — 컴파일만 검증)
-                           ├ :oauth      소셜 로그인 채널 스타터 — 코드 없음, 벤더 4종 조립 (web)
                            ├ :kakao-oauth    카카오 로그인 벤더 구현    (앱이 아니라 :oauth가 의존)
                            ├ :naver-oauth    네이버 로그인 벤더 구현    (앱이 아니라 :oauth가 의존)
                            ├ :apple-oauth    애플 로그인 벤더 구현      (앱이 아니라 :oauth가 의존)
                            ├ :facebook-oauth 페이스북 로그인 벤더 구현  (앱이 아니라 :oauth가 의존)
-                           ├ :pg         결제 PG 채널 — PgGatewayConfig + tosspayments 조립 (web)
                            ├ :tosspayments Toss 결제 벤더 구현            (앱이 아니라 :pg가 의존)
-                           ├ :mail       메일 채널 — MailDomainConfig + javamail 조립 (web)
                            ├ :javamail   JavaMail(SMTP) 메일 발송        (앱이 아니라 :mail이 의존)
-                           ├ :sms        SMS 채널 — SmsDomainConfig + solapi 조립 (web)
                            ├ :solapi     Solapi SMS 발송                 (앱이 아니라 :sms가 의존)
                            ├ :bbq        BBQ 메뉴 수집·원격 이미지        (batch)
                            └ :admdongkor 행정동 경계 GeoJSON 수집          (batch)
+조립 5                   도메인 포트를 구현하지 않는 컴포지션 루트 조각. 앱이 외부 연동을 쓸 때 직접 의존하는 좌표
+(스타터 2 + 채널 3)        스타터(코드 없음)
+                           ├ :file-storage 파일 저장 — firebase 조립                      (4개 앱 전부)
+                           └ :oauth        소셜 로그인 — 벤더 4종 조립                    (web)
+                         채널(DomainConfig 또는 라우터 등록)
+                           ├ :pg           결제 PG — PgGatewayConfig(라우터) + tosspayments 조립 (web)
+                           ├ :mail         메일 — MailDomainConfig + javamail 조립        (web)
+                           └ :sms          SMS — SmsDomainConfig + solapi 조립            (web)
 공유                     security-core  security-module  api-common-module  logging-module
 ```
 
+- **조립 5모듈은 `infrastructure/` 디렉터리에 있지만 아웃바운드 어댑터가 아니다.** 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 벤더를 싣는가"만 결정한다. 스타터(`file-storage`·`oauth`)는 자바 코드가 없고, 채널(`pg`·`mail`·`sms`)은 도메인 서비스 빈이나 라우터를 등록하는 코드만 갖는다. 채널이 왜 그 빈을 등록하는지, 스타터와 무엇이 다른지는 [도메인 모델 / JPA 엔티티 분리 규칙](#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)의 "예외 — 포트 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다" 항목이 정본이다. 물리적으로 `backend/starter/`로 옮기지 않은 것은 컴파일·런타임에서 새로 막아 주는 것이 없기 때문이다.
+- **조립 모듈의 벤더 전환은 세 곳을 함께 바꾼다**: 채널/스타터 `build.gradle`의 `runtimeOnly` 대상, 그 모듈 yml의 `spring.config.import`, `provider` 값. 각 모듈은 벤더를 하나만 싣기 때문에 `provider` 값만 바꾸면 켤 수 있는 벤더가 없어 기동이 실패한다. 절차는 `infrastructure/{file-storage,mail,sms}/AGENTS.md`의 "벤더 전환 절차"에 있다.
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것도, 챕터 01의 통합으로 줄어든 것도 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
-- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 16모듈은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다**(모듈 하나당 하위 패키지 한 덩어리라 split package는 아니다. 외부 연동 19모듈 중 코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌고, `infrastructure:file-storage`·`infrastructure:oauth`는 자바 코드가 아예 없는 조립 전용 스타터라 소유할 패키지가 없어 빠져 있다) — `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다(아래 [infrastructure를 기술별로 나눈 이유](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure), [모듈 등록 컨벤션(auto-configuration)](#모듈-등록-컨벤션-auto-configuration--챕터-02) 참고). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
+- **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 16모듈(driven 13 + 조립 채널 3 — `pg`·`mail`·`sms`)은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다**(모듈 하나당 하위 패키지 한 덩어리라 split package는 아니다. 외부 연동 19모듈 중 코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌고, 조립 스타터 `infrastructure:file-storage`·`infrastructure:oauth`는 자바 코드가 아예 없어 소유할 패키지가 없으므로 빠져 있다) — `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다(아래 [infrastructure를 기술별로 나눈 이유](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure), [모듈 등록 컨벤션(auto-configuration)](#모듈-등록-컨벤션-auto-configuration--챕터-02) 참고). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
 - **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(4개 앱 공통), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain/AGENTS.md`, JWT 토큰 발급/검증·토큰 저장소 **포트**는 `security-core/AGENTS.md`(Redis 구현은 `infrastructure/redis/AGENTS.md`), 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
 - **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleAutoConfiguration`(챕터 02로 `SecurityModuleConfig`에서 리네임)·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)는 전부 불변이다. **단 토큰 저장소 6종은 챕터 01에서 다시 포트/어댑터로 갈렸다** — 계약만 이 모듈에 남고 구현은 `infrastructure:redis`의 `token` 패키지로 내려갔으므로, 위 "`@Repository` 빈을 `security-module`이 스캔한다"는 배선은 더 이상 이 저장소들에 해당하지 않는다(어댑터는 `RedisModuleAutoConfiguration`이 등록한다). API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
@@ -85,7 +91,9 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | `logging-module` | `LoggingModuleAutoConfiguration` (`com.tastyhouse.logging`) | 스캔 `com.tastyhouse.logging` | 없음 |
 | `api-common-module` | `ApiCommonModuleAutoConfiguration` (`com.tastyhouse.apicommon`) | `@Bean("sharedGlobalExceptionHandler")` — 스캔 없음, 조건부 `@Bean`으로 등록 | `@ConditionalOnWebApplication(SERVLET)` + 메서드 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`. 빈 이름을 구분하는 이유는 web의 자체 핸들러와 단순명이 같아 기본 이름(`globalExceptionHandler`)이 충돌하기 때문 |
 | `api-common-module` | `ApiCommonRateLimitAutoConfiguration` (`com.tastyhouse.apicommon.ratelimit`) | `@Bean RateLimitAspect(...)` — `RateLimitAspect`의 `@Component` 제거, 조건부 `@Bean`으로 등록 | `@ConditionalOnWebApplication(SERVLET)` + 메서드 `@ConditionalOnBean(RateLimitCounterPort.class)` — 포트는 `security-core`(`com.tastyhouse.security.ratelimit`) 소유, 이 모듈은 `implementation project(':security-core')`로 본다 |
-| external 계열 14개 | `RestClientModuleAutoConfiguration`(구 `ExternalModuleAutoConfiguration` → `HttpClientModuleAutoConfiguration`을 거쳐 개명)·`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`KakaoOAuthModuleAutoConfiguration`·`NaverOAuthModuleAutoConfiguration`·`AppleOAuthModuleAutoConfiguration`·`FacebookOAuthModuleAutoConfiguration`·`PgModuleAutoConfiguration`·`TossPaymentsModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration` | 챕터 01 진입 설정과 동일 스캔·Properties(`aws-s3`/`aws-ses`/`aws-sns`는 이후 3분할로 `AwsModuleAutoConfiguration`을, `bbq`/`admdongkor`는 이후 2분할로 `CrawlingModuleAutoConfiguration`을 대체, `payment`는 채널·벤더 분할로 `PaymentModuleAutoConfiguration`을 `PgModuleAutoConfiguration`+`TossPaymentsModuleAutoConfiguration`으로 대체, `oauth`는 채널·벤더 분할로 `OAuthModuleAutoConfiguration`을 벤더 4종의 auto-configuration으로 대체 — 채널 `oauth`는 코드가 없어 자기 auto-configuration이 없다. 벤더 4종은 `@ConfigurationProperties` record를 `@EnableConfigurationProperties`로 등록한다) | 없음(채널 `@ConditionalOnProperty`는 스캔된 클래스에 잔류) |
+| external 계열 driven 14개 | `RestClientModuleAutoConfiguration`(구 `ExternalModuleAutoConfiguration` → `HttpClientModuleAutoConfiguration`을 거쳐 개명)·`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`KakaoOAuthModuleAutoConfiguration`·`NaverOAuthModuleAutoConfiguration`·`AppleOAuthModuleAutoConfiguration`·`FacebookOAuthModuleAutoConfiguration`·`TossPaymentsModuleAutoConfiguration`·`JavaMailModuleAutoConfiguration`·`SolapiModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration` | 챕터 01 진입 설정과 동일 스캔·Properties(`messaging`은 4분할로 `MessagingModuleAutoConfiguration`을 채널 2개(아래 행)와 벤더 `JavaMailModuleAutoConfiguration`·`SolapiModuleAutoConfiguration`으로 대체, `aws-s3`/`aws-ses`/`aws-sns`는 이후 3분할로 `AwsModuleAutoConfiguration`을, `bbq`/`admdongkor`는 이후 2분할로 `CrawlingModuleAutoConfiguration`을 대체, `payment`는 채널·벤더 분할로 `PaymentModuleAutoConfiguration`을 `PgModuleAutoConfiguration`+`TossPaymentsModuleAutoConfiguration`으로 대체, `oauth`는 채널·벤더 분할로 `OAuthModuleAutoConfiguration`을 벤더 4종의 auto-configuration으로 대체 — 채널 `oauth`는 코드가 없어 자기 auto-configuration이 없다. 벤더 4종은 `@ConfigurationProperties` record를 `@EnableConfigurationProperties`로 등록한다) | 없음(채널 `@ConditionalOnProperty`는 스캔된 클래스에 잔류) |
+| 조립 — 채널 3개 (`pg`·`mail`·`sms`) | `PgModuleAutoConfiguration`·`MailModuleAutoConfiguration`·`SmsModuleAutoConfiguration` | 자기 패키지(`com.tastyhouse.external.{pg,mail,sms}`) 스캔 — 포트 구현이 아니라 `PgGatewayConfig`(라우터)·`MailDomainConfig`·`SmsDomainConfig`(도메인 서비스 빈)를 등록한다 | 없음 |
+| 조립 — 스타터 2개 (`file-storage`·`oauth`) | 없음 | 자바 코드가 없어 등록할 빈이 없다 — 위 [예외 5건](#모듈-등록-컨벤션-auto-configuration--챕터-02)에 포함 | — |
 
 `ApiCommonConfig`·`ApiCommonRateLimitConfig`는 삭제됐다 — 두 auto-configuration 클래스가 그 역할을 대체한다.
 
@@ -110,7 +118,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | Logging | ● | ● | ● | 없음(현행 batch도 import) | 발화(의도) |
 | External | ● | **—** | ● | 없음 | 발화(의도) — 앱이 직접 선언하지 않고 web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi, batch는 bbq·admdongkor를 통해 전이로 실린다. **코어 SPI 삭제 후속으로 admin/ceo에서는 빠졌다**(아래 [후속 — 코어 SPI 삭제](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)) |
 | Firebase | ● | ● | ● | 없음 | 발화(의도) — 앱이 아니라 `:infrastructure:file-storage`를 통해 전이로 실린다 |
-| KakaoOAuth·NaverOAuth·AppleOAuth·FacebookOAuth·Pg·TossPayments·Messaging | ● | — | — | 없음 | jar 없음 — OAuth 벤더 4종은 앱이 아니라 `:infrastructure:oauth` 스타터를 통해 web에만 전이로 실린다 |
+| KakaoOAuth·NaverOAuth·AppleOAuth·FacebookOAuth·Pg·TossPayments·Mail·JavaMail·Sms·Solapi | ● | — | — | 없음 | jar 없음 — 조립 채널 3개(Pg·Mail·Sms)는 web-api가 `runtimeOnly`로 직접 의존해 web에서만 발화하고, 벤더(OAuth 4종·TossPayments·JavaMail·Solapi)는 앱이 아니라 스타터 `:infrastructure:oauth`·채널 `:infrastructure:{pg,mail,sms}`를 통해 web에만 전이로 실린다 |
 | Bbq·Admdongkor | — | — | ● | 없음 | 발화(의도) — 2026-09-26 batch 기동으로 두 설정 발화 확인 |
 | AwsS3 | — | — | — | 없음 | jar 없음 |
 | AwsSes | — | — | — | 없음 | jar 없음 |
@@ -810,7 +818,7 @@ find . -name '*.java' -not -path '*/build/*' -not -path '*/bin/*' -print0 \
 | 형태 | 예 |
 |---|---|
 | 단위·의미 라벨 | `accessTokenExpiration: 3600000 # 1시간 (ms)` |
-| 허용값 열거 | `provider: firebase # firebase \| s3`, `provider: javamail # ses \| javamail` |
+| 허용값 열거 | **켤 수 있는 값이 실제로 둘 이상일 때만** 쓴다(형태: `key: a # a \| b`). 현재 저장소에는 해당 줄이 없다 — 조립 모듈(`file-storage`·`mail`·`sms`)의 `provider: javamail # javamail \| ses` 류는 벤더를 하나만 싣는 모듈에서 값만 바꾸면 기동이 실패하는 거짓 선택지라 지웠다(전환 절차는 각 모듈 AGENTS.md의 "벤더 전환 절차") |
 | 블록 제목 | `# 카카오 로그인`, `# 네이버 로그인` |
 | 섹션 구분 | `build.gradle` dependencies 안의 `// Test` |
 | 주석 처리된 비활성 설정 | `application-test.yml`의 `#spring: ... ddl-auto` — 주석이 아니라 **꺼둔 설정**이다 |

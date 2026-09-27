@@ -25,17 +25,21 @@ backend/infrastructure/sms/
 
 ## 벤더 전환 절차 (Solapi → SNS)
 
-**web-api를 건드리지 않는다.** 이 모듈의 두 파일만 바꾼다.
+**web-api를 건드리지 않는다.** 이 모듈의 두 파일에서 세 곳을 바꾼다. **①②③은 항상 함께 바꾼다** — 이 모듈은 벤더를 하나만 `runtimeOnly`로 싣기 때문에, 셋 중 하나라도 빠지면 켤 수 있는 벤더가 없다.
 
 1. `build.gradle`: `runtimeOnly project(':infrastructure:solapi')` → `runtimeOnly project(':infrastructure:aws-sns')`
-2. `application-sms.yml`: import를 `classpath:application-aws-sns.yml`로, `sms.provider: sns`로
-3. `.env`에 `AWS_SNS_ACCESS_KEY`·`AWS_SNS_SECRET_KEY`(이미 있다)
+2. `application-sms.yml`의 `spring.config.import`: `classpath:application-solapi.yml` → `classpath:application-aws-sns.yml`
+3. `application-sms.yml`의 `sms.provider`: `solapi` → `sns`
+
+그 밖에 `.env`에 `AWS_SNS_ACCESS_KEY`·`AWS_SNS_SECRET_KEY`가 있어야 한다(이미 있다). 벤더 쪽에서 본 같은 절차는 `../aws-sns/AGENTS.md`의 "SNS로 전환하는 절차 (채널 모듈 2파일)"에 있다.
 
 **벤더 모듈 없이 provider만 바꾸면 기동 시 실패한다** — `SolapiSmsClient`는 조건으로 빠지고 SNS 구현이 없어 `SmsDomainConfig`가 `SmsSender` 빈을 찾지 못한다. 전환 검증은 반증 방향으로 한다.
 
 ## yml — `application-sms.yml`
 
-`sms.provider`(`solapi` | `sns`)와 `sms.sender-number`(`${SMS_SENDER_NUMBER}`)를 소유하고, 벤더 yml(`classpath:application-solapi.yml`)을 중첩 import로 로딩한다. 발신 번호의 주인은 채널이다 — Solapi yml은 `sender-number: ${sms.sender-number}`로 이 값을 참조한다. 과거 `sms.*`를 바인딩하던 `SmsProperties` record는 읽는 코드가 없어 4분할과 함께 삭제됐다.
+`sms.provider`와 `sms.sender-number`(`${SMS_SENDER_NUMBER}`)를 소유하고, 벤더 yml(`classpath:application-solapi.yml`)을 중첩 import로 로딩한다. 발신 번호의 주인은 채널이다 — Solapi yml은 `sender-number: ${sms.sender-number}`로 이 값을 참조한다. 과거 `sms.*`를 바인딩하던 `SmsProperties` record는 읽는 코드가 없어 4분할과 함께 삭제됐다.
+
+**`sms.provider` 줄에 허용값 주석(`# solapi | sns`)을 달지 않는다.** 벤더 코드에 정의된 값은 `solapi`·`sns` 둘이지만 이 모듈이 벤더를 하나만 싣기 때문에 지금 켤 수 있는 값은 `solapi` 하나뿐이다. 값만 `sns`로 바꾸면 `SmsSender` 빈이 없어 기동이 실패하므로, 나열은 거짓 선택지다. 전환은 위 3곳 동시 교체로만 한다.
 
 ## Dependencies
 

@@ -36,17 +36,21 @@ backend/infrastructure/mail/
 
 ## 벤더 전환 절차 (JavaMail → SES)
 
-**web-api를 건드리지 않는다.** 이 모듈의 두 파일만 바꾼다.
+**web-api를 건드리지 않는다.** 이 모듈의 두 파일에서 세 곳을 바꾼다. **①②③은 항상 함께 바꾼다** — 이 모듈은 벤더를 하나만 `runtimeOnly`로 싣기 때문에, 셋 중 하나라도 빠지면 켤 수 있는 벤더가 없다.
 
 1. `build.gradle`: `runtimeOnly project(':infrastructure:javamail')` → `runtimeOnly project(':infrastructure:aws-ses')`
-2. `application-mail.yml`: import를 `classpath:application-aws-ses.yml`로, `mail.provider: ses`로
-3. `.env`에 `AWS_SES_ACCESS_KEY`·`AWS_SES_SECRET_KEY`(이미 있다)
+2. `application-mail.yml`의 `spring.config.import`: `classpath:application-javamail.yml` → `classpath:application-aws-ses.yml`
+3. `application-mail.yml`의 `mail.provider`: `javamail` → `ses`
+
+그 밖에 `.env`에 `AWS_SES_ACCESS_KEY`·`AWS_SES_SECRET_KEY`가 있어야 한다(이미 있다). 벤더 쪽에서 본 같은 절차는 `../aws-ses/AGENTS.md`의 "SES로 전환하는 절차 (채널 모듈 2파일)"에 있다.
 
 `mail.sender-address`는 채널 값이라 전환해도 그대로다. **벤더 모듈 없이 provider만 바꾸면 기동 시 실패한다** — `JavaMailAdapter`는 조건으로 빠지고 SES 구현은 클래스패스에 없어 `MailDomainConfig`가 `MailSender` 빈을 찾지 못한다. 이 실패가 전환의 안전장치이며, 전환 검증도 틀린 provider 값으로 실패를 확인하는 반증 방향으로 한다.
 
 ## yml — `application-mail.yml`
 
-`mail.provider`(`javamail` | `ses`)와 `mail.sender-address`(`${MAIL_SENDER_ADDRESS}`)를 소유하고, 벤더 yml(`classpath:application-javamail.yml`)을 중첩 `spring.config.import`로 로딩한다(file-storage → firebase와 같은 방식). web-api `application.yml`에는 `classpath:application-mail.yml` 한 줄만 있다.
+`mail.provider`와 `mail.sender-address`(`${MAIL_SENDER_ADDRESS}`)를 소유하고, 벤더 yml(`classpath:application-javamail.yml`)을 중첩 `spring.config.import`로 로딩한다(file-storage → firebase와 같은 방식). web-api `application.yml`에는 `classpath:application-mail.yml` 한 줄만 있다.
+
+**`mail.provider` 줄에 허용값 주석(`# javamail | ses`)을 달지 않는다.** 벤더 코드에 정의된 값은 `javamail`·`ses` 둘이지만, 이 모듈이 벤더를 하나만 싣기 때문에 지금 켤 수 있는 값은 `javamail` 하나뿐이다. 주석으로 `ses`를 나열하면 "값만 바꾸면 SES로 전환된다"는 거짓 선택지가 되고, 실제로 값만 바꾸면 `MailSender` 빈이 없어 기동이 실패한다. 전환은 위 3곳 동시 교체로만 한다.
 
 **`MAIL_SENDER_ADDRESS` 환경변수가 반드시 있어야 한다.** 벤더가 `@Value("${mail.sender-address}")`로 읽으므로 미해석 placeholder는 기동 실패다(과거 `@ConfigurationProperties` 바인딩 시절에는 미해석 값이 문자열 그대로 넘어가 기동은 됐다).
 

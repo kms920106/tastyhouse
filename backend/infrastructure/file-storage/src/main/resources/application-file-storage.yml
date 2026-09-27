@@ -4,4 +4,4 @@ spring:
       - classpath:application-firebase.yml
 
 file:
-  provider: firebase # firebase | s3
+  provider: firebase

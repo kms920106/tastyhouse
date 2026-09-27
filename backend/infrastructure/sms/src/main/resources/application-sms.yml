@@ -4,5 +4,5 @@ spring:
       - classpath:application-solapi.yml
 
 sms:
-  provider: solapi # solapi | sns
+  provider: solapi
   sender-number: ${SMS_SENDER_NUMBER}
