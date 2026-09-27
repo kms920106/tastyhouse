@@ -6,20 +6,29 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
 import com.tastyhouse.domain.file.model.UploadedFile;
-import com.tastyhouse.domain.file.port.FileStoragePort;
+import com.tastyhouse.application.file.port.out.FileDeleteResult;
+import com.tastyhouse.application.file.port.out.FileStoragePort;
 import com.tastyhouse.domain.file.repository.UploadedFileRepository;
-import com.tastyhouse.domain.file.service.FileUploadService;
+import com.tastyhouse.application.file.service.FileUploadService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadFailure;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
+import com.tastyhouse.application.shared.exception.BatchJobException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -63,7 +72,7 @@ class BbqServiceTest {
     @DisplayName("이미지 URL이 있으면 다운로드 결과를 파일로 업로드하고, 반환된 파일 id를 상품 등록에 싣는다")
     void uploadsDownloadedImageAndRegistersFileId() {
         when(bbqMenuPort.fetchMenuDetail(BBQ_MENU_ID)).thenReturn(menu(IMAGE_URL));
-        when(remoteImagePort.download(IMAGE_URL)).thenReturn(new DownloadedImage(PNG_BYTES, "image/png", "chicken.png"));
+        when(remoteImagePort.download(IMAGE_URL)).thenReturn(ImageDownloadResult.downloaded(new DownloadedImage(PNG_BYTES, "image/png", "chicken.png")));
 
         service.crawlAndSaveNewMenu(SHOP_ID);
 
@@ -83,6 +92,25 @@ class BbqServiceTest {
         verify(remoteImagePort, never()).download(any());
         assertThat(storage.content).isNull();
         assertThat(registeredProduct().imageFileId()).isNull();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "EMPTY, FILE_EMPTY",
+        "SIZE_EXCEEDED, FILE_SIZE_EXCEEDED"
+    })
+    @DisplayName("이미지 다운로드 실패 결과는 기존과 같은 파일 ErrorCode로 번역되어 크롤링을 실패시킨다")
+    void translatesDownloadFailureToFileErrorCode(ImageDownloadFailure failure, ErrorCode expected) {
+        when(bbqMenuPort.fetchMenuDetail(BBQ_MENU_ID)).thenReturn(menu(IMAGE_URL));
+        when(remoteImagePort.download(IMAGE_URL)).thenReturn(ImageDownloadResult.failed(failure));
+
+        assertThatThrownBy(() -> service.crawlAndSaveNewMenu(SHOP_ID))
+            .isInstanceOf(BatchJobException.class)
+            .cause()
+            .isInstanceOf(BusinessException.class)
+            .hasFieldOrPropertyWithValue("errorCode", expected);
+        assertThat(storage.content).isNull();
+        verify(bbqProductSyncService, never()).createCrawledProduct(any());
     }
 
     private BbqProductRegistration registeredProduct() {
@@ -115,7 +143,8 @@ class BbqServiceTest {
         }
 
         @Override
-        public void delete(String filePath) {
+        public FileDeleteResult delete(String filePath) {
+            return FileDeleteResult.deleted();
         }
     }
 

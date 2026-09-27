@@ -14,11 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadFailure;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RemoteImageDownloaderTest {
 
@@ -51,7 +50,9 @@ class RemoteImageDownloaderTest {
             respond(exchange, 200, "image/png; charset=binary", PNG_BYTES, PNG_BYTES.length);
         });
 
-        DownloadedImage image = downloader.download(baseUrl + "/menu/a%20%EC%B9%98%ED%82%A8.png?v=1");
+        ImageDownloadResult result = downloader.download(baseUrl + "/menu/a%20%EC%B9%98%ED%82%A8.png?v=1");
+        assertThat(result.success()).isTrue();
+        DownloadedImage image = result.image();
 
         assertThat(requestedRawPath.get()).isEqualTo("/menu/a%20%EC%B9%98%ED%82%A8.png");
         assertThat(image.bytes()).containsExactly(PNG_BYTES);
@@ -60,33 +61,30 @@ class RemoteImageDownloaderTest {
     }
 
     @Test
-    @DisplayName("200이 아닌 응답은 FILE_EMPTY로 실패한다")
+    @DisplayName("200이 아닌 응답은 EMPTY 실패 결과를 돌려준다")
     void nonOkStatusIsFileEmpty() {
         server.createContext("/", exchange -> respond(exchange, 404, "text/plain", new byte[0], -1));
 
-        assertThatThrownBy(() -> downloader.download(baseUrl + "/missing.png"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_EMPTY));
+        assertThat(downloader.download(baseUrl + "/missing.png").failure())
+            .isEqualTo(ImageDownloadFailure.EMPTY);
     }
 
     @Test
-    @DisplayName("Content-Length 없이 상한을 넘겨 흘려보내는 응답도 FILE_SIZE_EXCEEDED로 끊는다")
+    @DisplayName("Content-Length 없이 상한을 넘겨 흘려보내는 응답도 SIZE_EXCEEDED 실패 결과로 끊는다")
     void streamedBodyOverLimitIsRejected() {
         server.createContext("/", exchange -> respond(exchange, 200, "image/png", new byte[MAX_IMAGE_BYTES + 1], 0));
 
-        assertThatThrownBy(() -> downloader.download(baseUrl + "/huge.png"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_SIZE_EXCEEDED));
+        assertThat(downloader.download(baseUrl + "/huge.png").failure())
+            .isEqualTo(ImageDownloadFailure.SIZE_EXCEEDED);
     }
 
     @Test
-    @DisplayName("Content-Length가 상한을 넘으면 본문을 읽기 전에 FILE_SIZE_EXCEEDED로 실패한다")
+    @DisplayName("Content-Length가 상한을 넘으면 본문을 읽기 전에 SIZE_EXCEEDED 실패 결과를 돌려준다")
     void declaredLengthOverLimitIsRejected() {
         server.createContext("/", exchange -> respond(exchange, 200, "image/png", new byte[MAX_IMAGE_BYTES + 1], MAX_IMAGE_BYTES + 1));
 
-        assertThatThrownBy(() -> downloader.download(baseUrl + "/huge.png"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_SIZE_EXCEEDED));
+        assertThat(downloader.download(baseUrl + "/huge.png").failure())
+            .isEqualTo(ImageDownloadFailure.SIZE_EXCEEDED);
     }
 
     private static void respond(HttpExchange exchange, int status, String contentType, byte[] body, long length)

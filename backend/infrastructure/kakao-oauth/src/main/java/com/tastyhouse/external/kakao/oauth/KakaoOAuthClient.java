@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
@@ -36,14 +37,14 @@ public class KakaoOAuthClient implements SocialOAuthClient {
     }
 
     @Override
-    public SocialCredential exchange(SocialAuthorization authorization) {
-        return SocialCredential.of(fetchToken(authorization.code()).accessToken());
+    public SocialOAuthResult<SocialCredential> exchange(SocialAuthorization authorization) {
+        return SocialOAuthResult.success(SocialCredential.of(fetchToken(authorization.code()).accessToken()));
     }
 
     @Override
-    public SocialProfile fetchProfile(SocialCredential credential) {
+    public SocialOAuthResult<SocialProfile> fetchProfile(SocialCredential credential) {
         KakaoUserInfoResponse user = fetchUserInfo(credential.value());
-        return new SocialProfile(
+        return SocialOAuthResult.success(new SocialProfile(
             String.valueOf(user.id()),
             user.getEmail(),
             user.getNickname(),
@@ -54,7 +55,7 @@ public class KakaoOAuthClient implements SocialOAuthClient {
             null,
             null,
             null
-        );
+        ));
     }
 
     public KakaoTokenResponse fetchToken(String authorizationCode) {

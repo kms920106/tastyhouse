@@ -3,11 +3,11 @@ package com.tastyhouse.external.facebook.oauth;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
+import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
@@ -35,19 +35,19 @@ public class FacebookOAuthClient implements SocialOAuthClient {
     }
 
     @Override
-    public SocialCredential exchange(SocialAuthorization authorization) {
+    public SocialOAuthResult<SocialCredential> exchange(SocialAuthorization authorization) {
         String facebookAccessToken = authorization.code();
         FacebookTokenDebugResponse debugResponse = debugToken(facebookAccessToken);
         if (!debugResponse.isValid() || !appId.equals(debugResponse.getAppId())) {
-            throw new BusinessException(ErrorCode.SOCIAL_OAUTH_FAILED);
+            return SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED);
         }
-        return SocialCredential.of(facebookAccessToken);
+        return SocialOAuthResult.success(SocialCredential.of(facebookAccessToken));
     }
 
     @Override
-    public SocialProfile fetchProfile(SocialCredential credential) {
+    public SocialOAuthResult<SocialProfile> fetchProfile(SocialCredential credential) {
         FacebookUserInfoResponse user = fetchUserInfo(credential.value());
-        return new SocialProfile(
+        return SocialOAuthResult.success(new SocialProfile(
             user.id(),
             user.email(),
             null,
@@ -58,7 +58,7 @@ public class FacebookOAuthClient implements SocialOAuthClient {
             null,
             null,
             null
-        );
+        ));
     }
 
     public FacebookUserInfoResponse fetchUserInfo(String facebookAccessToken) {

@@ -2,7 +2,7 @@
 
 # infrastructure:aws-sns
 
-AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `SmsSender`를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 벤더(Solapi)는 `infrastructure:solapi`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:sms`가 한다.
+AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). `application` 모듈이 소유한 포트 `SmsSender`(`com.tastyhouse.application.sms.port.out`)를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 벤더(Solapi)는 `infrastructure:solapi`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:sms`가 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
@@ -26,7 +26,7 @@ AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). 도메인 �
 com.tastyhouse.external.aws.sns/
 ├── AwsSnsModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
 ├── SnsConfig.java                      SnsClient 빈 + SmsSender 빈   @ConditionalOnProperty(sms.provider=sns)
-└── SnsSmsSender.java                   SmsSender 구현 (POJO — SnsConfig가 @Bean으로 등록)
+└── SnsSmsSender.java                   SmsSender 구현 (POJO — SnsConfig가 @Bean으로 등록), 발송 실패는 SmsSendResult로 반환
 ```
 
 ## yml — `application-aws-sns.yml`
@@ -36,8 +36,10 @@ com.tastyhouse.external.aws.sns/
 ## Dependencies
 
 ### Internal
-- **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제되고 상수가 도메인 `ErrorCode`로 이관되면서 이 모듈은 도메인만 있으면 충분해졌다. `SnsSmsSender`는 발송 실패를 `new BusinessException(ErrorCode.SMS_SEND_API_ERROR/SMS_SEND_FAILED[, cause])`로 직접 던진다.
-- `domain` (implementation) — `SmsSender` 포트 + `ErrorCode`(`SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`)·`BusinessException`
+- **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제됐다.
+- `application` (implementation) — `SmsSender` 포트(`com.tastyhouse.application.sms.port.out`)
+
+`SnsSmsSender#send`는 `ErrorCode.SMS_SEND_API_ERROR`/`SMS_SEND_FAILED`로 `BusinessException`을 직접 던지지 않고, `SmsSendResult`(`sent()`/`failed(SmsSendFailure, cause)`, `SmsSendFailure`는 `NO_RESPONSE`·`FAILED`·`API_ERROR` 3종)를 반환한다 — 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 소비 측 `SmsVerificationService`(application 계층)로 옮겨갔다. 이 모듈은 도메인 `BusinessException`/`ErrorCode`를 전혀 참조하지 않는다.
 
 **채널 모듈(`infrastructure:sms`)을 의존하지 않는다.** SNS는 발신 번호를 읽지 않는다(`SnsConfig`가 `sms.aws.sns.*`만 읽는다). 발신 번호 지정이 필요해지면 채널 모듈을 의존하지 말고 `@Value("${sms.sender-number}")`로 키를 읽는다 — 채널 모듈이 벤더를 `runtimeOnly`로 조립하므로 의존하면 순환이다(`../sms/AGENTS.md` 봉인 목록). 과거 `SmsProperties` record는 4분할과 함께 삭제됐다.
 

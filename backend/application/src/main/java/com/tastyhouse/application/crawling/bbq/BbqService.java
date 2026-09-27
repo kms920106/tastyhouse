@@ -8,15 +8,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.file.service.FileUploadCommand;
-import com.tastyhouse.domain.file.service.FileUploadService;
+import com.tastyhouse.application.file.service.FileUploadCommand;
+import com.tastyhouse.application.file.service.FileUploadService;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.application.shared.exception.BatchJobException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 
 @Service
 @BatchApp
@@ -144,7 +147,7 @@ public class BbqService {
     }
 
     private Long uploadRemoteImage(String imageUrl) {
-        DownloadedImage image = remoteImagePort.download(imageUrl);
+        DownloadedImage image = downloadRemoteImage(imageUrl);
         FileUploadCommand command = FileUploadCommand.of(
             image.filename(),
             image.bytes(),
@@ -152,5 +155,17 @@ public class BbqService {
             image.contentType()
         );
         return fileUploadService.upload(command).value();
+    }
+
+    private DownloadedImage downloadRemoteImage(String imageUrl) {
+        ImageDownloadResult result = remoteImagePort.download(imageUrl);
+        if (result.success()) {
+            return result.image();
+        }
+        ErrorCode errorCode = switch (result.failure()) {
+            case EMPTY -> ErrorCode.FILE_EMPTY;
+            case SIZE_EXCEEDED -> ErrorCode.FILE_SIZE_EXCEEDED;
+        };
+        throw new BusinessException(errorCode);
     }
 }

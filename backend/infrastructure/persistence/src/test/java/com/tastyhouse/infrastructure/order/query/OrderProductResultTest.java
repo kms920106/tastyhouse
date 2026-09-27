@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.application.order.port.out.OrderProductOptionResult;
 import com.tastyhouse.application.order.port.out.OrderProductResult;
-import com.tastyhouse.domain.file.port.FileStoragePort;
+import com.tastyhouse.application.file.port.out.FileDeleteResult;
+import com.tastyhouse.application.file.port.out.FileStoragePort;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,7 +83,7 @@ class OrderProductResultTest {
         }
 
         @Override
-        public void delete(String filePath) {
+        public FileDeleteResult delete(String filePath) {
             throw new UnsupportedOperationException("조회 변환만 검증한다");
         }
     }

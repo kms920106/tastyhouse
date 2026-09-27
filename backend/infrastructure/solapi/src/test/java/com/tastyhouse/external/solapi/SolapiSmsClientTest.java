@@ -9,12 +9,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.sms.port.out.SmsSendFailure;
+import com.tastyhouse.application.sms.port.out.SmsSendResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
@@ -46,7 +44,7 @@ class SolapiSmsClientTest {
     }
 
     @Test
-    @DisplayName("실패 목록이 없는 응답이면 예외 없이 발송을 마친다")
+    @DisplayName("실패 목록이 없는 응답이면 성공 결과를 돌려준다")
     void sendSuccess() {
         server.expect(requestTo(SEND_URL))
             .andExpect(method(HttpMethod.POST))
@@ -56,13 +54,14 @@ class SolapiSmsClientTest {
             .andExpect(jsonPath("$.messages[0].subject").doesNotExist())
             .andRespond(withSuccess("{\"failedMessageList\":[]}", MediaType.APPLICATION_JSON));
 
-        assertThatCode(() -> client.send("01012345678", "인증번호 123456"))
-            .doesNotThrowAnyException();
+        SmsSendResult result = client.send("01012345678", "인증번호 123456");
+
+        assertThat(result.success()).isTrue();
         server.verify();
     }
 
     @Test
-    @DisplayName("실패 목록이 있으면 SMS_SEND_FAILED로 실패한다")
+    @DisplayName("실패 목록이 있으면 FAILED 결과를 돌려준다")
     void sendFailedMessages() {
         server.expect(requestTo(SEND_URL))
             .andRespond(withSuccess(
@@ -70,33 +69,36 @@ class SolapiSmsClientTest {
                 MediaType.APPLICATION_JSON
             ));
 
-        assertThatThrownBy(() -> client.send("01012345678", "인증번호 123456"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.SMS_SEND_FAILED));
+        SmsSendResult result = client.send("01012345678", "인증번호 123456");
+
+        assertThat(result.failure()).isEqualTo(SmsSendFailure.FAILED);
+        assertThat(result.cause()).isNull();
         server.verify();
     }
 
     @Test
-    @DisplayName("본문이 없는 응답은 SMS_SEND_NO_RESPONSE로 실패한다")
+    @DisplayName("본문이 없는 응답은 NO_RESPONSE 결과를 돌려준다")
     void sendEmptyBody() {
         server.expect(requestTo(SEND_URL))
             .andRespond(withSuccess());
 
-        assertThatThrownBy(() -> client.send("01012345678", "인증번호 123456"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.SMS_SEND_NO_RESPONSE));
+        SmsSendResult result = client.send("01012345678", "인증번호 123456");
+
+        assertThat(result.failure()).isEqualTo(SmsSendFailure.NO_RESPONSE);
+        assertThat(result.cause()).isNull();
         server.verify();
     }
 
     @Test
-    @DisplayName("5xx 응답은 SMS_SEND_API_ERROR로 실패한다")
+    @DisplayName("5xx 응답은 원인 예외를 담은 API_ERROR 결과를 돌려준다")
     void sendServerError() {
         server.expect(requestTo(SEND_URL))
             .andRespond(withServerError());
 
-        assertThatThrownBy(() -> client.send("01012345678", "인증번호 123456"))
-            .isInstanceOfSatisfying(BusinessException.class, e ->
-                assertThat(e.getErrorCode()).isEqualTo(ErrorCode.SMS_SEND_API_ERROR));
+        SmsSendResult result = client.send("01012345678", "인증번호 123456");
+
+        assertThat(result.failure()).isEqualTo(SmsSendFailure.API_ERROR);
+        assertThat(result.cause()).isNotNull();
         server.verify();
     }
 }

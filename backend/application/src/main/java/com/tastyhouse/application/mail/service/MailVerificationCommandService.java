@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.mail.service.MailVerificationService;
 import com.tastyhouse.application.mail.port.in.MailVerificationCommandUseCase;
 import com.tastyhouse.application.mail.port.in.MailVerificationConfirmCommand;
 import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;

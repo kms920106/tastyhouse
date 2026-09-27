@@ -7,6 +7,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,11 +19,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
+import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
@@ -61,16 +62,22 @@ public class AppleOAuthClient implements SocialOAuthClient {
     }
 
     @Override
-    public SocialCredential exchange(SocialAuthorization authorization) {
+    public SocialOAuthResult<SocialCredential> exchange(SocialAuthorization authorization) {
         String idToken = fetchToken(authorization.code()).idToken();
-        verifyIdToken(idToken);
-        return SocialCredential.of(idToken);
+        if (verifyIdToken(idToken).isEmpty()) {
+            return SocialOAuthResult.failed(SocialOAuthFailure.APPLE_ID_TOKEN_INVALID);
+        }
+        return SocialOAuthResult.success(SocialCredential.of(idToken));
     }
 
     @Override
-    public SocialProfile fetchProfile(SocialCredential credential) {
-        AppleIdTokenPayload payload = verifyIdToken(credential.value());
-        return new SocialProfile(
+    public SocialOAuthResult<SocialProfile> fetchProfile(SocialCredential credential) {
+        Optional<AppleIdTokenPayload> verified = verifyIdToken(credential.value());
+        if (verified.isEmpty()) {
+            return SocialOAuthResult.failed(SocialOAuthFailure.APPLE_ID_TOKEN_INVALID);
+        }
+        AppleIdTokenPayload payload = verified.get();
+        return SocialOAuthResult.success(new SocialProfile(
             payload.sub(),
             payload.email(),
             null,
@@ -81,14 +88,14 @@ public class AppleOAuthClient implements SocialOAuthClient {
             null,
             null,
             null
-        );
+        ));
     }
 
-    private AppleIdTokenPayload verifyIdToken(String idToken) {
+    private Optional<AppleIdTokenPayload> verifyIdToken(String idToken) {
         try {
-            return verifyAndExtractIdToken(idToken);
+            return Optional.of(verifyAndExtractIdToken(idToken));
         } catch (RuntimeException e) {
-            throw new BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID);
+            return Optional.empty();
         }
     }
 

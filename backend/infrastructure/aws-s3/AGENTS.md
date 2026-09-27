@@ -2,7 +2,7 @@
 
 # infrastructure:aws-s3
 
-AWS S3 파일 저장 어댑터를 소유하는 모듈(`java-library`). 도메인 포트 `FileStoragePort`를 `S3FileStorage`가 직접 구현한다. 파일 저장 벤더의 교체 선택지(firebase ↔ s3) 중 s3 쪽이며, 선택은 스타터 `infrastructure:file-storage`가 한다.
+AWS S3 파일 저장 어댑터를 소유하는 모듈(`java-library`). `application` 모듈이 소유한 포트 `FileStoragePort`(`com.tastyhouse.application.file.port.out`)를 `S3FileStorage`가 직접 구현한다. 파일 저장 벤더의 교체 선택지(firebase ↔ s3) 중 s3 쪽이며, 선택은 스타터 `infrastructure:file-storage`가 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
@@ -21,7 +21,7 @@ AWS S3 파일 저장 어댑터를 소유하는 모듈(`java-library`). 도메인
 1. **전이 의존 누출.** 옛 모듈은 SES·SNS 때문에 `infrastructure:external`(+ webflux)과 `infrastructure:messaging`을 `implementation`으로 가졌다. `implementation`은 `runtimeElements`에 실리므로, 스타터를 aws로 바꾸는 순간 4앱 전부의 `runtimeClasspath`에 external·webflux·messaging이 함께 실렸다. messaging은 클래스패스 존재만으로 발화하고 `JavaMailAdapter`(`matchIfMissing = true`)가 `JavaMailSender`를 요구하는데, admin·ceo·batch는 `spring.mail.host`가 없어 그 빈이 없다 → **파일 저장만 바꿨는데 admin·ceo·batch 기동이 깨지는 구조**였다.
 2. **`S3Operations` 미등록.** `spring-cloud-aws-s3` 라이브러리만 선언돼 `spring-cloud-aws-autoconfigure`가 클래스패스에 없었다. `file.provider=s3`로 켜면 `S3FileStorage` 생성자 주입이 실패했다.
 
-S3는 4앱이 스타터를 통해, SES·SNS는 web만 직접 활성화한다 — **활성화 경로와 소비 앱이 다른 채널을 한 모듈에 둔 것이 원인**이라 채널마다 모듈을 나눴다. 이 모듈의 의존은 `domain`과 `spring-cloud-aws-starter-s3`뿐이다.
+S3는 4앱이 스타터를 통해, SES·SNS는 web만 직접 활성화한다 — **활성화 경로와 소비 앱이 다른 채널을 한 모듈에 둔 것이 원인**이라 채널마다 모듈을 나눴다. 이 모듈의 의존은 `application`과 `spring-cloud-aws-starter-s3`뿐이다.
 
 ## S3로 전환하는 절차 (앱 무수정)
 
@@ -38,7 +38,7 @@ S3는 4앱이 스타터를 통해, SES·SNS는 web만 직접 활성화한다 —
 ```
 com.tastyhouse.external.aws.s3/
 ├── AwsS3ModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(S3FileStorageProperties)
-├── S3FileStorage.java                 FileStoragePort 직접 구현 @ConditionalOnProperty(file.provider=s3)
+├── S3FileStorage.java                 FileStoragePort 직접 구현 @ConditionalOnProperty(file.provider=s3), 삭제는 FileDeleteResult 반환
 └── S3FileStorageProperties.java       file.aws.s3.* (bucketName · baseUrl)
 ```
 
@@ -56,7 +56,9 @@ com.tastyhouse.external.aws.s3/
 ## Dependencies
 
 ### Internal
-- `domain` (implementation) — `FileStoragePort`, `BusinessException`/`ErrorCode`(`FILE_DELETE_FAILED`)
+- `application` (implementation) — `FileStoragePort`(`com.tastyhouse.application.file.port.out`)
+
+`S3FileStorage#delete`는 `ErrorCode.FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — `domain`의 `BusinessException`/`ErrorCode`를 참조하지 않는다.
 
 ### External
 - `io.awspring.cloud:spring-cloud-aws-starter-s3` — 라이브러리가 아니라 **스타터**여야 한다. autoconfigure가 동반돼야 `S3Operations`·`S3Client` 빈이 생긴다(위 결함 2).

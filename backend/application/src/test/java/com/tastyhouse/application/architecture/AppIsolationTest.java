@@ -18,11 +18,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import com.tastyhouse.application.mail.service.MailVerificationService;
+import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.payment.service.PgPaymentGatewayRouter;
 import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.marker.BatchApp;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.application.sms.service.SmsVerificationService;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -51,6 +55,19 @@ class AppIsolationTest {
                     .check(classes);
             }
         }
+    }
+
+    @Test
+    void sharedBeansShouldNotDependOnWebOnlyServices() {
+        noClasses()
+            .that().areAnnotatedWith(SharedApp.class)
+            .should().dependOnClassesThat().belongToAnyOf(
+                MailVerificationService.class,
+                SmsVerificationService.class,
+                PgPaymentGatewayRouter.class,
+                PgPaymentGateway.class)
+            .because("web 전용 설정(@WebApp)만 등록하는 서비스를 공통 빈이 주입하면 admin·ceo·batch가 기동하지 못한다")
+            .check(classes);
     }
 
     @Test

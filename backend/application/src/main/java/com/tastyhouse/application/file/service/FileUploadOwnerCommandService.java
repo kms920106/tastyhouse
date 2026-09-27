@@ -10,8 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.file.service.FileUploadCommand;
-import com.tastyhouse.domain.file.service.FileUploadService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 @Service

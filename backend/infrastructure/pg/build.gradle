@@ -4,13 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain')
-
     runtimeOnly project(':infrastructure:tosspayments')
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Xlint:deprecation"
 }
 
 jar {

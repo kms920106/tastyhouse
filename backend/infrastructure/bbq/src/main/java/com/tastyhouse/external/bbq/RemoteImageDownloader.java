@@ -14,9 +14,9 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadFailure;
+import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.restclient.config.HttpRequestFactories;
 
 @Component
@@ -38,7 +38,7 @@ public class RemoteImageDownloader implements RemoteImagePort {
     }
 
     @Override
-    public DownloadedImage download(String imageUrl) {
+    public ImageDownloadResult download(String imageUrl) {
         try {
             return restClient.get()
                 .uri(URI.create(imageUrl))
@@ -49,15 +49,15 @@ public class RemoteImageDownloader implements RemoteImagePort {
         }
     }
 
-    private static DownloadedImage readImage(String imageUrl, ClientHttpResponse response) throws IOException {
+    private static ImageDownloadResult readImage(String imageUrl, ClientHttpResponse response) throws IOException {
         if (response.getStatusCode().value() != 200) {
             log.error("이미지 다운로드 응답이 비정상입니다: status={}, url={}", response.getStatusCode().value(), imageUrl);
-            throw new BusinessException(ErrorCode.FILE_EMPTY);
+            return ImageDownloadResult.failed(ImageDownloadFailure.EMPTY);
         }
 
         HttpHeaders headers = response.getHeaders();
         if (headers.getContentLength() > MAX_IMAGE_BYTES) {
-            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED);
+            return ImageDownloadResult.failed(ImageDownloadFailure.SIZE_EXCEEDED);
         }
 
         byte[] bytes;
@@ -65,12 +65,12 @@ public class RemoteImageDownloader implements RemoteImagePort {
             bytes = body.readNBytes(MAX_IMAGE_BYTES + 1);
         }
         if (bytes.length > MAX_IMAGE_BYTES) {
-            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED);
+            return ImageDownloadResult.failed(ImageDownloadFailure.SIZE_EXCEEDED);
         }
         if (bytes.length == 0) {
-            throw new BusinessException(ErrorCode.FILE_EMPTY);
+            return ImageDownloadResult.failed(ImageDownloadFailure.EMPTY);
         }
-        return new DownloadedImage(bytes, contentTypeOf(headers), filenameOf(imageUrl));
+        return ImageDownloadResult.downloaded(new DownloadedImage(bytes, contentTypeOf(headers), filenameOf(imageUrl)));
     }
 
     private static String filenameOf(String imageUrl) {

@@ -4,11 +4,13 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain')
+    implementation project(':application')
 
     implementation 'com.google.firebase:firebase-admin:9.10.0'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -9,7 +9,7 @@ import java.util.Objects;
 import com.querydsl.core.types.Expression;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.file.port.FileStoragePort;
+import com.tastyhouse.application.file.port.out.FileStoragePort;
 
 @Component
 public class FileUrlResolver {

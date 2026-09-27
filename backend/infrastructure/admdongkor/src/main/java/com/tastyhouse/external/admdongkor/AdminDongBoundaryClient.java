@@ -2,12 +2,12 @@ package com.tastyhouse.external.admdongkor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -19,13 +19,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import com.tastyhouse.application.region.port.out.AdminDongBoundaryFetchResult;
 import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
 import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.geo.GeoPoint;
-import com.tastyhouse.domain.shared.geo.GeoRing;
-import com.tastyhouse.domain.shared.geo.InteriorPoint;
+import com.tastyhouse.application.region.port.out.BoundaryCoordinate;
+import com.tastyhouse.application.region.port.out.BoundaryRing;
 import com.tastyhouse.restclient.config.HttpRequestFactories;
 
 @Component
@@ -54,16 +52,19 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
     }
 
     @Override
-    public List<AdminDongBoundarySource> fetchAll() {
-        URI sourceUri = sourceUri();
+    public AdminDongBoundaryFetchResult fetchAll() {
+        Optional<URI> sourceUri = sourceUri();
+        if (sourceUri.isEmpty()) {
+            return AdminDongBoundaryFetchResult.fetchFailed();
+        }
         try {
             return restClient.get()
-                .uri(sourceUri)
+                .uri(sourceUri.get())
                 .exchange((request, response) -> {
                     if (response.getStatusCode().value() != 200) {
                         log.error("행정동 경계 원천 응답이 비정상입니다: status={}, url={}",
                             response.getStatusCode().value(), properties.sourceUrl());
-                        throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+                        return AdminDongBoundaryFetchResult.fetchFailed();
                     }
 
                     try (InputStream body = new BoundedInputStream(response.getBody(), properties.maxBytes())) {
@@ -72,26 +73,27 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
                 });
         } catch (ResourceAccessException e) {
             log.error("행정동 경계 원천 다운로드에 실패했습니다: url={}", properties.sourceUrl(), e);
-            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            return AdminDongBoundaryFetchResult.fetchFailed();
         }
     }
 
-    private URI sourceUri() {
+    private Optional<URI> sourceUri() {
         try {
-            return new URI(properties.sourceUrl());
+            return Optional.of(new URI(properties.sourceUrl()));
         } catch (URISyntaxException e) {
-            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            log.error("행정동 경계 원천 URL 형식이 올바르지 않습니다: url={}", properties.sourceUrl(), e);
+            return Optional.empty();
         }
     }
 
-    private List<AdminDongBoundarySource> parseFeatures(InputStream body) throws IOException {
+    private AdminDongBoundaryFetchResult parseFeatures(InputStream body) throws IOException {
         List<AdminDongBoundarySource> results = new ArrayList<>();
         int skipped = 0;
 
         try (JsonParser parser = objectMapper.getFactory().createParser(body)) {
             if (!moveToFeatures(parser)) {
                 log.error("행정동 경계 GeoJSON에 features 배열이 없습니다: url={}", properties.sourceUrl());
-                throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+                return AdminDongBoundaryFetchResult.fetchFailed();
             }
 
             while (parser.nextToken() == JsonToken.START_OBJECT) {
@@ -106,11 +108,11 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
 
         if (results.isEmpty()) {
             log.error("행정동 경계 원천에서 읽어 온 행이 없습니다: url={}", properties.sourceUrl());
-            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            return AdminDongBoundaryFetchResult.fetchFailed();
         }
 
-        log.info("행정동 경계 원천 파싱 완료: {}건 (대표점 계산 실패로 제외 {}건)", results.size(), skipped);
-        return results;
+        log.info("행정동 경계 원천 파싱 완료: {}건 (필수 속성 누락으로 제외 {}건)", results.size(), skipped);
+        return AdminDongBoundaryFetchResult.fetched(results);
     }
 
     private boolean moveToFeatures(JsonParser parser) throws IOException {
@@ -133,28 +135,20 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
             return null;
         }
 
-        List<GeoRing> boundary = toRings(feature.path("geometry"));
-        GeoPoint center = InteriorPoint.of(boundary);
-        if (center == null) {
-            log.warn("행정동 대표점을 계산하지 못해 건너뜁니다: code={}, name={}", code, dongName);
-            return null;
-        }
-
         return new AdminDongBoundarySource(
             code,
             shortSidoName(sidoName),
             sigunguName,
             dongName,
-            center,
-            boundary
+            toRings(feature.path("geometry"))
         );
     }
 
-    private List<GeoRing> toRings(JsonNode geometry) {
+    private List<BoundaryRing> toRings(JsonNode geometry) {
         String type = geometry.path("type").asText("");
         JsonNode coordinates = geometry.path("coordinates");
 
-        List<GeoRing> rings = new ArrayList<>();
+        List<BoundaryRing> rings = new ArrayList<>();
         if ("MultiPolygon".equals(type)) {
             for (JsonNode polygon : coordinates) {
                 appendPolygonRings(polygon, rings);
@@ -165,24 +159,16 @@ public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
         return rings;
     }
 
-    private void appendPolygonRings(JsonNode polygon, List<GeoRing> target) {
+    private void appendPolygonRings(JsonNode polygon, List<BoundaryRing> target) {
         for (JsonNode ring : polygon) {
-            List<GeoPoint> points = new ArrayList<>();
+            List<BoundaryCoordinate> coordinates = new ArrayList<>();
             for (JsonNode point : ring) {
                 if (point.size() < 2) {
                     continue;
                 }
-                points.add(GeoPoint.of(
-                    BigDecimal.valueOf(point.get(1).asDouble()),
-                    BigDecimal.valueOf(point.get(0).asDouble())
-                ));
+                coordinates.add(new BoundaryCoordinate(point.get(1).asDouble(), point.get(0).asDouble()));
             }
-
-            try {
-                target.add(GeoRing.of(points));
-            } catch (IllegalArgumentException e) {
-                log.debug("행정동 경계의 퇴화 링을 건너뜁니다: 정점 {}개", points.size());
-            }
+            target.add(new BoundaryRing(coordinates));
         }
     }
 

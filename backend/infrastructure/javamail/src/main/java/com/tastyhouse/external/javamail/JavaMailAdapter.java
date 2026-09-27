@@ -10,9 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.mail.port.MailSender;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.mail.port.out.MailSendResult;
+import com.tastyhouse.application.mail.port.out.MailSender;
 
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
@@ -29,7 +28,7 @@ public class JavaMailAdapter implements MailSender {
     }
 
     @Override
-    public void send(String to, String subject, String content) {
+    public MailSendResult send(String to, String subject, String content) {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
@@ -40,12 +39,13 @@ public class JavaMailAdapter implements MailSender {
 
             javaMailSender.send(mimeMessage);
             log.info("메일 발송 성공. to: {}, subject: {}", to, subject);
+            return MailSendResult.sent();
         } catch (MessagingException e) {
             log.error("메일 발송 실패. to: {}, subject: {}", to, subject, e);
-            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
+            return MailSendResult.failed(e);
         } catch (Exception e) {
             log.error("메일 발송 중 예외 발생. to: {}, subject: {}", to, subject, e);
-            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
+            return MailSendResult.failed(e);
         }
     }
 }

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.sms.service.SmsVerificationService;
 import com.tastyhouse.application.sms.port.in.SmsVerificationCommandUseCase;
 import com.tastyhouse.application.sms.port.in.SmsVerificationConfirmCommand;
 import com.tastyhouse.application.sms.port.in.SmsVerificationSendCommand;

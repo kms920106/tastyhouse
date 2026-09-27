@@ -9,7 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ses.SesClient;
 
-import com.tastyhouse.domain.mail.port.MailSender;
+import com.tastyhouse.application.mail.port.out.MailSender;
 
 @Configuration
 @ConditionalOnProperty(name = "mail.provider", havingValue = "ses")

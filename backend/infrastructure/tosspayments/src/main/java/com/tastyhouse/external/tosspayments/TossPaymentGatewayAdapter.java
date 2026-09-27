@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.payment.model.PgProvider;
-import com.tastyhouse.domain.payment.port.PgProviderGateway;
-import com.tastyhouse.domain.payment.port.dto.PgCancelResult;
-import com.tastyhouse.domain.payment.port.dto.PgConfirmResult;
-import com.tastyhouse.domain.payment.port.dto.TossPaymentDetail;
+import com.tastyhouse.application.payment.port.out.PgProviderCode;
+import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.payment.port.out.PgCancelResult;
+import com.tastyhouse.application.payment.port.out.PgConfirmResult;
+import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.external.tosspayments.dto.TossPaymentConfirmResponse;
 
 @Component
@@ -23,8 +23,8 @@ public class TossPaymentGatewayAdapter implements PgProviderGateway {
     }
 
     @Override
-    public PgProvider provider() {
-        return PgProvider.TOSS;
+    public PgProviderCode provider() {
+        return PgProviderCode.TOSS;
     }
 
     @Override

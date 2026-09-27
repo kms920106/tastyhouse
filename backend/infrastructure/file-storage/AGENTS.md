@@ -50,17 +50,17 @@ backend/infrastructure/file-storage/
 
 ## ⚠️ 이 모듈에 코드를 넣지 않는다
 
-메일·SMS 채널 모듈(`infrastructure:mail`·`infrastructure:sms`)은 DomainConfig 코드를 갖지만 이 규칙의 예외가 아니라 **다른 개념**이다 — 그쪽은 포트 구현이 web에만 있어 도메인 서비스 빈을 persistence에 둘 수 없는 채널이고, 파일 저장은 `FileDomainConfig`가 persistence에 남아 이 모듈에 둘 코드가 없다(`../mail/AGENTS.md`의 "채널 모듈과 파일 저장 스타터의 차이").
+**(번복됨 — chunk 02-vendor-ports)** 과거에는 메일·SMS 채널 모듈(`infrastructure:mail`·`infrastructure:sms`)이 `MailDomainConfig`/`SmsDomainConfig` 코드를 갖고 이 모듈과 다른 개념이었다 — 그쪽은 포트 구현이 web에만 있어 도메인 서비스 빈을 persistence에 둘 수 없는 채널이고, 파일 저장은 `FileDomainConfig`가 persistence에 남아 이 모듈에 둘 코드가 없다는 것이 그 근거였다(`../mail/AGENTS.md`의 "채널 모듈과 파일 저장 스타터의 차이"). **지금은 `FileDomainConfig`·`MailDomainConfig`·`SmsDomainConfig` 셋 다 삭제됐다** — 도메인 서비스(`FileUploadService`·`MailVerificationService`·`SmsVerificationService`)가 전부 유스케이스 계층으로 재분류되어 `application`의 마커 등록 설정(`FileServiceConfig`·`MailServiceConfig`·`SmsServiceConfig`)이 대신하므로, 파일·메일·SMS 세 채널이 이제 같은 형태(코드 없는 스타터)로 수렴했다.
 
 **자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 auto-configuration을 갖지 않는다(`META-INF/spring/...AutoConfiguration.imports` 없음) — 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다.
 
 파일 저장 관련 코드가 필요해지면 소속은 둘 중 하나다.
 
-- 벤더 무관 계약 → 도메인 포트 `FileStoragePort`(`domain`)가 이미 맡는다. 그 포트와 동형인 전략 인터페이스를 새로 만들지 않는다
+- 벤더 무관 계약 → `application`의 포트 `FileStoragePort`(`application.file.port.out`, chunk 02-vendor-ports로 `domain`에서 이관)가 이미 맡는다. 그 포트와 동형인 전략 인터페이스를 새로 만들지 않는다
 - 벤더 구현 → `infrastructure:firebase` / `infrastructure:aws-s3` (포트를 직접 구현)
 
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - `file.provider` 값은 이 모듈이 소유한다. 챕터 03 이전에는 `infrastructure:external`의 `application-external.yml`이 소유했으나, 그 파일은 이 값만 담고 있어 이동 후 삭제됐다. 이 값은 벤더 구현(`FirebaseFileStorage`·`S3FileStorage` 등)의 `@ConditionalOnProperty` 문자열로만 소비되며, 바인딩하는 Properties record는 없다.
-- 기동 성공이 곧 스타터 경유 배선의 증명이다. persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort`(Firebase 구현) 빈을 주입받으므로, 전이 의존이 끊기면 `FileStoragePort` 빈을 찾지 못해 컨텍스트 로딩이 실패한다.
+- 기동 성공이 곧 스타터 경유 배선의 증명이다. persistence의 `FileUrlResolver`와 `application`의 `FileServiceConfig`(`FileDomainConfig`는 삭제됨)가 `FileStoragePort`(Firebase 구현) 빈을 주입받으므로, 전이 의존이 끊기면 `FileStoragePort` 빈을 찾지 못해 컨텍스트 로딩이 실패한다.

@@ -7,9 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.payment.model.PgProvider;
-import com.tastyhouse.domain.payment.port.dto.PgConfirmResult;
-import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
-import com.tastyhouse.domain.payment.service.PgConfirmationTarget;
+import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 @Component

@@ -32,9 +32,9 @@
   - **재대입되지 않는 필드는 `final`로 선언**한다. `@Entity`와 달리 순수 POJO는 JPA 프록시/리플렉션 제약이 없으므로, 생성자(팩토리) 이후 상태전이로 바뀌지 않는 필드는 `id`뿐 아니라 상태 필드까지 모두 `final`로 둔다(전이되는 필드만 non-final). 불변성을 컴파일러가 강제하고 IntelliJ `may be 'final'` 경고를 차단한다. reference: `admin`의 `Admin`(update 경로 없어 전 필드 `final`).
   - **`@Embedded` 대상 VO는 Java `record`로 선언**한다(검증은 compact constructor). Hibernate 6이 `@Embedded` 값 객체를 canonical 생성자로 인스턴스화할 수 있어야 하므로 일반 class + 검증 생성자는 런타임 `InstantiationException`을 유발한다. 접근자는 record accessor(`value()`)로 통일하고 `toString()` 오버라이드는 남기지 않는다. 컬럼 매핑은 이 모듈이 아니라 각 `XxxJpaEntity`의 `@AttributeOverride`가 소유한다. reference: `shared/vo/PhoneNumber`, `shared/vo/VerificationCode`, `product/vo/ProductDiscountInfo`.
 - **Repository 인터페이스는 write 포트만 둔다**: `findById`/`save`/`saveAndFlush`/`delete`/`existsByX`(중복 검증)/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회처럼 **불변식 검증·상태 전이에 필요한** 조회만 남긴다. Result DTO·`PageResult` 반환, 조인 투영, 목록·검색·페이징 등 **표현 목적 조회는 이 모듈에 두지 않고** `infrastructure:persistence`의 `<ctx>/query/`(`{도메인}QueryDao`)가 소유한다. 판정 기준: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?"
-- **도메인 서비스(`<ctx>/service/`)는 순수 POJO**다: `@Service`/`@Component`/`@Transactional`을 붙이지 않고, 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리로 수행한다(없으면 신설). 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`(`@Transactional`)가 소유한다. 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 불변식 오케스트레이션(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`, `point/service/PointLedgerService`)과 무상태 정책·검증기(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`)가 여기 산다 — 소비 모듈로 복제하지 않는다.
+- **도메인 서비스(`<ctx>/service/`)는 순수 POJO**다: `@Service`/`@Component`/`@Transactional`을 붙이지 않고, 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리로 수행한다(없으면 신설). 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`(`@Transactional`)가 소유한다. 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 불변식 오케스트레이션(reference: `order/service/OrderPlacementService`, `payment/service/PaymentCancellationService`, `point/service/PointLedgerService`)과 무상태 정책·검증기(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`)가 여기 산다 — 소비 모듈로 복제하지 않는다. (`PaymentConfirmationService`는 같은 성격의 오케스트레이션이었으나 `application`으로 이동했다 — 아래 "결제 승인" 절 참고.)
 - **명시적 save 규칙**: 도메인 모델은 POJO이므로 JPA 더티 체킹으로 자동 flush되지 않는다. 도메인을 변경한 뒤 **반드시 `repository.save(domain)`을 호출**한다(누락 시 변경이 조용히 유실된다). 이 책임은 도메인 서비스와 api 모듈의 `{도메인}CommandService` 양쪽에 있다.
-- **출력 포트는 `<ctx>/port/`에 둔다**: 외부 시스템을 도메인이 인터페이스로 선언하고 외부 연동 모듈이 기술별로 나눠 구현한다 — `file/port/FileStoragePort`는 `infrastructure:firebase`의 `FirebaseFileStorage`(기본)·`infrastructure:aws-s3`의 `S3FileStorage`가 직접 구현(`file.provider`로 배타 선택 — 중간 위임 어댑터 없음), `payment/port/PgPaymentGateway`는 라우터 `domain/payment/service/PgPaymentGatewayRouter`가 구현하고 벤더는 `payment/port/PgProviderGateway`를 구현한다(`infrastructure:tosspayments`, 조립은 채널 모듈 `infrastructure:pg`), `mail/port/MailSender`는 `infrastructure:javamail`(SES 대체 구현은 `infrastructure:aws-ses`의 `SesMailSender` — 벤더 선택은 채널 모듈 `infrastructure:mail`이 조립한다)·`sms/port/SmsSender`는 `infrastructure:solapi`(벤더 선택은 채널 모듈 `infrastructure:sms`, SNS 대체 구현은 `infrastructure:aws-sns`의 `SnsSmsSender`)이 구현한다. `product/port/ProductReviewStatisticsPort`·`rank/port/MemberReviewCountPort`는 `infrastructure:persistence` 소관이다. 이벤트 발행 포트는 `shared/event/DomainEventPublisher`이며 스프링 구현은 infrastructure-module의 `SpringDomainEventPublisher`다.
+- **출력 포트는 `<ctx>/port/`에 둔다**: 외부 시스템을 도메인이 인터페이스로 선언하고 외부 연동 모듈이 기술별로 나눠 구현한다. **(번복됨 — 덩어리 02/03a)** 파일·메일·SMS·결제 4개 컨텍스트의 출력 포트는 `domain`을 떠나 `application`의 `<ctx>/port/out`으로 이관됐다 — `application/file/port/out/FileStoragePort`는 `infrastructure:firebase`의 `FirebaseFileStorage`(기본)·`infrastructure:aws-s3`의 `S3FileStorage`가 직접 구현(`file.provider`로 배타 선택 — 중간 위임 어댑터 없음), `application/payment/port/out/PgPaymentGateway`는 라우터 `application/payment/service/PgPaymentGatewayRouter`(POJO+`@SharedApp` 등록)가 구현하고 벤더는 `application/payment/port/out/PgProviderGateway`를 구현한다(`infrastructure:tosspayments`, 조립은 채널 모듈 `infrastructure:pg`), `application/mail/port/out/MailSender`는 `infrastructure:javamail`(SES 대체 구현은 `infrastructure:aws-ses`의 `SesMailSender` — 벤더 선택은 채널 모듈 `infrastructure:mail`이 조립한다)·`application/sms/port/out/SmsSender`는 `infrastructure:solapi`(벤더 선택은 채널 모듈 `infrastructure:sms`, SNS 대체 구현은 `infrastructure:aws-sns`의 `SnsSmsSender`)이 구현한다. **domain에 남은 출력 포트**는 `product/port/ProductReviewStatisticsPort`·`rank/port/MemberReviewCountPort`(`infrastructure:persistence` 소관)뿐이다. 이벤트 발행 포트는 `shared/event/DomainEventPublisher`이며 스프링 구현은 infrastructure-module의 `SpringDomainEventPublisher`다 — 이 포트는 이동 대상이 아니다.
 - **낙관적 락 충돌은 `shared/exception/OptimisticLockConflictException`으로 표현**한다. 스프링의 `ObjectOptimisticLockingFailureException`을 이 예외로 번역하는 책임은 `infrastructure:persistence`의 `RepositoryImpl`에 있고, 재시도 루프는 소비 모듈에 둔다(상세는 루트 CLAUDE.md "낙관적 락 재시도 배치 규칙").
 - **command 파라미터는 원시 타입 또는 도메인 타입으로 받는다**: presentation의 Request 타입을 인자로 받는 팩토리·메서드를 두지 않는다(레이어 역전 방지). HTTP 경계는 `String`/`Long`으로 받고 api 모듈 서비스에서 `Enum.from(String)`·`XxxId.of(Long)`으로 승격한 뒤 이 모듈에 전달한다.
 - **조회 결과 DTO를 `com.tastyhouse.domain..` 안에 두지 않는다**: Result record와 `SearchCondition`은 도메인 모델이 아니다. **읽기 계약은 전부 `application` 모듈의 `com.tastyhouse.application.<ctx>.port.out`이 소유한다** — 이 모듈에는 두지 않는다. 한때 다중 앱 공유분 55개를 이 모듈이 갖고 있었으나(모듈 재편 챕터 05), application 모듈이 하나로 통합되며 근거였던 앱 간 수평 의존 회피가 무의미해져 의존성 정리 챕터 04에서 되돌렸다. 접미어 `Result` 통일·`Dto` 금지·admin 충돌 시 `Management` 한정어 규칙은 위치와 무관하게 적용된다.
@@ -101,7 +101,7 @@
 - `ErrorCode.MAIL_VERIFICATION_CODE_EXPIRED`
 - `ErrorCode.MAIL_VERIFICATION_CODE_MISMATCH`
 
-### 컨텍스트 경계 위반 16건 — 현상 동결 봉인
+### 컨텍스트 경계 위반 14건 — 현상 동결 봉인
 
 **대상**: `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ContextBoundaryTest.java`
 → `SEALED_VIOLATIONS`
@@ -110,13 +110,11 @@ domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨�
 
 **기존 위반은 고치지 않고 봉인한다.** 이 단계의 목표는 전면 재설계가 아니라 "현상 동결 + 신규 위반 차단"이며, 실제 결합 해소는 후속 단계가 담당한다. **이 목록은 줄어들기만 해야 한다 — 항목을 추가하는 것은 새 위반을 승인하는 것이므로 금지한다.** 위반을 해소했다면 그 클래스를 목록에서 지운다.
 
-봉인 구성원 16개.
+봉인 구성원 14개(과거 16개에서 `MailVerificationService`·`PaymentConfirmationService` 2건이 빠졌다 — 두 서비스가 `domain`을 떠나 `application`으로 이동하면서 이 파일의 스캔 대상(`com.tastyhouse.domain` 패키지) 자체에서 벗어났기 때문이다. 위반을 해소한 것이 아니라 대상이 다른 모듈로 옮겨간 것이므로, 이동한 두 서비스에 대응하는 컨텍스트 경계 규칙이 `application` 쪽에 새로 생겼는지는 별개로 확인이 필요하다).
 
-- `com.tastyhouse.domain.mail.service.MailVerificationService`
 - `com.tastyhouse.domain.member.service.MemberDeliveryAddressService`
 - `com.tastyhouse.domain.order.service.OrderPlacementService`
 - `com.tastyhouse.domain.payment.service.PaymentCancellationService`
-- `com.tastyhouse.domain.payment.service.PaymentConfirmationService`
 - `com.tastyhouse.domain.reservation.service.ReservationBookingService`
 - `com.tastyhouse.domain.review.service.ReviewBlindRequestService`
 - `com.tastyhouse.domain.review.service.ReviewLifecycleService`
@@ -409,17 +407,17 @@ domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨�
 
 ### 결제 승인 — PG HTTP 왕복은 트랜잭션 밖
 
-**대상**: `payment/service/PaymentConfirmationService.java`
+**대상 (이동됨 — 덩어리 02/03a)**: `PaymentConfirmationService`(+`PgConfirmation`·`PgConfirmationTarget`)는 `domain`을 떠나 `backend/application/src/main/java/com/tastyhouse/application/payment/service/PaymentConfirmationService.java`로 이동했다(POJO+마커 등록 패턴, `application/payment/config/PaymentServiceConfig`가 `@SharedApp`로 등록). `PgPaymentGateway`/`PgProviderGateway`도 같은 이동으로 `application`의 `payment/port/out`에 있다. **아래 설계 근거는 이동 후에도 그대로 유효**하므로 삭제하지 않고 남기며, 대상 파일 경로만 정정한다 — 서비스 자체가 domain의 컨텍스트 경계 `ContextBoundaryTest`의 봉인 목록(`com.tastyhouse.domain.payment.service.PaymentConfirmationService`)에서도 함께 빠졌다.
 
-결제 승인은 결제 애그리거트의 상태 전이와 주문 애그리거트의 확정 전이를 한 트랜잭션에서 반드시 함께 수행해야 하는 원자 연산이다. 한쪽만 반영되면 **"결제는 됐지만 주문은 대기"** 이거나 **"주문은 확정인데 결제는 미승인"** 인 정합성 붕괴가 남는다. 승인 경로는 세 가지(PG 콜백 · PG 승인 · 현장결제 완료)인데 규칙은 하나여야 하므로 도메인 계층에 둔다.
+결제 승인은 결제 애그리거트의 상태 전이와 주문 애그리거트의 확정 전이를 한 트랜잭션에서 반드시 함께 수행해야 하는 원자 연산이다. 한쪽만 반영되면 **"결제는 됐지만 주문은 대기"** 이거나 **"주문은 확정인데 결제는 미승인"** 인 정합성 붕괴가 남는다. 승인 경로는 세 가지(PG 콜백 · PG 승인 · 현장결제 완료)인데 규칙은 하나여야 하므로 유스케이스 계층에 둔다.
 
-주문 상태 전이는 직접 `order.confirm()`을 호출하지 않고 `OrderTransitionService`에 위임한다 — **전이와 저장을 항상 함께 수행한다는 규칙의 단일 원천을 주문 도메인에 유지하기 위함**이다.
+주문 상태 전이는 직접 `order.confirm()`을 호출하지 않고 `OrderTransitionService`(domain에 잔류)에 위임한다 — **전이와 저장을 항상 함께 수행한다는 규칙의 단일 원천을 주문 도메인에 유지하기 위함**이다.
 
-**PG HTTP 왕복은 이 서비스 안에서 하지 않는다.** PG 승인은 (1) 금액·상태·소유권을 검증하는 `preparePgConfirmation`(DB 읽기, 트랜잭션 안)과 (2) PG 응답을 반영하는 `applyPgConfirmation(memberId, pgProvider, pgOrderId, result)`/`failPgConfirmation`(DB 쓰기, 별도 트랜잭션)으로 쪼개져 있고, **그 사이의 PG 호출은 소비 모듈이 트랜잭션 밖에서, 도메인 포트 `PgPaymentGateway`(구현은 라우터 `PgPaymentGatewayRouter`)를 통해 수행한다.**
+**PG HTTP 왕복은 이 서비스 안에서 하지 않는다.** PG 승인은 (1) 금액·상태·소유권을 검증하는 `preparePgConfirmation`(DB 읽기, 트랜잭션 안)과 (2) PG 응답을 반영하는 `applyPgConfirmation(memberId, pgProvider, pgOrderId, result)`/`failPgConfirmation`(DB 쓰기, 별도 트랜잭션)으로 쪼개져 있고, **그 사이의 PG 호출은 소비 모듈이 트랜잭션 밖에서, 도메인 포트 `PgPaymentGateway`(구현은 라우터 `PgPaymentGatewayRouter`, 이 라우터도 `application`으로 이동)를 통해 수행한다.**
 
 과거에는 PG 왕복 전체가 DB 트랜잭션 안에 있어 커넥션·행 락을 네트워크 지연만큼 점유했고, **PG 승인 성공 후 커밋이 실패하면 "PG는 승인, DB는 미승인"이 되어 보상이 불가능했다.** 그래서 이 서비스는 `PgPaymentGateway`를 주입받지 않는다.
 
-이벤트 발행은 Spring `ApplicationEventPublisher`가 아니라 프레임워크-프리 포트 `DomainEventPublisher`를 쓴다.
+이벤트 발행은 Spring `ApplicationEventPublisher`가 아니라 프레임워크-프리 포트 `DomainEventPublisher`(domain 소유)를 쓴다 — `PaymentConfirmationService`가 유스케이스 계층으로 옮겨간 뒤에도 이벤트 발행 포트 자체는 domain에 남는다.
 
 ### 예약 — 정원 차감은 낙관적 락, 재시도는 트랜잭션 밖
 

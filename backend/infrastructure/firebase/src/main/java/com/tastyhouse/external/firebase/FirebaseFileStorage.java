@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.file.port.FileStoragePort;
+import com.tastyhouse.application.file.port.out.FileDeleteResult;
+import com.tastyhouse.application.file.port.out.FileStoragePort;
 
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
@@ -43,7 +42,7 @@ public class FirebaseFileStorage implements FileStoragePort {
     }
 
     @Override
-    public void delete(String filePath) {
+    public FileDeleteResult delete(String filePath) {
         try {
             Bucket bucket = StorageClient.getInstance().bucket();
             Blob blob = bucket.get(filePath);
@@ -51,9 +50,10 @@ public class FirebaseFileStorage implements FileStoragePort {
                 blob.delete();
             }
             log.info("Firebase Storage 파일 삭제 완료: {}", filePath);
+            return FileDeleteResult.deleted();
         } catch (Exception e) {
             log.error("Firebase Storage 파일 삭제 실패: {}", filePath, e);
-            throw new BusinessException(ErrorCode.FILE_DELETE_FAILED);
+            return FileDeleteResult.failed(e);
         }
     }
 }

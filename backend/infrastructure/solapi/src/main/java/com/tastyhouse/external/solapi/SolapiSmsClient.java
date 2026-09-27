@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.tastyhouse.domain.sms.port.SmsSender;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.sms.port.out.SmsSendFailure;
+import com.tastyhouse.application.sms.port.out.SmsSendResult;
+import com.tastyhouse.application.sms.port.out.SmsSender;
 import com.tastyhouse.external.solapi.request.SolapiMessageRequest;
 import com.tastyhouse.external.solapi.response.SolapiMessageResponse;
 
@@ -39,7 +39,7 @@ public class SolapiSmsClient implements SmsSender {
     }
 
     @Override
-    public void send(String to, String content) {
+    public SmsSendResult send(String to, String content) {
         SolapiMessageRequest request = new SolapiMessageRequest(
             List.of(new SolapiMessageRequest.SolapiMessage(
                 to,
@@ -66,24 +66,22 @@ public class SolapiSmsClient implements SmsSender {
 
             if (response == null) {
                 log.warn("Solapi SMS 발송 응답 없음. to: {}", to);
-                throw new BusinessException(ErrorCode.SMS_SEND_NO_RESPONSE);
+                return SmsSendResult.failed(SmsSendFailure.NO_RESPONSE);
             }
 
             if (!response.isSuccess()) {
                 log.error("Solapi SMS 발송 실패. to: {}, failedMessages: {}", to, response.getFailedMessageList());
-                throw new BusinessException(ErrorCode.SMS_SEND_FAILED);
+                return SmsSendResult.failed(SmsSendFailure.FAILED);
             }
 
             log.info("Solapi SMS 발송 성공. to: {}", to);
-
+            return SmsSendResult.sent();
         } catch (RestClientResponseException e) {
             log.error("Solapi SMS 발송 API 오류. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
-            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
-        } catch (BusinessException e) {
-            throw e;
+            return SmsSendResult.failed(SmsSendFailure.API_ERROR, e);
         } catch (Exception e) {
             log.error("Solapi SMS 발송 중 예외 발생. to: {}", to, e);
-            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
+            return SmsSendResult.failed(SmsSendFailure.API_ERROR, e);
         }
     }
 

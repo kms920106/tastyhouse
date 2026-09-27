@@ -4,13 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain')
-
     runtimeOnly project(':infrastructure:solapi')
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Xlint:deprecation"
 }
 
 jar {

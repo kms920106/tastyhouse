@@ -24,6 +24,7 @@ import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.service.MemberCommandService;
@@ -64,8 +65,10 @@ public class NaverSocialLoginService {
 
     @Transactional
     public SocialLoginResult login(String authorizationCode, String state) {
-        SocialCredential credential = naverOAuthClient.exchange(SocialAuthorization.of(authorizationCode, state));
-        SocialProfile naverUser = naverOAuthClient.fetchProfile(credential);
+        SocialCredential credential = naverOAuthClient.exchange(SocialAuthorization.of(authorizationCode, state))
+            .orElseThrow(SocialOAuthFailures::toException);
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(credential)
+            .orElseThrow(SocialOAuthFailures::toException);
 
         String providerId = naverUser.providerId();
 
@@ -103,7 +106,8 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken));
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = naverUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
@@ -154,7 +158,8 @@ public class NaverSocialLoginService {
             throw new BusinessException(ErrorCode.NAVER_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken));
+        SocialProfile naverUser = naverOAuthClient.fetchProfile(SocialCredential.of(naverAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = naverUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {

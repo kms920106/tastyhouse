@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
@@ -39,16 +40,16 @@ public class NaverOAuthClient implements SocialOAuthClient {
     }
 
     @Override
-    public SocialCredential exchange(SocialAuthorization authorization) {
-        return SocialCredential.of(
+    public SocialOAuthResult<SocialCredential> exchange(SocialAuthorization authorization) {
+        return SocialOAuthResult.success(SocialCredential.of(
             fetchToken(authorization.code(), authorization.state()).accessToken()
-        );
+        ));
     }
 
     @Override
-    public SocialProfile fetchProfile(SocialCredential credential) {
+    public SocialOAuthResult<SocialProfile> fetchProfile(SocialCredential credential) {
         NaverUserInfoResponse user = fetchUserInfo(credential.value());
-        return new SocialProfile(
+        return SocialOAuthResult.success(new SocialProfile(
             user.getProviderId(),
             user.getEmail(),
             user.getNickname(),
@@ -59,7 +60,7 @@ public class NaverOAuthClient implements SocialOAuthClient {
             user.getBirthYear(),
             user.getBirthMonth(),
             user.getBirthDay()
-        );
+        ));
     }
 
     public NaverTokenResponse fetchToken(String authorizationCode, String state) {

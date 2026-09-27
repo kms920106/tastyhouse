@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
-import com.tastyhouse.domain.mail.service.MailVerificationService;
+import com.tastyhouse.application.mail.service.MailVerificationService;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.repository.MemberRepository;
 import com.tastyhouse.domain.exception.BusinessException;

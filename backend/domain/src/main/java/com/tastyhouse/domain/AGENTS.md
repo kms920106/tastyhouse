@@ -38,13 +38,13 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | coupon | 쿠폰 발급/사용 | 3 | 2 | 2 | 2 | 2 | - |
 | event | 이벤트/프로모션 (Event/Winner/Announcement 3 애그리거트) | 4 | 1 | - | 3 | - | - |
 | faq | FAQ (Faq/FaqCategory) | 2 | 2 | - | 2 | 1 | - |
-| file | 파일 업로드/관리 | 1 | 1 | 1 | 1 | 2 | 1 (`FileStoragePort`) |
+| file | 파일 업로드/관리 | 1 | 1 | 1 | 1 | 2 | - (`FileStoragePort`는 `application`으로 이동) |
 | member | 회원 관리 (하위 `follow`·`referral` 포함). 다른 모든 BC가 `MemberId`로 참조하는 핵심 도메인 | 11 | 4 | 3 | 5 | 4 | - |
 | notice | 공지사항 (분리 패턴 reference 도메인) | 1 | 1 | - | 1 | - | - |
-| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | 1 (`MailSender`) |
+| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | - (`MailSender`는 `application`으로 이동) |
 | order | 주문 (Order/OrderProduct/OrderProductOption) | 4 | 3 | 2 | 3 | 5 | - |
 | partnership | 제휴 신청 | 2 | 1 | - | 1 | - | - |
-| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | 5 (`PgPaymentGateway` + `PgProviderGateway` + dto) |
+| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | - (`PgPaymentGateway`·`PgProviderGateway`·dto는 `application`으로 이동) |
 | point | 포인트 (Point/PointHistory) | 3 | - | 3 | 2 | 1 | - |
 | policy | 정책/약관 버전 관리 | 2 | 1 | 1 | 1 | 1 | - |
 | product | 상품·옵션 (8 애그리거트) | 8 | 5 | 3 | 8 | 2 | 1 (`ProductReviewStatisticsPort`) |
@@ -53,7 +53,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | review | 리뷰/댓글/답글/이미지/좋아요/태그 (6 애그리거트) | 7 | 4 | 3 | 6 | 2 | - |
 | search | 검색어 (PopularKeyword/SearchKeywordLog) | 2 | - | - | 2 | 1 | - |
 | shop | 가게/식당 + 자식 애그리거트 다수 — 최대 도메인 | 36 | 1 | - | 14 | 8 | - |
-| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | 1 (`SmsSender`) |
+| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | - (`SmsSender`는 `application`으로 이동) |
 
 ## For AI Agents
 
@@ -182,14 +182,17 @@ public interface DomainEventPublisher {
 ```
 리스너를 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 반드시 infrastructure-module에 둔다.
 
-**출력 포트 (외부 연동 모듈이 기술별로 나눠 구현)**:
+**출력 포트 — 파일·메일·SMS·결제는 이 모듈에 없다 (번복됨)**: `FileStoragePort`(`file`)·`MailSender`(`mail`)·`SmsSender`(`sms`)·`PgPaymentGateway`/`PgProviderGateway`(+ 입출력 record, `payment`)는 전부 `domain`에서 `application`의 `port/out`으로 이관됐다. 과거에는 이 모듈이 벤더 무관 계약을 직접 선언하고 외부 연동 모듈이 그것을 구현했으나(아래는 그 시절의 형태), 지금은 domain의 write 포트만 남고 아웃바운드 SPI는 `com.tastyhouse.application.<ctx>.port.out`이 소유한다.
+
 ```java
-// domain/mail/port/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
-// domain/sms/port/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
-// domain/file/port/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// domain/payment/port/PgPaymentGateway.java (+ port/dto/PgConfirmResult 등) — infrastructure:pg의 라우터 PgPaymentGatewayRouter(도메인 순수 POJO)가 구현, PgGatewayConfig가 @Bean 등록
-// domain/payment/port/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProvider.TOSS)가 구현, 조립은 infrastructure:pg
+// application/mail/port/out/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
+// application/sms/port/out/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
+// application/file/port/out/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
+// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — application의 라우터 PgPaymentGatewayRouter(POJO)가 구현, application의 payment/config/PgRouterConfig(@WebApp)가 @Bean 등록(infrastructure:pg는 코드 없는 채널 스타터)
+// application/payment/port/out/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
 ```
+
+domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(POJO+마커 등록 패턴, `backend/application/AGENTS.md` 참고). `PgPaymentGateway`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGateway`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
 
 **QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryDao` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryDao`)는 `infrastructure-module/AGENTS.md` 참고.
 

@@ -36,11 +36,9 @@ class ContextBoundaryTest {
     private static final Set<String> FORBIDDEN_CROSS_CONTEXT_SUBPACKAGES = Set.of("model", "repository", "service");
 
     private static final Set<String> SEALED_VIOLATIONS = Set.of(
-        "com.tastyhouse.domain.mail.service.MailVerificationService",
         "com.tastyhouse.domain.member.service.MemberDeliveryAddressService",
         "com.tastyhouse.domain.order.service.OrderPlacementService",
         "com.tastyhouse.domain.payment.service.PaymentCancellationService",
-        "com.tastyhouse.domain.payment.service.PaymentConfirmationService",
         "com.tastyhouse.domain.reservation.service.ReservationBookingService",
         "com.tastyhouse.domain.review.service.ReviewBlindRequestService",
         "com.tastyhouse.domain.review.service.ReviewLifecycleService",

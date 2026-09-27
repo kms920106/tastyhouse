@@ -43,7 +43,8 @@ oauth:
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토큰 교환·JWKS 조회는 **동기 `RestClient`**다.
 - `application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈
-- `domain` (implementation) — id_token 검증 실패를 `BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`로 번역하기 위해서만
+
+**`domain` 의존은 없다.** `exchange()`/`fetchProfile()`은 id_token 검증 실패를 `BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`(소비 측 `*SocialLoginService` 4종이 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
 - `io.jsonwebtoken:jjwt-api:0.13.0` (implementation) + `jjwt-impl`·`jjwt-jackson` (runtimeOnly) — client_secret ES256 서명(비공개키 PKCS8, Base64 저장), id_token RS256 검증(Apple JWKS 공개키). **컴파일 시점 격리만이다** — 이 선언으로 다른 소셜 벤더 모듈의 컴파일 클래스패스에 jjwt가 없지만, 런타임에는 `application → security-core`(`api` jjwt-api, `runtimeOnly` impl·jackson) 경로로 jjwt가 web-api 전체에 이미 실려 있다. 분할 전 `infrastructure:oauth`가 카카오·네이버·페이스북까지 jjwt를 컴파일 클래스패스에 두던 것을 애플 한 모듈로 좁힌 것이 이 선언의 의미다.
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 
@@ -69,11 +70,11 @@ oauth:
 
 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**.
 
-### id_token 검증 실패는 이 어댑터가 `APPLE_ID_TOKEN_INVALID`로 번역한다
+### id_token 검증 실패는 `SocialOAuthResult.failed`로 표현하고, `BusinessException` 번역은 `application`이 한다
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleOAuthClient.java` → `verifyIdToken`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleOAuthClient.java` → `verifyIdToken`·`exchange`·`fetchProfile`
 
-검증 실패의 bare `RuntimeException`을 도메인 의미의 예외(`BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`)로 번역하는 것은 이 어댑터의 책임이다. 과거 web-api `AppleSocialLoginService` 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것이며, 응답 계약은 무변경이다. 번역을 호출부로 되돌리지 않는다.
+검증 실패의 bare `RuntimeException`을 이 어댑터가 삼키고 `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`로 표현하는 것은 이 어댑터의 책임이다(과거 web-api `AppleSocialLoginService` 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것이 그 시작이었다). 다만 그 결과를 도메인 의미의 예외(`BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`)로 번역하는 것은 이제 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`가 한다 — 어댑터는 `BusinessException`/`ErrorCode`를 참조하지 않는다. 응답 계약(`APPLE_ID_TOKEN_INVALID`)은 무변경이다. 번역을 어댑터로 되돌리지 않는다.
 
 ## 코드 주석에서 이관된 설계 근거
 

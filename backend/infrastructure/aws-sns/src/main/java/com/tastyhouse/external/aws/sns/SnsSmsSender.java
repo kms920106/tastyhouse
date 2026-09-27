@@ -7,9 +7,9 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sns.model.SnsException;
 
-import com.tastyhouse.domain.sms.port.SmsSender;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.sms.port.out.SmsSendFailure;
+import com.tastyhouse.application.sms.port.out.SmsSendResult;
+import com.tastyhouse.application.sms.port.out.SmsSender;
 
 public class SnsSmsSender implements SmsSender {
 
@@ -22,7 +22,7 @@ public class SnsSmsSender implements SmsSender {
     }
 
     @Override
-    public void send(String to, String content) {
+    public SmsSendResult send(String to, String content) {
         try {
             PublishRequest request = PublishRequest.builder()
                     .phoneNumber(to)
@@ -31,12 +31,13 @@ public class SnsSmsSender implements SmsSender {
 
             PublishResponse response = snsClient.publish(request);
             log.info("AWS SNS SMS 발송 성공. to: {}, messageId: {}", to, response.messageId());
+            return SmsSendResult.sent();
         } catch (SnsException e) {
             log.error("AWS SNS SMS 발송 실패. to: {}", to, e);
-            throw new BusinessException(ErrorCode.SMS_SEND_API_ERROR, e);
+            return SmsSendResult.failed(SmsSendFailure.API_ERROR, e);
         } catch (Exception e) {
             log.error("AWS SNS SMS 발송 중 예외 발생. to: {}", to, e);
-            throw new BusinessException(ErrorCode.SMS_SEND_FAILED, e);
+            return SmsSendResult.failed(SmsSendFailure.FAILED, e);
         }
     }
 }

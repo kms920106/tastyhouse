@@ -4,7 +4,7 @@ public interface SocialOAuthClient {
 
     SocialProvider provider();
 
-    SocialCredential exchange(SocialAuthorization authorization);
+    SocialOAuthResult<SocialCredential> exchange(SocialAuthorization authorization);
 
-    SocialProfile fetchProfile(SocialCredential credential);
+    SocialOAuthResult<SocialProfile> fetchProfile(SocialCredential credential);
 }

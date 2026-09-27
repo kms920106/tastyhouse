@@ -77,11 +77,11 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
-- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
 - `infrastructure:oauth` — 소셜 로그인 채널 스타터(코드 없음). 벤더 4종 `infrastructure:{kakao,naver,apple,facebook}-oauth`(`com.tastyhouse.application.auth.port.out`의 `SocialOAuthClient` 구현)를 `runtimeOnly`로 묶어 전이로 공급한다
-- `infrastructure:pg` — 결제 PG 채널(라우터 `PgPaymentGatewayRouter` 조립, `PgPaymentGateway` 구현). 기본 벤더 `infrastructure:tosspayments`(`PgProviderGateway` 구현)를 `runtimeOnly`로 묶는다
-- `infrastructure:mail` — 메일 채널 모듈(`MailDomainConfig` + 기본 벤더 `infrastructure:javamail` 조립). SES 전환은 이 모듈에서 한다
-- `infrastructure:sms` — SMS 채널 모듈(`SmsDomainConfig` + 기본 벤더 `infrastructure:solapi` 조립). SNS 전환은 이 모듈에서 한다
+- `infrastructure:pg` — 결제 PG 채널(`application`의 라우터 `PgPaymentGatewayRouter`(`@WebApp`, `PgRouterConfig`가 등록)가 `application`의 포트 `PgPaymentGateway`를 구현). 기본 벤더 `infrastructure:tosspayments`(`application`의 `PgProviderGateway` 구현)를 `runtimeOnly`로 묶는다
+- `infrastructure:mail` — 메일 채널 스타터(코드 없음, 기본 벤더 `infrastructure:javamail` 조립). SES 전환은 이 모듈에서 한다. `MailVerificationService` 빈 등록은 `application`의 `mail/config/MailServiceConfig`(`@WebApp`)가 담당한다 — `MailDomainConfig`는 삭제됐다
+- `infrastructure:sms` — SMS 채널 스타터(코드 없음, 기본 벤더 `infrastructure:solapi` 조립). SNS 전환은 이 모듈에서 한다. `SmsVerificationService` 빈 등록은 `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 담당한다 — `SmsDomainConfig`는 삭제됐다
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소
 - `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터(`RedisRateLimitCounter`)와 `StringRedisTemplate` 빈. `RedisModuleAutoConfiguration`이 자기 등록하며(챕터 02) 부트스트랩은 `@Import`하지 않는다. 챕터 02에서 `@RateLimit`·aspect는 `api-common-module`로 올라갔고 이 모듈에는 카운터만 남았다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`

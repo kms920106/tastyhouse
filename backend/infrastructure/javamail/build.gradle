@@ -4,9 +4,11 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain')
+    implementation project(':application')
 
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }
 
 tasks.withType(JavaCompile).configureEach {

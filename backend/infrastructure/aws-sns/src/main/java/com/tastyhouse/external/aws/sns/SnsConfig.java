@@ -9,7 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-import com.tastyhouse.domain.sms.port.SmsSender;
+import com.tastyhouse.application.sms.port.out.SmsSender;
 
 @Configuration
 @ConditionalOnProperty(name = "sms.provider", havingValue = "sns")

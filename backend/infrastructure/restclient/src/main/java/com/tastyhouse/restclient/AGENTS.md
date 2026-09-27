@@ -5,7 +5,7 @@
 `infrastructure:restclient` 코어 모듈의 자바 패키지 루트(구 `com.tastyhouse.external`). **이 디렉터리에는 `config/`만 남는다.** 7모듈 분리(챕터 01) 직후에는 `file/`까지 있었으나 파일 저장 SPI 삭제로 사라졌고(모듈 문서의 "과거 판단의 번복 — 파일 저장 SPI 삭제" 절), 이후 `exception/`도 완전히 해체됐다(모듈 문서의 "예외 계약 해체 — 도메인 `ErrorCode`로 흡수" 절). 모듈 리네임(`infrastructure:external` → `infrastructure:restclient`)과 함께 이 코어 패키지도 `com.tastyhouse.restclient`로 옮겨졌다 — 벤더 9모듈의 패키지(`com.tastyhouse.external.*`)는 불변이다. 모듈 차원의 배경·분리 근거는 `../../../../../../AGENTS.md`(= `infrastructure/restclient/AGENTS.md`) 참조.
 
 ## Purpose
-외부 연동 모듈들이 공통으로 쓰는 `RestClient.Builder` customizer(요청 팩토리 타임아웃)를 소유하는 순수 HTTP 코어다. 도메인 포트 `FileStoragePort`는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws-s3`의 `S3FileStorage`)이 직접 구현하고, 외부 연동 실패 코드는 이 패키지가 아니라 도메인 `ErrorCode`가 소유한다(어댑터는 `BusinessException`을 직접 던진다).
+외부 연동 모듈들이 공통으로 쓰는 `RestClient.Builder` customizer(요청 팩토리 타임아웃)를 소유하는 순수 HTTP 코어다. 포트 `FileStoragePort`(`application.file.port.out` — chunk 02-vendor-ports로 `domain`에서 이관)는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws-s3`의 `S3FileStorage`)이 직접 구현하고, 외부 연동 실패 코드는 이 패키지가 아니라 도메인 `ErrorCode`가 소유한다(어댑터는 `BusinessException`을 직접 던진다).
 
 ## Packages
 | Package | Purpose |
@@ -34,7 +34,7 @@
 
 ### Working In This Directory
 - **포트 구현 시 프레임워크 타입을 누출하지 않는다**: 도메인 포트(`FileStoragePort` 등)는 프레임워크-프리이므로 `MultipartFile`·SDK 타입·`RestClient` 타입이 시그니처에 등장하면 안 된다. 과거 코어의 파일 저장 전략이 `byte[]`로 바뀌며 이 모듈의 `spring-web` 의존이 사라졌다가(이후 RestClient 전환으로 `spring-web`이 코어의 정식 `api` 의존으로 되돌아왔다) 그 원칙 자체는 바뀌지 않았다.
-- **파일 저장 코드를 이 디렉터리에 되살리지 않는다**: 벤더 무관 계약은 도메인 포트 `FileStoragePort`(domain)가 이미 맡고, 벤더 구현은 별도 모듈(`infrastructure:{벤더}`)이 자기 패키지(`external.{벤더}`)에서 그 포트를 직접 구현한다. 도메인 포트와 동형인 전략 인터페이스·위임 어댑터를 다시 두지 않는다.
+- **파일 저장 코드를 이 디렉터리에 되살리지 않는다**: 벤더 무관 계약은 `application`의 포트 `FileStoragePort`(`application.file.port.out`)가 이미 맡고, 벤더 구현은 별도 모듈(`infrastructure:{벤더}`)이 자기 패키지(`external.{벤더}`)에서 그 포트를 직접 구현한다. 그 포트와 동형인 전략 인터페이스·위임 어댑터를 다시 두지 않는다.
 - **예외·에러코드를 이 디렉터리에 되살리지 않는다**: 새 예외 타입을 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하지 않는다(`BusinessException` 단일 계층 규칙). 외부 연동 실패 코드가 새로 필요하면 이 패키지가 아니라 도메인 `ErrorCode`(`backend/domain/src/main/java/com/tastyhouse/domain/exception/ErrorCode.java`)에 추가한다.
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`) 또는 configtree 시크릿(`SECRETS_DIR`)으로 주입한다.
 

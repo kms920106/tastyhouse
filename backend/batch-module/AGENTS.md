@@ -58,7 +58,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### Internal
 - `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
 - `infrastructure:persistence` (**runtimeOnly**, 챕터 02 개정) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단. auto-configuration 전환으로 `@Import`용 컴파일 타임 참조가 사라져 `implementation`에서 내려갔다
-- `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터(챕터 03). 자바 코드 없이 `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:restclient`는 스타터가 아니라 아래 `infrastructure:bbq`·`infrastructure:admdongkor`를 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
+- `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터(챕터 03). 자바 코드 없이 `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:restclient`는 스타터가 아니라 아래 `infrastructure:bbq`·`infrastructure:admdongkor`를 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
 - `infrastructure:bbq` (**runtimeOnly**) — `external.bbq.BbqApiClient`(BBQ 메뉴 HTTP 클라이언트)·`external.bbq.RemoteImageDownloader`. 설정은 `application-bbq.yml`
 - `infrastructure:admdongkor` (**runtimeOnly**) — 행정동 경계 클라이언트 `external.admdongkor.AdminDongBoundaryClient`. 설정은 `application-admdongkor.yml`
 - 위 두 모듈은 2026-09-26에 옛 `infrastructure:crawling` 한 모듈을 나눈 것이다(근거는 `../infrastructure/admdongkor/AGENTS.md`). **소스 참조는 `application`으로 옮겨갔고**, 두 모듈은 빈 스캔·설정 때문에 유지한다

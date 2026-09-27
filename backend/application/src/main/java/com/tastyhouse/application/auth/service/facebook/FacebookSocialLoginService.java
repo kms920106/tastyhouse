@@ -24,6 +24,7 @@ import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.service.MemberCommandService;
@@ -65,8 +66,10 @@ public class FacebookSocialLoginService {
     @Transactional
     public SocialLoginResult login(String facebookAccessToken) {
 
-        SocialCredential credential = facebookOAuthClient.exchange(SocialAuthorization.of(facebookAccessToken));
-        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(credential);
+        SocialCredential credential = facebookOAuthClient.exchange(SocialAuthorization.of(facebookAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(credential)
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
@@ -103,7 +106,8 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken));
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
@@ -154,7 +158,8 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.FACEBOOK_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken));
+        SocialProfile facebookUser = facebookOAuthClient.fetchProfile(SocialCredential.of(facebookAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {

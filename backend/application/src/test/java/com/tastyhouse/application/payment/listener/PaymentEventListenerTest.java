@@ -12,7 +12,7 @@ import com.tastyhouse.domain.payment.event.PaymentCancelledEvent;
 import com.tastyhouse.domain.payment.event.PaymentCompletedEvent;
 import com.tastyhouse.domain.payment.event.RefundRequestedEvent;
 import com.tastyhouse.domain.payment.model.PaymentMethod;
-import com.tastyhouse.domain.payment.service.PaymentConfirmationService;
+import com.tastyhouse.application.payment.service.PaymentConfirmationService;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;

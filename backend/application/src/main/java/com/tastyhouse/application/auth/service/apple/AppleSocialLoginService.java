@@ -24,6 +24,7 @@ import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.service.MemberCommandService;
@@ -65,8 +66,10 @@ public class AppleSocialLoginService {
     @Transactional
     public SocialLoginResult login(String authorizationCode) {
 
-        SocialCredential credential = appleOAuthClient.exchange(SocialAuthorization.of(authorizationCode));
-        SocialProfile appleUser = appleOAuthClient.fetchProfile(credential);
+        SocialCredential credential = appleOAuthClient.exchange(SocialAuthorization.of(authorizationCode))
+            .orElseThrow(SocialOAuthFailures::toException);
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(credential)
+            .orElseThrow(SocialOAuthFailures::toException);
 
         String providerId = appleUser.providerId();
 
@@ -105,7 +108,8 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken));
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = appleUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
@@ -170,7 +174,8 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.APPLE_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken));
+        SocialProfile appleUser = appleOAuthClient.fetchProfile(SocialCredential.of(appleIdToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = appleUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {

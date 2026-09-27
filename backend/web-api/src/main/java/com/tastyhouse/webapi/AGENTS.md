@@ -24,14 +24,14 @@
 | `bug/` | 버그 리포트 제출 API |
 | `event/` | 이벤트 조회 API |
 | `faq/` | FAQ 조회 API |
-| `file/` | 파일 업로드/다운로드 (스타터 `infrastructure:file-storage`로 위임 — 계약은 도메인 포트 `FileStoragePort`, Firebase 구현은 `infrastructure:firebase`가 갖고 스타터가 그것을 묶는다) |
+| `file/` | 파일 업로드/다운로드 (스타터 `infrastructure:file-storage`로 위임 — 계약은 `application`의 포트 `FileStoragePort`(`application.file.port.out`), Firebase 구현은 `infrastructure:firebase`가 갖고 스타터가 그것을 묶는다) |
 | `follow/` | 사용자 팔로우/언팔로우 관리 API |
 | `grade/` | 회원 등급 조회 API |
 | `member/` | 회원 프로필 조회, 회원 정보 수정, 탈퇴 등 회원 관리 API |
 | `notice/` | 공지사항 조회 API |
 | `order/` | 주문 생성, 조회, 취소, 배송 추적 API |
 | `partnership/` | 파트너십/제휴 관리 API |
-| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 `infrastructure:pg`의 라우터 `PgPaymentGatewayRouter`가 domain 포트 `PgPaymentGateway`를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 `PgProviderGateway`를 구현 |
+| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 `application`(`payment/service/PgPaymentGatewayRouter`, `@WebApp`)이 `application`의 포트 `PgPaymentGateway`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGateway`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
 | `policy/` | 약관/정책 조회 API |
 | `product/` | 상품 조회, 검색, 필터링 API |
 | `rank/` | 순위/랭킹 조회 API |
@@ -81,7 +81,7 @@
 ### Internal
 - `domain` — 도메인 모델·VO·write 포트·도메인 서비스, 도메인 예외 (BusinessException, ErrorCode), 페이징 계약 (PageQuery/PageResult).
 - `infrastructure-module` — DAO 구현체가 뜨는 빈 스캔 대상(`com.tastyhouse.infrastructure..` 소스 import는 ArchUnit이 전면 차단).
-- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). 벤더 구현 `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현)를 묶어 전이로 공급한다 — **앱 `build.gradle`에는 이 한 줄만 있다.** 외부 연동 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 싣지 않고, 나머지 어댑터 `infrastructure:{kakao,naver,apple,facebook}-oauth`(소셜 로그인, 스타터 `infrastructure:oauth` 경유)·`infrastructure:pg`(결제, `infrastructure:tosspayments` 경유)·`infrastructure:solapi`(SMS, `infrastructure:sms` 경유)에 전이로 딸려 온다.
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). 벤더 구현 `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현)를 묶어 전이로 공급한다 — **앱 `build.gradle`에는 이 한 줄만 있다.** 외부 연동 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 싣지 않고, 나머지 어댑터 `infrastructure:{kakao,naver,apple,facebook}-oauth`(소셜 로그인, 스타터 `infrastructure:oauth` 경유)·`infrastructure:pg`(결제, `infrastructure:tosspayments` 경유)·`infrastructure:solapi`(SMS, `infrastructure:sms` 경유)에 전이로 딸려 온다.
 - `security-module` — 공용 JWT 메커니즘·Redis 토큰 저장소·rate limit.
 - `logging-module` — 요청/응답 로깅.
 

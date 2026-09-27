@@ -10,9 +10,8 @@ import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
 
-import com.tastyhouse.domain.mail.port.MailSender;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.mail.port.out.MailSendResult;
+import com.tastyhouse.application.mail.port.out.MailSender;
 
 public class SesMailSender implements MailSender {
 
@@ -27,7 +26,7 @@ public class SesMailSender implements MailSender {
     }
 
     @Override
-    public void send(String to, String subject, String content) {
+    public MailSendResult send(String to, String subject, String content) {
         try {
             Body body = Body.builder()
                 .text(Content.builder().charset("UTF-8").data(content).build())
@@ -44,12 +43,13 @@ public class SesMailSender implements MailSender {
 
             sesClient.sendEmail(request);
             log.info("AWS SES 메일 발송 성공. to: {}, subject: {}", to, subject);
+            return MailSendResult.sent();
         } catch (SesException e) {
             log.error("AWS SES 메일 발송 실패. to: {}, subject: {}", to, subject, e);
-            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
+            return MailSendResult.failed(e);
         } catch (Exception e) {
             log.error("AWS SES 메일 발송 중 예외 발생. to: {}, subject: {}", to, subject, e);
-            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, e);
+            return MailSendResult.failed(e);
         }
     }
 }

@@ -24,6 +24,7 @@ import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
 import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.service.MemberCommandService;
@@ -64,8 +65,10 @@ public class KakaoSocialLoginService {
 
     @Transactional
     public SocialLoginResult login(String authorizationCode) {
-        SocialCredential credential = kakaoOAuthClient.exchange(SocialAuthorization.of(authorizationCode));
-        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(credential);
+        SocialCredential credential = kakaoOAuthClient.exchange(SocialAuthorization.of(authorizationCode))
+            .orElseThrow(SocialOAuthFailures::toException);
+        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(credential)
+            .orElseThrow(SocialOAuthFailures::toException);
 
         String providerId = kakaoUser.providerId();
 
@@ -103,7 +106,8 @@ public class KakaoSocialLoginService {
             throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken));
+        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = kakaoUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
@@ -163,7 +167,8 @@ public class KakaoSocialLoginService {
             throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
 
-        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken));
+        SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken))
+            .orElseThrow(SocialOAuthFailures::toException);
         String providerId = kakaoUser.providerId();
 
         if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
