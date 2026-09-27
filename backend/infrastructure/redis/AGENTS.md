@@ -2,7 +2,7 @@
 
 # infrastructure:redis
 
-Redis 연결·템플릿과 **rate limit 카운터**, **토큰 저장소 어댑터 6종**을 소유하는 인프라 모듈(`java-library`). 챕터 05에서 `infrastructure`를 기술별로 재편하며 신설됐고, 챕터 02에서 rate limit의 표현 관심사를 `api-common-module`로 내보냈다.
+Redis 연결·템플릿과 **rate limit 카운터**, **토큰 저장소 어댑터 6종**을 소유하는 인프라 모듈(`java-library`). 챕터 05에서 `infrastructure`를 기술별로 재편하며 신설됐고, 챕터 02에서 rate limit의 표현 관심사를 `api-common-module`로 내보냈다. 이 모듈이 구현하는 계약(토큰 저장소 포트 6종 + `RateLimitCounterPort`)은 전부 `security-core`가 소유하며, 내부 모듈 의존은 `security-core` 하나뿐이다(`RateLimitCounterPort` 이동으로 `api-common-module` 의존이 삭제됐다).
 
 ## 신설 배경 (챕터 05)
 
@@ -19,7 +19,7 @@ com.tastyhouse.infrastructure.redis/
 ├── RedisModuleAutoConfiguration.java  @ComponentScan 진입점 — 챕터 02로 RedisModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 ├── RedisConfig.java              StringRedisTemplate 빈 (key/value StringRedisSerializer)
 ├── ratelimit/
-│   └── RedisRateLimitCounter.java  RateLimitCounterPort 구현 — 순수 Redis Lua (INCR + PEXPIRE 원자 실행)
+│   └── RedisRateLimitCounter.java  security-core의 RateLimitCounterPort 구현 — 순수 Redis Lua (INCR + PEXPIRE 원자 실행)
 └── token/                          챕터 01 신설 — security-core의 토큰 저장소 포트 6종 구현
     ├── RedisTokenStoreProperties.java   @ConfigurationProperties("security.token-store") — keyPrefix
     ├── RedisRefreshTokenRepository.java  {keyPrefix}rt:{username}
@@ -27,7 +27,7 @@ com.tastyhouse.infrastructure.redis/
     └── Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository.java  접두사 고정 (kakao_temp: 등)
 ```
 
-**`token` 패키지는 챕터 01에서 `security-core`로부터 넘어왔다.** 과거에는 구체 Redis 저장소 6종이 `security-core`에 있어 그 모듈이 `implementation project(':infrastructure:redis')`를 의존했는데, "core가 구체 인프라를 의존하는" 역방향 간선이었다. 지금은 계약이 `security-core`, 구현이 여기 있다 — `RedisRateLimitCounter`가 `api-common-module`의 `RateLimitCounterPort`를 구현하는 것과 **동형**이다.
+**`token` 패키지는 챕터 01에서 `security-core`로부터 넘어왔다.** 과거에는 구체 Redis 저장소 6종이 `security-core`에 있어 그 모듈이 `implementation project(':infrastructure:redis')`를 의존했는데, "core가 구체 인프라를 의존하는" 역방향 간선이었다. 지금은 계약이 `security-core`, 구현이 여기 있다 — ~~`RedisRateLimitCounter`가 `api-common-module`의 `RateLimitCounterPort`를 구현하는 것과 **동형**이다~~ **(번복됨 — `RateLimitCounterPort`도 `security-core`로 옮겨졌다.)** 지금은 비유가 아니라 **같은 구조**다 — 토큰 저장소 포트 6종과 `RateLimitCounterPort` 모두 계약은 `security-core`, 구현은 이 모듈이다.
 
 이 간선을 끊은 실익은 전이 사슬 제거다. `application → security-core → infrastructure:redis → api-common-module`이 4앱 runtimeClasspath에 실려 Redis를 쓰지 않는 batch-module에서도 `RedisModuleAutoConfiguration`이 발화하고 springdoc·starter-web이 배포 산출물에 들어갔다. 지금 batch runtimeClasspath에는 redis·api-common·springdoc이 **없다**.
 
@@ -43,7 +43,7 @@ com.tastyhouse.infrastructure.redis/
 
 **이 표는 불변 계약이다.** 접두사가 어긋나도 예외가 나지 않고 기존 세션만 조용히 무효화되므로(콜론 누락 `admin` → `adminrt:`), `RedisRefreshTokenRepositoryTest`·`RedisBlacklistRepositoryTest`의 고정값 단정이 유일한 자동 방어선이다. 소셜 임시토큰 4종은 앱 간 공유되지 않아 접두사가 고정이며 프로퍼티를 받지 않는다.
 
-**챕터 02에서 이 패키지는 카운터 하나만 남았다.** `@RateLimit`·`RateLimitAspect`·`RateLimitKeyType`·`RateLimitException`과 신설 계약 `RateLimitCounterPort`는 `com.tastyhouse.apicommon.ratelimit`로 이동했다. 키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사인데 그것을 인프라가 들고 있느라 이 모듈이 서블릿 스택을 의존했고, 반대로 표현 모듈인 `api-common-module`이 `RateLimitException` 처리를 위해 이 인프라 모듈을 의존하는 역방향이 생겼기 때문이다. 지금은 **`infrastructure:redis` → `api-common-module`**(어댑터 → 계약) 한 방향뿐이다.
+**챕터 02에서 이 패키지는 카운터 하나만 남았다.** `@RateLimit`·`RateLimitAspect`·`RateLimitKeyType`·`RateLimitException`과 신설 계약 `RateLimitCounterPort`는 `com.tastyhouse.apicommon.ratelimit`로 이동했다(계약만은 이후 `security-core`로 다시 옮겨졌다 — 아래 번복 참고). 키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사인데 그것을 인프라가 들고 있느라 이 모듈이 서블릿 스택을 의존했고, 반대로 표현 모듈인 `api-common-module`이 `RateLimitException` 처리를 위해 이 인프라 모듈을 의존하는 역방향이 생겼기 때문이다. ~~지금은 **`infrastructure:redis` → `api-common-module`**(어댑터 → 계약) 한 방향뿐이다.~~ **(번복됨)** 그 한 방향도 아웃바운드 어댑터가 계약 하나 때문에 **표현 모듈**(`starter-web`을 노출)을 컴파일 의존하는 수평 간선이었다. 계약 `RateLimitCounterPort`를 서블릿-프리 `security-core`(`com.tastyhouse.security.ratelimit`)로 옮겨, 지금은 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — 구현과 표현이 main 클래스패스에서 서로를 모른다. 이동 근거는 `security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유".
 
 `RedisRateLimitCounter`는 과거 `RateLimiterService`이며, Lua 스크립트와 키 취급이 그대로라 **기존 Redis 카운터 키와 호환**된다(키 접두사는 호출부의 `@RateLimit(keyPrefix=...)`가 결정한다).
 
@@ -58,17 +58,17 @@ com.tastyhouse.infrastructure.redis/
 ## Dependencies
 
 ### Internal
-- `api-common-module` (implementation) — `RedisRateLimitCounter`가 구현하는 `RateLimitCounterPort`의 소유 모듈(챕터 02). 어댑터가 계약을 의존하는 형태로, `infrastructure:persistence`가 읽기 포트 소유 모듈(`{앱}-application`)을 의존하는 선례와 동형이다.
+~~`api-common-module` (implementation) — `RedisRateLimitCounter`가 구현하는 `RateLimitCounterPort`의 소유 모듈(챕터 02)~~ **(삭제됨 — `RateLimitCounterPort`가 `security-core`로 이동)**. `./gradlew :infrastructure:redis:dependencies --configuration compileClasspath | grep -cE 'project :api-common-module|starter-web'`가 0이어야 한다(2026-09-27 실측 0).
 
 **`domain`에 의존하지 않는다.** rate limiting은 domain에 대응 개념이 없는 순수 인프라 관심사라서 `RateLimitException`도 `ErrorCode`에 결합하지 않는다. HTTP 응답 조립은 각 api 모듈의 `GlobalExceptionHandler`가 `ErrorCode`로 직접 수행한다.
 
 이것이 `infrastructure:persistence`와의 결정적 차이다 — persistence는 domain 포트의 어댑터라 `domain`을 `api`로 노출하지만, redis는 domain 포트가 없는 기술이라 domain을 아예 모른다.
 
-- `security-core` (implementation) — 챕터 01 신설 간선. `token` 패키지가 구현하는 토큰 저장소 포트 6종(`RefreshTokenRepository` 등)의 소유 모듈. 위 `api-common-module`과 같은 어댑터 → 계약 방향이다.
+- `security-core` (implementation) — 챕터 01 신설 간선. `token` 패키지가 구현하는 토큰 저장소 포트 6종(`RefreshTokenRepository` 등)과 `ratelimit` 패키지가 구현하는 `RateLimitCounterPort`(`com.tastyhouse.security.ratelimit`)의 소유 모듈. 어댑터 → 계약 방향이며, `infrastructure:persistence`가 읽기 포트 소유 모듈(`application`)을 의존하는 선례와 동형이다. **이 모듈의 유일한 내부 의존이다.**
 
 ### External
 - `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. `api`로 두는 이유는 이제 소비 모듈의 시그니처 노출이 아니라 **이 모듈의 어댑터가 그 타입을 쓰기 때문**이다. 챕터 01로 앱과 `security-core`의 compileClasspath에서 Redis 타입이 사라졌고, `runtimeOnly project(':infrastructure:redis')`가 4앱 중 3앱의 **유일한** Redis 선언이 됐다(batch는 선언 자체가 없다)
-- **테스트용 `api-common-module` 별도 선언은 불필요하다** — `afterName` 문자열 가드 테스트가 `ApiCommonRateLimitAutoConfiguration`을 리플렉션으로 읽지만, 위 `implementation`은 테스트 컴파일 클래스패스에도 보이기 때문이다(`testImplementation` 중복 선언을 추가하지 않는 이유).
+- ~~**테스트용 `api-common-module` 별도 선언은 불필요하다** — 위 `implementation`이 테스트 컴파일 클래스패스에도 보이기 때문이다~~ **(번복됨)** — `api-common-module` 의존이 main에서 삭제됐고, `afterName` 문자열 가드 테스트도 `api-common-module`로 옮겨졌다(아래 §조건부 전략 배선). 이 모듈은 테스트에서도 api-common을 선언하지 않는다 — redis → api-common 방향은 테스트 클래스패스에서도 사라졌다.
 - `spring-boot-starter-aop`·`spring-boot-starter-web`는 **선언하지 않는다** — `@Aspect`와 `HttpServletRequest` 기반 IP 해석이 전부 `api-common-module`로 이동했다(챕터 02). 남은 것은 Redis Lua 카운터뿐이라 이 모듈은 서블릿·AOP 스택을 알지 않는다.
 
 ## security-core / security-module과의 관계
@@ -161,9 +161,9 @@ rate limit의 **표현 관심사**(`@RateLimit`·`RateLimitAspect`·`RateLimitEx
 **대상**: `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/RedisModuleAutoConfigurationTest.java`
 → 클래스 전체
 
-**이 테스트가 redis 모듈에 있는 이유는 가드 대상이 두 모듈에 걸쳐 있기 때문이다** — `ApiCommonRateLimitAutoConfiguration`의 순서 선언(`afterName`)이 이 모듈의 클래스를 **문자열로** 가리키는데, api-common은 의존 방향(redis → api-common)상 redis 타입을 볼 수 없어 자기 모듈에서는 검증할 수 없다. 반대로 이 모듈은 api-common을 의존하므로 양쪽을 다 볼 수 있다.
+~~**이 테스트가 redis 모듈에 있는 이유는 가드 대상이 두 모듈에 걸쳐 있기 때문이다** — `ApiCommonRateLimitAutoConfiguration`의 순서 선언(`afterName`)이 이 모듈의 클래스를 **문자열로** 가리키는데, api-common은 의존 방향(redis → api-common)상 redis 타입을 볼 수 없어 자기 모듈에서는 검증할 수 없다. 반대로 이 모듈은 api-common을 의존하므로 양쪽을 다 볼 수 있다.~~ **(번복됨 — `afterName` 검증은 `api-common-module`로 옮겨졌다.)** `RateLimitCounterPort` 이동으로 이 모듈의 api-common 의존이 사라졌고, 대신 api-common이 `testImplementation project(':infrastructure:redis')`로 이 모듈을 **테스트에서만** 볼 수 있게 됐다. 그래서 `afterName` 문자열 단정(`rateLimitAutoConfigurationAfterNameResolvesToRealClass`)은 `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/ApiCommonAutoConfigurationTest.java`에 있다 — **소비 쪽이 구현의 등록 순서를 검증**하는 방향이다. 이 파일에 남은 것은 `ourStringRedisTemplateWinsOverBootDefault`(위 봉인 목록의 `before` 순서 가드)뿐이다.
 
-문자열 참조라 **클래스를 리네임·이동해도 컴파일이 깨지지 않고** 조건 평가만 조용히 어긋나므로, 이 리플렉션 단정이 유일한 방어선이다. 같은 이유로 `@ConditionalOnProperty`·`@ConditionalOnBean` 류의 조건부 배선은 **기동 성공을 증거로 삼지 않는다** — 조건이 빗나가면 빈이 그냥 없을 뿐 기동은 성공한다. 반증(틀린 조건으로 실패하는지)을 확인한다.
+`afterName`은 문자열 참조라 **클래스를 리네임·이동해도 컴파일이 깨지지 않고** 조건 평가만 조용히 어긋나므로, 이 리플렉션 단정이 유일한 방어선이다. 같은 이유로 `@ConditionalOnProperty`·`@ConditionalOnBean` 류의 조건부 배선은 **기동 성공을 증거로 삼지 않는다** — 조건이 빗나가면 빈이 그냥 없을 뿐 기동은 성공한다. 반증(틀린 조건으로 실패하는지)을 확인한다.
 
 ### 토큰 저장소 어댑터 6종의 키 형식
 

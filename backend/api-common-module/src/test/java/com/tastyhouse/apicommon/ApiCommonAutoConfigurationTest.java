@@ -3,6 +3,7 @@ package com.tastyhouse.apicommon;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.tastyhouse.apicommon.exception.GlobalExceptionHandler;
 import com.tastyhouse.apicommon.ratelimit.ApiCommonRateLimitAutoConfiguration;
 import com.tastyhouse.apicommon.ratelimit.RateLimitAspect;
-import com.tastyhouse.apicommon.ratelimit.RateLimitCounterPort;
+import com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration;
+import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 class ApiCommonAutoConfigurationTest {
 
@@ -25,6 +28,28 @@ class ApiCommonAutoConfigurationTest {
         ApiCommonModuleAutoConfiguration.class,
         ApiCommonRateLimitAutoConfiguration.class
     );
+
+    @Test
+    @DisplayName("ApiCommonRateLimitAutoConfiguration의 afterName이 실재하는 클래스를 가리킨다")
+    void rateLimitAutoConfigurationAfterNameResolvesToRealClass() {
+        String[] afterNames = ApiCommonRateLimitAutoConfiguration.class
+            .getAnnotation(AutoConfiguration.class)
+            .afterName();
+
+        assertThat(afterNames)
+            .as("rate limit aspect의 @ConditionalOnBean 가시성이 이 순서 선언에 달려 있다")
+            .containsExactly(RedisModuleAutoConfiguration.class.getName());
+
+        for (String name : afterNames) {
+            assertThatCode(() -> Class.forName(name))
+                .as("""
+                    afterName은 문자열이라 오타·리네임을 컴파일러가 잡지 못한다. \
+                    틀리면 Boot가 조용히 무시하고, @ConditionalOnBean이 카운터 빈을 보지 못해 \
+                    RateLimitAspect가 사라진다 — 컴파일·빌드·기동 전부 성공하므로 \
+                    admin·ceo 로그인 rate limit이 소리 없이 없어진다. 이 단언이 그 유일한 자동 방어선이다.""")
+                .doesNotThrowAnyException();
+        }
+    }
 
     @Nested
     @DisplayName("서블릿 웹 앱")

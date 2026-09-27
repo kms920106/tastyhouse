@@ -26,7 +26,7 @@
 |-----------|---------|
 | `domain/` | DDD 도메인 핵심 — 도메인 모델(POJO)/VO/이벤트/Repository write 포트/도메인 서비스/출력 포트 + `shared`·`exception`. **프레임워크-프리(production 의존 0개)** (see `domain/AGENTS.md`) |
 | `infrastructure/persistence/` | domain 포트의 DB 어댑터 — `<ctx>/persistence`(write: JPA/매퍼) + `<ctx>/query`(read: QueryDSL QueryDao — `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`를 implements) + `<ctx>/listener` + 도메인 서비스 빈 등록(`<ctx>/config/<Ctx>DomainConfig`). Gradle 좌표 `:infrastructure:persistence`, 자바 패키지는 `com.tastyhouse.infrastructure..` 불변 (see `infrastructure/persistence/AGENTS.md`) |
-| `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `api-common-module`의 `RateLimitCounterPort` 구현). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
+| `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `security-core`의 `RateLimitCounterPort` 구현) + 토큰 저장소 어댑터 6종(`token/`). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
 | `infrastructure/restclient/` | **외부 연동 HTTP 코어**(구 `infrastructure/external/` → `infrastructure/http-client/`를 거쳐 리네임) — Boot `RestClient.Builder`를 꾸미는 `RestClientConfig`만 갖는다(파일 저장 SPI `FileStorageStrategy`·`FileStoragePortAdapter`·`FileStorageProperties`는 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하도록 바뀌며 삭제됐고, 예외 계약 `ExternalApiException`/`ExternalApiErrorCode`도 완전히 해체돼 도메인 `ErrorCode`로 이관됐다 — 이 모듈에는 이제 예외·에러코드가 없다). `WebClient`/webflux는 전면 제거하고 Spring `RestClient`로 통일했다. 벤더·채널 구현은 아래 16모듈로 분리됐다. **앱이 직접 의존하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi, batch는 bbq·admdongkor를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/restclient/AGENTS.md`) |
 | `infrastructure/file-storage/` | **(챕터 03 신설) 파일 저장 스타터** — 자바 코드도 auto-configuration도 없이 `infrastructure:firebase`(`FileStoragePort` 벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
 | `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **앱이 직접 의존하지 않는다** — 스타터 `infrastructure:file-storage`가 의존하고 앱은 그 스타터만 본다 (see `infrastructure/firebase/AGENTS.md`) |
@@ -47,7 +47,7 @@
 | `infrastructure/bbq/` | BBQ 메뉴 수집·원격 이미지 다운로드. **batch-module만 의존** (see `infrastructure/bbq/AGENTS.md`) |
 | `infrastructure/admdongkor/` | 행정동 경계 GeoJSON 수집(원천 `vuski/admdongkor`). **batch-module만 의존** (see `infrastructure/admdongkor/AGENTS.md`) |
 | `web-api/` | 사용자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `web-api/AGENTS.md`) |
-| `security-core/` | **(챕터 03 신설)** `security-module`에서 분리된 서블릿-프리 보안 코어 — `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종). `{web,admin,ceo,batch}-application`이 이 모듈만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제한다 (see `security-core/AGENTS.md`) |
+| `security-core/` | **(챕터 03 신설)** `security-module`에서 분리된 서블릿-프리 보안 코어 — `JwtTokenProvider`(서명/파싱)와 Redis 기반 JWT 세션 저장소 6종(RefreshToken/Blacklist/소셜 임시토큰 4종) + rate limit 카운터 포트 `RateLimitCounterPort`(`ratelimit/` — `api-common-module`에서 이동, 구현은 `infrastructure:redis`). `{web,admin,ceo,batch}-application`이 이 모듈만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제한다 (see `security-core/AGENTS.md`) |
 | `security-module/` | 공유 보안/인증 지원 라이브러리 — `security-core`를 `api`로 재노출하고, 서블릿 결합 타입(JWT 인증 필터·EntryPoint·AccessDeniedHandler)만 잔류한다. **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
 | `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `admin-api/AGENTS.md`) |
@@ -123,10 +123,10 @@ application ─┬→ domain (implementation)   ← 공유 읽기 계약 55개�
 ── 공유 모듈 ──
 infrastructure:persistence ─┬→ domain (api)
                             └→ application (implementation) ← QueryDao가 앱 단독 {Ctx}QueryPort를 구현
-infrastructure:redis ─┬→ security-core (implementation)     ← (챕터 01) 토큰 저장소 포트 6종을 구현하는 어댑터
-                      └→ api-common-module (implementation) ← RateLimitCounterPort 구현
-   ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 두 계약의
-     소유 모듈만 의존한다(adapter → port 방향)
+infrastructure:redis ──→ security-core (implementation)     ← 토큰 저장소 포트 6종(챕터 01) + RateLimitCounterPort를 구현하는 어댑터
+   ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 계약의
+     소유 모듈만 의존한다(adapter → port 방향). 과거의 api-common-module (implementation) ← RateLimitCounterPort 구현
+     간선은 삭제됐다 — 포트가 security-core로 옮겨가 redis → api-common(표현 모듈) 간선이 사라졌다. 이제 내부 의존은 security-core 하나
 infrastructure:restclient ─→ (내부 의존 없음) + spring-web·starter-json (api)   ← HTTP 코어: RestClient.Builder customizer만(예외·에러코드 없음). 구 infrastructure:external → infrastructure:http-client, webflux 전면 제거
    ↑ firebase·aws-s3를 뺀 아래 7모듈 중 설정만 재사용하는 곳이 implementation으로 의존한다(RestClient 재사용)
    ※ 과거 이 모듈이 소유하던 ExternalApiException/ExternalApiErrorCode는 완전히 삭제됐다 — domain을 의존할 이유가
@@ -159,6 +159,7 @@ infrastructure:admdongkor ─→ infrastructure:restclient, application(행정�
 security-core ─┬→ domain (implementation)   ← ErrorCode(토큰 검증 실패 표현)
                └→ spring-security-core (api) + jjwt-api (api)/jjwt-impl·jjwt-jackson (runtimeOnly)
    ← (챕터 03 신설) security-module에서 서블릿-프리 타입(JwtTokenProvider·토큰 저장소 계약)만 분리. 서블릿 스택(starter-web·jakarta.servlet) 의존 없음
+   ← rate limit 카운터 계약 RateLimitCounterPort(ratelimit/)도 여기 있다 — api-common-module에서 이동, 구현은 infrastructure:redis
    ← (챕터 01) 토큰 저장소 6종은 여기 포트만 남았다(RefreshToken/Blacklist/소셜 임시토큰 4종). StringRedisTemplate으로
      키를 조립하는 구현은 infrastructure:redis의 token 패키지가 갖는다 — 그 결과 security-core → infrastructure:redis
      간선이 사라졌고, api-common-module을 batch까지 끌고 가던 전이 사슬도 함께 끊겼다(CLAUDE.md 감사표 참고)
@@ -166,12 +167,16 @@ security-module ─┬→ domain (implementation) ← ErrorCode만(JwtAuthentica
                  └→ security-core (api)             ← (챕터 03) 잔류한 서블릿 결합 타입(필터·EntryPoint·AccessDeniedHandler)이 JwtTokenProvider·토큰 저장소 포트를 쓰고, api 3모듈에도 전이로 노출. jjwt 3줄은 security-core로 이관되어 제거(전이 수신)
 api-common-module ─┬→ domain (api)                  ← PageResult가 PaginationResponse.from의 공개 시그니처에 노출
                    │                                       (BusinessException·ErrorCode는 GlobalExceptionHandler 내부 사용)
+                   ├→ security-core (implementation)       ← (신설) RateLimitAspect가 쓰는 RateLimitCounterPort. api 노출 안 함 —
+                   │                                          web·admin·ceo는 security-module의 api로 이미 받는다
+                   ├→ infrastructure:redis (testImplementation) ← afterName 문자열 검증 테스트 전용. main 클래스패스에는 없다
                    ├→ starter-web·starter-validation (api) ← GlobalExceptionHandler·ApiResponse
                    ├→ spring-security-core (implementation)
                    ├→ starter-aop (implementation)         ← RateLimitAspect
                    └→ springdoc-openapi-starter-webmvc-ui (api)
    ← security-module 의존은 없다(과거 서술 정정). rate limit이 이 모듈로 이관되며 방향이 뒤집혔다 —
-     지금은 infrastructure:redis가 이 모듈의 RateLimitCounterPort를 구현한다
+     과거 서술 "지금은 infrastructure:redis가 이 모듈의 RateLimitCounterPort를 구현한다"는 번복됨 — 계약이 security-core로
+     옮겨가 지금은 infrastructure:redis → security-core ← api-common-module이다(구현과 표현이 서로를 모른다)
 domain → 의존 없음 (production 의존 0개)
 ```
 - **`domain`은 프레임워크를 모른다**: 다른 모듈에 의존하지 않으며, Spring(Web/tx/orm)·JPA·QueryDSL 전부 의존이 없다. HTTP 상태는 `ErrorCode.httpStatusCode`(int)로, 낙관적 락 충돌은 프레임워크-프리 `OptimisticLockConflictException`으로 표현한다(스프링 예외 번역은 `infrastructure:persistence`의 `RepositoryImpl` 담당). persistence·조회·이벤트 발행·도메인 서비스 빈 등록은 전부 `infrastructure:persistence`가 전담한다.

@@ -15,6 +15,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.tastyhouse.apicommon.common.ClientIpResolver;
+import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 @Aspect
 public class RateLimitAspect {

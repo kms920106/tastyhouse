@@ -20,7 +20,7 @@
 |-----------|---------|
 | `src/main/java/com/tastyhouse/apicommon/common/` | `ApiResponse<T>`(성공 응답 + `Pagination`), `PaginationResponse<T>`(표준 4필드 페이징), `PageRequest`(`@ModelAttribute` 페이징 요청) |
 | `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler` — **`@Bean("sharedGlobalExceptionHandler")`로 조건부 등록**(아래 "등록 방식" 절). web-api는 자체 핸들러가 있어 이 빈이 등록되지 않는다 |
-| `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`·계약 `RateLimitCounterPort`. 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
+| `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`. 카운터 계약 `RateLimitCounterPort`는 **`security-core`(`com.tastyhouse.security.ratelimit`) 소유**(~~이 패키지 소유~~ 번복됨 — 아래 [security-core로 옮긴 이유](#ratelimitcounterport를-security-core로-옮긴-이유)), 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
 | `src/main/java/com/tastyhouse/apicommon/file/` | `FileService` — `MultipartFile`을 도메인 `FileUploadCommand`로 바꾸는 얇은 업로드 어댑터(조회·URL 변환 책임 없음) |
 | `src/main/java/com/tastyhouse/apicommon/shop/response/` | admin↔ceo 바이트 동일이던 shop 응답 record 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`) |
 
@@ -34,7 +34,7 @@
 | `ApiCommonRateLimitAutoConfiguration` | `com.tastyhouse.apicommon.ratelimit` | `@Bean RateLimitAspect(RateLimitCounterPort, ClientIpResolver, ...)` — `RateLimitAspect`에서 `@Component`를 제거하고 `@Bean` 메서드 파라미터로 협력자를 주입 | `@ConditionalOnWebApplication(type = SERVLET)` + 메서드에 `@ConditionalOnBean(RateLimitCounterPort.class)` + `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")` |
 
 - **빈 이름을 `sharedGlobalExceptionHandler`로 지정하는 이유**: web-api의 자체 `GlobalExceptionHandler`와 단순 클래스명이 같아, 기본 빈 이름(`globalExceptionHandler`)을 쓰면 두 빈이 이름 충돌한다. 이름을 다르게 지어 공존시키고, `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`가 실제 등록 여부를 가른다 — web-api는 자체 `@RestControllerAdvice`가 이미 있으므로 이 빈이 **등록되지 않는다**(Negative), admin/ceo는 없으므로 **등록된다**(Positive).
-- **`RateLimitAspect`가 `RateLimitCounterPort` 존재를 조건으로 삼는 이유**: 카운터 빈은 `infrastructure:redis`의 `RedisModuleAutoConfiguration`이 등록한다. 클래스 리터럴(`@ConditionalOnBean(RedisRateLimitCounter.class)`)을 쓸 수 없는 이유는 의존 방향이 `infrastructure:redis → api-common`이라 이 모듈이 redis 모듈의 구체 타입을 컴파일 타임에 볼 수 없기 때문이다(순환 방지) — 그래서 도메인 포트 `RateLimitCounterPort`(이 모듈이 소유)로 조건을 건다. `afterName`으로 순서를 강제하는 이유는 스캔된 `RedisRateLimitCounter` 정의가 redis auto-configuration 처리 시점에 등록되므로, 그보다 먼저 이 조건을 평가하면 `@ConditionalOnBean`이 아직 없는 빈을 보고 거짓으로 판정하기 때문이다.
+- **`RateLimitAspect`가 `RateLimitCounterPort` 존재를 조건으로 삼는 이유**: 카운터 빈은 `infrastructure:redis`의 `RedisModuleAutoConfiguration`이 등록한다. 클래스 리터럴(`@ConditionalOnBean(RedisRateLimitCounter.class)`)을 쓸 수 없는 이유는 이 모듈의 main 클래스패스에 redis 모듈이 없어 구체 타입을 컴파일 타임에 볼 수 없기 때문이다 — ~~의존 방향이 `infrastructure:redis → api-common`이라(순환 방지)~~ **(번복됨 — 지금 방향은 `infrastructure:redis → security-core ← api-common-module`이다. 순환이 아니라 "표현은 구현을 모른다"가 이유다)** — 그래서 포트 `RateLimitCounterPort`(~~이 모듈이 소유~~ **`security-core` 소유**)로 조건을 건다. `afterName`으로 순서를 강제하는 이유는 스캔된 `RedisRateLimitCounter` 정의가 redis auto-configuration 처리 시점에 등록되므로, 그보다 먼저 이 조건을 평가하면 `@ConditionalOnBean`이 아직 없는 빈을 보고 거짓으로 판정하기 때문이다.
 - **과거 "부분 진입점을 쓰는 앱에 패키지를 추가할 때는 그 앱의 `@Import`도 함께 늘린다"는 함정은 이제 존재하지 않는다.** admin/ceo/web 어느 쪽도 `@Import`를 갖지 않으므로 배선 누락이라는 실패 양식 자체가 사라졌다 — 대신 위 조건이 앱별 차이를 자동으로 답한다.
 
 ## 스캔 주의 (조건부 등록이 곧 동작 — 개정)
@@ -52,13 +52,15 @@
 - **모듈마다 내용이 다른 정책 파일** — `SecurityConfig`(필터체인·인가 정책), `PublicPaths`(공개 경로 목록: web 18줄 vs admin/ceo 3줄), `TokenService`/`AuthService`(인증 주체 `Admin`/`Ceo`와 JWT 시크릿이 분리되어야 함).
 - **필드 셋이나 `@Schema` 문구가 다른 응답 record** — 예: `ShopDetailResponse`(admin은 감사 시각, ceo는 `trademarkImageUrl`/`hidden`), `ShopAmenityResponse`("가게" vs "내 가게").
 - **도메인 포트가 있는 기술 어댑터** — 그것은 외부 연동 모듈(`infrastructure:restclient` 코어 + `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 어댑터)이나 `infrastructure:persistence`(DB 어댑터) 소관이다.
-- **기술 구현체** — 이 모듈은 계약(`RateLimitCounterPort`)만 두고 구현은 인프라 모듈에 맡긴다. 표현 계층이 인프라 모듈을 `implementation`으로 끌어오는 순간 챕터 02가 교정한 역방향 의존이 되살아난다.
+- **기술 구현체** — 이 모듈은 rate limit의 표현(애노테이션·aspect·예외)만 두고, 카운터 계약(`RateLimitCounterPort`)은 `security-core`가, 구현은 인프라 모듈이 맡는다(~~이 모듈은 계약(`RateLimitCounterPort`)만 두고~~ 번복됨 — 계약도 이 모듈을 떠났다). 표현 계층이 인프라 모듈을 `implementation`으로 끌어오는 순간 챕터 02가 교정한 역방향 의존이 되살아난다.
 
 ## Dependencies
 
 ### Internal
 - `domain` (**api**) — `PaginationResponse.from(PageResult<T>)`의 공개 시그니처에 domain 타입이 노출되므로 `api`로 둔다. 그 노출을 타고 `domain.exception`(`BusinessException`·`ErrorCode`)도 api 3모듈의 **공용 에러 계약**이 된다.
-- **`infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 rate limit의 표현 관심사(`@RateLimit`·`RateLimitAspect`·`RateLimitException`·`RateLimitCounterPort`)를 이 모듈로 올리고 Redis 카운터만 인프라에 남겨 **포트로 역전**했다. 방향은 이제 `redis → api-common`이다.
+- `security-core` (implementation — **신설 간선**) — `RateLimitAspect`·`ApiCommonRateLimitAutoConfiguration`이 쓰는 `RateLimitCounterPort`의 소유 모듈. `api`로 노출하지 않는다 — web·admin·ceo는 `security-module`의 `api project(':security-core')`로 이미 이 모듈을 받는다. 부수적으로 compileClasspath에 `jjwt-api`가 security-core를 통해 전이로 실리는데 허용 범위다(`spring-security-core`는 원래 직접 선언돼 있다).
+- `infrastructure:redis` (**testImplementation**) — `afterName` 문자열이 가리키는 `RedisModuleAutoConfiguration`이 실재하는지 리플렉션으로 단정하려고 테스트에서만 본다(아래 [`afterName`에 클래스 리터럴을 쓸 수 없는 이유](#aftername에-클래스-리터럴을-쓸-수-없는-이유-순환-회피)). `ApplicationContextRunner`가 `AutoConfigurations.of(...)`로 대상 클래스를 명시하므로, 테스트 클래스패스에 redis의 imports 파일이 있어도 redis auto-config가 저절로 로딩되지는 않는다.
+- **main 클래스패스에서는 여전히 `infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 rate limit의 표현 관심사(`@RateLimit`·`RateLimitAspect`·`RateLimitException`, 당시에는 `RateLimitCounterPort`까지)를 이 모듈로 올리고 Redis 카운터만 인프라에 남겨 **포트로 역전**했다. ~~방향은 이제 `redis → api-common`이다.~~ **(번복됨)** 그 뒤 계약을 `security-core`로 옮겨, 방향은 이제 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — redis도 이 모듈을 모르고, 이 모듈도 redis를 모른다.
 
 ### External
 - `spring-boot-starter-web`·`spring-boot-starter-validation` (**api**) — `@RestControllerAdvice`. 소비 모듈도 각자 선언하지만 중복은 무해하다
@@ -145,10 +147,20 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 **대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
 → `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")`
 
-의존 방향이 `infrastructure:redis → api-common-module`이라 api-common은 redis 모듈의 타입을 **컴파일
-시점에 볼 수 없다**(참조하면 순환). 그래서 문자열 FQCN으로 순서만 선언한다. 스캔된
+~~의존 방향이 `infrastructure:redis → api-common-module`이라 api-common은 redis 모듈의 타입을 **컴파일
+시점에 볼 수 없다**(참조하면 순환).~~ **(번복됨 — 지금은 순환이 아니다.)** 방향이
+`infrastructure:redis` → `security-core` ← `api-common-module`로 바뀌어 순환 위험은 사라졌지만, api-common의
+main 클래스패스에는 여전히 redis가 없어(표현 모듈이 구현 모듈을 끌어오지 않는다) 그 타입을 **컴파일
+시점에 볼 수 없다.** 그래서 문자열 FQCN으로 순서만 선언한다. 스캔된
 `RedisRateLimitCounter` 정의는 redis auto-config 처리 시점에 등록되므로, 이 순서가
 `@ConditionalOnBean(RateLimitCounterPort.class)`의 가시성을 보장한다.
+
+**이 문자열의 검증 테스트는 이제 이 모듈에 있다.** 문자열이라 클래스를 리네임·이동해도 컴파일이 깨지지
+않고 조건 평가만 조용히 어긋나므로, `ApiCommonAutoConfigurationTest#rateLimitAutoConfigurationAfterNameResolvesToRealClass`
+가 그 FQCN이 실제 클래스로 해석되는지 단정하는 유일한 방어선이다. 과거에는 이 모듈이 redis를 볼 수 없어
+`infrastructure:redis`의 `RedisModuleAutoConfigurationTest`에 있었으나, `testImplementation project(':infrastructure:redis')`
+로 이 모듈이 테스트에서 redis를 볼 수 있게 되며 옮겨 왔다(~~redis 모듈에 둔다~~ 번복됨) — **소비 쪽이
+구현의 등록 순서를 검증**하는 방향이 되고, redis → api-common 간선은 테스트 클래스패스에서도 사라졌다.
 
 ### `GlobalExceptionHandler` — web-api가 이 핸들러를 쓰지 않는 이유
 
@@ -172,15 +184,29 @@ web-api와 admin·ceo-api는 응답 계약이 달라 전역 핸들러를 각자 
 없으므로 이 유틸 하나로 통합했다. `@Component`가 아니라 static 유틸이므로 **컴포넌트 스캔 범위와
 무관하다**(web-api는 이 패키지를 스캔하지 않아 여기의 핸들러 빈을 등록하지 않는다).
 
-### `RateLimitCounterPort`를 표현 계층에 둔 이유
+### `RateLimitCounterPort`를 security-core로 옮긴 이유
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitCounterPort.java`
-→ 인터페이스 선언 / `isLimitExceeded`
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/ratelimit/RateLimitCounterPort.java`
+→ 인터페이스 선언 / `isLimitExceeded(String, int, Duration)`
+(소비 지점: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitAspect.java`,
+`ApiCommonRateLimitAutoConfiguration.java` → `@ConditionalOnBean(RateLimitCounterPort.class)`)
 
-이전에는 api-common-module이 `RateLimitException` 처리를 위해 `infrastructure:redis`를 의존했고, 그
-인프라 모듈이 `HttpServletRequest`로 클라이언트 IP를 해석하느라 **서블릿 스택까지 끌어왔다.** 웹
-관심사를 표현으로 올리고 카운터만 인프라에 남기면서 의존 방향이 바로잡혔다. 카운팅 방식은 Fixed
-Window이고, 카운터를 어디에 저장하는지는 이 계약의 관심사가 아니다.
+> **이전 판단 — 표현 계층에 둔다 (번복됨)**: 챕터 02 당시 이 포트는 `com.tastyhouse.apicommon.ratelimit`에
+> 있었다. 그 전에는 api-common-module이 `RateLimitException` 처리를 위해 `infrastructure:redis`를 의존했고,
+> 그 인프라 모듈이 `HttpServletRequest`로 클라이언트 IP를 해석하느라 **서블릿 스택까지 끌어왔다.** 웹
+> 관심사를 표현으로 올리고 카운터만 인프라에 남기면서 의존 방향이 바로잡혔다 — 그 교정 자체는 지금도
+> 유효하다. 틀린 것은 **계약의 거처**였다.
+
+계약을 표현 모듈에 두자 아웃바운드 어댑터 `infrastructure:redis`가 포트 인터페이스 **하나** 때문에
+`starter-web`·springdoc을 노출하는 표현 모듈을 컴파일 의존하는 수평 간선이 남았다. 포트 시그니처는
+`String`·`int`·`Duration`뿐이라 서블릿·HTTP와 무관하고, 실사용처도 로그인 브루트포스 방어라는 보안
+관심사다. 그래서 토큰 저장소 포트 6종과 같은 "계약은 `security-core`, 구현은 `infrastructure:redis`" 구조로
+옮겼다(본문 동일, `git mv`). 이 모듈은 `implementation project(':security-core')`로 포트를 받고, 키 조립 등
+HTTP 관심사는 그대로 이 모듈의 `RateLimitAspect`에 남는다. 상세 근거와 기각한 대안(별도 초소형 모듈·`domain`)은
+`security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유".
+
+카운팅 방식은 Fixed Window이고, 카운터를 어디에 저장하는지는 이 계약의 관심사가 아니다. Redis 키·Lua·
+배선 조건은 이동 전후로 동일하다(동작 변경 없음).
 
 ### `RateLimitAspect`의 책임 경계
 
@@ -198,5 +224,7 @@ Window이고, 카운터를 어디에 저장하는지는 이 계약의 관심사�
 → 클래스 선언 / `NonServletApplication`
 
 `ApplicationContextRunner` 기본값이 비-웹 컨텍스트라 batch의 `web-application-type: none`에 해당한다.
+`rateLimitAutoConfigurationAfterNameResolvesToRealClass`는 `afterName` 문자열이 실제 클래스를 가리키는지를
+증명한다(`infrastructure:redis`에서 옮겨 온 테스트 — 위 [`afterName` 절](#aftername에-클래스-리터럴을-쓸-수-없는-이유-순환-회피)).
 이 테스트는 **단위 수준 근거**일 뿐이고, 실제 회귀 방지는 4개 앱 기동 후의 조건 리포트·로그인 rate
 limit 실측이 담당한다.

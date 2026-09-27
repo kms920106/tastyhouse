@@ -4,7 +4,7 @@
 # security-core
 
 ## Purpose
-`application`·`security-module`이 공유하는 **서블릿-프리 보안 코어 라이브러리 모듈**(`java-library`, 챕터 03 신설). `JwtTokenProvider`(서명/파싱)와 JWT 세션 토큰 저장소 **포트** 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)을 캡슐화한다. **챕터 01에서 저장소 6종이 구체 Redis 클래스에서 인터페이스로 바뀌었고, 구현은 `infrastructure:redis`의 `token` 패키지가 갖는다**(어댑터 → 계약).
+`application`·`security-module`이 공유하는 **서블릿-프리 보안 코어 라이브러리 모듈**(`java-library`, 챕터 03 신설). `JwtTokenProvider`(서명/파싱)와 JWT 세션 토큰 저장소 **포트** 6종(RefreshToken/Blacklist/소셜 임시토큰 4종)을 캡슐화한다. **챕터 01에서 저장소 6종이 구체 Redis 클래스에서 인터페이스로 바뀌었고, 구현은 `infrastructure:redis`의 `token` 패키지가 갖는다**(어댑터 → 계약). **rate limit 카운터 계약 `RateLimitCounterPort`도 이 모듈이 소유한다**(`api-common-module`에서 이동 — 근거는 아래 [rate limit 카운터 계약을 여기 둔 이유](#rate-limit-카운터-계약을-여기-둔-이유)). 구현은 역시 `infrastructure:redis`의 `RedisRateLimitCounter`다.
 
 **신설 배경**: 기존에는 이 타입들이 `security-module`에 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속, `JwtAuthenticationEntryPoint`, `JwtAccessDeniedHandler`)과 함께 있었는데, `application`이 `JwtTokenProvider`·토큰 저장소를 쓰려고 `security-module`을 의존하면 `starter-web`·서블릿 필터까지 컴파일 클래스패스에 딸려 들어와 **application 계층의 클래스패스가 서블릿 스택으로 오염**됐다. ArchUnit `applicationMustBeServletFree`는 소스의 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 그래서 서블릿-프리 타입만 이 모듈로 분리해 **빌드 그래프로 강제**한다. 자세한 배경은 `security-module/AGENTS.md`의 [security-core 분리](../security-module/AGENTS.md#security-core-분리-챕터-03)와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리) 참고.
 
@@ -20,6 +20,7 @@
 |-----------|---------|
 | `src/main/java/com/tastyhouse/security/jwt/` | `JwtTokenProvider`(파라미터형 POJO, 서명/파싱), `JwtProperties`, `TokenType`, `JwtPrincipal`/`JwtPrincipalFactory`(앱별 principal 재구성 계약) |
 | `src/main/java/com/tastyhouse/security/token/` | **인터페이스 6종**(챕터 01) — `RefreshTokenRepository`·`BlacklistRepository` + 소셜 임시토큰 4종(`Kakao`/`Naver`/`Apple`/`Facebook`TempTokenRepository). 구현·키 접두사·TTL 정책은 전부 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.token`이 소유한다 |
+| `src/main/java/com/tastyhouse/security/ratelimit/` | **`RateLimitCounterPort` 1종** — `boolean isLimitExceeded(String key, int limit, Duration duration)`. `api-common-module`의 `com.tastyhouse.apicommon.ratelimit`에서 본문 그대로 옮겨 왔다. 구현은 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.ratelimit.RedisRateLimitCounter`, 소비자는 `api-common-module`의 `RateLimitAspect`·`ApiCommonRateLimitAutoConfiguration`(`@ConditionalOnBean(RateLimitCounterPort.class)`) |
 
 자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). `SecurityModuleAutoConfiguration`(`security-module` 소유, 챕터 02로 `SecurityModuleConfig`에서 리네임 + `@AutoConfiguration`)의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕분에 이 모듈로 이동한 `@Repository` 빈들도 그대로 스캔한다.
 
@@ -57,7 +58,8 @@
 ### Consumers (챕터 03)
 - `application` — `implementation project(':security-core')`로 직접 의존(서블릿 스택 없이 auth/token 서비스가 사용). batch 유스케이스는 원래 security를 쓰지 않으며, 모듈 통합 후 클래스패스에 보이더라도 참조하지 않는다
 - `security-module` — `api project(':security-core')`로 재노출(잔류한 서블릿 결합 타입이 이 모듈의 `JwtTokenProvider`·토큰 저장소 포트를 쓴다. `JwtAuthenticationFilter`가 `BlacklistRepository`를 받는다)
-- `infrastructure:redis` — `implementation project(':security-core')`(챕터 01 신설 간선). 토큰 저장소 포트 6종의 **구현**을 갖는다
+- `infrastructure:redis` — `implementation project(':security-core')`(챕터 01 신설 간선). 토큰 저장소 포트 6종과 `RateLimitCounterPort`의 **구현**을 갖는다. `RateLimitCounterPort` 이동으로 redis의 `api-common-module` 의존은 삭제됐고, 이제 redis가 보는 내부 모듈은 이 모듈뿐이다
+- `api-common-module` — `implementation project(':security-core')`(**신설 간선**, `RateLimitCounterPort` 이동). `RateLimitAspect`가 카운터 포트를 주입받는다. `api`로 노출하지 않는다 — web·admin·ceo는 `security-module`의 `api`로 이미 이 모듈을 받는다. 이 간선으로 api-common의 compileClasspath에 `jjwt-api`가 전이로 실리는데 허용 범위다
 - `{web,admin,ceo}-api` — `security-module`을 통해 전이로 수신(기존 좌표 그대로, 직접 의존 선언 없음)
 
 ## 봉인·가드 목록
@@ -77,6 +79,29 @@
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->
+
+### rate limit 카운터 계약을 여기 둔 이유
+
+**대상**: `backend/security-core/src/main/java/com/tastyhouse/security/ratelimit/RateLimitCounterPort.java`
+→ `isLimitExceeded(String, int, Duration)`
+
+원래 이 포트는 `api-common-module`(`com.tastyhouse.apicommon.ratelimit`)에 있었고, 그 결과 아웃바운드
+어댑터인 `infrastructure:redis`가 계약 하나 때문에 **표현 모듈**(`starter-web`을 노출하는 api-common)을
+컴파일 의존하는 수평 간선이 생겼다. 이 모듈로 옮긴 근거는 셋이다.
+
+- **보안 관심사다** — 현재 `@RateLimit`의 실사용처는 로그인 브루트포스 방어(web·admin·ceo `login`)이고,
+  카운터는 "시도 횟수 제한"이라는 인증 방어 수단이다. JWT·토큰 저장소와 같은 모듈에 있는 것이 자연스럽다.
+- **서블릿-프리다** — 시그니처가 `String`·`int`·`java.time.Duration`뿐이라 이 모듈의 존재 이유(서블릿
+  타입 금지)를 해치지 않는다. 키 조립(IP·요청 필드 해석)은 HTTP 관심사라 여전히 api-common의
+  `RateLimitAspect`에 남는다 — 옮긴 것은 계약뿐이다.
+- **토큰 저장소 포트 6종과 같은 구조다** — "계약은 core, 구현은 `infrastructure:redis`". redis는 이미
+  토큰 저장소 구현 때문에 이 모듈을 의존하므로 **새 간선 없이** redis → api-common 간선만 사라진다.
+
+**기각한 대안**: (1) 포트 하나만 담는 별도 초소형 모듈 — 모듈 수만 늘고 소비자·구현자가 이미 이 모듈을
+보거나 볼 수 있어 실익이 없다. (2) `domain` — rate limit은 비즈니스 규칙이 아니라 요청 방어 기술이며,
+redis가 `domain`을 모르는 순수 기술 모듈이라는 성질(`infrastructure/redis/AGENTS.md`)을 깨게 된다.
+
+동작 변경은 없다 — Redis 키·Lua 스크립트·`ApiCommonRateLimitAutoConfiguration`의 배선 조건이 그대로다.
 
 ### `JwtPrincipal` / `JwtPrincipalFactory` — 앱별 principal 차이 흡수 계약
 

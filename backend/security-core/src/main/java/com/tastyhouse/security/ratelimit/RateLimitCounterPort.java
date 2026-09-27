@@ -1,4 +1,4 @@
-package com.tastyhouse.apicommon.ratelimit;
+package com.tastyhouse.security.ratelimit;
 
 import java.time.Duration;
 

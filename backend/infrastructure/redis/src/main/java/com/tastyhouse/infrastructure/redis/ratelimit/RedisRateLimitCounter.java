@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.apicommon.ratelimit.RateLimitCounterPort;
+import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 @Component
 public class RedisRateLimitCounter implements RateLimitCounterPort {
