@@ -9,9 +9,9 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.store.ProductAllergenRepository;
-import com.tastyhouse.application.product.store.ProductNutritionRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenRepository;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductNutritionService {
     private final ProductNutritionRepository productNutritionRepository;

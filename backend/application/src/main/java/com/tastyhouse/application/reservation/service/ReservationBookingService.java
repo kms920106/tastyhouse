@@ -16,11 +16,11 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.reservation.store.ReservationRepository;
-import com.tastyhouse.application.reservation.store.ReservationSlotRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
-import com.tastyhouse.application.shop.store.ShopRepository;
 
 public class ReservationBookingService {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");

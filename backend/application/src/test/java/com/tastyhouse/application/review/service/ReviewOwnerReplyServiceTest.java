@@ -21,9 +21,9 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.store.ReviewOwnerReplyRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

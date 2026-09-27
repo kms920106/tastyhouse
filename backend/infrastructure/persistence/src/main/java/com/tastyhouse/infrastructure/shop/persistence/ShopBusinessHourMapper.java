@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourState;
+import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBusinessHourMapper {
     private ShopBusinessHourMapper() {
     }
 
-    static ShopBusinessHourState toState(ShopBusinessHourJpaEntity entity) {
-        return new ShopBusinessHourState(
+    static ShopBusinessHour toDomain(ShopBusinessHourJpaEntity entity) {
+        return ShopBusinessHour.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getDayType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getDayType() == null ? null : DayType.valueOf(entity.getDayType()),
             entity.getOpenTime(),
             entity.getCloseTime(),
             entity.getIsClosed(),
@@ -18,24 +20,24 @@ final class ShopBusinessHourMapper {
         );
     }
 
-    static ShopBusinessHourJpaEntity toEntity(ShopBusinessHourState state) {
+    static ShopBusinessHourJpaEntity toEntity(ShopBusinessHour shopBusinessHour) {
         return ShopBusinessHourJpaEntity.create(
-            state.shopId(),
-            state.dayType(),
-            state.openTime(),
-            state.closeTime(),
-            state.isClosed(),
-            state.is24Hours()
+            shopBusinessHour.getShopId() == null ? null : shopBusinessHour.getShopId().value(),
+            shopBusinessHour.getDayType() == null ? null : shopBusinessHour.getDayType().name(),
+            shopBusinessHour.getOpenTime(),
+            shopBusinessHour.getCloseTime(),
+            shopBusinessHour.getIsClosed(),
+            shopBusinessHour.getIs24Hours()
         );
     }
 
-    static void applyChanges(ShopBusinessHourJpaEntity entity, ShopBusinessHourState state) {
+    static void applyChanges(ShopBusinessHourJpaEntity entity, ShopBusinessHour shopBusinessHour) {
         entity.applyChanges(
-            state.dayType(),
-            state.openTime(),
-            state.closeTime(),
-            state.isClosed(),
-            state.is24Hours()
+            shopBusinessHour.getDayType() == null ? null : shopBusinessHour.getDayType().name(),
+            shopBusinessHour.getOpenTime(),
+            shopBusinessHour.getCloseTime(),
+            shopBusinessHour.getIsClosed(),
+            shopBusinessHour.getIs24Hours()
         );
     }
 }

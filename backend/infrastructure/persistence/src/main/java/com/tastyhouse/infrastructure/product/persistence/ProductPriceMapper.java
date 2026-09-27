@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductPriceState;
+import com.tastyhouse.domain.product.model.ProductPrice;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductPriceMapper {
     private ProductPriceMapper() {
     }
 
-    static ProductPriceState toState(ProductPriceJpaEntity entity) {
-        return new ProductPriceState(
+    static ProductPrice toDomain(ProductPriceJpaEntity entity) {
+        return ProductPrice.reconstitute(
             entity.getId(),
-            entity.getProductId(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
             entity.getPriceName(),
             entity.getDeliveryPrice(),
             entity.getStorePrice(),
@@ -21,26 +22,26 @@ final class ProductPriceMapper {
         );
     }
 
-    static ProductPriceJpaEntity toEntity(ProductPriceState state) {
+    static ProductPriceJpaEntity toEntity(ProductPrice price) {
         return ProductPriceJpaEntity.create(
-            state.productId(),
-            state.priceName(),
-            state.deliveryPrice(),
-            state.storePrice(),
-            state.pickupPrice(),
-            state.sort(),
-            state.pickupPriceSetAt()
+            price.getProductId() == null ? null : price.getProductId().value(),
+            price.getPriceName(),
+            price.getDeliveryPrice(),
+            price.getStorePrice(),
+            price.getPickupPrice(),
+            price.getSort(),
+            price.getPickupPriceSetAt()
         );
     }
 
-    static void applyChanges(ProductPriceJpaEntity entity, ProductPriceState state) {
+    static void applyChanges(ProductPriceJpaEntity entity, ProductPrice price) {
         entity.applyChanges(
-            state.priceName(),
-            state.deliveryPrice(),
-            state.storePrice(),
-            state.pickupPrice(),
-            state.sort(),
-            state.pickupPriceSetAt()
+            price.getPriceName(),
+            price.getDeliveryPrice(),
+            price.getStorePrice(),
+            price.getPickupPrice(),
+            price.getSort(),
+            price.getPickupPriceSetAt()
         );
     }
 }

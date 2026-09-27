@@ -9,8 +9,8 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.member.store.MemberWithdrawalRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberWithdrawalService {

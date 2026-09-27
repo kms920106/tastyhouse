@@ -4,7 +4,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
-import com.tastyhouse.application.member.referral.store.MemberReferralRepository;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
 
 public class ReferralRewardCompletionService {
     private final MemberReferralRepository memberReferralRepository;

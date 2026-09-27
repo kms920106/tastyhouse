@@ -10,7 +10,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 
 public class FakeReviewRepository implements ReviewRepository {
     private final Map<Long, Review> reviews = new HashMap<>();

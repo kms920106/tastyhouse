@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionState;
+import com.tastyhouse.domain.product.model.ProductCommonOption;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 final class ProductCommonOptionMapper {
     private ProductCommonOptionMapper() {
     }
 
-    static ProductCommonOptionState toState(ProductCommonOptionJpaEntity entity) {
-        return new ProductCommonOptionState(
+    static ProductCommonOption toDomain(ProductCommonOptionJpaEntity entity) {
+        return ProductCommonOption.reconstitute(
             entity.getId(),
-            entity.getOptionGroupId(),
+            entity.getOptionGroupId() == null ? null : ProductOptionGroupId.of(entity.getOptionGroupId()),
             entity.getName(),
             entity.getAdditionalPrice(),
             entity.getSort(),
@@ -19,26 +20,26 @@ final class ProductCommonOptionMapper {
         );
     }
 
-    static ProductCommonOptionJpaEntity toEntity(ProductCommonOptionState state) {
+    static ProductCommonOptionJpaEntity toEntity(ProductCommonOption option) {
         return ProductCommonOptionJpaEntity.create(
-            state.optionGroupId(),
-            state.name(),
-            state.additionalPrice(),
-            state.sort(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible()
+            option.getOptionGroupId() == null ? null : option.getOptionGroupId().value(),
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getSort(),
+            option.isSoldOut(),
+            option.getSoldOutUntil(),
+            option.isVisible()
         );
     }
 
-    static void applyChanges(ProductCommonOptionJpaEntity entity, ProductCommonOptionState state) {
+    static void applyChanges(ProductCommonOptionJpaEntity entity, ProductCommonOption option) {
         entity.applyChanges(
-            state.name(),
-            state.additionalPrice(),
-            state.sort(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible()
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getSort(),
+            option.isSoldOut(),
+            option.getSoldOutUntil(),
+            option.isVisible()
         );
     }
 }

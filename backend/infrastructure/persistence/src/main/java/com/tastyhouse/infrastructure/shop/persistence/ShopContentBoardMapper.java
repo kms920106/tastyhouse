@@ -1,18 +1,22 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopContentBoard;
+import com.tastyhouse.domain.shop.model.ShopContentTopic;
+import com.tastyhouse.domain.shop.model.ShopContentType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopContentBoardMapper {
     private ShopContentBoardMapper() {
     }
 
-    static ShopContentBoardState toState(ShopContentBoardJpaEntity entity) {
-        return new ShopContentBoardState(
+    static ShopContentBoard toDomain(ShopContentBoardJpaEntity entity) {
+        return ShopContentBoard.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getContentType(),
-            entity.getTopic(),
-            entity.getImageFileId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getContentType() == null ? null : ShopContentType.valueOf(entity.getContentType()),
+            entity.getTopic() == null ? null : ShopContentTopic.valueOf(entity.getTopic()),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getYoutubeUrl(),
             entity.getDescription(),
             entity.isHidden(),
@@ -21,25 +25,25 @@ final class ShopContentBoardMapper {
         );
     }
 
-    static ShopContentBoardJpaEntity toEntity(ShopContentBoardState state) {
+    static ShopContentBoardJpaEntity toEntity(ShopContentBoard shopContentBoard) {
         return ShopContentBoardJpaEntity.create(
-            state.shopId(),
-            state.contentType(),
-            state.topic(),
-            state.imageFileId(),
-            state.youtubeUrl(),
-            state.description(),
-            state.hidden()
+            shopContentBoard.getShopId() == null ? null : shopContentBoard.getShopId().value(),
+            shopContentBoard.getContentType() == null ? null : shopContentBoard.getContentType().name(),
+            shopContentBoard.getTopic() == null ? null : shopContentBoard.getTopic().name(),
+            shopContentBoard.getImageFileId() == null ? null : shopContentBoard.getImageFileId().value(),
+            shopContentBoard.getYoutubeUrl(),
+            shopContentBoard.getDescription(),
+            shopContentBoard.isHidden()
         );
     }
 
-    static void applyChanges(ShopContentBoardJpaEntity entity, ShopContentBoardState state) {
+    static void applyChanges(ShopContentBoardJpaEntity entity, ShopContentBoard shopContentBoard) {
         entity.applyChanges(
-            state.topic(),
-            state.imageFileId(),
-            state.youtubeUrl(),
-            state.description(),
-            state.hidden()
+            shopContentBoard.getTopic() == null ? null : shopContentBoard.getTopic().name(),
+            shopContentBoard.getImageFileId() == null ? null : shopContentBoard.getImageFileId().value(),
+            shopContentBoard.getYoutubeUrl(),
+            shopContentBoard.getDescription(),
+            shopContentBoard.isHidden()
         );
     }
 }

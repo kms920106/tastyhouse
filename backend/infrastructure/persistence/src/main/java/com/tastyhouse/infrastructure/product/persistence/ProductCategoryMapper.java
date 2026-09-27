@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductCategoryState;
+import com.tastyhouse.domain.product.model.ProductCategory;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductCategoryMapper {
     private ProductCategoryMapper() {
     }
 
-    static ProductCategoryState toState(ProductCategoryJpaEntity entity) {
-        return new ProductCategoryState(
+    static ProductCategory toDomain(ProductCategoryJpaEntity entity) {
+        return ProductCategory.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getName(),
             entity.getDescription(),
             entity.getSort(),
@@ -17,22 +18,22 @@ final class ProductCategoryMapper {
         );
     }
 
-    static ProductCategoryJpaEntity toEntity(ProductCategoryState state) {
+    static ProductCategoryJpaEntity toEntity(ProductCategory category) {
         return ProductCategoryJpaEntity.create(
-            state.shopId(),
-            state.name(),
-            state.description(),
-            state.sort(),
-            state.visible()
+            category.getShopId() == null ? null : category.getShopId().value(),
+            category.getName(),
+            category.getDescription(),
+            category.getSort(),
+            category.isVisible()
         );
     }
 
-    static void applyChanges(ProductCategoryJpaEntity entity, ProductCategoryState state) {
+    static void applyChanges(ProductCategoryJpaEntity entity, ProductCategory category) {
         entity.applyChanges(
-            state.name(),
-            state.description(),
-            state.sort(),
-            state.visible()
+            category.getName(),
+            category.getDescription(),
+            category.getSort(),
+            category.isVisible()
         );
     }
 }

@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;

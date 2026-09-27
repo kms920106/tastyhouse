@@ -10,7 +10,7 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
-import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardRepository;
 
 @Service
 @AdminApp

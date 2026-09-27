@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.faq.persistence;
 
-import com.tastyhouse.application.faq.port.out.write.FaqState;
+import com.tastyhouse.domain.faq.model.Faq;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 final class FaqMapper {
     private FaqMapper() {
     }
 
-    static FaqState toState(FaqJpaEntity entity) {
-        return new FaqState(
+    static Faq toDomain(FaqJpaEntity entity) {
+        return Faq.reconstitute(
             entity.getId(),
-            entity.getFaqCategoryId(),
+            entity.getFaqCategoryId() == null ? null : FaqCategoryId.of(entity.getFaqCategoryId()),
             entity.getQuestion(),
             entity.getAnswer(),
             entity.getSort(),
@@ -20,25 +21,25 @@ final class FaqMapper {
         );
     }
 
-    static FaqJpaEntity toEntity(FaqState state) {
+    static FaqJpaEntity toEntity(Faq faq) {
         return FaqJpaEntity.create(
-            state.faqCategoryId(),
-            state.question(),
-            state.answer(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            faq.getFaqCategoryId() == null ? null : faq.getFaqCategoryId().value(),
+            faq.getQuestion(),
+            faq.getAnswer(),
+            faq.getSort(),
+            faq.isVisible(),
+            faq.isDeleted()
         );
     }
 
-    static void applyChanges(FaqJpaEntity entity, FaqState state) {
+    static void applyChanges(FaqJpaEntity entity, Faq faq) {
         entity.applyChanges(
-            state.faqCategoryId(),
-            state.question(),
-            state.answer(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            faq.getFaqCategoryId() == null ? null : faq.getFaqCategoryId().value(),
+            faq.getQuestion(),
+            faq.getAnswer(),
+            faq.getSort(),
+            faq.isVisible(),
+            faq.isDeleted()
         );
     }
 }

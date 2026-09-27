@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoState;
+import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopConvenienceInfoMapper {
     private ShopConvenienceInfoMapper() {
     }
 
-    static ShopConvenienceInfoState toState(ShopConvenienceInfoJpaEntity entity) {
-        return new ShopConvenienceInfoState(
+    static ShopConvenienceInfo toDomain(ShopConvenienceInfoJpaEntity entity) {
+        return ShopConvenienceInfo.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.isParkingAvailable(),
             entity.isParkingPaid(),
             entity.isValetAvailable(),
@@ -22,28 +23,28 @@ final class ShopConvenienceInfoMapper {
         );
     }
 
-    static ShopConvenienceInfoJpaEntity toEntity(ShopConvenienceInfoState state) {
+    static ShopConvenienceInfoJpaEntity toEntity(ShopConvenienceInfo shopConvenienceInfo) {
         return ShopConvenienceInfoJpaEntity.create(
-            state.shopId(),
-            state.parkingAvailable(),
-            state.parkingPaid(),
-            state.valetAvailable(),
-            state.valetPaid(),
-            state.directionsGuide(),
-            state.displayLatitude(),
-            state.displayLongitude()
+            shopConvenienceInfo.getShopId() == null ? null : shopConvenienceInfo.getShopId().value(),
+            shopConvenienceInfo.isParkingAvailable(),
+            shopConvenienceInfo.isParkingPaid(),
+            shopConvenienceInfo.isValetAvailable(),
+            shopConvenienceInfo.isValetPaid(),
+            shopConvenienceInfo.getDirectionsGuide(),
+            shopConvenienceInfo.getDisplayLatitude(),
+            shopConvenienceInfo.getDisplayLongitude()
         );
     }
 
-    static void applyChanges(ShopConvenienceInfoJpaEntity entity, ShopConvenienceInfoState state) {
+    static void applyChanges(ShopConvenienceInfoJpaEntity entity, ShopConvenienceInfo shopConvenienceInfo) {
         entity.applyChanges(
-            state.parkingAvailable(),
-            state.parkingPaid(),
-            state.valetAvailable(),
-            state.valetPaid(),
-            state.directionsGuide(),
-            state.displayLatitude(),
-            state.displayLongitude()
+            shopConvenienceInfo.isParkingAvailable(),
+            shopConvenienceInfo.isParkingPaid(),
+            shopConvenienceInfo.isValetAvailable(),
+            shopConvenienceInfo.isValetPaid(),
+            shopConvenienceInfo.getDirectionsGuide(),
+            shopConvenienceInfo.getDisplayLatitude(),
+            shopConvenienceInfo.getDisplayLongitude()
         );
     }
 }

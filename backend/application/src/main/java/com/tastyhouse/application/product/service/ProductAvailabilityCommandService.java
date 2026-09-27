@@ -40,8 +40,8 @@ import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeComma
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeUseCase;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
 
 @Service
 @CeoApp

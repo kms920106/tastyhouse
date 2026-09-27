@@ -37,11 +37,11 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

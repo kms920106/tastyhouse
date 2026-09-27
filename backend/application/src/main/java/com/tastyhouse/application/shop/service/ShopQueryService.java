@@ -38,7 +38,7 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
-import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.service.ProductQueryService;
@@ -95,8 +95,8 @@ import com.tastyhouse.application.shop.port.out.ShopReviewStatisticsViewResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 @Service
 @WebApp

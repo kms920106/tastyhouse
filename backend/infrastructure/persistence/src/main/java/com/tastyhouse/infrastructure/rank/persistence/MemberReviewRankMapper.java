@@ -1,18 +1,20 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankState;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.rank.model.MemberReviewRank;
+import com.tastyhouse.domain.rank.model.RankType;
 
 final class MemberReviewRankMapper {
     private MemberReviewRankMapper() {
     }
 
-    static MemberReviewRankState toState(MemberReviewRankJpaEntity entity) {
-        return new MemberReviewRankState(
+    static MemberReviewRank toDomain(MemberReviewRankJpaEntity entity) {
+        return MemberReviewRank.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
             entity.getReviewCount(),
             entity.getRankNo(),
-            entity.getRankType(),
+            entity.getRankType() == null ? null : RankType.valueOf(entity.getRankType()),
             entity.getBaseDate(),
             entity.getLastReviewAt(),
             entity.getCreatedAt(),
@@ -20,14 +22,14 @@ final class MemberReviewRankMapper {
         );
     }
 
-    static MemberReviewRankJpaEntity toEntity(MemberReviewRankState state) {
+    static MemberReviewRankJpaEntity toEntity(MemberReviewRank rank) {
         return MemberReviewRankJpaEntity.create(
-            state.memberId(),
-            state.reviewCount(),
-            state.rankNo(),
-            state.rankType(),
-            state.baseDate(),
-            state.lastReviewAt()
+            rank.getMemberId() == null ? null : rank.getMemberId().value(),
+            rank.getReviewCount(),
+            rank.getRankNo(),
+            rank.getRankType() == null ? null : rank.getRankType().name(),
+            rank.getBaseDate(),
+            rank.getLastReviewAt()
         );
     }
 }

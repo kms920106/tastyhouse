@@ -1,19 +1,19 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.TagState;
+import com.tastyhouse.domain.shop.model.Tag;
 
 final class TagMapper {
     private TagMapper() {
     }
 
-    static TagState toState(TagJpaEntity entity) {
-        return new TagState(
+    static Tag toDomain(TagJpaEntity entity) {
+        return Tag.reconstitute(
             entity.getId(),
             entity.getTagName()
         );
     }
 
-    static TagJpaEntity toEntity(TagState state) {
-        return TagJpaEntity.create(state.tagName());
+    static TagJpaEntity toEntity(Tag tag) {
+        return TagJpaEntity.create(tag.getTagName());
     }
 }

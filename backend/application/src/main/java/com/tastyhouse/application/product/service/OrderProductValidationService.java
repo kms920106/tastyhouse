@@ -26,13 +26,13 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.product.store.ProductExposureHourRepository;
-import com.tastyhouse.application.product.store.ProductImageRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
-import com.tastyhouse.application.product.store.ProductPriceRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class OrderProductValidationService {
     private final ProductRepository productRepository;

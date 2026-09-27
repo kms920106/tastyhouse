@@ -16,7 +16,7 @@ import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.application.bug.store.BugReportRepository;
+import com.tastyhouse.application.bug.port.out.write.BugReportRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

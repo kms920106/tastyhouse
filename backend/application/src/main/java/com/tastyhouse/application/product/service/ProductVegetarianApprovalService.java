@@ -10,8 +10,8 @@ import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.application.product.store.ProductVegetarianRequestRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestRepository;
 
 public class ProductVegetarianApprovalService {
     private static final Set<String> DISALLOWED_SHOP_CATEGORIES = Set.of(

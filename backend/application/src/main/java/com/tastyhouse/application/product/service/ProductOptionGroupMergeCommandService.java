@@ -21,8 +21,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.application.product.store.ProductOptionGroupMergeExclusionRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 

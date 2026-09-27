@@ -1,19 +1,24 @@
 package com.tastyhouse.infrastructure.payment.persistence;
 
-import com.tastyhouse.application.payment.port.out.write.PaymentState;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.Payment;
+import com.tastyhouse.domain.payment.model.PaymentMethod;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.domain.payment.vo.Amount;
 
 final class PaymentMapper {
     private PaymentMapper() {
     }
 
-    static PaymentState toState(PaymentJpaEntity entity) {
-        return new PaymentState(
+    static Payment toDomain(PaymentJpaEntity entity) {
+        return Payment.reconstitute(
             entity.getId(),
-            entity.getOrderId(),
-            entity.getPaymentMethod(),
-            entity.getPaymentStatus(),
-            entity.getAmount(),
-            entity.getPgProvider(),
+            entity.getOrderId() == null ? null : OrderId.of(entity.getOrderId()),
+            entity.getPaymentMethod() == null ? null : PaymentMethod.valueOf(entity.getPaymentMethod()),
+            entity.getPaymentStatus() == null ? null : PaymentStatus.valueOf(entity.getPaymentStatus()),
+            entity.getAmount() == null ? null : new Amount(entity.getAmount()),
+            entity.getPgProvider() == null ? null : PgProvider.valueOf(entity.getPgProvider()),
             entity.getPgTid(),
             entity.getPgOrderId(),
             entity.getCardCompany(),
@@ -27,38 +32,38 @@ final class PaymentMapper {
         );
     }
 
-    static PaymentJpaEntity toEntity(PaymentState state) {
+    static PaymentJpaEntity toEntity(Payment payment) {
         return PaymentJpaEntity.create(
-            state.orderId(),
-            state.paymentMethod(),
-            state.paymentStatus(),
-            state.amount(),
-            state.pgProvider(),
-            state.pgTid(),
-            state.pgOrderId(),
-            state.cardCompany(),
-            state.cardNumber(),
-            state.installmentMonths(),
-            state.approvedAt(),
-            state.cancelledAt(),
-            state.cancelReason(),
-            state.receiptUrl()
+            payment.getOrderId() == null ? null : payment.getOrderId().value(),
+            payment.getPaymentMethod() == null ? null : payment.getPaymentMethod().name(),
+            payment.getPaymentStatus() == null ? null : payment.getPaymentStatus().name(),
+            payment.getAmount() == null ? null : payment.getAmount().value(),
+            payment.getPgProvider() == null ? null : payment.getPgProvider().name(),
+            payment.getPgTid(),
+            payment.getPgOrderId(),
+            payment.getCardCompany(),
+            payment.getCardNumber(),
+            payment.getInstallmentMonths(),
+            payment.getApprovedAt(),
+            payment.getCancelledAt(),
+            payment.getCancelReason(),
+            payment.getReceiptUrl()
         );
     }
 
-    static void applyChanges(PaymentJpaEntity entity, PaymentState state) {
+    static void applyChanges(PaymentJpaEntity entity, Payment payment) {
         entity.applyChanges(
-            state.paymentStatus(),
-            state.pgProvider(),
-            state.pgTid(),
-            state.pgOrderId(),
-            state.cardCompany(),
-            state.cardNumber(),
-            state.installmentMonths(),
-            state.approvedAt(),
-            state.cancelledAt(),
-            state.cancelReason(),
-            state.receiptUrl()
+            payment.getPaymentStatus() == null ? null : payment.getPaymentStatus().name(),
+            payment.getPgProvider() == null ? null : payment.getPgProvider().name(),
+            payment.getPgTid(),
+            payment.getPgOrderId(),
+            payment.getCardCompany(),
+            payment.getCardNumber(),
+            payment.getInstallmentMonths(),
+            payment.getApprovedAt(),
+            payment.getCancelledAt(),
+            payment.getCancelReason(),
+            payment.getReceiptUrl()
         );
     }
 }

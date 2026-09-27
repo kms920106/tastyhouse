@@ -12,7 +12,7 @@ import com.tastyhouse.domain.file.event.FileUploadedEvent;
 import com.tastyhouse.domain.file.model.UploadedFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.application.file.store.UploadedFileRepository;
+import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class FileUploadService {

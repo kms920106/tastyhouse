@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
-import com.tastyhouse.application.shop.store.ShopRequestIndexRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
 
 class RecordingShopRequestIndexRepository implements ShopRequestIndexRepository {
     private final List<ShopRequestIndex> store = new ArrayList<>();

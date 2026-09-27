@@ -1,39 +1,42 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestState;
+import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductRepresentativeRequestMapper {
     private ProductRepresentativeRequestMapper() {
     }
 
-    static ProductRepresentativeRequestState toState(ProductRepresentativeRequestJpaEntity entity) {
-        return new ProductRepresentativeRequestState(
+    static ProductRepresentativeRequest toDomain(ProductRepresentativeRequestJpaEntity entity) {
+        return ProductRepresentativeRequest.reconstitute(
             entity.getId(),
-            entity.getProductId(),
-            entity.getShopId(),
-            entity.getStatus(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getStatus() == null ? null : ApprovalStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ProductRepresentativeRequestJpaEntity toEntity(ProductRepresentativeRequestState state) {
+    static ProductRepresentativeRequestJpaEntity toEntity(ProductRepresentativeRequest request) {
         return ProductRepresentativeRequestJpaEntity.create(
-            state.productId(),
-            state.shopId(),
-            state.status(),
-            state.rejectReason()
+            request.getProductId() == null ? null : request.getProductId().value(),
+            request.getShopId() == null ? null : request.getShopId().value(),
+            request.getStatus() == null ? null : request.getStatus().name(),
+            request.getRejectReason()
         );
     }
 
     static void applyChanges(
         ProductRepresentativeRequestJpaEntity entity,
-        ProductRepresentativeRequestState state
+        ProductRepresentativeRequest request
     ) {
         entity.applyChanges(
-            state.status(),
-            state.rejectReason()
+            request.getStatus() == null ? null : request.getStatus().name(),
+            request.getRejectReason()
         );
     }
 }

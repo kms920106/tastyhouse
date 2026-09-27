@@ -19,8 +19,8 @@ import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
-import com.tastyhouse.application.payment.store.PaymentRefundRepository;
-import com.tastyhouse.application.payment.store.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PaymentCancellationService {

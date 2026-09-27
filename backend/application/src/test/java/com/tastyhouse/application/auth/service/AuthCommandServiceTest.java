@@ -24,7 +24,7 @@ import com.tastyhouse.application.auth.token.CeoTokenService;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
-import com.tastyhouse.application.ceo.store.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

@@ -1,25 +1,27 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBannerImageState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopBannerImage;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBannerImageMapper {
     private ShopBannerImageMapper() {
     }
 
-    static ShopBannerImageState toState(ShopBannerImageJpaEntity entity) {
-        return new ShopBannerImageState(
+    static ShopBannerImage toDomain(ShopBannerImageJpaEntity entity) {
+        return ShopBannerImage.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getImageFileId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getSort()
         );
     }
 
-    static ShopBannerImageJpaEntity toEntity(ShopBannerImageState state) {
+    static ShopBannerImageJpaEntity toEntity(ShopBannerImage shopBannerImage) {
         return ShopBannerImageJpaEntity.create(
-            state.shopId(),
-            state.imageFileId(),
-            state.sort()
+            shopBannerImage.getShopId() == null ? null : shopBannerImage.getShopId().value(),
+            shopBannerImage.getImageFileId() == null ? null : shopBannerImage.getImageFileId().value(),
+            shopBannerImage.getSort()
         );
     }
 }

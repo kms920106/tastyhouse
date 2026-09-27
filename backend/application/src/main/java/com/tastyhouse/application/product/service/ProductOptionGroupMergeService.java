@@ -21,10 +21,10 @@ import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
 
 public class ProductOptionGroupMergeService {
     private final ProductOptionGroupRepository optionGroupRepository;

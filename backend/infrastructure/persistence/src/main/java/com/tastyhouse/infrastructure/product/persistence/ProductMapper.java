@@ -1,21 +1,24 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductDiscountInfoSnapshot;
-import com.tastyhouse.application.product.port.out.write.ProductState;
+import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.model.VegetarianType;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductMapper {
     private ProductMapper() {
     }
 
-    static ProductState toState(ProductJpaEntity entity) {
-        return new ProductState(
+    static Product toDomain(ProductJpaEntity entity) {
+        return Product.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getProductCategoryId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getProductCategoryId() == null ? null : ProductCategoryId.of(entity.getProductCategoryId()),
             entity.getName(),
             entity.getDescription(),
             entity.getOriginalPrice(),
-            toSnapshot(entity.getDiscountInfo()),
+            toDiscountInfo(entity.getDiscountInfo()),
             entity.getRating(),
             entity.getReviewCount(),
             entity.isRepresentative(),
@@ -30,75 +33,73 @@ final class ProductMapper {
             entity.isSingleServing(),
             entity.getExposureStartDate(),
             entity.getExposureEndDate(),
-            entity.getVegetarianType(),
+            entity.getVegetarianType() == null ? null : VegetarianType.valueOf(entity.getVegetarianType()),
             entity.getWeightText(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ProductJpaEntity toEntity(ProductState state) {
+    static ProductJpaEntity toEntity(Product product) {
         return ProductJpaEntity.create(
-            state.shopId(),
-            state.productCategoryId(),
-            state.name(),
-            state.description(),
-            state.originalPrice(),
-            toEmbeddable(state.discountInfo()),
-            state.rating(),
-            state.reviewCount(),
-            state.representative(),
-            state.spiciness(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible(),
-            state.sort(),
-            state.ratingExcluded(),
-            state.deleted(),
-            state.composition(),
-            state.singleServing(),
-            state.exposureStartDate(),
-            state.exposureEndDate(),
-            state.vegetarianType(),
-            state.weightText()
+            product.getShopId() == null ? null : product.getShopId().value(),
+            product.getProductCategoryId() == null ? null : product.getProductCategoryId().value(),
+            product.getName(),
+            product.getDescription(),
+            product.getOriginalPrice(),
+            toEmbeddable(product.getDiscountInfo()),
+            product.getRating(),
+            product.getReviewCount(),
+            product.isRepresentative(),
+            product.getSpiciness(),
+            product.isSoldOut(),
+            product.getSoldOutUntil(),
+            product.isVisible(),
+            product.getSort(),
+            product.isRatingExcluded(),
+            product.isDeleted(),
+            product.getComposition(),
+            product.isSingleServing(),
+            product.getExposureStartDate(),
+            product.getExposureEndDate(),
+            product.getVegetarianType() == null ? null : product.getVegetarianType().name(),
+            product.getWeightText()
         );
     }
 
-    static void applyChanges(ProductJpaEntity entity, ProductState state) {
+    static void applyChanges(ProductJpaEntity entity, Product product) {
         entity.applyChanges(
-            state.productCategoryId(),
-            state.name(),
-            state.description(),
-            state.originalPrice(),
-            toEmbeddable(state.discountInfo()),
-            state.rating(),
-            state.reviewCount(),
-            state.representative(),
-            state.spiciness(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible(),
-            state.sort(),
-            state.ratingExcluded(),
-            state.deleted(),
-            state.composition(),
-            state.singleServing(),
-            state.exposureStartDate(),
-            state.exposureEndDate(),
-            state.vegetarianType(),
-            state.weightText()
+            product.getProductCategoryId() == null ? null : product.getProductCategoryId().value(),
+            product.getName(),
+            product.getDescription(),
+            product.getOriginalPrice(),
+            toEmbeddable(product.getDiscountInfo()),
+            product.getRating(),
+            product.getReviewCount(),
+            product.isRepresentative(),
+            product.getSpiciness(),
+            product.isSoldOut(),
+            product.getSoldOutUntil(),
+            product.isVisible(),
+            product.getSort(),
+            product.isRatingExcluded(),
+            product.isDeleted(),
+            product.getComposition(),
+            product.isSingleServing(),
+            product.getExposureStartDate(),
+            product.getExposureEndDate(),
+            product.getVegetarianType() == null ? null : product.getVegetarianType().name(),
+            product.getWeightText()
         );
     }
 
-    private static ProductDiscountInfoSnapshot toSnapshot(ProductDiscountInfoEmbeddable embeddable) {
-        return embeddable == null
-            ? null
-            : new ProductDiscountInfoSnapshot(embeddable.discountPrice(), embeddable.discountRate());
+    private static ProductDiscountInfo toDiscountInfo(ProductDiscountInfoEmbeddable embeddable) {
+        return embeddable == null ? null : ProductDiscountInfo.of(embeddable.discountPrice(), embeddable.discountRate());
     }
 
-    private static ProductDiscountInfoEmbeddable toEmbeddable(ProductDiscountInfoSnapshot snapshot) {
-        return snapshot == null
+    private static ProductDiscountInfoEmbeddable toEmbeddable(ProductDiscountInfo discountInfo) {
+        return discountInfo == null
             ? null
-            : new ProductDiscountInfoEmbeddable(snapshot.discountPrice(), snapshot.discountRate());
+            : new ProductDiscountInfoEmbeddable(discountInfo.discountPrice(), discountInfo.discountRate());
     }
 }

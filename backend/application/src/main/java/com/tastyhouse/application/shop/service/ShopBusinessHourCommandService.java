@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.port.in.ShopBusinessHourCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
 
 @Service
 @CeoApp

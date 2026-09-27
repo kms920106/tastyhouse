@@ -5,8 +5,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.follow.store.MemberFollowRepository;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 
 public class MemberFollowService {
     private final MemberFollowRepository memberFollowRepository;

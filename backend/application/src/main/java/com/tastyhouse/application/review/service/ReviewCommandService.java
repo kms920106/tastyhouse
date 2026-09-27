@@ -20,9 +20,9 @@ import com.tastyhouse.domain.review.service.ReviewRegistration;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.order.store.OrderProductRepository;
-import com.tastyhouse.application.order.store.OrderRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.order.port.out.write.OrderProductRepository;
+import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
@@ -30,9 +30,9 @@ import com.tastyhouse.application.review.port.in.ReviewDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewLikeToggleCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
-import com.tastyhouse.application.review.store.ReviewCommentRepository;
-import com.tastyhouse.application.review.store.ReviewReplyRepository;
-import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

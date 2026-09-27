@@ -14,7 +14,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.menureview.store.MenuReviewRepository;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MenuReviewLifecycleService {

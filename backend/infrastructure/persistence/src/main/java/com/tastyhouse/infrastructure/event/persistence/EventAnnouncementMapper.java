@@ -1,35 +1,36 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import com.tastyhouse.application.event.port.out.write.EventAnnouncementState;
+import com.tastyhouse.domain.event.model.EventAnnouncement;
+import com.tastyhouse.domain.event.vo.EventId;
 
 final class EventAnnouncementMapper {
     private EventAnnouncementMapper() {
     }
 
-    static EventAnnouncementState toState(EventAnnouncementJpaEntity entity) {
-        return new EventAnnouncementState(
+    static EventAnnouncement toDomain(EventAnnouncementJpaEntity entity) {
+        return EventAnnouncement.reconstitute(
             entity.getId(),
-            entity.getEventId(),
+            entity.getEventId() == null ? null : EventId.of(entity.getEventId()),
             entity.getName(),
             entity.getContent(),
             entity.getAnnouncedAt()
         );
     }
 
-    static EventAnnouncementJpaEntity toEntity(EventAnnouncementState state) {
+    static EventAnnouncementJpaEntity toEntity(EventAnnouncement eventAnnouncement) {
         return EventAnnouncementJpaEntity.create(
-            state.eventId(),
-            state.name(),
-            state.content(),
-            state.announcedAt()
+            eventAnnouncement.getEventId() == null ? null : eventAnnouncement.getEventId().value(),
+            eventAnnouncement.getName(),
+            eventAnnouncement.getContent(),
+            eventAnnouncement.getAnnouncedAt()
         );
     }
 
-    static void applyChanges(EventAnnouncementJpaEntity entity, EventAnnouncementState state) {
+    static void applyChanges(EventAnnouncementJpaEntity entity, EventAnnouncement eventAnnouncement) {
         entity.applyChanges(
-            state.name(),
-            state.content(),
-            state.announcedAt()
+            eventAnnouncement.getName(),
+            eventAnnouncement.getContent(),
+            eventAnnouncement.getAnnouncedAt()
         );
     }
 }

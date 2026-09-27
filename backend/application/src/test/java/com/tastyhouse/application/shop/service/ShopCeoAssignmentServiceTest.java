@@ -18,8 +18,8 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.ceo.store.CeoRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

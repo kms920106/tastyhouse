@@ -22,8 +22,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

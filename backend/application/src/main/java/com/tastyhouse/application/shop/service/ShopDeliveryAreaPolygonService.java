@@ -26,10 +26,10 @@ import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.store.AdminDongRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaPolygonRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
 
 public class ShopDeliveryAreaPolygonService {
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");

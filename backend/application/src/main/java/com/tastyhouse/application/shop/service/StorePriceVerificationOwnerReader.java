@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.store.StorePriceVerificationRepository;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Component

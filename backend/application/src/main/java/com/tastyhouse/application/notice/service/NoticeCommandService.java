@@ -11,7 +11,7 @@ import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
 import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.application.notice.port.in.NoticeDeleteCommand;
 import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
-import com.tastyhouse.application.notice.store.NoticeRepository;
+import com.tastyhouse.application.notice.port.out.write.NoticeRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

@@ -107,9 +107,9 @@ import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 import com.tastyhouse.application.shop.port.in.TagCreateUseCase;
 import com.tastyhouse.application.shop.port.in.TagDeleteCommand;
 import com.tastyhouse.application.shop.port.in.TagDeleteUseCase;
-import com.tastyhouse.application.shop.store.ShopChoiceRepository;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.TagRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.TagRepository;
 
 @Service
 @AdminApp

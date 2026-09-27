@@ -13,8 +13,8 @@ import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.store.ReviewOwnerReplyRepository;
-import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 

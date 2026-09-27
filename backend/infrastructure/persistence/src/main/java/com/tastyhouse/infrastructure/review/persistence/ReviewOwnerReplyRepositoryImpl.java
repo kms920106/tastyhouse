@@ -1,0 +1,69 @@
+package com.tastyhouse.infrastructure.review.persistence;
+
+import java.util.Optional;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.domain.review.model.ReviewOwnerReply;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
+
+import static com.tastyhouse.infrastructure.review.persistence.QReviewOwnerReplyJpaEntity.reviewOwnerReplyJpaEntity;
+
+@Repository
+public class ReviewOwnerReplyRepositoryImpl implements ReviewOwnerReplyRepository {
+    private final JPAQueryFactory queryFactory;
+    private final ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository;
+
+    public ReviewOwnerReplyRepositoryImpl(JPAQueryFactory queryFactory, ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.reviewOwnerReplyJpaRepository = reviewOwnerReplyJpaRepository;
+    }
+
+    @Override
+    public Optional<ReviewOwnerReply> findById(ReviewOwnerReplyId reviewOwnerReplyId) {
+        return reviewOwnerReplyJpaRepository.findById(reviewOwnerReplyId.value())
+            .map(ReviewOwnerReplyMapper::toDomain);
+    }
+
+    @Override
+    public Optional<ReviewOwnerReply> findByReviewId(ReviewId reviewId) {
+        ReviewOwnerReplyJpaEntity entity = queryFactory
+            .selectFrom(reviewOwnerReplyJpaEntity)
+            .where(reviewOwnerReplyJpaEntity.reviewId.eq(reviewId.value()))
+            .fetchOne();
+
+        return Optional.ofNullable(entity).map(ReviewOwnerReplyMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsByReviewId(ReviewId reviewId) {
+        Integer result = queryFactory
+            .selectOne()
+            .from(reviewOwnerReplyJpaEntity)
+            .where(reviewOwnerReplyJpaEntity.reviewId.eq(reviewId.value()))
+            .fetchFirst();
+        return result != null;
+    }
+
+    @Override
+    public ReviewOwnerReply save(ReviewOwnerReply reviewOwnerReply) {
+        if (reviewOwnerReply.getId() == null) {
+            ReviewOwnerReplyJpaEntity saved =
+                reviewOwnerReplyJpaRepository.save(ReviewOwnerReplyMapper.toEntity(reviewOwnerReply));
+            return ReviewOwnerReplyMapper.toDomain(saved);
+        }
+
+        ReviewOwnerReplyJpaEntity entity = reviewOwnerReplyJpaRepository.findById(reviewOwnerReply.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 사장님 답변입니다: " + reviewOwnerReply.getId()));
+        ReviewOwnerReplyMapper.applyChanges(entity, reviewOwnerReply);
+        return ReviewOwnerReplyMapper.toDomain(entity);
+    }
+
+    @Override
+    public void delete(ReviewOwnerReply reviewOwnerReply) {
+        reviewOwnerReplyJpaRepository.deleteById(reviewOwnerReply.getId());
+    }
+}

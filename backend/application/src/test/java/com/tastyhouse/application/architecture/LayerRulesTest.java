@@ -75,10 +75,8 @@ class LayerRulesTest {
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopQueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminQueryService")
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerQueryService")
-            .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.application..port.out.write..",
-                "com.tastyhouse.application..store..")
-            .because("QueryService는 write 포트도 Store(도메인 타입 리포지토리)도 주입하지 않는다(CQRS 교차 주입 금지)");
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..port.out.write..")
+            .because("QueryService는 write 포트(도메인 타입 리포지토리)를 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -203,14 +201,29 @@ class LayerRulesTest {
     @Test
     void readContractsShouldBeFrameworkFree() {
         ArchRule rule = classes()
-            .that().resideInAPackage("com.tastyhouse.application..port.out..")
+            .that(resideInAPackage("com.tastyhouse.application..port.out..")
+                .and(not(resideInAPackage("com.tastyhouse.application..port.out.write..")))
+                .as("..port.out.. (port.out.write 제외)"))
+            .should().onlyDependOnClassesThat(resideInAPackage("java..")
+                .or(resideInAPackage("com.tastyhouse.application..port.out..")
+                    .and(not(resideInAPackage("com.tastyhouse.application..port.out.write.."))))
+                .as("java.. 또는 port.out.. (port.out.write 제외)"))
+            .because("읽기 계약은 조회 DAO가 구현한다 — 도메인 타입을 참조하면 조회 DAO가 domain을 알게 된다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void writePortsShouldOnlyDependOnDomainAndPortOut() {
+        ArchRule rule = classes()
+            .that().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .should().onlyDependOnClassesThat()
             .resideInAnyPackage(
                 "java..",
+                "com.tastyhouse.domain..",
                 "com.tastyhouse.application..port.out.."
             )
-            .because("port.out(읽기 계약·State·StatePort)은 infrastructure가 보는 유일한 application 표면이다 — "
-                + "도메인 타입을 참조하면 persistence가 domain을 다시 알게 된다(엄격 레이어드)");
+            .because("write 포트는 도메인 모델을 주고받는 리포지토리 계약이다 — persistence가 도메인 타입으로 직접 구현한다");
 
         rule.check(classes);
     }

@@ -3,7 +3,7 @@ package com.tastyhouse.application.faq.service;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.faq.model.FaqCategory;
-import com.tastyhouse.application.faq.store.FaqCategoryRepository;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
 
 public class FaqCategoryDeletionPolicy {
     private final FaqCategoryRepository faqCategoryRepository;

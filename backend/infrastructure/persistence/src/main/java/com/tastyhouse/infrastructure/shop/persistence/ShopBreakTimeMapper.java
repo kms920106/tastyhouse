@@ -1,35 +1,37 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBreakTimeState;
+import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBreakTimeMapper {
     private ShopBreakTimeMapper() {
     }
 
-    static ShopBreakTimeState toState(ShopBreakTimeJpaEntity entity) {
-        return new ShopBreakTimeState(
+    static ShopBreakTime toDomain(ShopBreakTimeJpaEntity entity) {
+        return ShopBreakTime.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getDayType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getDayType() == null ? null : DayType.valueOf(entity.getDayType()),
             entity.getStartTime(),
             entity.getEndTime()
         );
     }
 
-    static ShopBreakTimeJpaEntity toEntity(ShopBreakTimeState state) {
+    static ShopBreakTimeJpaEntity toEntity(ShopBreakTime shopBreakTime) {
         return ShopBreakTimeJpaEntity.create(
-            state.shopId(),
-            state.dayType(),
-            state.startTime(),
-            state.endTime()
+            shopBreakTime.getShopId() == null ? null : shopBreakTime.getShopId().value(),
+            shopBreakTime.getDayType() == null ? null : shopBreakTime.getDayType().name(),
+            shopBreakTime.getStartTime(),
+            shopBreakTime.getEndTime()
         );
     }
 
-    static void applyChanges(ShopBreakTimeJpaEntity entity, ShopBreakTimeState state) {
+    static void applyChanges(ShopBreakTimeJpaEntity entity, ShopBreakTime shopBreakTime) {
         entity.applyChanges(
-            state.dayType(),
-            state.startTime(),
-            state.endTime()
+            shopBreakTime.getDayType() == null ? null : shopBreakTime.getDayType().name(),
+            shopBreakTime.getStartTime(),
+            shopBreakTime.getEndTime()
         );
     }
 }

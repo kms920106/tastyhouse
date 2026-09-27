@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.tastyhouse.domain.review.model.ReviewTag;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.store.ReviewTagRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewTagRepository;
 
 public class FakeReviewTagRepository implements ReviewTagRepository {
     @Override

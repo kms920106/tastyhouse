@@ -1,30 +1,32 @@
 package com.tastyhouse.infrastructure.member.referral.persistence;
 
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralState;
+import com.tastyhouse.domain.member.referral.model.MemberReferral;
+import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberReferralMapper {
     private MemberReferralMapper() {
     }
 
-    static MemberReferralState toState(MemberReferralJpaEntity entity) {
-        return new MemberReferralState(
+    static MemberReferral toDomain(MemberReferralJpaEntity entity) {
+        return MemberReferral.reconstitute(
             entity.getId(),
-            entity.getReferrerId(),
-            entity.getRefereeId(),
-            entity.getStatus(),
+            entity.getReferrerId() == null ? null : MemberId.of(entity.getReferrerId()),
+            entity.getRefereeId() == null ? null : MemberId.of(entity.getRefereeId()),
+            entity.getStatus() == null ? null : MemberReferralStatus.valueOf(entity.getStatus()),
             entity.getCreatedAt()
         );
     }
 
-    static MemberReferralJpaEntity toEntity(MemberReferralState state) {
+    static MemberReferralJpaEntity toEntity(MemberReferral referral) {
         return MemberReferralJpaEntity.create(
-            state.referrerId(),
-            state.refereeId(),
-            state.status()
+            referral.getReferrerId() == null ? null : referral.getReferrerId().value(),
+            referral.getRefereeId() == null ? null : referral.getRefereeId().value(),
+            referral.getStatus() == null ? null : referral.getStatus().name()
         );
     }
 
-    static void applyChanges(MemberReferralJpaEntity entity, MemberReferralState state) {
-        entity.applyChanges(state.status());
+    static void applyChanges(MemberReferralJpaEntity entity, MemberReferral referral) {
+        entity.applyChanges(referral.getStatus() == null ? null : referral.getStatus().name());
     }
 }

@@ -18,9 +18,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

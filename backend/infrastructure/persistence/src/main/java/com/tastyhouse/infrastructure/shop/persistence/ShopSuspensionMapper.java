@@ -1,17 +1,20 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionState;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.domain.shop.model.SuspensionReason;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopSuspensionMapper {
     private ShopSuspensionMapper() {
     }
 
-    static ShopSuspensionState toState(ShopSuspensionJpaEntity entity) {
-        return new ShopSuspensionState(
+    static ShopSuspension toDomain(ShopSuspensionJpaEntity entity) {
+        return ShopSuspension.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getReason(),
-            entity.getOrderMethod(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getReason() == null ? null : SuspensionReason.valueOf(entity.getReason()),
+            entity.getOrderMethod() == null ? null : OrderMethod.valueOf(entity.getOrderMethod()),
             entity.getStartAt(),
             entity.getEndAt(),
             entity.getReleasedAt(),
@@ -20,18 +23,18 @@ final class ShopSuspensionMapper {
         );
     }
 
-    static ShopSuspensionJpaEntity toEntity(ShopSuspensionState state) {
+    static ShopSuspensionJpaEntity toEntity(ShopSuspension shopSuspension) {
         return ShopSuspensionJpaEntity.create(
-            state.shopId(),
-            state.reason(),
-            state.orderMethod(),
-            state.startAt(),
-            state.endAt(),
-            state.releasedAt()
+            shopSuspension.getShopId() == null ? null : shopSuspension.getShopId().value(),
+            shopSuspension.getReason() == null ? null : shopSuspension.getReason().name(),
+            shopSuspension.getOrderMethod() == null ? null : shopSuspension.getOrderMethod().name(),
+            shopSuspension.getStartAt(),
+            shopSuspension.getEndAt(),
+            shopSuspension.getReleasedAt()
         );
     }
 
-    static void applyChanges(ShopSuspensionJpaEntity entity, ShopSuspensionState state) {
-        entity.applyChanges(state.releasedAt());
+    static void applyChanges(ShopSuspensionJpaEntity entity, ShopSuspension shopSuspension) {
+        entity.applyChanges(shopSuspension.getReleasedAt());
     }
 }

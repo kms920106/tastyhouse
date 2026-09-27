@@ -1,23 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodState;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.ShopOrderMethod;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopOrderMethodMapper {
     private ShopOrderMethodMapper() {
     }
 
-    static ShopOrderMethodState toState(ShopOrderMethodJpaEntity entity) {
-        return new ShopOrderMethodState(
+    static ShopOrderMethod toDomain(ShopOrderMethodJpaEntity entity) {
+        return ShopOrderMethod.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getOrderMethod()
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getOrderMethod() == null ? null : OrderMethod.valueOf(entity.getOrderMethod())
         );
     }
 
-    static ShopOrderMethodJpaEntity toEntity(ShopOrderMethodState state) {
+    static ShopOrderMethodJpaEntity toEntity(ShopOrderMethod shopOrderMethod) {
         return ShopOrderMethodJpaEntity.create(
-            state.shopId(),
-            state.orderMethod()
+            shopOrderMethod.getShopId() == null ? null : shopOrderMethod.getShopId().value(),
+            shopOrderMethod.getOrderMethod() == null ? null : shopOrderMethod.getOrderMethod().name()
         );
     }
 }

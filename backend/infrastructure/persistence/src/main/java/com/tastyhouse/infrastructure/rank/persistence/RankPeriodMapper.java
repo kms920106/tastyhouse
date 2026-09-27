@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.rank.persistence;
 
-import com.tastyhouse.application.rank.port.out.write.RankPeriodState;
+import com.tastyhouse.domain.rank.model.RankPeriod;
 
 final class RankPeriodMapper {
     private RankPeriodMapper() {
     }
 
-    static RankPeriodState toState(RankPeriodJpaEntity entity) {
-        return new RankPeriodState(
+    static RankPeriod toDomain(RankPeriodJpaEntity entity) {
+        return RankPeriod.reconstitute(
             entity.getId(),
             entity.getStartAt(),
             entity.getEndAt(),
@@ -18,21 +18,21 @@ final class RankPeriodMapper {
         );
     }
 
-    static RankPeriodJpaEntity toEntity(RankPeriodState state) {
+    static RankPeriodJpaEntity toEntity(RankPeriod rankPeriod) {
         return RankPeriodJpaEntity.create(
-            state.startAt(),
-            state.endAt(),
-            state.visible(),
-            state.deleted()
+            rankPeriod.getStartAt(),
+            rankPeriod.getEndAt(),
+            rankPeriod.isVisible(),
+            rankPeriod.isDeleted()
         );
     }
 
-    static void applyChanges(RankPeriodJpaEntity entity, RankPeriodState state) {
+    static void applyChanges(RankPeriodJpaEntity entity, RankPeriod rankPeriod) {
         entity.applyChanges(
-            state.startAt(),
-            state.endAt(),
-            state.visible(),
-            state.deleted()
+            rankPeriod.getStartAt(),
+            rankPeriod.getEndAt(),
+            rankPeriod.isVisible(),
+            rankPeriod.isDeleted()
         );
     }
 }

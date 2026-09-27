@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
-import com.tastyhouse.application.shop.store.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
 
 class RecordingShopChangeHistoryRepository implements ShopChangeHistoryRepository {
     private final List<ShopChangeHistory> saved = new ArrayList<>();

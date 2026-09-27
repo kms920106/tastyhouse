@@ -1,13 +1,14 @@
 package com.tastyhouse.infrastructure.partnership.persistence;
 
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRequestState;
+import com.tastyhouse.domain.partnership.model.PartnershipRequest;
+import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 
 final class PartnershipRequestMapper {
     private PartnershipRequestMapper() {
     }
 
-    static PartnershipRequestState toState(PartnershipRequestJpaEntity entity) {
-        return new PartnershipRequestState(
+    static PartnershipRequest toDomain(PartnershipRequestJpaEntity entity) {
+        return PartnershipRequest.reconstitute(
             entity.getId(),
             entity.getBusinessName(),
             entity.getAddress(),
@@ -15,30 +16,30 @@ final class PartnershipRequestMapper {
             entity.getContactName(),
             entity.getContactPhone(),
             entity.getConsultationRequestedAt(),
-            entity.getStatus(),
+            entity.getStatus() == null ? null : PartnershipStatus.valueOf(entity.getStatus()),
             entity.isDeleted(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static PartnershipRequestJpaEntity toEntity(PartnershipRequestState state) {
+    static PartnershipRequestJpaEntity toEntity(PartnershipRequest partnershipRequest) {
         return PartnershipRequestJpaEntity.create(
-            state.businessName(),
-            state.address(),
-            state.addressDetail(),
-            state.contactName(),
-            state.contactPhone(),
-            state.consultationRequestedAt(),
-            state.status(),
-            state.deleted()
+            partnershipRequest.getBusinessName(),
+            partnershipRequest.getAddress(),
+            partnershipRequest.getAddressDetail(),
+            partnershipRequest.getContactName(),
+            partnershipRequest.getContactPhone(),
+            partnershipRequest.getConsultationRequestedAt(),
+            partnershipRequest.getStatus() == null ? null : partnershipRequest.getStatus().name(),
+            partnershipRequest.isDeleted()
         );
     }
 
-    static void applyChanges(PartnershipRequestJpaEntity entity, PartnershipRequestState state) {
+    static void applyChanges(PartnershipRequestJpaEntity entity, PartnershipRequest partnershipRequest) {
         entity.applyChanges(
-            state.status(),
-            state.deleted()
+            partnershipRequest.getStatus() == null ? null : partnershipRequest.getStatus().name(),
+            partnershipRequest.isDeleted()
         );
     }
 }

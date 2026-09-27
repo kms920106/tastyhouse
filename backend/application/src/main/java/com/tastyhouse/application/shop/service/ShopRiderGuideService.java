@@ -15,8 +15,8 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.store.ShopRiderGuideRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
 
 public class ShopRiderGuideService {
     private final ShopRiderGuideRepository shopRiderGuideRepository;

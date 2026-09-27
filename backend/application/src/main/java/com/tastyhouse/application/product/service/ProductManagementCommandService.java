@@ -35,10 +35,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCr
 import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 @Service
 @AdminApp

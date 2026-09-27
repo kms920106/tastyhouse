@@ -16,7 +16,7 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

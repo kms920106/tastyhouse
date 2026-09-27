@@ -9,9 +9,9 @@ import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
-import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaAdjustmentRequestRepository;
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
 
 public class ShopRequestCancelService {
     private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;

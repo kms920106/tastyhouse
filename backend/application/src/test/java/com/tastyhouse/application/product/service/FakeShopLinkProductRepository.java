@@ -10,7 +10,7 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 class FakeShopLinkProductRepository implements ProductRepository {
     private final Map<Long, Product> products = new HashMap<>();

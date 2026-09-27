@@ -20,10 +20,10 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.store.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.store.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

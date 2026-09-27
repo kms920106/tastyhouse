@@ -24,8 +24,8 @@ import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
-import com.tastyhouse.application.shop.store.ShopNoticeImageRepository;
-import com.tastyhouse.application.shop.store.ShopNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
 
 @Service
 @CeoApp

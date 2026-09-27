@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.referral.store.MemberReferralRepository;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
 
 public class FakeMemberReferralRepository implements MemberReferralRepository {
     private final Map<Long, MemberReferral> referrals = new HashMap<>();

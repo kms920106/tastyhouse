@@ -25,9 +25,9 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
-import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.region.store.AdminDongRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

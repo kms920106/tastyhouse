@@ -21,8 +21,8 @@ import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.application.rank.store.RankPeriodRepository;
-import com.tastyhouse.application.rank.store.RankPrizeRepository;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodRepository;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

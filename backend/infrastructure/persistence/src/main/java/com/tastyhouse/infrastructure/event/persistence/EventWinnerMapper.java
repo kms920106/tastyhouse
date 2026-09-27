@@ -1,36 +1,48 @@
 package com.tastyhouse.infrastructure.event.persistence;
 
-import com.tastyhouse.application.event.port.out.write.EventWinnerState;
+import com.tastyhouse.domain.event.model.EventWinner;
+import com.tastyhouse.domain.event.vo.EventId;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class EventWinnerMapper {
     private EventWinnerMapper() {
     }
 
-    static EventWinnerState toState(EventWinnerJpaEntity entity) {
-        return new EventWinnerState(
+    static EventWinner toDomain(EventWinnerJpaEntity entity) {
+        return EventWinner.reconstitute(
             entity.getId(),
-            entity.getEventId(),
+            entity.getEventId() == null ? null : EventId.of(entity.getEventId()),
             entity.getRankNo(),
             entity.getWinnerName(),
-            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
+            toPhoneNumber(entity.getPhoneNumber()),
             entity.getAnnouncedAt(),
             entity.isDeleted()
         );
     }
 
-    static EventWinnerJpaEntity toEntity(EventWinnerState state) {
+    static EventWinnerJpaEntity toEntity(EventWinner eventWinner) {
         return EventWinnerJpaEntity.create(
-            state.eventId(),
-            state.rankNo(),
-            state.winnerName(),
-            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
-            state.announcedAt(),
-            state.deleted()
+            eventWinner.getEventId() == null ? null : eventWinner.getEventId().value(),
+            eventWinner.getRankNo(),
+            eventWinner.getWinnerName(),
+            toPhoneNumberEmbeddable(eventWinner.getPhoneNumber()),
+            eventWinner.getAnnouncedAt(),
+            eventWinner.isDeleted()
         );
     }
 
-    static void applyChanges(EventWinnerJpaEntity entity, EventWinnerState state) {
-        entity.applyChanges(state.deleted());
+    static void applyChanges(EventWinnerJpaEntity entity, EventWinner eventWinner) {
+        entity.applyChanges(eventWinner.isDeleted());
+    }
+
+    private static PhoneNumber toPhoneNumber(PhoneNumberEmbeddable embeddable) {
+        String phoneNumber = embeddable == null ? null : embeddable.value();
+        return phoneNumber == null ? null : new PhoneNumber(phoneNumber);
+    }
+
+    private static PhoneNumberEmbeddable toPhoneNumberEmbeddable(PhoneNumber phoneNumber) {
+        String value = phoneNumber == null ? null : phoneNumber.value();
+        return value == null ? null : new PhoneNumberEmbeddable(value);
     }
 }

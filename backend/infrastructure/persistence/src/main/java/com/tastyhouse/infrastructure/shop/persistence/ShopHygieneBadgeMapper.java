@@ -1,28 +1,30 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeState;
+import com.tastyhouse.domain.shop.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopHygieneBadgeMapper {
     private ShopHygieneBadgeMapper() {
     }
 
-    static ShopHygieneBadgeState toState(ShopHygieneBadgeJpaEntity entity) {
-        return new ShopHygieneBadgeState(
+    static ShopHygieneBadge toDomain(ShopHygieneBadgeJpaEntity entity) {
+        return ShopHygieneBadge.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getBadgeType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getBadgeType() == null ? null : HygieneBadgeType.valueOf(entity.getBadgeType()),
             entity.getCertifiedDate(),
             entity.getLastInspectionMonth(),
             entity.getCreatedAt()
         );
     }
 
-    static ShopHygieneBadgeJpaEntity toEntity(ShopHygieneBadgeState state) {
+    static ShopHygieneBadgeJpaEntity toEntity(ShopHygieneBadge shopHygieneBadge) {
         return ShopHygieneBadgeJpaEntity.create(
-            state.shopId(),
-            state.badgeType(),
-            state.certifiedDate(),
-            state.lastInspectionMonth()
+            shopHygieneBadge.getShopId() == null ? null : shopHygieneBadge.getShopId().value(),
+            shopHygieneBadge.getBadgeType() == null ? null : shopHygieneBadge.getBadgeType().name(),
+            shopHygieneBadge.getCertifiedDate(),
+            shopHygieneBadge.getLastInspectionMonth()
         );
     }
 }

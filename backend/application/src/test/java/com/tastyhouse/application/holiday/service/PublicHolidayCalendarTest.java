@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
-import com.tastyhouse.application.holiday.store.PublicHolidayRepository;
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

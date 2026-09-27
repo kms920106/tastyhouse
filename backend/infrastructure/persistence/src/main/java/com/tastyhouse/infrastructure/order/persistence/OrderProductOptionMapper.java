@@ -1,22 +1,22 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import com.tastyhouse.application.order.port.out.write.OrderProductOptionState;
+import com.tastyhouse.domain.order.model.OrderProductOption;
 
 final class OrderProductOptionMapper {
     private OrderProductOptionMapper() {
     }
 
-    static OrderProductOptionJpaEntity toEntity(OrderProductOptionState state) {
+    static OrderProductOptionJpaEntity toEntity(OrderProductOption option) {
         return OrderProductOptionJpaEntity.create(
-            state.orderProductId(),
-            state.optionGroupId(),
-            state.optionGroupName(),
-            state.optionId(),
-            state.optionName(),
-            state.additionalPrice(),
-            state.optionGroupType(),
-            state.cupCount(),
-            state.depositAmount()
+            option.getOrderProductId() == null ? null : option.getOrderProductId().value(),
+            option.getOptionGroupId() == null ? null : option.getOptionGroupId().value(),
+            option.getOptionGroupName(),
+            option.getOptionId() == null ? null : option.getOptionId().value(),
+            option.getOptionName(),
+            option.getAdditionalPrice(),
+            option.getOptionGroupType(),
+            option.getCupCount(),
+            option.getDepositAmount()
         );
     }
 }

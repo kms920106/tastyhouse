@@ -1,21 +1,26 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import com.tastyhouse.application.order.port.out.write.OrderDeliveryDestinationSnapshot;
-import com.tastyhouse.application.order.port.out.write.OrderScheduleSnapshot;
-import com.tastyhouse.application.order.port.out.write.OrderState;
+import com.tastyhouse.domain.coupon.vo.MemberCouponId;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
+import com.tastyhouse.domain.order.vo.OrderSchedule;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class OrderMapper {
     private OrderMapper() {
     }
 
-    static OrderState toState(OrderJpaEntity entity) {
-        return new OrderState(
+    static Order toDomain(OrderJpaEntity entity) {
+        return Order.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getShopId(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getOrderNumber(),
-            entity.getOrderMethod(),
-            entity.getOrderStatus(),
+            entity.getOrderMethod() == null ? null : OrderMethod.valueOf(entity.getOrderMethod()),
+            entity.getOrderStatus() == null ? null : OrderStatus.valueOf(entity.getOrderStatus()),
             entity.getOrdererName(),
             entity.getOrdererPhone(),
             entity.getOrdererEmail(),
@@ -27,9 +32,9 @@ final class OrderMapper {
             entity.getDeliveryTipAmount(),
             entity.getCupDepositAmount(),
             entity.getFinalAmount(),
-            toSnapshot(entity.getDeliveryDestination()),
-            toSnapshot(entity.getSchedule()),
-            entity.getMemberCouponId(),
+            toDeliveryDestination(entity.getDeliveryDestination()),
+            toSchedule(entity.getSchedule()),
+            entity.getMemberCouponId() == null ? null : MemberCouponId.of(entity.getMemberCouponId()),
             entity.getUsedPoint(),
             entity.getEarnedPoint(),
             entity.isDeleted(),
@@ -38,57 +43,57 @@ final class OrderMapper {
         );
     }
 
-    static OrderJpaEntity toEntity(OrderState state) {
+    static OrderJpaEntity toEntity(Order order) {
         return OrderJpaEntity.create(
-            state.memberId(),
-            state.shopId(),
-            state.orderNumber(),
-            state.orderMethod(),
-            state.orderStatus(),
-            state.ordererName(),
-            state.ordererPhone(),
-            state.ordererEmail(),
-            state.totalProductAmount(),
-            state.productDiscountAmount(),
-            state.couponDiscountAmount(),
-            state.pointDiscountAmount(),
-            state.totalDiscountAmount(),
-            state.deliveryTipAmount(),
-            state.cupDepositAmount(),
-            state.finalAmount(),
-            toEmbeddable(state.deliveryDestination()),
-            toEmbeddable(state.schedule()),
-            state.memberCouponId(),
-            state.usedPoint(),
-            state.earnedPoint(),
-            state.deleted()
+            order.getMemberId() == null ? null : order.getMemberId().value(),
+            order.getShopId() == null ? null : order.getShopId().value(),
+            order.getOrderNumber(),
+            order.getOrderMethod() == null ? null : order.getOrderMethod().name(),
+            order.getOrderStatus() == null ? null : order.getOrderStatus().name(),
+            order.getOrdererName(),
+            order.getOrdererPhone(),
+            order.getOrdererEmail(),
+            order.getTotalProductAmount(),
+            order.getProductDiscountAmount(),
+            order.getCouponDiscountAmount(),
+            order.getPointDiscountAmount(),
+            order.getTotalDiscountAmount(),
+            order.getDeliveryTipAmount(),
+            order.getCupDepositAmount(),
+            order.getFinalAmount(),
+            toEmbeddable(order.getDeliveryDestination()),
+            toEmbeddable(order.getSchedule()),
+            order.getMemberCouponId() == null ? null : order.getMemberCouponId().value(),
+            order.getUsedPoint(),
+            order.getEarnedPoint(),
+            order.isDeleted()
         );
     }
 
-    static void applyChanges(OrderJpaEntity entity, OrderState state) {
+    static void applyChanges(OrderJpaEntity entity, Order order) {
         entity.applyChanges(
-            state.orderStatus(),
-            state.totalProductAmount(),
-            state.productDiscountAmount(),
-            state.couponDiscountAmount(),
-            state.pointDiscountAmount(),
-            state.totalDiscountAmount(),
-            state.deliveryTipAmount(),
-            state.cupDepositAmount(),
-            state.finalAmount(),
-            toEmbeddable(state.deliveryDestination()),
-            toEmbeddable(state.schedule()),
-            state.memberCouponId(),
-            state.usedPoint(),
-            state.earnedPoint(),
-            state.deleted()
+            order.getOrderStatus() == null ? null : order.getOrderStatus().name(),
+            order.getTotalProductAmount(),
+            order.getProductDiscountAmount(),
+            order.getCouponDiscountAmount(),
+            order.getPointDiscountAmount(),
+            order.getTotalDiscountAmount(),
+            order.getDeliveryTipAmount(),
+            order.getCupDepositAmount(),
+            order.getFinalAmount(),
+            toEmbeddable(order.getDeliveryDestination()),
+            toEmbeddable(order.getSchedule()),
+            order.getMemberCouponId() == null ? null : order.getMemberCouponId().value(),
+            order.getUsedPoint(),
+            order.getEarnedPoint(),
+            order.isDeleted()
         );
     }
 
-    private static OrderDeliveryDestinationSnapshot toSnapshot(OrderDeliveryDestinationEmbeddable embeddable) {
+    private static OrderDeliveryDestination toDeliveryDestination(OrderDeliveryDestinationEmbeddable embeddable) {
         return embeddable == null
             ? null
-            : new OrderDeliveryDestinationSnapshot(
+            : new OrderDeliveryDestination(
                 embeddable.adminDongId(),
                 embeddable.detailAddress(),
                 embeddable.distanceMeters(),
@@ -99,29 +104,25 @@ final class OrderMapper {
             );
     }
 
-    private static OrderDeliveryDestinationEmbeddable toEmbeddable(OrderDeliveryDestinationSnapshot snapshot) {
-        return snapshot == null
+    private static OrderDeliveryDestinationEmbeddable toEmbeddable(OrderDeliveryDestination destination) {
+        return destination == null
             ? null
             : new OrderDeliveryDestinationEmbeddable(
-                snapshot.adminDongId(),
-                snapshot.detailAddress(),
-                snapshot.distanceMeters(),
-                snapshot.latitude(),
-                snapshot.longitude(),
-                snapshot.lotAddress(),
-                snapshot.roadAddress()
+                destination.adminDongId(),
+                destination.detailAddress(),
+                destination.distanceMeters(),
+                destination.latitude(),
+                destination.longitude(),
+                destination.lotAddress(),
+                destination.roadAddress()
             );
     }
 
-    private static OrderScheduleSnapshot toSnapshot(OrderScheduleEmbeddable embeddable) {
-        return embeddable == null
-            ? null
-            : new OrderScheduleSnapshot(embeddable.scheduledAt(), embeddable.scheduledSlotEndAt());
+    private static OrderSchedule toSchedule(OrderScheduleEmbeddable embeddable) {
+        return embeddable == null ? null : new OrderSchedule(embeddable.scheduledAt(), embeddable.scheduledSlotEndAt());
     }
 
-    private static OrderScheduleEmbeddable toEmbeddable(OrderScheduleSnapshot snapshot) {
-        return snapshot == null
-            ? null
-            : new OrderScheduleEmbeddable(snapshot.scheduledAt(), snapshot.scheduledSlotEndAt());
+    private static OrderScheduleEmbeddable toEmbeddable(OrderSchedule schedule) {
+        return schedule == null ? null : new OrderScheduleEmbeddable(schedule.scheduledAt(), schedule.scheduledSlotEndAt());
     }
 }

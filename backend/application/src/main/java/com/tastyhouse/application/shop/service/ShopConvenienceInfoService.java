@@ -18,9 +18,9 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 public class ShopConvenienceInfoService {
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;

@@ -15,7 +15,7 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOrderChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkCommand;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 

@@ -16,8 +16,8 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductOptionGroupLinkService {
     private final ProductOptionGroupLinkRepository linkRepository;

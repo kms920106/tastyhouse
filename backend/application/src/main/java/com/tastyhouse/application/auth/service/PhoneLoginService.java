@@ -13,7 +13,7 @@ import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

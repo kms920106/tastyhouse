@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupState;
+import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductCommonOptionGroupMapper {
     private ProductCommonOptionGroupMapper() {
     }
 
-    static ProductCommonOptionGroupState toState(ProductCommonOptionGroupJpaEntity entity) {
-        return new ProductCommonOptionGroupState(
+    static ProductCommonOptionGroup toDomain(ProductCommonOptionGroupJpaEntity entity) {
+        return ProductCommonOptionGroup.reconstitute(
             entity.getId(),
-            entity.getProductId(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
             entity.getName(),
             entity.getDescription(),
             entity.isRequired(),
@@ -21,30 +22,30 @@ final class ProductCommonOptionGroupMapper {
         );
     }
 
-    static ProductCommonOptionGroupJpaEntity toEntity(ProductCommonOptionGroupState state) {
+    static ProductCommonOptionGroupJpaEntity toEntity(ProductCommonOptionGroup group) {
         return ProductCommonOptionGroupJpaEntity.create(
-            state.productId(),
-            state.name(),
-            state.description(),
-            state.required(),
-            state.multipleSelect(),
-            state.minSelect(),
-            state.maxSelect(),
-            state.sort(),
-            state.visible()
+            group.getProductId() == null ? null : group.getProductId().value(),
+            group.getName(),
+            group.getDescription(),
+            group.isRequired(),
+            group.isMultipleSelect(),
+            group.getMinSelect(),
+            group.getMaxSelect(),
+            group.getSort(),
+            group.isVisible()
         );
     }
 
-    static void applyChanges(ProductCommonOptionGroupJpaEntity entity, ProductCommonOptionGroupState state) {
+    static void applyChanges(ProductCommonOptionGroupJpaEntity entity, ProductCommonOptionGroup group) {
         entity.applyChanges(
-            state.name(),
-            state.description(),
-            state.required(),
-            state.multipleSelect(),
-            state.minSelect(),
-            state.maxSelect(),
-            state.sort(),
-            state.visible()
+            group.getName(),
+            group.getDescription(),
+            group.isRequired(),
+            group.isMultipleSelect(),
+            group.getMinSelect(),
+            group.getMaxSelect(),
+            group.getSort(),
+            group.isVisible()
         );
     }
 }

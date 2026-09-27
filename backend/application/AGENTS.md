@@ -63,7 +63,7 @@
 
 ## 덩어리 03a — 나머지 포트·도메인 서비스·이벤트 발행기를 `domain`에서 이관
 
-**02가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`" 등록 방식을 나머지 전부에 반복했다.** 그 결과 `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남고, 포트와 포트를 주입받는 서비스는 전부 이 모듈에 있다. **클래스 위치와 빈 등록 위치만 바꿨고 로직은 한 줄도 바꾸지 않았다**(HTTP·DB 계약 불변). 이 덩어리가 끝나도 persistence는 아직 `:domain`을 의존한다 — write 포트 시그니처가 여전히 domain 모델(`Optional<Notice> findById(NoticeId)`)이기 때문이며, 시그니처를 State record로 바꾸는 것은 03b다. **(03b로 해소 — 아래 "덩어리 03b" 절)**
+**02가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`" 등록 방식을 나머지 전부에 반복했다.** 그 결과 `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남고, 포트와 포트를 주입받는 서비스는 전부 이 모듈에 있다. **클래스 위치와 빈 등록 위치만 바꿨고 로직은 한 줄도 바꾸지 않았다**(HTTP·DB 계약 불변). 이 덩어리가 끝나도 persistence는 아직 `:domain`을 의존한다 — write 포트 시그니처가 여전히 domain 모델(`Optional<Notice> findById(NoticeId)`)이기 때문이며, 시그니처를 State record로 바꾸는 것은 03b다. **(03b로 해소 — 아래 "덩어리 03b" 절)** **(다시 번복됨 — persistence domain 재허용)** 지금 persistence는 다시 `:domain`을 `implementation`으로 의존하고, write 포트 시그니처는 03a 그대로 domain 모델이다.
 
 | 항목 | before | after |
 |---|---|---|
@@ -83,7 +83,7 @@
 |---|---|---|
 | `LayerRulesTest#queryServicesShouldNotDependOnWritePorts` | 대상 `com.tastyhouse.domain..repository..` | `com.tastyhouse.application..port.out.write..` — 바꾸지 않으면 대상 패키지가 사라져 **아무것도 검사하지 않고 통과**한다 |
 | `RuleAnchorTest#writePortsExist` | 없음 | **신설** — `..port.out.write..`의 `*Repository` 인터페이스 ≥ 106. 위 규칙이 대상을 잃으면 빌드 실패 |
-| `LayerRulesTest#readContractsShouldBeFrameworkFree` | `port.out`은 `java`·`domain`·`port.out`만 참조 | **그대로**(write 포트가 domain 모델을 참조하므로 domain 허용 유지). 03b에서 domain 허용을 제거한다 — **(03b로 완료)** `java..`·`port.out..`만 허용 |
+| `LayerRulesTest#readContractsShouldBeFrameworkFree` | `port.out`은 `java`·`domain`·`port.out`만 참조 | **그대로**(write 포트가 domain 모델을 참조하므로 domain 허용 유지). 03b에서 domain 허용을 제거한다 — **(03b로 완료)** `java..`·`port.out..`만 허용. **(persistence domain 재허용)** 읽기 계약은 그대로 두고 `port.out.write`만 대상에서 빼, 신설 `writePortsShouldOnlyDependOnDomainAndPortOut`이 따로 검사한다 |
 | `ServiceContextBoundaryTest` | 없음 | **신설** — 아래 절 |
 | domain `ContextBoundaryTest` | 봉인 위반 14 · 순환 성분 1 | 봉인 위반 **1**(`DeliveryAreaProjection`) · 순환 봉인 **해제**(성분 0개 → `beFreeOfCycles()` 순수 강제) — `domain/AGENTS.md` |
 | persistence `LayerRulesTest#sealedPersistenceToQuery` | 봉인 3건 | **3건 유지** — 포트가 application으로 옮겨가도 어댑터(`*Adapter`)는 persistence에 남아 여전히 `..query..`를 본다 |
@@ -100,13 +100,73 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 - **봉인 위반 15개** — domain에서 옮겨 온 위반만 담는다: 03a 직전 domain 봉인 14개에서 domain에 남은 `DeliveryAreaProjection`을 뺀 13개 + 덩어리 02가 옮기며 domain 봉인에서만 빠지고 새 규칙이 없던 `MailVerificationService`·`PaymentConfirmationService`. **목록은 줄어들기만 한다 — 항목을 추가하지 않는다.** 짝 테스트 `sealedViolationsShouldNotBeStale`(해소된 항목 검출)·`sealedViolationListShouldNotBeEmpty`(다 비면 봉인 장치 제거 지시).
 - **봉인 순환 성분 1개** `"order,product,review,shop"` — domain에서 봉인되던 바로 그 성분이 서비스와 함께 옮겨왔다(순환을 만들던 간선이 전부 서비스에서 나왔다). 간선은 대상 서비스에서 나가는 의존만으로 계산하고, 비교 단위는 domain 선례대로 **SCC**다. 짝 테스트 `sealedCyclesShouldNotBeStale`.
 - `allowEmptyShould(true)`를 쓰지 않는다 — 위반을 손으로 모으는 테스트라 ArchUnit의 빈 `should()` 문제도 없다.
-- **(03b)** 새로 생긴 `<ctx>/store/`도 `port.out` 밖이므로 이 규칙의 금지 대상에 자동으로 들어간다 — 타 컨텍스트의 `XxxRepository`는 03a 이전과 마찬가지로 직접 주입할 수 없다(패키지가 `port.out.write` → `store`로 바뀌었을 뿐 판정은 같다).
+- ~~**(03b)** 새로 생긴 `<ctx>/store/`도 `port.out` 밖이므로 이 규칙의 금지 대상에 자동으로 들어간다 — 타 컨텍스트의 `XxxRepository`는 03a 이전과 마찬가지로 직접 주입할 수 없다(패키지가 `port.out.write` → `store`로 바뀌었을 뿐 판정은 같다).~~ **(번복됨 — persistence domain 재허용)** `store`는 없어지고 `XxxRepository`가 `port.out.write`로 돌아왔다. 위 "금지"의 `port.out.write`가 그대로 적용되므로 판정은 03a와 같다.
 
-## 덩어리 03b — persistence가 도메인 모델을 모르게 (`store/`·`XxxState`·`XxxStatePort`)
+## persistence domain 재허용 — State 계열 제거 (03b 쓰기 경로 번복)
+
+**03b가 쓰기 경로에 끼운 번역 계층(State·Snapshot·StatePort·Store·StateMapper)을 전부 걷어내고, persistence가 도메인 모델을 직접 쓰도록 되돌렸다.** 읽기 경로(읽기 계약 `port/out`의 `*Result`·`*SearchCondition`, persistence 조회 DAO)는 03b의 domain-free 상태 그대로다. **동작 변경은 없다** — HTTP 응답, DDL, 저장값, null 처리, load-copy-save가 모두 그대로이고, Entity → State → Domain 두 단계 변환을 Entity → Domain 한 단계로 합쳤을 뿐이다.
+
+```
+03b  : Service → XxxRepository(도메인) ← XxxStore ─(XxxStateMapper)→ XxxStatePort(State) ← persistence XxxStatePortImpl
+현행 : Service → XxxRepository(도메인) ← persistence XxxRepositoryImpl (XxxMapper: JpaEntity ↔ Domain)
+```
+
+**왜 되돌렸나**: 03b 구조에서는 애그리거트 하나를 저장하려고 파일 5개(State·StatePort·Store·StateMapper·StatePortImpl)를 거쳤다(State 122 · Snapshot 7 · StatePort 105 · Store 105 · StateMapper 121 · StateMapper 테스트 81). 이 비용으로 얻는 것은 "persistence가 domain을 모른다"는 격리였지만, persistence는 원래 도메인 포트의 어댑터라 domain을 아는 방향이 의존 규칙에 맞고, `implementation` 의존이면 domain이 앱 컴파일 클래스패스로 새지 않아 덩어리 01의 presentation 절단도 유지된다.
+
+**엔티티의 `String` 컬럼과 `*Embeddable` 5종은 유지한다**: 조회 DAO 31개 파일이 String 컬럼을 193곳에서 쓴다. enum으로 되돌리면 `Projections.constructor` 투영이 **컴파일은 통과하고 런타임에만** 깨진다. 그래서 String ↔ enum(`valueOf`/`name()`) 변환은 persistence `XxxMapper`의 몫이다.
+
+### 한 컨텍스트의 파일 구성 — `notice`
+
+| 역할 | 파일 | before (03b) | after |
+|---|---|---|---|
+| 서비스가 주입하는 도메인 타입 인터페이스 | `backend/application/src/main/java/com/tastyhouse/application/notice/port/out/write/NoticeRepository.java` | `store/NoticeRepository` | **`port/out/write/`로 복귀** — 이름·시그니처 불변 |
+| 상태 record · 원시 타입 포트 | `port/out/write/NoticeState`·`NoticeStatePort` | 있음 | **삭제** |
+| Store · StateMapper | `store/NoticeStore`·`NoticeStateMapper` | 있음 | **삭제**(`store` 패키지 전체 삭제) |
+| 등록 | `config/NoticeServiceConfig` | `@SharedApp` 설정의 `@Bean`으로 Store 등록 | **삭제** — Store 빈만 있던 파일은 파일째 삭제 |
+| persistence 구현 | `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/notice/persistence/NoticeRepositoryImpl.java` | `NoticeStatePortImpl`(State 반환) | `NoticeRepositoryImpl`(`@Repository`, **`NoticeRepository` 구현, 도메인 반환**) |
+| persistence 매퍼 | `.../notice/persistence/NoticeMapper.java` | JpaEntity ↔ `NoticeState` | **JpaEntity ↔ `Notice`** — StateMapper의 표현식을 흡수 |
+| 매퍼 테스트 | `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/<ctx>/persistence/XxxMapperTest.java` | application `store/*StateMapperTest`(왕복 비교) | persistence로 이관 — Domain→Entity / Entity→Domain **두 방향 따로**(아래) |
+
+규모: 삭제 State 122 · Snapshot 7 · StatePort 105 · Store 105 · StateMapper 121. `port/out/write/`에는 옮겨 온 `XxxRepository` 105개와 `ShopDeliveryTipRegionLookup`, 원래 있던 `StationRepository`·`AdminDongSyncResult`가 남는다. persistence `XxxRepositoryImpl`은 106개(`StationRepositoryImpl` 포함, 03b 이전과 같음).
+
+### write 어댑터 작성 규칙 (현행)
+
+- **`XxxRepository`는 `<ctx>/port/out/write/`에 둔다.** 시그니처는 도메인 타입(`Optional<Notice> findById(NoticeId)`)이고, 구현은 persistence `<ctx>/persistence/XxxRepositoryImpl`(`@Repository`, `PersistenceModuleAutoConfiguration`의 스캔으로 4앱 전부에 뜬다)이다. 이 모듈에는 구현을 두지 않는다.
+- **write 포트는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..port.out..`만 의존한다** — `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut`. 서비스·UseCase·설정을 참조하면 persistence가 그 타입까지 봐야 해 `shouldNotDependOnApiModules`에 걸린다.
+- **변환은 persistence `XxxMapper`가 한다** — `toDomain(entity)`(`reconstitute` 호출)·`toEntity(domain)`·`applyChanges(entity, domain)`. enum은 `valueOf`/`name()`, ID·단일값 VO는 `Xxx.of(...)`/`.value()`, 복합 VO는 persistence 소유 `*Embeddable` 또는 평탄 컬럼으로 바꾼다. nullable enum·VO·FK는 `x == null ? null : ...` 삼항 가드를 **모든 FK에 예외 없이** 둔다(`backend/CLAUDE.md` "ID VO 경계 규칙").
+- **Store에 있던 로직은 RepositoryImpl로 옮겼다** — 빈 컬렉션 조기 반환, `LinkedHashSet` 수집, 도메인 정책 상수 호출(예: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/reservation/persistence/ReservationRepositoryImpl.java`가 `ReservationStatus.blockingStatuses()`를 `name()` 목록으로 풀어 쿼리에 넘긴다). 인터페이스 둘을 구현하던 Store(`ShopDeliveryTipStore`)는 RepositoryImpl도 `ShopDeliveryTipRepository`·`ShopDeliveryTipRegionLookup` 둘을 구현한다.
+- **Store 빈 등록 설정은 없다** — `<Ctx>ServiceConfig`에는 Store가 아닌 빈(도메인 서비스·어댑터·정책 record)만 남는다. Store 빈만 갖던 `Admin`·`Banner`·`Event`·`Notice`·`Partnership`·`Region`의 `*ServiceConfig`는 파일째 삭제됐다. `@WebApp`이던 `MailServiceConfig`·`SmsServiceConfig`의 `MailVerificationRepository`·`SmsVerificationRepository` 구현은 이제 `@Repository` 스캔으로 전 앱에 뜬다 — 03b 이전과 같은 상태이고 admin·ceo·batch에는 주입처가 없다.
+- **서비스 테스트의 Repository fake는 import만 바뀌었다** — 도메인 타입 시그니처가 불변이므로 `FakeMailVerificationRepository` 등은 그대로다.
+
+### 매퍼 테스트는 두 방향으로 나눠 검증한다
+
+03b의 `*StateMapperTest`는 `toDomain(toState(original))`을 `usingRecursiveComparison()`으로 원본과 비교하는 왕복 방식이었다. Entity를 거치면 원본의 일부 값이 사라진다 — `XxxJpaEntity.create(...)`는 id를 받지 않고, `BaseEntity`의 `createdAt`/`updatedAt`은 auditing이 채우며 setter가 없다. 그래서 persistence `XxxMapperTest`는 다음처럼 검증한다.
+
+- (a) Domain → Entity: `toEntity` 결과의 컬럼 값(enum `name()`, VO `value()`, Embeddable 필드)을 필드별로 단언한다.
+- (b) Entity → Domain: `ReflectionTestUtils.setField`로 id·`createdAt`·`updatedAt`을 채운 엔티티를 만들고 `toDomain` 결과를 단언한다.
+- 왕복 비교를 남긴다면 제외 필드는 `ignoringFields("id", "createdAt", "updatedAt")`만 허용한다. 다른 필드를 제외해 테스트를 통과시키지 않는다.
+- null 가드 케이스(enum·VO가 null)는 두 방향 모두 유지하고, **같은 타입의 연속 필드는 서로 다른 값으로 채운다**(아래 봉인 항목).
+
+### ArchUnit·테스트 변경 (persistence domain 재허용)
+
+| 규칙·테스트 | before (03b) | after |
+|---|---|---|
+| persistence `LayerRulesTest#infrastructureShouldNotDependOnDomain` | persistence 전체 → domain 금지 | **대상 축소·개명** `queryShouldNotDependOnDomain` — `..query..` + 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)만 domain 금지(`../infrastructure/persistence/AGENTS.md`) |
+| `LayerRulesTest#readContractsShouldBeFrameworkFree` | `port.out..` 전체가 `java..`·`port.out..`만 의존 | 대상에서 `..port.out.write..`만 제외(읽기 계약은 domain-free 그대로) |
+| `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut` | 없음 | **신설** — `port.out.write`는 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 |
+| `LayerRulesTest#queryServicesShouldNotDependOnWritePorts` | 대상 `..port.out.write..` + `..store..` | `..port.out.write..`만 |
+| `RuleAnchorTest#storesExist` | Store ≥ 105 | **삭제** |
+| `RuleAnchorTest#writePortsExist` | `port.out.write` + `store`의 `*Repository` 합계 ≥ 106 | `port.out.write`의 `*Repository` ≥ 106 |
+| `StateRecordArityTest` | State record 컴포넌트 수 검사 | **파일 삭제** |
+| 컨텍스트별 `store/*StateMapperTest` 81개 | application | **persistence `XxxMapperTest`로 이관**(위 두 방향 검증) |
+
+## (번복됨 — persistence domain 재허용) 덩어리 03b — persistence가 도메인 모델을 모르게 (`store/`·`XxxState`·`XxxStatePort`)
+
+> **이 절의 쓰기 경로 규칙(파일 구성·State record 작성 규칙·Store/StatePortImpl 분담·Store 등록·`storesExist`·`StateRecordArityTest`·`*StateMapperTest`)은 위 "persistence domain 재허용" 절로 번복됐다.** 기록으로 남긴다. **읽기 경로 규칙은 현행이다** — 아래 "읽기 계약 평탄화", "enum 비교값 전달 규칙", "persistence에서 이 모듈로 올라온 도메인 판단" 중 조회 DAO·QueryService에 관한 내용은 그대로 유효하다. 그 안의 "Store"는 persistence `XxxRepositoryImpl`로 읽는다.
 
 **write 경로에 상태 record 한 겹을 끼워 넣어, `infrastructure:persistence`가 `domain`을 몰라도 저장할 수 있게 했다.** 03a까지 서비스가 주입하던 `XxxRepository`(도메인 모델 시그니처)를 persistence가 직접 구현했으므로 persistence는 domain을 알아야 했다. 지금은 그 인터페이스를 이 모듈의 `XxxStore`가 구현하고, Store가 도메인 모델을 `XxxState`로 바꿔 원시 타입 포트 `XxxStatePort`에 넘긴다. **서비스 코드는 import 한 줄만 바뀌었고 로직·HTTP 응답·DDL·저장값은 불변이다.** 대상은 도메인 타입을 쓰던 write 포트가 있는 전 컨텍스트(`notice`·`admin`·`banner`·`policy`·`partnership`·`faq`·`coupon`·`event`·`search`·`member`(+`follow`·`referral`)·`point`·`rank`·`reservation`·`review`·`menureview`·`notification`·`file`·`mail`·`sms`·`bug`·`ceo`·`holiday`·`region`·`shop`·`product`·`order`·`payment`)다.
 
-### 한 컨텍스트의 파일 구성 — `notice` 파일럿
+### (번복됨) 한 컨텍스트의 파일 구성 — `notice` 파일럿
 
 | 역할 | 파일 (`backend/application/src/main/java/com/tastyhouse/application/notice/...`) | 규칙 |
 |---|---|---|
@@ -121,7 +181,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 
 규모: `XxxState` 122(자식 State 포함) · `XxxStatePort` 105 · `XxxStore` 105 · `store/*Repository` 105 · persistence `XxxStatePortImpl` 105.
 
-### State record 작성 규칙
+### (번복됨) State record 작성 규칙
 
 - **컴포넌트는 `reconstitute` 파라미터와 1:1이다.** `backend/application/src/test/java/com/tastyhouse/application/architecture/StateRecordArityTest.java`가 각 `XxxState`의 **최상위** 컴포넌트 수를 같은 이름의 도메인 클래스 `reconstitute` 파라미터 수와 비교한다(개수만 본다 — 순서·이름 뒤바뀜은 round-trip 테스트가 잡는다). 예외 목록 `NON_AGGREGATE_STATES`는 비어 있고 짝 테스트 `nonAggregateStatesShouldNotBeStale`이 붙어 있다.
 - **타입 강등**: enum → `String`(`name()` / 복원은 `Enum.valueOf`), ID VO·단일값 VO → 원시값(`value()`), 복합 VO → **`XxxSnapshot` record**(예: `order/port/out/write/OrderDeliveryDestinationSnapshot`·`OrderScheduleSnapshot`, `product/port/out/write/ProductDiscountInfoSnapshot`, `region/port/out/write/AdminDongBoundarySnapshot`·`AdminDongCenterSnapshot`, `shop/port/out/write/ShopDeliveryAreaPolygonShapeSnapshot`·`ShopDeliveryAreaPolygonCenterSnapshot`) 또는 원시 컴포넌트로 펼친다. 자식 컬렉션 → `List<ChildState>`(자식에 `reconstitute`가 있으면 그 `ChildState`도 arity 검사를 받는다).
@@ -129,7 +189,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 - **null 안전**: nullable enum·VO·FK는 `x == null ? null : ...` 삼항으로 강등·승격한다. **모든 FK에 예외 없이** 둔다(삭제된 `IdMapping`이 강제하던 규칙의 승계 — `backend/CLAUDE.md` "ID VO 경계 규칙"의 번복 표기).
 - **`port/out/write/` 아래에 둔다.** persistence의 `LayerRulesTest#shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하고, 이 모듈의 `readContractsShouldBeFrameworkFree`가 그 아래 전부를 `java..`와 `port.out`만 참조하게 강제한다 — State·StatePort에 domain 타입이 한 개라도 들어가면 빌드가 실패한다.
 
-### Store가 맡는 것 / StatePortImpl이 맡는 것
+### (번복됨) Store가 맡는 것 / StatePortImpl이 맡는 것
 
 | 일 | 위치 |
 |---|---|
@@ -155,13 +215,13 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 
 | 형태 | 언제 | 예 |
 |---|---|---|
-| `String`/`Collection<String>` 포트 인자 | 비교·필터 값 | `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, excludedStatus)` ← `MemberQueryService`가 `MemberStatus.DELETED.name()`. `ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)` ← `ReviewBlindRequestStore`의 종결 상태 상수 |
+| `String`/`Collection<String>` 포트 인자 | 비교·필터 값 | `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, excludedStatus)` ← `MemberQueryService`가 `MemberStatus.DELETED.name()`. ~~`ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)` ← `ReviewBlindRequestStore`의 종결 상태 상수~~ (번복됨 — 이 판단은 이제 persistence `ReviewBlindRequestRepositoryImpl` 안에 있다) |
 | 스펙 record 포트 인자 | DAO가 값에 따라 **쿼리 모양을 바꾸는** 곳 | `review/port/out/ReviewSortSpec(byLikeCount, createdAtAscending)` ← `review/service/ReviewSortSpecs.of(ReviewSortType)`, `review/port/out/ShopReviewTabFilter` ← `ShopReviewTabFilters.of(ReviewListTab)`, `product/port/out/ProductExposureWindow(now, todayDayTypes, previousDayDayTypes)` ← `product/service/ProductExposureWindows.now()`/`at(LocalDateTime)`(`DayType#appliesTo(dow, false)` — 공휴일 미판정은 과거 DAO 동작 그대로) |
 | 기존 정책 record 컴포넌트 | 요청마다 달라지지 않는 고정값 | `shop/port/out/ShopDeliveryTipRangePolicy`의 `distanceExtraTipType`·`regionExtraTipType` ← `shop/config/ShopServiceConfig#shopDeliveryTipRangePolicy`(`DeliveryTipExtraType.DISTANCE/REGION.name()`) |
 
 - **스펙 record를 만드는 유틸은 `<ctx>/service/`의 final class이며, 도메인 enum → 스펙 매핑은 exhaustive switch로 쓴다.** 도메인 상수가 추가되면 컴파일 에러로 드러난다.
 - **그 유틸은 자기 컨텍스트(또는 `domain.shared`) 타입만 import한다.** `ServiceContextBoundaryTest`는 `..service..`의 비-`*QueryService`/`*CommandService` 클래스를 도메인 서비스로 보고 타 컨텍스트 `model` 참조를 막는다. 그래서 인기상품 판매 집계의 `OrderStatus.COMPLETED.name()`은 `ProductExposureWindows`가 아니라 `ProductQueryService#findPopularProducts`에서 만든다.
-- **Store의 도메인 타입 `XxxRepository` 시그니처는 그대로 둔다.** 바뀌는 것은 `XxxStatePort`와 Store 본문뿐이다(예: `MailVerificationStore#expireAllPendingByEmail` → `MailVerificationStatePort#changeStatusByEmail(email, PENDING, EXPIRED)`). 그래서 도메인 타입 fake(`FakeMailVerificationRepository` 등)가 영향을 받지 않는다.
+- **도메인 타입 `XxxRepository` 시그니처는 그대로 둔다.** ~~바뀌는 것은 `XxxStatePort`와 Store 본문뿐이다(예: `MailVerificationStore#expireAllPendingByEmail` → `MailVerificationStatePort#changeStatusByEmail(email, PENDING, EXPIRED)`).~~ **(번복됨 — persistence domain 재허용)** 지금은 그 변환이 persistence `MailVerificationRepositoryImpl` 안에 있다. 그래서 도메인 타입 fake(`FakeMailVerificationRepository` 등)가 영향을 받지 않는다.
 - **`port.out`에 도메인 enum의 복제본을 두지 않는다.** `EnumCodeConstantsTest#portOutShouldNotMirrorDomainEnums`가 `port.out`의 모든 enum을 도메인 enum과 **상수 집합**으로 대조해 막는다. 이름과 무관하게 잡는다. 허용 목록은 값 자체가 벤더 계약인 `PgProviderCode` 하나다. 과거 형태(`public static final String X = "X"` 상수 클래스)의 재발은 `#portOutShouldNotDeclareDomainEnumConstantStrings`가 막는다(도메인 enum 상수명과 같은 이름의 `static final String` 필드 금지).
 - **`ShopReviewTabFilter`는 조건을 하나만 켤 수 있다.** compact constructor가 둘 이상이면 `IllegalArgumentException`으로 거부한다. DAO가 앞선 조건만 조용히 적용하는 것을 막는다.
 - 리뷰 정렬 fallback이 DB에서 읽은 문자열이면 `ReviewSortType.valueOf`로 승격한다. 알 수 없는 값이면 `IllegalArgumentException`(500)이 나는데, 과거 DAO의 `IllegalStateException`(500)과 응답이 같다.
@@ -170,21 +230,21 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 
 ### persistence에서 이 모듈로 올라온 도메인 판단
 
-persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 도메인 정책 호출과 도메인 예외를 이 모듈이 맡게 됐다. **DAO는 원자료만 돌려주고, 판정·계산·예외화는 QueryService·Store가 한다.**
+persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 도메인 정책 호출과 도메인 예외를 이 모듈이 맡게 됐다. **DAO는 원자료만 돌려주고, 판정·계산·예외화는 QueryService·Store가 한다.** **(persistence domain 재허용 후)** 조회 DAO 쪽은 그대로 유효하다(`queryShouldNotDependOnDomain`). Store가 하던 write 쪽 판단(예: 예약 차단 상태)은 persistence `XxxRepositoryImpl`로 옮겨졌다.
 
 | 판단 | before (persistence) | after (이 모듈) |
 |---|---|---|
 | 컵 보증금 금액 `CupDepositPolicy#depositAmountOf(cupCount)` | `product/query/ProductQueryDao`가 주입받아 투영 중 계산 | DAO는 `cupCount`만 싣고, `product/service/ProductOptionDepositAmounts`(package-private 유틸)가 `ProductQueryService`·`ProductManagementQueryService`에서 채운다 |
 | 에디터 추천 가게당 상품 수 `EditorChoicePolicy.PRODUCT_LIMIT` | `shop/query/ShopChoiceQueryDao`가 상수 직접 참조 | `ShopChoiceQueryPort#findEditorChoices(PageQuery, int productLimit)` 파라미터 — `ShopQueryService`·`ShopManagementQueryService`가 상수를 넘긴다 |
 | 배달팁 표기 상한·거리 단위 `DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND`·`DeliveryTipDistanceUnit#getUnitMeters` | `shop/query/ShopDeliveryTipQueryDao`가 domain 상수·enum 직접 참조 | **값 record `shop/port/out/ShopDeliveryTipRangePolicy`**(상한 + 단위명→미터 맵)를 `ShopServiceConfig#shopDeliveryTipRangePolicy`가 domain 값으로 만들어 `@Bean` 등록하고, DAO가 그 빈을 주입받는다 — DAO가 domain 없이 같은 값을 쓰는 형태 |
-| 예약 차단 상태 `ReservationStatus.blockingStatuses()` | `reservation/query/ReservationQueryDao`가 직접 참조 | `ReservationQueryService`·`ReservationStore`가 `name()` 목록으로 만들어 파라미터로 넘긴다 |
+| 예약 차단 상태 `ReservationStatus.blockingStatuses()` | `reservation/query/ReservationQueryDao`가 직접 참조 | `ReservationQueryService`·~~`ReservationStore`~~가 `name()` 목록으로 만들어 파라미터로 넘긴다(write 쪽은 지금 persistence `ReservationRepositoryImpl`이 직접 만든다) |
 | 가게 위치 조회 실패 `SHOP_ACCESS_DENIED`·좌표 미등록 `SHOP_DELIVERY_AREA_RADIUS_EXCEEDED` | `shop/query/ShopDeliveryAreaQueryDao#findShopLocation`이 `BusinessException` | DAO는 `Optional<ShopLocationResult>`를 돌려주고, 위치 없음(`SHOP_ACCESS_DENIED`)은 호출하는 `ShopDeliveryAreaPolygonQueryService`·`ShopDeliveryAreaRadiusQueryService`가 `orElseThrow`로, 좌표 미등록은 `shop/service/ShopDeliveryAreaGeoMapper#requireCoordinates`가 같은 코드·문구로 던진다(응답 불변) |
 | 폴리곤·행정동 경계 디코딩 | persistence `shared/query/GeoRingsResolver`(`GeoRingsQueryPort` 구현) | QueryService가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출(`region/service/AdminDongQueryService`·`shop/service/ShopDeliveryAreaPolygonQueryService`). `GeoRingsQueryPort`·`GeoRingsResolver`는 삭제 |
 | 가게 매장가 인증 플래그 어댑터 `StorePriceVerificationAdapter` | persistence `@Component` | **`shop/service/StorePriceVerificationAdapter`**(POJO, `ShopServiceConfig`가 `@Bean`) — `ShopRepository`(도메인 `Shop`)와 `ResourceNotFoundException`을 쓰므로 |
 
-**DAO에 도메인 상수가 필요해 보이면** ① 호출부가 파라미터로 넘기거나(`productLimit`·`blockingStatuses`), ② 값 record를 `port/out`에 두고 `<Ctx>ServiceConfig`가 domain 값으로 `@Bean` 등록한다(`ShopDeliveryTipRangePolicy`). persistence에 domain을 되살리지 않는다.
+**DAO에 도메인 상수가 필요해 보이면** ① 호출부가 파라미터로 넘기거나(`productLimit`·`blockingStatuses`), ② 값 record를 `port/out`에 두고 `<Ctx>ServiceConfig`가 domain 값으로 `@Bean` 등록한다(`ShopDeliveryTipRangePolicy`). 조회 DAO에 domain을 들이지 않는다(persistence 모듈 자체는 domain을 다시 의존하지만 `..query..`는 `queryShouldNotDependOnDomain`이 막는다).
 
-### ArchUnit·테스트 변경
+### ArchUnit·테스트 변경 (03b 시점 — 현행은 위 "persistence domain 재허용" 절의 표)
 
 | 규칙·테스트 | before | after |
 |---|---|---|
@@ -223,12 +283,10 @@ com.tastyhouse.application/
       │                           아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
       │   │                       + persistence가 쿼리 모양을 바꿀 때 받는 스펙 record(ReviewSortSpec 등 — 도메인 enum 복제본은 두지 않는다)
       │   └── write/              (덩어리 03a) write 포트 XxxRepository — 과거 domain의 <ctx>/repository/.
-      │                           03a 동안 시그니처는 domain 타입 그대로(03b에서 State로 전환)
-      │                           → (03b) XxxRepository는 store/로 이동. 여기엔 원시 타입만:
-      │                             XxxState(record) · XxxSnapshot(복합 VO record) · XxxStatePort(persistence가 구현)
+      │                           시그니처는 domain 타입, 구현은 persistence XxxRepositoryImpl
+      │                           ※ (번복됨 — persistence domain 재허용) 03b 동안은 XxxRepository가 store/에 있었고
+      │                             여기엔 XxxState · XxxSnapshot · XxxStatePort만 있었다 — 전부 삭제
   │                           — Result의 도메인 enum 필드는 덩어리 01로 String(+ {field}Description/DisplayName)
-      ├── store/                  (덩어리 03b) XxxRepository(서비스가 주입, 도메인 시그니처) · XxxStore(구현, 마커 없는 POJO) ·
-      │                           XxxStateMapper(package-private, 도메인 ↔ State). persistence는 이 패키지를 볼 수 없다
       ├── config/                 (덩어리 02/03a) <Ctx>ServiceConfig — @Configuration + 마커(대부분 @SharedApp), 마커 없는 POJO를 @Bean 등록
       └── listener/               도메인 이벤트 리스너(@Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT))
                                   — persistence에서 이동, 10개 컨텍스트에 12종
@@ -249,7 +307,7 @@ com.tastyhouse.application/
 
 **다만 이름까지 같게 두지는 않는다(챕터 02에서 개명 완료).** 챕터 03 평탄화로 세 앱의 타입이 같은 패키지에 공존하므로 simple name이 앱 간에도 유일해야 한다. `NoticeQueryService`(web) / `NoticeManagementQueryService`(admin), `ShopQueryService`(web) / `ShopManagementQueryService`(admin) / `ShopOwnerQueryService`(ceo), `MemberTokenService` / `AdminTokenService` / `CeoTokenService`처럼 **web은 순수명, admin은 `Management`, ceo는 `Owner`**(인증 타입은 주체명 접두)로 구별한다.
 
-공유되는 것은 `domain`의 도메인 모델·write 포트·도메인 서비스와, 이 모듈 안에서 여러 앱이 함께 쓰는 `{Ctx}QueryPort` 계약이다(03a·03b 이후 write 포트는 이 모듈의 `store/XxxRepository`, 도메인 서비스는 `<ctx>/service/`에 있다). 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
+공유되는 것은 `domain`의 도메인 모델·write 포트·도메인 서비스와, 이 모듈 안에서 여러 앱이 함께 쓰는 `{Ctx}QueryPort` 계약이다(03a 이후 write 포트는 이 모듈의 `port/out/write/XxxRepository`, 도메인 서비스는 `<ctx>/service/`에 있다 — 03b 동안 `store/`에 있었던 것은 번복됐다). 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
 
 **앱 간 타입명 충돌 시 `Management`/`Owner` 한정어**를 상시 적용한다 — `Result`·`QueryPort`뿐 아니라 `*UseCase`·`*Service`·`*Command`·협력 빈(`*Reader`·`*View`)까지가 대상이다(규칙 전문과 한정어 삽입 위치는 루트 `backend/CLAUDE.md` 참고). 동명 클래스 **182건의 일괄 개명은 챕터 02에서 완료**했다.
 
@@ -261,7 +319,7 @@ com.tastyhouse.application/
 
 - 구현은 `infrastructure:persistence`의 `<ctx>/query/` DAO다. 그 모듈이 `implementation project(':application')`으로 이 계약들을 본다.
 - **새 읽기 계약은 소비 앱 수를 따지지 않고 이 모듈에 둔다.** 소비 앱이 하나든 셋이든 자리가 같다 — 소유 모듈을 판정하던 절차는 챕터 04와 함께 폐기됐다.
-- **프레임워크-프리를 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. ~~계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.~~ **(번복됨 — 덩어리 03b)** 계약이 참조해도 되는 것은 `java..`와 `com.tastyhouse.application..port.out..`뿐이다 — domain 허용이 제거됐다. `port.out`(읽기 계약 + `write/`의 `XxxState`·`XxxStatePort` + 스펙 record)은 infrastructure가 보는 유일한 application 표면이라, 여기에 domain 타입이 실리면 persistence가 domain을 다시 알게 된다. enum은 `String`, ID는 `Long`으로 싣고 승격·강등은 QueryService·Store가 한다(위 "덩어리 03b" 절).
+- **프레임워크-프리를 `LayerRulesTest#readContractsShouldBeFrameworkFree`가 지킨다**: 이 모듈은 spring starter를 받으므로 `application-common-module` 시절의 컴파일 게이트가 없다. ~~계약이 참조해도 되는 것은 `java..`·`com.tastyhouse.domain..`과 자기 자신뿐이다.~~ **(번복됨 — 덩어리 03b)** 계약이 참조해도 되는 것은 `java..`와 `com.tastyhouse.application..port.out..`뿐이다 — domain 허용이 제거됐다. `port.out`(읽기 계약 + `write/`의 `XxxState`·`XxxStatePort` + 스펙 record)은 infrastructure가 보는 유일한 application 표면이라, 여기에 domain 타입이 실리면 persistence가 domain을 다시 알게 된다. enum은 `String`, ID는 `Long`으로 싣고 승격·강등은 QueryService·Store가 한다(위 "덩어리 03b" 절). **(persistence domain 재허용 후)** 이 규칙은 **읽기 계약에만** 걸린다 — `port.out.write`(도메인 타입 `XxxRepository`)는 대상에서 빠졌고, 대신 `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut`이 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 허용한다. `XxxState`·`XxxStatePort`·Store는 삭제됐다.
 
 ## `response/`는 각 api 모듈로 승격됐다 (챕터 06 · 09 · 10)
 
@@ -332,13 +390,13 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 | 클래스 | importer | 내용 |
 |---|---|---|
-| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **공유 마커 규칙 3** (덩어리 01로 리스너 마커 양방향 2 + 공유 설정 1) — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(~~`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용~~ **번복됨(덩어리 01)**: 이제 허용 대상은 (`..listener..` + `@TransactionalEventListener` 보유) **또는** (`..config..` + `@Configuration`) — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것은 여전히 막는다) · **`sharedConfigsShouldOnlyDeclareUnmarkedBeans`**(덩어리 01 신설 — `@SharedApp` 설정은 `@Component`/`@Service`를 겸하지 않고, `@Bean` 반환 타입과 그 설정이 생성자를 호출하는 클래스 전부가 앱 마커를 갖지 않아야 한다. 생성자 호출 검사는 구체 빈을 인터페이스 타입으로 반환해 반환 타입 검사를 피하는 경우까지 잡는다. **`should()`가 아니라 위반을 손으로 모으는 테스트**다 — 현재 `@SharedApp` 설정이 0개라 `should()`로 쓰면 ArchUnit failOnEmptyShould에 걸리고, `allowEmptyShould(true)`는 쓰지 않는 방침이기 때문이다. ~~첫 사용처는 덩어리 02/03a이며 그때까지 `RuleAnchorTest`에 anchor가 없다~~ **(실현됨 — 덩어리 02/03a)**: `file/config/FileServiceConfig`·`payment/config/PaymentServiceConfig` 2개가 이제 실제 대상이다. 두 규칙 모두 임시 probe 클래스로 반증했다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
+| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종**(+ persistence domain 재허용으로 신설된 `writePortsShouldOnlyDependOnDomainAndPortOut` — write 포트는 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 의존. `readContractsShouldBeFrameworkFree`는 대상에서 `port.out.write`를 뺐다). CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **공유 마커 규칙 3** (덩어리 01로 리스너 마커 양방향 2 + 공유 설정 1) — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(~~`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용~~ **번복됨(덩어리 01)**: 이제 허용 대상은 (`..listener..` + `@TransactionalEventListener` 보유) **또는** (`..config..` + `@Configuration`) — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것은 여전히 막는다) · **`sharedConfigsShouldOnlyDeclareUnmarkedBeans`**(덩어리 01 신설 — `@SharedApp` 설정은 `@Component`/`@Service`를 겸하지 않고, `@Bean` 반환 타입과 그 설정이 생성자를 호출하는 클래스 전부가 앱 마커를 갖지 않아야 한다. 생성자 호출 검사는 구체 빈을 인터페이스 타입으로 반환해 반환 타입 검사를 피하는 경우까지 잡는다. **`should()`가 아니라 위반을 손으로 모으는 테스트**다 — 현재 `@SharedApp` 설정이 0개라 `should()`로 쓰면 ArchUnit failOnEmptyShould에 걸리고, `allowEmptyShould(true)`는 쓰지 않는 방침이기 때문이다. ~~첫 사용처는 덩어리 02/03a이며 그때까지 `RuleAnchorTest`에 anchor가 없다~~ **(실현됨 — 덩어리 02/03a)**: `file/config/FileServiceConfig`·`payment/config/PaymentServiceConfig` 2개가 이제 실제 대상이다. 두 규칙 모두 임시 probe 클래스로 반증했다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
 | `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 5종 5×4=20조합 개별 검사 — 슬라이스가 아니다. `@SharedApp`이 `AppOwnership.MARKERS`에 들어가 "공유 리스너는 앱 전용 빈에 의존할 수 없고, 앱 전용 빈도 공유 리스너에 의존할 수 없다"까지 강제한다. `because`는 "공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐") · `beansShouldHaveExactlyOneAppMarker`(리스너는 `@SharedApp` 하나로 통과) · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계, `@SharedApp` 빈 ≥ 12 포함) · **`sharedBeansShouldNotDependOnWebOnlyServices`**(덩어리 02/03a 신설 — `@SharedApp` 빈은 `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PgPaymentGateway`를 의존하지 않는다. 이 넷은 `@WebApp` 설정만 등록하는 web 전용 서비스이므로, 공유 빈이 이들을 주입받으면 admin·ceo·batch에서 그 빈을 찾지 못해 기동이 실패한다) |
 | `EnumCodeConstantsTest` | `com.tastyhouse.application.payment.port.out`·`com.tastyhouse.domain.payment.model`(단일 케이스) | **덩어리 02/03a 신설.** `pgProviderCodeMatchesPgProvider` — `PgProviderCode.values()`와 domain `PgProvider.values()`의 상수명·순서가 같은지 `Enum::name` 배열로 대조한다. 라우터(`PgPaymentGatewayRouter`)가 `PgProvider.valueOf(code.name())`으로 변환하므로, 두 enum이 어긋나면 이 테스트가 아니라 런타임 `IllegalArgumentException`으로 드러났을 결함을 컴파일 타임 대신 빌드 타임에 잡는다. ~~**(03b 확장 — 스캔 기반)** `codesMatchDomainEnums`가 `port.out`의 `*Codes`를 같은 이름 도메인 enum과 대조했다.~~ **(번복됨)** 복제본을 전부 지웠으므로 대체 규칙 **`portOutShouldNotMirrorDomainEnums`**가 `port.out`의 모든 enum(현재 6개, 중첩 `SocialLoginResult.Status`·`SocialLinkResult.Status` 포함)을 도메인 enum과 상수 집합으로 대조해 복제본이 다시 생기는 것을 막는다(`isNotEmpty()`로 공허 통과 방지, 허용 목록 `PgProviderCode`). **알려진 취약점**: `SocialProvider`는 도메인 `MemberSocialProvider`와 `GOOGLE` 하나만 다르다 — 둘이 같아져 이 테스트가 실패하면 `SocialProvider`를 허용 목록에 추가하는 것이 올바른 조치다(벤더 계약 enum이지 복제본이 아니다) |
 | `BatchSchedulerRulesTest` | `com.tastyhouse.application`(단일, `.areNotAnnotatedWith(BatchApp.class)` 등 마커 술어로 batch만 선별) | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
-| `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한과 **write 포트 하한(`writePortsExist` ≥ 106, 덩어리 03a — 03b로 `port.out.write` + `store` 합계)**, **Store 하한(`storesExist` ≥ 105, 덩어리 03b)**을 담당 |
+| `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한과 **write 포트 하한(`writePortsExist` ≥ 106, 덩어리 03a — `port.out.write`의 `*Repository`)**을 담당. ~~03b로 `port.out.write` + `store` 합계, Store 하한 `storesExist` ≥ 105~~ **(번복됨 — persistence domain 재허용: `store` 조건 제거, `storesExist` 삭제)** |
 | `ServiceContextBoundaryTest` | `com.tastyhouse.application` + `com.tastyhouse.domain` | **덩어리 03a 신설.** 마커 없는 POJO 도메인 서비스 사이의 컨텍스트 경계(봉인 위반 15 · 봉인 순환 1 + 짝 테스트) — 위 "덩어리 03a" 절 |
-| `StateRecordArityTest` | `com.tastyhouse.application` + `com.tastyhouse.domain` | **덩어리 03b 신설.** 각 `XxxState`의 최상위 컴포넌트 수 = 같은 이름 도메인 클래스의 static `reconstitute` 파라미터 수(동명 클래스가 여럿이면 컨텍스트로 좁힘). 예외 목록 `NON_AGGREGATE_STATES`(현재 0) + 짝 테스트 `nonAggregateStatesShouldNotBeStale` — 위 "덩어리 03b" 절 |
+| ~~`StateRecordArityTest`~~ | — | **(번복됨 — persistence domain 재허용: 파일 삭제)** 아래는 03b 시점 기록. **덩어리 03b 신설.** 각 `XxxState`의 최상위 컴포넌트 수 = 같은 이름 도메인 클래스의 static `reconstitute` 파라미터 수(동명 클래스가 여럿이면 컨텍스트로 좁힘). 예외 목록 `NON_AGGREGATE_STATES`(현재 0) + 짝 테스트 `nonAggregateStatesShouldNotBeStale` — 위 "덩어리 03b" 절 |
 
 **챕터 01 시점에 통합으로 의미가 달라져 손본 곳 두 군데는(carve-out FQN화, `applicationMustNotDependOnAdapters` 4패키지 확대) 챕터 03 이후에도 그대로 유효하다** — carve-out 대상 클래스와 api 패키지 이름 자체는 이번 평탄화로 바뀌지 않았다.
 
@@ -356,7 +414,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 **마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12, 그리고 리스너 12종인 `@SharedApp` ≥12 — 리스너 하나가 마커를 잃으면 어느 앱에도 뜨지 않으므로 하한이 곧 리스너 수다)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
 
-write 포트는 **≥ 106**(`RuleAnchorTest#writePortsExist`, 덩어리 03a — 보조 타입 2개는 인터페이스가 아니라 세지 않는다. 03b부터 `port.out.write`와 `store` 두 패키지의 `*Repository` 인터페이스 합계). Store는 **≥ 105**(`RuleAnchorTest#storesExist`, 덩어리 03b — `..store..`의 `*Store` 구현 클래스. `queryServicesShouldNotDependOnWritePorts`의 `..store..` 대상이 공허해지지 않게 한다). 읽기 계약은 합계 **≥ 282**(통합 전 4개 앱 합 227 + 챕터 04로 돌아온 공유 계약 55, `RuleAnchorTest` 소유)이다. 소유 모듈을 가리던 소스-URI 필터는 챕터 04에서 제거했다 — 테스트 클래스패스에 남의 모듈 계약이 더는 없다.
+write 포트는 **≥ 106**(`RuleAnchorTest#writePortsExist`, 덩어리 03a — 보조 타입 2개는 인터페이스가 아니라 세지 않는다. `port.out.write`의 `*Repository` 인터페이스). ~~03b부터 `port.out.write`와 `store` 두 패키지의 합계. Store는 ≥ 105(`RuleAnchorTest#storesExist`)~~ **(번복됨 — persistence domain 재허용)** `store` 패키지가 사라져 `storesExist`는 삭제됐고, `queryServicesShouldNotDependOnWritePorts`의 대상도 `port.out.write` 하나로 돌아왔다. 읽기 계약은 ~~합계 **≥ 282**(통합 전 4개 앱 합 227 + 챕터 04로 돌아온 공유 계약 55, `RuleAnchorTest` 소유)~~ **(번복됨 — persistence domain 재허용)** `port.out.write`를 뺀 `port.out` 클래스 **≥ 441**(`RuleAnchorTest#readContractsExist`)이다 — `readContractsShouldBeFrameworkFree`가 write 포트를 대상에서 뺐으므로 anchor 집계 범위도 맞췄다. 모듈 전체 하한(`RuleAnchorTest#moduleIsNotEmpty`)은 State 계열 약 460개 삭제 후 실측(중첩 클래스 포함 1,531)에 맞춰 **≥ 1,500**으로 올렸다. 소유 모듈을 가리던 소스-URI 필터는 챕터 04에서 제거했다 — 테스트 클래스패스에 남의 모듈 계약이 더는 없다.
 
 하한으로 두는 이유는 컨텍스트가 늘어나는 것이 정상이기 때문이다. 정확히 일치를 요구하면 기능 추가마다 이 파일을 고쳐야 해 anchor가 규칙이 아니라 잡음이 된다(batch UseCase는 규모가 작아 예외적으로 정확히 일치를 쓴다).
 
@@ -773,7 +831,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/product/port/out/StorePriceVerificationPort.java`
 
-메뉴 가격 저장은 product 컨텍스트의 규칙이지만, "매장가·픽업가를 설정할 수 있는가"와 "배달가가 매장가를 넘어 인증을 내려야 하는가"는 **가게 단위 상태**다. 컨텍스트 경계 규칙(`ServiceContextBoundaryTest`)이 타 컨텍스트의 `model`·write 포트(`port.out.write`, 03a 이전 `repository`, **03b 이후 `store`**)·`service` 직접 참조를 금지하므로, product는 이 포트로만 그 상태를 다룬다 — **`ShopRepository`를 직접 주입하면 신규 위반이 되고 봉인 목록은 늘릴 수 없다.**
+메뉴 가격 저장은 product 컨텍스트의 규칙이지만, "매장가·픽업가를 설정할 수 있는가"와 "배달가가 매장가를 넘어 인증을 내려야 하는가"는 **가게 단위 상태**다. 컨텍스트 경계 규칙(`ServiceContextBoundaryTest`)이 타 컨텍스트의 `model`·write 포트(`port.out.write`, 03a 이전 `repository`, 03b 동안 `store` — **persistence domain 재허용으로 다시 `port.out.write`**)·`service` 직접 참조를 금지하므로, product는 이 포트로만 그 상태를 다룬다 — **`ShopRepository`를 직접 주입하면 신규 위반이 되고 봉인 목록은 늘릴 수 없다.**
 
 구현은 `StorePriceVerificationAdapter`가 `ShopRepository`에 위임한다. **(03b — 위치 이동)** 이 어댑터는 `infrastructure:persistence`의 `@Component`였으나 지금은 **`backend/application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`**(마커 없는 POJO)이고 `shop/config/ShopServiceConfig#storePriceVerificationAdapter`가 `@Bean`으로 등록한다. 도메인 모델 `Shop`을 로드해 `verifyStorePrice()`/`clearStorePriceVerification()`을 호출하고 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 던지므로 domain을 모르는 persistence에 둘 수 없었다. **shop에 둔 이유는 03a의 `ShopRequestIndexSyncAdapter`와 같다** — product 쪽에 두면 어댑터가 shop의 `store/ShopRepository`를 참조해 `ServiceContextBoundaryTest` 위반이 되고, shop에 두면 "shop이 product의 포트(`port.out`)를 구현"하는 허용된 방향만 남는다.
 
@@ -845,15 +903,17 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 ### 03b로 생긴 봉인 항목 (Store·State·Code)
 
-#### `*StateMapperTest`의 필드 값을 같은 값으로 채우지 않는다
+> **(번복됨 — persistence domain 재허용: 대상 파일만)** 아래 두 매퍼 항목의 대상이던 application `store/*StateMapper`·`*StateMapperTest`는 삭제됐고, 변환과 테스트가 persistence로 옮겨졌다. **규칙 자체는 그대로 유효하며 대상만 바뀌었다** — 아래 각 항목의 "대상"을 현행 경로로 고쳐 두었다. 이관 테스트의 봉인 규칙은 `../infrastructure/persistence/AGENTS.md`에도 같은 내용이 있다.
 
-**대상**: `backend/application/src/test/java/com/tastyhouse/application/<ctx>/store/*StateMapperTest.java`(81개) → 각 `reconstitute` 호출 인자
+#### 매퍼 테스트의 필드 값을 같은 값으로 채우지 않는다 (구 `*StateMapperTest`)
 
-**같은 타입의 연속 필드(`String`·`Long`·`boolean`·`LocalDateTime`)는 반드시 서로 다른 값으로 채운다.** `title`과 `content`에 같은 문자열을 넣으면 StateMapper가 둘을 뒤바꿔도 `usingRecursiveComparison()`이 통과한다. `StateRecordArityTest`는 **개수만** 보므로, 같은 타입 컴포넌트의 순서 뒤바뀜을 잡는 것은 이 테스트뿐이다. 자식 컬렉션·Snapshot이 있으면 비우지 말고 채워서 검사한다.
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/<ctx>/persistence/*MapperTest.java` → 각 `reconstitute`·`XxxJpaEntity.create` 호출 인자 (03b 동안은 `backend/application/src/test/java/com/tastyhouse/application/<ctx>/store/*StateMapperTest.java` 81개)
 
-#### `XxxStateMapper`의 null 가드를 "NOT NULL 컬럼이라 불필요"하다며 지우지 않는다
+**같은 타입의 연속 필드(`String`·`Long`·`boolean`·`LocalDateTime`)는 반드시 서로 다른 값으로 채운다.** `title`과 `content`에 같은 문자열을 넣으면 매퍼가 둘을 뒤바꿔도 단언이 통과한다. ~~`StateRecordArityTest`는 개수만 본다~~(삭제됨) — 같은 타입 컴포넌트의 순서 뒤바뀜을 잡는 것은 이 테스트뿐이다. 자식 컬렉션·Embeddable이 있으면 비우지 말고 채워서 검사한다.
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/<ctx>/store/*StateMapper.java` → `x == null ? null : XxxId.of(x)` 형태 전부
+#### 매퍼의 null 가드를 "NOT NULL 컬럼이라 불필요"하다며 지우지 않는다 (구 `XxxStateMapper`)
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/<ctx>/persistence/*Mapper.java` → `x == null ? null : XxxId.of(x)` 형태 전부 (03b 동안은 `backend/application/src/main/java/com/tastyhouse/application/<ctx>/store/*StateMapper.java` — 표현식은 한 글자도 바꾸지 않고 옮겼다)
 
 삭제된 `IdMapping`이 강제하던 규칙을 삼항 가드가 승계했다. 컬럼이 NOT NULL이어도 도메인 모델이 미배정 상태를 `null` VO로 들 수 있고(`toState` 방향 NPE), nullable FK는 **그 행이 실제로 있을 때만** `XxxId.of(null)`로 터진다. 컬럼별로 가드 유무를 나누지 않는다.
 
@@ -861,7 +921,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 **대상**: `backend/infrastructure/persistence/**/*.java` 전체 · `backend/application/src/main/java/com/tastyhouse/application/**/port/out/`
 
-리터럴 `"COMPLETED"`는 도메인 enum 상수가 개명·삭제돼도 컴파일되고 조회가 **조용히 0건**이 된다. ~~그래서 `XxxCodes` 복제본을 거쳤다~~ **(번복됨)** 지금은 application이 도메인 enum의 `name()`을 포트 인자로 넘기므로, 상수가 개명·삭제되면 **application 호출부가 컴파일 에러**가 난다(위 "enum 비교값 전달 규칙"). persistence에 enum 상수 리터럴이나 복제 enum을 다시 들이지 않는다. 옵션 가용성 결과의 `"NORMAL"`/`"COMMON"` 리터럴 4곳도 같은 이유로 `ProductOwnerQueryPort#findProductOptionAvailability(condition, normalOptionType, commonOptionType)` 인자로 바꿨다. 잔존 검사: `grep -rnE '"[A-Z][A-Z_]{2,}"' --include='*.java' infrastructure/persistence/src/main | grep -vE '@Table|@Column|@Index|name = "|columnDefinition|columnList'` → 0건.
+리터럴 `"COMPLETED"`는 도메인 enum 상수가 개명·삭제돼도 컴파일되고 조회가 **조용히 0건**이 된다. ~~그래서 `XxxCodes` 복제본을 거쳤다~~ **(번복됨)** 지금은 application이 도메인 enum의 `name()`을 포트 인자로 넘기므로, 상수가 개명·삭제되면 **application 호출부가 컴파일 에러**가 난다(위 "enum 비교값 전달 규칙"). persistence에 enum 상수 리터럴이나 복제 enum을 다시 들이지 않는다. **(persistence domain 재허용 후)** 쓰기 어댑터 `XxxRepositoryImpl`은 도메인 enum을 참조할 수 있으므로 비교값을 `XxxStatus.X.name()`으로 만든다(리터럴 금지는 그대로). 조회 DAO는 여전히 포트 인자로 받는다. 옵션 가용성 결과의 `"NORMAL"`/`"COMMON"` 리터럴 4곳도 같은 이유로 `ProductOwnerQueryPort#findProductOptionAvailability(condition, normalOptionType, commonOptionType)` 인자로 바꿨다. 잔존 검사: `grep -rnE '"[A-Z][A-Z_]{2,}"' --include='*.java' infrastructure/persistence/src/main | grep -vE '@Table|@Column|@Index|name = "|columnDefinition|columnList'` → 0건.
 
 #### 정산이 limit 밖 행의 `memberId`까지 검증하는 것을 "불필요한 변환"이라며 줄이지 않는다
 

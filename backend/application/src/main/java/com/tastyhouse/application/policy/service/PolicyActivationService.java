@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
-import com.tastyhouse.application.policy.store.PolicyDocumentRepository;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PolicyActivationService {

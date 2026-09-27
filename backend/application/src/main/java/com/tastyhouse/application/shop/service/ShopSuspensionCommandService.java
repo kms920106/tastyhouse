@@ -22,7 +22,7 @@ import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
-import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
 
 @Service
 @CeoApp

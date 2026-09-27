@@ -13,9 +13,9 @@ import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.store.ProductImageChangeRequestRepository;
-import com.tastyhouse.application.product.store.ProductImageRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductImageApprovalService {
     private final ProductImageChangeRequestRepository requestRepository;

@@ -20,9 +20,9 @@ import com.tastyhouse.application.event.port.in.EventDeleteCommand;
 import com.tastyhouse.application.event.port.in.EventUpdateCommand;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
 import com.tastyhouse.application.event.port.in.EventWinnerDeleteCommand;
-import com.tastyhouse.application.event.store.EventAnnouncementRepository;
-import com.tastyhouse.application.event.store.EventRepository;
-import com.tastyhouse.application.event.store.EventWinnerRepository;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementRepository;
+import com.tastyhouse.application.event.port.out.write.EventRepository;
+import com.tastyhouse.application.event.port.out.write.EventWinnerRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

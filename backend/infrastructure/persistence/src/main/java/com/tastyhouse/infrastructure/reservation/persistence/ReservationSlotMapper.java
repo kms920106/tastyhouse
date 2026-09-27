@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.reservation.persistence;
 
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotState;
+import com.tastyhouse.domain.reservation.model.ReservationSlot;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReservationSlotMapper {
     private ReservationSlotMapper() {
     }
 
-    static ReservationSlotState toState(ReservationSlotJpaEntity entity) {
-        return new ReservationSlotState(
+    static ReservationSlot toDomain(ReservationSlotJpaEntity entity) {
+        return ReservationSlot.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getSlotDate(),
             entity.getSlotTime(),
             entity.getCapacity(),
@@ -18,17 +19,17 @@ final class ReservationSlotMapper {
         );
     }
 
-    static ReservationSlotJpaEntity toEntity(ReservationSlotState state) {
+    static ReservationSlotJpaEntity toEntity(ReservationSlot slot) {
         return ReservationSlotJpaEntity.create(
-            state.shopId(),
-            state.slotDate(),
-            state.slotTime(),
-            state.capacity(),
-            state.reservedCount()
+            slot.getShopId() == null ? null : slot.getShopId().value(),
+            slot.getSlotDate(),
+            slot.getSlotTime(),
+            slot.getCapacity(),
+            slot.getReservedCount()
         );
     }
 
-    static void applyChanges(ReservationSlotJpaEntity entity, ReservationSlotState state) {
-        entity.applyChanges(state.reservedCount());
+    static void applyChanges(ReservationSlotJpaEntity entity, ReservationSlot slot) {
+        entity.applyChanges(slot.getReservedCount());
     }
 }

@@ -18,8 +18,8 @@ import com.tastyhouse.application.product.port.in.ProductImageChangeRequestComma
 import com.tastyhouse.application.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
-import com.tastyhouse.application.product.store.ProductImageRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 

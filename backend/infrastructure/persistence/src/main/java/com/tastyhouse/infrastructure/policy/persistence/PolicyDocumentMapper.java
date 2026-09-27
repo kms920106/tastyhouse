@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.policy.persistence;
 
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentState;
+import com.tastyhouse.domain.policy.model.PolicyDocument;
+import com.tastyhouse.domain.policy.model.PolicyType;
 
 final class PolicyDocumentMapper {
     private PolicyDocumentMapper() {
     }
 
-    static PolicyDocumentState toState(PolicyDocumentJpaEntity entity) {
-        return new PolicyDocumentState(
+    static PolicyDocument toDomain(PolicyDocumentJpaEntity entity) {
+        return PolicyDocument.reconstitute(
             entity.getId(),
-            entity.getType(),
+            entity.getType() == null ? null : PolicyType.valueOf(entity.getType()),
             entity.getVersion(),
             entity.getTitle(),
             entity.getContent(),
@@ -23,28 +24,28 @@ final class PolicyDocumentMapper {
         );
     }
 
-    static PolicyDocumentJpaEntity toEntity(PolicyDocumentState state) {
+    static PolicyDocumentJpaEntity toEntity(PolicyDocument policyDocument) {
         return PolicyDocumentJpaEntity.create(
-            state.type(),
-            state.version(),
-            state.title(),
-            state.content(),
-            state.current(),
-            state.mandatory(),
-            state.effectiveDate(),
-            state.createdBy(),
-            state.updatedBy()
+            policyDocument.getType() == null ? null : policyDocument.getType().name(),
+            policyDocument.getVersion(),
+            policyDocument.getTitle(),
+            policyDocument.getContent(),
+            policyDocument.isCurrent(),
+            policyDocument.isMandatory(),
+            policyDocument.getEffectiveDate(),
+            policyDocument.getCreatedBy(),
+            policyDocument.getUpdatedBy()
         );
     }
 
-    static void applyChanges(PolicyDocumentJpaEntity entity, PolicyDocumentState state) {
+    static void applyChanges(PolicyDocumentJpaEntity entity, PolicyDocument policyDocument) {
         entity.applyChanges(
-            state.title(),
-            state.content(),
-            state.mandatory(),
-            state.effectiveDate(),
-            state.updatedBy(),
-            state.current()
+            policyDocument.getTitle(),
+            policyDocument.getContent(),
+            policyDocument.isMandatory(),
+            policyDocument.getEffectiveDate(),
+            policyDocument.getUpdatedBy(),
+            policyDocument.isCurrent()
         );
     }
 }

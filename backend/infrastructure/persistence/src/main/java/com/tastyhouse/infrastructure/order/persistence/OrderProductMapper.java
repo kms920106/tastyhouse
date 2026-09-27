@@ -1,19 +1,22 @@
 package com.tastyhouse.infrastructure.order.persistence;
 
-import com.tastyhouse.application.order.port.out.write.OrderProductState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.order.model.OrderProduct;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 final class OrderProductMapper {
     private OrderProductMapper() {
     }
 
-    static OrderProductState toState(OrderProductJpaEntity entity) {
-        return new OrderProductState(
+    static OrderProduct toDomain(OrderProductJpaEntity entity) {
+        return OrderProduct.reconstitute(
             entity.getId(),
-            entity.getOrderId(),
-            entity.getProductId(),
+            entity.getOrderId() == null ? null : OrderId.of(entity.getOrderId()),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
             entity.getName(),
             entity.getPriceName(),
-            entity.getImageFileId(),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getQuantity(),
             entity.getOriginalPrice(),
             entity.getDiscountPrice(),
@@ -23,27 +26,27 @@ final class OrderProductMapper {
         );
     }
 
-    static OrderProductJpaEntity toEntity(OrderProductState state) {
+    static OrderProductJpaEntity toEntity(OrderProduct orderProduct) {
         return OrderProductJpaEntity.create(
-            state.orderId(),
-            state.productId(),
-            state.name(),
-            state.priceName(),
-            state.imageFileId(),
-            state.quantity(),
-            state.originalPrice(),
-            state.discountPrice(),
-            state.totalOptionPrice(),
-            state.totalPrice(),
-            state.cupDepositAmount()
+            orderProduct.getOrderId() == null ? null : orderProduct.getOrderId().value(),
+            orderProduct.getProductId() == null ? null : orderProduct.getProductId().value(),
+            orderProduct.getName(),
+            orderProduct.getPriceName(),
+            orderProduct.getImageFileId() == null ? null : orderProduct.getImageFileId().value(),
+            orderProduct.getQuantity(),
+            orderProduct.getOriginalPrice(),
+            orderProduct.getDiscountPrice(),
+            orderProduct.getTotalOptionPrice(),
+            orderProduct.getTotalPrice(),
+            orderProduct.getCupDepositAmount()
         );
     }
 
-    static void applyChanges(OrderProductJpaEntity entity, OrderProductState state) {
+    static void applyChanges(OrderProductJpaEntity entity, OrderProduct orderProduct) {
         entity.applyChanges(
-            state.totalOptionPrice(),
-            state.totalPrice(),
-            state.cupDepositAmount()
+            orderProduct.getTotalOptionPrice(),
+            orderProduct.getTotalPrice(),
+            orderProduct.getCupDepositAmount()
         );
     }
 }

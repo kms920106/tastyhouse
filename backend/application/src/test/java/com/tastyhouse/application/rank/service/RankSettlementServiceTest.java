@@ -15,7 +15,7 @@ import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

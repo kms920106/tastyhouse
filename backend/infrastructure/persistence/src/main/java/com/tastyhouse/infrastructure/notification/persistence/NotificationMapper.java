@@ -1,19 +1,22 @@
 package com.tastyhouse.infrastructure.notification.persistence;
 
-import com.tastyhouse.application.notification.port.out.write.NotificationState;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.notification.model.Notification;
+import com.tastyhouse.domain.notification.model.NotificationTargetType;
+import com.tastyhouse.domain.notification.model.NotificationType;
 
 final class NotificationMapper {
     private NotificationMapper() {
     }
 
-    static NotificationState toState(NotificationJpaEntity entity) {
-        return new NotificationState(
+    static Notification toDomain(NotificationJpaEntity entity) {
+        return Notification.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getType(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
+            entity.getType() == null ? null : NotificationType.valueOf(entity.getType()),
             entity.getTitle(),
             entity.getBody(),
-            entity.getTargetType(),
+            entity.getTargetType() == null ? null : NotificationTargetType.valueOf(entity.getTargetType()),
             entity.getTargetId(),
             entity.isRead(),
             entity.getReadAt(),
@@ -22,20 +25,20 @@ final class NotificationMapper {
         );
     }
 
-    static NotificationJpaEntity toEntity(NotificationState state) {
+    static NotificationJpaEntity toEntity(Notification notification) {
         return NotificationJpaEntity.create(
-            state.memberId(),
-            state.type(),
-            state.title(),
-            state.body(),
-            state.targetType(),
-            state.targetId(),
-            state.read(),
-            state.readAt()
+            notification.getMemberId() == null ? null : notification.getMemberId().value(),
+            notification.getType() == null ? null : notification.getType().name(),
+            notification.getTitle(),
+            notification.getBody(),
+            notification.getTargetType() == null ? null : notification.getTargetType().name(),
+            notification.getTargetId(),
+            notification.isRead(),
+            notification.getReadAt()
         );
     }
 
-    static void applyChanges(NotificationJpaEntity entity, NotificationState state) {
-        entity.applyChanges(state.read(), state.readAt());
+    static void applyChanges(NotificationJpaEntity entity, Notification notification) {
+        entity.applyChanges(notification.isRead(), notification.getReadAt());
     }
 }

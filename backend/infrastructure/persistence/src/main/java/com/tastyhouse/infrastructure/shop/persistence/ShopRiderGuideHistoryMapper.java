@@ -1,18 +1,21 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideHistoryState;
+import com.tastyhouse.domain.shop.model.RiderGuideActionType;
+import com.tastyhouse.domain.shop.model.RiderGuideActorType;
+import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopRiderGuideHistoryMapper {
     private ShopRiderGuideHistoryMapper() {
     }
 
-    static ShopRiderGuideHistoryState toState(ShopRiderGuideHistoryJpaEntity entity) {
-        return new ShopRiderGuideHistoryState(
+    static ShopRiderGuideHistory toDomain(ShopRiderGuideHistoryJpaEntity entity) {
+        return ShopRiderGuideHistory.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getActorType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getActorType() == null ? null : RiderGuideActorType.valueOf(entity.getActorType()),
             entity.getActorId(),
-            entity.getActionType(),
+            entity.getActionType() == null ? null : RiderGuideActionType.valueOf(entity.getActionType()),
             entity.getPreviousVisitGuide(),
             entity.getNewVisitGuide(),
             entity.getReason(),
@@ -20,15 +23,15 @@ final class ShopRiderGuideHistoryMapper {
         );
     }
 
-    static ShopRiderGuideHistoryJpaEntity toEntity(ShopRiderGuideHistoryState state) {
+    static ShopRiderGuideHistoryJpaEntity toEntity(ShopRiderGuideHistory shopRiderGuideHistory) {
         return ShopRiderGuideHistoryJpaEntity.create(
-            state.shopId(),
-            state.actorType(),
-            state.actorId(),
-            state.actionType(),
-            state.previousVisitGuide(),
-            state.newVisitGuide(),
-            state.reason()
+            shopRiderGuideHistory.getShopId() == null ? null : shopRiderGuideHistory.getShopId().value(),
+            shopRiderGuideHistory.getActorType() == null ? null : shopRiderGuideHistory.getActorType().name(),
+            shopRiderGuideHistory.getActorId(),
+            shopRiderGuideHistory.getActionType() == null ? null : shopRiderGuideHistory.getActionType().name(),
+            shopRiderGuideHistory.getPreviousVisitGuide(),
+            shopRiderGuideHistory.getNewVisitGuide(),
+            shopRiderGuideHistory.getReason()
         );
     }
 }

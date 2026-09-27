@@ -1,35 +1,37 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryImageState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
+import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 
 final class ShopPhotoCategoryImageMapper {
     private ShopPhotoCategoryImageMapper() {
     }
 
-    static ShopPhotoCategoryImageState toState(ShopPhotoCategoryImageJpaEntity entity) {
-        return new ShopPhotoCategoryImageState(
+    static ShopPhotoCategoryImage toDomain(ShopPhotoCategoryImageJpaEntity entity) {
+        return ShopPhotoCategoryImage.reconstitute(
             entity.getId(),
-            entity.getShopPhotoCategoryId(),
-            entity.getImageFileId(),
+            entity.getShopPhotoCategoryId() == null ? null : ShopPhotoCategoryId.of(entity.getShopPhotoCategoryId()),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ShopPhotoCategoryImageJpaEntity toEntity(ShopPhotoCategoryImageState state) {
+    static ShopPhotoCategoryImageJpaEntity toEntity(ShopPhotoCategoryImage shopPhotoCategoryImage) {
         return ShopPhotoCategoryImageJpaEntity.create(
-            state.shopPhotoCategoryId(),
-            state.imageFileId(),
-            state.sort(),
-            state.visible()
+            shopPhotoCategoryImage.getShopPhotoCategoryId() == null ? null : shopPhotoCategoryImage.getShopPhotoCategoryId().value(),
+            shopPhotoCategoryImage.getImageFileId() == null ? null : shopPhotoCategoryImage.getImageFileId().value(),
+            shopPhotoCategoryImage.getSort(),
+            shopPhotoCategoryImage.isVisible()
         );
     }
 
-    static void applyChanges(ShopPhotoCategoryImageJpaEntity entity, ShopPhotoCategoryImageState state) {
+    static void applyChanges(ShopPhotoCategoryImageJpaEntity entity, ShopPhotoCategoryImage shopPhotoCategoryImage) {
         entity.applyChanges(
-            state.imageFileId(),
-            state.sort(),
-            state.visible()
+            shopPhotoCategoryImage.getImageFileId() == null ? null : shopPhotoCategoryImage.getImageFileId().value(),
+            shopPhotoCategoryImage.getSort(),
+            shopPhotoCategoryImage.isVisible()
         );
     }
 }

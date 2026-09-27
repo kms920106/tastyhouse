@@ -5,7 +5,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.service.OrdererSnapshot;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 
 public class OrdererLookupService {
     private final MemberRepository memberRepository;

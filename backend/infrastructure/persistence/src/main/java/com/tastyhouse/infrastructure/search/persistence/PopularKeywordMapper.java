@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.search.persistence;
 
-import com.tastyhouse.application.search.port.out.write.PopularKeywordState;
+import com.tastyhouse.domain.search.model.PopularKeyword;
 
 final class PopularKeywordMapper {
     private PopularKeywordMapper() {
     }
 
-    static PopularKeywordState toState(PopularKeywordJpaEntity entity) {
-        return new PopularKeywordState(
+    static PopularKeyword toDomain(PopularKeywordJpaEntity entity) {
+        return PopularKeyword.reconstitute(
             entity.getId(),
             entity.getKeyword(),
             entity.getRank(),
@@ -16,12 +16,12 @@ final class PopularKeywordMapper {
         );
     }
 
-    static PopularKeywordJpaEntity toEntity(PopularKeywordState state) {
+    static PopularKeywordJpaEntity toEntity(PopularKeyword popularKeyword) {
         return PopularKeywordJpaEntity.create(
-            state.keyword(),
-            state.rank(),
-            state.newKeyword(),
-            state.visible()
+            popularKeyword.getKeyword(),
+            popularKeyword.getRank(),
+            popularKeyword.isNewKeyword(),
+            popularKeyword.isVisible()
         );
     }
 }

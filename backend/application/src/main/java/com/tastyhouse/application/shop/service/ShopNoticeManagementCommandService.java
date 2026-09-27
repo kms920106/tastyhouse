@@ -14,7 +14,7 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopNoticeHideCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
-import com.tastyhouse.application.shop.store.ShopNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
 
 @Service
 @AdminApp

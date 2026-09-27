@@ -12,8 +12,8 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.member.service.MemberCommandService;
-import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

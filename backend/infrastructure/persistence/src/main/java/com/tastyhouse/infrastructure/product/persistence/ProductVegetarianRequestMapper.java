@@ -1,40 +1,43 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestState;
+import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
+import com.tastyhouse.domain.product.model.VegetarianType;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 final class ProductVegetarianRequestMapper {
     private ProductVegetarianRequestMapper() {
     }
 
-    static ProductVegetarianRequestState toState(ProductVegetarianRequestJpaEntity entity) {
-        return new ProductVegetarianRequestState(
+    static ProductVegetarianRequest toDomain(ProductVegetarianRequestJpaEntity entity) {
+        return ProductVegetarianRequest.reconstitute(
             entity.getId(),
-            entity.getProductId(),
-            entity.getVegetarianType(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
+            entity.getVegetarianType() == null ? null : VegetarianType.valueOf(entity.getVegetarianType()),
             entity.getIngredients(),
             entity.getDescription(),
-            entity.getStatus(),
+            entity.getStatus() == null ? null : ApprovalStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ProductVegetarianRequestJpaEntity toEntity(ProductVegetarianRequestState state) {
+    static ProductVegetarianRequestJpaEntity toEntity(ProductVegetarianRequest request) {
         return ProductVegetarianRequestJpaEntity.create(
-            state.productId(),
-            state.vegetarianType(),
-            state.ingredients(),
-            state.description(),
-            state.status(),
-            state.rejectReason()
+            request.getProductId() == null ? null : request.getProductId().value(),
+            request.getVegetarianType() == null ? null : request.getVegetarianType().name(),
+            request.getIngredients(),
+            request.getDescription(),
+            request.getStatus() == null ? null : request.getStatus().name(),
+            request.getRejectReason()
         );
     }
 
-    static void applyChanges(ProductVegetarianRequestJpaEntity entity, ProductVegetarianRequestState state) {
+    static void applyChanges(ProductVegetarianRequestJpaEntity entity, ProductVegetarianRequest request) {
         entity.applyChanges(
-            state.status(),
-            state.rejectReason()
+            request.getStatus() == null ? null : request.getStatus().name(),
+            request.getRejectReason()
         );
     }
 }

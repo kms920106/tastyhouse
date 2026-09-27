@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductOptionState;
+import com.tastyhouse.domain.product.model.ProductOption;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 final class ProductOptionMapper {
     private ProductOptionMapper() {
     }
 
-    static ProductOptionState toState(ProductOptionJpaEntity entity) {
-        return new ProductOptionState(
+    static ProductOption toDomain(ProductOptionJpaEntity entity) {
+        return ProductOption.reconstitute(
             entity.getId(),
-            entity.getOptionGroupId(),
+            entity.getOptionGroupId() == null ? null : ProductOptionGroupId.of(entity.getOptionGroupId()),
             entity.getName(),
             entity.getAdditionalPrice(),
             entity.getSort(),
@@ -21,30 +22,30 @@ final class ProductOptionMapper {
         );
     }
 
-    static ProductOptionJpaEntity toEntity(ProductOptionState state) {
+    static ProductOptionJpaEntity toEntity(ProductOption option) {
         return ProductOptionJpaEntity.create(
-            state.optionGroupId(),
-            state.name(),
-            state.additionalPrice(),
-            state.sort(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible(),
-            state.cupCount(),
-            state.personalCupDiscountAmount()
+            option.getOptionGroupId() == null ? null : option.getOptionGroupId().value(),
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getSort(),
+            option.isSoldOut(),
+            option.getSoldOutUntil(),
+            option.isVisible(),
+            option.getCupCount(),
+            option.getPersonalCupDiscountAmount()
         );
     }
 
-    static void applyChanges(ProductOptionJpaEntity entity, ProductOptionState state) {
+    static void applyChanges(ProductOptionJpaEntity entity, ProductOption option) {
         entity.applyChanges(
-            state.name(),
-            state.additionalPrice(),
-            state.sort(),
-            state.soldOut(),
-            state.soldOutUntil(),
-            state.visible(),
-            state.cupCount(),
-            state.personalCupDiscountAmount()
+            option.getName(),
+            option.getAdditionalPrice(),
+            option.getSort(),
+            option.isSoldOut(),
+            option.getSoldOutUntil(),
+            option.isVisible(),
+            option.getCupCount(),
+            option.getPersonalCupDiscountAmount()
         );
     }
 }

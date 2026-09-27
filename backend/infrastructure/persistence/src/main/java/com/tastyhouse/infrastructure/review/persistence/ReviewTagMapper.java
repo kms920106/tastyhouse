@@ -1,15 +1,15 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.application.review.port.out.write.ReviewTagState;
+import com.tastyhouse.domain.review.model.ReviewTag;
 
 final class ReviewTagMapper {
     private ReviewTagMapper() {
     }
 
-    static ReviewTagJpaEntity toEntity(ReviewTagState state) {
+    static ReviewTagJpaEntity toEntity(ReviewTag reviewTag) {
         return ReviewTagJpaEntity.create(
-            state.reviewId(),
-            state.tagId()
+            reviewTag.getReviewId() == null ? null : reviewTag.getReviewId().value(),
+            reviewTag.getTagId() == null ? null : reviewTag.getTagId().value()
         );
     }
 }

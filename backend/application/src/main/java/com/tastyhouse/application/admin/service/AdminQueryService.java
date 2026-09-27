@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
-import com.tastyhouse.application.admin.store.AdminRepository;
+import com.tastyhouse.application.admin.port.out.write.AdminRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

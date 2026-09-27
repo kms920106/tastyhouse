@@ -1,27 +1,28 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryState;
+import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopPhotoCategoryMapper {
     private ShopPhotoCategoryMapper() {
     }
 
-    static ShopPhotoCategoryState toState(ShopPhotoCategoryJpaEntity entity) {
-        return new ShopPhotoCategoryState(
+    static ShopPhotoCategory toDomain(ShopPhotoCategoryJpaEntity entity) {
+        return ShopPhotoCategory.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getName()
         );
     }
 
-    static ShopPhotoCategoryJpaEntity toEntity(ShopPhotoCategoryState state) {
+    static ShopPhotoCategoryJpaEntity toEntity(ShopPhotoCategory shopPhotoCategory) {
         return ShopPhotoCategoryJpaEntity.create(
-            state.shopId(),
-            state.name()
+            shopPhotoCategory.getShopId() == null ? null : shopPhotoCategory.getShopId().value(),
+            shopPhotoCategory.getName()
         );
     }
 
-    static void applyChanges(ShopPhotoCategoryJpaEntity entity, ShopPhotoCategoryState state) {
-        entity.applyChanges(state.name());
+    static void applyChanges(ShopPhotoCategoryJpaEntity entity, ShopPhotoCategory shopPhotoCategory) {
+        entity.applyChanges(shopPhotoCategory.getName());
     }
 }

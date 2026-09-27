@@ -1,17 +1,18 @@
 package com.tastyhouse.infrastructure.coupon.persistence;
 
-import com.tastyhouse.application.coupon.port.out.write.CouponState;
+import com.tastyhouse.domain.coupon.model.Coupon;
+import com.tastyhouse.domain.coupon.model.DiscountType;
 
 final class CouponMapper {
     private CouponMapper() {
     }
 
-    static CouponState toState(CouponJpaEntity entity) {
-        return new CouponState(
+    static Coupon toDomain(CouponJpaEntity entity) {
+        return Coupon.reconstitute(
             entity.getId(),
             entity.getName(),
             entity.getDescription(),
-            entity.getDiscountType(),
+            entity.getDiscountType() == null ? null : DiscountType.valueOf(entity.getDiscountType()),
             entity.getDiscountAmount(),
             entity.getMaxDiscountAmount(),
             entity.getMinOrderAmount(),
@@ -27,39 +28,39 @@ final class CouponMapper {
         );
     }
 
-    static CouponJpaEntity toEntity(CouponState state) {
+    static CouponJpaEntity toEntity(Coupon coupon) {
         return CouponJpaEntity.create(
-            state.name(),
-            state.description(),
-            state.discountType(),
-            state.discountAmount(),
-            state.maxDiscountAmount(),
-            state.minOrderAmount(),
-            state.maxDiscountCount(),
-            state.issueStartAt(),
-            state.issueEndAt(),
-            state.useStartAt(),
-            state.useEndAt(),
-            state.visible(),
-            state.deleted()
+            coupon.getName(),
+            coupon.getDescription(),
+            coupon.getDiscountType() == null ? null : coupon.getDiscountType().name(),
+            coupon.getDiscountAmount(),
+            coupon.getMaxDiscountAmount(),
+            coupon.getMinOrderAmount(),
+            coupon.getMaxDiscountCount(),
+            coupon.getIssueStartAt(),
+            coupon.getIssueEndAt(),
+            coupon.getUseStartAt(),
+            coupon.getUseEndAt(),
+            coupon.isVisible(),
+            coupon.isDeleted()
         );
     }
 
-    static void applyChanges(CouponJpaEntity entity, CouponState state) {
+    static void applyChanges(CouponJpaEntity entity, Coupon coupon) {
         entity.applyChanges(
-            state.name(),
-            state.description(),
-            state.discountType(),
-            state.discountAmount(),
-            state.maxDiscountAmount(),
-            state.minOrderAmount(),
-            state.maxDiscountCount(),
-            state.issueStartAt(),
-            state.issueEndAt(),
-            state.useStartAt(),
-            state.useEndAt(),
-            state.visible(),
-            state.deleted()
+            coupon.getName(),
+            coupon.getDescription(),
+            coupon.getDiscountType() == null ? null : coupon.getDiscountType().name(),
+            coupon.getDiscountAmount(),
+            coupon.getMaxDiscountAmount(),
+            coupon.getMinOrderAmount(),
+            coupon.getMaxDiscountCount(),
+            coupon.getIssueStartAt(),
+            coupon.getIssueEndAt(),
+            coupon.getUseStartAt(),
+            coupon.getUseEndAt(),
+            coupon.isVisible(),
+            coupon.isDeleted()
         );
     }
 }

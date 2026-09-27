@@ -1,34 +1,46 @@
 package com.tastyhouse.infrastructure.ceo.persistence;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoState;
+import com.tastyhouse.domain.ceo.model.Ceo;
+import com.tastyhouse.domain.ceo.model.CeoStatus;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class CeoMapper {
     private CeoMapper() {
     }
 
-    static CeoState toState(CeoJpaEntity entity) {
-        return new CeoState(
+    static Ceo toDomain(CeoJpaEntity entity) {
+        return Ceo.reconstitute(
             entity.getId(),
             entity.getUsername(),
             entity.getPassword(),
             entity.getName(),
             entity.getBusinessRegistrationNumber(),
-            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
+            toPhoneNumber(entity.getPhoneNumber()),
             entity.getEmail(),
-            entity.getStatus()
+            entity.getStatus() == null ? null : CeoStatus.valueOf(entity.getStatus())
         );
     }
 
-    static CeoJpaEntity toEntity(CeoState state) {
+    static CeoJpaEntity toEntity(Ceo ceo) {
         return CeoJpaEntity.create(
-            state.username(),
-            state.password(),
-            state.name(),
-            state.businessRegistrationNumber(),
-            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
-            state.email(),
-            state.status()
+            ceo.getUsername(),
+            ceo.getPassword(),
+            ceo.getName(),
+            ceo.getBusinessRegistrationNumber(),
+            toPhoneNumberEmbeddable(ceo.getPhoneNumber()),
+            ceo.getEmail(),
+            ceo.getStatus() == null ? null : ceo.getStatus().name()
         );
+    }
+
+    private static PhoneNumber toPhoneNumber(PhoneNumberEmbeddable embeddable) {
+        String phoneNumber = embeddable == null ? null : embeddable.value();
+        return phoneNumber == null ? null : new PhoneNumber(phoneNumber);
+    }
+
+    private static PhoneNumberEmbeddable toPhoneNumberEmbeddable(PhoneNumber phoneNumber) {
+        String value = phoneNumber == null ? null : phoneNumber.value();
+        return value == null ? null : new PhoneNumberEmbeddable(value);
     }
 }

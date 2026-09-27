@@ -1,39 +1,42 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
+import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopMenuCollectionImageMapper {
     private ShopMenuCollectionImageMapper() {
     }
 
-    static ShopMenuCollectionImageState toState(ShopMenuCollectionImageJpaEntity entity) {
-        return new ShopMenuCollectionImageState(
+    static ShopMenuCollectionImage toDomain(ShopMenuCollectionImageJpaEntity entity) {
+        return ShopMenuCollectionImage.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getImageFileId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getSort(),
-            entity.getStatus(),
+            entity.getStatus() == null ? null : ApprovalStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ShopMenuCollectionImageJpaEntity toEntity(ShopMenuCollectionImageState state) {
+    static ShopMenuCollectionImageJpaEntity toEntity(ShopMenuCollectionImage shopMenuCollectionImage) {
         return ShopMenuCollectionImageJpaEntity.create(
-            state.shopId(),
-            state.imageFileId(),
-            state.sort(),
-            state.status(),
-            state.rejectReason()
+            shopMenuCollectionImage.getShopId() == null ? null : shopMenuCollectionImage.getShopId().value(),
+            shopMenuCollectionImage.getImageFileId() == null ? null : shopMenuCollectionImage.getImageFileId().value(),
+            shopMenuCollectionImage.getSort(),
+            shopMenuCollectionImage.getStatus() == null ? null : shopMenuCollectionImage.getStatus().name(),
+            shopMenuCollectionImage.getRejectReason()
         );
     }
 
-    static void applyChanges(ShopMenuCollectionImageJpaEntity entity, ShopMenuCollectionImageState state) {
+    static void applyChanges(ShopMenuCollectionImageJpaEntity entity, ShopMenuCollectionImage shopMenuCollectionImage) {
         entity.applyChanges(
-            state.sort(),
-            state.status(),
-            state.rejectReason()
+            shopMenuCollectionImage.getSort(),
+            shopMenuCollectionImage.getStatus() == null ? null : shopMenuCollectionImage.getStatus().name(),
+            shopMenuCollectionImage.getRejectReason()
         );
     }
 }

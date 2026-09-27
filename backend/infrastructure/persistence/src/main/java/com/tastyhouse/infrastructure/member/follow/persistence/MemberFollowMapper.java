@@ -1,23 +1,24 @@
 package com.tastyhouse.infrastructure.member.follow.persistence;
 
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowState;
+import com.tastyhouse.domain.member.follow.model.MemberFollow;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberFollowMapper {
     private MemberFollowMapper() {
     }
 
-    static MemberFollowState toState(MemberFollowJpaEntity entity) {
-        return new MemberFollowState(
+    static MemberFollow toDomain(MemberFollowJpaEntity entity) {
+        return MemberFollow.reconstitute(
             entity.getId(),
-            entity.getFollowerId(),
-            entity.getFollowingId()
+            entity.getFollowerId() == null ? null : MemberId.of(entity.getFollowerId()),
+            entity.getFollowingId() == null ? null : MemberId.of(entity.getFollowingId())
         );
     }
 
-    static MemberFollowJpaEntity toEntity(MemberFollowState state) {
+    static MemberFollowJpaEntity toEntity(MemberFollow memberFollow) {
         return MemberFollowJpaEntity.create(
-            state.followerId(),
-            state.followingId()
+            memberFollow.getFollowerId() == null ? null : memberFollow.getFollowerId().value(),
+            memberFollow.getFollowingId() == null ? null : memberFollow.getFollowingId().value()
         );
     }
 }

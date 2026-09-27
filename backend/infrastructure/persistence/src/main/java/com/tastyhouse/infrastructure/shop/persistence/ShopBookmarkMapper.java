@@ -1,23 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkState;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.shop.model.ShopBookmark;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBookmarkMapper {
     private ShopBookmarkMapper() {
     }
 
-    static ShopBookmarkState toState(ShopBookmarkJpaEntity entity) {
-        return new ShopBookmarkState(
+    static ShopBookmark toDomain(ShopBookmarkJpaEntity entity) {
+        return ShopBookmark.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getMemberId()
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId())
         );
     }
 
-    static ShopBookmarkJpaEntity toEntity(ShopBookmarkState state) {
+    static ShopBookmarkJpaEntity toEntity(ShopBookmark shopBookmark) {
         return ShopBookmarkJpaEntity.create(
-            state.shopId(),
-            state.memberId()
+            shopBookmark.getShopId() == null ? null : shopBookmark.getShopId().value(),
+            shopBookmark.getMemberId() == null ? null : shopBookmark.getMemberId().value()
         );
     }
 }

@@ -7,7 +7,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.application.order.store.OrderRepository;
+import com.tastyhouse.application.order.port.out.write.OrderRepository;
 
 public class OrderTransitionService {
     private final OrderRepository orderRepository;

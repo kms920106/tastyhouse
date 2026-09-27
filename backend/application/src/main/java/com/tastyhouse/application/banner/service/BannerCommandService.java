@@ -13,7 +13,7 @@ import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;
 import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
-import com.tastyhouse.application.banner.store.BannerRepository;
+import com.tastyhouse.application.banner.port.out.write.BannerRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

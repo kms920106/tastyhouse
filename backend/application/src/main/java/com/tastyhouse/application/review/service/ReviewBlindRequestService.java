@@ -21,9 +21,9 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.store.ReviewBlindRequestAttachmentRepository;
-import com.tastyhouse.application.review.store.ReviewBlindRequestRepository;
-import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 

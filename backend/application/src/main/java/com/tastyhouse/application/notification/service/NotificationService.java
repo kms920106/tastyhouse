@@ -12,7 +12,7 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.notification.store.NotificationRepository;
+import com.tastyhouse.application.notification.port.out.write.NotificationRepository;
 
 public class NotificationService {
     private final NotificationRepository notificationRepository;

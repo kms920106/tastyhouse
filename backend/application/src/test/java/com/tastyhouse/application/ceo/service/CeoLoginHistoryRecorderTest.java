@@ -10,7 +10,7 @@ import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.application.ceo.store.CeoLoginHistoryRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

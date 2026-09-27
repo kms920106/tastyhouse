@@ -1,36 +1,45 @@
 package com.tastyhouse.infrastructure.mail.persistence;
 
-import com.tastyhouse.application.mail.port.out.write.MailVerificationState;
+import com.tastyhouse.domain.mail.model.MailVerification;
+import com.tastyhouse.domain.mail.model.MailVerificationStatus;
+import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 final class MailVerificationMapper {
     private MailVerificationMapper() {
     }
 
-    static MailVerificationState toState(MailVerificationJpaEntity entity) {
-        return new MailVerificationState(
+    static MailVerification toDomain(MailVerificationJpaEntity entity) {
+        return MailVerification.reconstitute(
             entity.getId(),
             entity.getEmail(),
-            entity.getVerificationCode() == null ? null : entity.getVerificationCode().value(),
-            entity.getStatus(),
+            entity.getVerificationCode() == null || entity.getVerificationCode().value() == null
+                ? null
+                : VerificationCode.of(entity.getVerificationCode().value()),
+            entity.getStatus() == null ? null : MailVerificationStatus.valueOf(entity.getStatus()),
             entity.getExpiresAt(),
             entity.getVerifiedAt(),
             entity.getCreatedAt()
         );
     }
 
-    static MailVerificationJpaEntity toEntity(MailVerificationState state) {
+    static MailVerificationJpaEntity toEntity(MailVerification mailVerification) {
         return MailVerificationJpaEntity.create(
-            state.email(),
-            state.verificationCode() == null ? null : new VerificationCodeEmbeddable(state.verificationCode()),
-            state.status(),
-            state.expiresAt(),
-            state.verifiedAt(),
-            state.createdAt()
+            mailVerification.getEmail(),
+            mailVerification.getVerificationCode() == null || mailVerification.getVerificationCode().value() == null
+                ? null
+                : new VerificationCodeEmbeddable(mailVerification.getVerificationCode().value()),
+            mailVerification.getStatus() == null ? null : mailVerification.getStatus().name(),
+            mailVerification.getExpiresAt(),
+            mailVerification.getVerifiedAt(),
+            mailVerification.getCreatedAt()
         );
     }
 
-    static void applyChanges(MailVerificationJpaEntity entity, MailVerificationState state) {
-        entity.applyChanges(state.status(), state.verifiedAt());
+    static void applyChanges(MailVerificationJpaEntity entity, MailVerification mailVerification) {
+        entity.applyChanges(
+            mailVerification.getStatus() == null ? null : mailVerification.getStatus().name(),
+            mailVerification.getVerifiedAt()
+        );
     }
 }

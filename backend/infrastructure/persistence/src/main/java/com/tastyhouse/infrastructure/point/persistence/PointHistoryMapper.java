@@ -1,28 +1,30 @@
 package com.tastyhouse.infrastructure.point.persistence;
 
-import com.tastyhouse.application.point.port.out.write.PointHistoryState;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.point.model.PointHistory;
+import com.tastyhouse.domain.point.model.PointType;
 
 final class PointHistoryMapper {
     private PointHistoryMapper() {
     }
 
-    static PointHistoryState toState(PointHistoryJpaEntity entity) {
-        return new PointHistoryState(
+    static PointHistory toDomain(PointHistoryJpaEntity entity) {
+        return PointHistory.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getPointType(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
+            entity.getPointType() == null ? null : PointType.valueOf(entity.getPointType()),
             entity.getPointAmount(),
             entity.getReason(),
             entity.getCreatedAt()
         );
     }
 
-    static PointHistoryJpaEntity toEntity(PointHistoryState state) {
+    static PointHistoryJpaEntity toEntity(PointHistory history) {
         return PointHistoryJpaEntity.create(
-            state.memberId(),
-            state.pointType(),
-            state.pointAmount(),
-            state.reason()
+            history.getMemberId() == null ? null : history.getMemberId().value(),
+            history.getPointType() == null ? null : history.getPointType().name(),
+            history.getPointAmount(),
+            history.getReason()
         );
     }
 }

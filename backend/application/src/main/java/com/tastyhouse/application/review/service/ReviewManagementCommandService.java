@@ -18,9 +18,9 @@ import com.tastyhouse.application.review.port.in.ReviewManagementCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewManagementDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
-import com.tastyhouse.application.review.store.ReviewCommentRepository;
-import com.tastyhouse.application.review.store.ReviewReplyRepository;
-import com.tastyhouse.application.review.store.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

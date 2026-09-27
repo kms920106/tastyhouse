@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountState;
+import com.tastyhouse.domain.member.model.MemberSocialAccount;
+import com.tastyhouse.domain.member.model.MemberSocialProvider;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberSocialAccountMapper {
     private MemberSocialAccountMapper() {
     }
 
-    static MemberSocialAccountState toState(MemberSocialAccountJpaEntity entity) {
-        return new MemberSocialAccountState(
+    static MemberSocialAccount toDomain(MemberSocialAccountJpaEntity entity) {
+        return MemberSocialAccount.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
-            entity.getProvider(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
+            entity.getProvider() == null ? null : MemberSocialProvider.valueOf(entity.getProvider()),
             entity.getProviderId(),
             entity.getProviderEmail(),
             entity.getProviderNickname(),
@@ -21,24 +23,24 @@ final class MemberSocialAccountMapper {
         );
     }
 
-    static MemberSocialAccountJpaEntity toEntity(MemberSocialAccountState state) {
+    static MemberSocialAccountJpaEntity toEntity(MemberSocialAccount socialAccount) {
         return MemberSocialAccountJpaEntity.create(
-            state.memberId(),
-            state.provider(),
-            state.providerId(),
-            state.providerEmail(),
-            state.providerNickname(),
-            state.providerProfileImageUrl(),
-            state.lastLoginAt()
+            socialAccount.getMemberId() == null ? null : socialAccount.getMemberId().value(),
+            socialAccount.getProvider() == null ? null : socialAccount.getProvider().name(),
+            socialAccount.getProviderId(),
+            socialAccount.getProviderEmail(),
+            socialAccount.getProviderNickname(),
+            socialAccount.getProviderProfileImageUrl(),
+            socialAccount.getLastLoginAt()
         );
     }
 
-    static void applyChanges(MemberSocialAccountJpaEntity entity, MemberSocialAccountState state) {
+    static void applyChanges(MemberSocialAccountJpaEntity entity, MemberSocialAccount socialAccount) {
         entity.applyChanges(
-            state.providerEmail(),
-            state.providerNickname(),
-            state.providerProfileImageUrl(),
-            state.lastLoginAt()
+            socialAccount.getProviderEmail(),
+            socialAccount.getProviderNickname(),
+            socialAccount.getProviderProfileImageUrl(),
+            socialAccount.getLastLoginAt()
         );
     }
 }

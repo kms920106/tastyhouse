@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
 
 public class ShopOrderAvailabilityService {
     private final ShopOperatingStatusService shopOperatingStatusService;

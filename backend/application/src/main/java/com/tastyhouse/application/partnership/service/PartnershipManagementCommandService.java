@@ -11,7 +11,7 @@ import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.application.partnership.store.PartnershipRepository;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
 
 public class CachingProhibitedWordRepository implements ProhibitedWordRepository {
     private static final Duration TTL = Duration.ofMinutes(10);

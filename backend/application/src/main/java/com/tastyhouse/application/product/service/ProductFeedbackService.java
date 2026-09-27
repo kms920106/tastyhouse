@@ -12,9 +12,9 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductFeedbackReadRepository;
-import com.tastyhouse.application.product.store.ProductFeedbackRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadRepository;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductFeedbackService {
     public static final int FEEDBACK_WINDOW_DAYS = 7;

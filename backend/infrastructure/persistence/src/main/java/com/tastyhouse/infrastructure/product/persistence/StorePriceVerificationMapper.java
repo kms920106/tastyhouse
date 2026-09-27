@@ -1,17 +1,20 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.product.model.StorePriceVerification;
+import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class StorePriceVerificationMapper {
     private StorePriceVerificationMapper() {
     }
 
-    static StorePriceVerificationState toState(StorePriceVerificationJpaEntity entity) {
-        return new StorePriceVerificationState(
+    static StorePriceVerification toDomain(StorePriceVerificationJpaEntity entity) {
+        return StorePriceVerification.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getPriceListFileId(),
-            entity.getStatus(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getPriceListFileId() == null ? null : UploadedFileId.of(entity.getPriceListFileId()),
+            entity.getStatus() == null ? null : StorePriceVerificationStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
             entity.getRequestedByCeoId(),
             entity.getProcessedAt(),
@@ -20,22 +23,22 @@ final class StorePriceVerificationMapper {
         );
     }
 
-    static StorePriceVerificationJpaEntity toEntity(StorePriceVerificationState state) {
+    static StorePriceVerificationJpaEntity toEntity(StorePriceVerification verification) {
         return StorePriceVerificationJpaEntity.create(
-            state.shopId(),
-            state.priceListFileId(),
-            state.status(),
-            state.rejectReason(),
-            state.requestedByCeoId(),
-            state.processedAt()
+            verification.getShopId() == null ? null : verification.getShopId().value(),
+            verification.getPriceListFileId() == null ? null : verification.getPriceListFileId().value(),
+            verification.getStatus() == null ? null : verification.getStatus().name(),
+            verification.getRejectReason(),
+            verification.getRequestedByCeoId(),
+            verification.getProcessedAt()
         );
     }
 
-    static void applyChanges(StorePriceVerificationJpaEntity entity, StorePriceVerificationState state) {
+    static void applyChanges(StorePriceVerificationJpaEntity entity, StorePriceVerification verification) {
         entity.applyChanges(
-            state.status(),
-            state.rejectReason(),
-            state.processedAt()
+            verification.getStatus() == null ? null : verification.getStatus().name(),
+            verification.getRejectReason(),
+            verification.getProcessedAt()
         );
     }
 }

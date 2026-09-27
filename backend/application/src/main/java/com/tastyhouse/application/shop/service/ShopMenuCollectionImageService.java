@@ -12,8 +12,8 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
-import com.tastyhouse.application.shop.store.ShopMenuCollectionImageRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 public class ShopMenuCollectionImageService {
     private static final int MAX_IMAGE_COUNT = 6;

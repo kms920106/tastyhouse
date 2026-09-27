@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideState;
+import com.tastyhouse.domain.shop.model.ShopRiderGuide;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopRiderGuideMapper {
     private ShopRiderGuideMapper() {
     }
 
-    static ShopRiderGuideState toState(ShopRiderGuideJpaEntity entity) {
-        return new ShopRiderGuideState(
+    static ShopRiderGuide toDomain(ShopRiderGuideJpaEntity entity) {
+        return ShopRiderGuide.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getVisitGuide(),
             entity.getPickupRoadAddress(),
             entity.getPickupLotAddress(),
@@ -21,26 +22,26 @@ final class ShopRiderGuideMapper {
         );
     }
 
-    static ShopRiderGuideJpaEntity toEntity(ShopRiderGuideState state) {
+    static ShopRiderGuideJpaEntity toEntity(ShopRiderGuide shopRiderGuide) {
         return ShopRiderGuideJpaEntity.create(
-            state.shopId(),
-            state.visitGuide(),
-            state.pickupRoadAddress(),
-            state.pickupLotAddress(),
-            state.pickupDetailAddress(),
-            state.pickupLatitude(),
-            state.pickupLongitude()
+            shopRiderGuide.getShopId() == null ? null : shopRiderGuide.getShopId().value(),
+            shopRiderGuide.getVisitGuide(),
+            shopRiderGuide.getPickupRoadAddress(),
+            shopRiderGuide.getPickupLotAddress(),
+            shopRiderGuide.getPickupDetailAddress(),
+            shopRiderGuide.getPickupLatitude(),
+            shopRiderGuide.getPickupLongitude()
         );
     }
 
-    static void applyChanges(ShopRiderGuideJpaEntity entity, ShopRiderGuideState state) {
+    static void applyChanges(ShopRiderGuideJpaEntity entity, ShopRiderGuide shopRiderGuide) {
         entity.applyChanges(
-            state.visitGuide(),
-            state.pickupRoadAddress(),
-            state.pickupLotAddress(),
-            state.pickupDetailAddress(),
-            state.pickupLatitude(),
-            state.pickupLongitude()
+            shopRiderGuide.getVisitGuide(),
+            shopRiderGuide.getPickupRoadAddress(),
+            shopRiderGuide.getPickupLotAddress(),
+            shopRiderGuide.getPickupDetailAddress(),
+            shopRiderGuide.getPickupLatitude(),
+            shopRiderGuide.getPickupLongitude()
         );
     }
 }

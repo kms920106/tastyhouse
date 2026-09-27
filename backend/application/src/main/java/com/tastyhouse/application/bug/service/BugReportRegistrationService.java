@@ -7,8 +7,8 @@ import com.tastyhouse.domain.bug.model.BugReportImage;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.bug.store.BugReportImageRepository;
-import com.tastyhouse.application.bug.store.BugReportRepository;
+import com.tastyhouse.application.bug.port.out.write.BugReportImageRepository;
+import com.tastyhouse.application.bug.port.out.write.BugReportRepository;
 
 public class BugReportRegistrationService {
     private final BugReportRepository bugReportRepository;

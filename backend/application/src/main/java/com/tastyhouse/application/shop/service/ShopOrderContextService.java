@@ -17,9 +17,9 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 public class ShopOrderContextService {
     private final ShopRepository shopRepository;

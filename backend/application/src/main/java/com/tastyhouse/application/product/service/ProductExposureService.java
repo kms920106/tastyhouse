@@ -17,8 +17,8 @@ import com.tastyhouse.domain.product.service.ProductExposureContext;
 import com.tastyhouse.domain.product.service.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.application.product.store.ProductExposureHourRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductExposureService {
     private static final Set<DayType> GROUP_DAY_TYPES =

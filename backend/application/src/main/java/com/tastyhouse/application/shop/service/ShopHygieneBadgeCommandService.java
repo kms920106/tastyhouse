@@ -14,7 +14,7 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
-import com.tastyhouse.application.shop.store.ShopHygieneBadgeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeRepository;
 
 @Service
 @AdminApp

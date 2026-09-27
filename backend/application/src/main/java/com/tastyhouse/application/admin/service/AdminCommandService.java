@@ -10,7 +10,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
 import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
-import com.tastyhouse.application.admin.store.AdminRepository;
+import com.tastyhouse.application.admin.port.out.write.AdminRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

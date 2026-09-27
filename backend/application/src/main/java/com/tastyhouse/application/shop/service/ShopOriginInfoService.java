@@ -13,8 +13,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopOriginInfoRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 public class ShopOriginInfoService {
     private final ShopOriginInfoRepository shopOriginInfoRepository;

@@ -1,21 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopRequestIndex;
+import com.tastyhouse.domain.shop.model.ShopRequestStatus;
+import com.tastyhouse.domain.shop.model.ShopRequestType;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopRequestIndexMapper {
     private ShopRequestIndexMapper() {
     }
 
-    static ShopRequestIndexState toState(ShopRequestIndexJpaEntity entity) {
-        return new ShopRequestIndexState(
+    static ShopRequestIndex toDomain(ShopRequestIndexJpaEntity entity) {
+        return ShopRequestIndex.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getRequestType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getRequestType() == null ? null : ShopRequestType.valueOf(entity.getRequestType()),
             entity.getSourceRequestId(),
             entity.getSummary(),
-            entity.getStatus(),
+            entity.getStatus() == null ? null : ShopRequestStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
-            entity.getAttachmentFileId(),
+            entity.getAttachmentFileId() == null ? null : UploadedFileId.of(entity.getAttachmentFileId()),
             entity.getRequestedByCeoId(),
             entity.getProcessedAt(),
             entity.getCreatedAt(),
@@ -23,21 +27,21 @@ final class ShopRequestIndexMapper {
         );
     }
 
-    static ShopRequestIndexJpaEntity toEntity(ShopRequestIndexState state) {
+    static ShopRequestIndexJpaEntity toEntity(ShopRequestIndex shopRequestIndex) {
         return ShopRequestIndexJpaEntity.create(
-            state.shopId(),
-            state.requestType(),
-            state.sourceRequestId(),
-            state.summary(),
-            state.status(),
-            state.rejectReason(),
-            state.attachmentFileId(),
-            state.requestedByCeoId(),
-            state.processedAt()
+            shopRequestIndex.getShopId() == null ? null : shopRequestIndex.getShopId().value(),
+            shopRequestIndex.getRequestType() == null ? null : shopRequestIndex.getRequestType().name(),
+            shopRequestIndex.getSourceRequestId(),
+            shopRequestIndex.getSummary(),
+            shopRequestIndex.getStatus() == null ? null : shopRequestIndex.getStatus().name(),
+            shopRequestIndex.getRejectReason(),
+            shopRequestIndex.getAttachmentFileId() == null ? null : shopRequestIndex.getAttachmentFileId().value(),
+            shopRequestIndex.getRequestedByCeoId(),
+            shopRequestIndex.getProcessedAt()
         );
     }
 
-    static void applyChanges(ShopRequestIndexJpaEntity entity, ShopRequestIndexState state) {
-        entity.applyChanges(state.status(), state.rejectReason(), state.processedAt());
+    static void applyChanges(ShopRequestIndexJpaEntity entity, ShopRequestIndex shopRequestIndex) {
+        entity.applyChanges(shopRequestIndex.getStatus() == null ? null : shopRequestIndex.getStatus().name(), shopRequestIndex.getRejectReason(), shopRequestIndex.getProcessedAt());
     }
 }

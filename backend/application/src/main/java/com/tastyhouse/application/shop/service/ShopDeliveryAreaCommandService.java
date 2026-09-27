@@ -17,7 +17,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.store.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
@@ -29,7 +29,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveComman
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
 
 @Service
 @CeoApp

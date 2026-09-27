@@ -1,41 +1,43 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeCategoryState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.FoodType;
+import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 
 final class ShopFoodTypeCategoryMapper {
     private ShopFoodTypeCategoryMapper() {
     }
 
-    static ShopFoodTypeCategoryState toState(ShopFoodTypeCategoryJpaEntity entity) {
-        return new ShopFoodTypeCategoryState(
+    static ShopFoodTypeCategory toDomain(ShopFoodTypeCategoryJpaEntity entity) {
+        return ShopFoodTypeCategory.reconstitute(
             entity.getId(),
-            entity.getFoodType(),
+            entity.getFoodType() == null ? null : FoodType.valueOf(entity.getFoodType()),
             entity.getDisplayName(),
-            entity.getActiveImageFileId(),
-            entity.getInactiveImageFileId(),
+            entity.getActiveImageFileId() == null ? null : UploadedFileId.of(entity.getActiveImageFileId()),
+            entity.getInactiveImageFileId() == null ? null : UploadedFileId.of(entity.getInactiveImageFileId()),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ShopFoodTypeCategoryJpaEntity toEntity(ShopFoodTypeCategoryState state) {
+    static ShopFoodTypeCategoryJpaEntity toEntity(ShopFoodTypeCategory shopFoodTypeCategory) {
         return ShopFoodTypeCategoryJpaEntity.create(
-            state.foodType(),
-            state.displayName(),
-            state.activeImageFileId(),
-            state.inactiveImageFileId(),
-            state.sort(),
-            state.visible()
+            shopFoodTypeCategory.getFoodType() == null ? null : shopFoodTypeCategory.getFoodType().name(),
+            shopFoodTypeCategory.getDisplayName(),
+            shopFoodTypeCategory.getActiveImageFileId() == null ? null : shopFoodTypeCategory.getActiveImageFileId().value(),
+            shopFoodTypeCategory.getInactiveImageFileId() == null ? null : shopFoodTypeCategory.getInactiveImageFileId().value(),
+            shopFoodTypeCategory.getSort(),
+            shopFoodTypeCategory.isVisible()
         );
     }
 
-    static void applyChanges(ShopFoodTypeCategoryJpaEntity entity, ShopFoodTypeCategoryState state) {
+    static void applyChanges(ShopFoodTypeCategoryJpaEntity entity, ShopFoodTypeCategory shopFoodTypeCategory) {
         entity.applyChanges(
-            state.displayName(),
-            state.activeImageFileId(),
-            state.inactiveImageFileId(),
-            state.sort(),
-            state.visible()
+            shopFoodTypeCategory.getDisplayName(),
+            shopFoodTypeCategory.getActiveImageFileId() == null ? null : shopFoodTypeCategory.getActiveImageFileId().value(),
+            shopFoodTypeCategory.getInactiveImageFileId() == null ? null : shopFoodTypeCategory.getInactiveImageFileId().value(),
+            shopFoodTypeCategory.getSort(),
+            shopFoodTypeCategory.isVisible()
         );
     }
 }

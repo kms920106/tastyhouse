@@ -21,8 +21,8 @@ import com.tastyhouse.domain.payment.vo.PgOrderId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
-import com.tastyhouse.application.payment.store.PaymentRepository;
-import com.tastyhouse.application.payment.store.TossPaymentRecordRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PaymentConfirmationService {

@@ -18,8 +18,8 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.application.mail.store.MailVerificationRepository;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

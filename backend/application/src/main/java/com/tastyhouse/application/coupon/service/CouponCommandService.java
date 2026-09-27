@@ -14,7 +14,7 @@ import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.application.coupon.store.CouponRepository;
+import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

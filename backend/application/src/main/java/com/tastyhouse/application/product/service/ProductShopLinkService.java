@@ -15,9 +15,9 @@ import com.tastyhouse.domain.product.service.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductCategoryRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
-import com.tastyhouse.application.product.store.ProductShopLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkRepository;
 
 public class ProductShopLinkService {
     private final ProductRepository productRepository;

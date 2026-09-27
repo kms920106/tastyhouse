@@ -12,8 +12,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 public class ShopPhoneNumberRegistryService {
     private static final int MAX_PHONE_NUMBER_COUNT = 10;

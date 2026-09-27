@@ -1,44 +1,47 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
+import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopDeliveryAreaAdjustmentRequestMapper {
     private ShopDeliveryAreaAdjustmentRequestMapper() {
     }
 
-    static ShopDeliveryAreaAdjustmentRequestState toState(ShopDeliveryAreaAdjustmentRequestJpaEntity entity) {
-        return new ShopDeliveryAreaAdjustmentRequestState(
+    static ShopDeliveryAreaAdjustmentRequest toDomain(ShopDeliveryAreaAdjustmentRequestJpaEntity entity) {
+        return ShopDeliveryAreaAdjustmentRequest.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getCounterpartShopName(),
             entity.getCounterpartBusinessNumber(),
             entity.getFranchiseName(),
             entity.getReason(),
-            entity.getConsentFileId(),
-            entity.getStatus(),
+            entity.getConsentFileId() == null ? null : UploadedFileId.of(entity.getConsentFileId()),
+            entity.getStatus() == null ? null : DeliveryAreaAdjustmentStatus.valueOf(entity.getStatus()),
             entity.getRejectReason(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ShopDeliveryAreaAdjustmentRequestJpaEntity toEntity(ShopDeliveryAreaAdjustmentRequestState state) {
+    static ShopDeliveryAreaAdjustmentRequestJpaEntity toEntity(ShopDeliveryAreaAdjustmentRequest shopDeliveryAreaAdjustmentRequest) {
         return ShopDeliveryAreaAdjustmentRequestJpaEntity.create(
-            state.shopId(),
-            state.counterpartShopName(),
-            state.counterpartBusinessNumber(),
-            state.franchiseName(),
-            state.reason(),
-            state.consentFileId(),
-            state.status(),
-            state.rejectReason()
+            shopDeliveryAreaAdjustmentRequest.getShopId() == null ? null : shopDeliveryAreaAdjustmentRequest.getShopId().value(),
+            shopDeliveryAreaAdjustmentRequest.getCounterpartShopName(),
+            shopDeliveryAreaAdjustmentRequest.getCounterpartBusinessNumber(),
+            shopDeliveryAreaAdjustmentRequest.getFranchiseName(),
+            shopDeliveryAreaAdjustmentRequest.getReason(),
+            shopDeliveryAreaAdjustmentRequest.getConsentFileId() == null ? null : shopDeliveryAreaAdjustmentRequest.getConsentFileId().value(),
+            shopDeliveryAreaAdjustmentRequest.getStatus() == null ? null : shopDeliveryAreaAdjustmentRequest.getStatus().name(),
+            shopDeliveryAreaAdjustmentRequest.getRejectReason()
         );
     }
 
-    static void applyChanges(ShopDeliveryAreaAdjustmentRequestJpaEntity entity, ShopDeliveryAreaAdjustmentRequestState state) {
+    static void applyChanges(ShopDeliveryAreaAdjustmentRequestJpaEntity entity, ShopDeliveryAreaAdjustmentRequest shopDeliveryAreaAdjustmentRequest) {
         entity.applyChanges(
-            state.status(),
-            state.rejectReason()
+            shopDeliveryAreaAdjustmentRequest.getStatus() == null ? null : shopDeliveryAreaAdjustmentRequest.getStatus().name(),
+            shopDeliveryAreaAdjustmentRequest.getRejectReason()
         );
     }
 }

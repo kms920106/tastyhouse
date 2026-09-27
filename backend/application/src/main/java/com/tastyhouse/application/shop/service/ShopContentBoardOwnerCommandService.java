@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
-import com.tastyhouse.application.shop.store.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardRepository;
 
 @Service
 @CeoApp

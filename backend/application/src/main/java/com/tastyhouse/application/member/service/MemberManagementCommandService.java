@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.port.in.MemberActivateCommand;
 import com.tastyhouse.application.member.port.in.MemberManagementCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
 import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

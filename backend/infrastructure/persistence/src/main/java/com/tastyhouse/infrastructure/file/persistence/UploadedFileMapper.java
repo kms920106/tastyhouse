@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.file.persistence;
 
-import com.tastyhouse.application.file.port.out.write.UploadedFileState;
+import com.tastyhouse.domain.file.model.UploadedFile;
 
 final class UploadedFileMapper {
     private UploadedFileMapper() {
     }
 
-    static UploadedFileState toState(UploadedFileJpaEntity entity) {
-        return new UploadedFileState(
+    static UploadedFile toDomain(UploadedFileJpaEntity entity) {
+        return UploadedFile.reconstitute(
             entity.getId(),
             entity.getOriginalFilename(),
             entity.getStoredFilename(),
@@ -19,13 +19,13 @@ final class UploadedFileMapper {
         );
     }
 
-    static UploadedFileJpaEntity toEntity(UploadedFileState state) {
+    static UploadedFileJpaEntity toEntity(UploadedFile uploadedFile) {
         return UploadedFileJpaEntity.create(
-            state.originalFilename(),
-            state.storedFilename(),
-            state.filePath(),
-            state.fileSize(),
-            state.contentType()
+            uploadedFile.getOriginalFilename(),
+            uploadedFile.getStoredFilename(),
+            uploadedFile.getFilePath(),
+            uploadedFile.getFileSize(),
+            uploadedFile.getContentType()
         );
     }
 }

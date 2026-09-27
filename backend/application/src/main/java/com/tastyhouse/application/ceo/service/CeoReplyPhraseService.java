@@ -7,7 +7,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.store.CeoReplyPhraseRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
 
 public class CeoReplyPhraseService {
     private static final int MAX_PHRASE_COUNT = 5;

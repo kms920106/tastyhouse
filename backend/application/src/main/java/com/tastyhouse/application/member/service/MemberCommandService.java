@@ -18,8 +18,8 @@ import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.member.store.MemberSocialAccountRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.ceo.persistence;
 
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseState;
+import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
+import com.tastyhouse.domain.ceo.vo.CeoId;
 
 final class CeoReplyPhraseMapper {
     private CeoReplyPhraseMapper() {
     }
 
-    static CeoReplyPhraseState toState(CeoReplyPhraseJpaEntity entity) {
-        return new CeoReplyPhraseState(
+    static CeoReplyPhrase toDomain(CeoReplyPhraseJpaEntity entity) {
+        return CeoReplyPhrase.reconstitute(
             entity.getId(),
-            entity.getCeoId(),
+            entity.getCeoId() == null ? null : CeoId.of(entity.getCeoId()),
             entity.getName(),
             entity.getContent(),
             entity.getSort(),
@@ -18,16 +19,16 @@ final class CeoReplyPhraseMapper {
         );
     }
 
-    static CeoReplyPhraseJpaEntity toEntity(CeoReplyPhraseState state) {
+    static CeoReplyPhraseJpaEntity toEntity(CeoReplyPhrase phrase) {
         return CeoReplyPhraseJpaEntity.create(
-            state.ceoId(),
-            state.name(),
-            state.content(),
-            state.sort()
+            phrase.getCeoId() == null ? null : phrase.getCeoId().value(),
+            phrase.getName(),
+            phrase.getContent(),
+            phrase.getSort()
         );
     }
 
-    static void applyChanges(CeoReplyPhraseJpaEntity entity, CeoReplyPhraseState state) {
-        entity.applyChanges(state.name(), state.content());
+    static void applyChanges(CeoReplyPhraseJpaEntity entity, CeoReplyPhrase phrase) {
+        entity.applyChanges(phrase.getName(), phrase.getContent());
     }
 }

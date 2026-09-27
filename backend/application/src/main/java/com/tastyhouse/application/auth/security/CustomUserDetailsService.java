@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

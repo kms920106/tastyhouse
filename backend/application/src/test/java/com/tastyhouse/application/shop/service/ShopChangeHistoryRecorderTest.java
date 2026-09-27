@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,6 +1,9 @@
 package com.tastyhouse.infrastructure.sms.persistence;
 
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationState;
+import com.tastyhouse.domain.shared.vo.PhoneNumber;
+import com.tastyhouse.domain.shared.vo.VerificationCode;
+import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
@@ -8,30 +11,37 @@ final class SmsVerificationMapper {
     private SmsVerificationMapper() {
     }
 
-    static SmsVerificationState toState(SmsVerificationJpaEntity entity) {
-        return new SmsVerificationState(
+    static SmsVerification toDomain(SmsVerificationJpaEntity entity) {
+        return SmsVerification.reconstitute(
             entity.getId(),
-            entity.getPhoneNumber() == null ? null : entity.getPhoneNumber().value(),
-            entity.getVerificationCode() == null ? null : entity.getVerificationCode().value(),
-            entity.getStatus(),
+            entity.getPhoneNumber() == null || entity.getPhoneNumber().value() == null
+                ? null : new PhoneNumber(entity.getPhoneNumber().value()),
+            entity.getVerificationCode() == null || entity.getVerificationCode().value() == null
+                ? null : VerificationCode.of(entity.getVerificationCode().value()),
+            entity.getStatus() == null ? null : SmsVerificationStatus.valueOf(entity.getStatus()),
             entity.getExpiresAt(),
             entity.getVerifiedAt(),
             entity.getCreatedAt()
         );
     }
 
-    static SmsVerificationJpaEntity toEntity(SmsVerificationState state) {
+    static SmsVerificationJpaEntity toEntity(SmsVerification smsVerification) {
         return SmsVerificationJpaEntity.create(
-            state.phoneNumber() == null ? null : new PhoneNumberEmbeddable(state.phoneNumber()),
-            state.verificationCode() == null ? null : new VerificationCodeEmbeddable(state.verificationCode()),
-            state.status(),
-            state.expiresAt(),
-            state.verifiedAt(),
-            state.createdAt()
+            smsVerification.getPhoneNumber() == null || smsVerification.getPhoneNumber().value() == null
+                ? null : new PhoneNumberEmbeddable(smsVerification.getPhoneNumber().value()),
+            smsVerification.getVerificationCode() == null || smsVerification.getVerificationCode().value() == null
+                ? null : new VerificationCodeEmbeddable(smsVerification.getVerificationCode().value()),
+            smsVerification.getStatus() == null ? null : smsVerification.getStatus().name(),
+            smsVerification.getExpiresAt(),
+            smsVerification.getVerifiedAt(),
+            smsVerification.getCreatedAt()
         );
     }
 
-    static void applyChanges(SmsVerificationJpaEntity entity, SmsVerificationState state) {
-        entity.applyChanges(state.status(), state.verifiedAt());
+    static void applyChanges(SmsVerificationJpaEntity entity, SmsVerification smsVerification) {
+        entity.applyChanges(
+            smsVerification.getStatus() == null ? null : smsVerification.getStatus().name(),
+            smsVerification.getVerifiedAt()
+        );
     }
 }

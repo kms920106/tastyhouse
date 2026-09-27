@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.faq.persistence;
 
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryState;
+import com.tastyhouse.domain.faq.model.FaqCategory;
 
 final class FaqCategoryMapper {
     private FaqCategoryMapper() {
     }
 
-    static FaqCategoryState toState(FaqCategoryJpaEntity entity) {
-        return new FaqCategoryState(
+    static FaqCategory toDomain(FaqCategoryJpaEntity entity) {
+        return FaqCategory.reconstitute(
             entity.getId(),
             entity.getName(),
             entity.getSort(),
@@ -18,21 +18,21 @@ final class FaqCategoryMapper {
         );
     }
 
-    static FaqCategoryJpaEntity toEntity(FaqCategoryState state) {
+    static FaqCategoryJpaEntity toEntity(FaqCategory faqCategory) {
         return FaqCategoryJpaEntity.create(
-            state.name(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            faqCategory.getName(),
+            faqCategory.getSort(),
+            faqCategory.isVisible(),
+            faqCategory.isDeleted()
         );
     }
 
-    static void applyChanges(FaqCategoryJpaEntity entity, FaqCategoryState state) {
+    static void applyChanges(FaqCategoryJpaEntity entity, FaqCategory faqCategory) {
         entity.applyChanges(
-            state.name(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            faqCategory.getName(),
+            faqCategory.getSort(),
+            faqCategory.isVisible(),
+            faqCategory.isDeleted()
         );
     }
 }

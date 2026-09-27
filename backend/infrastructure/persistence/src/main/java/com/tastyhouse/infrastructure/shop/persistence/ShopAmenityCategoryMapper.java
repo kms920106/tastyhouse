@@ -1,41 +1,43 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopAmenityCategoryState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.Amenity;
+import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 
 final class ShopAmenityCategoryMapper {
     private ShopAmenityCategoryMapper() {
     }
 
-    static ShopAmenityCategoryState toState(ShopAmenityCategoryJpaEntity entity) {
-        return new ShopAmenityCategoryState(
+    static ShopAmenityCategory toDomain(ShopAmenityCategoryJpaEntity entity) {
+        return ShopAmenityCategory.reconstitute(
             entity.getId(),
-            entity.getAmenity(),
+            entity.getAmenity() == null ? null : Amenity.valueOf(entity.getAmenity()),
             entity.getDisplayName(),
-            entity.getActiveImageFileId(),
-            entity.getInactiveImageFileId(),
+            entity.getActiveImageFileId() == null ? null : UploadedFileId.of(entity.getActiveImageFileId()),
+            entity.getInactiveImageFileId() == null ? null : UploadedFileId.of(entity.getInactiveImageFileId()),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ShopAmenityCategoryJpaEntity toEntity(ShopAmenityCategoryState state) {
+    static ShopAmenityCategoryJpaEntity toEntity(ShopAmenityCategory shopAmenityCategory) {
         return ShopAmenityCategoryJpaEntity.create(
-            state.amenity(),
-            state.displayName(),
-            state.activeImageFileId(),
-            state.inactiveImageFileId(),
-            state.sort(),
-            state.visible()
+            shopAmenityCategory.getAmenity() == null ? null : shopAmenityCategory.getAmenity().name(),
+            shopAmenityCategory.getDisplayName(),
+            shopAmenityCategory.getActiveImageFileId() == null ? null : shopAmenityCategory.getActiveImageFileId().value(),
+            shopAmenityCategory.getInactiveImageFileId() == null ? null : shopAmenityCategory.getInactiveImageFileId().value(),
+            shopAmenityCategory.getSort(),
+            shopAmenityCategory.isVisible()
         );
     }
 
-    static void applyChanges(ShopAmenityCategoryJpaEntity entity, ShopAmenityCategoryState state) {
+    static void applyChanges(ShopAmenityCategoryJpaEntity entity, ShopAmenityCategory shopAmenityCategory) {
         entity.applyChanges(
-            state.displayName(),
-            state.activeImageFileId(),
-            state.inactiveImageFileId(),
-            state.sort(),
-            state.visible()
+            shopAmenityCategory.getDisplayName(),
+            shopAmenityCategory.getActiveImageFileId() == null ? null : shopAmenityCategory.getActiveImageFileId().value(),
+            shopAmenityCategory.getInactiveImageFileId() == null ? null : shopAmenityCategory.getInactiveImageFileId().value(),
+            shopAmenityCategory.getSort(),
+            shopAmenityCategory.isVisible()
         );
     }
 }

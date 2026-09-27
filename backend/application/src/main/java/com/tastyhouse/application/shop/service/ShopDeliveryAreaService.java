@@ -21,9 +21,9 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.store.AdminDongRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
 
 public class ShopDeliveryAreaService {
     private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;

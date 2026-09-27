@@ -1,31 +1,34 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductBbqState;
+import com.tastyhouse.domain.product.model.ProductBbq;
+import com.tastyhouse.domain.product.vo.BbqCategoryId;
+import com.tastyhouse.domain.product.vo.BbqMenuId;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductBbqMapper {
     private ProductBbqMapper() {
     }
 
-    static ProductBbqState toState(ProductBbqJpaEntity entity) {
-        return new ProductBbqState(
+    static ProductBbq toDomain(ProductBbqJpaEntity entity) {
+        return ProductBbq.reconstitute(
             entity.getId(),
-            entity.getProductId(),
-            entity.getBbqMenuId(),
-            entity.getBbqCategoryId(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
+            entity.getBbqMenuId() == null ? null : BbqMenuId.of(entity.getBbqMenuId()),
+            entity.getBbqCategoryId() == null ? null : BbqCategoryId.of(entity.getBbqCategoryId()),
             entity.isOptionsSynced()
         );
     }
 
-    static ProductBbqJpaEntity toEntity(ProductBbqState state) {
+    static ProductBbqJpaEntity toEntity(ProductBbq productBbq) {
         return ProductBbqJpaEntity.create(
-            state.productId(),
-            state.bbqMenuId(),
-            state.bbqCategoryId(),
-            state.optionsSynced()
+            productBbq.getProductId() == null ? null : productBbq.getProductId().value(),
+            productBbq.getBbqMenuId() == null ? null : productBbq.getBbqMenuId().value(),
+            productBbq.getBbqCategoryId() == null ? null : productBbq.getBbqCategoryId().value(),
+            productBbq.isOptionsSynced()
         );
     }
 
-    static void applyChanges(ProductBbqJpaEntity entity, ProductBbqState state) {
-        entity.applyChanges(state.optionsSynced());
+    static void applyChanges(ProductBbqJpaEntity entity, ProductBbq productBbq) {
+        entity.applyChanges(productBbq.isOptionsSynced());
     }
 }

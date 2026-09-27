@@ -10,8 +10,8 @@ import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.application.member.store.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.region.store.AdminDongRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
 
 public class MemberDeliveryAddressService {
     private static final int MAX_ADDRESS_COUNT = 10;

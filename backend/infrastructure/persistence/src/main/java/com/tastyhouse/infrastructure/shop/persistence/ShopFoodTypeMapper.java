@@ -1,23 +1,25 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeState;
+import com.tastyhouse.domain.shop.model.ShopFoodType;
+import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopFoodTypeMapper {
     private ShopFoodTypeMapper() {
     }
 
-    static ShopFoodTypeState toState(ShopFoodTypeJpaEntity entity) {
-        return new ShopFoodTypeState(
+    static ShopFoodType toDomain(ShopFoodTypeJpaEntity entity) {
+        return ShopFoodType.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getShopFoodTypeCategoryId()
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getShopFoodTypeCategoryId() == null ? null : ShopFoodTypeCategoryId.of(entity.getShopFoodTypeCategoryId())
         );
     }
 
-    static ShopFoodTypeJpaEntity toEntity(ShopFoodTypeState state) {
+    static ShopFoodTypeJpaEntity toEntity(ShopFoodType shopFoodType) {
         return ShopFoodTypeJpaEntity.create(
-            state.shopId(),
-            state.shopFoodTypeCategoryId()
+            shopFoodType.getShopId() == null ? null : shopFoodType.getShopId().value(),
+            shopFoodType.getShopFoodTypeCategoryId() == null ? null : shopFoodType.getShopFoodTypeCategoryId().value()
         );
     }
 }

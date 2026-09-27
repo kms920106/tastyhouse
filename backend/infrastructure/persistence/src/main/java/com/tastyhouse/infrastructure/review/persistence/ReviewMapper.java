@@ -1,17 +1,22 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.application.review.port.out.write.ReviewState;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.review.model.Review;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReviewMapper {
     private ReviewMapper() {
     }
 
-    static ReviewState toState(ReviewJpaEntity entity) {
-        return new ReviewState(
+    static Review toDomain(ReviewJpaEntity entity) {
+        Long productId = normalizeProductId(entity.getProductId());
+        return Review.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            normalizeProductId(entity.getProductId()),
-            entity.getMemberId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            productId == null ? null : ProductId.of(productId),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
             entity.getContent(),
             entity.getTotalRating(),
             entity.getTasteRating(),
@@ -21,7 +26,7 @@ final class ReviewMapper {
             entity.getKindnessRating(),
             entity.getHygieneRating(),
             entity.isWillRevisit(),
-            entity.getOrderId(),
+            entity.getOrderId() == null ? null : OrderId.of(entity.getOrderId()),
             entity.isHidden(),
             entity.isOwnerOnly(),
             entity.getDeliveryRating(),
@@ -30,25 +35,25 @@ final class ReviewMapper {
         );
     }
 
-    static ReviewJpaEntity toEntity(ReviewState state) {
+    static ReviewJpaEntity toEntity(Review review) {
         return ReviewJpaEntity.create(
-            state.shopId(),
-            state.productId(),
-            state.memberId(),
-            state.content(),
-            state.totalRating(),
-            state.tasteRating(),
-            state.amountRating(),
-            state.priceRating(),
-            state.atmosphereRating(),
-            state.kindnessRating(),
-            state.hygieneRating(),
-            state.willRevisit(),
-            state.orderId(),
-            state.hidden(),
-            state.ownerOnly(),
-            state.deliveryRating(),
-            state.deliveryComment()
+            review.getShopId() == null ? null : review.getShopId().value(),
+            review.getProductId() == null ? null : review.getProductId().value(),
+            review.getMemberId() == null ? null : review.getMemberId().value(),
+            review.getContent(),
+            review.getTotalRating(),
+            review.getTasteRating(),
+            review.getAmountRating(),
+            review.getPriceRating(),
+            review.getAtmosphereRating(),
+            review.getKindnessRating(),
+            review.getHygieneRating(),
+            review.isWillRevisit(),
+            review.getOrderId() == null ? null : review.getOrderId().value(),
+            review.isHidden(),
+            review.isOwnerOnly(),
+            review.getDeliveryRating(),
+            review.getDeliveryComment()
         );
     }
 
@@ -56,20 +61,20 @@ final class ReviewMapper {
         return rawProductId == null || rawProductId <= 0 ? null : rawProductId;
     }
 
-    static void applyChanges(ReviewJpaEntity entity, ReviewState state) {
+    static void applyChanges(ReviewJpaEntity entity, Review review) {
         entity.applyChanges(
-            state.content(),
-            state.totalRating(),
-            state.tasteRating(),
-            state.amountRating(),
-            state.priceRating(),
-            state.atmosphereRating(),
-            state.kindnessRating(),
-            state.hygieneRating(),
-            state.willRevisit(),
-            state.hidden(),
-            state.deliveryRating(),
-            state.deliveryComment()
+            review.getContent(),
+            review.getTotalRating(),
+            review.getTasteRating(),
+            review.getAmountRating(),
+            review.getPriceRating(),
+            review.getAtmosphereRating(),
+            review.getKindnessRating(),
+            review.getHygieneRating(),
+            review.isWillRevisit(),
+            review.isHidden(),
+            review.getDeliveryRating(),
+            review.getDeliveryComment()
         );
     }
 }

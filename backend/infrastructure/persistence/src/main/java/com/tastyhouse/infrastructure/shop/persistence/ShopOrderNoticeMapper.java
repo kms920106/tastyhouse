@@ -1,15 +1,17 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeState;
+import com.tastyhouse.domain.shop.model.ShopOrderNotice;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopOrderNoticeId;
 
 final class ShopOrderNoticeMapper {
     private ShopOrderNoticeMapper() {
     }
 
-    static ShopOrderNoticeState toState(ShopOrderNoticeJpaEntity entity) {
-        return new ShopOrderNoticeState(
-            entity.getId(),
-            entity.getShopId(),
+    static ShopOrderNotice toDomain(ShopOrderNoticeJpaEntity entity) {
+        return ShopOrderNotice.reconstitute(
+            entity.getId() == null ? null : ShopOrderNoticeId.of(entity.getId()),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getContent(),
             entity.isHidden(),
             entity.getHiddenReason(),
@@ -18,20 +20,20 @@ final class ShopOrderNoticeMapper {
         );
     }
 
-    static ShopOrderNoticeJpaEntity toEntity(ShopOrderNoticeState state) {
+    static ShopOrderNoticeJpaEntity toEntity(ShopOrderNotice shopOrderNotice) {
         return ShopOrderNoticeJpaEntity.create(
-            state.shopId(),
-            state.content(),
-            state.hidden(),
-            state.hiddenReason()
+            shopOrderNotice.getShopId() == null ? null : shopOrderNotice.getShopId().value(),
+            shopOrderNotice.getContent(),
+            shopOrderNotice.isHidden(),
+            shopOrderNotice.getHiddenReason()
         );
     }
 
-    static void applyChanges(ShopOrderNoticeJpaEntity entity, ShopOrderNoticeState state) {
+    static void applyChanges(ShopOrderNoticeJpaEntity entity, ShopOrderNotice shopOrderNotice) {
         entity.applyChanges(
-            state.content(),
-            state.hidden(),
-            state.hiddenReason()
+            shopOrderNotice.getContent(),
+            shopOrderNotice.isHidden(),
+            shopOrderNotice.getHiddenReason()
         );
     }
 }

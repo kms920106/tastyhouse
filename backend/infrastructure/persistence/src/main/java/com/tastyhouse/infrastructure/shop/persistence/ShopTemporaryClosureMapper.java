@@ -1,26 +1,27 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureState;
+import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopTemporaryClosureMapper {
     private ShopTemporaryClosureMapper() {
     }
 
-    static ShopTemporaryClosureState toState(ShopTemporaryClosureJpaEntity entity) {
-        return new ShopTemporaryClosureState(
+    static ShopTemporaryClosure toDomain(ShopTemporaryClosureJpaEntity entity) {
+        return ShopTemporaryClosure.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getStartDate(),
             entity.getEndDate(),
             entity.getCreatedAt()
         );
     }
 
-    static ShopTemporaryClosureJpaEntity toEntity(ShopTemporaryClosureState state) {
+    static ShopTemporaryClosureJpaEntity toEntity(ShopTemporaryClosure shopTemporaryClosure) {
         return ShopTemporaryClosureJpaEntity.create(
-            state.shopId(),
-            state.startDate(),
-            state.endDate()
+            shopTemporaryClosure.getShopId() == null ? null : shopTemporaryClosure.getShopId().value(),
+            shopTemporaryClosure.getStartDate(),
+            shopTemporaryClosure.getEndDate()
         );
     }
 }

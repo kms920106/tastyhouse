@@ -25,8 +25,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.store.ShopRiderGuideRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -69,7 +70,7 @@ class ShopRiderGuideServiceTest {
         }
     }
 
-    private static class FakeShopRepository implements com.tastyhouse.application.shop.store.ShopRepository {
+    private static class FakeShopRepository implements ShopRepository {
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopRepository() {

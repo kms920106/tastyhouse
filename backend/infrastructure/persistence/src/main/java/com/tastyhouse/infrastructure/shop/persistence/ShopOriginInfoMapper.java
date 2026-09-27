@@ -1,16 +1,18 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoState;
+import com.tastyhouse.domain.shop.model.OriginSourceType;
+import com.tastyhouse.domain.shop.model.ShopOriginInfo;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopOriginInfoMapper {
     private ShopOriginInfoMapper() {
     }
 
-    static ShopOriginInfoState toState(ShopOriginInfoJpaEntity entity) {
-        return new ShopOriginInfoState(
+    static ShopOriginInfo toDomain(ShopOriginInfoJpaEntity entity) {
+        return ShopOriginInfo.reconstitute(
             entity.getId(),
-            entity.getShopId(),
-            entity.getSourceType(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getSourceType() == null ? null : OriginSourceType.valueOf(entity.getSourceType()),
             entity.getContent(),
             entity.getUrl(),
             entity.getCreatedAt(),
@@ -18,16 +20,16 @@ final class ShopOriginInfoMapper {
         );
     }
 
-    static ShopOriginInfoJpaEntity toEntity(ShopOriginInfoState state) {
+    static ShopOriginInfoJpaEntity toEntity(ShopOriginInfo shopOriginInfo) {
         return ShopOriginInfoJpaEntity.create(
-            state.shopId(),
-            state.sourceType(),
-            state.content(),
-            state.url()
+            shopOriginInfo.getShopId() == null ? null : shopOriginInfo.getShopId().value(),
+            shopOriginInfo.getSourceType() == null ? null : shopOriginInfo.getSourceType().name(),
+            shopOriginInfo.getContent(),
+            shopOriginInfo.getUrl()
         );
     }
 
-    static void applyChanges(ShopOriginInfoJpaEntity entity, ShopOriginInfoState state) {
-        entity.applyChanges(state.sourceType(), state.content(), state.url());
+    static void applyChanges(ShopOriginInfoJpaEntity entity, ShopOriginInfo shopOriginInfo) {
+        entity.applyChanges(shopOriginInfo.getSourceType() == null ? null : shopOriginInfo.getSourceType().name(), shopOriginInfo.getContent(), shopOriginInfo.getUrl());
     }
 }

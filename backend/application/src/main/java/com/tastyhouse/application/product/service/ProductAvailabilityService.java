@@ -26,13 +26,13 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.store.ProductCommonOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductCommonOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.store.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.store.ProductOptionRepository;
-import com.tastyhouse.application.product.store.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 
 public class ProductAvailabilityService {
     private static final long MIN_SOLD_OUT_MINUTES = 30L;

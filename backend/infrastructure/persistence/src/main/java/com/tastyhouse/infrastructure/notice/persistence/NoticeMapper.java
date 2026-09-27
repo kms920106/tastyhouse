@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.notice.persistence;
 
-import com.tastyhouse.application.notice.port.out.write.NoticeState;
+import com.tastyhouse.domain.notice.model.Notice;
 
 final class NoticeMapper {
     private NoticeMapper() {
     }
 
-    static NoticeState toState(NoticeJpaEntity entity) {
-        return new NoticeState(
+    static Notice toDomain(NoticeJpaEntity entity) {
+        return Notice.reconstitute(
             entity.getId(),
             entity.getTitle(),
             entity.getContent(),
@@ -18,21 +18,21 @@ final class NoticeMapper {
         );
     }
 
-    static NoticeJpaEntity toEntity(NoticeState state) {
+    static NoticeJpaEntity toEntity(Notice notice) {
         return NoticeJpaEntity.create(
-            state.title(),
-            state.content(),
-            state.visible(),
-            state.deleted()
+            notice.getTitle(),
+            notice.getContent(),
+            notice.isVisible(),
+            notice.isDeleted()
         );
     }
 
-    static void applyChanges(NoticeJpaEntity entity, NoticeState state) {
+    static void applyChanges(NoticeJpaEntity entity, Notice notice) {
         entity.applyChanges(
-            state.title(),
-            state.content(),
-            state.visible(),
-            state.deleted()
+            notice.getTitle(),
+            notice.getContent(),
+            notice.isVisible(),
+            notice.isDeleted()
         );
     }
 }

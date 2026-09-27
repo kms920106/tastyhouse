@@ -8,8 +8,8 @@ import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberStatus;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
-import com.tastyhouse.application.member.store.MemberRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberRegistrationService {

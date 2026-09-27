@@ -6,7 +6,7 @@ import java.util.List;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewLike;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.store.ReviewLikeRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeRepository;
 
 public class FakeReviewLikeRepository implements ReviewLikeRepository {
     private final List<ReviewLike> likes = new ArrayList<>();

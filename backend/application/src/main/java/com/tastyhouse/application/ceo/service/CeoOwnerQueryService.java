@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.application.ceo.port.in.CeoOwnerQueryUseCase;
-import com.tastyhouse.application.ceo.store.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service

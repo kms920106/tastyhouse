@@ -18,10 +18,10 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
 
 public class ScheduledOrderSlotService {
     private final ShopRepository shopRepository;

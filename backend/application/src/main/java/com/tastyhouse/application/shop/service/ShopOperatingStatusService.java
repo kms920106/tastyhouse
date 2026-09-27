@@ -18,10 +18,10 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.store.ShopDetailRepository;
-import com.tastyhouse.application.shop.store.ShopRepository;
-import com.tastyhouse.application.shop.store.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.store.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
 
 public class ShopOperatingStatusService {
     private static final boolean PUBLIC_HOLIDAY = false;

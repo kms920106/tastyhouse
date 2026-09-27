@@ -27,9 +27,9 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountRepository;
 import com.tastyhouse.application.member.service.MemberCommandService;
-import com.tastyhouse.application.member.store.MemberRepository;
-import com.tastyhouse.application.member.store.MemberSocialAccountRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.token.AppleTempTokenRepository;
 

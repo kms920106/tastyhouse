@@ -1,31 +1,36 @@
 package com.tastyhouse.infrastructure.product.persistence;
 
-import com.tastyhouse.application.product.port.out.write.ProductImageState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.product.model.ProductImage;
+import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductImageMapper {
     private ProductImageMapper() {
     }
 
-    static ProductImageState toState(ProductImageJpaEntity entity) {
-        return new ProductImageState(
+    static ProductImage toDomain(ProductImageJpaEntity entity) {
+        return ProductImage.reconstitute(
             entity.getId(),
-            entity.getProductId(),
-            entity.getImageFileId(),
+            entity.getProductId() == null ? null : ProductId.of(entity.getProductId()),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getSort(),
             entity.isVisible()
         );
     }
 
-    static ProductImageJpaEntity toEntity(ProductImageState state) {
+    static ProductImageJpaEntity toEntity(ProductImage image) {
         return ProductImageJpaEntity.create(
-            state.productId(),
-            state.imageFileId(),
-            state.sort(),
-            state.visible()
+            image.getProductId() == null ? null : image.getProductId().value(),
+            image.getImageFileId() == null ? null : image.getImageFileId().value(),
+            image.getSort(),
+            image.isVisible()
         );
     }
 
-    static void applyChanges(ProductImageJpaEntity entity, ProductImageState state) {
-        entity.applyChanges(state.sort(), state.visible());
+    static void applyChanges(ProductImageJpaEntity entity, ProductImage image) {
+        entity.applyChanges(
+            image.getSort(),
+            image.isVisible()
+        );
     }
 }

@@ -39,11 +39,13 @@ class LayerRulesTest {
     }
 
     @Test
-    void infrastructureShouldNotDependOnDomain() {
+    void queryShouldNotDependOnDomain() {
         ArchRule rule = noClasses()
+            .that(resideInAPackage("com.tastyhouse.infrastructure..query..")
+                .or(sealed())
+                .as("..query.. 와 봉인된 조회 어댑터"))
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
-            .because("엄격 레이어드 — persistence는 application(port.out의 State·읽기 계약)만 본다. "
-                + "도메인 모델 ↔ State 변환은 application Store가 맡는다");
+            .because("조회 DAO는 domain-free 읽기 계약만 구현한다 — 도메인 모델을 쓰는 것은 write 어댑터(XxxRepositoryImpl)뿐이다");
 
         rule.check(classes);
     }

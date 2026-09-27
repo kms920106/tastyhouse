@@ -1,17 +1,19 @@
 package com.tastyhouse.infrastructure.banner.persistence;
 
-import com.tastyhouse.application.banner.port.out.write.BannerState;
+import com.tastyhouse.domain.banner.model.Banner;
+import com.tastyhouse.domain.banner.model.BannerType;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 final class BannerMapper {
     private BannerMapper() {
     }
 
-    static BannerState toState(BannerJpaEntity entity) {
-        return new BannerState(
+    static Banner toDomain(BannerJpaEntity entity) {
+        return Banner.reconstitute(
             entity.getId(),
-            entity.getType(),
+            entity.getType() == null ? null : BannerType.valueOf(entity.getType()),
             entity.getTitle(),
-            entity.getImageFileId(),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getLinkUrl(),
             entity.getStartDate(),
             entity.getEndDate(),
@@ -23,31 +25,31 @@ final class BannerMapper {
         );
     }
 
-    static BannerJpaEntity toEntity(BannerState state) {
+    static BannerJpaEntity toEntity(Banner banner) {
         return BannerJpaEntity.create(
-            state.type(),
-            state.title(),
-            state.imageFileId(),
-            state.linkUrl(),
-            state.startDate(),
-            state.endDate(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            banner.getType() == null ? null : banner.getType().name(),
+            banner.getTitle(),
+            banner.getImageFileId() == null ? null : banner.getImageFileId().value(),
+            banner.getLinkUrl(),
+            banner.getStartDate(),
+            banner.getEndDate(),
+            banner.getSort(),
+            banner.isVisible(),
+            banner.isDeleted()
         );
     }
 
-    static void applyChanges(BannerJpaEntity entity, BannerState state) {
+    static void applyChanges(BannerJpaEntity entity, Banner banner) {
         entity.applyChanges(
-            state.type(),
-            state.title(),
-            state.imageFileId(),
-            state.linkUrl(),
-            state.startDate(),
-            state.endDate(),
-            state.sort(),
-            state.visible(),
-            state.deleted()
+            banner.getType() == null ? null : banner.getType().name(),
+            banner.getTitle(),
+            banner.getImageFileId() == null ? null : banner.getImageFileId().value(),
+            banner.getLinkUrl(),
+            banner.getStartDate(),
+            banner.getEndDate(),
+            banner.getSort(),
+            banner.isVisible(),
+            banner.isDeleted()
         );
     }
 }

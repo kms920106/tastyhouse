@@ -8,7 +8,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.member.port.out.MyGradeResult;
-import com.tastyhouse.application.rank.store.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

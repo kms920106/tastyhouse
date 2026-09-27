@@ -29,10 +29,10 @@ import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.order.port.out.write.OrderRepository;
 import com.tastyhouse.application.order.service.OrderTransitionService;
-import com.tastyhouse.application.order.store.OrderRepository;
-import com.tastyhouse.application.payment.store.PaymentRefundRepository;
-import com.tastyhouse.application.payment.store.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;

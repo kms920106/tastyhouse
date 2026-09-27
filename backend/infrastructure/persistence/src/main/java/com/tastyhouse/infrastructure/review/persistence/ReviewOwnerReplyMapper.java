@@ -1,33 +1,36 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyState;
+import com.tastyhouse.domain.ceo.vo.CeoId;
+import com.tastyhouse.domain.review.model.ReviewOwnerReply;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReviewOwnerReplyMapper {
     private ReviewOwnerReplyMapper() {
     }
 
-    static ReviewOwnerReplyState toState(ReviewOwnerReplyJpaEntity entity) {
-        return new ReviewOwnerReplyState(
+    static ReviewOwnerReply toDomain(ReviewOwnerReplyJpaEntity entity) {
+        return ReviewOwnerReply.reconstitute(
             entity.getId(),
-            entity.getReviewId(),
-            entity.getShopId(),
-            entity.getCeoId(),
+            entity.getReviewId() == null ? null : ReviewId.of(entity.getReviewId()),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
+            entity.getCeoId() == null ? null : CeoId.of(entity.getCeoId()),
             entity.getContent(),
             entity.getCreatedAt(),
             entity.getUpdatedAt()
         );
     }
 
-    static ReviewOwnerReplyJpaEntity toEntity(ReviewOwnerReplyState state) {
+    static ReviewOwnerReplyJpaEntity toEntity(ReviewOwnerReply reply) {
         return ReviewOwnerReplyJpaEntity.create(
-            state.reviewId(),
-            state.shopId(),
-            state.ceoId(),
-            state.content()
+            reply.getReviewId() == null ? null : reply.getReviewId().value(),
+            reply.getShopId() == null ? null : reply.getShopId().value(),
+            reply.getCeoId() == null ? null : reply.getCeoId().value(),
+            reply.getContent()
         );
     }
 
-    static void applyChanges(ReviewOwnerReplyJpaEntity entity, ReviewOwnerReplyState state) {
-        entity.applyChanges(state.content());
+    static void applyChanges(ReviewOwnerReplyJpaEntity entity, ReviewOwnerReply reply) {
+        entity.applyChanges(reply.getContent());
     }
 }

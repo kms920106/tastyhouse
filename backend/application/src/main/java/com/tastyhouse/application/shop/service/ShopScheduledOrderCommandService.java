@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateCommand;
-import com.tastyhouse.application.shop.store.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 
 @Service
 @CeoApp

@@ -1,16 +1,16 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
-import com.tastyhouse.application.review.port.out.write.ReviewImageState;
+import com.tastyhouse.domain.review.model.ReviewImage;
 
 final class ReviewImageMapper {
     private ReviewImageMapper() {
     }
 
-    static ReviewImageJpaEntity toEntity(ReviewImageState state) {
+    static ReviewImageJpaEntity toEntity(ReviewImage reviewImage) {
         return ReviewImageJpaEntity.create(
-            state.reviewId(),
-            state.imageFileId(),
-            state.sort()
+            reviewImage.getReviewId() == null ? null : reviewImage.getReviewId().value(),
+            reviewImage.getImageFileId() == null ? null : reviewImage.getImageFileId().value(),
+            reviewImage.getSort()
         );
     }
 }

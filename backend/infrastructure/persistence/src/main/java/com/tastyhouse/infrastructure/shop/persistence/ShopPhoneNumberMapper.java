@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberState;
+import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopPhoneNumberMapper {
     private ShopPhoneNumberMapper() {
     }
 
-    static ShopPhoneNumberState toState(ShopPhoneNumberJpaEntity entity) {
-        return new ShopPhoneNumberState(
+    static ShopPhoneNumber toDomain(ShopPhoneNumberJpaEntity entity) {
+        return ShopPhoneNumber.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getPhoneNumber(),
             entity.isPrimary(),
             entity.isVirtual(),
@@ -18,16 +19,16 @@ final class ShopPhoneNumberMapper {
         );
     }
 
-    static ShopPhoneNumberJpaEntity toEntity(ShopPhoneNumberState state) {
+    static ShopPhoneNumberJpaEntity toEntity(ShopPhoneNumber shopPhoneNumber) {
         return ShopPhoneNumberJpaEntity.create(
-            state.shopId(),
-            state.phoneNumber(),
-            state.primary(),
-            state.virtual()
+            shopPhoneNumber.getShopId() == null ? null : shopPhoneNumber.getShopId().value(),
+            shopPhoneNumber.getPhoneNumber(),
+            shopPhoneNumber.isPrimary(),
+            shopPhoneNumber.isVirtual()
         );
     }
 
-    static void applyChanges(ShopPhoneNumberJpaEntity entity, ShopPhoneNumberState state) {
-        entity.applyChanges(state.primary());
+    static void applyChanges(ShopPhoneNumberJpaEntity entity, ShopPhoneNumber shopPhoneNumber) {
+        entity.applyChanges(shopPhoneNumber.isPrimary());
     }
 }

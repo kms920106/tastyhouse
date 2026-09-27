@@ -37,10 +37,10 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipRegionSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipScheduleSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.region.store.AdminDongRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.store.ShopDeliveryTipRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

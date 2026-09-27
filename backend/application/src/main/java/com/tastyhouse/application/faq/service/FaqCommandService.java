@@ -12,8 +12,8 @@ import com.tastyhouse.application.faq.port.in.FaqCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqUpdateCommand;
-import com.tastyhouse.application.faq.store.FaqCategoryRepository;
-import com.tastyhouse.application.faq.store.FaqRepository;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
+import com.tastyhouse.application.faq.port.out.write.FaqRepository;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service

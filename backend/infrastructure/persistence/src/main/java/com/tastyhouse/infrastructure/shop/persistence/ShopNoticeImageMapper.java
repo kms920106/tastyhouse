@@ -1,25 +1,26 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageState;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.model.ShopNoticeImage;
 
 final class ShopNoticeImageMapper {
     private ShopNoticeImageMapper() {
     }
 
-    static ShopNoticeImageState toState(ShopNoticeImageJpaEntity entity) {
-        return new ShopNoticeImageState(
+    static ShopNoticeImage toDomain(ShopNoticeImageJpaEntity entity) {
+        return ShopNoticeImage.reconstitute(
             entity.getId(),
             entity.getShopNoticeId(),
-            entity.getImageFileId(),
+            entity.getImageFileId() == null ? null : UploadedFileId.of(entity.getImageFileId()),
             entity.getSortOrder()
         );
     }
 
-    static ShopNoticeImageJpaEntity toEntity(ShopNoticeImageState state) {
+    static ShopNoticeImageJpaEntity toEntity(ShopNoticeImage shopNoticeImage) {
         return ShopNoticeImageJpaEntity.create(
-            state.shopNoticeId(),
-            state.imageFileId(),
-            state.sortOrder()
+            shopNoticeImage.getShopNoticeId(),
+            shopNoticeImage.getImageFileId() == null ? null : shopNoticeImage.getImageFileId().value(),
+            shopNoticeImage.getSortOrder()
         );
     }
 }

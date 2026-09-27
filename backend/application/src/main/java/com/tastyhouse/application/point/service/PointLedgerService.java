@@ -11,8 +11,8 @@ import com.tastyhouse.domain.point.event.PointUsedEvent;
 import com.tastyhouse.domain.point.model.Point;
 import com.tastyhouse.domain.point.model.PointHistory;
 import com.tastyhouse.domain.point.model.PointType;
-import com.tastyhouse.application.point.store.PointHistoryRepository;
-import com.tastyhouse.application.point.store.PointRepository;
+import com.tastyhouse.application.point.port.out.write.PointHistoryRepository;
+import com.tastyhouse.application.point.port.out.write.PointRepository;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PointLedgerService {

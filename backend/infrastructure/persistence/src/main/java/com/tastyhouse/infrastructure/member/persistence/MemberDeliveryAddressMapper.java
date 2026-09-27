@@ -1,20 +1,22 @@
 package com.tastyhouse.infrastructure.member.persistence;
 
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressState;
+import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.region.vo.AdminDongId;
 
 final class MemberDeliveryAddressMapper {
     private MemberDeliveryAddressMapper() {
     }
 
-    static MemberDeliveryAddressState toState(MemberDeliveryAddressJpaEntity entity) {
-        return new MemberDeliveryAddressState(
+    static MemberDeliveryAddress toDomain(MemberDeliveryAddressJpaEntity entity) {
+        return MemberDeliveryAddress.reconstitute(
             entity.getId(),
-            entity.getMemberId(),
+            entity.getMemberId() == null ? null : MemberId.of(entity.getMemberId()),
             entity.getAlias(),
             entity.getRoadAddress(),
             entity.getLotAddress(),
             entity.getDetailAddress(),
-            entity.getAdminDongId(),
+            entity.getAdminDongId() == null ? null : AdminDongId.of(entity.getAdminDongId()),
             entity.getLatitude(),
             entity.getLongitude(),
             entity.isDefaultAddress(),
@@ -23,30 +25,30 @@ final class MemberDeliveryAddressMapper {
         );
     }
 
-    static MemberDeliveryAddressJpaEntity toEntity(MemberDeliveryAddressState state) {
+    static MemberDeliveryAddressJpaEntity toEntity(MemberDeliveryAddress address) {
         return MemberDeliveryAddressJpaEntity.create(
-            state.memberId(),
-            state.alias(),
-            state.roadAddress(),
-            state.lotAddress(),
-            state.detailAddress(),
-            state.adminDongId(),
-            state.latitude(),
-            state.longitude(),
-            state.defaultAddress()
+            address.getMemberId() == null ? null : address.getMemberId().value(),
+            address.getAlias(),
+            address.getRoadAddress(),
+            address.getLotAddress(),
+            address.getDetailAddress(),
+            address.getAdminDongId() == null ? null : address.getAdminDongId().value(),
+            address.getLatitude(),
+            address.getLongitude(),
+            address.isDefaultAddress()
         );
     }
 
-    static void applyChanges(MemberDeliveryAddressJpaEntity entity, MemberDeliveryAddressState state) {
+    static void applyChanges(MemberDeliveryAddressJpaEntity entity, MemberDeliveryAddress address) {
         entity.applyChanges(
-            state.alias(),
-            state.roadAddress(),
-            state.lotAddress(),
-            state.detailAddress(),
-            state.adminDongId(),
-            state.latitude(),
-            state.longitude(),
-            state.defaultAddress()
+            address.getAlias(),
+            address.getRoadAddress(),
+            address.getLotAddress(),
+            address.getDetailAddress(),
+            address.getAdminDongId() == null ? null : address.getAdminDongId().value(),
+            address.getLatitude(),
+            address.getLongitude(),
+            address.isDefaultAddress()
         );
     }
 }

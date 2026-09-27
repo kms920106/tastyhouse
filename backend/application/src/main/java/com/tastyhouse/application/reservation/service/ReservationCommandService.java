@@ -21,7 +21,7 @@ import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand
 import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
-import com.tastyhouse.application.reservation.store.ReservationRepository;
+import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 

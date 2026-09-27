@@ -12,7 +12,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.store.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service

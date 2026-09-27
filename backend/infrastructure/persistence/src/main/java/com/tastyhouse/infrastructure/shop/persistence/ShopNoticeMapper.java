@@ -1,15 +1,16 @@
 package com.tastyhouse.infrastructure.shop.persistence;
 
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeState;
+import com.tastyhouse.domain.shop.model.ShopNotice;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopNoticeMapper {
     private ShopNoticeMapper() {
     }
 
-    static ShopNoticeState toState(ShopNoticeJpaEntity entity) {
-        return new ShopNoticeState(
+    static ShopNotice toDomain(ShopNoticeJpaEntity entity) {
+        return ShopNotice.reconstitute(
             entity.getId(),
-            entity.getShopId(),
+            entity.getShopId() == null ? null : ShopId.of(entity.getShopId()),
             entity.getContent(),
             entity.isExposed(),
             entity.isHidden(),
@@ -18,20 +19,20 @@ final class ShopNoticeMapper {
         );
     }
 
-    static ShopNoticeJpaEntity toEntity(ShopNoticeState state) {
+    static ShopNoticeJpaEntity toEntity(ShopNotice shopNotice) {
         return ShopNoticeJpaEntity.create(
-            state.shopId(),
-            state.content(),
-            state.exposed(),
-            state.hidden()
+            shopNotice.getShopId() == null ? null : shopNotice.getShopId().value(),
+            shopNotice.getContent(),
+            shopNotice.isExposed(),
+            shopNotice.isHidden()
         );
     }
 
-    static void applyChanges(ShopNoticeJpaEntity entity, ShopNoticeState state) {
+    static void applyChanges(ShopNoticeJpaEntity entity, ShopNotice shopNotice) {
         entity.applyChanges(
-            state.content(),
-            state.exposed(),
-            state.hidden()
+            shopNotice.getContent(),
+            shopNotice.isExposed(),
+            shopNotice.isHidden()
         );
     }
 }
