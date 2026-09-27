@@ -3,11 +3,8 @@ package com.tastyhouse.domain.architecture;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -15,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,26 +85,23 @@ class ImportOrderConventionTest {
     }
 
     private static List<Path> collectJavaFiles(Path root) throws IOException {
-        List<Path> files = new ArrayList<>();
-        Files.walkFileTree(root, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                if (!dir.equals(root) && EXCLUDED_DIRECTORIES.contains(dir.getFileName().toString())) {
-                    return FileVisitResult.SKIP_SUBTREE;
-                }
-                return FileVisitResult.CONTINUE;
-            }
+        try (Stream<Path> paths = Files.walk(root)) {
+            return paths
+                .filter(path -> path.getFileName().toString().endsWith(".java"))
+                .filter(path -> isOutsideExcludedDirectories(root.relativize(path)))
+                .filter(Files::isRegularFile)
+                .sorted(Comparator.naturalOrder())
+                .toList();
+        }
+    }
 
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                if (file.getFileName().toString().endsWith(".java")) {
-                    files.add(file);
-                }
-                return FileVisitResult.CONTINUE;
+    private static boolean isOutsideExcludedDirectories(Path relativePath) {
+        for (Path segment : relativePath) {
+            if (EXCLUDED_DIRECTORIES.contains(segment.toString())) {
+                return false;
             }
-        });
-        files.sort(Comparator.naturalOrder());
-        return files;
+        }
+        return true;
     }
 
     private static String checkFile(Path file) {

@@ -120,7 +120,7 @@ class ApiCommonAutoConfigurationTest {
     @RestControllerAdvice
     static class OwnGlobalExceptionHandler {
         @ExceptionHandler(RuntimeException.class)
-        ProblemDetail handle(RuntimeException e) {
+        ProblemDetail handle() {
             return ProblemDetail.forStatus(500);
         }
     }
