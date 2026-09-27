@@ -42,7 +42,6 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.shared.port.out.ApprovalStatusCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
@@ -524,7 +523,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
     }
 
     @Override
-    public List<ShopMenuCollectionImageExposureResult> findExposedMenuCollectionImages(Long shopId) {
+    public List<ShopMenuCollectionImageExposureResult> findMenuCollectionImagesByStatus(Long shopId, String status) {
         return queryFactory
             .select(Projections.constructor(ShopMenuCollectionImageExposureResult.class,
                 shopMenuCollectionImageJpaEntity.id,
@@ -536,7 +535,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 .on(menuCollectionImageFile.id.eq(shopMenuCollectionImageJpaEntity.imageFileId))
             .where(
                 shopMenuCollectionImageJpaEntity.shopId.eq(shopId),
-                shopMenuCollectionImageJpaEntity.status.eq(ApprovalStatusCodes.APPROVED)
+                shopMenuCollectionImageJpaEntity.status.eq(status)
             )
             .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
             .fetch();

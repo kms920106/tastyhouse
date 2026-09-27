@@ -1,6 +1,7 @@
 package com.tastyhouse.application.review.port.out.write;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,11 +10,11 @@ public interface ReviewBlindRequestStatePort {
 
     boolean existsByReviewIdAndStatus(Long reviewId, String status);
 
-    boolean existsTerminatedByReviewId(Long reviewId);
+    boolean existsByReviewIdAndStatusIn(Long reviewId, Collection<String> statuses);
 
-    List<ReviewBlindRequestState> findExpirableBlinds(LocalDateTime now);
+    List<ReviewBlindRequestState> findByStatusExpiringBefore(String status, LocalDateTime now);
 
-    Optional<ReviewBlindRequestState> findApprovedByReviewId(Long reviewId);
+    Optional<ReviewBlindRequestState> findLatestByReviewIdAndStatus(Long reviewId, String status);
 
     ReviewBlindRequestState save(ReviewBlindRequestState state);
 }

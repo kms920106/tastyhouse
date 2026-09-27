@@ -13,6 +13,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
@@ -41,7 +42,11 @@ public class OrderQueryService implements OrderQueryUseCase {
 
     @Override
     public PageResult<OrderListItemResult> getOrderList(Long memberId, int page, int size) {
-        return orderQueryPort.findOrders(MemberId.of(memberId).value(), PageQuery.of(page, size));
+        return orderQueryPort.findOrders(
+            MemberId.of(memberId).value(),
+            List.of(PaymentStatus.COMPLETED.name(), PaymentStatus.CANCELLED.name()),
+            PageQuery.of(page, size)
+        );
     }
 
     @Override

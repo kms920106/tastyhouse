@@ -4,24 +4,24 @@ import java.time.LocalDate;
 
 public record ShopReviewManagementSearchCondition(
     Long shopId,
-    String tab,
+    ShopReviewTabFilter tab,
     LocalDate startDate,
     LocalDate endDate,
     Integer rating,
     String orderMethod,
     Boolean hasImage,
-    String sortType
+    ReviewSortSpec sort
 ) {
 
     public static ShopReviewManagementSearchCondition of(
         Long shopId,
-        String tab,
+        ShopReviewTabFilter tab,
         LocalDate startDate,
         LocalDate endDate,
         Integer rating,
         String orderMethod,
         Boolean hasImage,
-        String sortType
+        ReviewSortSpec sort
     ) {
         return new ShopReviewManagementSearchCondition(
             shopId,
@@ -31,7 +31,7 @@ public record ShopReviewManagementSearchCondition(
             rating,
             orderMethod,
             hasImage,
-            sortType
+            sort
         );
     }
 }

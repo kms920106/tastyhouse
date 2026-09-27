@@ -13,7 +13,16 @@ com.tastyhouse.logging/
 
 - `ApiLoggingFilter`는 `@Order(Ordered.HIGHEST_PRECEDENCE)`로 필터 체인 최상단에서 동작하며, `requestId`를 MDC에 등록해 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동으로 첨부되게 한다.
 - `ApiLoggingAspect`는 `@RestController`가 붙은 모든 클래스에 AOP로 적용되며, Filter 레이어에서 처리되는 401/403 등은 컨트롤러에 도달하지 않으므로 별도 로깅되지 않는다.
-- **`SensitiveFieldMasker`는 미배선 상태이며, 즉 마스킹이 실제로는 전혀 동작하지 않는다.** 클래스는 `@Component`로 실재하고 `SENSITIVE_FIELDS` 기준 마스킹 로직도 완성돼 있지만, **어디에서도 주입·호출되지 않는다**(그래서 `@SuppressWarnings("unused")`가 붙어 있다). 과거 `ApiLoggingAspect`에 주석 처리된 `masker` 필드·호출부가 남아 있었으나 주석 이관 작업(챕터 07)에서 삭제됐다. 활성화하려면 `ApiLoggingAspect`에 `SensitiveFieldMasker`를 생성자 주입하고, `logControllerExecution`의 `[BODY]` 로깅에서 각 요청 바디를 `masker.mask(...)`로 변환한 뒤 출력하도록 되살린다. **그때까지 `[BODY]` 로그에는 비밀번호·토큰이 마스킹 없이 그대로 남는다** — 아래 "바디 로깅은 DEBUG 레벨에서만" 안전장치가 현재 유일한 방어선이다.
+- ~~**`SensitiveFieldMasker`는 미배선 상태이며, 즉 마스킹이 실제로는 전혀 동작하지 않는다.**~~ **(번복됨 — `@SuppressWarnings` 지양 규칙으로 배선)** `ApiLoggingAspect`가 `SensitiveFieldMasker`를 생성자 주입받아, `[BODY]` 로그의 요청 바디를 **`mask(...)`로 변환한 문자열로 출력한다.** `SENSITIVE_FIELDS`에 있는 필드는 `***`로 바뀐다.
+
+  | 항목 | before | after |
+  |---|---|---|
+  | 배선 | 어디서도 주입·호출되지 않음, 클래스에 `@SuppressWarnings("unused")` | `ApiLoggingAspect#logControllerExecution`이 각 바디를 `sensitiveFieldMasker.mask(...)`로 변환 |
+  | `[BODY]` 로그 형식 | record `toString()` — `LoginRequest[username=a, password=b]` | 마스킹된 JSON — `{"username":"a","password":"***"}` (**동작 변경**: 로그 내용만 바뀌고 요청 처리는 불변) |
+  | 배열 안의 객체 | 재귀하지 않음(배열 원소의 민감 필드가 그대로 남음) | 배열 원소도 재귀해 마스킹 |
+  | 직렬화 실패 | — | 요청은 막지 않고 바디 자리에 `[직렬화 실패]`를 남긴다(로깅이 요청을 막지 않는다는 불변 유지) |
+
+  마스킹 규칙은 `logging-module/src/test/java/com/tastyhouse/logging/SensitiveFieldMaskerTest.java`가 검사한다. 마스킹 대상 필드명을 추가할 때는 `SENSITIVE_FIELDS`와 이 테스트를 함께 고친다.
 
 ## 왜 `web`/`aop`/`security` starter를 `api`로 노출하는가
 
@@ -34,7 +43,7 @@ dependencies {
 - **패키지 루트는 `com.tastyhouse.logging`** — `LoggingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록, 조건 없음)이 이 패키지를 `@ComponentScan`해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. **과거에는 `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지를 직접 등록해야 했으나, auto-configuration 전환으로 그 등록이 필요 없어졌다** — `runtimeOnly` 의존 선언만으로 발화한다(batch-module도 조건 없이 발화한다 — 의도된 동작).
 - **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain`/`infrastructure:persistence`/`infrastructure:restclient`를 비롯한 외부 연동 모듈 7개/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
-- **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. 마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.
+- **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. ~~마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.~~ **(번복됨)** 이제 `ApiLoggingAspect`가 마스킹을 거쳐 `[BODY]`를 찍으므로 목록 갱신이 즉시 반영된다.
 - **`domain` 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 application 서비스에 의존하지 않는다(사내 모듈 의존이 0인 유일한 모듈).
 
 ## 로깅 설정 소유 (`application-logging.yml`)
@@ -70,14 +79,12 @@ dependencies {
 전달하려면 반드시 `wrappedResponse.copyBodyToResponse()`를 호출해야 한다.** 이 줄을 지우면 모든 응답
 본문이 빈 채로 나가며, 상태 코드는 정상이라 원인 추적이 어렵다.
 
-### `SensitiveFieldMasker`의 `@SuppressWarnings("unused")`는 미배선 상태의 표식이다
+### `ApiLoggingAspect`의 `SensitiveFieldMasker` 배선을 되돌리지 않는다
 
-**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/SensitiveFieldMasker.java`
-→ 클래스 선언
+**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/ApiLoggingAspect.java`
+→ 생성자 · `logControllerExecution`의 `sensitiveFieldMasker::mask`
 
-**미사용이라는 이유로 클래스를 삭제하지 않는다.** 마스킹 로직 자체는 완성돼 있고 활성화만 남은
-상태이며, 이 어노테이션은 그 사실의 표식이다. 반대로 실제 배선을 되살렸다면 이 어노테이션은
-제거한다 — 위 [패키지 구조](#패키지-구조) 절의 미배선 항목 참고.
+`[BODY]` 로그에 요청 바디를 원본 객체로 넘기면 record `toString()`이 비밀번호·토큰을 그대로 찍는다. 로그 형식을 예전처럼 보이게 하려고 마스킹을 빼지 않는다. 과거 이 자리의 봉인 대상이던 `SensitiveFieldMasker`의 `@SuppressWarnings("unused")`는 배선과 함께 삭제됐다.
 
 ## 코드 주석에서 이관된 설계 근거
 

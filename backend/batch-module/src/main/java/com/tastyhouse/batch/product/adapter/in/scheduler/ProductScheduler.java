@@ -3,10 +3,10 @@ package com.tastyhouse.batch.product.adapter.in.scheduler;
 import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@SuppressWarnings("unused")
 public class ProductScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ProductScheduler.class);
@@ -17,7 +17,7 @@ public class ProductScheduler {
         this.syncProductOptionsUseCase = syncProductOptionsUseCase;
     }
 
-    @SuppressWarnings("unused")
+    @Scheduled(cron = "${product.option-crawl.cron:-}")
     public void crawlAndSaveProductOptions() {
         try {
             syncProductOptionsUseCase.crawlAndSaveProductOptions();

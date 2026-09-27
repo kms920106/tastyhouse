@@ -6,7 +6,6 @@ import com.tastyhouse.application.review.port.out.ReviewBlindNoticeResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
-import com.tastyhouse.application.review.port.out.ReviewBlindStatusCodes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -132,7 +131,7 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
     }
 
     @Override
-    public Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId) {
+    public Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId, String status) {
         ReviewBlindNoticeResult notice = queryFactory
             .select(Projections.constructor(ReviewBlindNoticeResult.class,
                 reviewJpaEntity.id,
@@ -151,7 +150,7 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
             .leftJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reviewBlindRequestJpaEntity.shopId))
             .where(
                 reviewBlindRequestJpaEntity.reviewId.eq(reviewId),
-                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatusCodes.APPROVED)
+                reviewBlindRequestJpaEntity.status.eq(status)
             )
             .orderBy(reviewBlindRequestJpaEntity.id.desc())
             .fetchFirst();

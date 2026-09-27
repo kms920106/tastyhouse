@@ -16,12 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.GeoPointCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.service.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.shop.port.out.GeoPointView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBlockedView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaPolygonPreviewResult;
@@ -57,7 +60,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
     @Override
     public ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId) {
         ShopLocationResult shopLocation =
-            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
+            ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
         ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryPort.findPolygon(shopId).orElse(null);
 
         if (stored == null) {
@@ -72,13 +76,15 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         }
 
         List<GeoRing> storedRings = GeoPolygonTextCodec.decodeRings(stored.rings());
-        GeoPolygon polygon = storedRings.isEmpty() ? null : GeoPolygon.of(storedRings);
+        List<List<GeoPointView>> ringViews = storedRings.isEmpty()
+            ? List.of()
+            : ShopDeliveryAreaGeoMapper.toRingViews(GeoPolygon.of(storedRings));
         GeoPoint storedCenter = GeoPoint.of(stored.centerLatitude(), stored.centerLongitude());
         GeoPoint currentLocation = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
         return new ShopDeliveryAreaPolygonViewResult(
             true,
-            ShopDeliveryAreaGeoMapper.toRingViews(polygon),
+            ringViews,
             stored.centerLatitude(),
             stored.centerLongitude(),
             shopLocation.latitude(),
@@ -101,7 +107,8 @@ public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPoly
         List<List<GeoPointCommand>> rings
     ) {
         ShopLocationResult shopLocation =
-            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
+            ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
         GeoPolygon polygon = ShopDeliveryAreaGeoMapper.toPolygon(rings);
         ShopDeliveryAreaPolicy.validateShape(polygon);
 

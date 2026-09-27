@@ -89,8 +89,7 @@ class AdminDongSchedulerServiceTest {
 
         service.synchronizeAdminDongs();
 
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<AdminDong>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<AdminDong>> captor = ArgumentCaptor.captor();
         verify(syncExecutor).synchronizeInTx(captor.capture());
         List<AdminDong> synced = captor.getValue();
         assertThat(synced).hasSize(1);

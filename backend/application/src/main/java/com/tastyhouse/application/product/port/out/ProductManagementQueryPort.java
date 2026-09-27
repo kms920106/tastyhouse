@@ -16,7 +16,7 @@ public interface ProductManagementQueryPort {
 
     PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(String status, PageQuery pageQuery);
 
-    ProductOptionsResult findProductOptions(Long productId);
+    ProductOptionsResult findProductOptions(Long productId, String commonOptionGroupType);
 
     List<String> findProductImageUrls(Long productId);
 

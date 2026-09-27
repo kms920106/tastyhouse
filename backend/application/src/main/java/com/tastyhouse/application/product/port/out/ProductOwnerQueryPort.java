@@ -23,7 +23,11 @@ public interface ProductOwnerQueryPort {
 
     List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition);
 
-    List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(ProductAvailabilitySearchCondition condition);
+    List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(
+        ProductAvailabilitySearchCondition condition,
+        String normalOptionType,
+        String commonOptionType
+    );
 
     List<ProductImageManagementResult> findProductImagesForManagement(Long productId);
 

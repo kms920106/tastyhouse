@@ -27,6 +27,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindReasonView;
+import com.tastyhouse.application.review.port.out.ReviewSortSpec;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewCategoryAverageResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingOwnerQueryPort;
@@ -41,6 +42,7 @@ import com.tastyhouse.application.review.port.out.ShopReviewReplyWindow;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
+import com.tastyhouse.application.review.port.out.ShopReviewTabFilter;
 
 @Service
 @CeoApp
@@ -91,7 +93,7 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         validateDateRange(startDate, endDate);
 
-        String tabFilter = tab == null ? ReviewListTab.ALL.name() : ReviewListTab.from(tab).name();
+        ShopReviewTabFilter tabFilter = ShopReviewTabFilters.of(tab == null ? ReviewListTab.ALL : ReviewListTab.from(tab));
         String orderMethodFilter = orderMethod == null ? null : OrderMethod.from(orderMethod).name();
 
         ShopReviewManagementSearchCondition condition = ShopReviewManagementSearchCondition.of(
@@ -232,12 +234,14 @@ public class ShopReviewQueryService implements ShopReviewQueryUseCase {
         return value == null ? null : Math.round(value * 10) / 10.0;
     }
 
-    private String resolveSortType(Long shopId, String sortType) {
+    private ReviewSortSpec resolveSortType(Long shopId, String sortType) {
         if (sortType != null) {
-            return ReviewSortType.from(sortType).name();
+            return ReviewSortSpecs.of(ReviewSortType.from(sortType));
         }
-        return shopReviewDisplaySettingOwnerQueryPort.findSortTypeByShopId(shopId)
-            .orElse(ReviewSortType.LATEST.name());
+        ReviewSortType storedSortType = shopReviewDisplaySettingOwnerQueryPort.findSortTypeByShopId(shopId)
+            .map(ReviewSortType::valueOf)
+            .orElse(ReviewSortType.LATEST);
+        return ReviewSortSpecs.of(storedSortType);
     }
 
     private static String orderMethodDisplayName(String orderMethod) {

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
@@ -30,7 +31,7 @@ public class MemberQueryService implements MemberQueryUseCase {
 
     @Override
     public boolean checkPhoneAvailability(String phoneNumber) {
-        return !memberQueryPort.existsByActivePhoneNumber(phoneNumber);
+        return !memberQueryPort.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED.name());
     }
 
     @Override

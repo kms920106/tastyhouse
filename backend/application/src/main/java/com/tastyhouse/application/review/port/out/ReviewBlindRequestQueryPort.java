@@ -4,5 +4,5 @@ import java.util.Optional;
 
 public interface ReviewBlindRequestQueryPort {
 
-    Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId);
+    Optional<ReviewBlindNoticeResult> findBlindNotice(Long reviewId, String status);
 }

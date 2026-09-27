@@ -124,7 +124,7 @@ application ─┬→ domain (implementation)   ← 공유 읽기 계약 55개�
 ── 공유 모듈 ──
 infrastructure:persistence ──→ application (implementation) ← QueryDao가 {Ctx}QueryPort를, XxxStatePortImpl이 XxxStatePort를 구현
    ※ (번복됨 — 덩어리 03b) 과거의 `─┬→ domain (api)` 간선은 삭제됐다. persistence는 application의 port.out
-     (읽기 계약·XxxState·XxxStatePort·XxxCodes)만 보고 domain을 모른다 — 도메인 모델 ↔ State 변환은
+     (읽기 계약·XxxState·XxxStatePort·스펙 record)만 보고 domain을 모른다 — 도메인 모델 ↔ State 변환은
      application/<ctx>/store/의 XxxStore가 한다. LayerRulesTest#infrastructureShouldNotDependOnDomain이 2차 방어선
 infrastructure:redis ──→ security-core (implementation)     ← 토큰 저장소 포트 6종(챕터 01) + RateLimitCounterPort를 구현하는 어댑터
    ← 연결·템플릿 자체는 domain에 포트가 없는 순수 기술이라 domain을 모른다. 어댑터가 구현하는 계약의

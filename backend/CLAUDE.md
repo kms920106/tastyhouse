@@ -593,7 +593,7 @@ reference 구현 **(03b 이전 시점 기록 — `IdMapping`·`AmountConverter`�
 | application이 다시 enum이 필요할 때 | — | `DayType.valueOf(...)`처럼 **서비스가 승격**한다 |
 | ArchUnit | `apiModuleShouldOnlyReadDomainEnums`(accessor 3종 허용) | **삭제**(대상 소멸). `apiModuleShouldBeDomainModelFree`가 carve-out 없이 `com.tastyhouse.domain..` 전면 금지 |
 | **(03b)** 읽기 계약 입력(`*SearchCondition`·`{Ctx}QueryPort` 파라미터)의 enum | 도메인 enum 허용(`readContractsShouldBeFrameworkFree`가 `domain` 참조 허용) | **`String`**. QueryService가 조건을 만들 때 `XxxType.from(s).name()`으로 검증·강등하고, ID는 `XxxId.of(id).value()`로 검증 후 `Long`을 넘긴다. `port.out` 전체가 domain-free(`readContractsShouldBeFrameworkFree`의 domain 허용 제거) |
-| **(03b)** DAO가 enum 상수와 비교할 때 | `.eq(OrderStatus.COMPLETED)` | `.eq(OrderStatusCodes.COMPLETED)` — `application/<ctx>/port/out/XxxCodes`(공용은 `application/shared/port/out/`의 `ApprovalStatusCodes`·`DayTypeCodes`)의 문자열 상수. 리터럴을 흩뿌리지 않는다. `EnumCodeConstantsTest#codesMatchDomainEnums`가 도메인 enum 상수명과 1:1·값 = 상수명을 스캔으로 검사한다 |
+| **(03b)** DAO가 enum 상수와 비교할 때 | `.eq(OrderStatus.COMPLETED)` | `.eq(status)` — **비교값을 포트 인자로 받는다.** application(Store·QueryService)이 도메인 enum의 `name()`으로 넘기고(예: `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED.name())`), 쿼리 모양이 바뀌는 분기는 스펙 record(`ReviewSortSpec`·`ShopReviewTabFilter`·`ProductExposureWindow`), 요청과 무관한 고정값은 기존 정책 record(`ShopDeliveryTipRangePolicy`)로 넘긴다. persistence에 enum 리터럴·복제 상수를 두지 않는다. ~~`application/<ctx>/port/out/XxxCodes` 문자열 상수~~ **(번복됨)** 복제본은 도메인 enum과 두 벌이 되고 미사용 상수 경고를 `@SuppressWarnings`로 억제해야 했으며(아래 [`@SuppressWarnings` 지양 규칙](#suppresswarnings-지양-규칙)), 판매 완료·탈퇴 제외 같은 도메인 정책을 persistence에 박았다. `EnumCodeConstantsTest#portOutShouldNotMirrorDomainEnums`가 `port.out`에 복제본이 다시 생기는 것을 막는다(허용 `PgProviderCode`). 상세 `application/AGENTS.md` "enum 비교값 전달 규칙" |
 
 **함정 — Object 타입 API는 enum→String 전환을 조용히 삼킵니다**: `Map<OrderMethod, ...>.get(dto.orderMethod())`는 `Map.get(Object)`라 필드가 `String`이 된 뒤에도 컴파일되지만 항상 `null`을 돌려줍니다(검증 중 `ShopQueryService`의 주문 방식 조회에서 실제 발견). `Map.get`/`containsKey`·`equals`·`Collection.contains`·AssertJ `isEqualTo`가 전부 같은 부류이므로, Result의 문자열을 도메인 enum과 비교·조회할 때는 **먼저 `valueOf`로 승격**합니다. 상세는 `application/AGENTS.md`.
 
@@ -639,9 +639,9 @@ reference 구현: `banner` 도메인 — `BannerType.from(String)`, `BannerServi
 > | `@Column` | `length = n, columnDefinition = "VARCHAR(n)"` | **한 글자도 바꾸지 않고 유지** |
 > | 저장값 | enum 상수명(`EnumType.STRING`) | enum 상수명 문자열 — **값은 동일**. `name()`으로의 강등은 `application/<ctx>/store/XxxStateMapper#toState`가, `valueOf`로의 승격은 `#toDomain`이 한다 |
 > | DB 컬럼 / DDL | `VARCHAR(n)` + 허용값 주석 | 불변 |
-> | DAO의 상수 비교 | `.eq(OrderStatus.COMPLETED)` | `.eq(OrderStatusCodes.COMPLETED)` — `application/<ctx>/port/out/XxxCodes` 문자열 상수(위 [도메인 enum 경계 규칙](#도메인-enum-경계-규칙)) |
+> | DAO의 상수 비교 | `.eq(OrderStatus.COMPLETED)` | `.eq(status)` — 비교값은 application이 도메인 enum `name()`으로 포트 인자에 넘긴다(위 [도메인 enum 경계 규칙](#도메인-enum-경계-규칙)) |
 >
-> - **ORDINAL 금지 취지는 "상수명 문자열 저장"으로 승계된다.** 선언 순서가 아니라 상수 이름을 저장해야 상수 추가·재배열이 기존 데이터 의미를 바꾸지 않는다는 근거는 그대로다. 이제 그 규칙을 `@Enumerated`가 아니라 StateMapper(`name()`/`valueOf`)와 `XxxCodes` 상수(값 = 상수명, `EnumCodeConstantsTest`가 검사)가 지킨다. **엔티티 `String` 필드에 `ordinal()`이나 표시 문구(`getDescription()`)를 넣지 않는다.**
+> - **ORDINAL 금지 취지는 "상수명 문자열 저장"으로 승계된다.** 선언 순서가 아니라 상수 이름을 저장해야 상수 추가·재배열이 기존 데이터 의미를 바꾸지 않는다는 근거는 그대로다. 이제 그 규칙을 `@Enumerated`가 아니라 StateMapper(`name()`/`valueOf`)와, 비교값을 도메인 enum `name()`으로 만들어 포트 인자로 넘기는 application이 지킨다. **엔티티 `String` 필드에 `ordinal()`이나 표시 문구(`getDescription()`)를 넣지 않는다.**
 > - **`columnDefinition`은 이제 필수가 아니지만 유지한다.** 아래 "왜 필수인가"는 Hibernate가 **enum** 필드를 네이티브 `ENUM(...)`으로 기대하는 문제였다. 필드가 `String`이면 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`을 빼도 `ddl-auto: validate`는 통과한다. 그래도 지우지 않는 이유는 (1) 03b의 불변식이 "엔티티 `@Column`을 글자 하나 바꾸지 않는다"였고, (2) `n`이 `schema.sql`의 길이를 문서화하는 유일한 자리이며, (3) 누군가 필드를 enum으로 되돌리면(persistence에서는 domain을 못 봐서 불가능하지만) 즉시 원래 장애가 재발하기 때문이다. **새 문자열-코드 컬럼도 `length = n, columnDefinition = "VARCHAR(n)"`을 병기한다.**
 > - **아래 본문은 03b 이전 시점의 기록이다.** "엔티티 표준 형태"의 `@Enumerated(EnumType.STRING)` + enum 필드 예시는 지금 `@Column(name = "category", length = 20, columnDefinition = "VARCHAR(20)") private String category;`로 읽는다(현행 reference: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/bug/persistence/BugReportJpaEntity.java` → `category`). DDL 표준 형태·`n` 결정 기준·`ddl-auto=validate`를 낮추지 않는다는 규칙은 그대로 유효하다.
 
@@ -1041,6 +1041,21 @@ import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
 - Spring Java Format checkstyle 설정: https://github.com/spring-io/spring-javaformat/blob/main/spring-javaformat/spring-javaformat-checkstyle/src/main/resources/io/spring/javaformat/checkstyle/spring-checkstyle.xml
 - Checkstyle `ImportOrder` 규칙 문서: https://checkstyle.sourceforge.io/checks/imports/importorder.html
 
+### `@SuppressWarnings` 지양 규칙
+
+**IDE·컴파일러 경고는 `@SuppressWarnings`로 가리지 않고 원인을 고칩니다.** 억제 어노테이션은 경고가 가리키던 사실(미사용·미배선·타입 불안전)을 코드에서 지워 버려, 나중에 그 상태가 바뀌어도 아무도 알아채지 못하게 합니다. 새 코드에는 붙이지 않고, 기존 코드를 고칠 때도 되살리지 않습니다.
+
+| 경고 | before (억제) | after (원인 해소) — 이 규칙 도입 때 실제로 바꾼 곳 |
+|---|---|---|
+| 미사용 상수 (`unused`) | `XxxCodes` 문자열 상수 클래스(도메인 enum 복제본)에 `@SuppressWarnings("unused")` | 복제본 13개를 삭제하고, persistence가 비교할 값은 application이 도메인 enum `name()`으로 포트 인자에 넘긴다(위 [도메인 enum 경계 규칙](#도메인-enum-경계-규칙)) |
+| 호출부 없는 스케줄러 (`unused`) | `batch-module/.../ProductScheduler`에 억제 2개 | `@Scheduled(cron = "${product.option-crawl.cron:-}")` — 기본값 `-`는 Spring의 비활성 cron이라 **동작은 그대로**(자동 실행 안 됨), 켤 때는 프로퍼티만 준다 |
+| 주입되지 않은 빈 (`unused`) | `logging-module/.../SensitiveFieldMasker`에 억제 | `ApiLoggingAspect`에 주입해 `[BODY]` 로그를 마스킹 (**동작 변경** — 로그 형식이 record `toString()`에서 마스킹된 JSON으로 바뀜) |
+| 제네릭 캡처 (`unchecked`) | `ArgumentCaptor.forClass(List.class)` + 억제 | `ArgumentCaptor.captor()` (Mockito 5.x) |
+| 항상 같은 인자 (`SameParameterValue`) | 테스트 fake 헬퍼에 억제 | 항상 같던 파라미터를 없애고 헬퍼 이름에 의미를 담음(`registerInGangnam(dongName)`) |
+
+- **억제 말고는 방법이 없을 때**만 쓰고, 그 이유를 그 코드를 소유한 모듈의 `AGENTS.md` 봉인 항목에 적습니다(주석 금지 규칙 때문에 코드에 이유를 쓸 수 없습니다). 이 규칙 도입 시점에 남아 있는 9곳(`application/.../crawling/bbq/BbqService`, `infrastructure/redis/.../RedisRateLimitCounter`, `infrastructure/admdongkor/.../BoundedInputStream`, `infrastructure/persistence/.../ProductQueryDao`, 테스트 5곳)은 아직 정리하지 않은 대상입니다 — 일부는 각 모듈 `AGENTS.md`에 근거가 적혀 있으니, 정리할 때는 그 봉인 항목을 먼저 읽고 함께 고칩니다.
+- `@SuppressWarnings`는 주석이 아니라 어노테이션이므로 [주석이 아닌 것](#주석이-아닌-것--함께-지우지-않는다) 표에 그대로 남아 있습니다. "지양"은 주석 금지와 별개의 규칙입니다.
+
 ### 미사용 import 제거 규칙 (파일을 건드리면 그 파일의 미사용 import까지 정리)
 
 **AI가 Java 파일을 수정할 때 리네이밍·삭제·리팩터링으로 더 이상 쓰이지 않게 된 import를 남겨두는 사고가 반복됩니다.** 메서드를 지우거나 타입을 바꿔치기하면서 그 메서드/타입이 쓰던 import를 정리하지 않고 넘어가는 경우가 대부분입니다. import 정리는 별도 작업으로 미루지 말고, **그 파일을 수정하는 바로 그 편집의 일부**로 취급합니다.
@@ -1274,7 +1289,7 @@ reference 구현: `web-api/src/test/.../architecture/LayerRulesTest`(및 `admin-
 **`infrastructure:persistence`에도 ArchUnit 계층 방향 규칙을 둔다.** 그동안 이 모듈에는 ArchUnit 의존 자체가 없었고, 기존 가드 2종(`QueryResultRecordVisibilityTest`·`EmbeddedRecordComponentOrderTest`)은 수제 리플렉션 클래스패스 스캔으로 **런타임 규약**(record 가시성·`@Embedded` 컴포넌트 순서)만 지키고 있어, 계층 방향 규칙을 둘 곳이 없었다. **기존 가드 2종은 그대로 둔다** — 스캔 방식이 이미 잘 동작하므로 ArchUnit으로 재작성하지 않고, 새 테스트에는 그 방식으로 표현할 수 없는 방향 규칙만 둔다.
 
 - **`shouldNotDependOnApiModules` (개정 — 챕터 03 이후 예외 범위 확대)** — infra는 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..`뿐 아니라 **`com.tastyhouse.application..` 전체**를 의존하지 않는다. 과거(챕터 03까지)는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`) 4개를 개별 열거했으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지 자체가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 `..port.out..`(이 모듈이 구현해야 하는 아웃바운드 계약)만 예외로 뺐다(`.and(not(resideInAPackage("com.tastyhouse.application..port.out..")))`) — infra는 application의 서비스·UseCase는 절대 의존하지 않지만, 자신이 구현하는 포트 인터페이스와 그 입출력 타입(`{Ctx}QueryPort`·Result·SearchCondition)은 정당하게 참조해야 하기 때문이다. 빌드 그래프상 이미 막혀 있지만(infra는 api 모듈을 의존하지 않음) 테스트로 명시해 향후 의존 추가 시 즉시 드러나게 한다. `..listener..`의 api 모듈 의존 금지도 이 규칙이 함께 커버한다(`@TransactionalEventListener` 규약 자체는 강제하지 않는다).
-- **`infrastructureShouldNotDependOnDomain` (신설 — 덩어리 03b)** — 이 모듈의 어떤 클래스도 `com.tastyhouse.domain..`을 의존하지 않는다. 엄격 레이어드의 persistence 쪽 게이트다. `build.gradle`에서 `:domain`을 뺐으므로 빌드 그래프가 1차로 막고, 이 규칙은 누군가 의존을 되돌리는 회귀를 잡는 2차 방어선이다. 위 `shouldNotDependOnApiModules`의 `..port.out..` 예외와 합쳐 보면 **persistence가 볼 수 있는 자사 타입은 `com.tastyhouse.application..port.out..`(읽기 계약·`XxxState`·`XxxStatePort`·`XxxCodes`)과 자기 자신뿐**이다 — 그래서 `application/<ctx>/store/`(도메인 타입 리포지토리·Store)는 persistence가 볼 수 없는 패키지에 둔다.
+- **`infrastructureShouldNotDependOnDomain` (신설 — 덩어리 03b)** — 이 모듈의 어떤 클래스도 `com.tastyhouse.domain..`을 의존하지 않는다. 엄격 레이어드의 persistence 쪽 게이트다. `build.gradle`에서 `:domain`을 뺐으므로 빌드 그래프가 1차로 막고, 이 규칙은 누군가 의존을 되돌리는 회귀를 잡는 2차 방어선이다. 위 `shouldNotDependOnApiModules`의 `..port.out..` 예외와 합쳐 보면 **persistence가 볼 수 있는 자사 타입은 `com.tastyhouse.application..port.out..`(읽기 계약·`XxxState`·`XxxStatePort`·스펙 record)과 자기 자신뿐**이다 — 그래서 `application/<ctx>/store/`(도메인 타입 리포지토리·Store)는 persistence가 볼 수 없는 패키지에 둔다.
 - **`persistenceShouldNotDependOnQuery`** — read→write 단방향. **반대 방향(`..query..` → `..persistence..`)은 정상**이다(DAO가 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태). 금지하는 것은 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
 - **봉인 목록 3건**: 도입 시점 위반은 전부 **도메인 출력 포트 어댑터**다(`ProductReviewStatisticsAdapter`·`MemberReviewCountAdapter`·`KeywordCountAdapter`). 도메인이 선언한 포트를 구현하면서 그 데이터의 소유 도메인이 이미 가진 read model을 재사용하는 형태로(예: 랭킹 집계용 리뷰 수는 리뷰 도메인 소유라 `review/query/`에 있고 랭킹 포트 어댑터가 도메인 값 타입으로 옮겨 담는다), write 경로가 아니라 **포트 구현**이라 위 위험에 해당하지 않지만 패키지 위치(`..persistence..`)가 규칙 표현과 어긋나 잡힌다. `ErrorCodeConventionTest`·`ContextBoundaryTest` 선례대로 클래스명으로 명시 제외하며 **목록은 줄어들기만 해야 한다** — 새 항목 추가는 새 위반을 승인하는 것이다. 짝 테스트 `sealedPersistenceToQueryShouldNotBeStale`(더 이상 위반하지 않는 낡은 항목 검출)·`sealedPersistenceToQueryListShouldNotBeEmpty`(전부 해소되면 봉인 장치 제거 지시)가 함께 붙는다. **(03b 재판정)** 세 어댑터는 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채우게 됐을 뿐 여전히 `..query..`의 DAO를 부르므로 **3건 모두 유지**한다.
 - **`allowEmptyShould(true)`를 쓰지 않는다** — api 모듈 4개와 동일하게 공허 통과를 허용하지 않는다.

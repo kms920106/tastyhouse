@@ -7,5 +7,5 @@ public interface SmsVerificationStatePort {
 
     Optional<SmsVerificationState> findLatestPendingByPhoneNumber(String phoneNumber, String status);
 
-    void expireAllPendingByPhoneNumber(String phoneNumber);
+    void changeStatusByPhoneNumber(String phoneNumber, String fromStatus, String toStatus);
 }

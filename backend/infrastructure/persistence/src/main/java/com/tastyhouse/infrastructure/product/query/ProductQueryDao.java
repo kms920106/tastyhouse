@@ -17,6 +17,7 @@ import com.tastyhouse.application.product.port.out.ProductCategoryManagementResu
 import com.tastyhouse.application.product.port.out.ProductCategoryResult;
 import com.tastyhouse.application.product.port.out.ProductDetailResult;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
+import com.tastyhouse.application.product.port.out.ProductExposureWindow;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductImageManagementResult;
 import com.tastyhouse.application.product.port.out.ProductListItemResult;
@@ -37,12 +38,9 @@ import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResul
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
-import com.tastyhouse.application.order.port.out.OrderStatusCodes;
-import com.tastyhouse.application.product.port.out.ProductOptionGroupTypeCodes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,7 +68,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.application.shared.port.out.DayTypeCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -122,8 +119,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         subOptionGroupLink =
         new com.tastyhouse.infrastructure.product.persistence.QProductOptionGroupLinkJpaEntity("subOptionGroupLink");
 
-    private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
-
     private static final int POPULAR_PRODUCT_LIMIT = 5;
 
     private static final long POPULAR_PRODUCT_WINDOW_DAYS = 30L;
@@ -166,8 +161,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     }
 
     @Override
-    public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery) {
-        LocalDateTime now = nowInServiceZone();
+    public PageResult<TodayDiscountProductResult> findTodayDiscountProducts(
+        ProductExposureWindow window,
+        PageQuery pageQuery
+    ) {
         JPAQuery<TodayDiscountProductResult> query = queryFactory
             .select(Projections.constructor(TodayDiscountProductResult.class,
                 productJpaEntity.id,
@@ -182,10 +179,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .innerJoin(shopJpaEntity).on(productJpaEntity.shopId.eq(shopJpaEntity.id))
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-            .where(todayDiscountSearchable(now))
+            .where(todayDiscountSearchable(window))
             .orderBy(productJpaEntity.discountInfo.discountRate.desc());
 
-        long total = countTodayDiscountProducts(now);
+        long total = countTodayDiscountProducts(window);
 
         List<TodayDiscountProductResult> products = query
             .offset((long) pageQuery.page() * pageQuery.size())
@@ -195,26 +192,30 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         return PageResult.of(products, total, pageQuery.page(), pageQuery.size());
     }
 
-    private long countTodayDiscountProducts(LocalDateTime now) {
+    private long countTodayDiscountProducts(ProductExposureWindow window) {
         Long total = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
             .innerJoin(shopJpaEntity).on(productJpaEntity.shopId.eq(shopJpaEntity.id))
-            .where(todayDiscountSearchable(now))
+            .where(todayDiscountSearchable(window))
             .fetchOne();
 
         return total == null ? 0L : total;
     }
 
     @Override
-    public PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery) {
+    public PageResult<SearchProductItemResult> searchByKeyword(
+        String keyword,
+        ProductExposureWindow window,
+        PageQuery pageQuery
+    ) {
         BooleanExpression searchable = productJpaEntity.name.containsIgnoreCase(keyword)
             .and(productJpaEntity.visible.eq(true))
             .and(notDeleted())
             .and(productJpaEntity.soldOut.eq(false))
             .and(shopJpaEntity.permanentlyClosed.eq(false))
             .and(shopJpaEntity.hidden.eq(false))
-            .and(exposedNow(nowInServiceZone()));
+            .and(exposedNow(window));
 
         Long total = queryFactory
             .select(productJpaEntity.count())
@@ -255,10 +256,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     }
 
     @Override
-    public ProductOptionsResult findProductOptions(Long productId) {
+    public ProductOptionsResult findProductOptions(Long productId, String commonOptionGroupType) {
         List<OptionGroupResult> result = new ArrayList<>();
         result.addAll(findNormalOptionGroups(productId));
-        result.addAll(findCommonOptionGroups(productId));
+        result.addAll(findCommonOptionGroups(productId, commonOptionGroupType));
         return new ProductOptionsResult(result);
     }
 
@@ -333,13 +334,13 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 tuple.get(productOptionGroupJpaEntity.minSelect),
                 tuple.get(productOptionGroupJpaEntity.maxSelect),
                 false,
-                groupTypeNameOf(tuple.get(productOptionGroupJpaEntity.groupType)),
+                tuple.get(productOptionGroupJpaEntity.groupType),
                 optionsByGroupId.getOrDefault(tuple.get(productOptionGroupJpaEntity.id), Collections.emptyList())
             ))
             .toList();
     }
 
-    private List<OptionGroupResult> findCommonOptionGroups(Long productId) {
+    private List<OptionGroupResult> findCommonOptionGroups(Long productId, String commonOptionGroupType) {
         List<Tuple> groups = queryFactory
             .select(
                 productCommonOptionGroupJpaEntity.id,
@@ -410,7 +411,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 tuple.get(productCommonOptionGroupJpaEntity.minSelect),
                 tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
                 true,
-                ProductOptionGroupTypeCodes.NORMAL,
+                commonOptionGroupType,
                 optionsByGroupId.getOrDefault(tuple.get(productCommonOptionGroupJpaEntity.id), Collections.emptyList())
             ))
             .toList();
@@ -642,7 +643,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     }
 
     @Override
-    public List<ShopProductItemResult> findShopProducts(Long shopId) {
+    public List<ShopProductItemResult> findShopProducts(Long shopId, ProductExposureWindow window) {
         return queryFactory
             .select(Projections.constructor(ShopProductItemResult.class,
                 productJpaEntity.id,
@@ -663,7 +664,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(productShopLinkJpaEntity.shopId.eq(shopId), productJpaEntity.visible.eq(true), notDeleted(),
-                exposedNow(nowInServiceZone()))
+                exposedNow(window))
             .orderBy(
                 productJpaEntity.representative.desc(),
                 productJpaEntity.rating.desc(),
@@ -1008,7 +1009,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                     tuple.get(productOptionGroupJpaEntity.maxSelect),
                     tuple.get(productOptionGroupLinkJpaEntity.sort),
                     Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.visible)),
-                    groupTypeNameOf(tuple.get(productOptionGroupJpaEntity.groupType)),
+                    tuple.get(productOptionGroupJpaEntity.groupType),
                     linkedCount != null ? linkedCount : 0L,
                     optionsByGroupId.getOrDefault(groupId, List.of())
                 );
@@ -1129,10 +1130,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .fetch());
     }
 
-    private static String groupTypeNameOf(String groupType) {
-        return groupType == null ? ProductOptionGroupTypeCodes.NORMAL : groupType;
-    }
-
     private static Long toLong(Object value) {
         return value == null ? null : ((Number) value).longValue();
     }
@@ -1194,16 +1191,19 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     @Override
     public List<ProductOptionAvailabilityGroupResult> findProductOptionAvailability(
-        ProductAvailabilitySearchCondition condition
+        ProductAvailabilitySearchCondition condition,
+        String normalOptionType,
+        String commonOptionType
     ) {
         List<ProductOptionAvailabilityGroupResult> result = new ArrayList<>();
-        result.addAll(findNormalOptionGroupsForAvailability(condition));
-        result.addAll(findCommonOptionGroupsForAvailability(condition));
+        result.addAll(findNormalOptionGroupsForAvailability(condition, normalOptionType));
+        result.addAll(findCommonOptionGroupsForAvailability(condition, commonOptionType));
         return result;
     }
 
     private List<ProductOptionAvailabilityGroupResult> findNormalOptionGroupsForAvailability(
-        ProductAvailabilitySearchCondition condition
+        ProductAvailabilitySearchCondition condition,
+        String normalOptionType
     ) {
         List<Long> groupIds = queryFactory
             .selectDistinct(productOptionGroupJpaEntity.id)
@@ -1251,14 +1251,14 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         }
 
         Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
-            findNormalOptionsForAvailability(groupIds, condition);
+            findNormalOptionsForAvailability(groupIds, condition, normalOptionType);
 
         return groupById.values().stream()
             .map(tuple -> {
                 Long groupId = tuple.get(productOptionGroupJpaEntity.id);
                 return new ProductOptionAvailabilityGroupResult(
                     groupId,
-                    "NORMAL",
+                    normalOptionType,
                     tuple.get(productOptionGroupJpaEntity.name),
                     Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
                     tuple.get(productOptionGroupJpaEntity.minSelect),
@@ -1273,7 +1273,8 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     private Map<Long, List<ProductOptionAvailabilityItemResult>> findNormalOptionsForAvailability(
         List<Long> groupIds,
-        ProductAvailabilitySearchCondition condition
+        ProductAvailabilitySearchCondition condition,
+        String normalOptionType
     ) {
         NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
         return queryFactory
@@ -1303,7 +1304,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 Collectors.mapping(
                     tuple -> new ProductOptionAvailabilityItemResult(
                         tuple.get(productOptionJpaEntity.id),
-                        "NORMAL",
+                        normalOptionType,
                         tuple.get(productOptionJpaEntity.name),
                         tuple.get(productOptionJpaEntity.additionalPrice),
                         Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
@@ -1317,7 +1318,8 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     }
 
     private List<ProductOptionAvailabilityGroupResult> findCommonOptionGroupsForAvailability(
-        ProductAvailabilitySearchCondition condition
+        ProductAvailabilitySearchCondition condition,
+        String commonOptionType
     ) {
         List<Long> groupIds = queryFactory
             .selectDistinct(productCommonOptionGroupJpaEntity.id)
@@ -1367,14 +1369,14 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
         }
 
         Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
-            findCommonOptionsForAvailability(groupIds, condition);
+            findCommonOptionsForAvailability(groupIds, condition, commonOptionType);
 
         return groupById.values().stream()
             .map(tuple -> {
                 Long groupId = tuple.get(productCommonOptionGroupJpaEntity.id);
                 return new ProductOptionAvailabilityGroupResult(
                     groupId,
-                    "COMMON",
+                    commonOptionType,
                     tuple.get(productCommonOptionGroupJpaEntity.name),
                     Boolean.TRUE.equals(tuple.get(productCommonOptionGroupJpaEntity.required)),
                     tuple.get(productCommonOptionGroupJpaEntity.minSelect),
@@ -1389,7 +1391,8 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     private Map<Long, List<ProductOptionAvailabilityItemResult>> findCommonOptionsForAvailability(
         List<Long> groupIds,
-        ProductAvailabilitySearchCondition condition
+        ProductAvailabilitySearchCondition condition,
+        String commonOptionType
     ) {
         NumberExpression<Long> commonOptionGroupId = productCommonOptionJpaEntity.optionGroupId;
         return queryFactory
@@ -1419,7 +1422,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 Collectors.mapping(
                     tuple -> new ProductOptionAvailabilityItemResult(
                         tuple.get(productCommonOptionJpaEntity.id),
-                        "COMMON",
+                        commonOptionType,
                         tuple.get(productCommonOptionJpaEntity.name),
                         tuple.get(productCommonOptionJpaEntity.additionalPrice),
                         Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut)),
@@ -1559,14 +1562,18 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
     }
 
     @Override
-    public List<PopularProductItemResult> findPopularProducts(Long shopId) {
-        LocalDateTime now = nowInServiceZone();
+    public List<PopularProductItemResult> findPopularProducts(
+        Long shopId,
+        String soldOrderStatus,
+        ProductExposureWindow window
+    ) {
+        LocalDateTime now = window.now();
 
-        List<PopularProductItemResult> representatives = popularProductProjection()
+        List<PopularProductItemResult> representatives = popularProductProjection(now, soldOrderStatus)
             .where(
                 productJpaEntity.shopId.eq(shopId),
                 productJpaEntity.representative.isTrue(),
-                orderableNow(now)
+                orderableNow(window)
             )
             .orderBy(productJpaEntity.rating.desc(), productJpaEntity.id.asc())
             .limit(POPULAR_PRODUCT_LIMIT)
@@ -1582,14 +1589,14 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .map(PopularProductItemResult::id)
             .collect(Collectors.toSet());
 
-        List<PopularProductItemResult> popular = popularProductProjection()
+        List<PopularProductItemResult> popular = popularProductProjection(now, soldOrderStatus)
             .where(
                 productJpaEntity.shopId.eq(shopId),
-                orderableNow(now),
+                orderableNow(window),
                 filledIds.isEmpty() ? null : productJpaEntity.id.notIn(filledIds),
-                soldQuantityOf(shopId, now).gt(0L)
+                soldQuantityOf(shopId, now, soldOrderStatus).gt(0L)
             )
-            .orderBy(soldQuantityOf(shopId, now).desc(), productJpaEntity.id.asc())
+            .orderBy(soldQuantityOf(shopId, now, soldOrderStatus).desc(), productJpaEntity.id.asc())
             .limit(remaining)
             .fetch();
 
@@ -1694,7 +1701,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id));
     }
 
-    private com.querydsl.jpa.JPQLQuery<PopularProductItemResult> popularProductProjection() {
+    private com.querydsl.jpa.JPQLQuery<PopularProductItemResult> popularProductProjection(
+        LocalDateTime now,
+        String soldOrderStatus
+    ) {
         return queryFactory
             .select(Projections.constructor(PopularProductItemResult.class,
                 productJpaEntity.id,
@@ -1707,7 +1717,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.reviewCount,
                 productJpaEntity.representative,
                 productJpaEntity.spiciness,
-                soldQuantityOf(productJpaEntity.shopId, nowInServiceZone())
+                soldQuantityOf(productJpaEntity.shopId, now, soldOrderStatus)
             ))
             .from(productJpaEntity)
             .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
@@ -1716,7 +1726,8 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
 
     private NumberExpression<Long> soldQuantityOf(
         com.querydsl.core.types.Expression<Long> shopIdExpression,
-        LocalDateTime now
+        LocalDateTime now,
+        String soldOrderStatus
     ) {
         return com.querydsl.core.types.dsl.Expressions.numberTemplate(
             Long.class,
@@ -1728,21 +1739,21 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 .where(
                     orderProductJpaEntity.productId.eq(productJpaEntity.id),
                     orderJpaEntity.shopId.eq(shopIdExpression),
-                    orderJpaEntity.orderStatus.stringValue().eq(OrderStatusCodes.COMPLETED),
+                    orderJpaEntity.orderStatus.stringValue().eq(soldOrderStatus),
                     orderJpaEntity.createdAt.goe(now.minusDays(POPULAR_PRODUCT_WINDOW_DAYS))
                 )
         ).coalesce(0L);
     }
 
-    private NumberExpression<Long> soldQuantityOf(Long shopId, LocalDateTime now) {
-        return soldQuantityOf(com.querydsl.core.types.dsl.Expressions.constant(shopId), now);
+    private NumberExpression<Long> soldQuantityOf(Long shopId, LocalDateTime now, String soldOrderStatus) {
+        return soldQuantityOf(com.querydsl.core.types.dsl.Expressions.constant(shopId), now, soldOrderStatus);
     }
 
-    private BooleanExpression orderableNow(LocalDateTime now) {
+    private BooleanExpression orderableNow(ProductExposureWindow window) {
         return productJpaEntity.visible.isTrue()
             .and(productJpaEntity.soldOut.isFalse())
             .and(notDeleted())
-            .and(exposedNow(now));
+            .and(exposedNow(window));
     }
 
     @Override
@@ -1804,18 +1815,15 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             ));
     }
 
-    private LocalDateTime nowInServiceZone() {
-        return LocalDateTime.now(SERVICE_ZONE);
-    }
-
-    private BooleanExpression todayDiscountSearchable(LocalDateTime now) {
+    private BooleanExpression todayDiscountSearchable(ProductExposureWindow window) {
         return productJpaEntity.discountInfo.discountPrice.isNotNull()
             .and(productJpaEntity.visible.eq(true))
             .and(notDeleted())
-            .and(exposedNow(now));
+            .and(exposedNow(window));
     }
 
-    private BooleanExpression exposedNow(LocalDateTime now) {
+    private BooleanExpression exposedNow(ProductExposureWindow window) {
+        LocalDateTime now = window.now();
         LocalDate today = now.toLocalDate();
         LocalTime time = now.toLocalTime();
 
@@ -1831,10 +1839,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .where(subExposureHour.productId.eq(productJpaEntity.id))
             .notExists();
 
-        BooleanExpression todayBranch = dayTypeMatches(today.getDayOfWeek())
+        BooleanExpression todayBranch = subExposureHour.dayType.in(window.todayDayTypes())
             .and(coversTime(time));
         BooleanExpression previousDayBranch =
-            dayTypeMatches(today.minusDays(1).getDayOfWeek())
+            subExposureHour.dayType.in(window.previousDayDayTypes())
                 .and(coversAsOvernightTail(time));
 
         BooleanExpression withinSomeHour = JPAExpressions
@@ -1847,13 +1855,6 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
             .exists();
 
         return withinPeriod.and(noHourRows.or(withinSomeHour));
-    }
-
-    private BooleanExpression dayTypeMatches(java.time.DayOfWeek dayOfWeek) {
-        boolean weekend = dayOfWeek == java.time.DayOfWeek.SATURDAY || dayOfWeek == java.time.DayOfWeek.SUNDAY;
-        return subExposureHour.dayType.eq(DayTypeCodes.DAILY)
-            .or(subExposureHour.dayType.eq(weekend ? DayTypeCodes.WEEKEND : DayTypeCodes.WEEKDAY))
-            .or(subExposureHour.dayType.eq(dayOfWeek.name()));
     }
 
     private BooleanExpression coversTime(LocalTime time) {

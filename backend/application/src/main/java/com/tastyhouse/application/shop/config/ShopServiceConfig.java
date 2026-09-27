@@ -128,6 +128,7 @@ import com.tastyhouse.application.shop.store.TagStore;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
+import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.DeliveryTipPolicy;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
@@ -642,7 +643,9 @@ public class ShopServiceConfig {
             Arrays.stream(DeliveryTipDistanceUnit.values())
                 .collect(Collectors.toMap(DeliveryTipDistanceUnit::name, DeliveryTipDistanceUnit::getUnitMeters)),
             code -> new BusinessException(ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
-                ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code)
+                ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code),
+            DeliveryTipExtraType.DISTANCE.name(),
+            DeliveryTipExtraType.REGION.name()
         );
     }
 }

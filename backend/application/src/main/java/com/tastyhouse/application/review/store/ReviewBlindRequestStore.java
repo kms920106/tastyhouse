@@ -11,6 +11,13 @@ import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public class ReviewBlindRequestStore implements ReviewBlindRequestRepository {
+    private static final List<String> TERMINATED_STATUSES = List.of(
+        ReviewBlindStatus.APPROVED.name(),
+        ReviewBlindStatus.REJECTED.name(),
+        ReviewBlindStatus.EXPIRED.name(),
+        ReviewBlindStatus.DELETED.name()
+    );
+
     private final ReviewBlindRequestStatePort reviewBlindRequestStatePort;
 
     public ReviewBlindRequestStore(ReviewBlindRequestStatePort reviewBlindRequestStatePort) {
@@ -30,19 +37,19 @@ public class ReviewBlindRequestStore implements ReviewBlindRequestRepository {
 
     @Override
     public boolean existsTerminatedByReviewId(ReviewId reviewId) {
-        return reviewBlindRequestStatePort.existsTerminatedByReviewId(reviewId.value());
+        return reviewBlindRequestStatePort.existsByReviewIdAndStatusIn(reviewId.value(), TERMINATED_STATUSES);
     }
 
     @Override
     public List<ReviewBlindRequest> findExpirableBlinds(LocalDateTime now) {
-        return reviewBlindRequestStatePort.findExpirableBlinds(now).stream()
+        return reviewBlindRequestStatePort.findByStatusExpiringBefore(ReviewBlindStatus.APPROVED.name(), now).stream()
             .map(ReviewBlindRequestStateMapper::toDomain)
             .toList();
     }
 
     @Override
     public Optional<ReviewBlindRequest> findApprovedByReviewId(ReviewId reviewId) {
-        return reviewBlindRequestStatePort.findApprovedByReviewId(reviewId.value())
+        return reviewBlindRequestStatePort.findLatestByReviewIdAndStatus(reviewId.value(), ReviewBlindStatus.APPROVED.name())
             .map(ReviewBlindRequestStateMapper::toDomain);
     }
 

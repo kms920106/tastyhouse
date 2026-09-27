@@ -12,6 +12,7 @@ import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.application.order.port.out.OrderSearchCondition;
 import com.querydsl.core.types.Projections;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,7 +22,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.payment.port.out.PaymentStatusCodes;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
@@ -48,10 +48,10 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
     }
 
     @Override
-    public PageResult<OrderListItemResult> findOrders(Long memberId, PageQuery pageQuery) {
+    public PageResult<OrderListItemResult> findOrders(Long memberId, Collection<String> paymentStatuses, PageQuery pageQuery) {
         BooleanExpression paymentJoinCondition = paymentJpaEntity.orderId
             .eq(orderJpaEntity.id)
-            .and(paymentJpaEntity.paymentStatus.in(PaymentStatusCodes.COMPLETED, PaymentStatusCodes.CANCELLED));
+            .and(paymentJpaEntity.paymentStatus.in(paymentStatuses));
 
         List<OrderListItemResult> content = queryFactory
             .select(Projections.constructor(OrderListItemResult.class,

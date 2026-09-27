@@ -5,7 +5,6 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.sms.port.out.SmsVerificationStatusCodes;
 import com.tastyhouse.application.sms.port.out.write.SmsVerificationState;
 import com.tastyhouse.application.sms.port.out.write.SmsVerificationStatePort;
 
@@ -49,13 +48,13 @@ public class SmsVerificationStatePortImpl implements SmsVerificationStatePort {
     }
 
     @Override
-    public void expireAllPendingByPhoneNumber(String phoneNumber) {
+    public void changeStatusByPhoneNumber(String phoneNumber, String fromStatus, String toStatus) {
         queryFactory
             .update(smsVerificationJpaEntity)
-            .set(smsVerificationJpaEntity.status, SmsVerificationStatusCodes.EXPIRED)
+            .set(smsVerificationJpaEntity.status, toStatus)
             .where(
                 smsVerificationJpaEntity.phoneNumber.value.eq(phoneNumber),
-                smsVerificationJpaEntity.status.eq(SmsVerificationStatusCodes.PENDING)
+                smsVerificationJpaEntity.status.eq(fromStatus)
             )
             .execute();
     }

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -58,7 +59,10 @@ public class ProductManagementQueryService implements ProductManagementQueryUseC
 
     @Override
     public ProductOptionsResult getProductOptions(Long id) {
-        return ProductOptionDepositAmounts.of(productManagementQueryPort.findProductOptions(id), cupDepositPolicy);
+        return ProductOptionDepositAmounts.of(
+            productManagementQueryPort.findProductOptions(id, ProductOptionGroupType.NORMAL.name()),
+            cupDepositPolicy
+        );
     }
 
     @Override

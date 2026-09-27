@@ -14,7 +14,6 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.shop.port.out.DeliveryTipExtraTypeCodes;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangeResult;
@@ -200,7 +199,7 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
 
     private int distanceUpperBound(ShopDeliveryTipSettingResult setting) {
         if (setting == null
-            || !DeliveryTipExtraTypeCodes.DISTANCE.equals(setting.extraTipType())
+            || !shopDeliveryTipRangePolicy.isDistanceExtraTip(setting.extraTipType())
             || setting.baseDistanceMeters() == null
             || setting.surchargeUnit() == null
             || setting.surchargeAmount() == null) {
@@ -218,7 +217,7 @@ public class ShopDeliveryTipQueryDao implements ShopDeliveryTipQueryPort {
     }
 
     private boolean usesRegion(ShopDeliveryTipSettingResult setting) {
-        return setting != null && DeliveryTipExtraTypeCodes.REGION.equals(setting.extraTipType());
+        return setting != null && shopDeliveryTipRangePolicy.isRegionExtraTip(setting.extraTipType());
     }
 
     private Map<Long, ShopDeliveryTipSettingResult> findSettings(List<Long> shopIds) {

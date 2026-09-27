@@ -40,6 +40,7 @@ class MemberDeliveryAddressServiceTest {
     private static final BigDecimal LATITUDE = new BigDecimal("37.501234");
     private static final BigDecimal LONGITUDE = new BigDecimal("127.039876");
     private static final String ROAD_ADDRESS = "서울특별시 강남구 테헤란로 123";
+    private static final Long GANGNAM_ADMIN_DONG_ID = 1168064000L;
 
     @Nested
     @DisplayName("등록(create)")
@@ -112,7 +113,7 @@ class MemberDeliveryAddressServiceTest {
         void create_fillsAdminDongIdOnMatch() {
             FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
             FakeAdminDongRepository adminDongRepository = new FakeAdminDongRepository();
-            adminDongRepository.register(1168064000L, "서울특별시", "강남구", "테헤란로");
+            adminDongRepository.registerInGangnam("테헤란로");
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
                 addressRepository, adminDongRepository
             );
@@ -120,7 +121,7 @@ class MemberDeliveryAddressServiceTest {
             Long createdId = create(service, false);
 
             assertThat(addressRepository.findById(createdId).orElseThrow().getAdminDongId())
-                .isEqualTo(AdminDongId.of(1168064000L));
+                .isEqualTo(AdminDongId.of(GANGNAM_ADMIN_DONG_ID));
         }
 
         @Test
@@ -128,7 +129,7 @@ class MemberDeliveryAddressServiceTest {
         void create_fallsBackToLotAddress() {
             FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
             FakeAdminDongRepository adminDongRepository = new FakeAdminDongRepository();
-            adminDongRepository.register(1168064000L, "서울특별시", "강남구", "역삼1동");
+            adminDongRepository.registerInGangnam("역삼1동");
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
                 addressRepository, adminDongRepository
             );
@@ -138,7 +139,7 @@ class MemberDeliveryAddressServiceTest {
             );
 
             assertThat(addressRepository.findById(createdId).orElseThrow().getAdminDongId())
-                .isEqualTo(AdminDongId.of(1168064000L));
+                .isEqualTo(AdminDongId.of(GANGNAM_ADMIN_DONG_ID));
         }
 
         @Test
@@ -379,11 +380,12 @@ class MemberDeliveryAddressServiceTest {
         private final Map<String, AdminDong> byName = new LinkedHashMap<>();
         private final Map<Long, AdminDong> byId = new LinkedHashMap<>();
 
-        @SuppressWarnings("SameParameterValue")
-        void register(Long id, String sidoName, String sigunguName, String dongName) {
-            AdminDong adminDong = AdminDong.reconstitute(id, String.valueOf(id), sidoName, sigunguName, dongName, true, null, List.of());
-            byName.put(key(sidoName, sigunguName, dongName), adminDong);
-            byId.put(id, adminDong);
+        void registerInGangnam(String dongName) {
+            AdminDong adminDong = AdminDong.reconstitute(
+                GANGNAM_ADMIN_DONG_ID, String.valueOf(GANGNAM_ADMIN_DONG_ID), "서울특별시", "강남구", dongName, true, null, List.of()
+            );
+            byName.put(key("서울특별시", "강남구", dongName), adminDong);
+            byId.put(GANGNAM_ADMIN_DONG_ID, adminDong);
         }
 
         @Override

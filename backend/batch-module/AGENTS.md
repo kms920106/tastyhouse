@@ -32,7 +32,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 |---|---|---|---|
 | `region` | `SynchronizeAdminDongsUseCase` | `AdminDongScheduler`(매월 1일 04시) | `AdminDongSchedulerService`(다운로드, 트랜잭션 밖) + `AdminDongSyncExecutor`(저장, 트랜잭션) + `AdminDongSyncRunner`(수동 1회 실행, 기본 비활성) |
 | `grade` | `SettleMemberGradesUseCase` | `GradeScheduler` | `GradeSchedulerService`가 등급 계산·확정 전담 |
-| `product` | `SyncProductOptionsUseCase` | `ProductScheduler`(**비활성 — `@Scheduled` 없음, 자동 실행되지 않는다.** 아래 §스케줄러 활성 상태 참조) | `ProductSchedulerService`가 BBQ 옵션 크롤링 저장 |
+| `product` | `SyncProductOptionsUseCase` | `ProductScheduler`(**비활성 — cron 기본값 `-`, 자동 실행되지 않는다.** 아래 §스케줄러 활성 상태 참조) | `ProductSchedulerService`가 BBQ 옵션 크롤링 저장 |
 | `productsoldout` | `ReleaseExpiredSoldOutUseCase` | `ProductSoldOutReleaseScheduler` | `ProductSoldOutReleaseSchedulerService` + `ProductSoldOutReleaseExecutor`(트랜잭션 경계 분리) |
 | `rank` | `AggregateRanksUseCase` | `RankScheduler` | `RankSchedulerService`가 랭킹 집계 로직 전담 |
 | `reviewblind` | `ExpireBlindedReviewsUseCase` | `ReviewBlindScheduler` | `ReviewBlindSchedulerService` + `ReviewBlindExpirationExecutor`(트랜잭션 경계 분리) |
@@ -102,13 +102,13 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 스케줄러 활성 상태 (트리거 7종 중 1종이 비활성)
 
-**이 절은 코드에 근거가 남지 않는 사실을 담는다.** 과거에는 `ProductScheduler`의 비활성 상태가 주석 처리된 `@Scheduled` 줄로 표시돼 있었으나, 주석 전면 이관(챕터 07)으로 그 줄이 삭제됐다. 지금 코드만 읽으면 "왜 이 스케줄러만 `@Scheduled`가 없는가"를 알 수 없으므로 여기가 유일한 출처다.
+**이 절은 코드에 근거가 남지 않는 사실을 담는다.** 과거에는 `ProductScheduler`의 비활성 상태가 주석 처리된 `@Scheduled` 줄로 표시돼 있었으나, 주석 전면 이관(챕터 07)으로 그 줄이 삭제됐다. ~~지금 코드만 읽으면 "왜 이 스케줄러만 `@Scheduled`가 없는가"를 알 수 없으므로 여기가 유일한 출처다.~~ **(갱신)** 지금은 `ProductScheduler`도 `@Scheduled`를 갖되 cron 기본값 `-`(비활성)로 꺼져 있어, 코드가 비활성 상태를 스스로 드러낸다. 이 절은 각 트리거가 운영에서 실제로 도는지를 한눈에 보여 주는 표로 남긴다.
 
 | 트리거 | 상태 | 운영 cron |
 |---|---|---|
 | `AdminDongScheduler` | 활성 | `0 0 4 1 * *` — 매월 1일 04시 |
 | `GradeScheduler` | 활성 | `0 30 3 * * *` — 매일 새벽 3시 30분 |
-| `ProductScheduler` | **비활성** | 없음 |
+| `ProductScheduler` | **비활성** | `${product.option-crawl.cron:-}` — 기본값 `-`(비활성 cron), 프로퍼티를 주면 활성 |
 | `ProductSoldOutReleaseScheduler` | 활성 | `${product.sold-out-release.cron:0 */10 * * * *}` — 기본 10분 주기(프로퍼티로 조정 가능) |
 | `RankScheduler` | 활성 | `0 0 3 * * *` — 매일 새벽 3시 |
 | `ReviewBlindScheduler` | 활성 | `0 0 4 * * *` — 매일 새벽 4시 |
@@ -117,16 +117,17 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### `ProductScheduler`는 비활성이다 — 자동 실행되지 않는다
 
 **대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/product/adapter/in/scheduler/ProductScheduler.java`
-→ 클래스 · `crawlAndSaveProductOptions()`
+→ `crawlAndSaveProductOptions()`
 
-이 트리거에는 **활성 `@Scheduled`가 하나도 없다.** 따라서 `crawlAndSaveProductOptions()`(BBQ 상품 옵션 크롤링 저장)는 배치 앱이 떠 있어도 **자동으로 실행되지 않는다.** 클래스와 메서드에 붙은 `@SuppressWarnings("unused")` 두 개가 그 증거다 — 호출부가 없어 미사용으로 잡히는 것을 의도적으로 억제한 것이지, 실수로 남은 억제가 아니다.
+`crawlAndSaveProductOptions()`(BBQ 상품 옵션 크롤링 저장)는 배치 앱이 떠 있어도 **자동으로 실행되지 않는다.** 트리거는 `@Scheduled(cron = "${product.option-crawl.cron:-}")`이고, 프로퍼티를 주지 않으면 기본값 `-`가 쓰이는데 이것은 Spring의 **비활성 cron**(`Scheduled.CRON_DISABLED`)이라 스케줄이 등록되지 않는다.
 
-**활성화하려면 두 가지를 되살린다.**
+| 항목 | before | after |
+|---|---|---|
+| 비활성 표현 | `@Scheduled` 없음 + 클래스·메서드에 `@SuppressWarnings("unused")` 2개 | `@Scheduled(cron = "${product.option-crawl.cron:-}")` — 기본값 `-`로 비활성 |
+| 동작 | 자동 실행 안 됨 | **동일** — 자동 실행 안 됨 |
+| 켜는 방법 | 코드에 `@Scheduled(fixedDelay = 10000)`과 import를 되살리고 억제 2개 제거 | `product.option-crawl.cron` 프로퍼티에 cron 식을 준다(코드 변경 없음) |
 
-1. 메서드에 `@Scheduled(fixedDelay = 10000)` — 과거 주석으로 보존돼 있던 값(10초 고정 지연)
-2. `import org.springframework.scheduling.annotation.Scheduled;` — 이 import도 함께 주석 처리돼 있었으므로 복구해야 한다
-
-활성화한 뒤에는 `@SuppressWarnings("unused")` 두 개를 제거한다 — `@Scheduled`가 붙으면 더 이상 미사용이 아니다. 크롤링 대상이 남의 서비스이므로(`../infrastructure/bbq/AGENTS.md`), 켜기 전에 그 주기(10초)가 상대 서비스에 과한 부하인지부터 판단한다.
+억제 어노테이션을 쓰지 않게 된 이유는 `backend/CLAUDE.md`의 "`@SuppressWarnings` 지양 규칙"이다. 과거 주석으로 보존돼 있던 주기는 10초 고정 지연(`fixedDelay = 10000`)이었다 — cron으로 켜려면 `*/10 * * * * *`에 해당한다. 크롤링 대상이 남의 서비스이므로(`../infrastructure/bbq/AGENTS.md`), 켜기 전에 그 주기가 상대 서비스에 과한 부하인지부터 판단한다.
 
 ### `GradeScheduler`·`RankScheduler`는 활성이다 — "비활성"으로 오해하지 말 것
 
@@ -143,12 +144,12 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### `ProductScheduler`의 `@SuppressWarnings("unused")` 2개 — 제거 조건이 있다
+### `ProductScheduler`의 cron 기본값 `-`를 지우지 않는다
 
 **대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/product/adapter/in/scheduler/ProductScheduler.java`
-→ 클래스 선언 · `crawlAndSaveProductOptions()`
+→ `crawlAndSaveProductOptions()`의 `@Scheduled(cron = "${product.option-crawl.cron:-}")`
 
-"미사용 억제가 남아 있다"고 정리 대상으로 지우지 않는다. 이 두 어노테이션은 위 §`ProductScheduler`는 비활성이다의 상태를 표현하는 유일한 코드상 흔적이며, **`@Scheduled`를 되살리는 것과 한 벌로만** 제거한다.
+기본값 `-`가 비활성 상태를 표현하는 유일한 코드상 흔적이다. `${product.option-crawl.cron}`처럼 기본값을 지우면 프로퍼티가 없는 환경에서 **부팅이 실패**하고, 다른 cron 기본값을 넣으면 **남의 서비스를 크롤링하는 작업이 모든 환경에서 켜진다.** 과거 이 자리의 봉인 대상이던 `@SuppressWarnings("unused")` 2개는 이 cron 트리거로 대체돼 삭제됐다.
 
 ### `allowEmptyShould(true)`를 쓰지 않는다 — 규칙이 대상을 잃으면 지우거나 anchor를 고친다
 

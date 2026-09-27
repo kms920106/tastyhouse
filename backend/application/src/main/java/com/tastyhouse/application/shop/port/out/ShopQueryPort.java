@@ -11,7 +11,7 @@ public interface ShopQueryPort {
 
     List<ShopAmenityWithCategoryResult> findAmenitiesWithCategory(Long shopId);
 
-    List<ShopMenuCollectionImageExposureResult> findExposedMenuCollectionImages(Long shopId);
+    List<ShopMenuCollectionImageExposureResult> findMenuCollectionImagesByStatus(Long shopId, String status);
 
     List<ShopPhotoCategoryImageResult> findAllPhotoCategoryImages();
 

@@ -1,7 +1,6 @@
 package com.tastyhouse.application.shop.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -17,16 +16,14 @@ final class ShopDeliveryAreaGeoMapper {
     private ShopDeliveryAreaGeoMapper() {
     }
 
-    static ShopLocationResult requireShopLocation(Optional<ShopLocationResult> shopLocation) {
-        ShopLocationResult result = shopLocation
-            .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED));
-        if (result.latitude() == null || result.longitude() == null) {
+    static ShopLocationResult requireCoordinates(ShopLocationResult shopLocation) {
+        if (shopLocation.latitude() == null || shopLocation.longitude() == null) {
             throw new BusinessException(
                 ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
                 "가게 좌표가 등록돼 있지 않아 배달지역을 설정할 수 없습니다."
             );
         }
-        return result;
+        return shopLocation;
     }
 
     static GeoPolygon toPolygon(List<List<GeoPointCommand>> rings) {

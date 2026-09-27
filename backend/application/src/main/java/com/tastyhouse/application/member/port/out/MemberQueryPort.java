@@ -15,5 +15,5 @@ public interface MemberQueryPort {
 
     boolean existsByNickname(String nickname);
 
-    boolean existsByActivePhoneNumber(String phoneNumber);
+    boolean existsByPhoneNumberAndStatusNot(String phoneNumber, String excludedStatus);
 }

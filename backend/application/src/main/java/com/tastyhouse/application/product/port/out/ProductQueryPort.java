@@ -8,13 +8,13 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface ProductQueryPort {
 
-    PageResult<TodayDiscountProductResult> findTodayDiscountProducts(PageQuery pageQuery);
+    PageResult<TodayDiscountProductResult> findTodayDiscountProducts(ProductExposureWindow window, PageQuery pageQuery);
 
-    PageResult<SearchProductItemResult> searchByKeyword(String keyword, PageQuery pageQuery);
+    PageResult<SearchProductItemResult> searchByKeyword(String keyword, ProductExposureWindow window, PageQuery pageQuery);
 
     List<ProductBatchResult> findProductsBatch(List<ProductBatchItem> items);
 
-    List<ShopProductItemResult> findShopProducts(Long shopId);
+    List<ShopProductItemResult> findShopProducts(Long shopId, ProductExposureWindow window);
 
     List<ProductPriceResult> findProductPrices(Long productId);
 
@@ -24,9 +24,9 @@ public interface ProductQueryPort {
 
     long countVisibleProducts(Long shopId);
 
-    List<PopularProductItemResult> findPopularProducts(Long shopId);
+    List<PopularProductItemResult> findPopularProducts(Long shopId, String soldOrderStatus, ProductExposureWindow window);
 
-    ProductOptionsResult findProductOptions(Long productId);
+    ProductOptionsResult findProductOptions(Long productId, String commonOptionGroupType);
 
     List<String> findProductImageUrls(Long productId);
 

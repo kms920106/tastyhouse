@@ -1,16 +1,17 @@
 package com.tastyhouse.application.architecture;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class EnumCodeConstantsTest {
 
-    private static final String CODES_SUFFIX = "Codes";
+    private static final Set<String> ALLOWED_DOMAIN_ENUM_MIRRORS = Set.of(PgProviderCode.class.getName());
 
     private final JavaClasses applicationClasses = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
@@ -40,69 +41,66 @@ class EnumCodeConstantsTest {
     }
 
     @Test
-    @DisplayName("port.out의 XxxCodes 문자열 상수는 도메인 enum Xxx의 상수명과 1:1이고 값이 상수명과 같다")
-    void codesMatchDomainEnums() {
+    @DisplayName("port.out에 도메인 enum의 복제본을 두지 않는다 — persistence가 비교할 값은 application이 도메인 enum의 name()으로 포트 인자에 넘긴다")
+    void portOutShouldNotMirrorDomainEnums() {
+        List<JavaClass> portOutEnums = applicationClasses.stream()
+            .filter(EnumCodeConstantsTest::isEnumType)
+            .filter(c -> c.getPackageName().contains(".port.out"))
+            .toList();
+        assertThat(portOutEnums).isNotEmpty();
+
+        Map<Set<String>, List<String>> domainEnumsByConstants = domainClasses.stream()
+            .filter(EnumCodeConstantsTest::isEnumType)
+            .collect(Collectors.groupingBy(
+                EnumCodeConstantsTest::constantNames,
+                Collectors.mapping(JavaClass::getName, Collectors.toList())
+            ));
+
         List<String> violations = new ArrayList<>();
-        for (JavaClass codes : codesClasses()) {
-            String enumName = codes.getSimpleName().substring(0, codes.getSimpleName().length() - CODES_SUFFIX.length());
-            List<JavaClass> candidates = domainClasses.stream()
-                .filter(JavaClass::isEnum)
-                .filter(c -> c.getSimpleName().equals(enumName))
-                .toList();
-            if (candidates.size() > 1) {
-                String context = contextOf(codes);
-                candidates = candidates.stream()
-                    .filter(c -> c.getPackageName().startsWith("com.tastyhouse.domain." + context))
-                    .toList();
-            }
-            if (candidates.size() != 1) {
-                violations.add(codes.getName() + ": 대응 도메인 enum " + enumName + "을 하나로 특정하지 못했다(" + candidates.size() + "건)");
+        for (JavaClass portOutEnum : portOutEnums) {
+            if (ALLOWED_DOMAIN_ENUM_MIRRORS.contains(portOutEnum.getName())) {
                 continue;
             }
-            Set<String> enumConstants = Arrays.stream(candidates.get(0).reflect().getEnumConstants())
-                .map(constant -> ((Enum<?>) constant).name())
-                .collect(Collectors.toCollection(TreeSet::new));
-            Set<String> codeConstants = new TreeSet<>();
-            for (Field field : codes.reflect().getDeclaredFields()) {
-                int modifiers = field.getModifiers();
-                if (!Modifier.isStatic(modifiers) || !Modifier.isFinal(modifiers) || field.getType() != String.class) {
-                    continue;
-                }
-                codeConstants.add(field.getName());
-                String value = readConstant(field);
-                if (!field.getName().equals(value)) {
-                    violations.add(codes.getName() + "." + field.getName() + " 값이 상수명과 다르다: " + value);
-                }
-            }
-            if (!codeConstants.equals(enumConstants)) {
-                violations.add(codes.getName() + ": 상수 " + codeConstants + " ≠ " + candidates.get(0).getName() + " " + enumConstants);
+            List<String> mirrored = domainEnumsByConstants.get(constantNames(portOutEnum));
+            if (mirrored != null) {
+                violations.add(portOutEnum.getName() + " ≡ " + mirrored);
             }
         }
 
         assertThat(violations)
-            .as("XxxCodes는 DB에 저장되는 enum 상수명을 persistence가 domain 없이 비교하도록 복제한 것이다 — 어긋나면 조회가 조용히 0건이 된다")
+            .as("port.out enum이 도메인 enum과 상수 집합이 같다 — 복제본을 지우고 도메인 enum의 name()을 포트 인자로 넘긴다(의도된 벤더 계약 enum이면 허용 목록에 추가)")
             .isEmpty();
     }
 
-    private List<JavaClass> codesClasses() {
-        return applicationClasses.stream()
+    @Test
+    @DisplayName("port.out에 도메인 enum 상수명을 문자열 상수로 복제하지 않는다 — 과거 XxxCodes 형태의 재발 방지")
+    void portOutShouldNotDeclareDomainEnumConstantStrings() {
+        Set<String> domainConstantNames = domainClasses.stream()
+            .filter(EnumCodeConstantsTest::isEnumType)
+            .flatMap(enumClass -> constantNames(enumClass).stream())
+            .collect(Collectors.toSet());
+
+        List<String> violations = applicationClasses.stream()
             .filter(c -> c.getPackageName().contains(".port.out"))
-            .filter(c -> !c.isEnum())
-            .filter(c -> c.getSimpleName().endsWith(CODES_SUFFIX))
+            .flatMap(c -> c.getFields().stream())
+            .filter(field -> field.getModifiers().contains(JavaModifier.STATIC))
+            .filter(field -> field.getModifiers().contains(JavaModifier.FINAL))
+            .filter(field -> field.getRawType().isEquivalentTo(String.class))
+            .filter(field -> domainConstantNames.contains(field.getName()))
+            .map(JavaField::getFullName)
             .toList();
+
+        assertThat(violations).isEmpty();
     }
 
-    private static String readConstant(Field field) {
-        try {
-            return (String) field.get(null);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        }
+    private static boolean isEnumType(JavaClass javaClass) {
+        return javaClass.reflect().isEnum();
     }
 
-    private static String contextOf(JavaClass codes) {
-        String rest = codes.getPackageName().substring("com.tastyhouse.application.".length());
-        return rest.substring(0, rest.indexOf('.'));
+    private static Set<String> constantNames(JavaClass enumClass) {
+        return Arrays.stream(enumClass.reflect().getEnumConstants())
+            .map(constant -> ((Enum<?>) constant).name())
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     private static List<String> names(Enum<?>[] constants) {

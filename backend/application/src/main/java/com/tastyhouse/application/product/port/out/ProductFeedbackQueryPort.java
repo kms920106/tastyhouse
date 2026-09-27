@@ -7,5 +7,10 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface ProductFeedbackQueryPort {
 
-    PageResult<ProductFeedbackSummaryResult> findFeedbackSummaries(Long shopId, LocalDateTime since, PageQuery pageQuery);
+    PageResult<ProductFeedbackSummaryResult> findFeedbackSummaries(
+        Long shopId,
+        LocalDateTime since,
+        String contentRequiredType,
+        PageQuery pageQuery
+    );
 }

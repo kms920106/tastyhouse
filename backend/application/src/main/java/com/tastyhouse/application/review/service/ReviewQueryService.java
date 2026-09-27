@@ -44,6 +44,7 @@ import com.tastyhouse.application.review.port.out.ReviewDetailView;
 import com.tastyhouse.application.review.port.out.ReviewProductView;
 import com.tastyhouse.application.review.port.out.ReviewSubmitResultView;
 import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
+import com.tastyhouse.application.review.port.out.ReviewSortSpec;
 import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 
 @Service
@@ -257,12 +258,14 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         );
     }
 
-    private String resolveSortType(Long shopId, String sortType) {
+    private ReviewSortSpec resolveSortType(Long shopId, String sortType) {
         if (sortType != null) {
-            return ReviewSortType.from(sortType).name();
+            return ReviewSortSpecs.of(ReviewSortType.from(sortType));
         }
-        return shopReviewDisplaySettingQueryPort.findSortTypeByShopId(shopId)
-            .orElse(ReviewSortType.LATEST.name());
+        ReviewSortType storedSortType = shopReviewDisplaySettingQueryPort.findSortTypeByShopId(shopId)
+            .map(ReviewSortType::valueOf)
+            .orElse(ReviewSortType.LATEST);
+        return ReviewSortSpecs.of(storedSortType);
     }
 
     @Override

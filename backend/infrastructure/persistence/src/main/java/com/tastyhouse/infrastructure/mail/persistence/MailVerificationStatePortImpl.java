@@ -5,7 +5,6 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.mail.port.out.MailVerificationStatusCodes;
 import com.tastyhouse.application.mail.port.out.write.MailVerificationState;
 import com.tastyhouse.application.mail.port.out.write.MailVerificationStatePort;
 
@@ -49,13 +48,13 @@ public class MailVerificationStatePortImpl implements MailVerificationStatePort 
     }
 
     @Override
-    public void expireAllPendingByEmail(String email) {
+    public void changeStatusByEmail(String email, String fromStatus, String toStatus) {
         queryFactory
             .update(mailVerificationJpaEntity)
-            .set(mailVerificationJpaEntity.status, MailVerificationStatusCodes.EXPIRED)
+            .set(mailVerificationJpaEntity.status, toStatus)
             .where(
                 mailVerificationJpaEntity.email.eq(email),
-                mailVerificationJpaEntity.status.eq(MailVerificationStatusCodes.PENDING)
+                mailVerificationJpaEntity.status.eq(fromStatus)
             )
             .execute();
     }

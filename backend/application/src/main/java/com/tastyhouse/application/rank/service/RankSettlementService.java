@@ -45,8 +45,10 @@ public class RankSettlementService {
         LocalDateTime endAt = periodEndAt(rankType, baseDate);
 
         List<MemberReviewCount> reviewCounts = memberReviewCountPort.countReviewsByMemberWithPeriod(startAt, endAt);
-        reviewCounts.forEach(reviewCount -> MemberId.of(reviewCount.memberId()));
-        List<MemberReviewRank> ranks = buildRanks(reviewCounts.stream().limit(limit).toList(), rankType, baseDate);
+        List<MemberId> memberIds = reviewCounts.stream()
+            .map(reviewCount -> MemberId.of(reviewCount.memberId()))
+            .toList();
+        List<MemberReviewRank> ranks = buildRanks(reviewCounts.stream().limit(limit).toList(), memberIds, rankType, baseDate);
 
         memberReviewRankRepository.deleteByRankTypeAndBaseDate(rankType, baseDate);
         memberReviewRankRepository.saveAll(ranks);
@@ -56,6 +58,7 @@ public class RankSettlementService {
 
     private List<MemberReviewRank> buildRanks(
         List<MemberReviewCount> reviewCounts,
+        List<MemberId> memberIds,
         RankType rankType,
         LocalDate baseDate
     ) {
@@ -63,7 +66,7 @@ public class RankSettlementService {
         for (int i = 0; i < reviewCounts.size(); i++) {
             MemberReviewCount reviewCount = reviewCounts.get(i);
             ranks.add(MemberReviewRank.of(
-                MemberId.of(reviewCount.memberId()),
+                memberIds.get(i),
                 reviewCount.reviewCount().intValue(),
                 i + 1,
                 rankType,

@@ -21,10 +21,18 @@ public class ApiLoggingAspect {
 
     private static final Logger log = LoggerFactory.getLogger(ApiLoggingAspect.class);
 
+    private final SensitiveFieldMasker sensitiveFieldMasker;
+
+    public ApiLoggingAspect(SensitiveFieldMasker sensitiveFieldMasker) {
+        this.sensitiveFieldMasker = sensitiveFieldMasker;
+    }
+
     @Around("within(@org.springframework.web.bind.annotation.RestController *)")
     public Object logControllerExecution(ProceedingJoinPoint joinPoint) throws Throwable {
         String caller = resolveAuthenticatedUser();
-        List<Object> requestBodies = extractRequestBodies(joinPoint);
+        List<String> requestBodies = extractRequestBodies(joinPoint).stream()
+            .map(sensitiveFieldMasker::mask)
+            .toList();
 
         if (!requestBodies.isEmpty()) {
             log.info("[BODY] user={} | body={}", caller, requestBodies.size() == 1 ? requestBodies.getFirst() : requestBodies);

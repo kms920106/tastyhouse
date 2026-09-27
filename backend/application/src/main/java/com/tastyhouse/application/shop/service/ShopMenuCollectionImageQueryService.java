@@ -1,5 +1,6 @@
 package com.tastyhouse.application.shop.service;
 
+import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
@@ -23,6 +24,6 @@ public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionIm
 
     @Override
     public List<ShopMenuCollectionImageExposureResult> getMenuCollectionImages(Long shopId) {
-        return shopQueryPort.findExposedMenuCollectionImages(shopId);
+        return shopQueryPort.findMenuCollectionImagesByStatus(shopId, ApprovalStatus.APPROVED.name());
     }
 }

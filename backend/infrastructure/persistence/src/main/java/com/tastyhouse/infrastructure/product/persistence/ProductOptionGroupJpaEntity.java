@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.tastyhouse.application.product.port.out.ProductOptionGroupTypeCodes;
 import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 
 @Entity
@@ -71,7 +70,7 @@ public class ProductOptionGroupJpaEntity extends BaseEntity {
         this.maxSelect = maxSelect;
         this.sort = sort;
         this.visible = visible;
-        this.groupType = groupType != null ? groupType : ProductOptionGroupTypeCodes.NORMAL;
+        this.groupType = groupType;
     }
 
     static ProductOptionGroupJpaEntity create(

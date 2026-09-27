@@ -103,7 +103,7 @@ class ShopDeliveryAreaServiceTest {
             ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
             Long deliveryAreaId = areaRepository.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
             ShopDeliveryTipRegionLookupFake regionLookup = new ShopDeliveryTipRegionLookupFake();
-            regionLookup.addRegionTip(SHOP_ID, ADMIN_DONG_ID);
+            regionLookup.addRegionTipOnAdminDong(SHOP_ID);
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, regionLookup);
 
             assertThatThrownBy(() -> service.removeArea(deliveryAreaId, ACTOR))
@@ -119,7 +119,7 @@ class ShopDeliveryAreaServiceTest {
             ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
             Long deliveryAreaId = areaRepository.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
             ShopDeliveryTipRegionLookupFake regionLookup = new ShopDeliveryTipRegionLookupFake();
-            regionLookup.addRegionTip(ShopId.of(2L), ADMIN_DONG_ID);
+            regionLookup.addRegionTipOnAdminDong(ShopId.of(2L));
             ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaRepository, regionLookup);
 
             service.removeArea(deliveryAreaId, ACTOR);
@@ -338,9 +338,8 @@ class ShopDeliveryAreaServiceTest {
     private static final class ShopDeliveryTipRegionLookupFake implements ShopDeliveryTipRegionLookup {
         private final List<String> regionTipKeys = new ArrayList<>();
 
-        @SuppressWarnings("SameParameterValue")
-        void addRegionTip(ShopId shopId, AdminDongId adminDongId) {
-            regionTipKeys.add(key(shopId, adminDongId));
+        void addRegionTipOnAdminDong(ShopId shopId) {
+            regionTipKeys.add(key(shopId, ADMIN_DONG_ID));
         }
 
         @Override

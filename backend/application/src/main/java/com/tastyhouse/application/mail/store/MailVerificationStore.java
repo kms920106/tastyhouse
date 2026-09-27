@@ -27,6 +27,10 @@ public class MailVerificationStore implements MailVerificationRepository {
 
     @Override
     public void expireAllPendingByEmail(String email) {
-        mailVerificationStatePort.expireAllPendingByEmail(email);
+        mailVerificationStatePort.changeStatusByEmail(
+            email,
+            MailVerificationStatus.PENDING.name(),
+            MailVerificationStatus.EXPIRED.name()
+        );
     }
 }

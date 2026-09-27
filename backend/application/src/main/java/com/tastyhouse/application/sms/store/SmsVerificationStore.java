@@ -27,6 +27,10 @@ public class SmsVerificationStore implements SmsVerificationRepository {
 
     @Override
     public void expireAllPendingByPhoneNumber(String phoneNumber) {
-        smsVerificationStatePort.expireAllPendingByPhoneNumber(phoneNumber);
+        smsVerificationStatePort.changeStatusByPhoneNumber(
+            phoneNumber,
+            SmsVerificationStatus.PENDING.name(),
+            SmsVerificationStatus.EXPIRED.name()
+        );
     }
 }

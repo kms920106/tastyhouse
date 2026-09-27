@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
@@ -39,7 +41,8 @@ public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiu
         ShopDeliveryAreaPolicy.validateRadius(radiusMeters);
 
         ShopLocationResult shopLocation =
-            ShopDeliveryAreaGeoMapper.requireShopLocation(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId));
+            ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
         GeoPoint center = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
         var circle = GeoCircle.approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS);

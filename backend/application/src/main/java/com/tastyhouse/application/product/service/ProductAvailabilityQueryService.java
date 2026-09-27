@@ -16,6 +16,7 @@ import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult
 import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
 import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.domain.product.model.ProductOptionType;
 
 @Service
 @CeoApp
@@ -76,7 +77,11 @@ public class ProductAvailabilityQueryService implements ProductAvailabilityQuery
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
 
-        return productOwnerQueryPort.findProductOptionAvailability(condition);
+        return productOwnerQueryPort.findProductOptionAvailability(
+            condition,
+            ProductOptionType.NORMAL.name(),
+            ProductOptionType.COMMON.name()
+        );
     }
 
     private record CategoryKey(Long categoryId, String categoryName, Integer categorySort) {

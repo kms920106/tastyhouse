@@ -9,6 +9,7 @@ import com.tastyhouse.application.review.port.out.ReviewCommentItemResult;
 import com.tastyhouse.application.review.port.out.ReviewDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewReplyItemResult;
 import com.tastyhouse.application.review.port.out.SearchReviewItemResult;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -28,7 +30,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.review.port.out.ReviewSortTypeCodes;
+import com.tastyhouse.application.review.port.out.ReviewSortSpec;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -235,7 +237,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByShopId(Long shopId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortSpec sort) {
         var whereClause = reviewJpaEntity.shopId.eq(shopId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
@@ -300,7 +302,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause);
 
-        applySort(query, sortType);
+        applySort(query, sort);
 
         long total = countLatestReviews(whereClause);
 
@@ -321,7 +323,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     @Override
-    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, String sortType) {
+    public PageResult<LatestReviewListItemResult> findLatestReviewsByProductId(Long productId, Integer rating, PageQuery pageQuery, Boolean hasImage, ReviewSortSpec sort) {
         var whereClause = reviewJpaEntity.productId.eq(productId).and(visibleToCustomer());
         if (rating != null) {
             if (rating == 5) {
@@ -386,7 +388,7 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
             .on(reviewOwnerReplyJpaEntity.reviewId.eq(reviewJpaEntity.id))
             .where(whereClause);
 
-        applySort(query, sortType);
+        applySort(query, sort);
 
         long total = countLatestReviews(whereClause);
 
@@ -851,18 +853,20 @@ public class ReviewQueryDao implements ReviewQueryPort, ReviewTagQueryPort {
         return total == null ? 0L : total;
     }
 
-    private void applySort(JPAQuery<LatestReviewListItemResult> query, String sortType) {
-        switch (sortType) {
-            case ReviewSortTypeCodes.RECOMMENDED -> query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
+    private void applySort(JPAQuery<LatestReviewListItemResult> query, ReviewSortSpec sort) {
+        OrderSpecifier<LocalDateTime> createdAtOrder = sort.createdAtAscending()
+            ? reviewJpaEntity.createdAt.asc()
+            : reviewJpaEntity.createdAt.desc();
+        if (sort.byLikeCount()) {
+            query.leftJoin(sortReviewLike).on(sortReviewLike.reviewId.eq(reviewJpaEntity.id))
                 .groupBy(reviewJpaEntity.id, stationJpaEntity.stationName, reviewJpaEntity.totalRating, reviewJpaEntity.content,
                     memberJpaEntity.id, memberJpaEntity.nickname, uploadedFileJpaEntity.filePath, reviewJpaEntity.createdAt,
                     productJpaEntity.id, productJpaEntity.name,
                     reviewOwnerReplyJpaEntity.content, reviewOwnerReplyJpaEntity.createdAt)
-                .orderBy(sortReviewLike.count().desc(), reviewJpaEntity.createdAt.desc());
-            case ReviewSortTypeCodes.OLDEST -> query.orderBy(reviewJpaEntity.createdAt.asc());
-            case ReviewSortTypeCodes.LATEST -> query.orderBy(reviewJpaEntity.createdAt.desc());
-            default -> throw new IllegalStateException("알 수 없는 리뷰 정렬 유형입니다: " + sortType);
+                .orderBy(sortReviewLike.count().desc(), createdAtOrder);
+            return;
         }
+        query.orderBy(createdAtOrder);
     }
 
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {

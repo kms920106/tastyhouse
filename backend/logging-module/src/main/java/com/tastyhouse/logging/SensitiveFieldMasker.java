@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@SuppressWarnings("unused")
 @Component
 public class SensitiveFieldMasker {
 
@@ -44,11 +43,15 @@ public class SensitiveFieldMasker {
     }
 
     private void maskNode(JsonNode node) {
+        if (node.isArray()) {
+            node.forEach(this::maskNode);
+            return;
+        }
         if (!node.isObject()) {
             return;
         }
         ObjectNode objectNode = (ObjectNode) node;
-        objectNode.fields().forEachRemaining(entry -> {
+        objectNode.properties().forEach(entry -> {
             if (SENSITIVE_FIELDS.contains(entry.getKey())) {
                 objectNode.put(entry.getKey(), MASKED);
             } else {

@@ -6,7 +6,6 @@ import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.member.port.out.MemberSearchCondition;
-import com.tastyhouse.application.member.port.out.MemberStatusCodes;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.ConstructorExpression;
@@ -218,13 +217,13 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
     }
 
     @Override
-    public boolean existsByActivePhoneNumber(String phoneNumber) {
+    public boolean existsByPhoneNumberAndStatusNot(String phoneNumber, String excludedStatus) {
         Integer found = queryFactory
             .selectOne()
             .from(memberJpaEntity)
             .where(
                 memberJpaEntity.phoneNumber.value.eq(phoneNumber),
-                memberJpaEntity.memberStatus.ne(MemberStatusCodes.DELETED)
+                memberJpaEntity.memberStatus.ne(excludedStatus)
             )
             .fetchFirst();
 

@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.order.model.OrderStatus;
+import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -42,6 +44,7 @@ import com.tastyhouse.application.product.port.out.ProductPriceView;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsView;
 import com.tastyhouse.application.product.port.in.ProductBatchQuery;
 import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
+import com.tastyhouse.application.review.service.ReviewSortSpecs;
 
 @Service
 @WebApp
@@ -70,7 +73,7 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     @Override
     public PageResult<TodayDiscountProductResult> searchTodayDiscountProducts(int page, int size) {
-        return productQueryPort.findTodayDiscountProducts(PageQuery.of(page, size));
+        return productQueryPort.findTodayDiscountProducts(ProductExposureWindows.now(), PageQuery.of(page, size));
     }
 
     @Override
@@ -122,7 +125,10 @@ public class ProductQueryService implements ProductQueryUseCase {
     @Override
     public ProductOptionsResult findProductOptions(Long productId) {
         loadProductDetail(productId);
-        return ProductOptionDepositAmounts.of(productQueryPort.findProductOptions(productId), cupDepositPolicy);
+        return ProductOptionDepositAmounts.of(
+            productQueryPort.findProductOptions(productId, ProductOptionGroupType.NORMAL.name()),
+            cupDepositPolicy
+        );
     }
 
     @Override
@@ -211,15 +217,19 @@ public class ProductQueryService implements ProductQueryUseCase {
 
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
-        return productQueryPort.searchByKeyword(keyword, pageQuery);
+        return productQueryPort.searchByKeyword(keyword, ProductExposureWindows.now(), pageQuery);
     }
 
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
-        return productQueryPort.findShopProducts(shopId);
+        return productQueryPort.findShopProducts(shopId, ProductExposureWindows.now());
     }
 
     public List<PopularProductItemResult> findPopularProducts(Long shopId) {
-        return productQueryPort.findPopularProducts(shopId);
+        return productQueryPort.findPopularProducts(
+            shopId,
+            OrderStatus.COMPLETED.name(),
+            ProductExposureWindows.now()
+        );
     }
 
     public List<ProductCategoryResult> findShopProductCategories(Long shopId) {
@@ -254,7 +264,13 @@ public class ProductQueryService implements ProductQueryUseCase {
 
         PageQuery pageQuery = PageQuery.of(page, size);
         PageResult<LatestReviewListItemResult> allReviewsPage =
-            reviewQueryPort.findLatestReviewsByProductId(productId, null, pageQuery, hasImage, ReviewSortType.LATEST.name());
+            reviewQueryPort.findLatestReviewsByProductId(
+                productId,
+                null,
+                pageQuery,
+                hasImage,
+                ReviewSortSpecs.of(ReviewSortType.LATEST)
+            );
 
         Long totalReviewCount = reviewStatisticsQueryPort.countVisibleByProductId(productId);
 

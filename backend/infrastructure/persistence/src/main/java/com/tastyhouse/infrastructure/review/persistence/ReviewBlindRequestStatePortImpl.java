@@ -1,13 +1,13 @@
 package com.tastyhouse.infrastructure.review.persistence;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.review.port.out.ReviewBlindStatusCodes;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestState;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestStatePort;
 
@@ -15,13 +15,6 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindReque
 
 @Repository
 public class ReviewBlindRequestStatePortImpl implements ReviewBlindRequestStatePort {
-    private static final List<String> TERMINATED_STATUSES = List.of(
-        ReviewBlindStatusCodes.APPROVED,
-        ReviewBlindStatusCodes.REJECTED,
-        ReviewBlindStatusCodes.EXPIRED,
-        ReviewBlindStatusCodes.DELETED
-    );
-
     private final JPAQueryFactory queryFactory;
     private final ReviewBlindRequestJpaRepository reviewBlindRequestJpaRepository;
 
@@ -50,24 +43,24 @@ public class ReviewBlindRequestStatePortImpl implements ReviewBlindRequestStateP
     }
 
     @Override
-    public boolean existsTerminatedByReviewId(Long reviewId) {
+    public boolean existsByReviewIdAndStatusIn(Long reviewId, Collection<String> statuses) {
         Integer result = queryFactory
             .selectOne()
             .from(reviewBlindRequestJpaEntity)
             .where(
                 reviewBlindRequestJpaEntity.reviewId.eq(reviewId),
-                reviewBlindRequestJpaEntity.status.in(TERMINATED_STATUSES)
+                reviewBlindRequestJpaEntity.status.in(statuses)
             )
             .fetchFirst();
         return result != null;
     }
 
     @Override
-    public List<ReviewBlindRequestState> findExpirableBlinds(LocalDateTime now) {
+    public List<ReviewBlindRequestState> findByStatusExpiringBefore(String status, LocalDateTime now) {
         return queryFactory
             .selectFrom(reviewBlindRequestJpaEntity)
             .where(
-                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatusCodes.APPROVED),
+                reviewBlindRequestJpaEntity.status.eq(status),
                 reviewBlindRequestJpaEntity.blindUntil.isNotNull(),
                 reviewBlindRequestJpaEntity.blindUntil.loe(now)
             )
@@ -79,13 +72,13 @@ public class ReviewBlindRequestStatePortImpl implements ReviewBlindRequestStateP
     }
 
     @Override
-    public Optional<ReviewBlindRequestState> findApprovedByReviewId(Long reviewId) {
+    public Optional<ReviewBlindRequestState> findLatestByReviewIdAndStatus(Long reviewId, String status) {
         return Optional.ofNullable(
             queryFactory
                 .selectFrom(reviewBlindRequestJpaEntity)
                 .where(
                     reviewBlindRequestJpaEntity.reviewId.eq(reviewId),
-                    reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatusCodes.APPROVED)
+                    reviewBlindRequestJpaEntity.status.eq(status)
                 )
                 .orderBy(reviewBlindRequestJpaEntity.id.desc())
                 .fetchFirst()

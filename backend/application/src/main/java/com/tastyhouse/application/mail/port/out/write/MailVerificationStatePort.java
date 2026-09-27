@@ -7,5 +7,5 @@ public interface MailVerificationStatePort {
 
     Optional<MailVerificationState> findLatestPendingByEmail(String email, String status);
 
-    void expireAllPendingByEmail(String email);
+    void changeStatusByEmail(String email, String fromStatus, String toStatus);
 }

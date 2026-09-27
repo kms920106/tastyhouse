@@ -13,6 +13,7 @@ import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
+import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service
@@ -40,7 +41,7 @@ public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase 
 
         LocalDateTime since = LocalDateTime.now().minusDays(ProductFeedbackService.FEEDBACK_WINDOW_DAYS);
         return productFeedbackQueryPort.findFeedbackSummaries(
-            shopId, since, PageQuery.of(page, size)
+            shopId, since, ProductFeedbackType.ETC.name(), PageQuery.of(page, size)
         );
     }
 
