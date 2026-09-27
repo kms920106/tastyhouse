@@ -32,7 +32,7 @@
 | S3 (파일 저장) | `infrastructure:aws-s3` | `../aws-s3/AGENTS.md` |
 | SES (메일) | `infrastructure:aws-ses` | `../aws-ses/AGENTS.md` |
 | SNS (SMS) | `infrastructure:aws-sns` | `../aws-sns/AGENTS.md` |
-| 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` | `../oauth/AGENTS.md` |
+| 소셜 로그인 클라이언트 4종 | `infrastructure:oauth` → 채널·벤더 분할(2026-09-27)로 `infrastructure:oauth`(코드 없는 스타터)+`infrastructure:{kakao,naver,apple,facebook}-oauth`(벤더 구현) | `../oauth/AGENTS.md`·`../kakao-oauth/AGENTS.md`·`../naver-oauth/AGENTS.md`·`../apple-oauth/AGENTS.md`·`../facebook-oauth/AGENTS.md` |
 | 토스페이먼츠 연동 | `infrastructure:payment` → 채널·벤더 분할로 `infrastructure:pg`(라우터 조립)+`infrastructure:tosspayments`(벤더 구현) | `../pg/AGENTS.md`·`../tosspayments/AGENTS.md` |
 | 메일(JavaMail)·SMS(Solapi) + Mail/SmsDomainConfig | `infrastructure:messaging` → 4분할(2026-09-26)로 `infrastructure:{mail,javamail,sms,solapi}` | `../mail/AGENTS.md`·`../javamail/AGENTS.md`·`../sms/AGENTS.md`·`../solapi/AGENTS.md` |
 | BBQ 메뉴 수집 · 원격 이미지 다운로드 | `infrastructure:bbq` | `../bbq/AGENTS.md` |
@@ -40,7 +40,7 @@
 | `file/{FileStorageStrategy,FileStoragePortAdapter,FileStorageProperties}` | **삭제** — 벤더 어댑터(`FirebaseFileStorage`·`S3FileStorage`)가 도메인 포트 `FileStoragePort`를 직접 구현한다 | 아래 [과거 판단의 번복](#과거-판단의-번복--파일-저장-spi-삭제) |
 | `exception/{ExternalApiException,ExternalApiErrorCode}` | **삭제** — 5개 상수는 도메인 `ErrorCode`로, 어댑터는 `BusinessException`을 직접 던진다 | 아래 [예외 계약 해체](#예외-계약-해체--도메인-errorcode로-흡수) |
 
-형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 12개는 전부 driven(아웃바운드) 어댑터다. 여기에 챕터 03에서 신설된 `infrastructure:file-storage`(`../file-storage/AGENTS.md`)가 더해져 `infrastructure` 아래는 13개가 됐는데, 이 하나만 어댑터가 아니라 **자바 코드 없는 조립 전용 스타터**다.
+형제 모듈은 `infrastructure:persistence`(`../persistence/AGENTS.md`)·`infrastructure:redis`(`../redis/AGENTS.md`)이며, 이 12개는 전부 driven(아웃바운드) 어댑터다. 여기에 챕터 03에서 신설된 `infrastructure:file-storage`(`../file-storage/AGENTS.md`)가 더해져 `infrastructure` 아래는 13개가 됐는데, 이 하나만 어댑터가 아니라 **자바 코드 없는 조립 전용 스타터**다. 이후 분할이 이어져 지금 `infrastructure` 아래는 21개이며, 소셜 로그인 채널 `infrastructure:oauth`(`../oauth/AGENTS.md`)도 채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 스타터는 `file-storage`·`oauth` 둘이다.
 
 **`application-external.yml`은 챕터 03에서 삭제됐다.** 담고 있던 것이 `file.provider` 한 줄뿐이었고, 그 값의 소유가 스타터 `infrastructure:file-storage`의 `application-file-storage.yml`로 옮겨갔기 때문이다. 당시 이 모듈에 남아 있던 바인딩 대상 `FileStorageProperties`(`file.*`)는 이후 주입처가 0건인 죽은 코드로 확인돼 삭제됐다 — 지금 `file.provider`는 벤더 구현의 `@ConditionalOnProperty` 문자열로만 소비된다.
 
@@ -56,14 +56,14 @@
 
 ## 코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지
 
-**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더·채널 13모듈(oauth·pg·tosspayments·mail·javamail·sms·solapi·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*`로 그대로 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.
+**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더·채널 16모듈(kakao-oauth·naver-oauth·apple-oauth·facebook-oauth·pg·tosspayments·mail·javamail·sms·solapi·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*` 아래에 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.
 
 ## 패키지 구조
 
 ```
 com.tastyhouse.restclient/
 └── config/
-    ├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth·pg 경유 tosspayments·solapi·bbq·admdongkor를 경유해 web·batch에만 실린다)
+    ├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth 경유 kakao/naver/apple/facebook-oauth·pg 경유 tosspayments·solapi·bbq·admdongkor를 경유해 web·batch에만 실린다)
     ├── RestClientConfig.java        @Bean RestClientCustomizer restClientTimeoutCustomizer — 모든 Boot RestClient.Builder에 요청 팩토리 connect 5s / read 10s 적용
     └── HttpRequestFactories.java     public static ClientHttpRequestFactory withTimeouts(Duration connect, Duration read) — SimpleClientHttpRequestFactory(HttpURLConnection) 기반, 이 저장소에서 타임아웃 있는 요청 팩토리를 만드는 유일한 지점
 ```
@@ -112,15 +112,15 @@ com.tastyhouse.restclient/
 ### External
 - `spring-web` (`api`) — `RestClientAutoConfiguration`이 등록하는 `RestClient.Builder`를 코어의 `RestClientCustomizer`가 꾸민다. 벤더 어댑터가 이 좌표를 반복 선언하지 않도록 `api`로 노출한다.
 - `spring-boot-starter-json` (`api`) — Jackson. 벤더 어댑터가 wire DTO 역직렬화에 그대로 쓴다.
-- **webflux·reactor-netty·`WebClient`는 전면 제거됐다.** **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail` 의존도 없다** — 각각 aws-s3/aws-ses/aws-sns·firebase·oauth·javamail 모듈이 소유한다.
+- **webflux·reactor-netty·`WebClient`는 전면 제거됐다.** **AWS SDK·Firebase Admin·jjwt·`spring-boot-starter-mail` 의존도 없다** — 각각 aws-s3/aws-ses/aws-sns·firebase·apple-oauth·javamail 모듈이 소유한다(jjwt는 채널·벤더 분할 전 `infrastructure:oauth` 소유였다).
 
 ## 어댑터 작성 규칙 (10모듈 공통)
 
-이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 전부에 적용된다.
+이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 전부에 적용된다(코드 없는 스타터 `file-storage`·`oauth`는 작성할 어댑터가 없다).
 
 - **외부 HTTP 호출은 코어가 customizer로 꾸민 Boot `RestClient.Builder`를 주입받아 생성자에서 한 번 build한다.** `restClientBuilder.baseUrl(...).build()`로 만든 `RestClient`를 필드로 보유한다(스레드 안전). WebClient·webflux·JDK `java.net.http.HttpClient` 직접 사용은 도입하지 않는다 — 타임아웃 있는 요청 팩토리를 만드는 유일한 지점은 코어의 `HttpRequestFactories.withTimeouts(...)`(`SimpleClientHttpRequestFactory`/`HttpURLConnection` 기반)다. **대용량 응답은 `exchange()` 스트리밍이다**(`retrieve().body(String/...)` 금지 — 선례: admdongkor의 `AdminDongBoundaryClient`).
 - **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`)는 프레임워크-프리이므로 `RestClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
-- **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 상세는 `../oauth/AGENTS.md`.
+- **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 상세는 `../oauth/AGENTS.md`, DTO별 봉인은 `../kakao-oauth/AGENTS.md`·`../naver-oauth/AGENTS.md`.
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`)·configtree 시크릿(`SECRETS_DIR`, `../firebase/AGENTS.md`)으로 주입한다.
 - **provider 선택은 `@ConditionalOnProperty`로 한다**: `file.provider`·`mail.provider`·`sms.provider`. 조건 애노테이션은 스캔되는 구현 클래스에 붙어 있고, `{Xxx}ModuleConfig`는 조건을 갖지 않는다.
 - **에러는 도메인 `BusinessException(ErrorCode.X[, cause])`을 직접 던진다**: 모듈마다 예외 타입을 새로 만들고 전역 핸들러에 `@ExceptionHandler`를 추가하지 않는다. `RestClientResponseException`을 catch해 이 형태로 번역한다(과거 `WebClientResponseException`, 그 이전에는 `ExternalApiException`으로 번역했다 — 지금은 그 중간 타입 없이 곧바로 `BusinessException`이다).
@@ -132,7 +132,7 @@ com.tastyhouse.restclient/
 - **이 모듈은 설정만 갖는다 — 예외·에러코드를 두지 않는다.** 외부 연동 실패 코드는 도메인 `ErrorCode`가 소유한다. 새 채널 연동을 추가할 때 이 모듈에 예외 타입을 되살리지 않는다(위 [예외 계약 해체](#예외-계약-해체--도메인-errorcode로-흡수)).
 - **RestTemplate·WebClient 모듈을 미리 만들어 두지 않는다.** `infrastructure:aws-s3`/`aws-ses`/`aws-sns`가 "만들어 뒀지만 어느 앱도 안 쓰는" 선례이긴 하나, 그것들은 도메인 포트 뒤에서 설정 한 줄로 교체 가능한 구현체다. HTTP 클라이언트는 어댑터 코드가 직접 호출하는 라이브러리라 교체 = 어댑터 재작성이며, 미리 만들면 webflux·reactor-netty가 빌드 그래프로 되돌아온다. WebClient가 필요해지면 그때 `infrastructure:webclient`를 신설한다(1순위는 virtual threads + `RestClient`, 불가피하면 그 모듈 + 가드 예외만 도입).
 - **`com.tastyhouse.infrastructure.restclient`로 두지 않는다.** `infrastructure:persistence`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 경로도 스캔 대상에 넣어, 진입 설정을 persistence의 스캔이 다시 등록하는 이중 등록이 된다. Spring은 같은 클래스의 중복 스캔을 한 번만 등록하므로 **기동 실패로 이어지지는 않지만**, 등록 주체가 persistence 쪽으로 넘어가 `@AutoConfiguration`의 순서·조건 계약이 무력화된다(redis REGEX 제외와 같은 이유). 이 이동은 후속 프로그램의 stage B 대상이다 — `backend/CLAUDE.md`의 "후속 프로그램 — 벤더 패키지를 `com.tastyhouse.infrastructure.*`로 정렬" 절에서 `restclient`를 벤더·redis와 함께 stage B 대상으로 명시한다.
-- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `RestClientModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth·pg(경유 tosspayments)·solapi를, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
+- **빈 배선 (파일 저장 SPI 삭제로 개정)**: `RestClientModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`·`FileDomainConfig`가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
 - **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/restclient/AGENTS.md`.
 - **가드 테스트**: `NoReactiveHttpClientTest`는 `src/test/java/com/tastyhouse/restclient/architecture/`로 이동했다.
 
@@ -142,7 +142,7 @@ com.tastyhouse.restclient/
 
 ### 자바 패키지 `com.tastyhouse.external..` 봉인 (벤더 9모듈 공통 — 코어는 대상 아님)
 
-**대상**: 벤더·채널 13개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`oauth`·`pg`·`tosspayments`·`mail`·`javamail`·`sms`·`solapi`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.
+**대상**: 벤더·채널 16개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`pg`·`tosspayments`·`mail`·`javamail`·`sms`·`solapi`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.
 
 위 "코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지" 절과 같은 사실을, **가드로서** 다시 못박는다. 벤더 모듈을 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.
 
@@ -192,7 +192,7 @@ override는 `MockRestServiceServer.bindTo(builder)`가 심어 둔 목 팩토리�
 
 **대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/RestClientModuleAutoConfiguration.java`
 
-이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 이 클래스를 `@Import` 하지 않는다(앱이 직접 선언하지도 않고 어댑터 모듈을 통해 전이로 받는다). 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·외부 수집(BBQ·행정동 경계)은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`OAuthModuleAutoConfiguration`·`PgModuleAutoConfiguration`·`TossPaymentsModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
+이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 이 클래스를 `@Import` 하지 않는다(앱이 직접 선언하지도 않고 어댑터 모듈을 통해 전이로 받는다). 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·외부 수집(BBQ·행정동 경계)은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`KakaoOAuthModuleAutoConfiguration`·`NaverOAuthModuleAutoConfiguration`·`AppleOAuthModuleAutoConfiguration`·`FacebookOAuthModuleAutoConfiguration`·`PgModuleAutoConfiguration`·`TossPaymentsModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
 
 ### 예외 계약을 이 모듈에 두지 않는 이유 (결함 이력 — `backend/CLAUDE.md`로 이관)
 

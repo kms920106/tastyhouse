@@ -13,7 +13,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `application`·`security-module`·`api-common-module`을 `implementation`으로 의존(컴파일 타임에 구체 타입을 직접 참조하는 소비처가 있어 auto-configuration 전환 후에도 남는다), `infrastructure:persistence`·`infrastructure:file-storage`(firebase를 묶은 파일 저장 스타터 — 챕터 03으로 2줄에서 1줄로)·`infrastructure:oauth`·`infrastructure:pg`·`infrastructure:mail`·`infrastructure:sms`·`infrastructure:redis`·`logging-module`은 **챕터 02로 `runtimeOnly`**(자기 등록 auto-configuration이라 앱이 진입점 설정 클래스를 컴파일 타임에 볼 필요가 없어졌다) + web, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). webflux는 리포 전체에서 제거됐다(외부 HTTP 호출은 동기 `RestClient`). QueryDSL 의존은 없다 |
+| `build.gradle` | `application`·`security-module`·`api-common-module`을 `implementation`으로 의존(컴파일 타임에 구체 타입을 직접 참조하는 소비처가 있어 auto-configuration 전환 후에도 남는다), `infrastructure:persistence`·`infrastructure:file-storage`(firebase를 묶은 파일 저장 스타터 — 챕터 03으로 2줄에서 1줄로)·`infrastructure:oauth`(소셜 로그인 벤더 4종을 묶은 코드 없는 스타터)·`infrastructure:pg`·`infrastructure:mail`·`infrastructure:sms`·`infrastructure:redis`·`logging-module`은 **챕터 02로 `runtimeOnly`**(자기 등록 auto-configuration이라 앱이 진입점 설정 클래스를 컴파일 타임에 볼 필요가 없어졌다) + web, security, data-redis, aop, validation, JJWT, springdoc (p6spy는 logging-module이 api로 전이). webflux는 리포 전체에서 제거됐다(외부 HTTP 호출은 동기 `RestClient`). QueryDSL 의존은 없다 |
 | `src/main/resources/` | `application.yml` 등 환경 설정 (로깅 설정은 logging-module의 `application-logging.yml`을 import) |
 
 ## Subdirectories
@@ -56,10 +56,10 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 - **부트스트랩은 `@Import(WebApplicationConfig.class)` 하나뿐이다 (챕터 02)**: `WebApiApplication`은 `@SpringBootApplication` + `@Import` 두 애노테이션만 갖는다 — `scanBasePackages`도 `@ComponentScan`도 없다. 라이브러리 모듈(`infrastructure:*`·`security-module`·`logging-module`·`api-common-module`)은 각자의 `{Xxx}ModuleAutoConfiguration`으로 **자기 자신을 등록**하므로 앱이 스캔 대상을 나열할 필요가 없다. `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 애초에 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
 - **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`. (`config/jwt/` 디렉터리는 챕터 01~02로 소멸 — `RedisRepositoryConfig`·`JwtConfig` 모두 삭제.)
 - **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET_WEB`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
-- 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 `infrastructure:oauth`에 위임.
+- 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 벤더 모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`에 위임한다(앱은 스타터 `infrastructure:oauth`만 선언한다).
 - 응답은 공통 래퍼로 일관화 — `ApiResponse`/`PaginationResponse`/`PageRequest`는 이 모듈이 아니라 **`api-common-module`(`com.tastyhouse.apicommon`) 소유**다. (과거 함께 있던 `FileService`는 이후 계층 재배치로 `application`의 `FileUploadCommandService`가 됐다.)
 - **`GlobalExceptionHandler`만은 이 모듈에 잔류**한다: web 전용 핸들러 3종(`NoHandlerFoundException`·`MissingServletRequestParameterException`·`MethodArgumentTypeMismatchException`)과 "필드명: 메시지" 형식의 검증 실패 응답이 admin/ceo와 다른 **응답 계약 차이**이기 때문이다(과거엔 여기에 `ExternalApiException` 전용 처리도 있었으나, 그 예외 타입 자체가 삭제되고 도메인 `BusinessException`으로 흡수되며 `BusinessException` 핸들러가 그대로 처리한다). **핸들러가 2개가 되는 것은 스캔 범위가 아니라 조건이 막는다 (챕터 02)** — `ApiCommonModuleAutoConfiguration`이 공용 핸들러를 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`로 등록하므로, 이 모듈의 자체 advice를 보고 **스스로 물러난다**(실측 Negative). 앱이 할 일은 없다.
-- **소셜 로그인은 `external.oauth.spi` SPI로만 사용**한다: 소셜 서비스 4종은 `SocialOAuthClient`(`@Qualifier`로 제공자 지정)·`SocialProfile`만 알고 제공자별 wire DTO를 import하지 않는다. 제공자별 임시토큰 저장소(챕터 01 이후 포트는 `security-core`, Redis 구현은 `infrastructure:redis`)·`*_TEMP_TOKEN_EXPIRED` ErrorCode는 제공자별로 유지한다(key prefix 변경 금지). ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제.
+- **소셜 로그인은 `com.tastyhouse.application.auth.port.out` SPI로만 사용**한다: 소셜 서비스 4종은 `SocialOAuthClient`(`@Qualifier`로 제공자 지정)·`SocialProfile`만 알고 제공자별 wire DTO를 import하지 않는다. 제공자별 임시토큰 저장소(챕터 01 이후 포트는 `security-core`, Redis 구현은 `infrastructure:redis`)·`*_TEMP_TOKEN_EXPIRED` ErrorCode는 제공자별로 유지한다(key prefix 변경 금지). ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제.
 - **등록(POST) API는 생성된 `Long` id만 반환**한다: `ResponseEntity<ApiResponse<Long>>`로 PK 하나만 반환하고, **생성 직후 `{도메인}QueryService`로 재조회해 상세 DTO를 반환하지 않는다**(과거 이 모듈만 등록 8종이 재조회 DTO 형태였으나 전면 전환됨). 생성 응답 전용 래퍼 record(`OrderCreateResponse` 등)를 만들지 않고, 행을 생성하고도 `ApiResponse<Void>`를 반환하지 않는다(`signUp`·`follow`도 id 반환). 상세가 필요한 클라이언트는 그 id로 GET 상세를 호출한다. 파일 업로드(`FileApiController#upload`)·인증/토큰 발급(소셜 로그인·`signUpSocialAccount`·인증코드 확인 등)·토글(`toggleBookmark`·`toggleReviewLike`)·상태전이(payment `confirm`/`cancel`/`refund`, reservation `confirm`/`reject`/`complete`)·POST-as-query(`getProductsBatch`)는 적용 제외. 상세는 루트 CLAUDE.md 참고.
 
 
@@ -70,15 +70,15 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 - **Redis 연결 설정은 이 파일이 갖지 않는다** — 챕터 05 §5b에서 `infrastructure:redis` 모듈이 소유하게 됐고, 이 파일은 `classpath:application-redis.yml`을 import할 뿐이다. 그 설정만 담고 있던 `security-module`의 `application-security.yml`은 **파일째 이관되고 삭제됐다.** Redis 접속 정보를 바꿔야 하면 이 파일이 아니라 `infrastructure/redis/src/main/resources/application-redis.yml`을 본다.
 - **`.env`를 `optional:file:.env[.properties]`와 `optional:file:backend/.env[.properties]` 두 경로로 선언한다.** `spring.config.import`의 `file:` 상대경로는 **JVM 작업 디렉터리(CWD) 기준으로 해석**되므로, 한 경로만 선언하면 실행 위치에 따라 `.env`가 조용히 로드되지 않는다. 두 줄을 함께 두어 **모노레포 루트에서 실행하는 경우와 `backend`에서 실행하는 경우를 모두 지원**한다. `optional:` 접두어라 없는 쪽은 건너뛴다. 그 밖의 디렉터리에서 `java -jar`를 실행하면 두 경로 모두 빗나가 DB 접속 정보 같은 필수 환경변수가 비므로, 실행 디렉터리 규칙은 루트 `CLAUDE.md`의 "실행 디렉터리(CWD) 주의"를 따른다.
 - `jwt.secret`은 ``JWT_SECRET_WEB``를 읽는다(앱별로 반드시 달라야 하는 이유는 위 참고).
-- 소셜 로그인 4종(kakao·naver·facebook·apple)의 client-id·secret·redirect-uri도 이 파일이 갖고, 값은 전부 환경변수 참조다.
+- 소셜 로그인 4종(kakao·naver·facebook·apple)의 client-id·secret·redirect-uri는 **이 파일이 갖지 않는다** — 채널·벤더 분할로 각 벤더 모듈의 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)이 소유하고, 이 파일은 `classpath:application-oauth.yml` 한 줄만 import한다(그 파일이 벤더 yml 4개를 중첩 import한다). 분할 전 이 파일에 있던 `kakao.*`·`naver.*`·`facebook.*`·`apple.*` 블록은 삭제됐다. 환경변수 이름(`KAKAO_CLIENT_ID` … `APPLE_PRIVATE_KEY`)은 그대로이며, 값이 없거나 해석되지 않으면 벤더 record 검사로 **기동이 실패**한다(`infrastructure/oauth/AGENTS.md`).
 
 ## Dependencies
 
 ### Internal
 - `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
-- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
-- `infrastructure:oauth` — 소셜 로그인 어댑터 4종(`external.oauth.spi` SPI 구현)
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(도메인 포트 `FileStoragePort` 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
+- `infrastructure:oauth` — 소셜 로그인 채널 스타터(코드 없음). 벤더 4종 `infrastructure:{kakao,naver,apple,facebook}-oauth`(`com.tastyhouse.application.auth.port.out`의 `SocialOAuthClient` 구현)를 `runtimeOnly`로 묶어 전이로 공급한다
 - `infrastructure:pg` — 결제 PG 채널(라우터 `PgPaymentGatewayRouter` 조립, `PgPaymentGateway` 구현). 기본 벤더 `infrastructure:tosspayments`(`PgProviderGateway` 구현)를 `runtimeOnly`로 묶는다
 - `infrastructure:mail` — 메일 채널 모듈(`MailDomainConfig` + 기본 벤더 `infrastructure:javamail` 조립). SES 전환은 이 모듈에서 한다
 - `infrastructure:sms` — SMS 채널 모듈(`SmsDomainConfig` + 기본 벤더 `infrastructure:solapi` 조립). SNS 전환은 이 모듈에서 한다
@@ -127,12 +127,12 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 
 금지 대상 제공자 패키지 4개를 FQN 문자열로 열거한다.
 
-- `com.tastyhouse.external.oauth.kakao..`
-- `com.tastyhouse.external.oauth.naver..`
-- `com.tastyhouse.external.oauth.facebook..`
-- `com.tastyhouse.external.oauth.apple..`
+- `com.tastyhouse.external.kakao.oauth..`
+- `com.tastyhouse.external.naver.oauth..`
+- `com.tastyhouse.external.facebook.oauth..`
+- `com.tastyhouse.external.apple.oauth..`
 
-소유 모듈이 external-api → `infrastructure:external` → `infrastructure:oauth`로 바뀌는 동안에도 자바 패키지가 불변이라 규칙은 그대로 유효했다. 반대로 **패키지를 바꾸면 이 규칙은 실패하는 대신 조용히 대상을 잃으므로, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.**
+소유 모듈이 external-api → `infrastructure:external` → `infrastructure:oauth`로 바뀌는 동안에는 자바 패키지가 불변(`com.tastyhouse.external.oauth.{kakao,naver,facebook,apple}`)이라 규칙은 그대로 유효했다. 채널·벤더 분할(2026-09-27)로 벤더 4모듈이 생기며 패키지가 `com.tastyhouse.external.{vendor}.oauth`로 바뀌었고, 그때 이 목록을 새 패키지로 교체했다. 반대로 **패키지를 바꾸면 이 규칙은 실패하는 대신 조용히 대상을 잃으므로, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.**
 
 **이 규칙을 admin-api·ceo-api에 복제하지 않는다** — 두 앱에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다.
 

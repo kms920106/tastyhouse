@@ -1,0 +1,7 @@
+spring:
+  config:
+    import:
+      - classpath:application-kakao-oauth.yml
+      - classpath:application-naver-oauth.yml
+      - classpath:application-apple-oauth.yml
+      - classpath:application-facebook-oauth.yml

@@ -42,7 +42,7 @@ backend/infrastructure/file-storage/
 
 **해소됨(2026-09-26)**: 과거 `infrastructure:aws`가 external·messaging을 implementation으로 가져 전환 시 admin·ceo에 전이로 실릴 위험이 실측으로 확인됐고, `aws-s3` 분리로 해소했다 — `aws-s3`의 의존은 domain과 spring-cloud-aws-starter-s3뿐이다.
 
-메일(SES)·SMS(SNS)는 이 스타터를 거치지 않고, 각자의 채널 모듈(`../mail/AGENTS.md`·`../sms/AGENTS.md`)이 같은 방식(채널 모듈 `build.gradle` + yml 2파일)으로 벤더를 조립한다.
+메일(SES)·SMS(SNS)는 이 스타터를 거치지 않고, 각자의 채널 모듈(`../mail/AGENTS.md`·`../sms/AGENTS.md`)이 같은 방식(채널 모듈 `build.gradle` + yml 2파일)으로 벤더를 조립한다. 소셜 로그인 채널 `infrastructure:oauth`는 이 모듈과 **같은 형태의 코드 없는 스타터**다(채널·벤더 분할 2026-09-27) — 다만 배타 선택(`file.provider`)이 아니라 벤더 4종이 공존하고, web-api 한 앱만 의존한다(`../oauth/AGENTS.md`).
 
 ## ⚠️ 이 모듈에 코드를 넣지 않는다
 

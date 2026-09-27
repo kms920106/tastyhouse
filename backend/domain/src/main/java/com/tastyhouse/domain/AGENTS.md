@@ -70,9 +70,9 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · domain/service (POJO 불변식·정책)  ←DIP─  · <ctx>/query (read: QueryDao + Result)
    · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
         ↑                                     ↑
-   shared (kernel), exception            infrastructure:{external,firebase,aws-s3,
-                                          aws-ses,aws-sns,oauth,pg,tosspayments,mail,javamail,sms,solapi,
-                                          bbq,admdongkor}
+   shared (kernel), exception            infrastructure:{firebase,aws-s3,aws-ses,aws-sns,
+                                          kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,
+                                          pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}
                                           (외부 연동 port 구현)
 ```
 

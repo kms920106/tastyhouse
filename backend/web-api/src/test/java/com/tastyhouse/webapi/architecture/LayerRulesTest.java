@@ -90,10 +90,10 @@ class LayerRulesTest {
     void shouldDependOnOauthSpiOnlyNotProviderPackages() {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.external.oauth.kakao..",
-                "com.tastyhouse.external.oauth.naver..",
-                "com.tastyhouse.external.oauth.facebook..",
-                "com.tastyhouse.external.oauth.apple.."
+                "com.tastyhouse.external.kakao.oauth..",
+                "com.tastyhouse.external.naver.oauth..",
+                "com.tastyhouse.external.facebook.oauth..",
+                "com.tastyhouse.external.apple.oauth.."
             )
             .because("소셜 로그인은 com.tastyhouse.application.auth.port.out을 통해서만 사용한다");
 
