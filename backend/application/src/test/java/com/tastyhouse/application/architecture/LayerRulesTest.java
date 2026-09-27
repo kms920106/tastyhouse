@@ -1,12 +1,17 @@
 package com.tastyhouse.application.architecture;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.application.shared.marker.BatchApp;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -20,6 +25,15 @@ class LayerRulesTest {
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.application");
+
+    private static final DescribedPredicate<JavaClass> DECLARE_TRANSACTIONAL_EVENT_LISTENER =
+        new DescribedPredicate<>("@TransactionalEventListener 메서드를 가진 클래스") {
+            @Override
+            public boolean test(JavaClass javaClass) {
+                return javaClass.getMethods().stream()
+                    .anyMatch(method -> method.isAnnotatedWith(TransactionalEventListener.class));
+            }
+        };
 
     @Test
     void commandServicesShouldNotDependOnQueryDaos() {
@@ -184,6 +198,28 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("io.swagger..")
             .because("유스케이스 계층은 API 문서화 도구를 알지 않는다(Response 조립은 각 api 모듈 담당)");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void listenersShouldBeShared() {
+        ArchRule rule = classes()
+            .that(DECLARE_TRANSACTIONAL_EVENT_LISTENER)
+            .should().beAnnotatedWith(SharedApp.class)
+            .andShould().resideInAPackage("..listener..")
+            .because("마커 없는 AFTER_COMMIT 리스너는 어느 앱에도 뜨지 않아 이벤트가 예외도 로그도 없이 유실된다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void sharedAppOnlyOnListeners() {
+        ArchRule rule = classes()
+            .that().areAnnotatedWith(SharedApp.class)
+            .should().resideInAPackage("..listener..")
+            .andShould(ArchCondition.from(DECLARE_TRANSACTIONAL_EVENT_LISTENER))
+            .because("@SharedApp은 리스너 전용이다 — 일반 빈에 붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
 
         rule.check(classes);
     }

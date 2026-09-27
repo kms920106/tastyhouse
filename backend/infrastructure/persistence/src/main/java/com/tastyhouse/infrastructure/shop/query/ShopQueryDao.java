@@ -95,6 +95,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         this.fileUrlResolver = fileUrlResolver;
     }
 
+    @Override
     public Optional<String> findShopName(Long shopId) {
         return Optional.ofNullable(
             queryFactory

@@ -1,6 +1,6 @@
 # application
 
-**4개 앱(web · admin · ceo · batch)의 application 계층을 담는 단일 모듈.** 자바 패키지는 `com.tastyhouse.application` 하나로 평탄화돼 있다(챕터 03) — 구조는 `com.tastyhouse.application.<도메인>.{port.in, port.out, service}`이고 도메인 아래에 앱별 폴더가 없다. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`(batch는 `*SchedulerService`), 그리고 읽기 계약 326개가 이 한 패키지 트리 안에 함께 있다. **앱 소속은 패키지가 아니라 마커 애노테이션**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`)이 표현한다 — 상세는 아래 [챕터 03 — 패키지 평탄화 + 앱 마커](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복).
+**4개 앱(web · admin · ceo · batch)의 application 계층을 담는 단일 모듈.** 자바 패키지는 `com.tastyhouse.application` 하나로 평탄화돼 있다(챕터 03) — 구조는 `com.tastyhouse.application.<도메인>.{port.in, port.out, service, listener}`이고 도메인 아래에 앱별 폴더가 없다. 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`(batch는 `*SchedulerService`), 읽기 계약 326개, 그리고 도메인 이벤트 리스너 12종(`<ctx>/listener/`)이 이 한 패키지 트리 안에 함께 있다. **앱 소속은 패키지가 아니라 마커 애노테이션**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 그리고 리스너 전용 "앱 소속 없음 = 4앱 전부" 마커 `@SharedApp`)이 표현한다 — 상세는 아래 [챕터 03 — 패키지 평탄화 + 앱 마커](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복).
 
 컨트롤러(`<ctx>/adapter/in/web/`)·`request/`·`response/`·config·security 정책·전역 예외 핸들러와 부트스트랩은 각 api 모듈(`web-api`·`admin-api`·`ceo-api`·`batch-module`)에 남아 있다.
 
@@ -22,6 +22,7 @@
 - **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
 - **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다. **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
 - **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
+- **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4개 `*ApplicationConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다. **리스너 외에는 붙이지 않는다** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다. 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
 - **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
 - **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
 - **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
@@ -43,13 +44,16 @@
 com.tastyhouse.application/
   ├── {App}ApplicationConfig.java   @ComponentScan 진입점(마커 기반 필터) — 쓰는 앱이 @Import 한다. 4개(Web/Admin/Ceo/Batch)
   ├── shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java   순수 마커 애노테이션 4종 — 앱 소속의 유일한 단서
+  ├── shared/marker/SharedApp.java   5번째 마커 — 리스너 전용, "앱 소속 없음 = 4앱 전부"
   ├── shared/exception/BatchJobException.java   (챕터 03 이동 — 과거 batchapplication/exception/)
   └── <ctx>/
       ├── port/in/                UseCase 인터페이스(마커 부착) + Command record(마커 없음 — AppOwnership 유도)
       ├── service/                *CommandService/*QueryService(batch는 *SchedulerService), 마커 부착, implements {Ctx}UseCase
-      └── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
-                                  읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
-                                  아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
+      ├── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
+      │                           읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
+      │                           아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
+      └── listener/               도메인 이벤트 리스너(@Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT))
+                                  — persistence에서 이동, 10개 컨텍스트에 12종
 ```
 
 패키지만 봐서는 어느 앱 것인지 알 수 없다 — 빈·UseCase는 마커 애노테이션이, Command record는 `AppOwnership`의 유도가 소속을 정한다(아래 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). 컨텍스트별 규모는 앱마다 다르다.
@@ -150,8 +154,8 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 | 클래스 | importer | 내용 |
 |---|---|---|
-| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 16종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 |
-| `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 4종 4×3=12조합 개별 검사 — 슬라이스가 아니다) · `beansShouldHaveExactlyOneAppMarker` · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계) |
+| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **리스너 마커 양방향 2** — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용 — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것까지 막는다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
+| `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 5종 5×4=20조합 개별 검사 — 슬라이스가 아니다. `@SharedApp`이 `AppOwnership.MARKERS`에 들어가 "공유 리스너는 앱 전용 빈에 의존할 수 없고, 앱 전용 빈도 공유 리스너에 의존할 수 없다"까지 강제한다. `because`는 "공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐") · `beansShouldHaveExactlyOneAppMarker`(리스너는 `@SharedApp` 하나로 통과) · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계, `@SharedApp` 빈 ≥ 12 포함) |
 | `BatchSchedulerRulesTest` | `com.tastyhouse.application`(단일, `.areNotAnnotatedWith(BatchApp.class)` 등 마커 술어로 batch만 선별) | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
 | `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한만 담당 |
 
@@ -169,7 +173,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ### anchor 하한
 
-**마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
+**마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12, 그리고 리스너 12종인 `@SharedApp` ≥12 — 리스너 하나가 마커를 잃으면 어느 앱에도 뜨지 않으므로 하한이 곧 리스너 수다)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
 
 읽기 계약은 합계 **≥ 282**(통합 전 4개 앱 합 227 + 챕터 04로 돌아온 공유 계약 55, `RuleAnchorTest` 소유)이다. 소유 모듈을 가리던 소스-URI 필터는 챕터 04에서 제거했다 — 테스트 클래스패스에 남의 모듈 계약이 더는 없다.
 
@@ -208,13 +212,56 @@ application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **�
 @ComponentScan(
     basePackages = "com.tastyhouse.application",
     useDefaultFilters = false,
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = WebApp.class))
+    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebApp.class, SharedApp.class}))
 public class WebApplicationConfig { }
 ```
+
+4개 설정 전부가 자기 앱 마커와 함께 **`SharedApp.class`를 포함**한다(`classes = {XxxApp.class, SharedApp.class}`). 그래서 `@SharedApp` 빈(도메인 이벤트 리스너 12종)은 4앱 전부에 뜬다. 패키지 기반 include(`..listener..`를 통째로 포함)는 스캔 규칙이 "마커"와 "패키지" 두 가지로 갈리므로 채택하지 않았다.
 
 `useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 `WebApplicationConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
 
 각 부트스트랩의 `@Import` 대상 클래스는 챕터 01 이후 그대로다 — 그래서 이 챕터의 부트스트랩(api 모듈) 소스 변경은 **0건**이다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이었고(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례), **auto-configuration 전환(챕터 02) 이후로는 `scanBasePackages` 나열 자체가 4개 앱에서 사라져 `@Import({App}ApplicationConfig)` 한 줄만 남았다.**
+
+## `<ctx>/listener/` — 도메인 이벤트 리스너
+
+domain이 `shared/event/DomainEventPublisher` 포트로 발행한 도메인 이벤트를 구독하는 크로스커팅 리스너를 둔다. 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`이며, 발행 어댑터 `infrastructure:persistence`의 `shared/event/SpringDomainEventPublisher`가 `ApplicationEventPublisher`로 위임한다(발행 어댑터는 persistence에 남는다).
+
+**위치는 `com.tastyhouse.application.<ctx>.listener`이고, 리스너는 전부 `@Component` + `@SharedApp`이다.** 현재 12종 — `coupon`·`file`·`mail`·`member`(`MemberEventListener`·`ReferralRegisteredEventListener`)·`notification`(`ReviewOwnerReplyEventListener`·`ReviewBlindApprovedEventListener`)·`payment`·`point`·`policy`·`product`·`sms`. 과거에는 `infrastructure:persistence`의 `com.tastyhouse.infrastructure.<ctx>.listener`에 있었다(번복됨 — 이벤트를 받아 도메인 서비스를 오케스트레이션하는 것은 유스케이스 계층의 일이다). `@SharedApp` 마커를 빠뜨리면 리스너가 어느 앱에도 뜨지 않아 이벤트가 **예외도 로그도 없이** 유실되므로, `LayerRulesTest#listenersShouldBeShared`가 빌드 시점에 막는다(아래 [빈 배선](#빈-배선-챕터-03-개정--패키지-스캔에서-마커-스캔으로) 참고). 리스너가 infra DAO를 직접 주입하지 않는다 — 이 모듈은 infra를 컴파일 클래스패스에 두지 않으므로 필요한 조회는 `port/out` 읽기 포트로 받는다(`ReviewOwnerReplyEventListener` → `ShopBasicInfoQueryPort#findShopName`).
+
+**미소비 이벤트를 남기지 않는다.** 모든 `*Event` record에는 대응 리스너가 있어야 한다. 리스너 없는 이벤트는 "누군가 처리하고 있겠지"라는 착각을 낳고, 발행 지점만 보고는 그 착각이 드러나지 않는다. 소비 수요가 없다고 판단되면 리스너를 만드는 대신 **이벤트 record와 발행 호출을 함께 삭제**한다 — 둘 중 하나를 고르되 "발행만 하고 두는" 상태는 허용하지 않는다.
+
+### ⚠️ AFTER_COMMIT은 실패하면 조용히 유실된다 — 금전 처리를 리스너에 두지 말 것
+
+**이 프로젝트에는 재시도도 outbox도 없다.** AFTER_COMMIT 리스너가 예외로 죽으면 원본 트랜잭션은 이미 커밋된 뒤이므로 롤백되지 않고, 후속 처리만 소리 없이 사라진다. 로그 한 줄이 남을 뿐 실패를 감지하는 장치가 없다.
+
+payment·point·coupon 리스너는 **금전에 직접 영향을 준다**(포인트 적립·환급·회수). 지금 이 처리들이 리스너에 있는 것은 유실이 허용돼서가 아니라 기존 구조가 그렇기 때문이며, **새로 추가하는 후속 처리에는 이 배치를 선례로 삼지 않는다.**
+
+**판단 기준 — 유실되면 곤란한가?**
+
+| 유실 시 결과 | 두는 곳 |
+|---|---|
+| 관측성만 손해(로그·통계 누락) | `<ctx>/listener/`의 `@TransactionalEventListener(AFTER_COMMIT)` |
+| **데이터가 어긋남**(금전 정산, 목록에서 사라짐, 상태 불일치) | **동기 Recorder 패턴** — 원본 상태 전이와 **같은 트랜잭션**에서 도메인 서비스가 직접 호출 |
+
+동기 Recorder의 선례는 `ShopChangeHistoryRecorder`·`ShopRequestIndexRecorder`다. 특히 후자는 이 판단을 명시적으로 기록해 두었다 — 요청처리 현황은 기록 유실이 곧 "요청이 목록에서 사라짐"이라 이벤트를 쓰지 않고 동기 기록을 택했고, Recorder를 도메인 서비스의 **생성자 필수 의존**으로 받아 새 상태 전이를 추가할 때 배선 필요성이 컴파일 단계에서 드러나게 했다. 상세는 루트 `CLAUDE.md`의 "요청 인덱스 동기화 규칙".
+
+**outbox 도입은 현재 범위 밖이다.** 도입을 검토해야 할 시점의 근거만 남긴다 — (1) 유실 시 데이터가 어긋나는 후속 처리인데 동기 트랜잭션에 넣을 수 없는 경우(외부 API 호출처럼 원본 트랜잭션을 길게 잡으면 안 되는 것), (2) 그런 처리가 여러 컨텍스트에 생겨 Recorder 패턴만으로 감당되지 않는 경우. 그 전까지는 위 표의 두 선택지로 충분하다.
+
+### 리스너 작성 규칙
+
+- **도메인별로 분리한다**: 한 리스너가 여러 도메인 이벤트를 구독하면 한 도메인의 변경이 다른 도메인의 리스너 파일을 건드리게 된다. 같은 도메인의 이벤트 여러 개를 한 리스너가 받는 것은 정상이다(`CouponEventListener`가 발급·사용을 함께 받는 형태).
+- **규칙 본체를 리스너에 두지 않는다**: 리스너는 이벤트 수신과 트랜잭션 경계만 담당하고, 판단·계산은 도메인 서비스가 갖는다(`PaymentEventListener` → `PointLedgerService`·`PaymentConfirmationService`, `ProductMenuReviewEventListener` → `ProductReviewStatsService`).
+- **DB를 쓰면 `@Transactional(propagation = REQUIRES_NEW)`를 붙인다**: AFTER_COMMIT 시점에는 원본 트랜잭션이 이미 끝나 있다. 기록만 하는 핸들러는 붙이지 않는다.
+
+### 리스너 단위 테스트
+
+**리스너 파일마다 `<ctx>/listener/` 아래 대응 테스트를 둔다.** 스프링 컨텍스트 없이 리스너를 직접 생성해 핸들러를 이벤트 객체로 호출하는 순수 단위 테스트이며, AFTER_COMMIT 발화·`@Async`·트랜잭션 전파 같은 배선 자체는 프레임워크 몫이라 검증하지 않는다.
+
+- **협력자가 있는 리스너**(payment·product)는 mock으로 **무엇을 호출/미호출하는지**를 검증한다. 조건 분기(현장 결제만 적립, `usedPoint > 0`일 때만 환급, `productId == null`이면 통계 미갱신)가 이 리스너들의 실질이고, 잘못되면 이중 정산·환급 누락으로 이어진다.
+- **기록만 하는 리스너**(coupon·file·mail·member×2·point·policy·sms)는 `shared/listener/ListenerLogCapture`로 Logback appender를 붙여 **무엇이 기록되는지**까지 확인한다. 로그를 관측하지 않으면 핸들러 본문을 통째로 지워도 통과하는 공허한 테스트가 된다.
+- **같은 타입 파라미터가 여러 개면 서로 다른 값을 넣는다**: `ReferralRegisteredEvent`의 추천인·피추천인은 둘 다 `MemberId`라 순서를 바꿔도 컴파일된다 — 값이 뒤바뀌면 "누가 누구를 추천했는지"가 반대로 기록되므로 각각이 제 자리에 들어가는지 확인한다.
+
+reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종 + 환불 접수의 "포인트 미개입" 계약), `ProductMenuReviewEventListenerTest`(null 가드), `CouponEventListenerTest`(로그 캡처 기준 예시), 공용 유틸 `shared/listener/ListenerLogCapture`(`backend/application/src/test/java/com/tastyhouse/application/shared/listener/ListenerLogCapture.java`).
 
 ## 주의
 
@@ -437,6 +484,74 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 억제가 정당한 이유는 **busy-wait가 아니라 외부 BBQ 서버 부하 방지를 위한 의도적인 요청 간
 지연**이기 때문이다. 루프 안의 `Thread.sleep`이라는 형태만 보고 "폴링을 이벤트 대기로 바꾸라"는
 지적으로 오인해 지연 자체를 없애면, 크롤링이 외부 서버를 연속 타격한다. 마커와 지연 둘 다 유지한다.
+
+### 이벤트 리스너 단위 테스트 12종 — 현재 동작 봉인 (공통 규칙)
+
+리스너 테스트는 **리스너의 현재 동작을 봉인하는 순수 단위 테스트**다. 아래가 12개 파일 전부에 적용되는 공통 규칙이며, 개별 항목은 이 규칙에서 벗어나는 것만 아래에 따로 적는다.
+
+- **스프링 컨텍스트 없이 리스너를 직접 생성해 핸들러를 호출한다** — `AFTER_COMMIT` 발화 자체는 프레임워크 몫이라 검증 대상이 아니다. 스프링 배선을 검증하려고 `@SpringBootTest`를 붙이지 않는다.
+- 협력자 없이 기록만 하는 리스너는 **무엇이 기록되는지**를 `ListenerLogCapture`로 확인한다.
+
+**공통 유틸**: `backend/application/src/test/java/com/tastyhouse/application/shared/listener/ListenerLogCapture.java`
+
+리스너 12개 중 7개는 협력자 없이 `log.info(...)`만 수행한다. 이런 리스너에서 "무엇을 하는지"는 곧 "무엇을 기록하는지"이므로, **로그를 관측하지 않으면 핸들러 본문을 통째로 지워도 통과하는 공허한 테스트만 남는다.** 그래서 Logback `ListAppender`를 대상 로거에 직접 붙여, 이벤트의 어떤 값이 기록에 반영되는지까지 봉인한다. **사용 후에는 반드시 `detach()`를 호출한다**(JUnit `@AfterEach`) — 떼지 않으면 같은 로거를 쓰는 다른 테스트가 실행될 때 이벤트가 계속 쌓인다.
+
+공통 규칙만 적용되는 파일 — `coupon/listener/CouponEventListenerTest.java` · `member/listener/MemberEventListenerTest.java`(가입·탈퇴는 web-api와 admin-api 양쪽에서 트리거되지만 리스너 자체는 발행 경로를 알지 않는다) · `policy/listener/PolicyActivatedEventListenerTest.java`.
+
+#### 개별 예외 — 공통 규칙 위에 추가로 봉인하는 것
+
+| 대상 (`backend/application/src/test/java/com/tastyhouse/application/...`) | 추가로 봉인하는 것 |
+|---|---|
+| `file/listener/FileUploadedEventListenerTest.java` | 기록되는 것은 **저장 경로**이지 표시용 URL이 아니다 — URL 변환은 조회 시점에 query DAO가 `FileUrlResolver`로 수행하므로 리스너가 경로를 그대로 남기는 것이 정상이다 |
+| `mail/listener/MailVerificationEventListenerTest.java` | **이 리스너가 메일을 발송하지 않는 것이 정상**이라는 점을 함께 고정한다 — 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로, 발송은 `MailVerificationService#issue`가 발급과 원자적으로 수행한다 |
+| `sms/listener/SmsVerificationEventListenerTest.java` | 위와 동일한 이유로 **발송하지 않음**을 고정한다 — 발송은 `SmsVerificationService#issue`가 발급과 원자적으로 수행한다 |
+| `point/listener/PointEventListenerTest.java` | **이 리스너가 잔액을 건드리지 않는 것이 정상**임을 고정한다 — 포인트 증감은 `PointLedgerService`가 이벤트 발행 **이전에** 이미 수행했고 리스너는 기록만 한다. **협력자를 주입받지 않는 생성자가 그 증거이며, 여기에 원장 서비스가 추가되면 이중 정산이 된다** |
+| `member/listener/ReferralRegisteredEventListenerTest.java` | referral↔point 두 컨텍스트를 잇는 지점이라 검증 대상이 로깅이 아니라 **적립 2건과 보상 완료 전이가 모두, 그리고 그 순서대로 일어나는가**이다 |
+| `notification/listener/ReviewOwnerReplyEventListenerTest.java` | review↔notification을 잇는 지점이라 검증 대상은 **답변 등록 이벤트가 리뷰 작성자 앞으로 알림을 적재하는가**이다. 수신자가 `reviewerMemberId`(작성자)여야 하고 이동 대상이 그 리뷰여야 한다. 가게명은 `ShopBasicInfoQueryPort#findShopName`으로 조회하므로(테스트는 `mock(ShopBasicInfoQueryPort.class)`) **조회가 비어 있는 경우까지 함께 봉인한다** — 알림 본문에 "null 사장님"이 새는 것을 막기 위함이다 |
+| `notification/listener/ReviewBlindApprovedEventListenerTest.java` | 게시중단 승인 이벤트가 **리뷰 작성자 앞으로 게시중단 기한을 담은 알림을 적재하는가**를 `NotificationService` mock의 `notifyReviewBlindApproved` 호출 인자로 검증한다. 가게명 조회가 없는 것이 이 리스너의 의도이므로(아래 배치 근거 참고) 조회 협력자를 추가하지 않는다 |
+| `payment/listener/PaymentEventListenerTest.java` | 로그만 남기는 다른 리스너와 달리 **실제 금전 효과**(포인트 증감)를 낸다. 따라서 "무엇을 기록하는가"가 아니라 **"어떤 조건에서 원장 서비스를 호출/미호출하는가"**를 검증한다 — 조건 분기가 잘못되면 적립이 이중으로 되거나 환급이 누락되며, `AFTER_COMMIT`이라 실패해도 재시도가 없다. 특히 **환불 요청 접수 시점에는 아무것도 하지 않는 것이 이 핸들러의 계약이다** — 접수 시점에 포인트가 움직이면 이후 취소가 확정될 때 `PaymentCancelledEvent`가 같은 금액을 다시 반영해 **이중 정산**이 된다 |
+| `product/listener/ProductMenuReviewEventListenerTest.java` | 상품 평점·평가 수라는 **영속 상태**를 갱신하므로 "어떤 상품 id로 통계 갱신을 호출하는가"를 검증한다. **이벤트 3종 모두가 같은 재집계를 트리거해야 한다** — 하나라도 빠지면 `PRODUCT.rating`이 조용히 낡는다 |
+
+### 이벤트 리스너 — 지우거나 되돌리면 안 되는 것
+
+`infrastructure:persistence`에서 리스너와 함께 옮겨 온 금지 항목이다. 아래 `.../` 경로의 루트는 `backend/application/src/main/java/com/tastyhouse/application/`다.
+
+#### 알림 리스너의 `@Async` + `AFTER_COMMIT` + `REQUIRES_NEW` 3종 세트를 부분적으로 떼지 않는다
+
+**대상**: `.../notification/listener/ReviewBlindApprovedEventListener.java` · `.../notification/listener/ReviewOwnerReplyEventListener.java` · `.../product/listener/ProductMenuReviewEventListener.java`
+
+- `@Async`가 빠지면 호출 스레드에서 동기 실행되어 **알림 실패가 원본 API로 전파된다** — DB에는 반영됐는데 화면은 실패로 뜬다.
+- `REQUIRES_NEW`가 빠지면 커밋될 트랜잭션이 없어 **리스너가 조용히 아무것도 남기지 않는다.**
+
+`ProductMenuReviewEventListener`의 **`productId == null` 가드도 유지한다** — 컬럼이 NOT NULL이라는 이유로 지우면, 향후 발행 경로가 늘어 null이 실릴 때 그 예외가 `AFTER_COMMIT`에서 조용히 유실된다.
+
+#### `PaymentEventListener#onRefundRequested`는 포인트를 건드리지 않는 것이 계약이다
+
+**대상**: `.../payment/listener/PaymentEventListener.java` → `onRefundRequested`
+
+이 이벤트는 환불 **접수** 시점이며 실제 금전 정산은 결제가 취소로 확정될 때 `PaymentCancelledEvent`가 수행한다. **여기서 포인트를 함께 움직이면 승인 전 요청만으로 잔액이 바뀌고, 이후 취소 확정 시 같은 금액이 두 번 반영된다.** 이 핸들러는 접수 사실만 남기며, DB를 쓰지 않으므로 `REQUIRES_NEW`도 열지 않는다.
+
+`onPaymentCompleted`의 **현장 결제 한정 적립**도 계약이다 — PG 결제는 주문 접수 시점에 이미 처리됐다.
+
+#### `ReferralRegisteredEventListener`의 처리 순서를 바꾸지 않는다
+
+**대상**: `.../member/listener/ReferralRegisteredEventListener.java`
+
+**적립 먼저, 보상 완료 전이는 그 다음이다.** 전이가 먼저 커밋되면 "완료로 표시됐지만 포인트는 없는" 추천 관계가 남아 적립 실패 건을 상태로 식별할 수 없게 된다. 지금 순서라면 적립 실패 시 추천 관계가 `PENDING`에 머물러 재처리 대상으로 남는다.
+
+적립을 이 리스너에서 도메인 서비스로 되돌리지 않는다 — 적립 시맨틱(잔액 증가 + EARNED 이력 + 적립 이벤트)의 단일 원천은 `PointLedgerService`다.
+
+#### `ProductMenuReviewEventListener`가 REVIEW 이벤트를 다시 구독하게 하지 않는다
+
+**대상**: `.../product/listener/ProductMenuReviewEventListener.java`
+
+`PRODUCT.rating`의 근거가 MENU_REVIEW로 완전히 옮겨갔다. **두 리스너가 같은 `ProductReviewStatsService`를 호출하면 재집계가 두 번 돌고 "어느 쪽이 진짜 근거인가"가 코드에서 사라진다.**
+
+#### 인증 리스너에 발송을 추가하지 않는다
+
+**대상**: `.../mail/listener/MailVerificationEventListener.java` · `.../sms/listener/SmsVerificationEventListener.java`
+
+이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다. 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
 
 
 ## 코드 주석에서 이관된 설계 근거
@@ -815,13 +930,14 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 ### 앱 마커가 곧 스캔 포함 기준이다
 
-**대상**: `shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java` · `{App}ApplicationConfig.java`
+**대상**: `shared/marker/{WebApp,AdminApp,CeoApp,BatchApp,SharedApp}.java` · `{App}ApplicationConfig.java`
 
 `useDefaultFilters = false` 스캔의 **유일한 포함 기준**이자 ArchUnit 앱 격리 규칙의 술어다. 새 빈과
 새 UseCase 인터페이스는 **반드시 마커 하나를 단다** — 마커가 없으면 어느 앱에도 뜨지 않고, **컴파일은
 통과하므로 실패는 기동 시점 `NoSuchBeanDefinitionException`으로만 드러난다.**
 
 - Command record에는 붙이지 않는다(소속은 `AppOwnership`이 유도한다).
+- `@SharedApp`은 **리스너 전용**이다("앱 소속 없음 = 4앱 전부") — `..listener..` 밖에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다.
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
 - 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
@@ -878,3 +994,33 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 **새 조회를 추가할 때**: 컨트롤러가 부르지 않는 메서드라면 `*QueryUseCase`에 올리지 말고
 `*QueryService`에만 둔다. 협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다.
+
+### 리스너 배치가 `@SharedApp`으로 4앱 전부가 스캔하는 `application`인 이유 (개별 사유)
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/**/listener/*.java`
+
+리스너 작성 규칙 일반은 이 문서의 [`<ctx>/listener/`](#ctxlistener--도메인-이벤트-리스너) 절에 있다. 여기에는 **"왜 특정 앱 마커(`@WebApp` 등) 하나가 아니라 `@SharedApp`으로 4앱 전부가 스캔하는 application에 두는가"의 리스너별 근거**만 적는다 — 공통 답은 "특정 앱에만 뜨게 두면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 누락된다"이고, 각 리스너의 발행 경로가 그 근거다.
+
+과거에는 같은 근거("모든 실행 모듈이 스캔하는 곳")로 `infrastructure:persistence`에 두었다. application도 4앱 전부가 `{App}ApplicationConfig`로 스캔하지만 `useDefaultFilters = false` + 앱 마커 필터라, 4앱 모두에 뜨게 하는 마커 `@SharedApp`을 신설해 그 근거를 application에서도 성립시켰다(번복됨).
+
+| 리스너 | 발행 경로가 여럿인 근거 |
+|---|---|
+| `CouponEventListener` | 발급은 admin(수동)·이벤트 경유(가입·추천 보상), 사용은 web(주문 결제) |
+| `MemberEventListener` | 가입·탈퇴가 web-api(본인)와 admin-api(관리자 강제 탈퇴) 양쪽 |
+| `PointEventListener` | web(주문 결제)·admin(수동 조정)·이벤트 경유(결제 취소·추천 보상) |
+| `PaymentEventListener` | 지금은 web-api뿐이지만 admin-api의 환불·관리 경로가 같은 이벤트를 발행하게 되어도 포인트 연동이 누락되면 안 된다 |
+| `ReferralRegisteredEventListener` | 추천 등록이 일반 가입과 소셜 가입(4종) 어느 경로에서도 발생한다 |
+| `ProductMenuReviewEventListener` | 평가는 web-api에서 등록되지만 admin-api의 숨김·삭제로도 통계가 바뀐다 |
+| `ReviewBlindApprovedEventListener` · `ReviewOwnerReplyEventListener` | 지금은 admin/ceo 경로뿐이지만, **알림 적재는 행위 주체가 아니라 "그 일이 일어났다"는 사실에 반응해야 한다** |
+| `PolicyActivatedEventListener` | 활성화 자체가 특정 액터에 묶이지 않는 도메인 불변식(`PolicyActivationService`)이다 |
+| `MailVerificationEventListener` · `SmsVerificationEventListener` | 도메인별 분리 원칙 — 한 리스너가 여러 도메인 이벤트를 구독하면 한 도메인의 변경이 다른 도메인의 리스너 파일을 건드린다 |
+
+개별 판단으로 따로 남길 것.
+
+- **`ReferralRegisteredEventListener` — 순서가 중요하다. 적립 먼저, 보상 완료 전이는 그 다음이다.** 전이가 먼저 커밋되면 "완료로 표시됐지만 포인트는 없는" 추천 관계가 남아 적립 실패 건을 상태로 식별할 수 없게 된다. 지금 순서라면 적립 실패 시 추천 관계가 `PENDING`에 머물러 재처리 대상으로 남는다. 과거에는 `ReferralRegistrationService`가 point 애그리거트와 리포지토리를 직접 주입해 적립을 재구현했으나, 적립 시맨틱(잔액 증가 + EARNED 이력 + 적립 이벤트)의 단일 원천은 `PointLedgerService`여야 하므로 컨텍스트를 잇는 책임을 리스너로 옮겼다. `AFTER_COMMIT`이라 이 핸들러가 실패해도 추천 등록은 롤백되지 않는데, **추천 등록과 보상 적립의 결합을 끊기 위해 의도적으로 감수한 트레이드오프**다.
+- **`PaymentEventListener` — 적립액 계산의 단일 원천은 `PaymentConfirmationService#calculateEarnedPoint`다**(주문에 기록되는 적립 포인트와 실제 적립액이 갈리지 않도록). 리스너는 이벤트 수신과 트랜잭션 경계만 담당한다.
+- **`ReviewBlindApprovedEventListener` · `ReviewOwnerReplyEventListener` — `@Async` + `AFTER_COMMIT` + `REQUIRES_NEW` 3종 세트를 반드시 함께 단다.** `AFTER_COMMIT`만 달면 호출 스레드에서 동기 실행되어 알림 실패가 원본 API로 전파된다 — DB에는 반영됐는데 화면은 실패로 뜨는, "알림이 실패해도 원본은 유효하다"는 판단과 정면으로 어긋나는 상태가 된다. `REQUIRES_NEW`가 없으면 커밋될 트랜잭션이 없어 리스너가 조용히 아무것도 남기지 않는다. 동기가 아니라 리스너인 근거는 「크로스 컨텍스트 후처리」 판정표의 "후처리가 실패하면 원본도 없던 일이 되어야 하는가?"에 **아니오**이기 때문이며, 인증코드 발송이 동기인 것과 반대 방향이다.
+- **`ReviewBlindApprovedEventListener`에 가게명 조회가 없는 것은 의도적이다** — 게시중단 안내 문구가 가게명을 노출하지 않는다. 고객에게 필요한 정보는 재노출 예정일이지 어느 가게가 요청했는지가 아니며, **요청 주체를 알리면 리뷰 작성자와 점주 사이의 분쟁을 부추길 수 있다.**
+- **`ProductMenuReviewEventListener`의 구독 대상은 REVIEW가 아니라 MENU_REVIEW 이벤트다.** `PRODUCT.rating`의 근거가 MENU_REVIEW로 완전히 옮겨갔으므로 구독도 하나만 남는 것이 맞다 — 두 리스너가 같은 `ProductReviewStatsService`를 호출하면 재집계가 두 번 돌고 "어느 쪽이 진짜 근거인가"가 코드에서 사라진다. `ReviewCreatedEvent`/`ReviewDeletedEvent`는 발행만 남고 소비자가 0이다. **`productId == null` 가드는 유지한다** — MENU_REVIEW의 `product_id`는 NOT NULL이지만 이벤트 record가 VO를 담고 있어 향후 발행 경로가 늘 때 null이 실릴 수 있고, 그 예외는 `AFTER_COMMIT` 리스너에서 조용히 유실된다.
+- **`MailVerificationEventListener` · `SmsVerificationEventListener`는 발송을 담당하지 않는다.** 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다 — 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
+- **`PolicyActivatedEventListener`는 재동의 요청·개정 고지 발송을 아직 담당하지 않는다** — 발송 대상이 전체 회원이라 요청 스레드에서 처리할 수 없고 배치·큐 설계가 선행돼야 한다. 그때까지는 전이 사실만 남겨, 어떤 정책이 언제 현행이 됐는지가 발행 지점 밖에서도 관측 가능하게 한다.

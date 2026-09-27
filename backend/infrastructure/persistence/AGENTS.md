@@ -28,20 +28,19 @@ com.tastyhouse.infrastructure/
     │   ├── XxxJpaRepository.java         Spring Data JpaRepository<XxxJpaEntity, Long>
     │   ├── XxxRepositoryImpl.java        @Repository — domain XxxRepository(write 포트) 구현
     │   └── XxxIdConverter.java           AttributeConverter<XxxId, Long> (@Convert FK VO 매핑)
-    ├── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**
-    │   └── XxxQueryDao.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
-    │                                     (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
-    │                                     JPAQueryFactory + QXxxJpaEntity로 `Projections.constructor(XxxResult.class, ...)` 투영
-    └── listener/                         크로스커팅 도메인 이벤트 리스너(@TransactionalEventListener)
+    └── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**
+        └── XxxQueryDao.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
+                                          (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
+                                          JPAQueryFactory + QXxxJpaEntity로 `Projections.constructor(XxxResult.class, ...)` 투영
 ```
 
 **Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐고, 소유 모듈은 `application` 하나다(챕터 04로 공유 계약까지 돌아와 단독 소유가 됐다). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
 
-현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`를 가진 도메인: `coupon`·`file`·`mail`·`member`·`payment`·`point`·`policy`·`product`·`sms`.
+현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`는 이 모듈에 없다 — 도메인 이벤트 리스너 12종은 `application`으로 이동했다(아래 규칙 절의 번복 항목 참고).
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.infrastructure`** — **챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`으로 스스로 스캔**해 빈(RepositoryImpl·QueryDao·Listener·Config)을 등록한다(`redis` 하위 패키지는 `excludeFilters`로 제외 — 그쪽은 `RedisModuleAutoConfiguration`이 갖는다). 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄만 갖는다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
+- **패키지 루트는 `com.tastyhouse.infrastructure`** — **챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`으로 스스로 스캔**해 빈(RepositoryImpl·QueryDao·Config)을 등록한다(`redis` 하위 패키지는 `excludeFilters`로 제외 — 그쪽은 `RedisModuleAutoConfiguration`이 갖는다). 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄만 갖는다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
 - **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
 - **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다.
 - **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
@@ -53,7 +52,7 @@ com.tastyhouse.infrastructure/
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
 - **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
-  - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. `file/config/FileDomainConfig`의 `FileStoragePort`는 4개 앱 전부가 구현을 가지므로 여기 잔류한다. 주입이 없는 `mail/listener/MailVerificationEventListener`·`sms/listener/SmsVerificationEventListener`도 잔류한다.
+  - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. `file/config/FileDomainConfig`의 `FileStoragePort`는 4개 앱 전부가 구현을 가지므로 여기 잔류한다. 과거 함께 잔류하던 주입 없는 `MailVerificationEventListener`·`SmsVerificationEventListener`는 다른 리스너 10종과 함께 `application`의 `com.tastyhouse.application.{mail,sms}.listener`로 이동했다(`../../application/AGENTS.md` 참고).
 
     판정 기준은 "외부 연동 포트인가"가 **아니라** "구현이 일부 앱에만 있는가"다. 이것을 헷갈리면 `FileDomainConfig`까지 옮기려 든다.
 
@@ -63,7 +62,7 @@ com.tastyhouse.infrastructure/
   - **컨텍스트 분류가 애매한 빈**(여러 컨텍스트 서비스를 파라미터로 받는 것)은 **반환 타입이 속한 컨텍스트**의 config에 둔다.
   - member의 하위 컨텍스트(`follow`·`referral`) 빈은 `member/config/MemberDomainConfig`에 함께 둔다(별도 파일로 쪼개지 않음).
   - **모듈 진입점인 `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지 — 앱의 `@Import` 때문이 아니라 챕터 02로 그 필요 자체가 사라졌다). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
-- **이벤트 리스너는 `<ctx>/listener/`에 둔다**: 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 리스너가 없어 누락되므로, 크로스커팅 리스너는 모든 실행 모듈이 스캔하는 이 모듈에 둔다. 유실 위험과 리스너/Recorder 선택 기준은 아래 [도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너) 절을 따른다.
+- **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, 리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다. 이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
 reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
 
@@ -73,7 +72,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
-- **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다(`ShopQueryDao#findShopName` — 같은 모듈의 `ReviewOwnerReplyEventListener`가 구체 타입으로 주입). `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryDaosShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다.
+- **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다. `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryDaosShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다. 과거 사례였던 `ShopQueryDao#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동하면서 `ShopBasicInfoQueryPort`에 선언됐다(DAO는 `@Override`만 추가).
 - **Result 접미어는 `Result`로 통일하고 `Dto`는 쓰지 않는다**. admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management` 한정어를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지). 타입명에 역할 마커 `Admin`은 붙이지 않는다.
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
@@ -182,45 +181,6 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 - **필드 셋이 달라 Result를 통합하지 않은 사례**: 사진 카테고리 이미지 조회는 회원용 `ShopPhotoCategoryImageResult`(노출분 표시용)와 관리용 `ShopPhotoCategoryImageManagementResult`(`visible` 포함 — 관리 화면은 미노출 이미지도 상태와 함께 보여줘야 함)로 나뉜다. 같은 패키지에 공존해 충돌하므로 `Management` 한정어를 부여했다.
 - **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailRepository` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
 
-## `<ctx>/listener/` — 도메인 이벤트 리스너
-
-domain이 `shared/event/DomainEventPublisher` 포트로 발행한 도메인 이벤트를 구독하는 크로스커팅 리스너를 둔다. 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`이며, 어댑터 `shared/event/SpringDomainEventPublisher`가 `ApplicationEventPublisher`로 위임한다.
-
-**미소비 이벤트를 남기지 않는다.** 모든 `*Event` record에는 대응 리스너가 있어야 한다. 리스너 없는 이벤트는 "누군가 처리하고 있겠지"라는 착각을 낳고, 발행 지점만 보고는 그 착각이 드러나지 않는다. 소비 수요가 없다고 판단되면 리스너를 만드는 대신 **이벤트 record와 발행 호출을 함께 삭제**한다 — 둘 중 하나를 고르되 "발행만 하고 두는" 상태는 허용하지 않는다.
-
-### ⚠️ AFTER_COMMIT은 실패하면 조용히 유실된다 — 금전 처리를 리스너에 두지 말 것
-
-**이 프로젝트에는 재시도도 outbox도 없다.** AFTER_COMMIT 리스너가 예외로 죽으면 원본 트랜잭션은 이미 커밋된 뒤이므로 롤백되지 않고, 후속 처리만 소리 없이 사라진다. 로그 한 줄이 남을 뿐 실패를 감지하는 장치가 없다.
-
-payment·point·coupon 리스너는 **금전에 직접 영향을 준다**(포인트 적립·환급·회수). 지금 이 처리들이 리스너에 있는 것은 유실이 허용돼서가 아니라 기존 구조가 그렇기 때문이며, **새로 추가하는 후속 처리에는 이 배치를 선례로 삼지 않는다.**
-
-**판단 기준 — 유실되면 곤란한가?**
-
-| 유실 시 결과 | 두는 곳 |
-|---|---|
-| 관측성만 손해(로그·통계 누락) | `<ctx>/listener/`의 `@TransactionalEventListener(AFTER_COMMIT)` |
-| **데이터가 어긋남**(금전 정산, 목록에서 사라짐, 상태 불일치) | **동기 Recorder 패턴** — 원본 상태 전이와 **같은 트랜잭션**에서 도메인 서비스가 직접 호출 |
-
-동기 Recorder의 선례는 `ShopChangeHistoryRecorder`·`ShopRequestIndexRecorder`다. 특히 후자는 이 판단을 명시적으로 기록해 두었다 — 요청처리 현황은 기록 유실이 곧 "요청이 목록에서 사라짐"이라 이벤트를 쓰지 않고 동기 기록을 택했고, Recorder를 도메인 서비스의 **생성자 필수 의존**으로 받아 새 상태 전이를 추가할 때 배선 필요성이 컴파일 단계에서 드러나게 했다. 상세는 루트 `CLAUDE.md`의 "요청 인덱스 동기화 규칙".
-
-**outbox 도입은 현재 범위 밖이다.** 도입을 검토해야 할 시점의 근거만 남긴다 — (1) 유실 시 데이터가 어긋나는 후속 처리인데 동기 트랜잭션에 넣을 수 없는 경우(외부 API 호출처럼 원본 트랜잭션을 길게 잡으면 안 되는 것), (2) 그런 처리가 여러 컨텍스트에 생겨 Recorder 패턴만으로 감당되지 않는 경우. 그 전까지는 위 표의 두 선택지로 충분하다.
-
-### 리스너 작성 규칙
-
-- **도메인별로 분리한다**: 한 리스너가 여러 도메인 이벤트를 구독하면 한 도메인의 변경이 다른 도메인의 리스너 파일을 건드리게 된다. 같은 도메인의 이벤트 여러 개를 한 리스너가 받는 것은 정상이다(`CouponEventListener`가 발급·사용을 함께 받는 형태).
-- **규칙 본체를 리스너에 두지 않는다**: 리스너는 이벤트 수신과 트랜잭션 경계만 담당하고, 판단·계산은 도메인 서비스가 갖는다(`PaymentEventListener` → `PointLedgerService`·`PaymentConfirmationService`, `ProductReviewEventListener` → `ProductReviewStatsService`).
-- **DB를 쓰면 `@Transactional(propagation = REQUIRES_NEW)`를 붙인다**: AFTER_COMMIT 시점에는 원본 트랜잭션이 이미 끝나 있다. 기록만 하는 핸들러는 붙이지 않는다.
-
-### 리스너 단위 테스트
-
-**리스너 파일마다 `<ctx>/listener/` 아래 대응 테스트를 둔다.** 스프링 컨텍스트 없이 리스너를 직접 생성해 핸들러를 이벤트 객체로 호출하는 순수 단위 테스트이며, AFTER_COMMIT 발화·`@Async`·트랜잭션 전파 같은 배선 자체는 프레임워크 몫이라 검증하지 않는다.
-
-- **협력자가 있는 리스너**(payment·product)는 mock으로 **무엇을 호출/미호출하는지**를 검증한다. 조건 분기(현장 결제만 적립, `usedPoint > 0`일 때만 환급, `productId == null`이면 통계 미갱신)가 이 리스너들의 실질이고, 잘못되면 이중 정산·환급 누락으로 이어진다.
-- **기록만 하는 리스너**(coupon·file·mail·member×2·point·policy·sms)는 `shared/listener/ListenerLogCapture`로 Logback appender를 붙여 **무엇이 기록되는지**까지 확인한다. 로그를 관측하지 않으면 핸들러 본문을 통째로 지워도 통과하는 공허한 테스트가 된다.
-- **같은 타입 파라미터가 여러 개면 서로 다른 값을 넣는다**: `ReferralRegisteredEvent`의 추천인·피추천인은 둘 다 `MemberId`라 순서를 바꿔도 컴파일된다 — 값이 뒤바뀌면 "누가 누구를 추천했는지"가 반대로 기록되므로 각각이 제 자리에 들어가는지 확인한다.
-
-reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종 + 환불 접수의 "포인트 미개입" 계약), `ProductReviewEventListenerTest`(null 가드), `CouponEventListenerTest`(로그 캡처 기준 예시), 공용 유틸 `shared/listener/ListenerLogCapture`.
-
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 
 이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, 도메인 모듈이 JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 외부 연동 모듈이 각자 소유하는 `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` — 챕터 03에서 `application-external.yml`을 대체했고 `application-firebase.yml`을 중첩 import한다)·`application-pg.yml`(`infrastructure:pg`)·`application-mail.yml`(`infrastructure:mail` — `application-javamail.yml`을 중첩 import)·`application-sms.yml`(`infrastructure:sms` — `application-solapi.yml`을 중첩 import)·`application-bbq.yml`(`infrastructure:bbq`)·`application-admdongkor.yml`(`infrastructure:admdongkor`)·`application-aws-s3.yml`(`infrastructure:aws-s3`)·`application-aws-ses.yml`(`infrastructure:aws-ses`)·`application-aws-sns.yml`(`infrastructure:aws-sns`)과, `application-redis.yml`(`infrastructure:redis` 소유)·`application-logging.yml`(logging-module 소유)과 동일한 패턴이다.
@@ -297,32 +257,6 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 **삭제 필터링은 이관 이전 동작을 그대로 보존한다** — admin 관리 목록/상세와 당첨자 목록은 soft delete 분을 제외하고, **web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.**
 
 썸네일·배너 파일 경로는 `UploadedFileJpaEntity`를 **left join**해 얻는다(파일 미등록 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). URL은 두 alias를 각각 `fileUrlResolver.urlOf(thumbnailFile.filePath)`·`urlOf(bannerFile.filePath)`로 감싸 투영식 안에서 변환한다.
-
-### 이벤트 리스너 단위 테스트 12종 — 현재 동작 봉인 (공통 규칙)
-
-리스너 테스트는 **리스너의 현재 동작을 봉인하는 순수 단위 테스트**다. 아래가 12개 파일 전부에 적용되는 공통 규칙이며, 개별 항목은 이 규칙에서 벗어나는 것만 아래에 따로 적는다.
-
-- **스프링 컨텍스트 없이 리스너를 직접 생성해 핸들러를 호출한다** — `AFTER_COMMIT` 발화 자체는 프레임워크 몫이라 검증 대상이 아니다. 스프링 배선을 검증하려고 `@SpringBootTest`를 붙이지 않는다.
-- 협력자 없이 기록만 하는 리스너는 **무엇이 기록되는지**를 `ListenerLogCapture`로 확인한다.
-
-**공통 유틸**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/shared/listener/ListenerLogCapture.java`
-
-인프라 리스너 9개 중 6개는 협력자 없이 `log.info(...)`만 수행한다. 이런 리스너에서 "무엇을 하는지"는 곧 "무엇을 기록하는지"이므로, **로그를 관측하지 않으면 핸들러 본문을 통째로 지워도 통과하는 공허한 테스트만 남는다.** 그래서 Logback `ListAppender`를 대상 로거에 직접 붙여, 이벤트의 어떤 값이 기록에 반영되는지까지 봉인한다. **사용 후에는 반드시 `detach()`를 호출한다**(JUnit `@AfterEach`) — 떼지 않으면 같은 로거를 쓰는 다른 테스트가 실행될 때 이벤트가 계속 쌓인다.
-
-공통 규칙만 적용되는 파일 — `coupon/listener/CouponEventListenerTest.java` · `member/listener/MemberEventListenerTest.java`(가입·탈퇴는 web-api와 admin-api 양쪽에서 트리거되지만 리스너 자체는 발행 경로를 알지 않는다) · `policy/listener/PolicyActivatedEventListenerTest.java`.
-
-#### 개별 예외 — 공통 규칙 위에 추가로 봉인하는 것
-
-| 대상 (`backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/...`) | 추가로 봉인하는 것 |
-|---|---|
-| `file/listener/FileUploadedEventListenerTest.java` | 기록되는 것은 **저장 경로**이지 표시용 URL이 아니다 — URL 변환은 조회 시점에 query DAO가 `FileUrlResolver`로 수행하므로 리스너가 경로를 그대로 남기는 것이 정상이다 |
-| `mail/listener/MailVerificationEventListenerTest.java` | **이 리스너가 메일을 발송하지 않는 것이 정상**이라는 점을 함께 고정한다 — 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로, 발송은 `MailVerificationService#issue`가 발급과 원자적으로 수행한다 |
-| `sms/listener/SmsVerificationEventListenerTest.java` | 위와 동일한 이유로 **발송하지 않음**을 고정한다 — 발송은 `SmsVerificationService#issue`가 발급과 원자적으로 수행한다 |
-| `point/listener/PointEventListenerTest.java` | **이 리스너가 잔액을 건드리지 않는 것이 정상**임을 고정한다 — 포인트 증감은 `PointLedgerService`가 이벤트 발행 **이전에** 이미 수행했고 리스너는 기록만 한다. **협력자를 주입받지 않는 생성자가 그 증거이며, 여기에 원장 서비스가 추가되면 이중 정산이 된다** |
-| `member/listener/ReferralRegisteredEventListenerTest.java` | referral↔point 두 컨텍스트를 잇는 지점이라 검증 대상이 로깅이 아니라 **적립 2건과 보상 완료 전이가 모두, 그리고 그 순서대로 일어나는가**이다 |
-| `notification/listener/ReviewOwnerReplyEventListenerTest.java` | review↔notification을 잇는 지점이라 검증 대상은 **답변 등록 이벤트가 리뷰 작성자 앞으로 알림을 적재하는가**이다. 수신자가 `reviewerMemberId`(작성자)여야 하고 이동 대상이 그 리뷰여야 한다. 가게명은 `ShopQueryDao`로 조회하므로 **조회가 비어 있는 경우까지 함께 봉인한다** — 알림 본문에 "null 사장님"이 새는 것을 막기 위함이다 |
-| `payment/listener/PaymentEventListenerTest.java` | 로그만 남기는 다른 리스너와 달리 **실제 금전 효과**(포인트 증감)를 낸다. 따라서 "무엇을 기록하는가"가 아니라 **"어떤 조건에서 원장 서비스를 호출/미호출하는가"**를 검증한다 — 조건 분기가 잘못되면 적립이 이중으로 되거나 환급이 누락되며, `AFTER_COMMIT`이라 실패해도 재시도가 없다. 특히 **환불 요청 접수 시점에는 아무것도 하지 않는 것이 이 핸들러의 계약이다** — 접수 시점에 포인트가 움직이면 이후 취소가 확정될 때 `PaymentCancelledEvent`가 같은 금액을 다시 반영해 **이중 정산**이 된다 |
-| `product/listener/ProductMenuReviewEventListenerTest.java` | 상품 평점·평가 수라는 **영속 상태**를 갱신하므로 "어떤 상품 id로 통계 갱신을 호출하는가"를 검증한다. **이벤트 3종 모두가 같은 재집계를 트리거해야 한다** — 하나라도 빠지면 `PRODUCT.rating`이 조용히 낡는다 |
 
 ### `MemberReviewCountQueryDaoTest` — 합산·병합·정렬 규칙 봉인
 
@@ -927,43 +861,6 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 `.../InfrastructurePersistenceConfig.java`는 JPA 스캔의 **단일 소유자**이며 `basePackageClasses`가 `com.tastyhouse.infrastructure` 이하 전체를 가리킨다 — 패키지를 옮기면 스캔 범위가 어긋나 부팅이 깨진다.
 
-#### 알림 리스너의 `@Async` + `AFTER_COMMIT` + `REQUIRES_NEW` 3종 세트를 부분적으로 떼지 않는다
-
-**대상**: `.../notification/listener/ReviewBlindApprovedEventListener.java` · `.../notification/listener/ReviewOwnerReplyEventListener.java` · `.../product/listener/ProductMenuReviewEventListener.java`
-
-- `@Async`가 빠지면 호출 스레드에서 동기 실행되어 **알림 실패가 원본 API로 전파된다** — DB에는 반영됐는데 화면은 실패로 뜬다.
-- `REQUIRES_NEW`가 빠지면 커밋될 트랜잭션이 없어 **리스너가 조용히 아무것도 남기지 않는다.**
-
-`ProductMenuReviewEventListener`의 **`productId == null` 가드도 유지한다** — 컬럼이 NOT NULL이라는 이유로 지우면, 향후 발행 경로가 늘어 null이 실릴 때 그 예외가 `AFTER_COMMIT`에서 조용히 유실된다.
-
-#### `PaymentEventListener#onRefundRequested`는 포인트를 건드리지 않는 것이 계약이다
-
-**대상**: `.../payment/listener/PaymentEventListener.java` → `onRefundRequested`
-
-이 이벤트는 환불 **접수** 시점이며 실제 금전 정산은 결제가 취소로 확정될 때 `PaymentCancelledEvent`가 수행한다. **여기서 포인트를 함께 움직이면 승인 전 요청만으로 잔액이 바뀌고, 이후 취소 확정 시 같은 금액이 두 번 반영된다.** 이 핸들러는 접수 사실만 남기며, DB를 쓰지 않으므로 `REQUIRES_NEW`도 열지 않는다.
-
-`onPaymentCompleted`의 **현장 결제 한정 적립**도 계약이다 — PG 결제는 주문 접수 시점에 이미 처리됐다.
-
-#### `ReferralRegisteredEventListener`의 처리 순서를 바꾸지 않는다
-
-**대상**: `.../member/listener/ReferralRegisteredEventListener.java`
-
-**적립 먼저, 보상 완료 전이는 그 다음이다.** 전이가 먼저 커밋되면 "완료로 표시됐지만 포인트는 없는" 추천 관계가 남아 적립 실패 건을 상태로 식별할 수 없게 된다. 지금 순서라면 적립 실패 시 추천 관계가 `PENDING`에 머물러 재처리 대상으로 남는다.
-
-적립을 이 리스너에서 도메인 서비스로 되돌리지 않는다 — 적립 시맨틱(잔액 증가 + EARNED 이력 + 적립 이벤트)의 단일 원천은 `PointLedgerService`다.
-
-#### `ProductMenuReviewEventListener`가 REVIEW 이벤트를 다시 구독하게 하지 않는다
-
-**대상**: `.../product/listener/ProductMenuReviewEventListener.java`
-
-`PRODUCT.rating`의 근거가 MENU_REVIEW로 완전히 옮겨갔다. **두 리스너가 같은 `ProductReviewStatsService`를 호출하면 재집계가 두 번 돌고 "어느 쪽이 진짜 근거인가"가 코드에서 사라진다.**
-
-#### 인증 리스너에 발송을 추가하지 않는다
-
-**대상**: `.../mail/listener/MailVerificationEventListener.java` · `.../sms/listener/SmsVerificationEventListener.java`
-
-이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다. 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
-
 #### 인증 테이블 RENAME 마이그레이션과 배포는 원자적이어야 한다
 
 **대상**: `.../mail/persistence/MailVerificationJpaEntity.java` · `.../sms/persistence/SmsVerificationJpaEntity.java`
@@ -1416,13 +1313,13 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 - `menuCollectionImageFile` — 메뉴모음컷 조회용. **검수 목록은 `SHOP`도 함께 조인하므로 공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다.**
 - `shopThumbnailFile` — 가게 상세 조립 시 썸네일/상표 이미지 조회용
 
-#### 포트에 선언하지 않은 infra 내부 조회 (`findShopName`)
+#### 가게명 단건 조회 (`findShopName`) — `ShopBasicInfoQueryPort` 구현
 
 → `findShopName(Long)`
 
 가게명 한 필드만 필요한 소비처(알림 본문 조립 등)를 위해 도메인 모델(`Shop`)을 통째로 로드하지 않는다. 그 소비처가 애그리거트 경계 밖(알림 리스너)이라 도메인 모델을 넘기면 컨텍스트가 결합되기 때문이다.
 
-**포트에 선언되지 않은 infra 내부 조회다.** 유일한 소비처인 `ReviewOwnerReplyEventListener`가 같은 모듈에서 이 DAO를 구체 타입으로 주입하므로, application 계층이 소유할 계약이 아니다(`MemberReviewCountQueryPort` 선례와 같은 취급이며, 챕터 04의 포트 분할 대상에서 제외했다).
+**`ShopBasicInfoQueryPort#findShopName`(`Optional<String>`)의 구현이다.** 과거에는 유일한 소비처 `ReviewOwnerReplyEventListener`가 같은 모듈에서 이 DAO를 구체 타입으로 주입해 포트에 선언하지 않은 infra 내부 조회였다. 리스너가 `application`으로 이동하며 infra DAO를 볼 수 없게 되어 포트로 역전했다. web·admin·ceo가 이미 소비하던 공용 포트에 얹은 것은, web 전용인 `ShopQueryPort`에 넣으면 포트 분할 규칙에 어긋나기 때문이다.
 
 #### 도메인 모델 로드를 대체하지 않고 보완하는 조회
 
@@ -2321,39 +2218,11 @@ write 포트 `ShopDeliveryTipRepository`가 5종을 한 인터페이스로 묶�
 - **`before = JpaRepositoriesAutoConfiguration`이 필요하다** — 스캔 안 `InfrastructurePersistenceConfig`의 `@EnableJpaRepositories`가 같은 deferred 단계에서 Boot보다 먼저 처리돼야 Boot 쪽 `@ConditionalOnMissingBean(JpaRepositoryConfigExtension)`이 물러난다.
 - `InfrastructurePersistenceConfig`가 JPA 스캔의 **단일 소유자**다. domain은 이 모듈을 의존하지 않으므로(의존 방향: infrastructure → domain) domain에 이 패키지를 문자열로 선언할 수 없고, Spring Boot 공식 권장대로 엔티티를 소유한 모듈이 스스로 스캔 설정을 선언한다. `basePackageClasses`로 `com.tastyhouse.infrastructure` 이하 전체를 타입 세이프하게 지정한다. domain이 100% JPA-free로 전환되며 `@EnableJpaAuditing`·`@EnableTransactionManagement` 전역 설정도 이 클래스로 병합됐고, `BaseEntity`의 `@CreatedDate`/`@LastModifiedDate`가 이 설정으로 채워진다.
 
-#### 리스너 배치가 `infrastructure:persistence`인 이유 (개별 사유)
-
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/listener/*.java`
-
-리스너 작성 규칙 일반은 이 문서의 [`<ctx>/listener/`](#ctxlistener--도메인-이벤트-리스너) 절에 있다. 여기에는 **"왜 특정 api 모듈이 아니라 이 모듈이 소유하는가"의 리스너별 근거**만 적는다 — 공통 답은 "특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 발행할 때 후속 처리가 조용히 누락된다"이고, 각 리스너의 발행 경로가 그 근거다.
-
-| 리스너 | 발행 경로가 여럿인 근거 |
-|---|---|
-| `CouponEventListener` | 발급은 admin(수동)·이벤트 경유(가입·추천 보상), 사용은 web(주문 결제) |
-| `MemberEventListener` | 가입·탈퇴가 web-api(본인)와 admin-api(관리자 강제 탈퇴) 양쪽 |
-| `PointEventListener` | web(주문 결제)·admin(수동 조정)·이벤트 경유(결제 취소·추천 보상) |
-| `PaymentEventListener` | 지금은 web-api뿐이지만 admin-api의 환불·관리 경로가 같은 이벤트를 발행하게 되어도 포인트 연동이 누락되면 안 된다 |
-| `ReferralRegisteredEventListener` | 추천 등록이 일반 가입과 소셜 가입(4종) 어느 경로에서도 발생한다 |
-| `ProductMenuReviewEventListener` | 평가는 web-api에서 등록되지만 admin-api의 숨김·삭제로도 통계가 바뀐다 |
-| `ReviewBlindApprovedEventListener` · `ReviewOwnerReplyEventListener` | 지금은 admin/ceo 경로뿐이지만, **알림 적재는 행위 주체가 아니라 "그 일이 일어났다"는 사실에 반응해야 한다** |
-| `PolicyActivatedEventListener` | 활성화 자체가 특정 액터에 묶이지 않는 도메인 불변식(`PolicyActivationService`)이다 |
-| `MailVerificationEventListener` · `SmsVerificationEventListener` | 도메인별 분리 원칙 — 한 리스너가 여러 도메인 이벤트를 구독하면 한 도메인의 변경이 다른 도메인의 리스너 파일을 건드린다 |
-
-개별 판단으로 따로 남길 것.
-
-- **`ReferralRegisteredEventListener` — 순서가 중요하다. 적립 먼저, 보상 완료 전이는 그 다음이다.** 전이가 먼저 커밋되면 "완료로 표시됐지만 포인트는 없는" 추천 관계가 남아 적립 실패 건을 상태로 식별할 수 없게 된다. 지금 순서라면 적립 실패 시 추천 관계가 `PENDING`에 머물러 재처리 대상으로 남는다. 과거에는 `ReferralRegistrationService`가 point 애그리거트와 리포지토리를 직접 주입해 적립을 재구현했으나, 적립 시맨틱(잔액 증가 + EARNED 이력 + 적립 이벤트)의 단일 원천은 `PointLedgerService`여야 하므로 컨텍스트를 잇는 책임을 리스너로 옮겼다. `AFTER_COMMIT`이라 이 핸들러가 실패해도 추천 등록은 롤백되지 않는데, **추천 등록과 보상 적립의 결합을 끊기 위해 의도적으로 감수한 트레이드오프**다.
-- **`PaymentEventListener` — 적립액 계산의 단일 원천은 `PaymentConfirmationService#calculateEarnedPoint`다**(주문에 기록되는 적립 포인트와 실제 적립액이 갈리지 않도록). 리스너는 이벤트 수신과 트랜잭션 경계만 담당한다.
-- **`ReviewBlindApprovedEventListener` · `ReviewOwnerReplyEventListener` — `@Async` + `AFTER_COMMIT` + `REQUIRES_NEW` 3종 세트를 반드시 함께 단다.** `AFTER_COMMIT`만 달면 호출 스레드에서 동기 실행되어 알림 실패가 원본 API로 전파된다 — DB에는 반영됐는데 화면은 실패로 뜨는, "알림이 실패해도 원본은 유효하다"는 판단과 정면으로 어긋나는 상태가 된다. `REQUIRES_NEW`가 없으면 커밋될 트랜잭션이 없어 리스너가 조용히 아무것도 남기지 않는다. 동기가 아니라 리스너인 근거는 「크로스 컨텍스트 후처리」 판정표의 "후처리가 실패하면 원본도 없던 일이 되어야 하는가?"에 **아니오**이기 때문이며, 인증코드 발송이 동기인 것과 반대 방향이다.
-- **`ReviewBlindApprovedEventListener`에 가게명 조회가 없는 것은 의도적이다** — 게시중단 안내 문구가 가게명을 노출하지 않는다. 고객에게 필요한 정보는 재노출 예정일이지 어느 가게가 요청했는지가 아니며, **요청 주체를 알리면 리뷰 작성자와 점주 사이의 분쟁을 부추길 수 있다.**
-- **`ProductMenuReviewEventListener`의 구독 대상은 REVIEW가 아니라 MENU_REVIEW 이벤트다.** `PRODUCT.rating`의 근거가 MENU_REVIEW로 완전히 옮겨갔으므로 구독도 하나만 남는 것이 맞다 — 두 리스너가 같은 `ProductReviewStatsService`를 호출하면 재집계가 두 번 돌고 "어느 쪽이 진짜 근거인가"가 코드에서 사라진다. `ReviewCreatedEvent`/`ReviewDeletedEvent`는 발행만 남고 소비자가 0이다. **`productId == null` 가드는 유지한다** — MENU_REVIEW의 `product_id`는 NOT NULL이지만 이벤트 record가 VO를 담고 있어 향후 발행 경로가 늘 때 null이 실릴 수 있고, 그 예외는 `AFTER_COMMIT` 리스너에서 조용히 유실된다.
-- **`MailVerificationEventListener` · `SmsVerificationEventListener`는 발송을 담당하지 않는다.** 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다 — 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
-- **`PolicyActivatedEventListener`는 재동의 요청·개정 고지 발송을 아직 담당하지 않는다** — 발송 대상이 전체 회원이라 요청 스레드에서 처리할 수 없고 배치·큐 설계가 선행돼야 한다. 그때까지는 전이 사실만 남겨, 어떤 정책이 언제 현행이 됐는지가 발행 지점 밖에서도 관측 가능하게 한다.
-
 #### `SpringDomainEventPublisher` — 발행 포트 어댑터
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/event/SpringDomainEventPublisher.java`
 
-domain의 `DomainEventPublisher` 포트를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다.
+domain의 `DomainEventPublisher` 포트를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다. 리스너는 이 모듈이 아니라 `application`의 `<ctx>/listener/`에 있고, 발행 어댑터인 이 클래스만 이 모듈에 남는다.
 
 #### 테이블명이 소유 컨텍스트와 어긋나는 자리
 

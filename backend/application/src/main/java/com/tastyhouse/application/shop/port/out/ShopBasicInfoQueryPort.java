@@ -5,6 +5,8 @@ import java.util.Optional;
 
 public interface ShopBasicInfoQueryPort {
 
+    Optional<String> findShopName(Long shopId);
+
     Optional<ShopImageUrlsResult> findShopImageUrls(Long shopId);
 
     List<ShopOrderMethodResult> findOrderMethods(Long shopId);

@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.marker.BatchApp;
 import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 public final class AppOwnership {
@@ -25,7 +26,7 @@ public final class AppOwnership {
         "com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationItemCommand", CeoApp.class);
 
     public static final List<Class<? extends Annotation>> MARKERS =
-        List.of(WebApp.class, AdminApp.class, CeoApp.class, BatchApp.class);
+        List.of(WebApp.class, AdminApp.class, CeoApp.class, BatchApp.class, SharedApp.class);
 
     private AppOwnership() {
     }

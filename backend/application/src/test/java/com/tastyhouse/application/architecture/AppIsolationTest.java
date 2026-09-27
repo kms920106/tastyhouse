@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.marker.BatchApp;
 import com.tastyhouse.application.shared.marker.CeoApp;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -46,7 +47,7 @@ class AppIsolationTest {
                     .that().areAnnotatedWith(from)
                     .should().dependOnClassesThat().areAnnotatedWith(to)
                     .because(from.getSimpleName() + "는 " + to.getSimpleName() + "에 의존하지 않는다"
-                        + " — 앱이 공유하는 것은 domain과 읽기 계약뿐이다")
+                        + " — 앱이 공유하는 것은 domain과 읽기 계약 + @SharedApp 리스너뿐이다")
                     .check(classes);
             }
         }
@@ -95,6 +96,7 @@ class AppIsolationTest {
         assertThat(countAnnotated(AdminApp.class)).as("@AdminApp 빈").isGreaterThanOrEqualTo(55);
         assertThat(countAnnotated(CeoApp.class)).as("@CeoApp 빈").isGreaterThanOrEqualTo(95);
         assertThat(countAnnotated(BatchApp.class)).as("@BatchApp 빈").isGreaterThanOrEqualTo(12);
+        assertThat(countAnnotated(SharedApp.class)).as("@SharedApp 빈").isGreaterThanOrEqualTo(12);
     }
 
     @Test

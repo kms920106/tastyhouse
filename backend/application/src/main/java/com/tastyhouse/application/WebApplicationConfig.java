@@ -1,5 +1,6 @@
 package com.tastyhouse.application;
 
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,6 @@ import org.springframework.context.annotation.FilterType;
 @ComponentScan(
     basePackages = "com.tastyhouse.application",
     useDefaultFilters = false,
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = WebApp.class))
+    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebApp.class, SharedApp.class}))
 public class WebApplicationConfig {
 }
