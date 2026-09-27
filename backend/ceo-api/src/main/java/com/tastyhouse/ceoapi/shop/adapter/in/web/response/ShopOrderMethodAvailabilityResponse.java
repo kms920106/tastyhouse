@@ -3,7 +3,6 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
-import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 
 @Schema(description = "주문유형별 주문가능 상태")
 public record ShopOrderMethodAvailabilityResponse(
@@ -26,13 +25,12 @@ public record ShopOrderMethodAvailabilityResponse(
     public static ShopOrderMethodAvailabilityResponse from(
         ShopOrderAvailabilityViewResult.OrderMethodAvailability availability
     ) {
-        OrderUnavailableReason reason = availability.unavailableReason();
         return new ShopOrderMethodAvailabilityResponse(
-            availability.orderMethod().name(),
-            availability.orderMethod().getDisplayName(),
+            availability.orderMethod(),
+            availability.orderMethodDisplayName(),
             availability.orderable(),
-            reason == null ? null : reason.name(),
-            reason == null ? null : reason.getDisplayName()
+            availability.unavailableReason(),
+            availability.unavailableReasonDisplayName()
         );
     }
 }

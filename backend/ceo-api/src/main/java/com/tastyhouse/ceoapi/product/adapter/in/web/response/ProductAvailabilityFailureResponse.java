@@ -2,7 +2,6 @@ package com.tastyhouse.ceoapi.product.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 
 @Schema(description = "일괄 처리 실패 항목")
@@ -20,12 +19,11 @@ public record ProductAvailabilityFailureResponse(
     String message
 ) {
     public static ProductAvailabilityFailureResponse from(ProductAvailabilityChangeView.Failure failure) {
-        ErrorCode errorCode = failure.errorCode();
         return new ProductAvailabilityFailureResponse(
             failure.id(),
             failure.name(),
-            errorCode.getCode(),
-            errorCode.getDefaultMessage()
+            failure.code(),
+            failure.message()
         );
     }
 }

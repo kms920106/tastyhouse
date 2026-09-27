@@ -244,6 +244,8 @@ domain → 의존 없음 (production 의존 0개)
 
 ### `ALLOWED_DOMAIN_ENUM_ACCESSORS` — 항목을 추가하지 않는다
 
+> **번복됨 (표현 계층 domain 절단 덩어리 01)** — 이 상수는 짝 규칙 `apiModuleShouldOnlyReadDomainEnums`와 함께 **삭제됐다.** `*Result`가 도메인 enum 대신 `String`(+ `{field}Description`/`{field}DisplayName`)을 싣고 오므로 api 모듈이 도메인 enum을 호출할 일 자체가 없어졌다. 아래는 당시 기록으로 남긴다.
+
 **대상**: 각 앱 `src/test/java/com/tastyhouse/{web,admin,ceo}api/architecture/LayerRulesTest.java`
 → `ALLOWED_DOMAIN_ENUM_ACCESSORS`
 
@@ -254,6 +256,16 @@ api 모듈이 도메인 enum에 호출할 수 있는 읽기 전용 accessor. 봉
 **항목을 추가하지 않는다** — 이 목록이 커지는 것은 api 모듈이 도메인 로직을 수행하기 시작했다는 신호이므로, **목록을 늘리지 말고 그 호출을 application으로 옮긴다.**
 
 ### `apiModuleShouldBeDomainModelFree` — carve-out 3종과 그 술어 형태
+
+> **번복됨 (표현 계층 domain 절단 덩어리 01) — 지금은 carve-out이 없다.** 규칙 이름과 위치는 그대로이고, 모듈 전역 ✗ `com.tastyhouse.domain..`을 **예외 없이** 금지한다. 아래 carve-out 3종 서술은 당시 기록이다.
+>
+> | carve-out | before | after |
+> |---|---|---|
+> | `domain.exception..` | 허용 — 전역 핸들러가 `BusinessException`·`ErrorCode`를 직접 다뤘다 | **소멸** — 핸들러는 `application`의 `ErrorResponses.resolve`·`ErrorContracts`를 쓴다(`backend/CLAUDE.md` "예외·에러코드 소유 규칙") |
+> | `domain.shared.page..` | 허용 — 컨트롤러가 `PageResult`를 감쌌다 | **소멸** — `PageQuery`/`PageResult`가 `com.tastyhouse.application.shared.port.out.page`로 이동해 domain 타입이 아니게 됐다 |
+> | 도메인 enum(`isEnum()`) | 허용 + 짝 규칙이 accessor 3종으로 제한 | **소멸** — `*Result`가 `String`으로 도착한다. 짝 규칙·`domainEnum()`·`ALLOWED_DOMAIN_ENUM_ACCESSORS`·`domainBoundaryPredicatesShouldStillBite` 삭제 |
+>
+> 게다가 `api-common-module`·`security-module`이 `domain` 대신 `application`에 의존하게 되어 **presentation 컴파일 클래스패스에 `domain`이 아예 없다.** 이 규칙은 누군가 의존 한 줄을 되돌리는 회귀를 잡는 2차 방어선이다(`api-common-module`·`security-module`에도 같은 취지의 `LayerRulesTest#shouldNotDependOnDomain`이 신설됐다). 아래 "⚠️ 위반은 `import`로 보이지 않는다"는 여전히 유효한 교훈이다 — 검증은 grep이 아니라 테스트로 한다.
 
 **대상**: 각 앱의 `LayerRulesTest.java` → `apiModuleShouldBeDomainModelFree()`
 
@@ -275,6 +287,8 @@ api 모듈이 도메인 enum에 호출할 수 있는 읽기 전용 accessor. 봉
 
 ### `domainEnum()` 술어 — `domain.exception..`을 제외하는 이유
 
+> **번복됨 (덩어리 01)** — `domainEnum()` 술어는 enum carve-out과 함께 **삭제됐다.** 아래는 당시 기록이다.
+
 **대상**: 각 앱의 `LayerRulesTest.java` → `domainEnum()`
 
 `isEnum()`에 `DOMAIN_ROOT` 패키지 조건을 함께 거는 이유는, 그냥 `isEnum()`이면 domain 밖 enum까지 대상이 되어 술어의 의미가 흐려지기 때문이다.
@@ -282,6 +296,8 @@ api 모듈이 도메인 enum에 호출할 수 있는 읽기 전용 accessor. 봉
 **`domain.exception..`은 제외한다** — `ErrorCode`가 enum이라서 그냥 두면 짝 규칙 `apiModuleShouldOnlyReadDomainEnums`이 전역 예외 핸들러의 `getCode()`·`getDefaultMessage()` 호출을 잡는다(web-api에서 실측 2건). 에러 계약은 클래스 수준 규칙에서도 carve-out된 **횡단 관심사**이므로 **두 규칙이 같은 예외를 공유해야 한다** — 이 술어를 두 규칙이 함께 쓰는 이유이기도 하다.
 
 ### `domainBoundaryPredicatesShouldStillBite` — 규칙 무력화를 잡는 영구 증명
+
+> **번복됨 (덩어리 01) — 이 테스트는 삭제됐다.** 지키려던 carve-out 술어가 사라져 단정할 판별력·전제가 없어졌고, 대상 없는 테스트를 남기지 않는다는 방침(아래 "공허 통과 금지")을 따랐다. carve-out 없는 전면 금지는 무력화될 여지가 없으므로 대체 테스트도 두지 않는다. 아래는 당시 기록이다.
 
 **대상**: 각 앱의 `LayerRulesTest.java` → `domainBoundaryPredicatesShouldStillBite()`
 
@@ -320,7 +336,7 @@ application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDepend
 **대상**: 각 앱 `src/test/java/com/tastyhouse/{web,admin,ceo}api/architecture/LayerRulesTest.java`
 → `controllersShouldBeDomainFree()` · `requestRecordsShouldBeDomainAndInfraFree()` · `controllersShouldDependOnUseCasesOnly()` · `webAdaptersShouldNotDependOnApplicationServices()`
 
-**컨트롤러는 domain-free다.** HTTP 경계는 식별자를 `Long`, 도메인 enum을 `String`으로 받고 승격은 Service가 담당하므로, 컨트롤러가 `com.tastyhouse.domain..`을 알 이유가 없다. carve-out은 위 `apiModuleShouldBeDomainModelFree`와 동일하다(`domain.shared.page..` 페이징 조립은 정상 경로, 도메인 enum은 짝 규칙이 accessor로 제한).
+**컨트롤러는 domain-free다.** HTTP 경계는 식별자를 `Long`, 도메인 enum을 `String`으로 받고 승격은 Service가 담당하므로, 컨트롤러가 `com.tastyhouse.domain..`을 알 이유가 없다. ~~carve-out은 위 `apiModuleShouldBeDomainModelFree`와 동일하다(`domain.shared.page..` 페이징 조립은 정상 경로, 도메인 enum은 짝 규칙이 accessor로 제한).~~ **번복됨(덩어리 01)** — `controllersShouldBeDomainFree`도 carve-out 없이 `com.tastyhouse.domain..`을 전면 금지한다. 페이징 타입은 application 소유가 됐고, 도메인 enum은 `*Result`에서 이미 `String`으로 온다.
 
 **Request record는 domain-free·infra-free 순수 데이터 홀더다**(검증 + Swagger 스키마). **문자열→enum 승격을 Request에서 하지 않는다.** `response/`는 각 api 모듈로 승격돼 이 모듈이 소유하지만, `..request..`에 대한 이 금지는 그대로다.
 
@@ -350,6 +366,8 @@ application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDepend
 api 모듈은 `com.querydsl..`과 `..infrastructure..persistence..`(JpaEntity·Mapper·JpaRepository·RepositoryImpl)에 **직접 의존하지 않는다.** 컨트롤러가 리포지토리·QueryDAO를 직접 주입하는 것도 같은 이유로 금지다 — 읽기·쓰기 모두 포트를 거친다.
 
 ### api 모듈에서 도메인 enum `switch`를 쓰지 않는다
+
+> **갱신 (덩어리 01)** — 대상 규칙 `apiModuleShouldOnlyReadDomainEnums`는 삭제됐다. 지금은 api 모듈 컴파일 클래스패스에 `domain`이 없어 도메인 enum `switch`는 **컴파일부터 불가능**하다. "분기 판정은 `application`에서 한다"는 결론은 그대로다.
 
 **대상**: 각 앱의 `LayerRulesTest.java` → `apiModuleShouldOnlyReadDomainEnums()`
 

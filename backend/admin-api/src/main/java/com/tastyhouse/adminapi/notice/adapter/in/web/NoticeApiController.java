@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.request.NoticeUpdateRequest
 import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeDetailResponse;
 import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResponse;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
 import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.application.notice.port.in.NoticeDeleteCommand;

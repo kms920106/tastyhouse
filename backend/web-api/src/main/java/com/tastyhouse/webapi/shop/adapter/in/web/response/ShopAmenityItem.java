@@ -17,7 +17,7 @@ public record ShopAmenityItem(
 ) {
     public static ShopAmenityItem from(ShopAmenityWithCategoryResult result) {
         return new ShopAmenityItem(
-            result.amenity().name(),
+            result.amenity(),
             result.displayName(),
             result.activeIconUrl()
         );

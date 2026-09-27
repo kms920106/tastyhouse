@@ -1,7 +1,5 @@
 package com.tastyhouse.application.product.port.out;
 
-import com.tastyhouse.domain.product.model.VegetarianType;
-
 public record ProductManagementDetailResult(
     Long id,
     Long shopId,
@@ -19,7 +17,7 @@ public record ProductManagementDetailResult(
     boolean soldOut,
     boolean visible,
     String imageUrl,
-    VegetarianType vegetarianType,
+    String vegetarianType,
     String weightText,
     boolean exposureScheduled
 ) {

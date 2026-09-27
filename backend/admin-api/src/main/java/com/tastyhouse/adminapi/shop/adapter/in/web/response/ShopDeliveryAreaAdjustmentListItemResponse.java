@@ -36,7 +36,7 @@ public record ShopDeliveryAreaAdjustmentListItemResponse(
             result.shopName(),
             result.counterpartShopName(),
             result.franchiseName(),
-            result.status().name(),
+            result.status(),
             result.createdAt()
         );
     }

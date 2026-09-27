@@ -13,8 +13,8 @@ import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopOwnerDetailViewResult;
 
 @Service

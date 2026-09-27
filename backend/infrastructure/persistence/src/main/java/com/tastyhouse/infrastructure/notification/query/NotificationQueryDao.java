@@ -8,8 +8,8 @@ import java.util.List;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.notification.persistence.QNotificationJpaEntity.notificationJpaEntity;
 
@@ -36,10 +36,10 @@ public class NotificationQueryDao implements NotificationQueryPort {
         List<NotificationListItemResult> content = queryFactory
             .select(Projections.constructor(NotificationListItemResult.class,
                 notificationJpaEntity.id,
-                notificationJpaEntity.type,
+                notificationJpaEntity.type.stringValue(),
                 notificationJpaEntity.title,
                 notificationJpaEntity.body,
-                notificationJpaEntity.targetType,
+                notificationJpaEntity.targetType.stringValue(),
                 notificationJpaEntity.targetId,
                 notificationJpaEntity.read,
                 notificationJpaEntity.createdAt

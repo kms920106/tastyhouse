@@ -9,7 +9,7 @@ import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindReasonView;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @CeoApp
 public interface ShopReviewQueryUseCase {

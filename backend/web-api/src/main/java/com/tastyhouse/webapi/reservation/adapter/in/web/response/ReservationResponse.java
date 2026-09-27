@@ -49,7 +49,7 @@ public record ReservationResponse(
             result.reservationDate(),
             result.reservationTime(),
             result.partySize(),
-            result.status().name(),
+            result.status(),
             result.request(),
             result.createdAt()
         );

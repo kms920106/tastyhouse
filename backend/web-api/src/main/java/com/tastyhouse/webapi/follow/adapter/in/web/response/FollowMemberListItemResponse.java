@@ -25,7 +25,7 @@ public record FollowMemberListItemResponse(
         return new FollowMemberListItemResponse(
             result.memberId(),
             result.nickname(),
-            result.memberGrade().name(),
+            result.memberGrade(),
             result.profileImageUrl(),
             result.following()
         );

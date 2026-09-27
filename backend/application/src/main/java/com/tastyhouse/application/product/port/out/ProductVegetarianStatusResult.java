@@ -2,10 +2,8 @@ package com.tastyhouse.application.product.port.out;
 
 import java.util.List;
 
-import com.tastyhouse.domain.product.model.VegetarianType;
-
 public record ProductVegetarianStatusResult(
-    VegetarianType vegetarianType,
+    String vegetarianType,
     List<ProductVegetarianRequestResult> requests,
     boolean changeable
 ) {

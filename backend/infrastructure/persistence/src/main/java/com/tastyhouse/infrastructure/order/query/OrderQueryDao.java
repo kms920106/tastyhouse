@@ -25,8 +25,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
@@ -65,7 +65,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
                 orderProductJpaEntity.name.min(),
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.finalAmount,
-                paymentJpaEntity.paymentStatus,
+                paymentJpaEntity.paymentStatus.stringValue(),
                 paymentJpaEntity.approvedAt,
                 orderJpaEntity.schedule.scheduledAt
             ))
@@ -111,9 +111,9 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
                 orderJpaEntity.orderNumber,
                 shopJpaEntity.name,
                 orderJpaEntity.ordererName,
-                orderJpaEntity.orderMethod,
-                orderJpaEntity.orderStatus,
-                paymentJpaEntity.paymentStatus,
+                orderJpaEntity.orderMethod.stringValue(),
+                orderJpaEntity.orderStatus.stringValue(),
+                paymentJpaEntity.paymentStatus.stringValue(),
                 orderJpaEntity.finalAmount,
                 orderProductJpaEntity.id.count().castToNum(Integer.class),
                 orderJpaEntity.createdAt,
@@ -176,7 +176,7 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
                 orderJpaEntity.id,
                 orderJpaEntity.memberId,
                 orderJpaEntity.orderNumber,
-                orderJpaEntity.orderMethod,
+                orderJpaEntity.orderMethod.stringValue(),
                 orderJpaEntity.orderStatus,
                 shopJpaEntity.name,
                 shopJpaEntity.phoneNumber,
@@ -288,8 +288,8 @@ public class OrderQueryDao implements OrderQueryPort, OrderManagementQueryPort {
     private OrderPaymentResult withUnwrappedAmount(PaymentProjection row) {
         return new OrderPaymentResult(
             row.id(),
-            row.paymentMethod(),
-            row.paymentStatus(),
+            row.paymentMethod() != null ? row.paymentMethod().name() : null,
+            row.paymentStatus() != null ? row.paymentStatus().name() : null,
             row.amount() == null ? null : row.amount().value(),
             row.cardCompany(),
             row.cardNumber(),

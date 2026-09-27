@@ -2,12 +2,10 @@ package com.tastyhouse.application.coupon.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.coupon.model.DiscountType;
-
 public record CouponListItemResult(
     Long id,
     String name,
-    DiscountType discountType,
+    String discountType,
     Integer discountAmount,
     Integer maxDiscountAmount,
     Integer minOrderAmount,

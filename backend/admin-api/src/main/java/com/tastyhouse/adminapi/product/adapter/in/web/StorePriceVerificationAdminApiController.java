@@ -22,7 +22,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.request.StorePriceVerifica
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationDetailResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerificationListItemResponse;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationApproveCommand;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationCommandUseCase;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectCommand;

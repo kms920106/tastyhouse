@@ -22,7 +22,7 @@ public record ShopStorePriceUnverifiedItemResponse(
         return new ShopStorePriceUnverifiedItemResponse(
             item.productId(),
             item.productName(),
-            item.reason().name()
+            item.reason()
         );
     }
 }

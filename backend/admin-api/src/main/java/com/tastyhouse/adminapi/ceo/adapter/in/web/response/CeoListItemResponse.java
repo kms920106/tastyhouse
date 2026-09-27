@@ -23,7 +23,7 @@ public record CeoListItemResponse(
             result.id(),
             result.name(),
             result.businessRegistrationNumber(),
-            result.status() != null ? result.status().name() : null
+            result.status()
         );
     }
 }

@@ -22,7 +22,7 @@
 - **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
 - **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다. **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
 - **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
-- **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4개 `*ApplicationConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다. **리스너 외에는 붙이지 않는다** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다. 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
+- **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4개 `*ApplicationConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다. ~~**리스너 외에는 붙이지 않는다**~~ **(번복됨 — 덩어리 01: 리스너 + `..config..`의 `@Configuration`까지 허용, 아래 [ArchUnit](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절)** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다(이것은 여전히 금지). 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
 - **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
 - **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
 - **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
@@ -44,14 +44,21 @@
 com.tastyhouse.application/
   ├── {App}ApplicationConfig.java   @ComponentScan 진입점(마커 기반 필터) — 쓰는 앱이 @Import 한다. 4개(Web/Admin/Ceo/Batch)
   ├── shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java   순수 마커 애노테이션 4종 — 앱 소속의 유일한 단서
-  ├── shared/marker/SharedApp.java   5번째 마커 — 리스너 전용, "앱 소속 없음 = 4앱 전부"
+  ├── shared/marker/SharedApp.java   5번째 마커 — 리스너 + 공유 @Configuration(덩어리 01로 확대), "앱 소속 없음 = 4앱 전부"
   ├── shared/exception/BatchJobException.java   (챕터 03 이동 — 과거 batchapplication/exception/)
+  ├── shared/error/                 (덩어리 01 신설) 표현 계층용 에러 판정 — 빈 아님, 정적 유틸
+  │     ├── ErrorDescriptor.java    record(int status, String code, String message)
+  │     ├── ErrorResponses.java     resolve(Throwable) → Optional<ErrorDescriptor> (최상위가 BusinessException일 때만)
+  │     └── ErrorContracts.java     rateLimit()/accessDenied()/authRequired() — ErrorCode 3종의 미러
+  ├── shared/port/out/CodeLabelResult.java   (덩어리 01 신설) record(String code, String label) — enum 카탈로그 응답용
+  ├── shared/port/out/page/{PageQuery,PageResult}.java   (덩어리 01 이동 — 과거 domain의 shared/page/)
   └── <ctx>/
       ├── port/in/                UseCase 인터페이스(마커 부착) + Command record(마커 없음 — AppOwnership 유도)
       ├── service/                *CommandService/*QueryService(batch는 *SchedulerService), 마커 부착, implements {Ctx}UseCase
       ├── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
       │                           읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
       │                           아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
+  │                           — Result의 도메인 enum 필드는 덩어리 01로 String(+ {field}Description/DisplayName)
       └── listener/               도메인 이벤트 리스너(@Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT))
                                   — persistence에서 이동, 10개 컨텍스트에 12종
 ```
@@ -107,13 +114,13 @@ com.tastyhouse.application/
 | 시계 의존 파생 | `MyCouponListItemResult`(`daysRemaining`·`expired`)·`ShopReviewReplyWindow` |
 | 다른 컨텍스트에 물어본 값 | `OrderProductViewResult`(`reviewed` — 리뷰 배치 조회로 N+1 회피) |
 | 판별 유니온(분기 판정이 도메인 규칙) | `SocialLoginResult`·`SocialLinkResult`·`PhoneLoginResult`(web auth) |
-| 도메인 enum `switch` | `ShopReviewSortTypeView` — api 모듈에서 enum을 `switch`하면 바이트코드가 `ordinal()`·`values()`를 호출해 `apiModuleShouldOnlyReadDomainEnums`에 걸린다 |
+| 도메인 enum `switch` | `ShopReviewSortTypeView` — api 모듈에서 enum을 `switch`하면 바이트코드가 `ordinal()`·`values()`를 호출해 `apiModuleShouldOnlyReadDomainEnums`에 걸린다 *(그 규칙은 덩어리 01로 삭제됐지만 — 지금은 api 모듈 클래스패스에 domain이 없어 `switch` 자체가 컴파일되지 않는다 — 분기를 이 모듈이 맡는다는 결론과 View는 그대로 유효하다)* |
 
 **중첩 `Status` enum은 Result로 함께 복제하되 상수명을 바꾸지 않는다** — 상수 이름이 그대로 JSON 값이라 이름을 바꾸면 API가 바뀐다(`SocialLoginResult.Status`).
 
 **`@JsonInclude`·`@JsonFormat` 같은 jackson 직렬화 어노테이션은 Response 쪽에만 둔다** — 직렬화는 api 모듈에서 일어나므로 Result로 옮기면 무의미해지고, `@JsonFormat` 소실은 날짜 포맷이 조용히 바뀌어 프론트 파싱을 깬다(챕터 10 실측 8인스턴스/6파일).
 
-**반대로 순수 표현 파생은 Response로 내렸다** — 16자리 리뷰번호 0-pad, 문구 표시명 truncate(`CeoReplyPhraseResponse`), 거리별 배달팁 비움 판정, enum → 문자열 강등.
+**반대로 순수 표현 파생은 Response로 내렸다** — 16자리 리뷰번호 0-pad, 문구 표시명 truncate(`CeoReplyPhraseResponse`), 거리별 배달팁 비움 판정, ~~enum → 문자열 강등~~ **(번복됨 — 덩어리 01: 강등은 Result를 채우는 DAO 투영(`x.status.stringValue()`) 또는 QueryService가 하고, Response는 이미 문자열인 값을 쓴다)**.
 
 ### Command 경로의 반환 Result는 앱 네임스페이스(`{app}application.<ctx>.port.out`)에 둔다
 
@@ -154,7 +161,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 | 클래스 | importer | 내용 |
 |---|---|---|
-| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **리스너 마커 양방향 2** — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용 — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것까지 막는다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
+| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종.** CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **공유 마커 규칙 3** (덩어리 01로 리스너 마커 양방향 2 + 공유 설정 1) — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(~~`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용~~ **번복됨(덩어리 01)**: 이제 허용 대상은 (`..listener..` + `@TransactionalEventListener` 보유) **또는** (`..config..` + `@Configuration`) — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것은 여전히 막는다) · **`sharedConfigsShouldOnlyDeclareUnmarkedBeans`**(덩어리 01 신설 — `@SharedApp` 설정은 `@Component`/`@Service`를 겸하지 않고, `@Bean` 반환 타입과 그 설정이 생성자를 호출하는 클래스 전부가 앱 마커를 갖지 않아야 한다. 생성자 호출 검사는 구체 빈을 인터페이스 타입으로 반환해 반환 타입 검사를 피하는 경우까지 잡는다. **`should()`가 아니라 위반을 손으로 모으는 테스트**다 — 현재 `@SharedApp` 설정이 0개라 `should()`로 쓰면 ArchUnit failOnEmptyShould에 걸리고, `allowEmptyShould(true)`는 쓰지 않는 방침이기 때문이다. 첫 사용처는 덩어리 02/03a이며 그때까지 `RuleAnchorTest`에 anchor가 없다. 두 규칙 모두 임시 probe 클래스로 반증했다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
 | `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 5종 5×4=20조합 개별 검사 — 슬라이스가 아니다. `@SharedApp`이 `AppOwnership.MARKERS`에 들어가 "공유 리스너는 앱 전용 빈에 의존할 수 없고, 앱 전용 빈도 공유 리스너에 의존할 수 없다"까지 강제한다. `because`는 "공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐") · `beansShouldHaveExactlyOneAppMarker`(리스너는 `@SharedApp` 하나로 통과) · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계, `@SharedApp` 빈 ≥ 12 포함) |
 | `BatchSchedulerRulesTest` | `com.tastyhouse.application`(단일, `.areNotAnnotatedWith(BatchApp.class)` 등 마커 술어로 batch만 선별) | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
 | `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한만 담당 |
@@ -186,7 +193,8 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 - **실행 모듈이 아니므로 `bootJar { enabled = false }` + `jar { enabled = true; archiveClassifier = '' }`** — plain jar만 만든다(`security-module` 선례). 아래 [주의](#주의) 참고.
 
 ### Internal
-- `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스
+- `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스. **`implementation`이어서 이 모듈을 의존하는 쪽에 전이 노출되지 않는다** — 덩어리 01로 `api-common-module`(`api project(':application')`)·`security-module`(`implementation project(':application')`)이 `domain` 대신 이 모듈을 의존하게 되면서, presentation(web·admin·ceo-api, batch-module, api-common, security-module)의 컴파일 클래스패스에 `domain`이 사라졌다. **이 줄을 `api`로 바꾸지 않는다** — 바꾸는 순간 표현 계층에 domain이 되돌아오고 `shouldNotDependOnDomain`·`apiModuleShouldBeDomainModelFree`가 휴면 방어선에서 실제 실패로 바뀐다
+- **표현 계층이 이 모듈에서 보는 domain 대체물 (덩어리 01)**: 에러 판정 `shared/error/`(`ErrorResponses`·`ErrorDescriptor`·`ErrorContracts`), 페이징 `shared/port/out/page/`(`PageQuery`·`PageResult`), enum 카탈로그 `shared/port/out/CodeLabelResult`, 그리고 enum 필드를 `String`으로 강등한 `*Result`
 - `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
 - **외부 연동 모듈(`infrastructure:{restclient,file-storage,firebase,aws-s3,aws-ses,aws-sns,oauth,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:{kakao,naver,apple,facebook}-oauth`(소셜 SPI — 스타터 `infrastructure:oauth`는 코드가 없어 조립만 한다)와 `infrastructure:bbq`·`infrastructure:admdongkor`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
@@ -295,6 +303,8 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ### `commandRecordsShouldBeBoundaryTyped` carve-out 3건 — 느슨한 판을 batch에 적용하지 않는다
 
+> **갱신 (덩어리 01) — carve-out은 이제 2건이다.** 3번 `domain.shared.page..`는 **소멸**했다 — `PageQuery`/`PageResult`가 `com.tastyhouse.application.shared.port.out.page`로 옮겨가 더 이상 domain 타입이 아니므로 제외할 대상이 없다. 1번 `domain.exception..`은 **유지**한다(표현 계층은 domain을 끊었지만 Command는 `application`에 살아 여전히 domain을 보고, compact constructor 가드가 `BusinessException`을 던진다). 제목의 "3건"은 앵커 호환을 위해 그대로 둔다.
+
 **대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
 → `commandRecordsShouldBeBoundaryTyped()`
 
@@ -302,11 +312,11 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 
 1. `com.tastyhouse.domain.exception..` — `BusinessException`·`ErrorCode`는 애그리거트가 아니라 전 계층이 공유하는 **횡단 관심사(에러 계약)**이고, compact constructor의 구조적 가드가 이를 던져야 응답 코드가 나머지 경로와 같은 형태로 나간다.
 2. `org.springframework.web.multipart..`(`MultipartFile`) — 업로드를 받는 연산은 `method(XxxCommand, MultipartFile)`처럼 별도 파라미터로 두는 것이 규정된 형태이고, ArchUnit 의존 그래프는 같은 패키지 UseCase 인터페이스의 메서드 파라미터까지 함께 잡는다. Command **필드**로 실리는 것은 `commandRecordsShouldNotHoldMultipartFile`이 따로 막는다.
-3. `com.tastyhouse.domain.shared.page..` — 근거는 `MultipartFile` carve-out과 **동일한 구조**다. 이 규칙이 겨냥하는 것은 Command record가 **필드로** 도메인 모델을 싣는 것인데, ArchUnit은 같은 `..port.in..` 패키지에 사는 **QueryUseCase의 메서드 시그니처**까지 함께 잡는다. 목록 반환 타입이 `PaginationResponse`에서 `PageResult`로 바뀌면서 걸린 건들은 **전부 반환 타입이며 Command 필드는 한 건도 없다**(실측 확인).
+3. ~~`com.tastyhouse.domain.shared.page..`~~ **(소멸 — 덩어리 01, 위 갱신 참고)** — 근거는 `MultipartFile` carve-out과 **동일한 구조**다. 이 규칙이 겨냥하는 것은 Command record가 **필드로** 도메인 모델을 싣는 것인데, ArchUnit은 같은 `..port.in..` 패키지에 사는 **QueryUseCase의 메서드 시그니처**까지 함께 잡는다. 목록 반환 타입이 `PaginationResponse`에서 `PageResult`로 바뀌면서 걸린 건들은 **전부 반환 타입이며 Command 필드는 한 건도 없다**(실측 확인).
 
 즉 이것은 규칙을 무르게 하는 것이 아니라, 규칙이 애초에 겨냥하지 않던 대상을 제외하는 것이다. 도메인 **모델**(`domain.{shop,order,member}.model..` 등)은 그대로 금지이며, Command가 실제로 도메인 타입을 필드로 실으면 여전히 걸린다.
 
-**batch 제외는 importer가 아니라 `@BatchApp` 마커로 표현한다.** batch에는 Command record가 없고 인바운드 포트가 `void foo()`뿐이라 carve-out이 `domain.exception..` 하나인 **엄격판**을 쓸 수 있으며, 그쪽은 `BatchSchedulerRulesTest.inboundPortsShouldBeBoundaryTyped()`가 맡는다. **batch를 이 규칙에 함께 넣으면 느슨한 3-carve-out 판에 얹혀 엄격함을 잃는다.**
+**batch 제외는 importer가 아니라 `@BatchApp` 마커로 표현한다.** batch에는 Command record가 없고 인바운드 포트가 `void foo()`뿐이라 carve-out이 `domain.exception..` 하나인 **엄격판**을 쓸 수 있으며, 그쪽은 `BatchSchedulerRulesTest.inboundPortsShouldBeBoundaryTyped()`가 맡는다. **batch를 이 규칙에 함께 넣으면 느슨한 판(당시 3-carve-out, 지금 2-carve-out)에 얹혀 엄격함을 잃는다.**
 
 **`allowEmptyShould(true)`는 이 파일 어디에도 쓰지 않는다.** 규칙이 대상을 잃으면 공허하게 통과시키지 말고 규칙을 지우거나 anchor를 고친다(`RuleAnchorTest`가 자동 검증).
 
@@ -364,11 +374,11 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 
 | 대상 (`backend/application/src/main/java/com/tastyhouse/application/...`) | 봉인 취지 |
 |---|---|
-| `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryDaos`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. `ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다 |
-| `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 `GeoRingsPort`가 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다. 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
-| `review/port/out/ReviewBlindReasonView.java` | 카탈로그는 도메인 enum의 `values()`를 훑어 만드는데 그 메서드는 api 모듈에 허용된 accessor가 아니므로(`apiModuleShouldOnlyReadDomainEnums`) 목록 구성이 application에 남는다. **도메인 enum을 그대로 담지 않고 문자열로 강등해 나른다** — 인바운드 포트의 반환 타입에 `com.tastyhouse.domain..`이 실리면 `commandRecordsShouldBeBoundaryTyped`(carve-out은 예외·페이징 계약뿐)에 걸린다. **목록 요소는 제네릭 타입 인자로도 잡힌다** |
-| `shop/port/out/GeoPointView.java` | 도형 계산은 도메인 기하 타입으로 수행하는데 api 모듈은 그 타입을 알 수 없다 — `apiModuleShouldBeDomainModelFree`의 carve-out은 `domain.exception..`·`domain.shared.page..`·도메인 enum뿐이고 **`domain.shared.geo..`는 포함되지 않는다.** 추가로 **컴포넌트 선언 순서는 알파벳순(`latitude` → `longitude`)이다** — 둘 다 `BigDecimal`이라 순서가 어긋나면 컴파일은 통과하고 **값만 조용히 뒤바뀐다** |
-| `shop/port/out/ShopStorePriceVerificationViewResult.java` | 세 출처를 합친다 — 최신 인증 요청(애그리거트), 인증 여부 플래그, 미충족 메뉴 목록(도메인 서비스). 앞의 둘은 애그리거트에서, 마지막은 도메인 서비스에서 나오므로 표현 계약이 직접 받을 수 없다(`apiModuleShouldBeDomainModelFree`). 미충족 사유는 `domain.product.service`의 `StorePriceUnverifiedItem`을 그대로 넘기지 않고 `UnverifiedItem`으로 옮겨 담는다 — 그 타입은 도메인 **서비스** 패키지에 있어 api 모듈의 carve-out 어디에도 들어가지 않는다. 사유 enum 자체는 carve-out 대상이라 그대로 나르고, 문자열 강등은 표현 계약이 수행한다 |
+| `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryDaos`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. ~~`ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다~~ **번복됨(덩어리 01)**: `Failure`는 `ErrorCode errorCode` 대신 `String code, String message`를 싣는다 — api 모듈의 `domain.exception..` carve-out이 사라졌기 때문이다 |
+| `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 `GeoRingsPort`가 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다(덩어리 01 이후로는 carve-out 자체가 없어 더 분명하다). 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
+| `review/port/out/ReviewBlindReasonView.java` | 카탈로그는 도메인 enum의 `values()`를 훑어 만드는데 그 메서드는 api 모듈에 허용된 accessor가 아니므로(`apiModuleShouldOnlyReadDomainEnums` — 덩어리 01로 삭제됐고, 지금은 api 모듈이 domain을 아예 못 봐서 같은 결론) 목록 구성이 application에 남는다. **도메인 enum을 그대로 담지 않고 문자열로 강등해 나른다** — 인바운드 포트의 반환 타입에 `com.tastyhouse.domain..`이 실리면 `commandRecordsShouldBeBoundaryTyped`(carve-out은 예외·페이징 계약뿐)에 걸린다. **목록 요소는 제네릭 타입 인자로도 잡힌다** |
+| `shop/port/out/GeoPointView.java` | 도형 계산은 도메인 기하 타입으로 수행하는데 api 모듈은 그 타입을 알 수 없다 — `apiModuleShouldBeDomainModelFree`의 carve-out은 `domain.exception..`·`domain.shared.page..`·도메인 enum뿐이고 **`domain.shared.geo..`는 포함되지 않는다**(덩어리 01로 carve-out이 전부 사라졌다). 추가로 **컴포넌트 선언 순서는 알파벳순(`latitude` → `longitude`)이다** — 둘 다 `BigDecimal`이라 순서가 어긋나면 컴파일은 통과하고 **값만 조용히 뒤바뀐다** |
+| `shop/port/out/ShopStorePriceVerificationViewResult.java` | 세 출처를 합친다 — 최신 인증 요청(애그리거트), 인증 여부 플래그, 미충족 메뉴 목록(도메인 서비스). 앞의 둘은 애그리거트에서, 마지막은 도메인 서비스에서 나오므로 표현 계약이 직접 받을 수 없다(`apiModuleShouldBeDomainModelFree`). 미충족 사유는 `domain.product.service`의 `StorePriceUnverifiedItem`을 그대로 넘기지 않고 `UnverifiedItem`으로 옮겨 담는다 — 그 타입은 도메인 **서비스** 패키지에 있어 api 모듈의 carve-out 어디에도 들어가지 않는다. ~~사유 enum 자체는 carve-out 대상이라 그대로 나르고, 문자열 강등은 표현 계약이 수행한다~~ **번복됨(덩어리 01)**: `status`·`UnverifiedItem.reason`도 `String`으로 강등해 나르고, 강등은 이 View를 만드는 서비스가 한다 |
 
 ### `ShopStorePriceVerificationCommandService` — 인덱스 기록이 도메인이 아니라 이 서비스에 있는 이유
 
@@ -554,6 +564,23 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다. 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
 
 
+### enum → `String` 강등 후 Object 타입 API는 컴파일러가 잡지 못한다 — 먼저 `valueOf`로 승격한다
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/**/service/*.java` 중 `*Result`의 강등된 문자열 필드를 도메인 enum과 비교·조회하는 곳 (발견 사례: `shop/service/ShopQueryService.java`의 주문 방식(order-methods) 조회 — `OrderMethod`)
+
+덩어리 01로 `*Result`의 도메인 enum 필드가 `String`이 됐다. 필드 타입을 바꾸면 대부분의 사용처는 컴파일 에러로 드러나지만, **`Object`를 받는 API는 문자열을 그대로 받아들여 컴파일이 통과한다.** 검증 중 실제 사례: `Map<OrderMethod, ...>.get(dto.orderMethod())`가 `Map.get(Object)`라 컴파일은 됐지만 키 타입이 달라 **항상 `null`**을 돌려줬다.
+
+| 같은 부류 | 증상 |
+|---|---|
+| `Map.get` / `Map.containsKey` | 항상 `null` / `false` |
+| `Object#equals` (`enumValue.equals(result.status())`) | 항상 `false` |
+| `Collection.contains` / `remove` | 항상 `false` |
+| AssertJ `isEqualTo` (enum 기대값 vs 문자열 실제값) | 테스트가 실패하거나, 반대쪽으로 짜면 잘못된 단정이 통과 |
+
+**규칙**: Result의 문자열을 도메인 enum과 비교·조회하려면 **먼저 승격한다**(`OrderMethod.valueOf(dto.orderMethod())`, 같은 방식의 `DayType.valueOf(...)`·`ClosedDayType.valueOf(...)`). 반대로 enum 쪽을 `.name()`으로 내려 문자열끼리 비교해도 되지만, 한 파일 안에서 두 방식을 섞지 않는다. 문자열 값은 DAO의 `x.status.stringValue()` 투영에서 오며 엔티티 enum이 전부 `EnumType.STRING`이라 `name()`과 같다(`valueOf` 승격이 안전한 근거).
+
+**enum 필드를 또 강등할 때**: 그 필드를 읽는 모든 곳을 `grep`으로 찾아 `Map`·`equals`·`contains`·`isEqualTo` 사용처를 **눈으로** 확인한다 — 빌드 성공은 증거가 아니다.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->
@@ -692,6 +719,9 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 도메인 enum에 대한 `switch`는 바이트코드에서 `ordinal()`·`values()` 호출이 되어 api 모듈에서는
 `apiModuleShouldOnlyReadDomainEnums`(읽기 accessor 3종만 허용)에 걸린다. 그래서 분기·표시 문구
 매핑은 이 계층에 남는다.
+
+*(갱신 — 덩어리 01)* 그 규칙은 삭제됐다. 지금은 api 모듈 컴파일 클래스패스에 `domain`이 없어 도메인 enum
+`switch`가 **컴파일되지 않으므로** 결론(분기·표시 문구 매핑은 이 계층)은 더 강하게 유지된다.
 
 **`valueOf`가 아니라 `switch`를 쓰는 것도 의도다** — 어느 한쪽에 상수가 추가되면 컴파일이 깨져
 매핑 누락이 드러난다. 값 이름이 그대로 대응하더라도 마찬가지다.
@@ -937,7 +967,7 @@ ceo 전용 Result에만 있는 것이 그 사례).
 통과하므로 실패는 기동 시점 `NoSuchBeanDefinitionException`으로만 드러난다.**
 
 - Command record에는 붙이지 않는다(소속은 `AppOwnership`이 유도한다).
-- `@SharedApp`은 **리스너 전용**이다("앱 소속 없음 = 4앱 전부") — `..listener..` 밖에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다.
+- ~~`@SharedApp`은 **리스너 전용**이다~~ **(번복됨 — 덩어리 01)** `@SharedApp`("앱 소속 없음 = 4앱 전부")은 **리스너와 공유 `@Configuration`**에만 붙는다 — 그 밖(`..listener..`/`..config..` 밖, 또는 일반 `@Service`)에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다. 공유 설정이 등록하는 빈은 **마커 없는 POJO**여야 하며 `sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 강제한다(클래스에 마커를 달면 앱 격리에 걸리고, 스캔과 `@Bean`이 겹치면 기동이 실패한다).
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
 - 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
@@ -991,6 +1021,9 @@ ceo 전용 Result에만 있는 것이 그 사례).
 import가 생기면 잘못 올린 것이다.** 단 `domain.exception..`(에러 계약)과 `domain.shared.page..`
 (페이징 계약) 두 carve-out은 정상이므로 그 둘을 뺀 나머지가 판정 대상이다(실측: `port/in` 전체의
 domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 **그 밖은 0건**이다).
+**(갱신 — 덩어리 01)** 페이징 계약은 `com.tastyhouse.application.shared.port.out.page`로 이동해 domain import가
+아니게 됐다. 지금 `port/in`의 domain import는 `domain.exception` 602건뿐이고, 페이징 43건은
+`application.shared.port.out.page` import로 바뀌었다. 판정 대상에서 빼는 carve-out은 `domain.exception..` 하나다.
 
 **새 조회를 추가할 때**: 컨트롤러가 부르지 않는 메서드라면 `*QueryUseCase`에 올리지 말고
 `*QueryService`에만 둔다. 협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다.
@@ -1024,3 +1057,17 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 - **`ProductMenuReviewEventListener`의 구독 대상은 REVIEW가 아니라 MENU_REVIEW 이벤트다.** `PRODUCT.rating`의 근거가 MENU_REVIEW로 완전히 옮겨갔으므로 구독도 하나만 남는 것이 맞다 — 두 리스너가 같은 `ProductReviewStatsService`를 호출하면 재집계가 두 번 돌고 "어느 쪽이 진짜 근거인가"가 코드에서 사라진다. `ReviewCreatedEvent`/`ReviewDeletedEvent`는 발행만 남고 소비자가 0이다. **`productId == null` 가드는 유지한다** — MENU_REVIEW의 `product_id`는 NOT NULL이지만 이벤트 record가 VO를 담고 있어 향후 발행 경로가 늘 때 null이 실릴 수 있고, 그 예외는 `AFTER_COMMIT` 리스너에서 조용히 유실된다.
 - **`MailVerificationEventListener` · `SmsVerificationEventListener`는 발송을 담당하지 않는다.** 이 이벤트는 인증 **완료** 시점이고 발송은 **발급** 시점에 필요하므로 시점이 다르다 — 발송은 `MailVerificationService#issue`·`SmsVerificationService#issue`가 발급과 원자적으로 수행한다.
 - **`PolicyActivatedEventListener`는 재동의 요청·개정 고지 발송을 아직 담당하지 않는다** — 발송 대상이 전체 회원이라 요청 스레드에서 처리할 수 없고 배치·큐 설계가 선행돼야 한다. 그때까지는 전이 사실만 남겨, 어떤 정책이 언제 현행이 됐는지가 발행 지점 밖에서도 관측 가능하게 한다.
+
+### `ErrorResponses` — 정적 유틸이고, cause를 따라가지 않으며, AOP로 하지 않는다
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorResponses.java` → `resolve(Throwable)`
+· `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorContracts.java` → `rateLimit()`·`accessDenied()`·`authRequired()`
+· `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorDescriptor.java`
+· 가드: `backend/application/src/test/java/com/tastyhouse/application/shared/error/ErrorContractsConsistencyTest.java`
+
+표현 계층(web-api·api-common-module의 `GlobalExceptionHandler`, security-module의 필터 단계 핸들러)이 `com.tastyhouse.domain.exception`을 보지 않고도 에러 응답을 만들게 하는 번역점이다(덩어리 01). 규칙 본문은 `backend/CLAUDE.md` "예외·에러코드 소유 규칙".
+
+- **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
+- **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱의 `*ApplicationConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`처럼 `*ApplicationConfig` 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
+- **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(`reservation/service/ReservationCommandService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
+- **`ErrorContracts`는 `ErrorCode` 3종의 미러다.** 표현 계층이 특정 코드를 직접 내야 하는 자리(rate limit 429·권한 403·인증 401)는 `resolve`로 판정할 예외가 없으므로 상수가 필요한데, `ErrorCode`를 import할 수 없어 값을 복제했다. 복제는 갈라질 수 있으므로 `ErrorContractsConsistencyTest`가 각 미러의 상태·code·메시지를 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`와 대조하고, `resolve`의 의미(최상위만·cause 무시·하위 타입 포함)도 함께 단정한다. **새 미러를 추가하면 이 테스트에 대조 케이스도 추가한다.**

@@ -28,7 +28,7 @@ public record ShopHygieneBadgeResponse(
         return new ShopHygieneBadgeResponse(
             result.id(),
             result.shopId(),
-            result.badgeType().name(),
+            result.badgeType(),
             result.certifiedDate(),
             result.lastInspectionMonth()
         );

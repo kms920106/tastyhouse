@@ -165,7 +165,7 @@ public class ReviewBlindRequestService {
         return reviewBlindRequestRepository.findExpirableBlinds(now);
     }
 
-    private static ShopRequestStatus toShopRequestStatus(ReviewBlindStatus status) {
+    public static ShopRequestStatus toShopRequestStatus(ReviewBlindStatus status) {
         return switch (status) {
             case PENDING -> ShopRequestStatus.PENDING;
             case APPROVED -> ShopRequestStatus.APPROVED;

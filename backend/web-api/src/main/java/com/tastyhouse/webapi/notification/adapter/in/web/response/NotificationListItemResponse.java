@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.notification.port.out.NotificationListItemResult;
-import com.tastyhouse.domain.notification.model.NotificationTargetType;
-import com.tastyhouse.domain.notification.model.NotificationType;
 
 @Schema(description = "알림함 목록 항목 응답")
 public record NotificationListItemResponse(
@@ -43,14 +41,12 @@ public record NotificationListItemResponse(
     LocalDateTime createdAt
 ) {
     public static NotificationListItemResponse from(NotificationListItemResult result) {
-        NotificationType type = result.type();
-        NotificationTargetType targetType = result.targetType();
         return new NotificationListItemResponse(
             result.id(),
-            type == null ? null : type.name(),
+            result.type(),
             result.title(),
             result.body(),
-            targetType == null ? null : targetType.name(),
+            result.targetType(),
             result.targetId(),
             result.read(),
             result.createdAt()

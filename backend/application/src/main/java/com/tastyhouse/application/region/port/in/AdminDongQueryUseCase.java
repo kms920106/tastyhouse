@@ -7,7 +7,7 @@ import java.util.List;
 import com.tastyhouse.application.region.port.out.AdminDongBoundariesResult;
 import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @CeoApp
 public interface AdminDongQueryUseCase {

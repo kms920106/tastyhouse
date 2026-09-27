@@ -161,7 +161,7 @@ public class RankQueryDao implements RankQueryPort, RankManagementQueryPort {
             fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             memberReviewRankJpaEntity.reviewCount,
             memberReviewRankJpaEntity.rankNo,
-            memberJpaEntity.memberGrade
+            memberJpaEntity.memberGrade.stringValue()
         );
     }
 

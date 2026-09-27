@@ -4,8 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(':domain')
-
     api 'org.springframework.security:spring-security-core'
 
     api 'io.jsonwebtoken:jjwt-api:0.13.0'

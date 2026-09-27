@@ -3,9 +3,6 @@ package com.tastyhouse.application.review.port.out;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-import com.tastyhouse.domain.shared.model.OrderMethod;
-
 public record ShopReviewManagementListItemResult(
     Long id,
     String memberNickname,
@@ -13,12 +10,14 @@ public record ShopReviewManagementListItemResult(
     String content,
     List<String> imageUrls,
     List<String> productNames,
-    OrderMethod orderMethod,
+    String orderMethod,
+    String orderMethodDisplayName,
     boolean hidden,
     boolean ownerOnly,
     String ownerReplyContent,
     LocalDateTime ownerReplyCreatedAt,
-    ReviewBlindStatus blindRequestStatus,
+    String blindRequestStatus,
+    String blindRequestStatusDescription,
     LocalDateTime createdAt
 ) {
 
@@ -31,11 +30,13 @@ public record ShopReviewManagementListItemResult(
             imageUrls,
             this.productNames,
             this.orderMethod,
+            this.orderMethodDisplayName,
             this.hidden,
             this.ownerOnly,
             this.ownerReplyContent,
             this.ownerReplyCreatedAt,
             this.blindRequestStatus,
+            this.blindRequestStatusDescription,
             this.createdAt
         );
     }
@@ -49,11 +50,13 @@ public record ShopReviewManagementListItemResult(
             this.imageUrls,
             productNames,
             this.orderMethod,
+            this.orderMethodDisplayName,
             this.hidden,
             this.ownerOnly,
             this.ownerReplyContent,
             this.ownerReplyCreatedAt,
             this.blindRequestStatus,
+            this.blindRequestStatusDescription,
             this.createdAt
         );
     }

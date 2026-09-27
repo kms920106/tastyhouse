@@ -4,7 +4,7 @@ import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResu
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface ProductApprovalQueryUseCase {

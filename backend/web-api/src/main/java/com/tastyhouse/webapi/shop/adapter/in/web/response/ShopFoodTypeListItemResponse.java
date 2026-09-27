@@ -17,7 +17,7 @@ public record ShopFoodTypeListItemResponse(
 ) {
     public static ShopFoodTypeListItemResponse from(ShopFoodTypeCategoryResult result) {
         return new ShopFoodTypeListItemResponse(
-            result.foodType().name(),
+            result.foodType(),
             result.displayName(),
             result.activeIconUrl(),
             result.inactiveIconUrl()

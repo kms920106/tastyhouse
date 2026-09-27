@@ -30,7 +30,7 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventDetailResponse
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventListItemResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
 import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
 import com.tastyhouse.application.event.port.in.EventCommandUseCase;

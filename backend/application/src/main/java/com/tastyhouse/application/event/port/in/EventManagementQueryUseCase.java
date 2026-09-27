@@ -7,7 +7,7 @@ import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
 import com.tastyhouse.application.event.port.out.EventWinnerResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface EventManagementQueryUseCase {

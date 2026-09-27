@@ -3,7 +3,7 @@ package com.tastyhouse.application.banner.port.in;
 import com.tastyhouse.application.banner.port.out.BannerDetailResult;
 import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface BannerManagementQueryUseCase {

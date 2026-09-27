@@ -43,7 +43,7 @@ public record ShopDeliveryAreaAdjustmentItemResponse(
             result.franchiseName(),
             result.reason(),
             result.consentFileUrl(),
-            result.status().name(),
+            result.status(),
             result.rejectReason(),
             result.createdAt()
         );

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.point.model.PointType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.point.port.out.PointBalanceResult;
 import com.tastyhouse.application.point.port.out.PointHistoryResult;
 import com.tastyhouse.application.point.port.out.PointManagementQueryPort;

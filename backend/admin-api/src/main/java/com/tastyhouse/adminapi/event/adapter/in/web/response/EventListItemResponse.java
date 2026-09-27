@@ -32,7 +32,7 @@ public record EventListItemResponse(
         return new EventListItemResponse(
             result.id(),
             result.name(),
-            result.status().name(),
+            result.status(),
             toFileResponse(result.thumbnailImageFileId(), result.thumbnailFileName(), result.thumbnailUrl()),
             result.startAt(),
             result.endAt()

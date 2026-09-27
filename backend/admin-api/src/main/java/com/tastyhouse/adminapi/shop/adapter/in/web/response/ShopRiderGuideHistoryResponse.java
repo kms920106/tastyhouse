@@ -37,9 +37,9 @@ public record ShopRiderGuideHistoryResponse(
     public static ShopRiderGuideHistoryResponse from(ShopRiderGuideHistoryResult result) {
         return new ShopRiderGuideHistoryResponse(
             result.id(),
-            result.actorType().name(),
+            result.actorType(),
             result.actorId(),
-            result.actionType().name(),
+            result.actionType(),
             result.previousVisitGuide(),
             result.newVisitGuide(),
             result.reason(),

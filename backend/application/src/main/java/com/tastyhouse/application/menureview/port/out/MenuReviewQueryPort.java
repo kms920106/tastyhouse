@@ -2,8 +2,8 @@ package com.tastyhouse.application.menureview.port.out;
 
 import java.util.List;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface MenuReviewQueryPort {
 

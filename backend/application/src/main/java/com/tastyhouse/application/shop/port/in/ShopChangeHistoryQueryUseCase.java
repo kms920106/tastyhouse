@@ -4,7 +4,7 @@ import com.tastyhouse.application.shared.marker.CeoApp;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopChangeCategoryResult;
 

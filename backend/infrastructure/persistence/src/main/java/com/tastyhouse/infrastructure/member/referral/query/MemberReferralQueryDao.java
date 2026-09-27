@@ -27,7 +27,7 @@ public class MemberReferralQueryDao implements MemberReferralQueryPort {
                 memberReferralJpaEntity.id,
                 memberReferralJpaEntity.referrerId,
                 memberReferralJpaEntity.refereeId,
-                memberReferralJpaEntity.status,
+                memberReferralJpaEntity.status.stringValue(),
                 memberReferralJpaEntity.createdAt
             ))
             .from(memberReferralJpaEntity)

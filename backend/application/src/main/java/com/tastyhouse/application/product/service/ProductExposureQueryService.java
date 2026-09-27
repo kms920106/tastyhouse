@@ -79,7 +79,7 @@ public class ProductExposureQueryService implements ProductExposureQueryUseCase 
                 ))
                 .toList(),
             result.exposed(),
-            result.hiddenReason()
+            result.hiddenReason() == null ? null : result.hiddenReason().name()
         );
     }
 

@@ -26,8 +26,8 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -52,9 +52,9 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
                 memberJpaEntity.nickname,
                 memberJpaEntity.fullName,
                 memberJpaEntity.phoneNumber.value,
-                memberJpaEntity.gender,
-                memberJpaEntity.memberGrade,
-                memberJpaEntity.memberStatus,
+                memberJpaEntity.gender.stringValue(),
+                memberJpaEntity.memberGrade.stringValue(),
+                memberJpaEntity.memberStatus.stringValue(),
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 memberJpaEntity.createdAt
             ))
@@ -158,7 +158,7 @@ public class MemberQueryDao implements MemberQueryPort, MemberManagementQueryPor
         return Projections.constructor(MemberWithProfileImageResult.class,
                 memberJpaEntity.id,
             memberJpaEntity.nickname,
-            memberJpaEntity.memberGrade,
+            memberJpaEntity.memberGrade.stringValue(),
             memberJpaEntity.statusMessage,
             fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
         );

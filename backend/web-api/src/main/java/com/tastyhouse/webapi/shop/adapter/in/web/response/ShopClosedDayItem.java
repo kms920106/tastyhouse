@@ -14,8 +14,8 @@ public record ShopClosedDayItem(
 ) {
     public static ShopClosedDayItem from(ShopClosedDayResult result) {
         return new ShopClosedDayItem(
-            result.closedDayType().name(),
-            result.closedDayType().getDescription()
+            result.closedDayType(),
+            result.closedDayTypeDescription()
         );
     }
 }

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.partnership.model.PartnershipStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 
@@ -50,7 +50,7 @@ public class PartnershipQueryDao implements PartnershipQueryPort {
                 partnershipRequestJpaEntity.businessName,
                 partnershipRequestJpaEntity.contactName,
                 partnershipRequestJpaEntity.contactPhone,
-                partnershipRequestJpaEntity.status,
+                partnershipRequestJpaEntity.status.stringValue(),
                 partnershipRequestJpaEntity.consultationRequestedAt,
                 partnershipRequestJpaEntity.createdAt
             ))
@@ -86,7 +86,7 @@ public class PartnershipQueryDao implements PartnershipQueryPort {
                 partnershipRequestJpaEntity.addressDetail,
                 partnershipRequestJpaEntity.contactName,
                 partnershipRequestJpaEntity.contactPhone,
-                partnershipRequestJpaEntity.status,
+                partnershipRequestJpaEntity.status.stringValue(),
                 partnershipRequestJpaEntity.consultationRequestedAt,
                 partnershipRequestJpaEntity.createdAt,
                 partnershipRequestJpaEntity.updatedAt

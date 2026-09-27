@@ -87,7 +87,7 @@ public record OrderDetailResponse(
         return new OrderDetailResponse(
             result.id(),
             result.orderNumber(),
-            result.orderMethod() != null ? result.orderMethod().name() : null,
+            result.orderMethod(),
             toPaymentStatusName(result.payment()),
             result.shopName(),
             result.shopPhoneNumber(),
@@ -115,6 +115,6 @@ public record OrderDetailResponse(
         if (payment == null || payment.paymentStatus() == null) {
             return null;
         }
-        return payment.paymentStatus().name();
+        return payment.paymentStatus();
     }
 }

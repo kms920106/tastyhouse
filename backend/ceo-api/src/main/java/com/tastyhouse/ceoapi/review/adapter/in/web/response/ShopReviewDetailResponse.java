@@ -6,7 +6,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementDetailResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDetailViewResult;
 
@@ -115,7 +114,6 @@ public record ShopReviewDetailResponse(
 ) {
     public static ShopReviewDetailResponse from(ShopReviewDetailViewResult view) {
         ShopReviewManagementDetailResult result = view.review();
-        OrderMethod orderMethod = result.orderMethod();
         List<ReviewBlindRequestHistoryResponse> blindRequests = result.blindRequests().stream()
             .map(ReviewBlindRequestHistoryResponse::from)
             .toList();
@@ -128,8 +126,8 @@ public record ShopReviewDetailResponse(
             result.content(),
             result.imageUrls(),
             result.productNames(),
-            orderMethod == null ? null : orderMethod.name(),
-            orderMethod == null ? null : orderMethod.getDisplayName(),
+            result.orderMethod(),
+            result.orderMethodDisplayName(),
             result.hidden(),
             result.ownerOnly(),
             result.tasteRating(),

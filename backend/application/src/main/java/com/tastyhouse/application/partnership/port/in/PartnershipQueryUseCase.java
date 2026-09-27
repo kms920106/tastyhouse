@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestDetailResult;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface PartnershipQueryUseCase {

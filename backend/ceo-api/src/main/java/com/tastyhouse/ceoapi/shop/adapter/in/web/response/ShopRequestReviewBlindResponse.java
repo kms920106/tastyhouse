@@ -32,8 +32,8 @@ public record ShopRequestReviewBlindResponse(
     public static ShopRequestReviewBlindResponse from(ShopRequestReviewBlindDetailResult result) {
         return new ShopRequestReviewBlindResponse(
             result.reviewId(),
-            result.reason().name(),
-            result.reason().getDescription(),
+            result.reason(),
+            result.reasonDescription(),
             result.detailReason(),
             result.reviewContent(),
             result.reviewTotalRating()

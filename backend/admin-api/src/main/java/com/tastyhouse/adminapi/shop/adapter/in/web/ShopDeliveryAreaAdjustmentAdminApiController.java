@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdju
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjustmentListItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Delivery Area Adjustment Admin", description = "프랜차이즈 배달지역 조정 신청 검수 관리자 API")
 @RestController

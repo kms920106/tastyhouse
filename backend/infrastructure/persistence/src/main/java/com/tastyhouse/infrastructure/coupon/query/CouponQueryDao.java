@@ -20,8 +20,8 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaEntity.memberCouponJpaEntity;
@@ -51,7 +51,7 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
             .select(Projections.constructor(CouponListItemResult.class,
                 couponJpaEntity.id,
                 couponJpaEntity.name,
-                couponJpaEntity.discountType,
+                couponJpaEntity.discountType.stringValue(),
                 couponJpaEntity.discountAmount,
                 couponJpaEntity.maxDiscountAmount,
                 couponJpaEntity.minOrderAmount,
@@ -84,7 +84,7 @@ public class CouponQueryDao implements CouponQueryPort, CouponManagementQueryPor
                 couponJpaEntity.id,
                 couponJpaEntity.name,
                 couponJpaEntity.description,
-                couponJpaEntity.discountType,
+                couponJpaEntity.discountType.stringValue(),
                 couponJpaEntity.discountAmount,
                 couponJpaEntity.maxDiscountAmount,
                 couponJpaEntity.minOrderAmount,

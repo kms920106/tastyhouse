@@ -55,7 +55,11 @@ public class ProductVegetarianQueryService implements ProductVegetarianQueryUseC
         Set<String> shopCategoryNames = shopFoodTypeCategoryReader.readCategoryNames(shopId);
         boolean changeable = productVegetarianApprovalService.isShopCategoryAllowed(shopCategoryNames);
 
-        return new ProductVegetarianStatusResult(setting.vegetarianType(), requests, changeable);
+        return new ProductVegetarianStatusResult(
+            setting.vegetarianType() == null ? null : setting.vegetarianType().name(),
+            requests,
+            changeable
+        );
     }
 
 }

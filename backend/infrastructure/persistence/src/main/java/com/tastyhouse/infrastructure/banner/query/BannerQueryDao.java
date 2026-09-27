@@ -17,8 +17,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.banner.model.BannerType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
@@ -90,7 +90,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
         List<BannerManagementListItemResult> banners = queryFactory
             .select(Projections.constructor(BannerManagementListItemResult.class,
                 bannerJpaEntity.id,
-                bannerJpaEntity.type,
+                bannerJpaEntity.type.stringValue(),
                 bannerJpaEntity.title,
                 uploadedFileJpaEntity.id,
                 uploadedFileJpaEntity.originalFilename,
@@ -126,7 +126,7 @@ public class BannerQueryDao implements BannerQueryPort, BannerManagementQueryPor
         BannerDetailResult detail = queryFactory
             .select(Projections.constructor(BannerDetailResult.class,
                 bannerJpaEntity.id,
-                bannerJpaEntity.type,
+                bannerJpaEntity.type.stringValue(),
                 bannerJpaEntity.title,
                 uploadedFileJpaEntity.id,
                 uploadedFileJpaEntity.originalFilename,

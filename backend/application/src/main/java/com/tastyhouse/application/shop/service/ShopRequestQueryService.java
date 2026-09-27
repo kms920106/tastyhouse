@@ -17,6 +17,7 @@ import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestDetailResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestDetailViewResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
+import com.tastyhouse.application.shared.port.out.CodeLabelResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestTypeCatalogResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestTypeView;
 import com.tastyhouse.application.shop.port.out.ShopRequestImageChangeDetailResult;
@@ -27,9 +28,11 @@ import com.tastyhouse.application.shop.port.out.ShopRequestSearchCondition;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.review.model.ReviewBlindStatus;
+import com.tastyhouse.domain.review.service.ReviewBlindRequestService;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @CeoApp
@@ -108,9 +111,15 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     public ShopRequestTypeCatalogResult getRequestTypes() {
         return new ShopRequestTypeCatalogResult(
             Arrays.stream(ShopRequestType.values())
-                .map(requestType -> new ShopRequestTypeView(requestType, requestType.isContractAmending()))
+                .map(requestType -> new ShopRequestTypeView(
+                    requestType.name(),
+                    requestType.getDescription(),
+                    requestType.isContractAmending()
+                ))
                 .toList(),
-            Arrays.stream(ShopRequestStatus.values()).toList()
+            Arrays.stream(ShopRequestStatus.values())
+                .map(status -> new CodeLabelResult(status.name(), status.getDescription()))
+                .toList()
         );
     }
 
@@ -151,7 +160,7 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
         return toDetailViewResult(
             detail,
-            toRequestStatus(source.status()),
+            ReviewBlindRequestService.toShopRequestStatus(ReviewBlindStatus.valueOf(source.status())),
             source.rejectReason(),
             null,
             null,
@@ -206,9 +215,11 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
         ShopRequestType requestType = detail.requestType();
         return new ShopRequestDetailViewResult(
             detail.requestId(),
-            requestType,
+            requestType.name(),
+            requestType.getDescription(),
             detail.summary(),
-            status,
+            status.name(),
+            status.getDescription(),
             rejectReason,
             requestType.isContractAmending(),
             detail.attachmentUrl() != null,
@@ -226,9 +237,11 @@ public class ShopRequestQueryService implements ShopRequestQueryUseCase {
     private ShopRequestListItemViewResult toListItemViewResult(ShopRequestListItemResult row) {
         return new ShopRequestListItemViewResult(
             row.requestId(),
-            row.requestType(),
+            row.requestType().name(),
+            row.requestType().getDescription(),
             row.summary(),
-            row.status(),
+            row.status().name(),
+            row.status().getDescription(),
             row.rejectReason(),
             row.requestType().isContractAmending(),
             row.hasAttachment(),

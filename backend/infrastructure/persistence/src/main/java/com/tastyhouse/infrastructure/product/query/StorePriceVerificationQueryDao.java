@@ -13,8 +13,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -95,7 +95,7 @@ public class StorePriceVerificationQueryDao implements StorePriceVerificationQue
                 storePriceVerificationJpaEntity.id,
                 storePriceVerificationJpaEntity.shopId,
                 shopJpaEntity.name,
-                storePriceVerificationJpaEntity.status,
+                storePriceVerificationJpaEntity.status.stringValue(),
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 storePriceVerificationJpaEntity.rejectReason,
                 JPAExpressions

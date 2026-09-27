@@ -25,8 +25,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.DeliveryTipExtraType;
 import com.tastyhouse.domain.shop.model.FoodType;
@@ -681,7 +681,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             shopOperatingStatusService.findOrderMethodAvailabilities(shopId, LocalDateTime.now());
 
         return shopBasicInfoQueryPort.findOrderMethods(shopId).stream()
-            .map(dto -> toShopOrderMethodItemResult(dto, availabilities.get(dto.orderMethod())))
+            .map(dto -> toShopOrderMethodItemResult(dto, availabilities.get(OrderMethod.valueOf(dto.orderMethod()))))
             .toList();
     }
 
@@ -691,8 +691,8 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     ) {
         OrderUnavailableReason reason = availability == null ? null : availability.unavailableReason();
         return new ShopOrderMethodItemResult(
-            dto.orderMethod().name(),
-            dto.orderMethod().getDisplayName(),
+            dto.orderMethod(),
+            dto.orderMethodDisplayName(),
             availability != null && availability.isOpen(),
             reason == null ? null : reason.name(),
             reason == null ? null : reason.getDisplayName()

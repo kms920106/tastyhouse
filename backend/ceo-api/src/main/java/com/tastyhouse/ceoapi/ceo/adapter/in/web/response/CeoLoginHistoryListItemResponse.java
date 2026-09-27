@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
-import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 
 @Schema(description = "점주 로그인 이력 목록 항목")
 public record CeoLoginHistoryListItemResponse(
@@ -39,13 +38,12 @@ public record CeoLoginHistoryListItemResponse(
     LocalDateTime loggedInAt
 ) {
     public static CeoLoginHistoryListItemResponse from(CeoLoginHistoryResult result) {
-        CeoLoginFailureReason failureReason = result.failureReason();
         return new CeoLoginHistoryListItemResponse(
             result.id(),
-            result.result().name(),
-            result.result().getDescription(),
-            failureReason == null ? null : failureReason.name(),
-            failureReason == null ? null : failureReason.getDescription(),
+            result.result(),
+            result.resultDescription(),
+            result.failureReason(),
+            result.failureReasonDescription(),
             result.ipAddress(),
             result.userAgent(),
             result.loggedInAt()

@@ -23,7 +23,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.request.PartnershipSta
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestDetailResponse;
 import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRequestListItemResponse;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;

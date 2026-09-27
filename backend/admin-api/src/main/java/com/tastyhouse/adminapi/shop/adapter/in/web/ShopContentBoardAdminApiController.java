@@ -27,7 +27,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopContentBoardSearc
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardListItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController

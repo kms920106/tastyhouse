@@ -30,7 +30,7 @@ public record ShopAmenityCategoryResponse(
     public static ShopAmenityCategoryResponse from(ShopAmenityCategoryResult result) {
         return new ShopAmenityCategoryResponse(
             result.id(),
-            result.amenity().name(),
+            result.amenity(),
             result.displayName(),
             result.activeIconUrl(),
             result.inactiveIconUrl(),

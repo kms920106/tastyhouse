@@ -21,11 +21,15 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
+import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
+import com.tastyhouse.domain.shop.model.ShopImageType;
+import com.tastyhouse.domain.review.model.ReviewBlindReason;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestJpaEntity.reviewBlindRequestJpaEntity;
@@ -119,7 +123,8 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
     public Optional<ShopRequestImageChangeDetailResult> findImageChangeDetail(Long sourceRequestId) {
         ShopRequestImageChangeDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestImageChangeDetailResult.class,
-                shopImageChangeRequestJpaEntity.imageType,
+                shopImageChangeRequestJpaEntity.imageType.stringValue(),
+                EnumLabelProjection.labelOf(shopImageChangeRequestJpaEntity.imageType, ShopImageType::getDescription),
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 shopImageChangeRequestJpaEntity.status,
                 shopImageChangeRequestJpaEntity.rejectReason
@@ -159,11 +164,12 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         ShopRequestReviewBlindDetailResult detail = queryFactory
             .select(Projections.constructor(ShopRequestReviewBlindDetailResult.class,
                 reviewBlindRequestJpaEntity.reviewId,
-                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.reason.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewJpaEntity.content,
                 reviewJpaEntity.totalRating,
-                reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.status.stringValue(),
                 reviewBlindRequestJpaEntity.rejectReason
             ))
             .from(reviewBlindRequestJpaEntity)
@@ -179,7 +185,8 @@ public class ShopRequestQueryDao implements ShopRequestQueryPort, ShopRequestMan
         return queryFactory
             .select(Projections.constructor(ShopRequestCommentResult.class,
                 shopRequestCommentJpaEntity.id,
-                shopRequestCommentJpaEntity.authorType,
+                shopRequestCommentJpaEntity.authorType.stringValue(),
+                EnumLabelProjection.labelOf(shopRequestCommentJpaEntity.authorType, ShopRequestCommentAuthorType::getDescription),
                 shopRequestCommentJpaEntity.content,
                 shopRequestCommentJpaEntity.createdAt
             ))

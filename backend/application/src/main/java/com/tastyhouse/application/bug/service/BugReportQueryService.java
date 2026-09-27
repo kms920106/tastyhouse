@@ -20,8 +20,8 @@ import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 
 @Service

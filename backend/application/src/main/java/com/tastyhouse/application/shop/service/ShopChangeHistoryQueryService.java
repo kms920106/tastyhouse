@@ -16,8 +16,9 @@ import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
 import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.shared.port.out.CodeLabelResult;
 import com.tastyhouse.application.shop.port.out.ShopChangeCategoryResult;
 
 @Service
@@ -87,9 +88,10 @@ public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseC
     }
 
     private ShopChangeCategoryResult toCategoryResult(ShopChangeCategory category) {
-        List<ShopChangeType> changeTypes = Arrays.stream(ShopChangeType.values())
+        List<CodeLabelResult> changeTypes = Arrays.stream(ShopChangeType.values())
             .filter(changeType -> changeType.getCategory() == category)
+            .map(changeType -> new CodeLabelResult(changeType.name(), changeType.getDescription()))
             .toList();
-        return new ShopChangeCategoryResult(category, changeTypes);
+        return new ShopChangeCategoryResult(category.name(), category.getDescription(), changeTypes);
     }
 }

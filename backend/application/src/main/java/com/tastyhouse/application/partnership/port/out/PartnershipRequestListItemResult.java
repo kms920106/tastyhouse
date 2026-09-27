@@ -2,14 +2,12 @@ package com.tastyhouse.application.partnership.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.partnership.model.PartnershipStatus;
-
 public record PartnershipRequestListItemResult(
     Long id,
     String businessName,
     String contactName,
     String contactPhone,
-    PartnershipStatus status,
+    String status,
     LocalDateTime consultationRequestedAt,
     LocalDateTime createdAt
 ) {

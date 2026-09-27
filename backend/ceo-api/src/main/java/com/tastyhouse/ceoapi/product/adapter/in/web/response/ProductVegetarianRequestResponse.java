@@ -29,10 +29,10 @@ public record ProductVegetarianRequestResponse(
     public static ProductVegetarianRequestResponse from(ProductVegetarianRequestResult result) {
         return new ProductVegetarianRequestResponse(
             result.id(),
-            result.vegetarianType().name(),
+            result.vegetarianType(),
             result.ingredients(),
             result.description(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

@@ -3,8 +3,8 @@ package com.tastyhouse.application.coupon.port.out;
 import java.util.Optional;
 
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface CouponManagementQueryPort {
 

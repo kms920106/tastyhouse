@@ -20,9 +20,10 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -71,8 +72,10 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 reviewBlindRequestJpaEntity.reviewId,
                 reviewBlindRequestJpaEntity.shopId,
                 shopJpaEntity.name,
-                reviewBlindRequestJpaEntity.reason,
-                reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.reason.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
+                reviewBlindRequestJpaEntity.status.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
                 reviewJpaEntity.totalRating,
@@ -98,9 +101,11 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 reviewBlindRequestJpaEntity.reviewId,
                 reviewBlindRequestJpaEntity.shopId,
                 shopJpaEntity.name,
-                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.reason.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
                 reviewBlindRequestJpaEntity.detailReason,
-                reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.status.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
                 reviewBlindRequestJpaEntity.rejectReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.content,
@@ -137,7 +142,8 @@ public class ReviewBlindRequestQueryDao implements ReviewBlindRequestQueryPort, 
                 Expressions.constant(List.<String>of()),
                 reviewJpaEntity.createdAt,
                 shopJpaEntity.name,
-                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.reason.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
                 reviewBlindRequestJpaEntity.detailReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewJpaEntity.memberId

@@ -6,8 +6,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.application.review.port.out.ShopReviewManagementListItemResult;
 import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 
@@ -79,8 +77,6 @@ public record ShopReviewListItemResponse(
 
     public static ShopReviewListItemResponse from(ShopReviewListItemViewResult view) {
         ShopReviewManagementListItemResult result = view.review();
-        OrderMethod orderMethod = result.orderMethod();
-        ReviewBlindStatus blindRequestStatus = result.blindRequestStatus();
         return new ShopReviewListItemResponse(
             result.id(),
             toReviewNumber(result.id()),
@@ -89,14 +85,14 @@ public record ShopReviewListItemResponse(
             result.content(),
             result.imageUrls(),
             result.productNames(),
-            orderMethod == null ? null : orderMethod.name(),
-            orderMethod == null ? null : orderMethod.getDisplayName(),
+            result.orderMethod(),
+            result.orderMethodDisplayName(),
             result.hidden(),
             result.ownerOnly(),
             result.ownerReplyContent(),
             result.ownerReplyCreatedAt(),
-            blindRequestStatus == null ? null : blindRequestStatus.name(),
-            blindRequestStatus == null ? null : blindRequestStatus.getDescription(),
+            result.blindRequestStatus(),
+            result.blindRequestStatusDescription(),
             result.createdAt(),
             view.replyWindow().replyDeadline(),
             view.replyWindow().replyable()

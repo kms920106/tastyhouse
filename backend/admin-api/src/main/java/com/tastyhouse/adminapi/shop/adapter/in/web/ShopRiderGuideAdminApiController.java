@@ -34,7 +34,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideDetail
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Rider Guide Admin", description = "라이더 가게방문 안내 검수 관리자 API")
 @RestController

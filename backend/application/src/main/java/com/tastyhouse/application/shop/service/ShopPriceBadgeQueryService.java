@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
 import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
+import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -98,7 +100,8 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
         LocalDate date
     ) {
         boolean closedDay = closedDays.stream()
-            .anyMatch(closed -> closed.closedDayType() != null && closed.closedDayType().matches(date));
+            .anyMatch(closed -> closed.closedDayType() != null
+                && ClosedDayType.valueOf(closed.closedDayType()).matches(date));
         if (closedDay) {
             return false;
         }
@@ -112,7 +115,7 @@ public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
         return ShopBusinessHour.reconstitute(
             dto.id(),
             ShopId.of(shopId),
-            dto.dayType(),
+            DayType.valueOf(dto.dayType()),
             dto.openTime(),
             dto.closeTime(),
             dto.closed(),

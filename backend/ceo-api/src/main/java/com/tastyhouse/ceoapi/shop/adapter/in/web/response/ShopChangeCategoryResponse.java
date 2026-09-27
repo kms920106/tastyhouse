@@ -20,8 +20,8 @@ public record ShopChangeCategoryResponse(
 ) {
     public static ShopChangeCategoryResponse from(ShopChangeCategoryResult result) {
         return new ShopChangeCategoryResponse(
-            result.category().name(),
-            result.category().getDescription(),
+            result.category(),
+            result.categoryDescription(),
             result.changeTypes().stream()
                 .map(ShopChangeTypeResponse::from)
                 .toList()

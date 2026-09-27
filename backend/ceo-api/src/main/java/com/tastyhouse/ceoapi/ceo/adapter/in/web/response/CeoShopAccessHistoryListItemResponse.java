@@ -32,8 +32,8 @@ public record CeoShopAccessHistoryListItemResponse(
             result.id(),
             result.shopId(),
             result.shopName(),
-            result.actionType().name(),
-            result.actionType().getDescription(),
+            result.actionType(),
+            result.actionTypeDescription(),
             result.occurredAt()
         );
     }

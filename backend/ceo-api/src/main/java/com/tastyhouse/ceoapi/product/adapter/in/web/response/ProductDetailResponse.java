@@ -83,7 +83,7 @@ public record ProductDetailResponse(
             result.soldOut(),
             result.visible(),
             result.imageUrl(),
-            result.vegetarianType() == null ? null : result.vegetarianType().name(),
+            result.vegetarianType(),
             result.weightText(),
             result.exposureScheduled()
         );

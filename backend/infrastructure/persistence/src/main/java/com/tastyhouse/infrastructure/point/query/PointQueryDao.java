@@ -14,8 +14,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.point.model.PointType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.point.persistence.QPointHistoryJpaEntity.pointHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.pointJpaEntity;
@@ -46,7 +46,7 @@ public class PointQueryDao implements PointQueryPort, PointManagementQueryPort {
     public List<PointHistoryResult> findPointHistories(Long memberId) {
         return queryFactory
             .select(Projections.constructor(PointHistoryResult.class,
-                pointHistoryJpaEntity.pointType,
+                pointHistoryJpaEntity.pointType.stringValue(),
                 pointHistoryJpaEntity.pointAmount,
                 pointHistoryJpaEntity.reason,
                 pointHistoryJpaEntity.createdAt
@@ -70,7 +70,7 @@ public class PointQueryDao implements PointQueryPort, PointManagementQueryPort {
 
         List<PointHistoryResult> content = queryFactory
             .select(Projections.constructor(PointHistoryResult.class,
-                pointHistoryJpaEntity.pointType,
+                pointHistoryJpaEntity.pointType.stringValue(),
                 pointHistoryJpaEntity.pointAmount,
                 pointHistoryJpaEntity.reason,
                 pointHistoryJpaEntity.createdAt

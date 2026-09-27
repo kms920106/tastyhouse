@@ -18,8 +18,8 @@ public record ShopClosedDayResponse(
     public static ShopClosedDayResponse from(ShopClosedDayResult result) {
         return new ShopClosedDayResponse(
             result.id(),
-            result.closedDayType().name(),
-            result.closedDayType().getDescription()
+            result.closedDayType(),
+            result.closedDayTypeDescription()
         );
     }
 }

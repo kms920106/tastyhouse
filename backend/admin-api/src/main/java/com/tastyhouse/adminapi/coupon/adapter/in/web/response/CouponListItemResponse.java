@@ -48,7 +48,7 @@ public record CouponListItemResponse(
         return new CouponListItemResponse(
             result.id(),
             result.name(),
-            result.discountType().name(),
+            result.discountType(),
             result.discountAmount(),
             result.maxDiscountAmount(),
             result.minOrderAmount(),

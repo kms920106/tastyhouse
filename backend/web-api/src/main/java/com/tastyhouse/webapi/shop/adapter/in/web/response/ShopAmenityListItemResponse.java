@@ -20,7 +20,7 @@ public record ShopAmenityListItemResponse(
 ) {
     public static ShopAmenityListItemResponse from(ShopAmenityCategoryResult result) {
         return new ShopAmenityListItemResponse(
-            result.amenity().name(),
+            result.amenity(),
             result.displayName(),
             result.activeIconUrl(),
             result.inactiveIconUrl()

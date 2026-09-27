@@ -47,8 +47,8 @@ public record ReviewBlindNoticeResponse(
             result.imageUrls(),
             result.createdAt(),
             result.shopName(),
-            result.reason().name(),
-            result.reason().getDescription(),
+            result.reason(),
+            result.reasonDescription(),
             result.detailReason(),
             result.blindUntil()
         );

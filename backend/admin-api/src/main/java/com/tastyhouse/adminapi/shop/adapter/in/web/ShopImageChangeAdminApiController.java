@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopImageChangeReques
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeRequestItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController

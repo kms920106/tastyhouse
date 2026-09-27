@@ -13,8 +13,8 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderListItemResult;
 import com.tastyhouse.application.order.port.out.OrderPaymentResult;
@@ -76,7 +76,7 @@ public class OrderQueryService implements OrderQueryUseCase {
         return new OrderDetailViewResult(
             result.id(),
             result.orderNumber(),
-            result.orderMethod().name(),
+            result.orderMethod(),
             toPaymentStatusName(result.payment()),
             result.shopName(),
             result.shopPhoneNumber(),
@@ -105,7 +105,7 @@ public class OrderQueryService implements OrderQueryUseCase {
         if (payment == null || payment.paymentStatus() == null) {
             return null;
         }
-        return payment.paymentStatus().name();
+        return payment.paymentStatus();
     }
 
     private OrderProductViewResult toOrderProductViewResult(OrderProductResult result, Set<Long> reviewedProductIds) {
@@ -132,8 +132,8 @@ public class OrderQueryService implements OrderQueryUseCase {
     ) {
         return new OrderPaymentSummaryResult(
             result.id(),
-            result.paymentMethod() != null ? result.paymentMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
+            result.paymentMethod(),
+            result.paymentStatus(),
             result.amount(),
             cupDepositAmount,
             result.cardCompany(),

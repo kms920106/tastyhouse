@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;

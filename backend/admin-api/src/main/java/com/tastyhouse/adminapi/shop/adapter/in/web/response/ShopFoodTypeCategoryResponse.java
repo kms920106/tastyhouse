@@ -30,7 +30,7 @@ public record ShopFoodTypeCategoryResponse(
     public static ShopFoodTypeCategoryResponse from(ShopFoodTypeCategoryResult result) {
         return new ShopFoodTypeCategoryResponse(
             result.id(),
-            result.foodType().name(),
+            result.foodType(),
             result.displayName(),
             result.activeIconUrl(),
             result.inactiveIconUrl(),

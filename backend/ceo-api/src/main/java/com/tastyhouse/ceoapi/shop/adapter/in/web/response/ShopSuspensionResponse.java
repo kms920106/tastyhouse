@@ -35,8 +35,8 @@ public record ShopSuspensionResponse(
         return new ShopSuspensionResponse(
             result.id(),
             result.shopId(),
-            result.reason().name(),
-            result.orderMethod() == null ? null : result.orderMethod().name(),
+            result.reason(),
+            result.orderMethod(),
             result.startAt(),
             result.endAt(),
             result.releasedAt()

@@ -35,8 +35,8 @@ public record PaymentSummaryResponse(
     public static PaymentSummaryResponse from(OrderPaymentResult result) {
         return new PaymentSummaryResponse(
             result.id(),
-            result.paymentMethod() != null ? result.paymentMethod().name() : null,
-            result.paymentStatus() != null ? result.paymentStatus().name() : null,
+            result.paymentMethod(),
+            result.paymentStatus(),
             result.amount(),
             result.cardCompany(),
             result.cardNumber(),

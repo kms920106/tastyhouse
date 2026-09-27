@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface OrderManagementQueryUseCase {

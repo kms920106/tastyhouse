@@ -73,8 +73,8 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -855,7 +855,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                     productJpaEntity.soldOut,
                     productJpaEntity.visible,
                     fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
-                    productJpaEntity.vegetarianType,
+                    productJpaEntity.vegetarianType.stringValue(),
                     productJpaEntity.weightText,
                     productJpaEntity.exposureStartDate.isNotNull()
                         .or(productJpaEntity.exposureEndDate.isNotNull())
@@ -1641,7 +1641,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productJpaEntity.shopId,
                 productJpaEntity.name,
                 fileUrlResolver.urlOf(imageChangeRequestFile.filePath),
-                productImageChangeRequestJpaEntity.status,
+                productImageChangeRequestJpaEntity.status.stringValue(),
                 productImageChangeRequestJpaEntity.rejectReason
             ))
             .from(productImageChangeRequestJpaEntity)
@@ -1657,10 +1657,10 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 productVegetarianRequestJpaEntity.productId,
                 productJpaEntity.shopId,
                 productJpaEntity.name,
-                productVegetarianRequestJpaEntity.vegetarianType,
+                productVegetarianRequestJpaEntity.vegetarianType.stringValue(),
                 productVegetarianRequestJpaEntity.ingredients,
                 productVegetarianRequestJpaEntity.description,
-                productVegetarianRequestJpaEntity.status,
+                productVegetarianRequestJpaEntity.status.stringValue(),
                 productVegetarianRequestJpaEntity.rejectReason
             ))
             .from(productVegetarianRequestJpaEntity)
@@ -1688,7 +1688,7 @@ public class ProductQueryDao implements ProductQueryPort, ProductBbqSyncQueryPor
                 shopJpaEntity.name,
                 productJpaEntity.name,
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
-                productRepresentativeRequestJpaEntity.status,
+                productRepresentativeRequestJpaEntity.status.stringValue(),
                 productRepresentativeRequestJpaEntity.rejectReason
             ))
             .from(productRepresentativeRequestJpaEntity)

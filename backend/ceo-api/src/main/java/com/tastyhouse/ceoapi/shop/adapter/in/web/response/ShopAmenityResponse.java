@@ -25,7 +25,7 @@ public record ShopAmenityResponse(
         return new ShopAmenityResponse(
             result.id(),
             result.amenityCategoryId(),
-            result.amenity().name(),
+            result.amenity(),
             result.displayName(),
             result.activeIconUrl()
         );

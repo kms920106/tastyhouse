@@ -33,7 +33,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResp
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGroupsResponse;
 import com.tastyhouse.application.product.port.out.ProductListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;

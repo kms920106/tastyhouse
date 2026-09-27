@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 import com.tastyhouse.adminapi.common.response.FileResponse;
 
@@ -57,7 +55,7 @@ public record EventDetailResponse(
             toFileResponse(result.thumbnailImageFileId(), result.thumbnailFileName(), result.thumbnailUrl()),
             toFileResponse(result.bannerImageFileId(), result.bannerFileName(), result.bannerUrl()),
             result.contentHtml(),
-            result.status().name(),
+            result.status(),
             result.startAt(),
             result.endAt(),
             result.createdAt(),
@@ -68,9 +66,6 @@ public record EventDetailResponse(
     private static FileResponse toFileResponse(Long fileId, String fileName, String imageUrl) {
         if (fileId == null) {
             return null;
-        }
-        if (imageUrl == null) {
-            throw new ResourceNotFoundException(ErrorCode.FILE_NOT_FOUND);
         }
         return FileResponse.of(fileId, fileName, imageUrl);
     }

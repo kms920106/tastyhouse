@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.request.ReviewBlindRequestS
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestDetailResponse;
 import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequestListItemResponse;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
 
 @Tag(name = "Review Blind Request Admin", description = "리뷰 게시중단 요청 심사 API")

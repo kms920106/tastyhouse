@@ -21,8 +21,8 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
@@ -98,7 +98,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
             .select(Projections.constructor(EventManagementListItemResult.class,
                 eventJpaEntity.id,
                 eventJpaEntity.name,
-                eventJpaEntity.status,
+                eventJpaEntity.status.stringValue(),
                 eventJpaEntity.thumbnailImageFileId,
                 uploadedFileJpaEntity.originalFilename,
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
@@ -138,7 +138,7 @@ public class EventQueryDao implements EventQueryPort, EventManagementQueryPort {
                 bannerFile.originalFilename,
                 fileUrlResolver.urlOf(bannerFile.filePath),
                 eventJpaEntity.contentHtml,
-                eventJpaEntity.status,
+                eventJpaEntity.status.stringValue(),
                 eventJpaEntity.startAt,
                 eventJpaEntity.endAt,
                 eventJpaEntity.createdAt,

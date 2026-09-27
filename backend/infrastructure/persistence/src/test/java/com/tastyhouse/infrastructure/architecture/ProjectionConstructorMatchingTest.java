@@ -31,6 +31,11 @@ class ProjectionConstructorMatchingTest {
     private static final Pattern REASSEMBLY_HELPER =
         Pattern.compile("private \\S+ withResolved\\w*\\(");
 
+    private static final String STRING_VALUE_SUFFIX = ".stringValue()";
+
+    private static final Pattern ENUM_LABEL_WRAPPER =
+        Pattern.compile("^EnumLabelProjection\\.labelOf\\((.+),\\s*\\w+::(\\w+)\\)$");
+
     private static final int SEALED_REASSEMBLY_HELPERS = 0;
 
     @Test
@@ -194,9 +199,25 @@ class ProjectionConstructorMatchingTest {
 
     private String trailingPropertyName(String argument) {
         String trimmed = argument.strip();
+        Matcher enumLabel = ENUM_LABEL_WRAPPER.matcher(trimmed);
+        if (enumLabel.matches()) {
+            String source = trailingPropertyName(enumLabel.group(1));
+            if (source == null) {
+                return null;
+            }
+            return switch (enumLabel.group(2)) {
+                case "name" -> source;
+                case "getDescription" -> source + "Description";
+                case "getDisplayName" -> source + "DisplayName";
+                default -> null;
+            };
+        }
         Matcher wrapper = URL_WRAPPER.matcher(trimmed);
         if (wrapper.matches()) {
             trimmed = wrapper.group(1).strip();
+        }
+        if (trimmed.endsWith(STRING_VALUE_SUFFIX)) {
+            trimmed = trimmed.substring(0, trimmed.length() - STRING_VALUE_SUFFIX.length());
         }
         if (!trimmed.matches("[A-Za-z_$][\\w$]*(\\.[A-Za-z_$][\\w$]*)+")) {
             return null;

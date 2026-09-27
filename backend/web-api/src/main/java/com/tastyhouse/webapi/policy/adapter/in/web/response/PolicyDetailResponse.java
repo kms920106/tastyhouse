@@ -41,7 +41,7 @@ public record PolicyDetailResponse(
     public static PolicyDetailResponse from(PolicyDocumentResult result) {
         return new PolicyDetailResponse(
             result.id(),
-            result.type().name(),
+            result.type(),
             result.version(),
             result.title(),
             result.content(),

@@ -56,11 +56,11 @@ public record ShopRequestListItemResponse(
     public static ShopRequestListItemResponse from(ShopRequestListItemViewResult result) {
         return new ShopRequestListItemResponse(
             result.requestId(),
-            result.requestType().name(),
-            result.requestType().getDescription(),
+            result.requestType(),
+            result.requestTypeDescription(),
             result.summary(),
-            result.status().name(),
-            result.status().getDescription(),
+            result.status(),
+            result.statusDescription(),
             result.rejectReason(),
             result.contractAmending(),
             result.hasAttachment(),

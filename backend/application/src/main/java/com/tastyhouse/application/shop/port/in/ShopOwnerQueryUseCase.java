@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.port.in;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.application.shop.port.out.ShopOwnerDetailViewResult;
 

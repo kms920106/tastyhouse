@@ -4,14 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import com.tastyhouse.domain.product.model.ProductHiddenReason;
-
 public record ProductExposureViewResult(
     LocalDate startDate,
     LocalDate endDate,
     List<Hour> hours,
     boolean exposed,
-    ProductHiddenReason hiddenReason
+    String hiddenReason
 ) {
 
     public record Hour(

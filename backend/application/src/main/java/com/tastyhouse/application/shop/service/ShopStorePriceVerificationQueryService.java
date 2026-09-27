@@ -41,7 +41,7 @@ public class ShopStorePriceVerificationQueryService implements ShopStorePriceVer
                 .map(item -> new ShopStorePriceVerificationViewResult.UnverifiedItem(
                     item.productId(),
                     item.productName(),
-                    item.reason()
+                    item.reason().name()
                 ))
                 .toList();
 

@@ -4,7 +4,7 @@ import com.tastyhouse.application.shared.marker.WebApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
 import com.tastyhouse.application.review.service.ReviewQueryService;

@@ -13,8 +13,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopRiderGuideHistoryJpaEntity.shopRiderGuideHistoryJpaEntity;
@@ -108,9 +108,9 @@ public class ShopRiderGuideQueryDao implements ShopRiderGuideQueryPort, ShopRide
         return queryFactory
             .select(Projections.constructor(ShopRiderGuideHistoryResult.class,
                 shopRiderGuideHistoryJpaEntity.id,
-                shopRiderGuideHistoryJpaEntity.actorType,
+                shopRiderGuideHistoryJpaEntity.actorType.stringValue(),
                 shopRiderGuideHistoryJpaEntity.actorId,
-                shopRiderGuideHistoryJpaEntity.actionType,
+                shopRiderGuideHistoryJpaEntity.actionType.stringValue(),
                 shopRiderGuideHistoryJpaEntity.previousVisitGuide,
                 shopRiderGuideHistoryJpaEntity.newVisitGuide,
                 shopRiderGuideHistoryJpaEntity.reason,

@@ -1,7 +1,7 @@
 package com.tastyhouse.application.follow.port.in;
 
 import com.tastyhouse.application.shared.marker.WebApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import com.tastyhouse.application.member.follow.port.out.FollowMemberResult;
 import com.tastyhouse.application.follow.port.out.FollowMemberSearchResult;

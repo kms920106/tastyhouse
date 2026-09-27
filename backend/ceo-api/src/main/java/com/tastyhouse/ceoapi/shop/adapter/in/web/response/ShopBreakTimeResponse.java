@@ -26,8 +26,8 @@ public record ShopBreakTimeResponse(
     public static ShopBreakTimeResponse from(ShopBreakTimeResult result) {
         return new ShopBreakTimeResponse(
             result.id(),
-            result.dayType().name(),
-            result.dayType().getDescription(),
+            result.dayType(),
+            result.dayTypeDescription(),
             result.startTime(),
             result.endTime()
         );

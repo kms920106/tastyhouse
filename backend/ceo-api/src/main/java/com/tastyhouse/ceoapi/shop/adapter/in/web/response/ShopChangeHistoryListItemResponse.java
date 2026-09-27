@@ -42,12 +42,12 @@ public record ShopChangeHistoryListItemResponse(
     public static ShopChangeHistoryListItemResponse from(ShopChangeHistoryResult result) {
         return new ShopChangeHistoryListItemResponse(
             result.id(),
-            result.category().name(),
-            result.category().getDescription(),
-            result.changeType().name(),
-            result.changeType().getDescription(),
-            result.actionType().name(),
-            result.actionType().getDescription(),
+            result.category(),
+            result.categoryDescription(),
+            result.changeType(),
+            result.changeTypeDescription(),
+            result.actionType(),
+            result.actionTypeDescription(),
             result.previousValue(),
             result.newValue(),
             result.changedAt()

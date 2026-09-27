@@ -23,7 +23,7 @@ public record ProductImageChangeRequestResponse(
         return new ProductImageChangeRequestResponse(
             result.id(),
             result.imageUrl(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

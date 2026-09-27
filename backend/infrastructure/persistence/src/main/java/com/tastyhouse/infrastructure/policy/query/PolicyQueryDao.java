@@ -12,8 +12,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.policy.model.PolicyType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 
@@ -64,7 +64,7 @@ public class PolicyQueryDao implements PolicyQueryPort {
         List<PolicyListItemResult> policies = queryFactory
             .select(Projections.constructor(PolicyListItemResult.class,
                 policyDocumentJpaEntity.id,
-                policyDocumentJpaEntity.type,
+                policyDocumentJpaEntity.type.stringValue(),
                 policyDocumentJpaEntity.version,
                 policyDocumentJpaEntity.title,
                 policyDocumentJpaEntity.current,
@@ -84,7 +84,7 @@ public class PolicyQueryDao implements PolicyQueryPort {
     private ConstructorExpression<PolicyDocumentResult> policyDocumentDetailProjection() {
         return Projections.constructor(PolicyDocumentResult.class,
                 policyDocumentJpaEntity.id,
-            policyDocumentJpaEntity.type,
+            policyDocumentJpaEntity.type.stringValue(),
             policyDocumentJpaEntity.version,
             policyDocumentJpaEntity.title,
             policyDocumentJpaEntity.content,

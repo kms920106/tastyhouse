@@ -3,7 +3,7 @@ package com.tastyhouse.application.product.port.in;
 import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
 import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;

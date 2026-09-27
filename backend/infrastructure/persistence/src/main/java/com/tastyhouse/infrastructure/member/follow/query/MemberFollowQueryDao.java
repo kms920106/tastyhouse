@@ -13,8 +13,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity;
 
@@ -82,7 +82,7 @@ public class MemberFollowQueryDao implements MemberFollowQueryPort {
         return Projections.constructor(FollowMemberResult.class,
             memberJpaEntity.id,
             memberJpaEntity.nickname,
-            memberJpaEntity.memberGrade,
+            memberJpaEntity.memberGrade.stringValue(),
             fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
             isFollowedByViewer(viewerMemberId)
         );

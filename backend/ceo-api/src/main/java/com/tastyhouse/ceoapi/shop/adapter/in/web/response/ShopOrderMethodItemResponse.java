@@ -19,8 +19,8 @@ public record ShopOrderMethodItemResponse(
     public static ShopOrderMethodItemResponse from(ShopOrderMethodResult result) {
         return new ShopOrderMethodItemResponse(
             result.id(),
-            result.orderMethod().name(),
-            result.orderMethod().getDisplayName()
+            result.orderMethod(),
+            result.orderMethodDisplayName()
         );
     }
 }

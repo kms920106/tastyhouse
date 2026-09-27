@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.port.out;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.FoodType;
 

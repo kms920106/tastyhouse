@@ -14,6 +14,7 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusService;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
 
 @Service
@@ -47,15 +48,18 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
         List<ShopOrderAvailabilityViewResult.OrderMethodAvailability> orderMethods =
             methodStatuses.entrySet().stream()
                 .map(entry -> new ShopOrderAvailabilityViewResult.OrderMethodAvailability(
-                    entry.getKey(),
+                    entry.getKey().name(),
+                    entry.getKey().getDisplayName(),
                     entry.getValue().isOpen(),
-                    entry.getValue().unavailableReason()
+                    nameOf(entry.getValue().unavailableReason()),
+                    displayNameOf(entry.getValue().unavailableReason())
                 ))
                 .toList();
 
         return new ShopOrderAvailabilityViewResult(
             shopStatus.isOpen(),
-            shopStatus.unavailableReason(),
+            nameOf(shopStatus.unavailableReason()),
+            displayNameOf(shopStatus.unavailableReason()),
             orderMethods
         );
     }
@@ -64,5 +68,13 @@ public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQ
     public List<ShopOrderMethodResult> getOrderMethods(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         return shopBasicInfoQueryPort.findOrderMethods(shopId);
+    }
+
+    private static String nameOf(OrderUnavailableReason reason) {
+        return reason == null ? null : reason.name();
+    }
+
+    private static String displayNameOf(OrderUnavailableReason reason) {
+        return reason == null ? null : reason.getDisplayName();
     }
 }

@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.response.CouponListItemResp
 import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemResponse;
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;

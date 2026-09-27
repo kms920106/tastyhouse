@@ -41,10 +41,10 @@ public record ProductVegetarianRequestItemResponse(
             result.productId(),
             result.shopId(),
             result.productName(),
-            result.vegetarianType().name(),
+            result.vegetarianType(),
             result.ingredients(),
             result.description(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

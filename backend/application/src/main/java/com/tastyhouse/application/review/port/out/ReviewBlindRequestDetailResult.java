@@ -3,17 +3,16 @@ package com.tastyhouse.application.review.port.out;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-
 public record ReviewBlindRequestDetailResult(
     Long id,
     Long reviewId,
     Long shopId,
     String shopName,
-    ReviewBlindReason reason,
+    String reason,
+    String reasonDescription,
     String detailReason,
-    ReviewBlindStatus status,
+    String status,
+    String statusDescription,
     String rejectReason,
     LocalDateTime blindUntil,
     String reviewContent,
@@ -33,8 +32,10 @@ public record ReviewBlindRequestDetailResult(
             this.shopId,
             this.shopName,
             this.reason,
+            this.reasonDescription,
             this.detailReason,
             this.status,
+            this.statusDescription,
             this.rejectReason,
             this.blindUntil,
             this.reviewContent,

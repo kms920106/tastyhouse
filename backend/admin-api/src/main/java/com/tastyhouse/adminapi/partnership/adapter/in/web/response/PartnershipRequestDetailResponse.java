@@ -46,7 +46,7 @@ public record PartnershipRequestDetailResponse(
             result.addressDetail(),
             result.contactName(),
             result.contactPhone(),
-            result.status() != null ? result.status().name() : null,
+            result.status(),
             result.consultationRequestedAt(),
             result.createdAt(),
             result.updatedAt()

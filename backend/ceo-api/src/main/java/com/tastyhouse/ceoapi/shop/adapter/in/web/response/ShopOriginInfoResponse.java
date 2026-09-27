@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.shop.model.OriginSourceType;
 import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 @Schema(description = "내 가게 원산지 표시 정보")
@@ -34,7 +33,7 @@ public record ShopOriginInfoResponse(
 
     public static ShopOriginInfoResponse empty() {
         return new ShopOriginInfoResponse(
-            OriginSourceType.DIRECT.name(),
+            "DIRECT",
             null,
             null,
             null

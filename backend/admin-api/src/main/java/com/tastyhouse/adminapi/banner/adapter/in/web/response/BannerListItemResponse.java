@@ -39,7 +39,7 @@ public record BannerListItemResponse(
     public static BannerListItemResponse from(BannerManagementListItemResult result) {
         return new BannerListItemResponse(
             result.id(),
-            result.type().name(),
+            result.type(),
             result.title(),
             toFileResponse(result.imageFileId(), result.imageFileName(), result.imageUrl()),
             result.linkUrl(),

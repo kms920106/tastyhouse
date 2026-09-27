@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarian
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.product.port.in.ProductApprovalCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageChangeApproveCommand;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;

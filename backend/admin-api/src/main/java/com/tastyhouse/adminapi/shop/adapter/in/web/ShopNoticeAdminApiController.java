@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopNoticeSearchReque
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagementListItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Notice Admin", description = "점주 공지 검수 관리자 API")
 @RestController

@@ -45,7 +45,7 @@ public record BannerDetailResponse(
     public static BannerDetailResponse from(BannerDetailResult result) {
         return new BannerDetailResponse(
             result.id(),
-            result.type().name(),
+            result.type(),
             result.title(),
             toFileResponse(result.imageFileId(), result.imageFileName(), result.imageUrl()),
             result.linkUrl(),

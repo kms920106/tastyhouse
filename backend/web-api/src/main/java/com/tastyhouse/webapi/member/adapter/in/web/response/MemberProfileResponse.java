@@ -21,7 +21,7 @@ public record MemberProfileResponse(
     public static MemberProfileResponse from(MemberWithProfileImageResult result) {
         return new MemberProfileResponse(
             result.nickname(),
-            result.memberGrade().name(),
+            result.memberGrade(),
             result.statusMessage(),
             result.profileImageUrl()
         );

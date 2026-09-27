@@ -29,7 +29,7 @@ public record ProductFeedbackResponse(
         return new ProductFeedbackResponse(
             result.productId(),
             result.productName(),
-            result.feedbackType().name(),
+            result.feedbackType(),
             result.count(),
             result.contents()
         );

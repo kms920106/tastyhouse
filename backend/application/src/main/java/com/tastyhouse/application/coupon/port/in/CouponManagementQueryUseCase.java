@@ -4,7 +4,7 @@ import com.tastyhouse.application.coupon.port.out.CouponDetailResult;
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface CouponManagementQueryUseCase {

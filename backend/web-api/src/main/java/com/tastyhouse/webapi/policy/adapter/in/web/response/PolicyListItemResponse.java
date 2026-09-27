@@ -32,7 +32,7 @@ public record PolicyListItemResponse(
     public static PolicyListItemResponse from(PolicyListItemResult result) {
         return new PolicyListItemResponse(
             result.id(),
-            result.type().name(),
+            result.type(),
             result.version(),
             result.title(),
             result.current(),

@@ -5,7 +5,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.product.model.ProductHiddenReason;
 import com.tastyhouse.application.product.port.out.ProductExposureViewResult;
 
 @Schema(description = "메뉴 노출기간 설정 현황")
@@ -28,7 +27,6 @@ public record ProductExposureResponse(
     String hiddenReason
 ) {
     public static ProductExposureResponse from(ProductExposureViewResult result) {
-        ProductHiddenReason hiddenReason = result.hiddenReason();
         return new ProductExposureResponse(
             result.startDate(),
             result.endDate(),
@@ -36,7 +34,7 @@ public record ProductExposureResponse(
                 .map(ProductExposureHourResponse::from)
                 .toList(),
             result.exposed(),
-            hiddenReason == null ? null : hiddenReason.name()
+            result.hiddenReason()
         );
     }
 }

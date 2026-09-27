@@ -39,8 +39,8 @@ public record ShopContentBoardListItemResponse(
         return new ShopContentBoardListItemResponse(
             result.id(),
             result.shopId(),
-            result.contentType().name(),
-            result.topic().name(),
+            result.contentType(),
+            result.topic(),
             result.imageUrl(),
             result.youtubeUrl(),
             result.description(),

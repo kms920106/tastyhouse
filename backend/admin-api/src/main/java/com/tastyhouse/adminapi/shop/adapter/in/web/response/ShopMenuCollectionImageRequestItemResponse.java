@@ -36,7 +36,7 @@ public record ShopMenuCollectionImageRequestItemResponse(
             result.shopName(),
             result.imageUrl(),
             result.sort(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

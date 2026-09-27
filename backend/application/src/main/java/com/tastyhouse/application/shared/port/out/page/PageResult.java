@@ -1,4 +1,4 @@
-package com.tastyhouse.domain.shared.page;
+package com.tastyhouse.application.shared.port.out.page;
 
 import java.util.List;
 import java.util.function.Function;

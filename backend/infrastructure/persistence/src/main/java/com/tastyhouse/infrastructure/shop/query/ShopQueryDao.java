@@ -42,12 +42,16 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
+import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shop.model.ClosedDayType;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopAmenityCategoryJpaEntity.shopAmenityCategoryJpaEntity;
@@ -226,8 +230,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopContentBoardResult.class,
                 shopContentBoardJpaEntity.id,
                 shopContentBoardJpaEntity.shopId,
-                shopContentBoardJpaEntity.contentType,
-                shopContentBoardJpaEntity.topic,
+                shopContentBoardJpaEntity.contentType.stringValue(),
+                shopContentBoardJpaEntity.topic.stringValue(),
                 fileUrlResolver.urlOf(contentBoardImageFile.filePath),
                 shopContentBoardJpaEntity.youtubeUrl,
                 shopContentBoardJpaEntity.description,
@@ -252,7 +256,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopHygieneBadgeResult.class,
                 shopHygieneBadgeJpaEntity.id,
                 shopHygieneBadgeJpaEntity.shopId,
-                shopHygieneBadgeJpaEntity.badgeType,
+                shopHygieneBadgeJpaEntity.badgeType.stringValue(),
                 shopHygieneBadgeJpaEntity.certifiedDate,
                 shopHygieneBadgeJpaEntity.lastInspectionMonth
             ))
@@ -304,9 +308,9 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopImageChangeRequestResult.class,
                 shopImageChangeRequestJpaEntity.id,
                 shopImageChangeRequestJpaEntity.shopId,
-                shopImageChangeRequestJpaEntity.imageType,
+                shopImageChangeRequestJpaEntity.imageType.stringValue(),
                 fileUrlResolver.urlOf(imageChangeRequestImageFile.filePath),
-                shopImageChangeRequestJpaEntity.status,
+                shopImageChangeRequestJpaEntity.status.stringValue(),
                 shopImageChangeRequestJpaEntity.rejectReason
             ))
             .from(shopImageChangeRequestJpaEntity)
@@ -327,8 +331,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopSuspensionResult.class,
                 shopSuspensionJpaEntity.id,
                 shopSuspensionJpaEntity.shopId,
-                shopSuspensionJpaEntity.reason,
-                shopSuspensionJpaEntity.orderMethod,
+                shopSuspensionJpaEntity.reason.stringValue(),
+                shopSuspensionJpaEntity.orderMethod.stringValue(),
                 shopSuspensionJpaEntity.startAt,
                 shopSuspensionJpaEntity.endAt,
                 shopSuspensionJpaEntity.releasedAt
@@ -359,7 +363,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopFoodTypeCategoryResult.class,
                 shopFoodTypeCategoryJpaEntity.id,
-                shopFoodTypeCategoryJpaEntity.foodType,
+                shopFoodTypeCategoryJpaEntity.foodType.stringValue(),
                 shopFoodTypeCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath),
                 fileUrlResolver.urlOf(inactiveFile.filePath),
@@ -379,7 +383,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopAmenityCategoryResult.class,
                 shopAmenityCategoryJpaEntity.id,
-                shopAmenityCategoryJpaEntity.amenity,
+                shopAmenityCategoryJpaEntity.amenity.stringValue(),
                 shopAmenityCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath),
                 fileUrlResolver.urlOf(inactiveFile.filePath),
@@ -399,7 +403,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopAmenityCategoryResult.class,
                 shopAmenityCategoryJpaEntity.id,
-                shopAmenityCategoryJpaEntity.amenity,
+                shopAmenityCategoryJpaEntity.amenity.stringValue(),
                 shopAmenityCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath),
                 fileUrlResolver.urlOf(inactiveFile.filePath),
@@ -418,7 +422,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopFoodTypeCategoryResult.class,
                 shopFoodTypeCategoryJpaEntity.id,
-                shopFoodTypeCategoryJpaEntity.foodType,
+                shopFoodTypeCategoryJpaEntity.foodType.stringValue(),
                 shopFoodTypeCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath),
                 fileUrlResolver.urlOf(inactiveFile.filePath),
@@ -438,7 +442,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopAmenityAssignmentResult.class,
                 shopAmenityJpaEntity.id,
                 shopAmenityJpaEntity.shopAmenityCategoryId,
-                shopAmenityCategoryJpaEntity.amenity,
+                shopAmenityCategoryJpaEntity.amenity.stringValue(),
                 shopAmenityCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath)
             ))
@@ -453,7 +457,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
     public List<ShopAmenityWithCategoryResult> findAmenitiesWithCategory(Long shopId) {
         return queryFactory
             .select(Projections.constructor(ShopAmenityWithCategoryResult.class,
-                shopAmenityCategoryJpaEntity.amenity,
+                shopAmenityCategoryJpaEntity.amenity.stringValue(),
                 shopAmenityCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath)
             ))
@@ -470,7 +474,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
             .select(Projections.constructor(ShopFoodTypeAssignmentResult.class,
                 shopFoodTypeJpaEntity.id,
                 shopFoodTypeJpaEntity.shopFoodTypeCategoryId,
-                shopFoodTypeCategoryJpaEntity.foodType,
+                shopFoodTypeCategoryJpaEntity.foodType.stringValue(),
                 shopFoodTypeCategoryJpaEntity.displayName,
                 fileUrlResolver.urlOf(activeFile.filePath)
             ))
@@ -513,7 +517,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopMenuCollectionImageJpaEntity.id,
                 fileUrlResolver.urlOf(menuCollectionImageFile.filePath),
                 shopMenuCollectionImageJpaEntity.sort,
-                shopMenuCollectionImageJpaEntity.status,
+                shopMenuCollectionImageJpaEntity.status.stringValue(),
                 shopMenuCollectionImageJpaEntity.rejectReason
             ))
             .from(shopMenuCollectionImageJpaEntity)
@@ -565,7 +569,7 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
                 shopJpaEntity.name,
                 fileUrlResolver.urlOf(menuCollectionImageFile.filePath),
                 shopMenuCollectionImageJpaEntity.sort,
-                shopMenuCollectionImageJpaEntity.status,
+                shopMenuCollectionImageJpaEntity.status.stringValue(),
                 shopMenuCollectionImageJpaEntity.rejectReason
             ))
             .from(shopMenuCollectionImageJpaEntity)
@@ -627,7 +631,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopOrderMethodResult.class,
                 shopOrderMethodJpaEntity.id,
-                shopOrderMethodJpaEntity.orderMethod
+                shopOrderMethodJpaEntity.orderMethod.stringValue(),
+                EnumLabelProjection.labelOf(shopOrderMethodJpaEntity.orderMethod, OrderMethod::getDisplayName)
             ))
             .from(shopOrderMethodJpaEntity)
             .where(shopOrderMethodJpaEntity.shopId.eq(shopId))
@@ -655,7 +660,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopBusinessHourResult.class,
                 shopBusinessHourJpaEntity.id,
-                shopBusinessHourJpaEntity.dayType,
+                shopBusinessHourJpaEntity.dayType.stringValue(),
+                EnumLabelProjection.labelOf(shopBusinessHourJpaEntity.dayType, DayType::getDescription),
                 shopBusinessHourJpaEntity.openTime,
                 shopBusinessHourJpaEntity.closeTime,
                 shopBusinessHourJpaEntity.isClosed,
@@ -672,7 +678,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopBreakTimeResult.class,
                 shopBreakTimeJpaEntity.id,
-                shopBreakTimeJpaEntity.dayType,
+                shopBreakTimeJpaEntity.dayType.stringValue(),
+                EnumLabelProjection.labelOf(shopBreakTimeJpaEntity.dayType, DayType::getDescription),
                 shopBreakTimeJpaEntity.startTime,
                 shopBreakTimeJpaEntity.endTime
             ))
@@ -687,7 +694,8 @@ public class ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, Shop
         return queryFactory
             .select(Projections.constructor(ShopClosedDayResult.class,
                 shopClosedDayJpaEntity.id,
-                shopClosedDayJpaEntity.closedDayType
+                shopClosedDayJpaEntity.closedDayType.stringValue(),
+                EnumLabelProjection.labelOf(shopClosedDayJpaEntity.closedDayType, ClosedDayType::getDescription)
             ))
             .from(shopClosedDayJpaEntity)
             .where(shopClosedDayJpaEntity.shopId.eq(shopId))

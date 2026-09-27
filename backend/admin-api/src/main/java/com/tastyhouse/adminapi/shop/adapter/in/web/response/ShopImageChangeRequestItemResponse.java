@@ -28,9 +28,9 @@ public record ShopImageChangeRequestItemResponse(
         return new ShopImageChangeRequestItemResponse(
             result.id(),
             result.shopId(),
-            result.imageType().name(),
+            result.imageType(),
             result.imageUrl(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

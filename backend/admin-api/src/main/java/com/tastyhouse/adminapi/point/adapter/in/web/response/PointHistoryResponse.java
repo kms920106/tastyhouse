@@ -22,7 +22,7 @@ public record PointHistoryResponse(
 ) {
     public static PointHistoryResponse from(PointHistoryResult result) {
         return new PointHistoryResponse(
-            result.pointType().name(),
+            result.pointType(),
             result.pointAmount(),
             result.reason(),
             result.createdAt()

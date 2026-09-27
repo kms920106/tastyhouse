@@ -25,7 +25,7 @@ public record MyProfileResponse(
         return new MyProfileResponse(
             result.id(),
             result.nickname(),
-            result.memberGrade().name(),
+            result.memberGrade(),
             result.statusMessage(),
             result.profileImageUrl()
         );

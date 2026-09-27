@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqCategoryResponse;
 import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqDetailResponse;
 import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
 import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteCommand;

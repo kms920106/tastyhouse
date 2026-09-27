@@ -28,12 +28,14 @@ import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.review.persistence.QReviewBlindRequestJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewImageJpaEntity;
 import com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
+import com.tastyhouse.domain.review.model.ReviewBlindReason;
 
 import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -100,12 +102,14 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
                 reviewJpaEntity.content,
                 Expressions.constant(List.<String>of()),
                 Expressions.constant(List.<String>of()),
-                orderJpaEntity.orderMethod,
+                orderJpaEntity.orderMethod.stringValue(),
+                EnumLabelProjection.labelOf(orderJpaEntity.orderMethod, OrderMethod::getDisplayName),
                 reviewJpaEntity.hidden,
                 reviewJpaEntity.ownerOnly,
                 reviewOwnerReplyJpaEntity.content,
                 reviewOwnerReplyJpaEntity.createdAt,
-                latestBlindRequestStatus(),
+                EnumLabelProjection.labelOf(latestBlindRequestStatus(), ReviewBlindStatus::name),
+                EnumLabelProjection.labelOf(latestBlindRequestStatus(), ReviewBlindStatus::getDescription),
                 reviewJpaEntity.createdAt
             ))
             .from(reviewJpaEntity)
@@ -140,7 +144,8 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
                 reviewJpaEntity.content,
                 Expressions.constant(List.<String>of()),
                 Expressions.constant(List.<String>of()),
-                orderJpaEntity.orderMethod,
+                orderJpaEntity.orderMethod.stringValue(),
+                EnumLabelProjection.labelOf(orderJpaEntity.orderMethod, OrderMethod::getDisplayName),
                 reviewJpaEntity.hidden,
                 reviewJpaEntity.ownerOnly,
                 reviewJpaEntity.tasteRating,
@@ -187,9 +192,11 @@ public class ShopReviewManagementQueryDao implements ShopReviewManagementQueryPo
         return queryFactory
             .select(Projections.constructor(ReviewBlindRequestHistoryResult.class,
                 reviewBlindRequestJpaEntity.id,
-                reviewBlindRequestJpaEntity.reason,
+                reviewBlindRequestJpaEntity.reason.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.reason, ReviewBlindReason::getDescription),
                 reviewBlindRequestJpaEntity.detailReason,
-                reviewBlindRequestJpaEntity.status,
+                reviewBlindRequestJpaEntity.status.stringValue(),
+                EnumLabelProjection.labelOf(reviewBlindRequestJpaEntity.status, ReviewBlindStatus::getDescription),
                 reviewBlindRequestJpaEntity.rejectReason,
                 reviewBlindRequestJpaEntity.blindUntil,
                 reviewBlindRequestJpaEntity.createdAt

@@ -54,7 +54,7 @@ public record ShopDeliveryAreaAdjustmentDetailResponse(
             result.franchiseName(),
             result.reason(),
             result.consentFileUrl(),
-            result.status().name(),
+            result.status(),
             result.rejectReason(),
             result.createdAt(),
             result.updatedAt()

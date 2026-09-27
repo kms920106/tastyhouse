@@ -32,8 +32,8 @@ public record ShopBusinessHourResponse(
     public static ShopBusinessHourResponse from(ShopBusinessHourResult result) {
         return new ShopBusinessHourResponse(
             result.id(),
-            result.dayType().name(),
-            result.dayType().getDescription(),
+            result.dayType(),
+            result.dayTypeDescription(),
             result.openTime(),
             result.closeTime(),
             result.closed(),

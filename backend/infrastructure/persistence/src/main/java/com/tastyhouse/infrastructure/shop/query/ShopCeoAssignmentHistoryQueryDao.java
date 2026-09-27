@@ -11,9 +11,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopCeoAssignmentHistoryJpaEntity.shopCeoAssignmentHistoryJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
@@ -53,7 +54,8 @@ public class ShopCeoAssignmentHistoryQueryDao implements ShopCeoAssignmentHistor
                 shopCeoAssignmentHistoryJpaEntity.id,
                 shopCeoAssignmentHistoryJpaEntity.shopId,
                 shopJpaEntity.name,
-                shopCeoAssignmentHistoryJpaEntity.actionType,
+                shopCeoAssignmentHistoryJpaEntity.actionType.stringValue(),
+                EnumLabelProjection.labelOf(shopCeoAssignmentHistoryJpaEntity.actionType, ShopCeoAssignmentActionType::getDescription),
                 shopCeoAssignmentHistoryJpaEntity.createdAt
             ))
             .from(shopCeoAssignmentHistoryJpaEntity)

@@ -43,7 +43,7 @@ public record OrderListItemResponse(
             result.firstProductName(),
             result.totalItemCount(),
             result.amount(),
-            result.paymentStatus().name(),
+            result.paymentStatus(),
             result.paymentDate(),
             result.scheduledAt()
         );

@@ -5,7 +5,6 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;
-import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
 
 @Schema(description = "내 가게 주문가능 상태 응답 — 가게 전체 상태와 배정된 주문유형별 상태를 함께 담는다")
 public record ShopOrderAvailabilityResponse(
@@ -22,11 +21,10 @@ public record ShopOrderAvailabilityResponse(
     List<ShopOrderMethodAvailabilityResponse> orderMethods
 ) {
     public static ShopOrderAvailabilityResponse from(ShopOrderAvailabilityViewResult result) {
-        OrderUnavailableReason reason = result.unavailableReason();
         return new ShopOrderAvailabilityResponse(
             result.orderable(),
-            reason == null ? null : reason.name(),
-            reason == null ? null : reason.getDisplayName(),
+            result.unavailableReason(),
+            result.unavailableReasonDisplayName(),
             result.orderMethods().stream()
                 .map(ShopOrderMethodAvailabilityResponse::from)
                 .toList()

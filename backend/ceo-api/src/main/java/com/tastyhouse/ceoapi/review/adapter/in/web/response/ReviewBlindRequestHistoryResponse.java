@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestHistoryResult;
 
 @Schema(description = "리뷰 게시중단 요청 이력 항목")
@@ -46,15 +44,13 @@ public record ReviewBlindRequestHistoryResponse(
     LocalDateTime createdAt
 ) {
     public static ReviewBlindRequestHistoryResponse from(ReviewBlindRequestHistoryResult result) {
-        ReviewBlindReason reason = result.reason();
-        ReviewBlindStatus status = result.status();
         return new ReviewBlindRequestHistoryResponse(
             result.id(),
-            reason.name(),
-            reason.getDescription(),
+            result.reason(),
+            result.reasonDescription(),
             result.detailReason(),
-            status.name(),
-            status.getDescription(),
+            result.status(),
+            result.statusDescription(),
             result.rejectReason(),
             result.blindUntil(),
             result.createdAt()

@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.request.BugReportStatusUpdateR
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportDetailResponse;
 import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResponse;
 import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;

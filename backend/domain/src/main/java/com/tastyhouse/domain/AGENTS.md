@@ -15,7 +15,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 |---|---|
 | `shared/vo/PhoneNumber.java` | 공유 커널 Value Object. `record`(compact constructor 검증) — `@Embeddable` 어노테이션 없음, 컬럼 매핑은 각 JpaEntity의 `@AttributeOverride`가 소유 |
 | `shared/model/ApprovalStatus.java` | 승인 워크플로 공용 enum(PENDING/APPROVED/REJECTED). 상표·대표이미지 변경요청 등에서 재사용 |
-| `shared/page/PageQuery.java` / `PageResult.java` | 프레임워크-프리 페이징 계약. infrastructure-module의 `<ctx>/query/` DAO가 반환 타입으로 사용 |
+| ~~`shared/page/PageQuery.java` / `PageResult.java`~~ | **이동됨 (덩어리 01)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/page/`로 `git mv`. domain 안에 사용처가 0건이었고, 소비자(persistence DAO 32곳·표현 계층)가 전부 application 쪽이라 domain이 소유할 이유가 없었다. 표현 계층이 domain을 끊는 데 필요한 이동이기도 하다 |
 | `shared/event/DomainEventPublisher.java` | 이벤트 발행 **출력 포트**. 스프링 구현체(`SpringDomainEventPublisher`)는 infrastructure-module 소유 |
 | `shared/exception/OptimisticLockConflictException.java` | 낙관적 락 충돌의 프레임워크-프리 표현. 스프링 `ObjectOptimisticLockingFailureException` → 이 예외 번역은 infrastructure-module의 `RepositoryImpl` 담당 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |

@@ -43,9 +43,9 @@ public record BugReportListItemResponse(
             MemberSummaryResponse.from(result.member()),
             bugReport.device(),
             bugReport.title(),
-            bugReport.status() != null ? bugReport.status().name() : null,
-            bugReport.category() != null ? bugReport.category().name() : null,
-            bugReport.priority() != null ? bugReport.priority().name() : null,
+            bugReport.status(),
+            bugReport.category(),
+            bugReport.priority(),
             bugReport.imageCount(),
             bugReport.createdAt()
         );

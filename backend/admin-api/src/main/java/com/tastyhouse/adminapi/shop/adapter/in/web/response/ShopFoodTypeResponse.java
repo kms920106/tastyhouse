@@ -25,7 +25,7 @@ public record ShopFoodTypeResponse(
         return new ShopFoodTypeResponse(
             result.id(),
             result.foodTypeCategoryId(),
-            result.foodType().name(),
+            result.foodType(),
             result.displayName(),
             result.activeIconUrl()
         );

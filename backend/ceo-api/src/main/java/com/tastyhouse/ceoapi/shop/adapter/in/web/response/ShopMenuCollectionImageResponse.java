@@ -28,7 +28,7 @@ public record ShopMenuCollectionImageResponse(
             result.id(),
             result.imageUrl(),
             result.sort(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

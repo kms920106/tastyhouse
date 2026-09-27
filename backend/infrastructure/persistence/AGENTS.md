@@ -68,7 +68,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
-표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`다.
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 ~~domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`~~ **(덩어리 01로 이동)** `application`의 `com.tastyhouse.application.shared.port.out.page.PageResult`, 페이징 입력은 같은 패키지의 `PageQuery`다.
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
@@ -188,8 +188,8 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 ## Dependencies
 
 ### Internal
-- `domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/page`·`shared/event`·`shared/exception`·`exception` 참조
-- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다
+- `domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/event`·`shared/exception`·`exception` 참조. ~~`shared/page`~~ **(덩어리 01로 이동 — 아래 `application` 줄)**
+- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
@@ -317,6 +317,24 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 - **도입 시점에는 검사할 대상이 0건이었다.** `urlOf`는 02 덩어리(URL 투영 롤아웃)에서 도입됐고, 롤아웃 완료 후 `Projections.constructor` 최상위 인자의 `urlOf` 전부(70여 곳)가 이 단정의 대상이다.
 - **패턴은 두 가지를 고정한다 — 인자 전체가 호출식일 것, 수신자 이름이 `fileUrlResolver`일 것.** `ExpressionUtils.as(fileUrlResolver.urlOf(...), "a")`처럼 감싸이거나 `this.fileUrlResolver`·다른 필드명으로 호출하면 단정과 언랩을 모두 빠져나간다. 반대로 `urlOf(x.filePath).as("y")`는 탐욕적 `(.+)`가 `).as("y"`까지 삼켜 **요란한 오탐**이 난다. 그래서 DAO는 `urlOf(...)`를 `Projections.constructor`의 최상위 인자로 그대로 두고, 필드명은 `fileUrlResolver`로 통일한다.
 - 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(...)`는 투영식 인자가 아니라 fetch 뒤 **값**(Tuple·스칼라·Map 룩업으로 얻은 경로)에만 쓰이므로 이 검사와 만나지 않는다.
+
+### enum 필드는 문자열로 투영한다 — `.stringValue()`와 `EnumLabelProjection` (덩어리 01)
+
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`의 `Projections.constructor(...)` 인자 중 enum 컬럼 · `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/query/EnumLabelProjection.java` → `labelOf(Expression<E>, Function<E, String>)`·`map(Tuple)` · `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java` → `trailingPropertyName`
+
+표현 계층이 domain을 끊으면서(덩어리 01) 읽기 계약 `*Result`의 도메인 enum 필드가 `String`이 됐다. 강등은 **Result를 채우는 이 모듈의 투영식**이 한다.
+
+| 항목 | before | after |
+|---|---|---|
+| enum 컬럼 투영 | `x.status` (Result 필드가 도메인 enum) | `x.status.stringValue()` (Result 필드가 `String`) |
+| 값 | enum 상수 | 상수명 — 엔티티 enum이 전부 `EnumType.STRING`이라 DB 값 = `name()` |
+| 표시 문구 | api 모듈 Response가 `getDescription()`/`getDisplayName()` 호출 | Result에 `{field}Description`/`{field}DisplayName` 컴포넌트를 그 필드 **바로 뒤에** 두고 `EnumLabelProjection.labelOf(x.status, Status::getDescription)`로 채움 |
+| record 컴포넌트 순서 | — | 기존 컴포넌트의 정규 순서는 불변(라벨 컴포넌트만 끼워 넣음) |
+
+- **`EnumLabelProjection`은 `FileUrlProjection`과 같은 `MappingProjection`이다** — SQL에서 enum 값을 읽고 Java에서 라벨 함수를 적용한다. `null`이면 `null`을 돌려준다(null-safe). 위 "투영 생성자는 미사용으로 보여도 삭제하지 않는다"와 같은 이유로 `map(Tuple)`은 정적 호출부가 0개여도 지우지 않는다.
+- **상관 서브쿼리 식에는 `.stringValue()`를 쓰지 않는다** — `ShopReviewManagementQueryDao`의 `latestBlindRequestStatus()`처럼 서브쿼리가 enum 식을 돌려주는 경우, SQL 캐스트 대신 `labelOf(..., ReviewBlindStatus::name)`으로 **Java 쪽에서 상수명을 꺼낸다.** 라벨 함수 자리에 `Enum::name`을 넣는 형태가 이 경우의 표준이다.
+- **Java에서 Result를 조립하는 경로**(DAO 투영이 아닌 QueryService)는 그 서비스가 `.name()`·`getDescription()`으로 채운다 — 이 모듈의 규칙이 아니라 `application/AGENTS.md` 소관이다.
+- **`ProjectionConstructorMatchingTest#trailingPropertyName`은 꼬리 `.stringValue()`를 벗겨 낸다**(상수 `STRING_VALUE_SUFFIX`). before: `x.status.stringValue()`는 dotted path 패턴에 맞지 않아 `null`(이름 추출 불가)로 처리돼 **순서 검출이 그 인자에서 조용히 건너뛰어졌다.** after: `status`라는 이름으로 판정해 인접 슬롯 뒤바뀜을 계속 잡는다. **`labelOf(...)` 래퍼는 언랩하지 않는다** — 그 인자는 이름 판정에서 빠지므로(`null`), 라벨 컴포넌트의 위치는 "필드 바로 뒤" 규칙과 리뷰로 지킨다.
 
 ### `ShopQueryDao` 파일 별칭 4종 — 공용 별칭 재사용 금지
 

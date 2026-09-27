@@ -58,7 +58,7 @@ public record CouponDetailResponse(
             result.id(),
             result.name(),
             result.description(),
-            result.discountType().name(),
+            result.discountType(),
             result.discountAmount(),
             result.maxDiscountAmount(),
             result.minOrderAmount(),

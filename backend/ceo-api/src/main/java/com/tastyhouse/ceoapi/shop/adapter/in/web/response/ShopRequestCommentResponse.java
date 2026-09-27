@@ -27,8 +27,8 @@ public record ShopRequestCommentResponse(
     public static ShopRequestCommentResponse from(ShopRequestCommentResult result) {
         return new ShopRequestCommentResponse(
             result.commentId(),
-            result.authorType().name(),
-            result.authorType().getDescription(),
+            result.authorType(),
+            result.authorTypeDescription(),
             result.content(),
             result.createdAt()
         );

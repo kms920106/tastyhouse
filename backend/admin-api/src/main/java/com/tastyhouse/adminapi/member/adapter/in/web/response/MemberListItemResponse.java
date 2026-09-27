@@ -45,9 +45,9 @@ public record MemberListItemResponse(
             result.nickname(),
             result.fullName(),
             result.phoneNumber(),
-            result.gender().name(),
-            result.memberGrade().name(),
-            result.memberStatus().name(),
+            result.gender(),
+            result.memberGrade(),
+            result.memberStatus(),
             result.profileImageUrl(),
             result.createdAt()
         );

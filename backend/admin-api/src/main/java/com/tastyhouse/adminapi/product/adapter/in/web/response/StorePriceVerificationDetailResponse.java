@@ -52,7 +52,7 @@ public record StorePriceVerificationDetailResponse(
             result.id(),
             result.shopId(),
             result.shopName(),
-            result.status().name(),
+            result.status(),
             result.priceListFileUrl(),
             result.rejectReason(),
             result.requestedAt(),

@@ -24,7 +24,7 @@ public record ReferralMemberListItemResponse(
         return new ReferralMemberListItemResponse(
             result.id(),
             result.refereeId(),
-            result.status().name(),
+            result.status(),
             result.createdAt()
         );
     }

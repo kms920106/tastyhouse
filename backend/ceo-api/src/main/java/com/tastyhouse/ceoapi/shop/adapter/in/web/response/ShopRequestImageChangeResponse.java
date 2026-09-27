@@ -18,8 +18,8 @@ public record ShopRequestImageChangeResponse(
 ) {
     public static ShopRequestImageChangeResponse from(ShopRequestImageChangeDetailResult result) {
         return new ShopRequestImageChangeResponse(
-            result.imageType().name(),
-            result.imageType().getDescription(),
+            result.imageType(),
+            result.imageTypeDescription(),
             result.imageUrl()
         );
     }

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface ReviewBlindRequestQueryUseCase {

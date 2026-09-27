@@ -23,7 +23,7 @@ import com.tastyhouse.adminapi.order.adapter.in.web.request.OrderStatusUpdateReq
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderDetailResponse;
 import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemResponse;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.order.port.in.OrderManagementCommandUseCase;
 import com.tastyhouse.application.order.port.in.OrderDeleteCommand;
 import com.tastyhouse.application.order.port.in.OrderStatusChangeCommand;

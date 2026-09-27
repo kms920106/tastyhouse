@@ -63,7 +63,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 - `infrastructure:admdongkor` (**runtimeOnly**) — 행정동 경계 클라이언트 `external.admdongkor.AdminDongBoundaryClient`. 설정은 `application-admdongkor.yml`
 - 위 두 모듈은 2026-09-26에 옛 `infrastructure:crawling` 한 모듈을 나눈 것이다(근거는 `../infrastructure/admdongkor/AGENTS.md`). **소스 참조는 `application`으로 옮겨갔고**, 두 모듈은 빈 스캔·설정 때문에 유지한다
 - `logging-module` (**runtimeOnly**) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다. `runtimeOnly`에 걸린 `exclude`도 동일하게 적용된다(Gradle의 `exclude`는 의존 스코프와 무관하게 동작)
-- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. web/admin/ceo와 달리 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). 도메인 타입이 다시 필요해지면 여기에 직접 선언한다
+- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. ~~web/admin/ceo와 달리~~ 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). ~~도메인 타입이 다시 필요해지면 여기에 직접 선언한다~~ **(갱신 — 표현 계층 domain 절단 덩어리 01)** 이제 web/admin/ceo도 같은 상태다(`api-common-module`이 `api project(':application')`으로 바뀌어 전이 경로가 사라졌다). 도메인 타입이 필요해 보이면 선언하지 말고 그 판단을 application으로 옮긴다 — presentation 전체가 domain을 컴파일 클래스패스에 두지 않는 것이 현재 규칙이다
 - `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03)
 
 ### External

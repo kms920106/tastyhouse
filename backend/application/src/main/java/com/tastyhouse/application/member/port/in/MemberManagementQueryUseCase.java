@@ -3,7 +3,7 @@ package com.tastyhouse.application.member.port.in;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.member.port.out.MemberManagementDetailWithProfileImageResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface MemberManagementQueryUseCase {

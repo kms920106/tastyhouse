@@ -34,7 +34,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDe
 import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.review.port.in.ReviewManagementQueryUseCase;
 
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")

@@ -18,8 +18,8 @@ import org.springframework.util.StringUtils;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
 import static com.tastyhouse.infrastructure.bug.persistence.QBugReportImageJpaEntity.bugReportImageJpaEntity;
@@ -57,9 +57,9 @@ public class BugReportQueryDao implements BugReportQueryPort {
                 bugReportJpaEntity.memberId,
                 bugReportJpaEntity.device,
                 bugReportJpaEntity.title,
-                bugReportJpaEntity.status,
-                bugReportJpaEntity.category,
-                bugReportJpaEntity.priority,
+                bugReportJpaEntity.status.stringValue(),
+                bugReportJpaEntity.category.stringValue(),
+                bugReportJpaEntity.priority.stringValue(),
                 JPAExpressions
                     .select(bugReportImageJpaEntity.count())
                     .from(bugReportImageJpaEntity)
@@ -166,18 +166,22 @@ public class BugReportQueryDao implements BugReportQueryPort {
             projection.device(),
             projection.title(),
             projection.content(),
-            projection.status(),
-            projection.category(),
-            projection.priority(),
+            nameOf(projection.status()),
+            nameOf(projection.category()),
+            nameOf(projection.priority()),
             projection.assigneeAdminId(),
             projection.adminAnswer(),
             projection.resolvedAt(),
             projection.appVersion(),
-            projection.platform(),
+            nameOf(projection.platform()),
             projection.osVersion(),
             images,
             projection.createdAt(),
             projection.updatedAt()
         );
+    }
+
+    private static String nameOf(Enum<?> value) {
+        return value != null ? value.name() : null;
     }
 }

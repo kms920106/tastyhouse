@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 public interface OrderQueryPort {
 

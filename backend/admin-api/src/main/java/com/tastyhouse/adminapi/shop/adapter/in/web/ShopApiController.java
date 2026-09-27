@@ -138,7 +138,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
 import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Admin", description = "가게 관리자 API")
 @RestController

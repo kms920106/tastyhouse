@@ -2,14 +2,13 @@ package com.tastyhouse.application.review.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.review.model.ReviewBlindReason;
-import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-
 public record ReviewBlindRequestHistoryResult(
     Long id,
-    ReviewBlindReason reason,
+    String reason,
+    String reasonDescription,
     String detailReason,
-    ReviewBlindStatus status,
+    String status,
+    String statusDescription,
     String rejectReason,
     LocalDateTime blindUntil,
     LocalDateTime createdAt

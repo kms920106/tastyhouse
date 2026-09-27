@@ -16,7 +16,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoShopAccessHistorySearchRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryListItemResponse;
 import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryQueryUseCase;

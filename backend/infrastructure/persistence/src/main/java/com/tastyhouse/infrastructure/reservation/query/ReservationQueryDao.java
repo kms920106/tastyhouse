@@ -140,7 +140,7 @@ public class ReservationQueryDao implements ReservationQueryPort {
             reservationJpaEntity.reservationDate,
             reservationJpaEntity.reservationTime,
             reservationJpaEntity.partySize,
-            reservationJpaEntity.status,
+            reservationJpaEntity.status.stringValue(),
             reservationJpaEntity.request,
             reservationJpaEntity.createdAt
         );

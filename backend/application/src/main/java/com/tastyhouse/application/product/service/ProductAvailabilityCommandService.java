@@ -206,7 +206,8 @@ public class ProductAvailabilityCommandService implements ProductSoldOutOwnerUse
                 .map(failure -> new ProductAvailabilityChangeView.Failure(
                     failure.id(),
                     failure.name(),
-                    failure.errorCode()
+                    failure.errorCode().getCode(),
+                    failure.errorCode().getDefaultMessage()
                 ))
                 .toList()
         );

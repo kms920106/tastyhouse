@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopMenuCollectionIma
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionImageRequestItemResponse;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Tag(name = "Shop Menu Collection Image Admin", description = "메뉴모음컷 검수 관리자 API")
 @RestController

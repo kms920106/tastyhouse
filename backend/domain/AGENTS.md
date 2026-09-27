@@ -49,7 +49,7 @@
 - Repository write 포트: `<ctx>/repository/XxxRepository`(인터페이스) ← `infrastructure:persistence`의 `<ctx>/persistence/XxxRepositoryImpl`(구현). 저장 시맨틱은 load-copy-save(id null이면 insert, 있으면 managed 엔티티 조회 후 `Mapper.applyChanges` 복사 — detached merge 금지).
 - ID 강타입: `<ctx>/vo/XxxId`(`record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of`). JPA 매핑용 `AttributeConverter`는 `infrastructure:persistence`에 있다.
 - DomainEvent는 `<ctx>/event/`에 record로 정의하고, 발행은 `DomainEventPublisher` 포트를 통한다. 리스너는 `application`의 `<ctx>/listener/`에 `@Component @SharedApp`으로 둔다(4앱 전부가 스캔한다 — 특정 앱에만 두면 다른 앱이 트리거할 때 누락된다. 과거 위치 `infrastructure:persistence`는 번복됨, 근거는 `application/AGENTS.md`).
-- 공유 커널: `shared/vo/PhoneNumber`, `shared/model/ApprovalStatus`, `shared/page/PageQuery`·`PageResult`, `shared/event/DomainEventPublisher`, `shared/exception/OptimisticLockConflictException`.
+- 공유 커널: `shared/vo/PhoneNumber`, `shared/model/ApprovalStatus`, `shared/event/DomainEventPublisher`, `shared/exception/OptimisticLockConflictException`. (페이징 계약 `shared/page/PageQuery`·`PageResult`는 **덩어리 01로 `application`의 `shared/port/out/page/`로 이동** — domain 내 사용처 0건)
 
 ## Dependencies
 

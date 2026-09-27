@@ -11,10 +11,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
+import com.tastyhouse.infrastructure.shared.query.EnumLabelProjection;
+import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopChangeHistoryJpaEntity.shopChangeHistoryJpaEntity;
 
@@ -51,9 +53,12 @@ public class ShopChangeHistoryQueryDao implements ShopChangeHistoryQueryPort {
         List<ShopChangeHistoryResult> content = queryFactory
             .select(Projections.constructor(ShopChangeHistoryResult.class,
                 shopChangeHistoryJpaEntity.id,
-                shopChangeHistoryJpaEntity.category,
-                shopChangeHistoryJpaEntity.changeType,
-                shopChangeHistoryJpaEntity.actionType,
+                shopChangeHistoryJpaEntity.category.stringValue(),
+                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.category, ShopChangeCategory::getDescription),
+                shopChangeHistoryJpaEntity.changeType.stringValue(),
+                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.changeType, ShopChangeType::getDescription),
+                shopChangeHistoryJpaEntity.actionType.stringValue(),
+                EnumLabelProjection.labelOf(shopChangeHistoryJpaEntity.actionType, ShopChangeActionType::getDescription),
                 shopChangeHistoryJpaEntity.previousValue,
                 shopChangeHistoryJpaEntity.newValue,
                 shopChangeHistoryJpaEntity.createdAt

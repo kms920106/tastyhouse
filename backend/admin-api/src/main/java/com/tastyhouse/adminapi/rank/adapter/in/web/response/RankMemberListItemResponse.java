@@ -31,7 +31,7 @@ public record RankMemberListItemResponse(
             result.profileImageUrl(),
             result.reviewCount(),
             result.rankNo(),
-            result.grade().name()
+            result.grade()
         );
     }
 }

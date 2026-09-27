@@ -4,7 +4,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.application.product.port.out.ProductVegetarianStatusResult;
 
 @Schema(description = "메뉴 채식 설정 현황")
@@ -21,9 +20,8 @@ public record ProductVegetarianStatusResponse(
     boolean changeable
 ) {
     public static ProductVegetarianStatusResponse from(ProductVegetarianStatusResult result) {
-        VegetarianType vegetarianType = result.vegetarianType();
         return new ProductVegetarianStatusResponse(
-            vegetarianType == null ? null : vegetarianType.name(),
+            result.vegetarianType(),
             result.requests().stream().map(ProductVegetarianRequestResponse::from).toList(),
             result.changeable()
         );

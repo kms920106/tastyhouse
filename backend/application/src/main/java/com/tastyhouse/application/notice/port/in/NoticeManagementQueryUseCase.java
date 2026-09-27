@@ -3,7 +3,7 @@ package com.tastyhouse.application.notice.port.in;
 import com.tastyhouse.application.notice.port.out.NoticeDetailResult;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface NoticeManagementQueryUseCase {

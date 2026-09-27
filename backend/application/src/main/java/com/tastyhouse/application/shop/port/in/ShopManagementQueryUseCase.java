@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagement
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
 import com.tastyhouse.application.shop.port.out.TagResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface ShopManagementQueryUseCase {

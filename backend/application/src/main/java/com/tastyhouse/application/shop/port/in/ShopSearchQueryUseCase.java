@@ -3,7 +3,7 @@ package com.tastyhouse.application.shop.port.in;
 import com.tastyhouse.application.shared.marker.WebApp;
 import java.util.List;
 
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;

@@ -4,13 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.shared.model.OrderMethod;
 
 public record OrderDetailResult(
     Long id,
     Long memberId,
     String orderNumber,
-    OrderMethod orderMethod,
+    String orderMethod,
     OrderStatus orderStatus,
     String shopName,
     String shopPhoneNumber,
@@ -40,7 +39,7 @@ public record OrderDetailResult(
         Long id,
         Long memberId,
         String orderNumber,
-        OrderMethod orderMethod,
+        String orderMethod,
         OrderStatus orderStatus,
         String shopName,
         String shopPhoneNumber,

@@ -10,8 +10,8 @@ import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
@@ -41,8 +41,11 @@ public class EventManagementQueryService implements EventManagementQueryUseCase 
 
     @Override
     public EventManagementDetailResult getEvent(Long id) {
-        return eventManagementQueryPort.findEventDetailById(EventId.of(id))
+        EventManagementDetailResult detail = eventManagementQueryPort.findEventDetailById(EventId.of(id))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+        requireResolvedFileUrl(detail.thumbnailImageFileId(), detail.thumbnailUrl());
+        requireResolvedFileUrl(detail.bannerImageFileId(), detail.bannerUrl());
+        return detail;
     }
 
     @Override
@@ -54,5 +57,11 @@ public class EventManagementQueryService implements EventManagementQueryUseCase 
     @Override
     public List<EventWinnerResult> getWinners(Long id) {
         return eventManagementQueryPort.findWinnersByEventId(EventId.of(id));
+    }
+
+    private void requireResolvedFileUrl(Long fileId, String fileUrl) {
+        if (fileId != null && fileUrl == null) {
+            throw new ResourceNotFoundException(ErrorCode.FILE_NOT_FOUND);
+        }
     }
 }

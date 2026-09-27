@@ -35,7 +35,7 @@ public record ProductImageChangeRequestItemResponse(
             result.shopId(),
             result.productName(),
             result.imageUrl(),
-            result.status().name(),
+            result.status(),
             result.rejectReason()
         );
     }

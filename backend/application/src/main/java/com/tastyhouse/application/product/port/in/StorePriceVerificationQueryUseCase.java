@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface StorePriceVerificationQueryUseCase {

@@ -2,7 +2,7 @@ package com.tastyhouse.ceoapi.shop.adapter.in.web.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import com.tastyhouse.domain.shop.model.ShopRequestStatus;
+import com.tastyhouse.application.shared.port.out.CodeLabelResult;
 
 @Schema(description = "요청 상태 카탈로그 항목")
 public record ShopRequestStatusResponse(
@@ -13,10 +13,10 @@ public record ShopRequestStatusResponse(
     @Schema(description = "상태 한글 라벨", example = "대기중")
     String description
 ) {
-    public static ShopRequestStatusResponse from(ShopRequestStatus result) {
+    public static ShopRequestStatusResponse from(CodeLabelResult result) {
         return new ShopRequestStatusResponse(
-            result.name(),
-            result.getDescription()
+            result.code(),
+            result.label()
         );
     }
 }

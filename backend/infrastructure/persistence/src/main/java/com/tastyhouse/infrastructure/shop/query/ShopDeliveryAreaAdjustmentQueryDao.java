@@ -13,8 +13,8 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
@@ -78,7 +78,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
                 shopDeliveryAreaAdjustmentRequestJpaEntity.franchiseName,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.reason,
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
-                shopDeliveryAreaAdjustmentRequestJpaEntity.status,
+                shopDeliveryAreaAdjustmentRequestJpaEntity.status.stringValue(),
                 shopDeliveryAreaAdjustmentRequestJpaEntity.rejectReason,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.createdAt,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.updatedAt
@@ -103,7 +103,7 @@ public class ShopDeliveryAreaAdjustmentQueryDao implements ShopDeliveryAreaAdjus
                 shopDeliveryAreaAdjustmentRequestJpaEntity.franchiseName,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.reason,
                 fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
-                shopDeliveryAreaAdjustmentRequestJpaEntity.status,
+                shopDeliveryAreaAdjustmentRequestJpaEntity.status.stringValue(),
                 shopDeliveryAreaAdjustmentRequestJpaEntity.rejectReason,
                 shopDeliveryAreaAdjustmentRequestJpaEntity.createdAt
             ))

@@ -54,7 +54,7 @@ public class PointQueryService implements PointQueryUseCase {
     }
 
     private PointHistoryItemViewResult toPointHistoryItemViewResult(PointHistoryResult history) {
-        String pointType = history.pointType().name();
+        String pointType = history.pointType();
         Integer pointAmount = "USE".equals(pointType) ? -history.pointAmount() : history.pointAmount();
         return new PointHistoryItemViewResult(
             history.reason(),

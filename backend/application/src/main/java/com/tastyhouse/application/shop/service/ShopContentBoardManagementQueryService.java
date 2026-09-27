@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shop.model.ShopContentType;
-import com.tastyhouse.domain.shared.page.PageQuery;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;

@@ -18,8 +18,8 @@ public record ShopRequestTypeResponse(
 ) {
     public static ShopRequestTypeResponse from(ShopRequestTypeView view) {
         return new ShopRequestTypeResponse(
-            view.requestType().name(),
-            view.requestType().getDescription(),
+            view.requestType(),
+            view.requestTypeDescription(),
             view.contractAmending()
         );
     }

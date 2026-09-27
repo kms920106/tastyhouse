@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerUpdateRequest
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
 import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResponse;
 import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;

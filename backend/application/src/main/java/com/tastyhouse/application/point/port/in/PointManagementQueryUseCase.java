@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.tastyhouse.application.point.port.out.PointBalanceResult;
 import com.tastyhouse.application.point.port.out.PointHistoryResult;
-import com.tastyhouse.domain.shared.page.PageResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @AdminApp
 public interface PointManagementQueryUseCase {

@@ -1,8 +1,14 @@
 package com.tastyhouse.application.architecture;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -10,21 +16,37 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shared.marker.BatchApp;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shared.marker.SharedApp;
+import com.tastyhouse.application.shared.marker.WebApp;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class LayerRulesTest {
 
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.application");
+
+    private static final String CONFIGURATION = "org.springframework.context.annotation.Configuration";
+
+    private static final String BEAN = "org.springframework.context.annotation.Bean";
+
+    private static final String COMPONENT = "org.springframework.stereotype.Component";
+
+    private static final String SERVICE = "org.springframework.stereotype.Service";
+
+    private static final List<Class<? extends Annotation>> APP_MARKERS =
+        List.of(WebApp.class, AdminApp.class, CeoApp.class, BatchApp.class, SharedApp.class);
 
     private static final DescribedPredicate<JavaClass> DECLARE_TRANSACTIONAL_EVENT_LISTENER =
         new DescribedPredicate<>("@TransactionalEventListener 메서드를 가진 클래스") {
@@ -90,11 +112,10 @@ class LayerRulesTest {
                     "com.tastyhouse.infrastructure..",
                     "org.springframework.web.."
                 ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
-                 .and(not(resideInAPackage("com.tastyhouse.domain.shared.page..")))
                  .and(not(resideInAPackage("org.springframework.web.multipart..")))
             )
             .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다"
-                + "(에러 계약·페이징 계약은 횡단 관심사라 예외)");
+                + "(에러 계약은 횡단 관심사라 예외)");
 
         rule.check(classes);
     }
@@ -215,13 +236,58 @@ class LayerRulesTest {
 
     @Test
     void sharedAppOnlyOnListeners() {
+        DescribedPredicate<JavaClass> sharedListener = resideInAPackage("..listener..")
+            .and(DECLARE_TRANSACTIONAL_EVENT_LISTENER);
+        DescribedPredicate<JavaClass> sharedConfiguration = resideInAPackage("..config..")
+            .and(annotatedWith(CONFIGURATION));
+
         ArchRule rule = classes()
             .that().areAnnotatedWith(SharedApp.class)
-            .should().resideInAPackage("..listener..")
-            .andShould(ArchCondition.from(DECLARE_TRANSACTIONAL_EVENT_LISTENER))
-            .because("@SharedApp은 리스너 전용이다 — 일반 빈에 붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
+            .should(ArchCondition.from(sharedListener.or(sharedConfiguration)
+                .as("..listener..의 @TransactionalEventListener 클래스이거나 ..config..의 @Configuration 클래스")))
+            .because("@SharedApp은 리스너와 설정 클래스 전용이다 — 일반 빈에 붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
 
         rule.check(classes);
+    }
+
+    @Test
+    void sharedConfigsShouldOnlyDeclareUnmarkedBeans() {
+        List<String> violations = new ArrayList<>();
+        for (JavaClass configuration : classes) {
+            if (!configuration.isAnnotatedWith(SharedApp.class)
+                || !configuration.isAnnotatedWith(CONFIGURATION)) {
+                continue;
+            }
+            if (configuration.isAnnotatedWith(COMPONENT) || configuration.isAnnotatedWith(SERVICE)) {
+                violations.add(configuration.getName() + ": @SharedApp 설정 클래스가 @Component/@Service를 겸한다");
+            }
+            for (JavaMethod method : configuration.getMethods()) {
+                if (!method.isAnnotatedWith(BEAN)) {
+                    continue;
+                }
+                JavaClass beanType = method.getRawReturnType();
+                if (hasAppMarker(beanType)) {
+                    violations.add(configuration.getName() + "#" + method.getName()
+                        + ": @Bean 반환 타입 " + beanType.getName() + "에 앱 마커가 있다");
+                }
+            }
+            for (JavaConstructorCall call : configuration.getConstructorCallsFromSelf()) {
+                JavaClass target = call.getTargetOwner();
+                if (!target.equals(configuration) && hasAppMarker(target)) {
+                    violations.add(configuration.getName() + ": 앱 마커가 있는 "
+                        + target.getName() + "를 직접 생성한다");
+                }
+            }
+        }
+
+        assertThat(violations)
+            .as("@SharedApp 설정 클래스는 마커 없는 POJO만 @Bean으로 등록한다 — 마커가 붙은 클래스를 "
+                + "생성하면 스캔과 @Bean이 겹치거나 앱 격리를 우회한다(인터페이스로 반환해도 생성 호출로 잡는다)")
+            .isEmpty();
+    }
+
+    private static boolean hasAppMarker(JavaClass javaClass) {
+        return APP_MARKERS.stream().anyMatch(javaClass::isAnnotatedWith);
     }
 
     @Test

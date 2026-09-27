@@ -1,5 +1,6 @@
 package com.tastyhouse.webapi.exception;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -17,8 +18,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.error.ErrorContracts;
+import com.tastyhouse.application.shared.error.ErrorDescriptor;
+import com.tastyhouse.application.shared.error.ErrorResponses;
 import com.tastyhouse.apicommon.exception.ProblemDetails;
 import com.tastyhouse.apicommon.ratelimit.RateLimitException;
 
@@ -26,19 +28,13 @@ import com.tastyhouse.apicommon.ratelimit.RateLimitException;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(BusinessException.class)
-    public ProblemDetail handleBusinessException(BusinessException e) {
-        log.warn("BusinessException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
-        return problemDetail(e.getErrorCode().getHttpStatusCode(), e.getErrorCode().getCode(), e.getMessage());
-    }
-
     @ExceptionHandler(RateLimitException.class)
     public ProblemDetail handleRateLimitException(RateLimitException e) {
         log.warn("RateLimitException: {}", e.getMessage());
         return problemDetail(
             HttpStatus.TOO_MANY_REQUESTS.value(),
-            ErrorCode.RATE_LIMIT_EXCEEDED.getCode(),
-            ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()
+            ErrorContracts.rateLimit().code(),
+            ErrorContracts.rateLimit().message()
         );
     }
 
@@ -98,6 +94,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleException(Exception e) {
+        Optional<ErrorDescriptor> resolved = ErrorResponses.resolve(e);
+        if (resolved.isPresent()) {
+            ErrorDescriptor descriptor = resolved.get();
+            log.warn("BusinessException [{}]: {}", descriptor.code(), descriptor.message());
+            return problemDetail(descriptor.status(), descriptor.code(), descriptor.message());
+        }
         log.error("Unexpected error occurred", e);
         return problemDetail(HttpStatus.INTERNAL_SERVER_ERROR.value(), null, "서버 오류가 발생했습니다.");
     }

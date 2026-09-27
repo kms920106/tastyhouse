@@ -25,7 +25,7 @@ public class CeoQueryDao implements CeoQueryPort {
                 ceoJpaEntity.id,
                 ceoJpaEntity.name,
                 ceoJpaEntity.businessRegistrationNumber,
-                ceoJpaEntity.status
+                ceoJpaEntity.status.stringValue()
             ))
             .from(ceoJpaEntity)
             .orderBy(ceoJpaEntity.name.asc())

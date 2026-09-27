@@ -2,11 +2,9 @@ package com.tastyhouse.application.banner.port.out;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.banner.model.BannerType;
-
 public record BannerManagementListItemResult(
     Long id,
-    BannerType type,
+    String type,
     String title,
     Long imageFileId,
     String imageFileName,
