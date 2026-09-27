@@ -901,140 +901,185 @@ reference: `backend/AGENTS.md`의 `ext['netty.version']`·`ext['jackson-bom.vers
 
 ## 코딩 스타일 (import 순서)
 
-Spring Framework가 자기 코드베이스에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 동일한 규칙을 따릅니다. 모든 Java 파일의 import는 아래 4개 그룹 순서로 배치합니다. **그룹 사이에는 빈 줄 1개**, 그룹 내부는 **알파벳(ASCII) 오름차순** 정렬, 그룹 내부에는 빈 줄을 넣지 않습니다.
+import는 **5개 그룹**으로 나눕니다. 앞의 4개는 Spring Framework가 자기 코드에 강제하는 공식 컨벤션(`spring-javaformat`의 `SpringImportOrderCheck`)과 같고, 5번째 자사 그룹의 **내부 순서**만 이 프로젝트가 클린 아키텍처 기준으로 정한 커스텀 규칙입니다.
 
-1. 자바 표준 라이브러리 — `java.*`
-2. `javax.*` (예: `javax.crypto.*`)
-3. 그 외 전부 (자사 제외 — `jakarta.*` 포함) — `com.querydsl.*`, `io.swagger.*`, `jakarta.persistence.*`, `jakarta.validation.*`, `org.slf4j.*`, `org.springframework.*`, `software.amazon.*` 등을 **한 그룹으로 알파벳 혼합 정렬**
-4. 자사 코드 (projectRootPackage) — `com.tastyhouse.*`
-5. static import — 그룹 구분 없이 맨 아래 한 블록 (QueryDSL Q타입, `assertThat` 등), 내부는 알파벳 순
-
-```java
-package com.tastyhouse.infrastructure.order.query;
-
-import java.util.List;
-
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-
-import static com.tastyhouse.infrastructure.order.persistence.QOrderProductJpaEntity.orderProductJpaEntity;
-```
-
-위 예시처럼 `jakarta`는 별도 그룹이 아니라 `com.querydsl` → `io.swagger` → `jakarta` → `org.slf4j` → `org.springframework` 순으로 서드파티 그룹 안에서 알파벳 정렬됩니다.
-
-**자사 코드(`com.tastyhouse.*`)만 맨 뒤로 분리하는 이유**: DDD 레이어드 아키텍처에서 "내 도메인 코드"와 "외부 프레임워크 의존"을 한눈에 구분하기 위함입니다. 특히 `domain`은 프레임워크 의존 자체가 금지되어 있고(production 의존 0개), api 모듈은 QueryDSL·infra `..persistence..` 의존이 금지되어 있으므로, import 그룹 분리가 레이어 위반을 리뷰 시점에 즉시 드러내는 역할을 합니다.
-
-### 자사 코드 그룹 내부 계층 정렬 (헥사고날 안→밖: domain이 위)
-
-**이 규칙은 공식 표준이 아니라 프로젝트 커스텀 컨벤션입니다.** Spring `spring-javaformat`(`SpringImportOrderCheck`), Google Java Style, Checkstyle `ImportOrder` 등 어떤 공식 컨벤션도 "자사 패키지 그룹 **내부**를 계층 순으로 정렬"하지 않습니다(공식은 그룹 내부 순수 알파벳순). 이 프로젝트는 헥사고날/클린 아키텍처의 **"의존성은 항상 안쪽(domain)을 향한다"는 안정 의존성 원칙**을 근거로, 위 그룹4(`com.tastyhouse.*`) 내부의 정렬 순서를 **`(계층 순위, 알파벳)` 복합 키**로 세분합니다. 가장 안정적·핵심인 domain을 맨 위에, 가장 바깥·휘발적인 presentation을 맨 아래에 둡니다.
-
-| 계층 순위 | 계층 | 매칭 패키지 세그먼트 |
+| 그룹 | 대상 | 비고 |
 |---|---|---|
-| 1 | **domain** (가장 안쪽·핵심) | `com.tastyhouse.domain.<ctx>.model` / `.vo` / `.event` / `.repository`(write 포트) / `.service`(순수 POJO 도메인 서비스) / `.port`(출력 포트) |
-| 2 | **application** | `com.tastyhouse.application.*`(챕터 03으로 평탄화 — 인바운드 포트 `<ctx>.port.in`·CQRS 서비스 `<ctx>.service`·아웃바운드 계약 `<ctx>.port.out`·도메인 이벤트 리스너 `<ctx>.listener`를 앱 구분 없이 한 패키지가 담는다) — **표현 계약(`<ctx>.response`)은 여기 없다 — 3개 앱 전부 api 모듈로 이동했다**(admin 챕터 06 · ceo 챕터 09 · web 챕터 10) |
-| 3 | **infrastructure** | `com.tastyhouse.infrastructure.<ctx>.query`(query DAO·Result DTO·SearchCondition) / `.persistence`(`.converter`) — `.listener`는 application으로 이동해 2순위다 |
-| 4 | **external / shared** (어댑터·횡단 공용) | `com.tastyhouse.external.*`, `com.tastyhouse.security.*`, `com.tastyhouse.logging.*`, `com.tastyhouse.domain.shared.*`, `com.tastyhouse.domain.exception.*` |
-| 5 | **presentation** (가장 바깥) | `com.tastyhouse.webapi.*`, `com.tastyhouse.adminapi.*`, `com.tastyhouse.ceoapi.*`, `com.tastyhouse.batch.*` — 내부는 아래 "presentation 내부 서브정렬"로 5-a → 5-b 세분 |
+| 1 | `java.*` | 자바 표준 라이브러리 |
+| 2 | `javax.*` | 예: `javax.crypto.*` |
+| 3 | 그 외 서드파티 전부 | `com.querydsl` · `io.swagger` · `jakarta.*` · `org.slf4j` · `org.springframework` · `software.amazon` 등을 **한 그룹에 넣고 알파벳순으로 섞어** 정렬합니다. `jakarta`도 별도 그룹이 아닙니다 |
+| 4 | 자사 `com.tastyhouse.*` | 내부 순서는 아래 [계층 정렬](#자사-그룹-내부-계층-정렬-클린-아키텍처-원-안--밖)을 따릅니다 |
+| 5 | `import static ...` | 그룹을 나누지 않고 맨 아래 한 블록에 모으며, 내부는 알파벳순입니다(QueryDSL Q타입, `assertThat` 등) |
 
-- **2순위 판별은 이제 패키지로 합니다 (챕터 06 개정 — 과거 "클래스명 접미어로 판별"의 대체)**: 모듈 재편 전에는 application 서비스가 api 모듈 안에 있어 패키지 접두어가 presentation과 같았고(`com.tastyhouse.webapi..`), 그래서 `*CommandService`/`*QueryService` **접미어**로 계층을 판별할 수밖에 없었습니다. 이제 application 계층이 `com.tastyhouse.application..`이라는 **자기 최상위 패키지**를 가지므로, 접두어만 보고 2순위와 5순위를 가릅니다.
-  - **이 전환의 실익**: 접미어 판별은 `*Executor`·`*Validator`·`*Runner`처럼 이름이 다른 협력 빈을 놓쳤고, 그때마다 "이것도 사실상 application"이라는 사람 판단이 필요했습니다. 패키지 판별에는 그 예외가 없습니다 — `com.tastyhouse.application.shop.service.ShopOwnershipValidator`는 이름과 무관하게 2순위입니다.
-  - **`webapi`/`adminapi`/`ceoapi`(5순위)와 `application`(2순위)은 접두어가 겹치지 않습니다(챕터 03으로 앱별 application 패키지가 평탄화돼 `webapplication` 등이 사라졌기 때문)** — 과거에는 `com.tastyhouse.webap...`처럼 접두어가 겹쳐 세그먼트 전체를 비교해야 했으나, 지금은 `webapi`와 `application`이 애초에 다른 문자열이라 그 주의가 더 필요 없습니다.
-- **api 모듈은 3순위(infrastructure)에 등장하지 않습니다 (개정)** — `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) 의존이 전면 금지되어 있으므로(아래 [api 모듈 QueryDSL·infra 전면 금지 규칙](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료)), api 모듈 파일의 자사 import 3순위는 이제 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort`·Result·SearchCondition(`com.tastyhouse.application..port.out..`)이 대신합니다.
+빈 줄 규칙은 다음과 같습니다.
 
-- **계층 4의 `com.tastyhouse.external.*`는 모듈이 `infrastructure:external`로 옮겨지고 다시 7모듈로 쪼개진 뒤에도 정렬 순위가 그대로입니다** — 이 표는 모듈 좌표가 아니라 **자바 패키지**로 판별하는데 패키지(`com.tastyhouse.external..`)가 불변이기 때문입니다. 3순위 `com.tastyhouse.infrastructure..`로 옮겨가지 않으며, `external.firebase`·`external.aws.s3`·`external.bbq`·`external.admdongkor`처럼 분리로 하위 패키지가 바뀐 것들도 최상위가 같으므로 순위가 같습니다. **코어만 예외입니다** — 모듈이 `infrastructure:external`→`infrastructure:http-client`→`infrastructure:restclient`로 리네임되며 패키지도 `com.tastyhouse.restclient.*`로 함께 옮겨갔으므로, 계층 4에는 `com.tastyhouse.external.*`(벤더 9모듈)뿐 아니라 `com.tastyhouse.restclient.*`(코어)도 추가됩니다.
-- **같은 계층 순위 내부는 기존대로 알파벳(ASCII) 오름차순**으로 정렬합니다.
-- **그룹4 내부에는 여전히 빈 줄을 넣지 않습니다** — 계층 사이도 빈 줄로 구분하지 않고 순서만 바꿉니다(상위 그룹 간 빈 줄 규칙은 그대로 유지).
-- static import는 이 규칙과 무관하게 맨 아래 블록 그대로입니다.
+- **그룹과 그룹 사이에 빈 줄 1개**를 둡니다.
+- **그룹 안에는 빈 줄을 넣지 않습니다.** 같은 그룹을 빈 줄로 둘 이상으로 쪼개지 않습니다.
+- `package` 선언과 첫 import 사이, 마지막 import와 타입 선언 사이에도 각각 빈 줄 1개를 둡니다.
+- 비어 있는 그룹은 생략합니다. 빈 줄이 두 개 연속으로 생기지 않습니다.
 
-**Before (단일 알파벳순 — 계층 혼재)**:
+**자사 코드를 맨 뒤로 따로 모으는 이유**: "내 코드"와 "외부 프레임워크 의존"을 한눈에 구분하기 위해서입니다. 예를 들어 `domain`은 프레임워크 의존이 금지돼 있고 presentation은 `domain`·`infrastructure` 의존이 금지돼 있으므로, 그룹을 나눠 두면 레이어 위반이 리뷰할 때 바로 보입니다.
+
+### 자사 그룹 내부 계층 정렬 (클린 아키텍처 원: 안 → 밖)
+
+**이 규칙은 공식 표준이 아닌 프로젝트 커스텀 컨벤션입니다.** Spring `spring-javaformat`, Google Java Style, Checkstyle `ImportOrder` 중 어느 것도 "자사 그룹 내부를 계층 순으로" 정렬하지 않습니다(모두 그룹 내부를 순수 알파벳순으로 정렬합니다). 이 프로젝트는 클린 아키텍처 원 그림(Domain이 중심, 그 바깥에 Application, 가장 바깥 원에 Persistence와 Presentation)을 기준으로 자사 그룹을 **안쪽 원부터 바깥 원 순서로** 나열합니다. 의존성은 항상 안쪽을 향하므로, 가장 안정적인 코드가 맨 위에 오고 가장 자주 바뀌는 코드가 맨 아래에 옵니다.
+
+**판별은 `com.tastyhouse.` 바로 다음의 최상위 패키지 세그먼트 하나로만 합니다.** 클래스명 접미어나 하위 패키지(`.model`·`.port` 등)는 보지 않습니다. 그래서 파일마다 사람이 판단할 여지가 없습니다.
+
+| 순위 | 원 | 최상위 세그먼트 (`com.tastyhouse.<세그먼트>.`) |
+|---|---|---|
+| 1 | **Domain** (중심) | `domain` — `domain.shared`·`domain.exception`도 **여기에 포함됩니다** |
+| 2 | **Application** | `application` — `port.in`·`port.out`·`service`·`store`·`listener`·`shared` 전부 |
+| 3 | 바깥 원: **driven 어댑터** (Persistence 쪽) | `external` · `infrastructure` · `restclient` |
+| 4 | 바깥 원: **공유 횡단 모듈** | `apicommon` · `logging` · `security` |
+| 5 | 바깥 원: **driving 어댑터** (Presentation 쪽) | `adminapi` · `batch` · `ceoapi` · `webapi` — 내부는 아래 5-a → 5-b |
+
+- **같은 순위 안에서는 ASCII 알파벳 오름차순**으로 정렬합니다. 3순위 안에서는 `external` → `infrastructure` → `restclient` 순서입니다.
+- **계층 사이에도 빈 줄을 넣지 않습니다.** 자사 그룹은 빈 줄 없는 한 블록이며, 순서만 바꿉니다.
+- **표에 없는 최상위 세그먼트가 새로 생기면** 먼저 이 표에 추가합니다. 추가하지 않은 채 임의 위치에 두지 않습니다.
+
+**엄격 레이어드 이후에는 등장할 수 있는 순위가 모듈마다 정해져 있습니다.** 그래서 순위가 맞지 않는 import가 보이면, 순서 문제가 아니라 레이어 위반일 가능성이 큽니다.
+
+| 모듈 | 등장 가능한 자사 순위 |
+|---|---|
+| `domain` | 1 |
+| `application` | 1 · 2 (+ 4의 `security`) |
+| `infrastructure:persistence` | 2 · 3 (**1은 나올 수 없습니다** — persistence는 domain을 모릅니다) |
+| `{web,admin,ceo}-api` · `batch-module` | 2 · 4 · 5 (**1·3은 나올 수 없습니다**) |
+
+#### presentation(5순위) 내부 서브정렬 (공용 인프라 먼저 → 도메인 전용)
+
+5순위(`com.tastyhouse.{adminapi|batch|ceoapi|webapi}.*`) 안에는 성격이 다른 두 종류가 섞여 있습니다. 여러 도메인이 공유하는 **공용 인프라**가 특정 도메인 전용 타입보다 안정적이므로, 공용을 위(5-a)에 두고 도메인 전용을 아래(5-b)에 둡니다.
+
+| 서브순위 | 대상 | 세그먼트 (`com.tastyhouse.<앱>.<세그먼트>.`) |
+|---|---|---|
+| **5-a** 공용 인프라 | 여러 도메인이 공유하는 비도메인 유틸 | `common` · `config` · `exception` · `ratelimit` · `security` |
+| **5-b** 도메인 전용 | 특정 도메인의 컨트롤러·`request`·`response` | 그 외 전부(`banner`·`notice`·`order` …) |
+
+- 같은 서브순위 안에서는 알파벳순이고, 5-a와 5-b 사이에도 빈 줄을 넣지 않습니다.
+- 위 목록에 없는 공용 패키지가 새로 생기면 "여러 도메인이 공유하는 비도메인 유틸인가"로 판단해 5-a에 추가합니다.
+
+### 예시 (현재 코드에 실제로 있는 import)
+
+**persistence query DAO** — `infrastructure/persistence/.../banner/query/BannerQueryDao.java`
+
+Before (현재 상태 — 그룹 순서 위반, 같은 그룹이 빈 줄로 셋으로 쪼개짐, application이 맨 위):
 ```java
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.service.OrderPlacementService;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.shop.model.OrderMethod;
-import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
-import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
-import com.tastyhouse.webapi.member.response.OrderListItemResponse;
-import com.tastyhouse.webapi.order.request.OrderProductRequest;
-import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-```
+import com.tastyhouse.application.banner.port.out.BannerManagementQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerDetailResult;
+import com.tastyhouse.application.banner.port.out.BannerListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
+import com.querydsl.core.types.Projections;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
-**After (domain → application → infrastructure → external/shared → presentation, 계층 내부는 알파벳순)**:
-```java
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.service.OrderPlacementService;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.shop.model.OrderMethod;
-import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.infrastructure.order.query.OrderDetailResult;
-import com.tastyhouse.infrastructure.order.query.OrderQueryDao;
-import com.tastyhouse.external.file.FileService;
-import com.tastyhouse.webapi.member.response.OrderListItemResponse;
-import com.tastyhouse.webapi.order.request.OrderProductRequest;
-import com.tastyhouse.webapi.order.response.OrderDetailResponse;
-```
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
-**domain 전용 파일 예시** (presentation·external·infrastructure 없이 domain → shared만 존재) — **(덩어리 03a) 아래 예시의 `OrderRepository`·`DomainEventPublisher`는 이제 `application`의 `order.port.out.write`·`shared.event`에 있다. 예시는 정렬 규칙을 보여 주는 용도로만 읽는다:**
-```java
-import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.payment.model.PaymentStatus;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
-```
-
-**`infrastructure:persistence` query DAO 파일 예시** (application(페이징 계약) → infrastructure 순, Q타입은 static import):
-```java
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.infrastructure.order.query.OrderListItemResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 
-import static com.tastyhouse.infrastructure.order.persistence.QOrderJpaEntity.orderJpaEntity;
+import static com.tastyhouse.infrastructure.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 ```
 
-#### presentation(5순위) 내부 서브정렬 (공용 인프라 위 → 도메인 전용 아래)
-
-presentation 계층(`com.tastyhouse.webapi.*` / `adminapi.*` / `ceoapi.*`)은 한 계층 안에 성격이 다른 두 종류가 섞여 있습니다. 이를 **위 계층 정렬과 같은 안정 의존성 원칙**으로 한 단계 더 세분합니다. 여러 도메인이 공유하는 **공용 인프라**(비도메인 프레임워크 유틸)는 특정 도메인 전용 어댑터 DTO보다 안정적이므로 **위(5-a)**, 도메인 전용은 **아래(5-b)** 에 둡니다. 이는 4순위에서 `com.tastyhouse.domain.shared.*`를 presentation보다 위에 두는 방향("공용은 도메인 전용보다 위")과 대칭입니다.
-
-| 서브순위 | 대상 | 매칭 패키지 세그먼트 |
-|---|---|---|
-| **5-a** (공용 인프라, 위) | 여러 도메인이 공유하는 비도메인 프레임워크 유틸 | `com.tastyhouse.{webapi\|adminapi\|ceoapi}.common.*` · `.config.*` · `.security.*` · `.ratelimit.*` · `.exception.*` |
-| **5-b** (도메인 전용, 아래) | 특정 도메인 전용 컨트롤러 협력 타입 | `com.tastyhouse.{webapi\|adminapi\|ceoapi}.<도메인>.request.*` · `.response.*` (및 도메인 하위 기타) |
-
-- **판별 기준**: "여러 도메인이 공유하는 비도메인(=`request`/`response` 같은 도메인 DTO가 아닌) 프레임워크·횡단 유틸"이면 5-a입니다. 위 세그먼트 목록에 없는 새 공용 패키지가 생겨도 이 기준으로 5-a에 편입합니다. 특정 도메인 패키지(`banner`·`notice`·`order` 등) 하위는 5-b입니다.
-- **같은 서브순위 내부는 알파벳(ASCII) 오름차순** — 5-a 내부(`common` → `config` → `exception` → `ratelimit` → `security`)도, 5-b 내부(도메인 이름순)도 알파벳순입니다.
-- **5-a/5-b 사이에도 빈 줄을 넣지 않습니다** — 그룹4 내부 무(無)빈줄 규칙 그대로, 순서만 구분합니다.
-
-**Before (`common`이 도메인 request/response 아래로 빠짐 — 알파벳순의 우연):**
+After:
 ```java
-import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
-import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
-import com.tastyhouse.adminapi.common.ApiResponse;
-import com.tastyhouse.adminapi.common.PageRequest;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+import com.tastyhouse.application.banner.port.out.BannerDetailResult;
+import com.tastyhouse.application.banner.port.out.BannerListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.banner.port.out.BannerManagementQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerQueryPort;
+import com.tastyhouse.application.banner.port.out.BannerSearchCondition;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+
+import static com.tastyhouse.infrastructure.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 ```
 
-**After (공용 인프라 5-a 먼저 → 도메인 전용 5-b):**
+**api 컨트롤러** — `admin-api/.../banner/adapter/in/web/BannerApiController.java`의 자사 그룹
+
+Before (presentation 5순위가 application 2순위보다 위에 있고, application 안의 알파벳순도 깨짐):
 ```java
-import com.tastyhouse.adminapi.common.ApiResponse;
-import com.tastyhouse.adminapi.common.PageRequest;
-import com.tastyhouse.adminapi.banner.request.BannerCreateRequest;
-import com.tastyhouse.adminapi.banner.response.BannerDetailResponse;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerCreateRequest;
+import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 ```
 
-> 이 서브규칙 도입 전에도 `common`이 도메인보다 위에 오던 파일(예: `NoticeApiController` — `common` < `notice`)은 알파벳순의 우연으로 이미 부합 상태였고, 규칙화로 전 도메인에서 위치가 일관됩니다.
+After (application 2 → apicommon 4 → adminapi 5):
+```java
+import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
+import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.apicommon.common.ApiResponse;
+import com.tastyhouse.apicommon.common.PageRequest;
+import com.tastyhouse.apicommon.common.PaginationResponse;
+import com.tastyhouse.adminapi.banner.adapter.in.web.request.BannerCreateRequest;
+import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerDetailResponse;
+```
 
-**신규 작성·기존 파일 수정 시 수동 적용**하며, 기존 코드를 이 규칙(및 위 5-a/5-b 서브규칙)만을 위해 일괄 재정렬하지 않습니다.
+> `apicommon`(4순위)이 알파벳상 `application`보다 앞이지만 순위가 우선하므로 뒤에 옵니다. 순위를 먼저 비교하고, 같은 순위일 때만 알파벳을 비교합니다.
 
-자동 강제 도구(spotless 등)는 도입하지 않으며, 신규/수정 코드 작성 시 이 규칙을 수동으로 따릅니다.
+**application 서비스** — `application/.../notice/service/NoticeCommandService.java`의 자사 그룹
+
+Before (마커 import가 서드파티 그룹보다 위로 떨어져 나가 있고, application이 domain보다 위):
+```java
+import com.tastyhouse.application.shared.marker.AdminApp;
+
+// ... org.springframework 그룹 ...
+
+import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
+import com.tastyhouse.application.notice.store.NoticeRepository;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.notice.model.Notice;
+import com.tastyhouse.domain.notice.vo.NoticeId;
+```
+
+After (domain 1 → application 2, 한 블록):
+```java
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.notice.model.Notice;
+import com.tastyhouse.domain.notice.vo.NoticeId;
+import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
+import com.tastyhouse.application.notice.store.NoticeRepository;
+import com.tastyhouse.application.shared.marker.AdminApp;
+```
+
+> `domain.exception`은 과거에 "external/shared" 순위로 분류돼 도메인 모델보다 아래에 두었습니다. 지금은 접두어가 `domain`이면 전부 1순위입니다(**번복**). `domain.exception` < `domain.notice`인 것은 알파벳순 결과입니다.
+
+### 적용 시점과 현재 코드 상태
+
+- **신규 작성하는 파일과 수정하는 파일은 반드시 이 규칙을 따릅니다.** 파일을 수정할 때는 그 파일의 import 블록 전체를 이 규칙대로 다시 정렬합니다.
+- **기존 코드는 아직 이 규칙과 어긋난 파일이 많습니다.** 2026-09-27 기준 backend Java 4,020개 중 약 1,101개(27%)가 위반 상태입니다(그룹 순서 502 · 그룹 내부 순서 590 · 빈 줄 9). 그러므로 **옆 파일의 import 순서를 근거로 삼지 않습니다.** 판단 기준은 이 문서뿐입니다.
+- 일괄 재정렬과 강제용 가드 테스트는 후속 작업으로 예정돼 있습니다. 완료되면 이 문단을 "가드 테스트가 강제한다"로 바꿉니다.
+- 미사용 import 정리는 아래 [미사용 import 제거 규칙](#미사용-import-제거-규칙-파일을-건드리면-그-파일의-미사용-import까지-정리)을 함께 따릅니다.
 
 **참고 자료 (Spring 공식 소스)**:
 - Spring Java Format `SpringImportOrderCheck` 구현: https://github.com/spring-io/spring-javaformat/blob/main/spring-javaformat/spring-javaformat-checkstyle/src/main/java/io/spring/javaformat/checkstyle/check/SpringImportOrderCheck.java
