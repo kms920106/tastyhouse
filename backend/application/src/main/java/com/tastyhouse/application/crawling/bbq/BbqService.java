@@ -8,11 +8,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.domain.file.service.FileUploadCommand;
+import com.tastyhouse.domain.file.service.FileUploadService;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
-import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
+import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
+import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.application.shared.exception.BatchJobException;
 
 @Service
@@ -24,15 +27,18 @@ public class BbqService {
     private final BbqMenuPort bbqMenuPort;
     private final BbqProductSyncService bbqProductSyncService;
     private final RemoteImagePort remoteImagePort;
+    private final FileUploadService fileUploadService;
 
     public BbqService(
         BbqMenuPort bbqMenuPort,
         BbqProductSyncService bbqProductSyncService,
-        RemoteImagePort remoteImagePort
+        RemoteImagePort remoteImagePort,
+        FileUploadService fileUploadService
     ) {
         this.bbqMenuPort = bbqMenuPort;
         this.bbqProductSyncService = bbqProductSyncService;
         this.remoteImagePort = remoteImagePort;
+        this.fileUploadService = fileUploadService;
     }
 
     public List<BbqProductCategoryResponse> getMenuCategories() {
@@ -117,7 +123,7 @@ public class BbqService {
 
         Long uploadedFileId = null;
         if (menuDetail.imageUrl() != null && !menuDetail.imageUrl().isEmpty()) {
-            uploadedFileId = remoteImagePort.uploadFromUrl(menuDetail.imageUrl());
+            uploadedFileId = uploadRemoteImage(menuDetail.imageUrl());
         }
 
         BbqProductRegistration registration = BbqProductRegistration.of(
@@ -135,5 +141,16 @@ public class BbqService {
         Long productId = bbqProductSyncService.createCrawledProduct(registration);
 
         log.debug("상품 저장 완료: productId={}, name={}", productId, menuDetail.name());
+    }
+
+    private Long uploadRemoteImage(String imageUrl) {
+        DownloadedImage image = remoteImagePort.download(imageUrl);
+        FileUploadCommand command = FileUploadCommand.of(
+            image.filename(),
+            image.bytes(),
+            (long) image.bytes().length,
+            image.contentType()
+        );
+        return fileUploadService.upload(command).value();
     }
 }

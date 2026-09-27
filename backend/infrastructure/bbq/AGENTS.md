@@ -8,7 +8,7 @@
 
 과거에는 행정동 경계 수집과 함께 `infrastructure:crawling` 한 모듈에 있었다. 두 수집은 HTTP 클라이언트·구현 포트·yml 접두사·소비 유스케이스를 하나도 공유하지 않아 `bbq`·`admdongkor` 두 모듈로 나눴다. 근거와 "클래스패스 이득은 없다"는 판단은 `../admdongkor/AGENTS.md`의 같은 절에 있다.
 
-**`RemoteImageDownloader`는 세 번째 책임이 아니라 BBQ 덩어리다.** 구현하는 포트 `RemoteImagePort`가 BBQ 패키지(`crawling.bbq.port.out`) 소유이고, 소비자도 `BbqService`(BBQ 메뉴 이미지 수집) 하나뿐이다. 판정 기준은 "어느 포트를 구현하는가"다. 다른 수집이 원격 이미지 저장을 필요로 하게 되면 그때 포트를 공용 위치로 올리고 이 클래스의 소속을 다시 판단한다.
+**`RemoteImageDownloader`는 세 번째 책임이 아니라 BBQ 덩어리다.** 구현하는 포트 `RemoteImagePort`가 BBQ 패키지(`crawling.bbq.port.out`) 소유이고, 소비자도 `BbqService`(BBQ 메뉴 이미지 수집) 하나뿐이다. 판정 기준은 "어느 포트를 구현하는가"다. 다른 수집이 원격 이미지 다운로드를 필요로 하게 되면 그때 포트를 공용 위치로 올리고 이 클래스의 소속을 다시 판단한다.
 
 ## 무엇을 소유하는가
 
@@ -18,7 +18,7 @@ com.tastyhouse.external.bbq/
 ├── BbqApiClient.java                 BBQ 메뉴 API 호출 (RestClient, 동기)
 ├── BbqMenuAdapter.java               BbqMenuPort 구현
 ├── BbqProperties.java                bbq.api.* (base-url만 — timeoutSeconds는 삭제됨)
-├── RemoteImageDownloader.java        RemoteImagePort 구현 — 원격 이미지를 받아 FileUploadService로 저장 (RestClient, per-client 5s/30s, 10MB 응답 상한)
+├── RemoteImageDownloader.java        RemoteImagePort 구현 — 원격 이미지 다운로드(I/O만). 본문·Content-Type·파일명을 DownloadedImage로 돌려준다 (RestClient, per-client 5s/30s, 10MB 응답 상한)
 └── dto/  BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse
 ```
 
@@ -27,10 +27,6 @@ com.tastyhouse.external.bbq/
 ## 어느 앱이 의존하는가
 
 **batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스 존재만으로 `BbqModuleAutoConfiguration`이 발화하므로 `@Import`는 없다. batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
-
-## ⚠️ `RemoteImageDownloader`는 persistence가 등록하는 빈에 런타임 의존한다
-
-생성자로 `com.tastyhouse.domain.file.service.FileUploadService`를 요구하는데, 그것은 순수 POJO 도메인 서비스라 **`infrastructure:persistence`의 `FileDomainConfig`가 `@Bean`으로 등록**한다. 즉 이 모듈만 의존하고 `infrastructure:persistence`를 빼면 빈 부재로 기동에 실패한다(batch-module은 둘 다 의존하므로 성립한다). 컴파일 의존은 `domain`이고 빈 제공자는 persistence라, **컴파일이 통과해도 배선이 보장되지 않는 지점**이다. 파일 저장 자체는 `FileUploadService`가 도메인 포트 `FileStoragePort`(스타터 `infrastructure:file-storage` → firebase)로 위임한다.
 
 ## yml — `application-bbq.yml`
 
@@ -47,11 +43,10 @@ com.tastyhouse.external.bbq/
 ### Internal
 - `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유)
 - `application` (implementation) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다
-- `domain` (implementation) — `FileUploadService`·`FileUploadCommand`·`UploadedFileId`, 예외 계약
-- **런타임 의존(빌드 그래프에 없음)**: `infrastructure:persistence`의 `FileDomainConfig`가 등록하는 `FileUploadService` 빈
+- `domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCode`)만
 
 ### External
-- webflux 없음 — BBQ API 호출은 **동기 `RestClient`**(`BbqApiClient`의 `getMenuCategories`·`getMenusByCategoryId`·`getMenuDetail`·`getMenuSubOptions` 4개 메서드, 과거 Mono 반환 + `...Sync()` 래퍼는 제거됐다). 코어 `infrastructure:restclient`가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. `RemoteImageDownloader`도 RestClient(`retrieve().toEntity(byte[].class)`)를 쓴다.
+- webflux 없음 — BBQ API 호출은 **동기 `RestClient`**(`BbqApiClient`의 `getMenuCategories`·`getMenusByCategoryId`·`getMenuDetail`·`getMenuSubOptions` 4개 메서드, 과거 Mono 반환 + `...Sync()` 래퍼는 제거됐다). 코어 `infrastructure:restclient`가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. `RemoteImageDownloader`도 RestClient(`exchange()`로 상태·헤더·본문을 직접 읽는다)를 쓴다.
 
 ## 주의
 
@@ -89,6 +84,13 @@ com.tastyhouse.external.bbq/
 `BbqMenuAdapter`는 `BbqMenuPort`의 구현으로, BBQ wire DTO를 application 계약 타입으로 변환한다. 변환 로직은 이전에 `BbqService`가 갖고 있던 `convertToProduct*` 메서드를 그대로 옮긴 것이며, **값 매핑(널 `Boolean` → primitive 기본값 등)은 동작을 바꾸지 않도록 원본과 동일하다.**
 
 `BbqApiClient`는 이 어댑터의 **내부 협력자로 남는다** — BBQ wire DTO가 시그니처에 드러나므로 포트 계약에 올릴 수 없다(과거에는 `WebClient`·`Mono` 같은 반응형 타입이 그 이유였으나, RestClient 전환으로 동기 메서드가 되면서 지금 남은 이유는 wire DTO 노출이다). 크롤링 응답 형태를 바꾸는 작업에서 이 클라이언트를 포트로 승격하고 싶어지면, wire DTO가 application 계층으로 새어 나간다는 점을 먼저 본다.
+
+### 어댑터는 I/O만 하고, 업로드 조율은 `BbqService`가 한다
+
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/RemoteImageDownloader.java`
+→ `download(String)` · `backend/application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java` → `uploadRemoteImage`
+
+`RemoteImageDownloader`는 HTTP로 이미지를 받아 본문·미디어 타입·파일명(URL 마지막 경로 세그먼트에서 `?` 이후를 자른 값, 퍼센트 인코딩 보존)을 `DownloadedImage`로 돌려주는 데서 끝난다. **도메인 서비스 `FileUploadService`를 주입받지 않는다.** 과거에는 이 어댑터가 `uploadFromUrl`로 "다운로드 → `FileUploadCommand` 조립 → `FileUploadService.upload`"를 직접 조율해, 아웃바운드 어댑터가 유스케이스 흐름을 소유하고 persistence가 등록하는 `FileUploadService` 빈에 런타임으로 묶여 있었다. 그 흐름은 유스케이스 `BbqService`로 올렸다(동작 무변경 — 예외 종류·10MB 상한·`@Transactional` 경계 동일). 어댑터에 업로드·저장 호출을 되살리지 않는다. 파일명 추출은 URL 해석이라 어댑터에 남긴다.
 
 ### `RemoteImageDownloader`의 패키지 이력
 

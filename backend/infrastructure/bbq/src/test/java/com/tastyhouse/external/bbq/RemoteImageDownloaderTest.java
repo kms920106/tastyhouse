@@ -3,7 +3,6 @@ package com.tastyhouse.external.bbq;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -14,11 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.domain.file.model.UploadedFile;
-import com.tastyhouse.domain.file.port.FileStoragePort;
-import com.tastyhouse.domain.file.repository.UploadedFileRepository;
-import com.tastyhouse.domain.file.service.FileUploadService;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
@@ -33,7 +28,6 @@ class RemoteImageDownloaderTest {
     private HttpServer server;
     private String baseUrl;
     private final AtomicReference<String> requestedRawPath = new AtomicReference<>();
-    private final RecordingFileStorage storage = new RecordingFileStorage();
     private RemoteImageDownloader downloader;
 
     @BeforeEach
@@ -41,8 +35,7 @@ class RemoteImageDownloaderTest {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.start();
         baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
-        FileUploadService fileUploadService = new FileUploadService(new FixedIdRepository(), storage, event -> { });
-        downloader = new RemoteImageDownloader(RestClient.builder(), fileUploadService);
+        downloader = new RemoteImageDownloader(RestClient.builder());
     }
 
     @AfterEach
@@ -51,19 +44,19 @@ class RemoteImageDownloaderTest {
     }
 
     @Test
-    @DisplayName("퍼센트 인코딩된 URL을 다시 인코딩하지 않고 그대로 요청하며 Content-Type 파라미터를 떼어 업로드한다")
+    @DisplayName("퍼센트 인코딩된 URL을 다시 인코딩하지 않고 그대로 요청하며 Content-Type 파라미터와 쿼리를 떼어 돌려준다")
     void keepsPercentEncodedUrlAsIs() {
         server.createContext("/", exchange -> {
             requestedRawPath.set(exchange.getRequestURI().getRawPath());
             respond(exchange, 200, "image/png; charset=binary", PNG_BYTES, PNG_BYTES.length);
         });
 
-        Long fileId = downloader.uploadFromUrl(baseUrl + "/menu/a%20%EC%B9%98%ED%82%A8.png?v=1");
+        DownloadedImage image = downloader.download(baseUrl + "/menu/a%20%EC%B9%98%ED%82%A8.png?v=1");
 
-        assertThat(fileId).isEqualTo(1L);
         assertThat(requestedRawPath.get()).isEqualTo("/menu/a%20%EC%B9%98%ED%82%A8.png");
-        assertThat(storage.content).containsExactly(PNG_BYTES);
-        assertThat(storage.contentType).isEqualTo("image/png");
+        assertThat(image.bytes()).containsExactly(PNG_BYTES);
+        assertThat(image.contentType()).isEqualTo("image/png");
+        assertThat(image.filename()).isEqualTo("a%20%EC%B9%98%ED%82%A8.png");
     }
 
     @Test
@@ -71,10 +64,9 @@ class RemoteImageDownloaderTest {
     void nonOkStatusIsFileEmpty() {
         server.createContext("/", exchange -> respond(exchange, 404, "text/plain", new byte[0], -1));
 
-        assertThatThrownBy(() -> downloader.uploadFromUrl(baseUrl + "/missing.png"))
+        assertThatThrownBy(() -> downloader.download(baseUrl + "/missing.png"))
             .isInstanceOfSatisfying(BusinessException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_EMPTY));
-        assertThat(storage.content).isNull();
     }
 
     @Test
@@ -82,10 +74,9 @@ class RemoteImageDownloaderTest {
     void streamedBodyOverLimitIsRejected() {
         server.createContext("/", exchange -> respond(exchange, 200, "image/png", new byte[MAX_IMAGE_BYTES + 1], 0));
 
-        assertThatThrownBy(() -> downloader.uploadFromUrl(baseUrl + "/huge.png"))
+        assertThatThrownBy(() -> downloader.download(baseUrl + "/huge.png"))
             .isInstanceOfSatisfying(BusinessException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_SIZE_EXCEEDED));
-        assertThat(storage.content).isNull();
     }
 
     @Test
@@ -93,7 +84,7 @@ class RemoteImageDownloaderTest {
     void declaredLengthOverLimitIsRejected() {
         server.createContext("/", exchange -> respond(exchange, 200, "image/png", new byte[MAX_IMAGE_BYTES + 1], MAX_IMAGE_BYTES + 1));
 
-        assertThatThrownBy(() -> downloader.uploadFromUrl(baseUrl + "/huge.png"))
+        assertThatThrownBy(() -> downloader.download(baseUrl + "/huge.png"))
             .isInstanceOfSatisfying(BusinessException.class, e ->
                 assertThat(e.getErrorCode()).isEqualTo(ErrorCode.FILE_SIZE_EXCEEDED));
     }
@@ -105,50 +96,6 @@ class RemoteImageDownloaderTest {
         try (exchange; OutputStream out = exchange.getResponseBody()) {
             out.write(body);
         } catch (IOException ignored) {
-        }
-    }
-
-    private static final class RecordingFileStorage implements FileStoragePort {
-
-        private byte[] content;
-        private String contentType;
-
-        @Override
-        public String store(byte[] content, String storedFilename, String datePath, String contentType) {
-            this.content = content;
-            this.contentType = contentType;
-            return datePath + "/" + storedFilename;
-        }
-
-        @Override
-        public String getFileUrl(String filePath) {
-            return filePath;
-        }
-
-        @Override
-        public void delete(String filePath) {
-        }
-    }
-
-    private static final class FixedIdRepository implements UploadedFileRepository {
-
-        @Override
-        public UploadedFile save(UploadedFile file) {
-            return UploadedFile.reconstitute(
-                1L,
-                file.getOriginalFilename(),
-                file.getStoredFilename(),
-                file.getFilePath(),
-                file.getFileSize(),
-                file.getContentType(),
-                null,
-                null
-            );
-        }
-
-        @Override
-        public Optional<UploadedFile> findById(UploadedFileId id) {
-            return Optional.empty();
         }
     }
 }

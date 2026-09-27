@@ -13,10 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
-import com.tastyhouse.domain.file.service.FileUploadCommand;
-import com.tastyhouse.domain.file.service.FileUploadService;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.restclient.config.HttpRequestFactories;
@@ -32,33 +30,15 @@ public class RemoteImageDownloader implements RemoteImagePort {
     private static final String DEFAULT_CONTENT_TYPE = "image/jpeg";
 
     private final RestClient restClient;
-    private final FileUploadService fileUploadService;
 
-    public RemoteImageDownloader(RestClient.Builder restClientBuilder, FileUploadService fileUploadService) {
+    public RemoteImageDownloader(RestClient.Builder restClientBuilder) {
         this.restClient = restClientBuilder
             .requestFactory(HttpRequestFactories.withTimeouts(CONNECT_TIMEOUT, READ_TIMEOUT))
             .build();
-        this.fileUploadService = fileUploadService;
     }
 
     @Override
-    public Long uploadFromUrl(String imageUrl) {
-        DownloadedImage image = download(imageUrl);
-
-        String rawFilename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
-        String filename = rawFilename.contains("?") ? rawFilename.substring(0, rawFilename.indexOf("?")) : rawFilename;
-
-        FileUploadCommand command = FileUploadCommand.of(
-            filename,
-            image.bytes(),
-            (long) image.bytes().length,
-            image.contentType()
-        );
-        UploadedFileId fileId = fileUploadService.upload(command);
-        return fileId.value();
-    }
-
-    private DownloadedImage download(String imageUrl) {
+    public DownloadedImage download(String imageUrl) {
         try {
             return restClient.get()
                 .uri(URI.create(imageUrl))
@@ -90,7 +70,12 @@ public class RemoteImageDownloader implements RemoteImagePort {
         if (bytes.length == 0) {
             throw new BusinessException(ErrorCode.FILE_EMPTY);
         }
-        return new DownloadedImage(bytes, contentTypeOf(headers));
+        return new DownloadedImage(bytes, contentTypeOf(headers), filenameOf(imageUrl));
+    }
+
+    private static String filenameOf(String imageUrl) {
+        String rawFilename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+        return rawFilename.contains("?") ? rawFilename.substring(0, rawFilename.indexOf("?")) : rawFilename;
     }
 
     private static String contentTypeOf(HttpHeaders headers) {
