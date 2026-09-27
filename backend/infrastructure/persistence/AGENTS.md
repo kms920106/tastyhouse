@@ -6,7 +6,7 @@
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
-`domain`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 `domain`이 선언한 포트(`<ctx>/repository/XxxRepository` write 포트, `shared/event/DomainEventPublisher`)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain`의 순수 도메인 모델을 영속화하고, 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxRepository` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 03b까지 domain 모델 그대로)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
@@ -18,10 +18,7 @@ com.tastyhouse.infrastructure/
 │                                         @EnableJpaAuditing + @EnableTransactionManagement
 ├── config/QueryDslConfig.java            JPAQueryFactory 빈
 ├── shared/persistence/BaseEntity.java    @MappedSuperclass — @CreatedDate/@LastModifiedDate 감사 필드
-├── shared/event/SpringDomainEventPublisher.java  domain DomainEventPublisher 포트 구현(ApplicationEventPublisher 위임)
 └── <도메인>/
-    ├── config/<Ctx>DomainConfig.java     @Configuration(proxyBeanMethods = false) —
-    │                                     그 컨텍스트 domain <ctx>/service/ POJO들의 @Bean 등록
     ├── persistence/                      write 어댑터
     │   ├── XxxJpaEntity.java             @Entity — DB 매핑 전용(비즈니스 행위 없음), BaseEntity 상속
     │   ├── XxxMapper.java                도메인 ↔ 엔티티 변환 (package-private, toDomain/toEntity/applyChanges)
@@ -48,10 +45,10 @@ com.tastyhouse.infrastructure/
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 `mail`·`sms` 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
 - **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`).
 - **저장 시맨틱은 load-copy-save**: `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
-- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl`). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
+- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl`). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: 항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지. DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 루트 `CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
-- **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
+- **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordRepository`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
   - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. 과거 함께 잔류하던 주입 없는 `MailVerificationEventListener`·`SmsVerificationEventListener`는 다른 리스너 10종과 함께 `application`의 `com.tastyhouse.application.{mail,sms}.listener`로 이동했다(`../../application/AGENTS.md` 참고).
 
     **(번복됨 — 덩어리 02/03a) `FileDomainConfig`도 이 모듈에서 사라졌다.** 이전 판단 기준("구현이 일부 앱에만 있는가")으로는 4개 앱 전부가 `FileStoragePort` 구현을 갖는 파일 저장이 예외 대상이 아니라고 봤으나, `FileUploadService`(+`FileUploadCommand`) 자체가 도메인 서비스가 아니라 유스케이스 계층의 순수 POJO로 재분류되어 `application/file/service/`로 옮겨갔고, 빈 등록도 `application/file/config/FileServiceConfig`(`@SharedApp`)가 맡는다. `FileDomainConfig`는 삭제됐다. 판정 기준 자체(포트 구현 앱 범위)는 여전히 유효하지만, 이 서비스는 애초에 그 판정 대상(도메인 서비스)이 아니게 됐다는 것이 이번 이동의 근거다.
@@ -62,7 +59,7 @@ com.tastyhouse.infrastructure/
   - **컨텍스트 분류가 애매한 빈**(여러 컨텍스트 서비스를 파라미터로 받는 것)은 **반환 타입이 속한 컨텍스트**의 config에 둔다.
   - member의 하위 컨텍스트(`follow`·`referral`) 빈은 `member/config/MemberDomainConfig`에 함께 둔다(별도 파일로 쪼개지 않음).
   - **모듈 진입점인 `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지 — 앱의 `@Import` 때문이 아니라 챕터 02로 그 필요 자체가 사라졌다). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
-- **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, 리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다. 이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
+- **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, 리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다. ~~이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다.~~ **(03a)** 발행 구현도 `application`의 `shared/event/`로 옮겨가 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
 reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
 
@@ -825,14 +822,6 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 `.../product/persistence/ProductFeedbackJpaEntity.java`의 `memberId`도 같은 성격이다 — **중복 제보 판정에만 쓰며 점주 응답에는 절대 싣지 않는다.**
 
-#### `ShopRequestIndexSyncAdapter`의 enum 승격 실패를 삼키지 않는다
-
-**대상**: `.../product/persistence/ShopRequestIndexSyncAdapter.java`
-
-포트 시그니처가 `String`인 것은 통합 상태 `ShopRequestStatus`가 shop 소유라 product 쪽 포트에 등장할 수 없기 때문이다. **승격 실패는 프로그래밍 오류(양쪽 enum이 어긋난 상태)이므로 `from(String)`의 400 변환에 맡기지 않고 그대로 전파시킨다** — 조용히 넘기면 인덱스가 원본과 어긋난 채 남는다.
-
-이 기록은 **이벤트·`AFTER_COMMIT`이 아니라 원본 상태 전이와 같은 트랜잭션에서 동기 수행한다** — 기록 유실이 곧 "요청이 목록에서 사라짐"이기 때문이다. 리스너로 옮기지 않는다.
-
 #### `GeoPolygonTextCodec`의 실패를 조용히 넘기지 않는다
 
 **대상**: `.../shared/persistence/GeoPolygonTextCodec.java` → `decode`
@@ -884,12 +873,6 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 **대상**: `.../mail/persistence/MailVerificationJpaEntity.java` · `.../sms/persistence/SmsVerificationJpaEntity.java`
 
 테이블·인덱스명이 `MAIL_VERIFICATION`·`SMS_VERIFICATION`으로 통일된 `alter.sql` RENAME 마이그레이션이 있고, **`ddl-auto=validate` 환경이므로 그 마이그레이션과 앱 배포를 따로 하면 부팅이 실패한다.**
-
-#### `CachingProhibitedWordRepository`에 락을 추가하지 않는다
-
-**대상**: `.../shop/persistence/CachingProhibitedWordRepository.java`
-
-`AtomicReference`에 스냅샷을 통째로 담아 교체하므로 락이 필요 없다. 만료 직후 동시 호출이 겹치면 적재가 중복될 수 있으나 결과가 같은 read-only 조회라 무해하며, **중복 적재를 막는 락이 주는 이득보다 락 경합 비용이 크다.** TTL을 제거해 무기한 캐싱으로 바꾸지도 않는다 — 시드 갱신이 재기동 전까지 반영되지 않는다.
 
 #### 테이블명의 `SHOP_` 접두를 소유 컨텍스트에 맞춰 바꾸지 않는다
 
@@ -1144,60 +1127,6 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 → `BatchOptionInfo` · `BatchOptionInfo#groupKey()`
 
 배치 조회 내부 계산용 `private` 중첩 record다. `new`로 직접 조립하는 내부 계산용이라 `Projections.constructor` 리플렉션 탐색을 거치지 않으므로 **투영 가드 2종의 대상이 아니다**(위 [읽기 계약 가드 2종](#읽기-계약-가드-2종은-이-모듈이-소유한다-챕터-09--application-common-module에서-이관) 절). 투영에 쓰려면 애초에 독립 파일로 분리해야 하고, 그 시점에 가드 대상이 된다.
-
-### `<Ctx>DomainConfig` — 도메인 서비스 빈 등록 근거
-
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/*/config/*DomainConfig.java` (19개)
-
-등록 위치 규칙 자체는 위 [규칙](#규칙) 절에 있다. 여기에는 **각 `@Bean`이 왜 도메인 서비스인가**(= 왜 애그리거트나 api 모듈이 아닌가)라는 판단 근거를 모은다. 전 config에 공통으로, 클래스 Javadoc은 "도메인 서비스는 `@Service` 없는 순수 POJO라 Spring이 스캔할 수 없으므로 새 POJO 도메인 서비스를 추가하면 여기에 `@Bean`을 추가한다"는 같은 문장이었다 — 규칙 절과 중복이라 옮기지 않는다.
-
-#### 도메인 서비스로 뺀 판정 기준
-
-주석들이 반복해 든 사유는 아래 네 가지다. 새 서비스를 만들 때도 이 기준으로 판단한다.
-
-| 사유 | 뜻 | 예 |
-|---|---|---|
-| **집합 차원 불변식** | 행 하나만 보고는 판정할 수 없다 | `ShopNoticeExposureService`(가게당 노출 공지 1건) · `ShopMenuCollectionImageService`(최대 6·최소 1) · `ShopDeliveryAreaAdjustmentService`(진행 중 신청 중복 차단) |
-| **크로스 애그리거트 원자성** | 여러 애그리거트가 한 트랜잭션에서 함께 바뀌어야 한다 | `ShopImageApprovalService`(요청 승인 + 이미지 반영) · `ShopPhoneNumberRegistryService`(대표번호 + 가게 애그리거트) · `ProductReviewStatsService` |
-| **액터 무관 규칙** | 요청자(ceo)와 검수자(admin), 또는 admin CRUD와 batch 크롤링이 **같은 규칙**을 써야 한다 | `ProductRegistrationService` · `ShopOrderNoticeService` · `ShopRequestCancelService` |
-| **컨텍스트 경계 파사드** | 소비 컨텍스트가 남의 모델·리포지토리를 직접 쓰지 않게 한다 | `ShopOrderContextService` · `OrderProductValidationService` |
-
-복제하면 한쪽만 고쳐진다는 것이 공통 위험이다 — `ShopNextOpenTimeCalculator`가 요일별 영업시간 선택 규칙을 새로 짜지 않고 `ShopOperatingStatusCalculator`를 주입해 재사용하는 것도 같은 이유다(복제하면 요일 구분 추가 시 한쪽만 고쳐진다).
-
-#### `ShopDomainConfig` — 개별 판단
-
-**대상**: `.../shop/config/ShopDomainConfig.java`
-
-- `prohibitedWordValidator` — **캐싱 데코레이터로 감싼 포트를 주입한다.** 검증기가 텍스트 검증마다 `findAll()`을 호출하므로 전량 로드가 매번 DB로 나가지 않게 한다. 금칙어는 SQL 시드 read-only 데이터라 정합성 리스크가 낮고, **캐싱을 어댑터 쪽에 두어 domain의 순수 POJO 검증기는 그대로 둔다.**
-- `shopNextOpenTimeCalculator` — **product가 아니라 shop에 둔다.** 영업시간·휴무일 해석은 shop의 관심사이고, product 도메인 서비스가 `ShopBusinessHour`를 직접 참조하면 **컨텍스트 경계 위반**이다. 두 서비스의 조립은 ceo-api의 command service가 담당한다.
-- `shopOrderAvailabilityService` — 주문 접수(`OrderPlacementService`)와 예약 생성(`ReservationBookingService`)이 **같은 규칙**을 쓰도록 검증을 이 서비스 하나에 모았다.
-- `shopDeliveryAreaPolygonService` — 도형 원본과 그것을 환산한 행정동 집합이 **같은 트랜잭션에서 항상 일치**해야 한다. 환산을 비동기로 미루면 "저장은 됐는데 주문은 거절되는" 창이 생기고, **그 사이 등록 건수가 0이 되면 주문 접수의 지역 검사가 통째로 비활성된다.**
-- `shopDeliveryAreaRadiusService` — 후보 행정동을 **write 포트로 읽는다.** 명령 경로가 infra query DAO를 주입하면 CQRS 교차 주입 금지 규칙에 걸린다. 거리 판정은 원 근사 다각형이 아니라 **하버사인 직선거리**로 한다.
-- `shopOriginInfoService` — **금칙어 검수를 하지 않는다.** 원산지 본문은 마케팅 문구가 아니라 **법령이 요구하는 사실 표시**라, 검수로 저장을 막으면 표시 의무를 이행할 수 없게 된다.
-- `shopChangeHistoryRecorder` / `shopCeoAssignmentRecorder` / `shopRequestIndexRecorder` — 변경을 수행하는 도메인 서비스가 **같은 트랜잭션에서 동기 호출**한다. **새 배정 경로나 새 요청 성격 애그리거트를 만들면 그 도메인 서비스에 이 Recorder를 배선해야 한다** — 배선 누락은 컴파일에 걸리지 않는다. `ShopChangeValueFormatter`는 상태 없는 static 유틸이라 빈으로 등록하지 않는다.
-- `shopOrderNoticeService` — PUT 하나가 기존 행 유무에 따라 insert/update로 갈리므로 단일 애그리거트 연산이 아니고, 그 분기 규칙을 ceo·admin 두 api 모듈이 각자 갖지 않도록 도메인 서비스가 소유한다. 승인 절차가 없어 상태 전이가 `hidden` 하나뿐이라 서비스를 더 쪼갤 이유가 없다.
-- `shopCeoAssignmentService` — 재배정을 `REVOKE` + `GRANT` **2행**으로 남긴다.
-
-#### `ProductDomainConfig` — 개별 판단
-
-**대상**: `.../product/config/ProductDomainConfig.java`
-
-- `cupDepositPolicy` — 순수 계산기인데도 **빈으로 두는 이유는 요율을 단 한 곳에 두기 위함**이다. 점주 설정(ceo)·손님 메뉴판(web)·주문 금액 확정(order) 세 경로가 **같은 인스턴스를 주입받아야** "화면 금액과 결제 금액이 다른" 사고가 구조적으로 불가능해진다.
-- `productDeletionService` — 삭제에도 숨김과 **같은 불변식**(노출 메뉴 ≥1 등)을 적용한다. **숨김만 막고 삭제를 열어두면 점주가 삭제로 우회해 빈 메뉴판을 만들 수 있다.**
-- `productSortService` — `sort` 값을 클라이언트에서 받지 않고 **순서 있는 id 배열만 받아 서버가 0..N-1로 정규화**한다.
-- `productOptionGroupLinkService` — **옵션그룹은 단일 가게에만 속한다**는 불변식을 강제해, 소유권 판정에서 ANY/ALL 구분이 사라지게 한다. 이 불변식이 `ProductQueryDao#findLinkedProductsByShop`의 단일 조회를 성립시킨다.
-- `productOptionGroupMergeService` — 링크 재배치는 `ProductOptionGroupLinkService#relink`에 위임한다. UNIQUE 충돌 처리와 sort 불변식이 그 클래스 소유로 남아야 `renumber`를 공개하지 않아도 된다.
-- `productExposureService` — 요일 묶음과 개별 요일의 **혼용을 금지한다.** 그 조합을 저장할 수 없게 하면 SQL 술어(`ProductQueryDao#exposedNow`)와 계산기(`ProductExposureCalculator`)가 갈릴 여지가 없다.
-- `productNutritionService` — 영양성분과 알레르기를 **한 서비스가 소유한다.** 나누면 "영양성분만 저장되고 알레르기는 이전 값이 남은" 중간 상태가 손님 화면에 **잘못된 알레르기 표시**로 노출된다. 승인 워크플로가 없는 것은 점주(가맹본사)만이 아는 사실 정보여서 관리자가 검증할 근거가 없기 때문이다.
-- `productPriceService` — **전체 교체(PUT) 의미론**이라 정렬·가격명 중복 같은 컬렉션 단위 불변식을 한 번에 판정한다. `sort=0` 행의 배달가를 `PRODUCT.original_price`에 **동기화**해 그 컬럼을 읽는 기존 수십 경로(주문·검색·오늘의할인·목록)의 동작을 그대로 유지한다. `StorePriceVerificationPort`를 받는 이유는 가격 변경으로 배달가 > 매장가가 되면 **그 자리에서** 가게 인증을 내려야 하기 때문이다 — 배치로 미루면 그 사이 손님이 잘못된 뱃지를 본다.
-
-##### 승인 워크플로의 방향 비대칭
-
-→ `productImageApprovalService` · `productRepresentativeApprovalService` · `productVegetarianApprovalService`
-
-**등록·지정은 승인을 거치고, 순서 변경·삭제·해제는 즉시 반영된다.** 검수의 목적이 "부적합한 내용의 노출을 막는 것"이므로 내리는 방향에는 그 위험이 없기 때문이다. 채식 설정만은 신청조차 즉시 반영하지 않는데, **채식 표기가 알레르기·신념과 직결돼 잘못된 표기의 대가가 크기** 때문이다.
-
-사장님 추천은 가게당 최대 6개·이미지 필수·최소 1개 유지 세 제약을 `ProductRepresentativeApprovalService`가 단독으로 소유한다. 세 번째 제약은 일괄 숨김(`ProductAvailabilityService`)이 이미 쓰는 `PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE`를 재사용하므로, **두 경로가 같은 하한을 공유한다.**
 
 ### `FileUrlProjection` · `FileUrlResolver#urlOf` — 경로→URL 변환을 투영식 안으로
 
@@ -2140,9 +2069,9 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 → `ReplyPhraseProhibitedWordValidatorAdapter` · `StorePriceVerificationAdapter` · `ShopRequestIndexSyncAdapter` · `MemberGradeReviewCountAdapter` · `MemberReviewCountAdapter` · `ProductReviewStatisticsAdapter` · `KeywordCountAdapter`
 
-domain의 `ContextBoundaryTest`가 타 컨텍스트의 `service`·`model` 직접 import를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
+domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 `ShopServiceConfig`가 등록한다** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
 
-- `ReplyPhraseProhibitedWordValidatorAdapter` — 검수 규칙 자체는 shop 컨텍스트의 `ProhibitedWordValidator`에 그대로 위임한다. 주입받는 빈은 `ShopDomainConfig`가 캐싱 데코레이터로 감싸 등록한 것이라 검증마다 금칙어 전량을 다시 읽지 않는다.
+- `ReplyPhraseProhibitedWordValidatorAdapter` — 검수 규칙 자체는 shop 컨텍스트의 `ProhibitedWordValidator`에 그대로 위임한다. 주입받는 빈은 `ShopServiceConfig`(구 `ShopDomainConfig`)가 캐싱 데코레이터로 감싸 등록한 것이라 검증마다 금칙어 전량을 다시 읽지 않는다.
 - `StorePriceVerificationAdapter` — 인증 요청 애그리거트는 product 소유지만(승인의 본체가 `PRODUCT_PRICE`를 채우는 일이므로) 인증 ON/OFF는 가게 단위 상태라 `SHOP`에 있다. 이 플래그만 좁은 포트로 뽑는다. `@Repository`가 아니라 `@Component`인 이유는 도메인 write 포트 구현이 아니라 출력 포트 어댑터이기 때문이다.
 - `ShopRequestIndexSyncAdapter` — 통합 인덱스와 그 기록자는 shop 소유다. **상태 문자열을 여기서 enum으로 승격하며, 승격 실패는 프로그래밍 오류(양쪽 enum이 어긋난 상태)이므로 `from(String)`의 400 변환에 맡기지 않고 그대로 전파시킨다** — 조용히 넘기면 인덱스가 원본과 어긋난 채 남는다. 기록은 원본 상태 전이와 **같은 트랜잭션**에서 동기 수행된다(이벤트·`AFTER_COMMIT`을 쓰지 않는 이유는 기록 유실이 곧 "요청이 목록에서 사라짐"이기 때문이다).
 - 집계 조회 어댑터 4종(`MemberGradeReviewCountAdapter`·`MemberReviewCountAdapter`·`ProductReviewStatisticsAdapter`·`KeywordCountAdapter`)은 집계 조회 자체를 소유 도메인의 QueryDao에 두고, **그 결과를 소비 도메인이 이해하는 값 타입으로 옮겨 담는 변환만** 담당한다. 덕분에 소비 도메인 서비스는 read model이나 QueryDSL을 알지 않는다. member와 rank가 같은 DAO를 공유하면서도 포트·값 타입을 컨텍스트별로 나눈 것은 컨텍스트 순환을 피하기 위해서다.
@@ -2163,17 +2092,6 @@ domain의 `ContextBoundaryTest`가 타 컨텍스트의 `service`·`model` 직접
 **형식이 깨진 입력은 `IllegalArgumentException`으로 실패시킨다** — 조용히 건너뛰면 도형의 일부가 사라진 채 복원되어, 점주가 그린 것과 다른 배달지역이 저장된 것처럼 보인다. 다만 `decodeRings`는 값이 없으면 빈 목록을 반환한다(행정동 경계는 단계적으로 투입되므로 미보유가 정상 상태다).
 
 도형 좌표를 도메인이 알지 않도록 **형식 지식을 이 코덱에 가두고**, `ShopDeliveryAreaPolygonMapper`·`AdminDongMapper`가 위임한다.
-
-#### `CachingProhibitedWordRepository` — 캐싱은 도메인이 아니라 어댑터에 둔다
-
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/persistence/CachingProhibitedWordRepository.java`
-→ `TTL` · `Snapshot`
-
-`ProhibitedWordValidator`는 텍스트 검증 때마다 `ProhibitedWordRepository#findAll()`을 호출하는데, 점주 입력(가게소개·찾아오는길 등) 저장 경로마다 금칙어 테이블을 통째로 다시 읽는 것이 낭비다. **검증기는 domain의 순수 POJO라 스프링 `@Cacheable`을 붙일 수 없으므로**, 캐싱을 write 포트 어댑터를 감싸는 데코레이터로 구현하고 빈 등록 지점(`ShopDomainConfig`)에서 주입한다 — 검증기·도메인 서비스 코드는 그대로다.
-
-금칙어는 SQL 시드로 관리되는 read-only 데이터(Java 계층에 생성·수정 경로가 없다)라 정합성 리스크가 낮다. 그래도 **무기한 캐싱은 시드 갱신이 재기동 전까지 반영되지 않으므로 TTL(10분)을 둬서 자연히 만료시킨다.**
-
-`AtomicReference`에 (적재 시각, 목록) 스냅샷을 통째로 담아 교체하므로 **락이 필요 없다.** 만료 직후 동시 호출이 겹치면 적재가 중복될 수 있으나 결과가 같은 read-only 조회라 무해하다 — 중복 적재를 막는 락이 주는 이득보다 락 경합 비용이 크다.
 
 #### `AdminDongRepositoryImpl` — 행정동 마스터 동기화
 
@@ -2235,12 +2153,6 @@ write 포트 `ShopDeliveryTipRepository`가 5종을 한 인터페이스로 묶�
 - **`infrastructure.redis`를 컴포넌트 스캔에서 제외한다** — Redis 빈의 등록 주체는 `RedisModuleAutoConfiguration` 하나로 일원화한다. 제외하지 않으면 redis 모듈이 클래스패스에 있을 때 두 스캔이 같은 클래스를 중복 등록한다.
 - **`before = JpaRepositoriesAutoConfiguration`이 필요하다** — 스캔 안 `InfrastructurePersistenceConfig`의 `@EnableJpaRepositories`가 같은 deferred 단계에서 Boot보다 먼저 처리돼야 Boot 쪽 `@ConditionalOnMissingBean(JpaRepositoryConfigExtension)`이 물러난다.
 - `InfrastructurePersistenceConfig`가 JPA 스캔의 **단일 소유자**다. domain은 이 모듈을 의존하지 않으므로(의존 방향: infrastructure → domain) domain에 이 패키지를 문자열로 선언할 수 없고, Spring Boot 공식 권장대로 엔티티를 소유한 모듈이 스스로 스캔 설정을 선언한다. `basePackageClasses`로 `com.tastyhouse.infrastructure` 이하 전체를 타입 세이프하게 지정한다. domain이 100% JPA-free로 전환되며 `@EnableJpaAuditing`·`@EnableTransactionManagement` 전역 설정도 이 클래스로 병합됐고, `BaseEntity`의 `@CreatedDate`/`@LastModifiedDate`가 이 설정으로 채워진다.
-
-#### `SpringDomainEventPublisher` — 발행 포트 어댑터
-
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/event/SpringDomainEventPublisher.java`
-
-domain의 `DomainEventPublisher` 포트를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다. 리스너는 이 모듈이 아니라 `application`의 `<ctx>/listener/`에 있고, 발행 어댑터인 이 클래스만 이 모듈에 남는다.
 
 #### 테이블명이 소유 컨텍스트와 어긋나는 자리
 

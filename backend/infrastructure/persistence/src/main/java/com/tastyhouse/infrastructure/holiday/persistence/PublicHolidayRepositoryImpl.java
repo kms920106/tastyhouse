@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayRepository;
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
-import com.tastyhouse.domain.holiday.repository.PublicHolidayRepository;
 
 @Repository
 public class PublicHolidayRepositoryImpl implements PublicHolidayRepository {

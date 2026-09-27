@@ -1,6 +1,7 @@
 package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,27 +9,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
-import com.tastyhouse.domain.shop.repository.ShopNoticeImageRepository;
-import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
-import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
-import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
-import com.tastyhouse.domain.shop.service.ShopNoticeExposureService;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
-import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
-import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
 
 @Service
 @CeoApp

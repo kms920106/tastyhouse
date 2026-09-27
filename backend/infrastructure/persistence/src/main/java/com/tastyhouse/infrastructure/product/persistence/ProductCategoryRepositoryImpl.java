@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
 import com.tastyhouse.domain.product.model.ProductCategory;
-import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

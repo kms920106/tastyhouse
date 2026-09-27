@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 import java.util.Set;
 
@@ -10,14 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.VegetarianType;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.service.ProductVegetarianApprovalService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

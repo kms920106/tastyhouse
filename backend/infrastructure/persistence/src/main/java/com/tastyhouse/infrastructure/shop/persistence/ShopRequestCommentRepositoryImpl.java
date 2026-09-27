@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentRepository;
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
-import com.tastyhouse.domain.shop.repository.ShopRequestCommentRepository;
 
 @Repository
 public class ShopRequestCommentRepositoryImpl implements ShopRequestCommentRepository {

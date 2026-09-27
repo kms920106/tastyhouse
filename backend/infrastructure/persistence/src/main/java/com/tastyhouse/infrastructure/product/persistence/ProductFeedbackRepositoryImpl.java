@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.product.model.ProductFeedback;
 import com.tastyhouse.domain.product.model.ProductFeedbackType;
-import com.tastyhouse.domain.product.repository.ProductFeedbackRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

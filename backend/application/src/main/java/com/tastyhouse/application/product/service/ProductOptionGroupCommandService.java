@@ -1,15 +1,21 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.in.ProductOptionGroupCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
@@ -18,16 +24,10 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
-import com.tastyhouse.domain.product.repository.ProductOptionRepository;
-import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.CupDepositOptionRule;
 import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
-import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
-import com.tastyhouse.domain.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service

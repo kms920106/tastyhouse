@@ -54,4 +54,14 @@ class RuleAnchorTest {
             .as("아웃바운드 계약이 0건이면 프레임워크-프리 규칙이 공허하게 통과한다")
             .isGreaterThanOrEqualTo(282);
     }
+
+    @Test
+    void writePortsExist() {
+        assertThat(classes.stream()
+            .filter(c -> resideInAPackage("..port.out.write..").test(c))
+            .filter(c -> c.isInterface() && c.getSimpleName().endsWith("Repository"))
+            .count())
+            .as("write 포트가 0건이면 queryServicesShouldNotDependOnWritePorts가 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(106);
+    }
 }

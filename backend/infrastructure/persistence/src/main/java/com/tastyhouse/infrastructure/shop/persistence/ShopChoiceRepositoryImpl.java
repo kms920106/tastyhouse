@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceRepository;
 import com.tastyhouse.domain.shop.model.ShopChoice;
-import com.tastyhouse.domain.shop.repository.ShopChoiceRepository;
 
 @Repository
 public class ShopChoiceRepositoryImpl implements ShopChoiceRepository {

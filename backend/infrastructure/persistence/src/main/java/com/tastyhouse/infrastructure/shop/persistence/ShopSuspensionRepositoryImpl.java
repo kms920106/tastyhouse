@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
-import com.tastyhouse.domain.shop.repository.ShopSuspensionRepository;
 
 @Repository
 public class ShopSuspensionRepositoryImpl implements ShopSuspensionRepository {

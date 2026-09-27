@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.domain.region.repository.AdminDongRepository;
-import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 

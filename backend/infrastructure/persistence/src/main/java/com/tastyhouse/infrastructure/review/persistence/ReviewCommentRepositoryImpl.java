@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewCommentRepository;
 import com.tastyhouse.domain.review.model.ReviewComment;
-import com.tastyhouse.domain.review.repository.ReviewCommentRepository;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 @Repository

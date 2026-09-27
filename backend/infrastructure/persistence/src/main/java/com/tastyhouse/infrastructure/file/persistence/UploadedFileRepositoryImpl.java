@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
 import com.tastyhouse.domain.file.model.UploadedFile;
-import com.tastyhouse.domain.file.repository.UploadedFileRepository;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 @Repository

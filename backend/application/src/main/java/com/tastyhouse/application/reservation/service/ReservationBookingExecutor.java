@@ -1,6 +1,7 @@
 package com.tastyhouse.application.reservation.service;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.reservation.service.ReservationBookingService;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

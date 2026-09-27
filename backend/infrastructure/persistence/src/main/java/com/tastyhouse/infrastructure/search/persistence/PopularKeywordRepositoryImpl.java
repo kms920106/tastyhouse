@@ -7,8 +7,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.search.port.out.write.PopularKeywordRepository;
 import com.tastyhouse.domain.search.model.PopularKeyword;
-import com.tastyhouse.domain.search.repository.PopularKeywordRepository;
 
 import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 

@@ -10,12 +10,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
-import com.tastyhouse.domain.file.model.UploadedFile;
-import com.tastyhouse.application.file.port.out.FileDeleteResult;
-import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.domain.file.repository.UploadedFileRepository;
-import com.tastyhouse.application.file.service.FileUploadService;
-import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
@@ -23,9 +17,15 @@ import com.tastyhouse.application.crawling.bbq.port.out.DownloadedImage;
 import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadFailure;
 import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
+import com.tastyhouse.application.file.port.out.FileDeleteResult;
+import com.tastyhouse.application.file.port.out.FileStoragePort;
+import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
+import com.tastyhouse.application.file.service.FileUploadService;
 import com.tastyhouse.application.shared.exception.BatchJobException;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.file.model.UploadedFile;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

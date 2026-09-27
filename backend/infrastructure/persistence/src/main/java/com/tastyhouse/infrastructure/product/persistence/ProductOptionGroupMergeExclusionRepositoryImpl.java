@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionRepository;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeExclusionRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

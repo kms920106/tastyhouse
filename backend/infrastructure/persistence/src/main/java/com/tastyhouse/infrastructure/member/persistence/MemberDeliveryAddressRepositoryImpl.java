@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
-import com.tastyhouse.domain.member.repository.MemberDeliveryAddressRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 @Repository

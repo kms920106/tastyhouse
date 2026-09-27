@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.ceo.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
-import com.tastyhouse.domain.ceo.repository.CeoLoginHistoryRepository;
 
 @Repository
 public class CeoLoginHistoryRepositoryImpl implements CeoLoginHistoryRepository {

@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageRepository;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
-import com.tastyhouse.domain.shop.repository.ShopMenuCollectionImageRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 

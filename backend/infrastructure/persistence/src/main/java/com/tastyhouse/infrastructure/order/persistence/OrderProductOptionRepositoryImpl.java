@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.order.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.order.port.out.write.OrderProductOptionRepository;
 import com.tastyhouse.domain.order.model.OrderProductOption;
-import com.tastyhouse.domain.order.repository.OrderProductOptionRepository;
 
 @Repository
 public class OrderProductOptionRepositoryImpl implements OrderProductOptionRepository {

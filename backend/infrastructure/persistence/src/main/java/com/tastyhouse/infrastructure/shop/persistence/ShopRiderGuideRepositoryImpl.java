@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
-import com.tastyhouse.domain.shop.repository.ShopRiderGuideRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 

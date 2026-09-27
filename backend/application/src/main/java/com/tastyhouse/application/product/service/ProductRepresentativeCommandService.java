@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import com.tastyhouse.application.product.port.in.ProductRepresentativeClearComm
 import com.tastyhouse.application.product.port.in.ProductRepresentativeCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestCommand;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
-import com.tastyhouse.domain.product.service.ProductRepresentativeApprovalService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

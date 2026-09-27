@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowRepository;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
-import com.tastyhouse.domain.member.follow.repository.MemberFollowRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;

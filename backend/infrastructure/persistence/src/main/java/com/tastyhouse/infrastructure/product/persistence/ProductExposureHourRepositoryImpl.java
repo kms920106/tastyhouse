@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
-import com.tastyhouse.domain.product.repository.ProductExposureHourRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 @Repository

@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.point.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.point.port.out.write.PointHistoryRepository;
 import com.tastyhouse.domain.point.model.PointHistory;
-import com.tastyhouse.domain.point.repository.PointHistoryRepository;
 
 @Repository
 public class PointHistoryRepositoryImpl implements PointHistoryRepository {

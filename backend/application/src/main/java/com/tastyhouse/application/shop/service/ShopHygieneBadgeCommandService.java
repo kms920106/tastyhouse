@@ -5,17 +5,18 @@ import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import java.time.LocalDate;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.model.HygieneBadgeType;
-import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
-import com.tastyhouse.domain.shop.repository.ShopHygieneBadgeRepository;
-import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.shop.model.HygieneBadgeType;
+import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service
 @AdminApp

@@ -4,9 +4,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
-import com.tastyhouse.domain.shop.repository.ShopRequestIndexRepository;
 
 @Repository
 public class ShopRequestIndexRepositoryImpl implements ShopRequestIndexRepository {

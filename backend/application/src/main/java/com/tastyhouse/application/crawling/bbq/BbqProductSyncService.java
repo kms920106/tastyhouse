@@ -1,27 +1,28 @@
 package com.tastyhouse.application.crawling.bbq;
 
 import com.tastyhouse.application.shared.marker.BatchApp;
+
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
+import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
+import com.tastyhouse.application.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
-import com.tastyhouse.domain.product.repository.ProductCategoryRepository;
-import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.BbqCategoryId;
 import com.tastyhouse.domain.product.vo.BbqMenuId;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
-import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
 
 @Service
 @BatchApp

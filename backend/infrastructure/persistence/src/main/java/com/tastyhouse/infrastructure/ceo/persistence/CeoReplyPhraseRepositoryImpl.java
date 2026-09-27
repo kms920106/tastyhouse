@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
-import com.tastyhouse.domain.ceo.repository.CeoReplyPhraseRepository;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 

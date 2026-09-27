@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
@@ -19,7 +20,6 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
-import com.tastyhouse.domain.shop.repository.ShopDetailRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;

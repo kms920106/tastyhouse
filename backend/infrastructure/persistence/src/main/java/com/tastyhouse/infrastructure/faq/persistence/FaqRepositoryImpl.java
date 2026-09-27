@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.faq.port.out.write.FaqRepository;
 import com.tastyhouse.domain.faq.model.Faq;
-import com.tastyhouse.domain.faq.repository.FaqRepository;
 import com.tastyhouse.domain.faq.vo.FaqId;
 
 import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpaEntity;

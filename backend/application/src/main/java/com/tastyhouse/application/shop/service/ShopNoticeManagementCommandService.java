@@ -1,22 +1,22 @@
 package com.tastyhouse.application.shop.service;
 
-import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeHideCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopNotice;
-import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
-import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 
 @Service
 @AdminApp

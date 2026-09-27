@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.product.service.ProductReviewStatsService;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.event.MenuReviewCreatedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewDeletedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewRatingChangedEvent;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
-import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

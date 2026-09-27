@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
 import com.tastyhouse.domain.coupon.model.Coupon;
-import com.tastyhouse.domain.coupon.repository.CouponRepository;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 
 import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.couponJpaEntity;

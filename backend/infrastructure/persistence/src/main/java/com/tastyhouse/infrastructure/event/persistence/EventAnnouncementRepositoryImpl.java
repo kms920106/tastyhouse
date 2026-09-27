@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementRepository;
 import com.tastyhouse.domain.event.model.EventAnnouncement;
-import com.tastyhouse.domain.event.repository.EventAnnouncementRepository;
 import com.tastyhouse.domain.event.vo.EventId;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;

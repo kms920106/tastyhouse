@@ -3,9 +3,9 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
-import com.tastyhouse.domain.shop.repository.ShopBookmarkRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 

@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogRepository;
 import com.tastyhouse.domain.search.model.SearchKeywordLog;
-import com.tastyhouse.domain.search.repository.SearchKeywordLogRepository;
 
 @Repository
 public class SearchKeywordLogRepositoryImpl implements SearchKeywordLogRepository {

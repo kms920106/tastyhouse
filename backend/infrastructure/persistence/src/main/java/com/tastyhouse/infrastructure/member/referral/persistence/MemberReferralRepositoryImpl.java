@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
-import com.tastyhouse.domain.member.referral.repository.MemberReferralRepository;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
 

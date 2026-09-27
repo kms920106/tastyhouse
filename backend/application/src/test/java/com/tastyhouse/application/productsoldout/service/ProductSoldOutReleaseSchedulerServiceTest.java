@@ -8,12 +8,12 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductOption;
-import com.tastyhouse.domain.product.repository.ProductCommonOptionRepository;
-import com.tastyhouse.domain.product.repository.ProductOptionRepository;
-import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductCommonOptionId;
 import com.tastyhouse.domain.product.vo.ProductId;

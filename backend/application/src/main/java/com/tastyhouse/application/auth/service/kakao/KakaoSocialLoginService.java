@@ -1,6 +1,7 @@
 package com.tastyhouse.application.auth.service.kakao;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,29 +10,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.tastyhouse.application.auth.port.out.MemberJwtResult;
+import com.tastyhouse.application.auth.port.out.SocialAuthorization;
+import com.tastyhouse.application.auth.port.out.SocialCredential;
+import com.tastyhouse.application.auth.port.out.SocialLinkResult;
+import com.tastyhouse.application.auth.port.out.SocialLoginResult;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialProfile;
+import com.tastyhouse.application.auth.port.out.SocialProfileResult;
+import com.tastyhouse.application.auth.service.SocialOAuthFailures;
+import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
+import com.tastyhouse.application.auth.token.MemberTokenService;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountRepository;
+import com.tastyhouse.application.member.service.MemberCommandService;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberSocialAccount;
 import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.domain.member.repository.MemberRepository;
-import com.tastyhouse.domain.member.repository.MemberSocialAccountRepository;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.security.token.KakaoTempTokenRepository;
-import com.tastyhouse.application.auth.port.out.SocialAuthorization;
-import com.tastyhouse.application.auth.port.out.SocialCredential;
-import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
-import com.tastyhouse.application.auth.port.out.SocialProfile;
-import com.tastyhouse.application.auth.service.SocialOAuthFailures;
-import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
-import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.service.MemberCommandService;
-import com.tastyhouse.application.auth.port.out.MemberJwtResult;
-import com.tastyhouse.application.auth.port.out.SocialLinkResult;
-import com.tastyhouse.application.auth.port.out.SocialLoginResult;
-import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 
 @Service
 @WebApp

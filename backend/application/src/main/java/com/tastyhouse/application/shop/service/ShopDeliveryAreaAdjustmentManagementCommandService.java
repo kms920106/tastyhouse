@@ -5,13 +5,13 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentRejectC
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
-import com.tastyhouse.domain.shop.service.ShopDeliveryAreaAdjustmentService;
 
 @Service
 @AdminApp

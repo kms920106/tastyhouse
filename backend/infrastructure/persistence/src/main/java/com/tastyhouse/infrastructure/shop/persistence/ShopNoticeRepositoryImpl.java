@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.model.ShopNotice;
-import com.tastyhouse.domain.shop.repository.ShopNoticeRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

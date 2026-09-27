@@ -6,9 +6,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.notification.port.out.write.NotificationRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.notification.model.Notification;
-import com.tastyhouse.domain.notification.repository.NotificationRepository;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 
 import static com.tastyhouse.infrastructure.notification.persistence.QNotificationJpaEntity.notificationJpaEntity;

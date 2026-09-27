@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.notice.port.out.write.NoticeRepository;
 import com.tastyhouse.domain.notice.model.Notice;
-import com.tastyhouse.domain.notice.repository.NoticeRepository;
 import com.tastyhouse.domain.notice.vo.NoticeId;
 
 import static com.tastyhouse.infrastructure.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;

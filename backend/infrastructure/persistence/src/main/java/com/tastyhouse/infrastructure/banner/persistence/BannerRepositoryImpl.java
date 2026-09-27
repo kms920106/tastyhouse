@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.banner.port.out.write.BannerRepository;
 import com.tastyhouse.domain.banner.model.Banner;
-import com.tastyhouse.domain.banner.repository.BannerRepository;
 import com.tastyhouse.domain.banner.vo.BannerId;
 
 @Repository

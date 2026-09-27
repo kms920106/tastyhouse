@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -13,13 +14,12 @@ import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.service.ProductExposureService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;

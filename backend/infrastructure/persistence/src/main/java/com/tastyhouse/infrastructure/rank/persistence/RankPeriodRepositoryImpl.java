@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.rank.port.out.write.RankPeriodRepository;
 import com.tastyhouse.domain.rank.model.RankPeriod;
-import com.tastyhouse.domain.rank.repository.RankPeriodRepository;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;

@@ -5,10 +5,10 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationRepository;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
-import com.tastyhouse.domain.product.repository.StorePriceVerificationRepository;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

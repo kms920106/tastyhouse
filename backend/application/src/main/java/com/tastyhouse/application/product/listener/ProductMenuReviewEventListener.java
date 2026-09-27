@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.tastyhouse.application.product.service.ProductReviewStatsService;
 import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.domain.menureview.event.MenuReviewCreatedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewDeletedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewRatingChangedEvent;
-import com.tastyhouse.domain.product.service.ProductReviewStatsService;
 
 @Component
 @SharedApp

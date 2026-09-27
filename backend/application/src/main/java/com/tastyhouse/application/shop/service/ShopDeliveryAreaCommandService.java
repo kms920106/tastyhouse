@@ -1,30 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.domain.region.repository.AdminDongRepository;
-import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.model.ShopChangeActor;
-import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
-import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolygonService;
-import com.tastyhouse.domain.shop.service.ShopDeliveryAreaRadiusService;
-import com.tastyhouse.domain.shop.service.ShopDeliveryAreaService;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.geo.GeoPoint;
-import com.tastyhouse.domain.shared.geo.GeoPolygon;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
-import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
+import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
@@ -33,6 +17,20 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
+import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.region.model.AdminDong;
+import com.tastyhouse.domain.region.vo.AdminDongId;
+import com.tastyhouse.domain.shared.geo.GeoPoint;
+import com.tastyhouse.domain.shared.geo.GeoPolygon;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service
 @CeoApp

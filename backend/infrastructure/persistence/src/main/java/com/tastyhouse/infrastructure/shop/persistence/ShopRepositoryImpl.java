@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;

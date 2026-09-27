@@ -1,6 +1,7 @@
 package com.tastyhouse.application.point.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,7 +9,6 @@ import com.tastyhouse.application.point.port.in.PointCommandUseCase;
 import com.tastyhouse.application.point.port.in.PointDeductCommand;
 import com.tastyhouse.application.point.port.in.PointEarnCommand;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.point.service.PointLedgerService;
 
 @Service
 @AdminApp

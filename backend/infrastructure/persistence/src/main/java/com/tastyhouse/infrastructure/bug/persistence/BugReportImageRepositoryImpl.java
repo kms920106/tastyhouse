@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.bug.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.bug.port.out.write.BugReportImageRepository;
 import com.tastyhouse.domain.bug.model.BugReportImage;
-import com.tastyhouse.domain.bug.repository.BugReportImageRepository;
 
 @Repository
 public class BugReportImageRepositoryImpl implements BugReportImageRepository {

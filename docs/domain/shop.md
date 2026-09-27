@@ -579,7 +579,7 @@
 
 - **이미지 변경에는 "진행"이 없다.** 검수가 단일 단계라 그 상태가 실재하지 않는다.
 - **배달지역 조정의 "완료"는 "승인"으로 보여준다.** 점주 화면에서 완료와 승인을 구분할 근거가 없다.
-- **리뷰 게시중단 요청의 "재노출"(만료)과 "삭제"도 "승인"으로 보여준다.** 둘 다 관리자가 한 번 승인한 뒤에 일어나는 후속 상태라, 점주가 낸 요청의 결과로서는 승인과 같다. 목록(인덱스)과 상세가 같은 대응을 쓴다 — 대응표의 원천은 `backend/domain/src/main/java/com/tastyhouse/domain/review/service/ReviewBlindRequestService.java`의 `toShopRequestStatus`이고, 상세 조립(`backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestQueryService.java`의 `toReviewBlindDetailResult`)도 이 메서드를 그대로 호출한다. 대응을 따로 복제하면 목록과 상세의 상태가 갈라진다.
+- **리뷰 게시중단 요청의 "재노출"(만료)과 "삭제"도 "승인"으로 보여준다.** 둘 다 관리자가 한 번 승인한 뒤에 일어나는 후속 상태라, 점주가 낸 요청의 결과로서는 승인과 같다. 목록(인덱스)과 상세가 같은 대응을 쓴다 — 대응표의 원천은 `backend/application/src/main/java/com/tastyhouse/application/review/service/ReviewBlindRequestService.java`의 `toShopRequestStatus`이고, 상세 조립(`backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestQueryService.java`의 `toReviewBlindDetailResult`)도 이 메서드를 그대로 호출한다. 대응을 따로 복제하면 목록과 상세의 상태가 갈라진다.
 - **목록에 담기는 신청은 위 3종 외에 리뷰 게시중단 요청·매장 가격 인증 요청도 있다**(`ShopRequestType`의 5종). 위 "3종뿐" 서술은 두 유형 도입 전의 기록이다.
 - **조회 기간에 제한이 없다.** 변경이력이 최근 6개월만 보여주는 것과 다른데, 이쪽은 "내가 낸 요청의 결과"라서 오래된 건도 반려 사유 확인·재요청 근거로 열람해야 한다.
 

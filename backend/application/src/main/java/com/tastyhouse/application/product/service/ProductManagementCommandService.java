@@ -1,27 +1,31 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductManagementCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductDeactivateCommand;
 import com.tastyhouse.application.product.port.in.ProductDeactivateUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductImageCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
-import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductManagementCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductManagementUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductManagementUpdateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
+import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -29,16 +33,12 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupRepository;
-import com.tastyhouse.domain.product.repository.ProductRepository;
 import com.tastyhouse.domain.product.service.CupDepositOptionRule;
 import com.tastyhouse.domain.product.service.CupDepositPolicy;
-import com.tastyhouse.domain.product.service.ProductRegistrationService;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service

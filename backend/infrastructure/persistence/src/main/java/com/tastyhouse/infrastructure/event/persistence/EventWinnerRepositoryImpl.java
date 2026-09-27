@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.event.port.out.write.EventWinnerRepository;
 import com.tastyhouse.domain.event.model.EventWinner;
-import com.tastyhouse.domain.event.repository.EventWinnerRepository;
 
 import static com.tastyhouse.infrastructure.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
 

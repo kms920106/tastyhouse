@@ -2,17 +2,17 @@ package com.tastyhouse.application.mail.service;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.application.mail.port.out.MailSendResult;
+import com.tastyhouse.application.mail.port.out.MailSender;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
-import com.tastyhouse.application.mail.port.out.MailSendResult;
-import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.domain.mail.repository.MailVerificationRepository;
-import com.tastyhouse.domain.member.repository.MemberRepository;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
 public class MailVerificationService {

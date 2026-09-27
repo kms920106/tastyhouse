@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.order.port.out.write.OrderRepository;
 import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.order.repository.OrderRepository;
 import com.tastyhouse.domain.order.vo.OrderId;
 
 @Repository

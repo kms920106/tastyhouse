@@ -5,9 +5,9 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaAdjustmentRequestRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

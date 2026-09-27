@@ -4,16 +4,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
+import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
+import com.tastyhouse.application.payment.port.out.PgCancelResult;
+import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.payment.model.PaymentCancelCode;
 import com.tastyhouse.domain.payment.model.PgProvider;
-import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
-import com.tastyhouse.application.payment.port.out.PgCancelResult;
-import com.tastyhouse.domain.payment.service.PaymentCancellationService;
 import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
-import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

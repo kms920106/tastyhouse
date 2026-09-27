@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.rank.port.out.write.RankPrizeRepository;
 import com.tastyhouse.domain.rank.model.RankPrize;
-import com.tastyhouse.domain.rank.repository.RankPrizeRepository;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
 
 import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;

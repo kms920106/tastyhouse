@@ -3,9 +3,9 @@ package com.tastyhouse.infrastructure.review.persistence;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewLikeRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewLike;
-import com.tastyhouse.domain.review.repository.ReviewLikeRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;

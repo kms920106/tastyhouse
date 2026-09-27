@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.search.port.KeywordCount;
-import com.tastyhouse.domain.search.port.KeywordCountPort;
+import com.tastyhouse.application.search.port.out.KeywordCount;
+import com.tastyhouse.application.search.port.out.KeywordCountPort;
 import com.tastyhouse.application.search.port.out.KeywordCountResult;
 import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
 

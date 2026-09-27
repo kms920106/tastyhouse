@@ -6,10 +6,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
-import com.tastyhouse.domain.shop.repository.ShopImageChangeRequestRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 

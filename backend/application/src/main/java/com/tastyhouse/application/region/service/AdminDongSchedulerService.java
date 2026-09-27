@@ -1,7 +1,8 @@
 package com.tastyhouse.application.region.service;
 
-import com.tastyhouse.application.shared.marker.BatchApp;
 import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
+import com.tastyhouse.application.shared.marker.BatchApp;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,10 @@ import com.tastyhouse.application.region.port.out.AdminDongBoundaryPort;
 import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
 import com.tastyhouse.application.region.port.out.BoundaryCoordinate;
 import com.tastyhouse.application.region.port.out.BoundaryRing;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.domain.region.repository.AdminDongSyncResult;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.domain.shared.geo.InteriorPoint;

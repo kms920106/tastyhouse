@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
-import com.tastyhouse.domain.product.repository.ProductCommonOptionGroupRepository;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 @Repository

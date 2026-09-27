@@ -1,15 +1,16 @@
 package com.tastyhouse.application.review.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.review.port.in.ShopReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ShopReviewSortTypeChangeCommand;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
-import com.tastyhouse.domain.review.repository.ShopReviewDisplaySettingRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service

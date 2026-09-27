@@ -6,9 +6,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
-import com.tastyhouse.domain.product.repository.ProductImageRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 

@@ -1,6 +1,7 @@
 package com.tastyhouse.application.reservation.service;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -10,21 +11,20 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.reservation.model.Reservation;
-import com.tastyhouse.domain.reservation.repository.ReservationRepository;
-import com.tastyhouse.domain.reservation.service.ReservationBookingService;
-import com.tastyhouse.domain.reservation.vo.ReservationId;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.exception.OptimisticLockConflictException;
 import com.tastyhouse.application.reservation.port.in.ReservationCancelCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCommandUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
+import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
+import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.reservation.model.Reservation;
+import com.tastyhouse.domain.reservation.vo.ReservationId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Service
 @WebApp

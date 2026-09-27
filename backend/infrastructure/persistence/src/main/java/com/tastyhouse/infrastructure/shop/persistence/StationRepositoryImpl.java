@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.shop.repository.StationRepository;
+import com.tastyhouse.application.shop.port.out.write.StationRepository;
 
 @Repository
 public class StationRepositoryImpl implements StationRepository {

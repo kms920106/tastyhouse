@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
@@ -10,7 +11,6 @@ import com.tastyhouse.application.product.port.in.StorePriceVerificationApproveC
 import com.tastyhouse.application.product.port.in.StorePriceVerificationCommandUseCase;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectCommand;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationStartReviewCommand;
-import com.tastyhouse.domain.product.service.StorePriceVerificationService;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 
 @Service

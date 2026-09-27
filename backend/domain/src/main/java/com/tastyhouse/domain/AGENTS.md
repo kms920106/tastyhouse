@@ -16,44 +16,50 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `shared/vo/PhoneNumber.java` | 공유 커널 Value Object. `record`(compact constructor 검증) — `@Embeddable` 어노테이션 없음, 컬럼 매핑은 각 JpaEntity의 `@AttributeOverride`가 소유 |
 | `shared/model/ApprovalStatus.java` | 승인 워크플로 공용 enum(PENDING/APPROVED/REJECTED). 상표·대표이미지 변경요청 등에서 재사용 |
 | ~~`shared/page/PageQuery.java` / `PageResult.java`~~ | **이동됨 (덩어리 01)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/page/`로 `git mv`. domain 안에 사용처가 0건이었고, 소비자(persistence DAO 32곳·표현 계층)가 전부 application 쪽이라 domain이 소유할 이유가 없었다. 표현 계층이 domain을 끊는 데 필요한 이동이기도 하다 |
-| `shared/event/DomainEventPublisher.java` | 이벤트 발행 **출력 포트**. 스프링 구현체(`SpringDomainEventPublisher`)는 infrastructure-module 소유 |
-| `shared/exception/OptimisticLockConflictException.java` | 낙관적 락 충돌의 프레임워크-프리 표현. 스프링 `ObjectOptimisticLockingFailureException` → 이 예외 번역은 infrastructure-module의 `RepositoryImpl` 담당 |
+| ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 `shared/config/SharedEventConfig`(`@SharedApp`)가 등록한다 |
+| ~~`shared/exception/OptimisticLockConflictException.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/`로 `git mv`. 던지는 쪽(persistence `ReservationSlotRepositoryImpl`)이 03b에서 domain 없이 참조할 수 있도록 `port/out` 아래에 둔다 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
 | `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). 지금 구현체는 `ErrorCode` 하나뿐이다 — 과거 `infrastructure:http-client`(구 `infrastructure:external`)가 소유하던 `ExternalApiErrorCode`는 완전히 삭제됐고, 외부 연동 실패 코드(SMS 발송·메일 발송·행정동 경계 조회 실패 등)도 지금은 이 `ErrorCode` 카탈로그의 상수다. 인터페이스 자체는 "카탈로그는 하나로 유지하되 필요하면 domain이 모듈별 에러 카탈로그를 다시 호스트할 수 있는 확장점"으로 남긴다. `BusinessException`이 이 타입을 보유해 전역 핸들러가 그대로 처리한다 |
 
-> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지가 아니라 infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig` 소관입니다.
+> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지 소관이 아닙니다 — ~~infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`~~ **(번복됨 — 03a)** `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp`)가 이 패키지에 남은 순수 서비스까지 함께 등록합니다.
 
 ## Bounded Contexts
 
-각 컨텍스트는 `<ctx>/domain/` 아래에 `model`(애그리거트, 순수 POJO) / `vo`(ID VO 등) / `event`(DomainEvent record) / `repository`(write 포트) / `service`(불변식 오케스트레이션·무상태 정책 POJO) / `port`(외부 어댑터 출력 포트)를 갖습니다. 아래 표의 숫자는 해당 하위 패키지의 파일 수입니다.
+각 컨텍스트는 `<ctx>/` 아래에 `model`(애그리거트, 순수 POJO) / `vo`(ID VO 등) / `event`(DomainEvent record) / `service`(**포트를 주입받지 않는** 순수 계산기·정책·검증기와 그 입출력 record)를 갖습니다. 아래 표의 숫자는 해당 하위 패키지의 파일 수입니다(`member`는 `follow`·`referral` 하위 포함).
 
-| 도메인 | 목적 | model | vo | event | repo | service | port |
-|---|---|---|---|---|---|---|---|
-| admin | 관리자 계정 | 3 | 1 | - | 1 | - | - |
-| banner | 배너 관리 | 2 | 1 | - | 1 | - | - |
-| bug | 버그 리포팅 | 6 | 1 | - | 2 | 1 | - |
-| ceo | 점주 계정 (`admin`과 동형 최소 CRUD, `role` 없이 `status`만) | 2 | 1 | - | 1 | - | - |
-| coupon | 쿠폰 발급/사용 | 3 | 2 | 2 | 2 | 2 | - |
-| event | 이벤트/프로모션 (Event/Winner/Announcement 3 애그리거트) | 4 | 1 | - | 3 | - | - |
-| faq | FAQ (Faq/FaqCategory) | 2 | 2 | - | 2 | 1 | - |
-| file | 파일 업로드/관리 | 1 | 1 | 1 | 1 | 2 | - (`FileStoragePort`는 `application`으로 이동) |
-| member | 회원 관리 (하위 `follow`·`referral` 포함). 다른 모든 BC가 `MemberId`로 참조하는 핵심 도메인 | 11 | 4 | 3 | 5 | 4 | - |
-| notice | 공지사항 (분리 패턴 reference 도메인) | 1 | 1 | - | 1 | - | - |
-| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | - (`MailSender`는 `application`으로 이동) |
-| order | 주문 (Order/OrderProduct/OrderProductOption) | 4 | 3 | 2 | 3 | 5 | - |
-| partnership | 제휴 신청 | 2 | 1 | - | 1 | - | - |
-| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 3 | 3 | - (`PgPaymentGateway`·`PgProviderGateway`·dto는 `application`으로 이동) |
-| point | 포인트 (Point/PointHistory) | 3 | - | 3 | 2 | 1 | - |
-| policy | 정책/약관 버전 관리 | 2 | 1 | 1 | 1 | 1 | - |
-| product | 상품·옵션 (8 애그리거트) | 8 | 5 | 3 | 8 | 2 | 1 (`ProductReviewStatisticsPort`) |
-| rank | 리뷰 랭킹/기간·상품 | 4 | 2 | - | 3 | 1 | 2 (`MemberReviewCountPort`) |
-| reservation | 시간대 예약 — `@Version` 낙관적 락 정원 관리 | 3 | 1 | - | 2 | 2 | - |
-| review | 리뷰/댓글/답글/이미지/좋아요/태그 (6 애그리거트) | 7 | 4 | 3 | 6 | 2 | - |
-| search | 검색어 (PopularKeyword/SearchKeywordLog) | 2 | - | - | 2 | 1 | - |
-| shop | 가게/식당 + 자식 애그리거트 다수 — 최대 도메인 | 36 | 1 | - | 14 | 8 | - |
-| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 2 | 1 | 1 | 1 | - (`SmsSender`는 `application`으로 이동) |
+**(번복됨 — 덩어리 03a)** 과거 이 표에는 `repository`(write 포트)·`port`(출력 포트) 열이 있었고 `service` 열은 포트를 주입받는 오케스트레이션 서비스까지 셌다. 03a로 write 포트 106개(+보조 타입 2)·출력 포트 7개(+record 3)·포트 주입 서비스 71개(+`NotificationMessage`)가 전부 `application`으로 옮겨가 두 열이 사라졌고 `service` 열도 줄었다. 옮긴 목록과 위치는 `backend/application/AGENTS.md`의 "덩어리 03a" 절.
+
+| 도메인 | 목적 | model | vo | event | service(순수) |
+|---|---|---|---|---|---|
+| admin | 관리자 계정 | 3 | 1 | - | - |
+| banner | 배너 관리 | 2 | 1 | - | - |
+| bug | 버그 리포팅 | 6 | 1 | - | - |
+| ceo | 점주 계정 (`admin`과 동형 최소 CRUD, `role` 없이 `status`만) | 6 | 2 | - | - |
+| coupon | 쿠폰 발급/사용 | 3 | 2 | 2 | 1 |
+| event | 이벤트/프로모션 (Event/Winner/Announcement 3 애그리거트) | 4 | 1 | - | - |
+| faq | FAQ (Faq/FaqCategory) | 2 | 2 | - | - |
+| file | 파일 업로드/관리 | 1 | 1 | 1 | - |
+| holiday | 공휴일 마스터 | 1 | - | - | - |
+| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 1 | 1 | - |
+| member | 회원 관리 (하위 `follow`·`referral` 포함). 다른 모든 BC가 `MemberId`로 참조하는 핵심 도메인 | 12 | 2 | 3 | 1 |
+| menureview | 메뉴 평가(매장 리뷰와 독립된 축) | 1 | 1 | 3 | - |
+| notice | 공지사항 (분리 패턴 reference 도메인) | 1 | 1 | - | - |
+| notification | 알림 | 3 | 1 | - | - |
+| order | 주문 (Order/OrderProduct/OrderProductOption) | 4 | 4 | - | 4 |
+| partnership | 제휴 신청 | 2 | 1 | - | - |
+| payment | 결제 (Payment/PaymentRefund/TossPaymentRecord) | 8 | 4 | 3 | 1 |
+| point | 포인트 (Point/PointHistory) | 3 | - | 3 | - |
+| policy | 정책/약관 버전 관리 | 2 | 1 | 1 | - |
+| product | 상품·옵션 (8 애그리거트) | 34 | 13 | - | 18 |
+| rank | 리뷰 랭킹/기간·상품 | 4 | 2 | - | - |
+| region | 행정동 마스터·경계 | 1 | 1 | - | - |
+| reservation | 시간대 예약 — `@Version` 낙관적 락 정원 관리 | 3 | 1 | - | 1 |
+| review | 리뷰/댓글/답글/이미지/좋아요/태그 (6 애그리거트) | 14 | 5 | 4 | 1 |
+| search | 검색어 (PopularKeyword/SearchKeywordLog) | 2 | - | - | - |
+| shop | 가게/식당 + 자식 애그리거트 다수 — 최대 도메인 | 73 | 8 | - | 20 |
+| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 2 | 1 | 1 | - |
 
 ## For AI Agents
 
@@ -65,10 +71,12 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 presentation + application (web-api / admin-api / ceo-api / batch-module)
    · {도메인}CommandService(@Transactional) / {도메인}QueryService(@Transactional(readOnly))
         ↓                                              ↓
+   application — <ctx>/port/out/write (write 포트) · <ctx>/port/out (출력 포트)
+               · <ctx>/service (포트 주입 도메인 서비스, 마커 없는 POJO) · <ctx>/config/<Ctx>ServiceConfig
+        ↓                                              ↑ 구현
    domain (이 패키지)                       infrastructure-module
-   · model/vo/event/repository(write 포트)     · <ctx>/persistence (write 어댑터)
-   · domain/service (POJO 불변식·정책)  ←DIP─  · <ctx>/query (read: QueryDao + Result)
-   · domain/port (출력 포트)            ←DIP─  · <ctx>/listener, <ctx>/config/<Ctx>DomainConfig
+   · model/vo/event                            · <ctx>/persistence (write 어댑터)
+   · <ctx>/service (포트 없는 순수 계산기·정책)   · <ctx>/query (read: QueryDao + Result)
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{firebase,aws-s3,aws-ses,aws-sns,
                                           kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,
@@ -78,7 +86,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 - **domain 계층에 프레임워크 import 금지**: `org.springframework.*`·`jakarta.persistence.*`·`com.querydsl.*`를 넣지 않는다. build.gradle에 해당 의존이 없으므로 시도하면 컴파일이 깨진다 — 그 관심사는 `infrastructure-module` 소관이다.
 - **`@Entity`는 이 패키지에 없다**: 도메인 모델은 전 도메인 순수 POJO다. `@OneToMany`/`@ManyToOne`/`@ElementCollection`은 애초에 표현할 수 없으며, 외부 애그리거트 참조는 ID VO로만 한다.
-- **BC 간 통신**: 도메인 서비스 호출 또는 `DomainEventPublisher` 포트를 통한 DomainEvent로만 한다(다른 BC의 model 직접 조작 금지). 리스너는 infrastructure-module의 `<ctx>/listener/`에 둔다.
+- **BC 간 통신**: 도메인 서비스 호출 또는 `DomainEventPublisher` 포트를 통한 DomainEvent로만 한다(다른 BC의 model 직접 조작 금지). 리스너는 `application`의 `<ctx>/listener/`에 둔다. 03a 이후 이 패키지 안에서는 컨텍스트 간 참조가 ID VO·이벤트 타입으로만 허용된다(`ContextBoundaryTest` — 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`).
 - **표현 목적 조회는 이 패키지에 두지 않는다**: Repository 인터페이스에는 write 포트만 남긴다(`findById`/`save`/`saveAndFlush`/`delete`/`existsByX`/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회). Result DTO·`PageResult` 반환·조인 투영·목록·검색·페이징은 infrastructure-module의 `<ctx>/query/{도메인}QueryDao`가 소유한다.
 
 **ID 참조 규칙**:
@@ -86,7 +94,8 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - `XxxId`는 `record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of(Long)`. `new`는 `of()` 내부에만 남긴다. JPA 매핑용 `AttributeConverter`는 infrastructure-module(`<ctx>/persistence/XxxIdConverter`)에 있다.
 
 **도메인 서비스 규칙 (`<ctx>/service/`)**:
-- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리로 수행하고(없으면 신설), 트랜잭션 경계는 이를 호출하는 api 모듈의 `{도메인}CommandService`가 소유한다.
+- **(번복됨 — 03a) 이 패키지의 `<ctx>/service/`에는 포트를 주입받지 않는 순수 계산기·정책·검증기와 그 입출력 record만 남는다.** 포트(write 포트·출력 포트·`DomainEventPublisher`)를 주입받는 오케스트레이션 서비스는 `application/<ctx>/service/`로 옮겨졌다(domain은 `application`의 포트를 볼 수 없다). 아래 두 항목은 과거 서술이며, 거기 나오는 reference 서비스는 지금 전부 `application`에 있다.
+- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 ~~infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`~~ `application`의 `<ctx>/config/<Ctx>ServiceConfig`가 `@Bean` 팩토리로 수행하고(없으면 신설), 트랜잭션 경계는 이를 호출하는 `{도메인}CommandService`가 소유한다.
 - 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/service/PointLedgerService`, `reservation/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`).
 - 소비 모듈로 복제하지 않는다 — 특정 api 모듈에 두면 다른 모듈이 같은 유스케이스를 실행할 때 불변식이 우회된다.
 
@@ -110,7 +119,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Repository write 포트 + load-copy-save**:
 ```java
-// domain/<ctx>/repository/NoticeRepository.java (이 패키지 — 인터페이스만)
+// application/notice/port/out/write/NoticeRepository.java (03a로 이 패키지에서 이동 — 인터페이스만)
 public interface NoticeRepository {
     Optional<Notice> findById(NoticeId noticeId);
     Notice save(Notice notice);
@@ -172,15 +181,15 @@ JPA 매핑용 `AttributeConverter`(`OrderIdConverter`)는 infrastructure-module�
 // domain/<ctx>/event/XxxEvent.java (이 패키지 — record)
 public record MemberRegisteredEvent(MemberId memberId, LocalDateTime registeredAt) { }
 
-// domain/shared/event/DomainEventPublisher.java (이 패키지 — 출력 포트)
+// application/shared/event/DomainEventPublisher.java (03a로 이 패키지에서 이동 — 발행 포트)
 public interface DomainEventPublisher {
     void publish(Object event);
 }
 
-// infrastructure-module: shared/event/SpringDomainEventPublisher — ApplicationEventPublisher 위임
-// infrastructure-module: <ctx>/listener/XxxListener — @TransactionalEventListener(AFTER_COMMIT)
+// application: shared/event/SpringDomainEventPublisher — ApplicationEventPublisher 위임 (03a로 persistence에서 이동, SharedEventConfig가 @Bean 등록)
+// application: <ctx>/listener/XxxListener — @Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT)
 ```
-리스너를 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 반드시 infrastructure-module에 둔다.
+리스너를 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 4앱 전부가 스캔하는 `application`에 `@SharedApp`으로 둔다(과거 infrastructure-module 배치는 번복됨).
 
 **출력 포트 — 파일·메일·SMS·결제는 이 모듈에 없다 (번복됨)**: `FileStoragePort`(`file`)·`MailSender`(`mail`)·`SmsSender`(`sms`)·`PgPaymentGateway`/`PgProviderGateway`(+ 입출력 record, `payment`)는 전부 `domain`에서 `application`의 `port/out`으로 이관됐다. 과거에는 이 모듈이 벤더 무관 계약을 직접 선언하고 외부 연동 모듈이 그것을 구현했으나(아래는 그 시절의 형태), 지금은 domain의 write 포트만 남고 아웃바운드 SPI는 `com.tastyhouse.application.<ctx>.port.out`이 소유한다.
 

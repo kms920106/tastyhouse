@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.model.MenuReview;
-import com.tastyhouse.domain.menureview.repository.MenuReviewRepository;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 

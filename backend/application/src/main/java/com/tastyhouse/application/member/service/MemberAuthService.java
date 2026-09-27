@@ -1,19 +1,20 @@
 package com.tastyhouse.application.member.service;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.domain.member.repository.MemberRepository;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 @Service
 @WebApp

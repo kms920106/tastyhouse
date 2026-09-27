@@ -2,7 +2,7 @@ package com.tastyhouse.infrastructure.product.persistence;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.product.port.ProductReviewStatisticsPort;
+import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.infrastructure.menureview.query.MenuReviewStatisticsQueryDao;
 
 @Component

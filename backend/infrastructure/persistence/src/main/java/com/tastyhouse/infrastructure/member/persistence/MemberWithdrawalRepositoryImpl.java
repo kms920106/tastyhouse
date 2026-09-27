@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.member.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalRepository;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
-import com.tastyhouse.domain.member.repository.MemberWithdrawalRepository;
 
 @Repository
 public class MemberWithdrawalRepositoryImpl implements MemberWithdrawalRepository {

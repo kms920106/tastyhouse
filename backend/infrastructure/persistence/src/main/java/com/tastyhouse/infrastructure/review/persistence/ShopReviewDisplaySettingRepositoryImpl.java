@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingRepository;
 import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
-import com.tastyhouse.domain.review.repository.ShopReviewDisplaySettingRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

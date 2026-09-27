@@ -2,10 +2,18 @@ package com.tastyhouse.application.payment.service;
 
 import java.time.LocalDateTime;
 
+import com.tastyhouse.application.order.service.OrderTransitionService;
+import com.tastyhouse.application.payment.port.out.PgConfirmResult;
+import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
+import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordRepository;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
-import com.tastyhouse.domain.order.service.OrderTransitionService;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.event.PaymentCompletedEvent;
 import com.tastyhouse.domain.payment.model.Payment;
@@ -13,17 +21,9 @@ import com.tastyhouse.domain.payment.model.PaymentMethod;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
 import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.domain.payment.model.TossPaymentRecord;
-import com.tastyhouse.application.payment.port.out.PgConfirmResult;
-import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
-import com.tastyhouse.domain.payment.repository.PaymentRepository;
-import com.tastyhouse.domain.payment.repository.TossPaymentRecordRepository;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PgOrderId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
 
 public class PaymentConfirmationService {
     private static final int CASH_POINT_EARN_RATE = 10;

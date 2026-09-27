@@ -9,14 +9,14 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipHoliday;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipRegion;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRegionLookup;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryTipRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

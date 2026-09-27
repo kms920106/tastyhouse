@@ -1,17 +1,17 @@
 package com.tastyhouse.application.notification.service;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.notification.service.NotificationService;
-import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.application.notification.port.in.NotificationCommandUseCase;
 import com.tastyhouse.application.notification.port.in.NotificationMarkAllAsReadCommand;
 import com.tastyhouse.application.notification.port.in.NotificationMarkAsReadCommand;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.notification.vo.NotificationId;
 
 @Service
 @WebApp

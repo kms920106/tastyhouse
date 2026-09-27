@@ -5,10 +5,9 @@ import com.tastyhouse.application.shop.port.in.ShopImageChangeCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectCommand;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.tastyhouse.domain.shop.service.ShopImageApprovalService;
 
 @Service
 @AdminApp

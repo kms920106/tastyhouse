@@ -5,11 +5,11 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
-import com.tastyhouse.domain.review.repository.ReviewRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.reviewJpaEntity;

@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupLinkRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 

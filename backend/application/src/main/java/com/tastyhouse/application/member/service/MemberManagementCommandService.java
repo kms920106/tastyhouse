@@ -1,20 +1,20 @@
 package com.tastyhouse.application.member.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.member.port.in.MemberActivateCommand;
 import com.tastyhouse.application.member.port.in.MemberManagementCommandUseCase;
-import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
 import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
-import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
-import com.tastyhouse.domain.member.repository.MemberRepository;
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.member.service.MemberWithdrawalService;
+import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.model.Member;
+import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 @Service
 @AdminApp

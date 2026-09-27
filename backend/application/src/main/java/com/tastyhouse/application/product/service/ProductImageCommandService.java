@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -12,15 +13,14 @@ import com.tastyhouse.application.product.port.in.ProductImageChangeRequestComma
 import com.tastyhouse.application.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
+import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductImage;
-import com.tastyhouse.domain.product.repository.ProductImageRepository;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.service.ProductImageApprovalService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

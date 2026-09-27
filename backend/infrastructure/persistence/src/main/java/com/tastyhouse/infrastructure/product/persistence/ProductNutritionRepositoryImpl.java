@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductNutritionRepository;
 import com.tastyhouse.domain.product.model.ProductNutrition;
-import com.tastyhouse.domain.product.repository.ProductNutritionRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.infrastructure.shared.persistence.IdMapping;
 

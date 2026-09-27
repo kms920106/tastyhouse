@@ -1,15 +1,14 @@
 package com.tastyhouse.application.rank.service;
 
-import com.tastyhouse.application.shared.marker.BatchApp;
 import com.tastyhouse.application.rank.port.in.AggregateRanksUseCase;
+import com.tastyhouse.application.shared.marker.BatchApp;
+
 import java.time.LocalDate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.tastyhouse.domain.rank.service.RankSettlementService;
 
 @Service
 @BatchApp

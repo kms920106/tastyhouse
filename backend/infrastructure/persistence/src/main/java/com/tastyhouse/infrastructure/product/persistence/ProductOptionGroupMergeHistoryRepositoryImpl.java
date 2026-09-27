@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryRepository;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
-import com.tastyhouse.domain.product.repository.ProductOptionGroupMergeHistoryRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

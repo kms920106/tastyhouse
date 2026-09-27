@@ -8,10 +8,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

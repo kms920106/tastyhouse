@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.point.port.out.write.PointRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.Point;
-import com.tastyhouse.domain.point.repository.PointRepository;
 
 import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.pointJpaEntity;
 

@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.TagRepository;
 import com.tastyhouse.domain.shop.model.Tag;
-import com.tastyhouse.domain.shop.repository.TagRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJpaEntity;
 

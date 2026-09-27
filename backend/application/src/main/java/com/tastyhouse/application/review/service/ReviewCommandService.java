@@ -1,33 +1,13 @@
 package com.tastyhouse.application.review.service;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.model.Order;
-import com.tastyhouse.domain.order.model.OrderProduct;
-import com.tastyhouse.domain.order.repository.OrderProductRepository;
-import com.tastyhouse.domain.order.repository.OrderRepository;
-import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.domain.order.vo.OrderProductId;
-import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.review.model.Review;
-import com.tastyhouse.domain.review.model.ReviewComment;
-import com.tastyhouse.domain.review.model.ReviewReply;
-import com.tastyhouse.domain.review.repository.ReviewCommentRepository;
-import com.tastyhouse.domain.review.repository.ReviewReplyRepository;
-import com.tastyhouse.domain.review.repository.ReviewRepository;
-import com.tastyhouse.domain.review.service.ReviewLifecycleService;
-import com.tastyhouse.domain.review.service.ReviewRegistration;
-import com.tastyhouse.domain.review.vo.ReviewCommentId;
-import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.application.order.port.out.write.OrderProductRepository;
+import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
@@ -35,6 +15,26 @@ import com.tastyhouse.application.review.port.in.ReviewDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewLikeToggleCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.domain.order.model.Order;
+import com.tastyhouse.domain.order.model.OrderProduct;
+import com.tastyhouse.domain.order.vo.OrderId;
+import com.tastyhouse.domain.order.vo.OrderProductId;
+import com.tastyhouse.domain.product.model.Product;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.review.model.Review;
+import com.tastyhouse.domain.review.model.ReviewComment;
+import com.tastyhouse.domain.review.model.ReviewReply;
+import com.tastyhouse.domain.review.service.ReviewRegistration;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
+import com.tastyhouse.domain.review.vo.ReviewId;
+import com.tastyhouse.domain.shared.model.OrderMethod;
 
 @Service
 @WebApp

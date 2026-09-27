@@ -5,10 +5,10 @@ import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagement
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectCommand;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.shop.service.ShopMenuCollectionImageService;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 
 @Service

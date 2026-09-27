@@ -7,9 +7,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
-import com.tastyhouse.domain.review.repository.ReviewBlindRequestRepository;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 

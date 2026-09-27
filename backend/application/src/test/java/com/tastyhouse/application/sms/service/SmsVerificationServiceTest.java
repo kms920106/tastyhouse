@@ -9,15 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.tastyhouse.domain.sms.model.SmsVerification;
-import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
+import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
-import com.tastyhouse.domain.sms.repository.SmsVerificationRepository;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.shared.event.DomainEventPublisher;
+import com.tastyhouse.domain.sms.model.SmsVerification;
+import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

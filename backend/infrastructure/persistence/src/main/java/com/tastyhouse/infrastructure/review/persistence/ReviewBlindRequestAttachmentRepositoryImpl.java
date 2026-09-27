@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentRepository;
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
-import com.tastyhouse.domain.review.repository.ReviewBlindRequestAttachmentRepository;
 
 @Repository
 public class ReviewBlindRequestAttachmentRepositoryImpl implements ReviewBlindRequestAttachmentRepository {

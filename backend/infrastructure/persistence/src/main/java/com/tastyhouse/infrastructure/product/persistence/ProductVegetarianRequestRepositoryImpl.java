@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
-import com.tastyhouse.domain.product.repository.ProductVegetarianRequestRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;

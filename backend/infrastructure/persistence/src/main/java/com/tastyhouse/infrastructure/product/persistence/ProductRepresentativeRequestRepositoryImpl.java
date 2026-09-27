@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
-import com.tastyhouse.domain.product.repository.ProductRepresentativeRequestRepository;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;

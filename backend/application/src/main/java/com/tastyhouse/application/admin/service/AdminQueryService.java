@@ -1,14 +1,15 @@
 package com.tastyhouse.application.admin.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.domain.admin.repository.AdminRepository;
 import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
+import com.tastyhouse.application.admin.port.out.write.AdminRepository;
+import com.tastyhouse.domain.admin.model.Admin;
 
 @Service
 @AdminApp

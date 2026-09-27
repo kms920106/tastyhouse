@@ -1,15 +1,16 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Component
 @CeoApp

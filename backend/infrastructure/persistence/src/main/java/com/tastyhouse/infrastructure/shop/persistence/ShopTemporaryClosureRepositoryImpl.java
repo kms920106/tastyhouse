@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
-import com.tastyhouse.domain.shop.repository.ShopTemporaryClosureRepository;
 
 @Repository
 public class ShopTemporaryClosureRepositoryImpl implements ShopTemporaryClosureRepository {

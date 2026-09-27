@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.Payment;
-import com.tastyhouse.domain.payment.repository.PaymentRepository;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;

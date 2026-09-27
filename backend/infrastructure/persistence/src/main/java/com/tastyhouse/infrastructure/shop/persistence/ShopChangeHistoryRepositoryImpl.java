@@ -2,8 +2,8 @@ package com.tastyhouse.infrastructure.shop.persistence;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
-import com.tastyhouse.domain.shop.repository.ShopChangeHistoryRepository;
 
 @Repository
 public class ShopChangeHistoryRepositoryImpl implements ShopChangeHistoryRepository {

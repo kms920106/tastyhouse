@@ -5,8 +5,8 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
-import com.tastyhouse.domain.review.repository.ReviewOwnerReplyRepository;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 

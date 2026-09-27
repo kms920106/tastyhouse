@@ -1,6 +1,7 @@
 package com.tastyhouse.application.auth.security;
 
 import com.tastyhouse.application.shared.marker.WebApp;
+
 import java.util.Collections;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -11,8 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.member.port.out.write.MemberRepository;
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.domain.member.repository.MemberRepository;
 
 @Service
 @WebApp

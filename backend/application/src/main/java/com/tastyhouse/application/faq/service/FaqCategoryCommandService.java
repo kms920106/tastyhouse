@@ -1,6 +1,7 @@
 package com.tastyhouse.application.faq.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,12 +9,11 @@ import com.tastyhouse.application.faq.port.in.FaqCategoryCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
-import com.tastyhouse.domain.faq.model.FaqCategory;
-import com.tastyhouse.domain.faq.repository.FaqCategoryRepository;
-import com.tastyhouse.domain.faq.service.FaqCategoryDeletionPolicy;
-import com.tastyhouse.domain.faq.vo.FaqCategoryId;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.faq.model.FaqCategory;
+import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 @Service
 @AdminApp

@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.bug.port.out.write.BugReportRepository;
 import com.tastyhouse.domain.bug.model.BugReport;
-import com.tastyhouse.domain.bug.repository.BugReportRepository;
 import com.tastyhouse.domain.bug.vo.BugReportId;
 
 @Repository

@@ -1,6 +1,7 @@
 package com.tastyhouse.application.product.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,13 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.product.port.in.ProductNutritionCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductNutritionUpdateCommand;
+import com.tastyhouse.application.product.port.out.write.ProductRepository;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.repository.ProductRepository;
-import com.tastyhouse.domain.product.service.ProductNutritionService;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

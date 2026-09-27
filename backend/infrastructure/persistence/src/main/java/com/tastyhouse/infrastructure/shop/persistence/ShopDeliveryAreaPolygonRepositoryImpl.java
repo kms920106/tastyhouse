@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonRepository;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
-import com.tastyhouse.domain.shop.repository.ShopDeliveryAreaPolygonRepository;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Repository

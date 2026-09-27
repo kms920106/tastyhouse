@@ -5,8 +5,8 @@ import java.util.List;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageRepository;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
-import com.tastyhouse.domain.shop.repository.ShopNoticeImageRepository;
 
 import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeImageJpaEntity.shopNoticeImageJpaEntity;
 

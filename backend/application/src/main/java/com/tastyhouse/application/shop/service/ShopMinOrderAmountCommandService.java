@@ -1,19 +1,19 @@
 package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
-import com.tastyhouse.domain.shop.repository.ShopRepository;
-import com.tastyhouse.domain.shop.service.ShopChangeHistoryRecorder;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
 
 @Service
 @CeoApp

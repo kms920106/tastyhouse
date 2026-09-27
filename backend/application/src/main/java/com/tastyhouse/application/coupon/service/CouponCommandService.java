@@ -1,6 +1,7 @@
 package com.tastyhouse.application.coupon.service;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,14 +10,13 @@ import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
+import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
-import com.tastyhouse.domain.coupon.repository.CouponRepository;
-import com.tastyhouse.domain.coupon.service.CouponIssueService;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.member.vo.MemberId;
 
 @Service
 @AdminApp

@@ -6,10 +6,10 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
-import com.tastyhouse.domain.reservation.repository.ReservationRepository;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 

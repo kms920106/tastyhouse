@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentRepository;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
-import com.tastyhouse.domain.policy.repository.PolicyDocumentRepository;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
 
 import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;

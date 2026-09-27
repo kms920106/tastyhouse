@@ -1,21 +1,21 @@
 package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.application.shared.marker.CeoApp;
+
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.domain.shop.service.ShopMenuCollectionImageService;
-import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
-import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCommand;
+import com.tastyhouse.domain.file.vo.UploadedFileId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 
 @Service
 @CeoApp

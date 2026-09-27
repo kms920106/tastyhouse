@@ -1,0 +1,450 @@
+package com.tastyhouse.application.shop.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.shared.model.DayType;
+import com.tastyhouse.domain.shared.model.OrderMethod;
+import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
+import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.domain.shop.model.ShopAmenity;
+import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
+import com.tastyhouse.domain.shop.model.ShopBannerImage;
+import com.tastyhouse.domain.shop.model.ShopBreakTime;
+import com.tastyhouse.domain.shop.model.ShopBusinessHour;
+import com.tastyhouse.domain.shop.model.ShopClosedDay;
+import com.tastyhouse.domain.shop.model.ShopFoodType;
+import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
+import com.tastyhouse.domain.shop.model.ShopOrderMethod;
+import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
+import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
+import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
+import com.tastyhouse.domain.shop.model.ShopSuspension;
+import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
+import com.tastyhouse.domain.shop.model.SuspensionReason;
+import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.domain.shop.vo.StationId;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+class ShopOrderAvailabilityServiceTest {
+    private static final ShopId SHOP_ID = ShopId.of(1L);
+
+    private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 7, 27, 12, 0);
+
+    private final Shop shop = openShop();
+
+    @Test
+    @DisplayName("영업중 + 배정된 유형 + 중지 없음이면 통과한다")
+    void validateOrderable_passes_whenOpenAndAssignedAndNotSuspended() {
+        ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.DELIVERY), List.of());
+
+        assertThatCode(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("영업시간 밖이면 SHOP_NOT_ORDERABLE로 거부한다")
+    void validateOrderable_rejects_whenShopNotOrderable() {
+        ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.DELIVERY), List.of());
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON.withHour(23)))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+    }
+
+    @Test
+    @DisplayName("전체 대상 임시중지면 SHOP_NOT_ORDERABLE로 거부한다")
+    void validateOrderable_rejects_whenShopWideSuspension() {
+        ShopOrderAvailabilityService service =
+            service(shop, List.of(OrderMethod.DELIVERY), List.of(suspension(null)));
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+    }
+
+    @Test
+    @DisplayName("배정되지 않은 주문유형이면 SHOP_ORDER_METHOD_NOT_SUPPORTED로 거부한다")
+    void validateOrderable_rejects_whenOrderMethodNotAssigned() {
+        ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.TAKEOUT), List.of());
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
+    }
+
+    @Test
+    @DisplayName("그 유형만 임시중지면 SHOP_ORDER_METHOD_SUSPENDED로 거부한다")
+    void validateOrderable_rejects_whenOrderMethodSuspended() {
+        ShopOrderAvailabilityService service = service(
+            shop, List.of(OrderMethod.DELIVERY, OrderMethod.TAKEOUT), List.of(suspension(OrderMethod.DELIVERY))
+        );
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_SUSPENDED);
+    }
+
+    @Test
+    @DisplayName("배달만 임시중지된 가게에 포장 주문은 통과한다 — 결함 A 수정의 핵심 시나리오")
+    void validateOrderable_passes_forTakeout_whenOnlyDeliverySuspended() {
+        ShopOrderAvailabilityService service = service(
+            shop, List.of(OrderMethod.DELIVERY, OrderMethod.TAKEOUT), List.of(suspension(OrderMethod.DELIVERY))
+        );
+
+        assertThatCode(() -> service.validateOrderable(shop, OrderMethod.TAKEOUT, MONDAY_NOON))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    @DisplayName("검증 순서상 미배정이 유형별 중지보다 먼저 걸린다")
+    void validateOrderable_reportsNotSupported_beforeSuspended() {
+        ShopOrderAvailabilityService service =
+            service(shop, List.of(OrderMethod.TAKEOUT), List.of(suspension(OrderMethod.DELIVERY)));
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
+    }
+
+    @Test
+    @DisplayName("예약 슬롯 시각이 영업시간 안이면 지금이 영업시간 밖이어도 통과한다")
+    void validateOrderable_usesGivenTime_notNow() {
+        ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.RESERVATION), List.of());
+
+        assertThatCode(() -> service.validateOrderable(shop, OrderMethod.RESERVATION, MONDAY_NOON))
+            .doesNotThrowAnyException();
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.RESERVATION, MONDAY_NOON.withHour(5)))
+            .isInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("유형별 중지 거절 메시지에는 그 판정의 사유가 함께 담긴다")
+    void validateOrderable_includesReason_whenOrderMethodSuspended() {
+        ShopOrderAvailabilityService service = service(
+            shop, List.of(OrderMethod.DELIVERY, OrderMethod.TAKEOUT), List.of(suspension(OrderMethod.DELIVERY))
+        );
+
+        assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .hasMessageContaining(OrderUnavailableReason.SUSPENDED.getDisplayName());
+    }
+
+    @Test
+    @DisplayName("게이트는 넘겨받은 가게로만 판정한다 — 내부에서 다시 읽어 폐업·노출정지 가게를 되살리지 않는다")
+    void validateOrderable_judgesPassedShop_withoutReloading() {
+        ShopOrderAvailabilityService service = service(shop, List.of(OrderMethod.DELIVERY), List.of());
+        Shop hiddenShop = Shop.reconstitute(
+            1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
+            4.5, "도로명", "지번", "02-000-0000", null, null,
+            false, true, false, 0, false, false, false, LocalDateTime.now(), LocalDateTime.now()
+        );
+
+        assertThatThrownBy(() -> service.validateOrderable(hiddenShop, OrderMethod.DELIVERY, MONDAY_NOON))
+            .isInstanceOf(BusinessException.class)
+            .extracting(exception -> ((BusinessException) exception).getErrorCode())
+            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+    }
+
+    private ShopOrderAvailabilityService service(
+        Shop shop,
+        List<OrderMethod> assignedOrderMethods,
+        List<ShopSuspension> suspensions
+    ) {
+        ShopDetailRepository shopDetailRepository = new ShopDetailRepositoryFake(assignedOrderMethods);
+        ShopOperatingStatusService operatingStatusService = new ShopOperatingStatusService(
+            new ShopRepositoryFake(shop),
+            shopDetailRepository,
+            new ShopTemporaryClosureRepositoryFake(),
+            new ShopSuspensionRepositoryFake(suspensions),
+            new ShopOperatingStatusCalculator()
+        );
+        return new ShopOrderAvailabilityService(operatingStatusService, shopDetailRepository);
+    }
+
+    private Shop openShop() {
+        return Shop.reconstitute(
+            1L, null, StationId.of(1L), "가게", BigDecimal.valueOf(37.5), BigDecimal.valueOf(127.0),
+            4.5, "도로명", "지번", "02-000-0000", null, null,
+            false, false, false, 0, false, false, false, LocalDateTime.now(), LocalDateTime.now()
+        );
+    }
+
+    private ShopSuspension suspension(OrderMethod orderMethod) {
+        return ShopSuspension.reconstitute(
+            1L, SHOP_ID, SuspensionReason.SHOP_CIRCUMSTANCE, orderMethod,
+            MONDAY_NOON.minusHours(1), MONDAY_NOON.plusHours(1), null, null, null
+        );
+    }
+
+    private static final class ShopRepositoryFake implements ShopRepository {
+        private final Shop shop;
+
+        private ShopRepositoryFake(Shop shop) {
+            this.shop = shop;
+        }
+
+        @Override
+        public Optional<Shop> findById(ShopId id) {
+            return Optional.of(shop);
+        }
+
+        @Override
+        public Optional<Shop> findVisibleById(ShopId id) {
+            return shop.isPermanentlyClosed() || shop.isHidden() ? Optional.empty() : Optional.of(shop);
+        }
+
+        @Override
+        public Shop save(Shop shop) {
+            throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
+        }
+    }
+
+    private static final class ShopSuspensionRepositoryFake implements ShopSuspensionRepository {
+        private final List<ShopSuspension> suspensions;
+
+        private ShopSuspensionRepositoryFake(List<ShopSuspension> suspensions) {
+            this.suspensions = suspensions;
+        }
+
+        @Override
+        public ShopSuspension save(ShopSuspension shopSuspension) {
+            throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
+        }
+
+        @Override
+        public List<ShopSuspension> findByShopId(Long shopId) {
+            return suspensions;
+        }
+
+        @Override
+        public Optional<ShopSuspension> findById(Long id) {
+            return Optional.empty();
+        }
+    }
+
+    private static final class ShopTemporaryClosureRepositoryFake implements ShopTemporaryClosureRepository {
+        @Override
+        public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {
+            throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
+        }
+
+        @Override
+        public List<ShopTemporaryClosure> findByShopId(Long shopId) {
+            return List.of();
+        }
+
+        @Override
+        public Optional<ShopTemporaryClosure> findById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void deleteById(Long id) {
+            throw new UnsupportedOperationException("이 테스트는 삭제 경로를 쓰지 않는다");
+        }
+    }
+
+    private static final class ShopDetailRepositoryFake implements ShopDetailRepository {
+        private final List<OrderMethod> assignedOrderMethods;
+
+        private ShopDetailRepositoryFake(List<OrderMethod> assignedOrderMethods) {
+            this.assignedOrderMethods = assignedOrderMethods;
+        }
+
+        @Override
+        public List<ShopBusinessHour> findBusinessHoursByShopId(Long shopId) {
+            return List.of(ShopBusinessHour.reconstitute(
+                1L, SHOP_ID, DayType.DAILY, LocalTime.of(9, 0), LocalTime.of(22, 0), false, false
+            ));
+        }
+
+        @Override
+        public List<ShopBreakTime> findBreakTimesByShopId(Long shopId) {
+            return List.of();
+        }
+
+        @Override
+        public List<ShopClosedDay> findClosedDaysByShopId(Long shopId) {
+            return List.of();
+        }
+
+        @Override
+        public Optional<ShopClosedDay> findClosedDayById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId) {
+            List<ShopOrderMethod> assigned = new java.util.ArrayList<>();
+            long sequence = 0L;
+            for (OrderMethod orderMethod : assignedOrderMethods) {
+                assigned.add(ShopOrderMethod.reconstitute(++sequence, SHOP_ID, orderMethod));
+            }
+            return List.copyOf(assigned);
+        }
+
+        @Override
+        public Optional<ShopAmenityCategory> findAmenityCategoryById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopAmenityCategory saveAmenityCategory(ShopAmenityCategory amenityCategory) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopFoodTypeCategory> findFoodTypeCategoryById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopFoodTypeCategory saveFoodTypeCategory(ShopFoodTypeCategory foodTypeCategory) {
+            throw unsupported();
+        }
+
+        @Override
+        public ShopAmenity saveAmenity(ShopAmenity amenity) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteAmenityByShopIdAndCategoryId(Long shopId, Long shopAmenityCategoryId) {
+            throw unsupported();
+        }
+
+        @Override
+        public ShopFoodType saveFoodType(ShopFoodType foodType) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteFoodTypeByShopIdAndCategoryId(Long shopId, Long shopFoodTypeCategoryId) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopBusinessHour> findBusinessHourById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopBusinessHour saveBusinessHour(ShopBusinessHour businessHour) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteBusinessHourById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopBreakTime> findBreakTimeById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopBreakTime saveBreakTime(ShopBreakTime breakTime) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteBreakTimeById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public ShopClosedDay saveClosedDay(ShopClosedDay closedDay) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteClosedDayById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public ShopOrderMethod saveOrderMethod(ShopOrderMethod orderMethod) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod) {
+            throw unsupported();
+        }
+
+        @Override
+        public ShopBannerImage saveBannerImage(ShopBannerImage bannerImage) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deleteBannerImageById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopPhotoCategory> findPhotoCategoryById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopPhotoCategory savePhotoCategory(ShopPhotoCategory photoCategory) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deletePhotoCategoryById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopPhotoCategoryImage> findPhotoCategoryImageById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public ShopPhotoCategoryImage savePhotoCategoryImage(ShopPhotoCategoryImage photoCategoryImage) {
+            throw unsupported();
+        }
+
+        @Override
+        public void deletePhotoCategoryImageById(Long id) {
+            throw unsupported();
+        }
+
+        @Override
+        public void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory) {
+            throw unsupported();
+        }
+
+        @Override
+        public Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId) {
+            throw unsupported();
+        }
+
+        private UnsupportedOperationException unsupported() {
+            return new UnsupportedOperationException("이 테스트는 이 경로를 쓰지 않는다");
+        }
+    }
+}

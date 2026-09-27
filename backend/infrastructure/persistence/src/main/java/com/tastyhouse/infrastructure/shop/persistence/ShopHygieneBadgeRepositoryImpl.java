@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeRepository;
 import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
-import com.tastyhouse.domain.shop.repository.ShopHygieneBadgeRepository;
 
 @Repository
 public class ShopHygieneBadgeRepositoryImpl implements ShopHygieneBadgeRepository {
