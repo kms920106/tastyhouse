@@ -5,17 +5,17 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.service.OrdererSnapshot;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 public class OrdererLookupService {
-    private final MemberRepository memberRepository;
+    private final MemberPersistencePort memberPersistencePort;
 
-    public OrdererLookupService(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
+    public OrdererLookupService(MemberPersistencePort memberPersistencePort) {
+        this.memberPersistencePort = memberPersistencePort;
     }
 
     public OrdererSnapshot findOrderer(MemberId memberId) {
-        Member member = memberRepository.findById(memberId)
+        Member member = memberPersistencePort.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         return new OrdererSnapshot(

@@ -17,7 +17,7 @@ import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -185,16 +185,16 @@ class ProductDeletionServiceTest {
     private record Fixture(ProductDeletionService service) {
         private static Fixture of(List<Product> products, long visibleCount, long representativeCount) {
             return new Fixture(new ProductDeletionService(
-                new StubProductRepository(products, visibleCount, representativeCount)));
+                new StubProductPersistencePort(products, visibleCount, representativeCount)));
         }
     }
 
-    private static final class StubProductRepository implements ProductRepository {
+    private static final class StubProductPersistencePort implements ProductPersistencePort {
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final long visibleCount;
         private final long representativeCount;
 
-        private StubProductRepository(List<Product> products, long visibleCount, long representativeCount) {
+        private StubProductPersistencePort(List<Product> products, long visibleCount, long representativeCount) {
             products.forEach(product -> this.products.put(product.getId(), product));
             this.visibleCount = visibleCount;
             this.representativeCount = representativeCount;

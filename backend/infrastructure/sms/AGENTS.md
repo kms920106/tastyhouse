@@ -40,7 +40,7 @@ backend/infrastructure/sms/
 
 ## 도메인 서비스 등록은 이제 어디인가 — `application`의 `SmsServiceConfig`
 
-`SmsVerificationService`(생성자로 `SmsSender`·`SmsVerificationRepository`·`DomainEventPublisher`를 요구)는 `application/sms/service/`의 annotation-free POJO이고, `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다.
+`SmsVerificationService`(생성자로 `SmsSender`·`SmsVerificationPersistencePort`·`DomainEventPublisher`를 요구)는 `application/sms/service/`의 annotation-free POJO이고, `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다.
 
 **이 모듈은 그 등록에 관여하지 않는다.** 벤더(solapi/aws-sns)를 조립해 `SmsSender` 구현체를 web-api의 클래스패스에 올리는 것까지가 이 모듈의 일이다.
 

@@ -20,10 +20,10 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,28 +32,28 @@ class ShopLifecycleServiceTest {
     private static final Long CEO_ID = 7L;
     private static final Long STATION_ID = 3L;
 
-    private RecordingShopCeoAssignmentHistoryRepository assignmentHistoryRepository;
+    private RecordingShopCeoAssignmentHistoryPersistencePort assignmentHistoryPersistencePort;
     private ShopLifecycleService shopLifecycleService;
 
     @BeforeEach
     void setUp() {
-        assignmentHistoryRepository = new RecordingShopCeoAssignmentHistoryRepository();
+        assignmentHistoryPersistencePort = new RecordingShopCeoAssignmentHistoryPersistencePort();
         ShopChangeHistoryRecorder changeHistoryRecorder =
-            new ShopChangeHistoryRecorder(new RecordingShopChangeHistoryRepository());
+            new ShopChangeHistoryRecorder(new RecordingShopChangeHistoryPersistencePort());
         shopLifecycleService = new ShopLifecycleService(
-            new FakeShopRepository(),
+            new FakeShopPersistencePort(),
             null,
-            new FakeShopBookmarkRepository(),
+            new FakeShopBookmarkPersistencePort(),
             id -> true,
             new ShopImageApprovalService(
-                new FakeShopImageChangeRequestRepository(),
-                new FakeShopRepository(),
+                new FakeShopImageChangeRequestPersistencePort(),
+                new FakeShopPersistencePort(),
                 changeHistoryRecorder,
-                new ShopRequestIndexRecorder(new RecordingShopRequestIndexRepository())
+                new ShopRequestIndexRecorder(new RecordingShopRequestIndexPersistencePort())
             ),
-            new ProhibitedWordValidator(new FakeProhibitedWordRepository()),
+            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
             changeHistoryRecorder,
-            new ShopCeoAssignmentRecorder(assignmentHistoryRepository)
+            new ShopCeoAssignmentRecorder(assignmentHistoryPersistencePort)
         );
     }
 
@@ -62,8 +62,8 @@ class ShopLifecycleServiceTest {
     void createShop_withCeo_recordsGrant() {
         Shop shop = createShop(CEO_ID);
 
-        assertThat(assignmentHistoryRepository.saved()).hasSize(1);
-        ShopCeoAssignmentHistory history = assignmentHistoryRepository.saved().getFirst();
+        assertThat(assignmentHistoryPersistencePort.saved()).hasSize(1);
+        ShopCeoAssignmentHistory history = assignmentHistoryPersistencePort.saved().getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopCeoAssignmentActionType.GRANT);
         assertThat(history.getCeoId()).isEqualTo(CeoId.of(CEO_ID));
         assertThat(history.getShopId()).isEqualTo(shop.getShopId());
@@ -75,7 +75,7 @@ class ShopLifecycleServiceTest {
     void createShop_withoutCeo_recordsNothing() {
         createShop(null);
 
-        assertThat(assignmentHistoryRepository.saved()).isEmpty();
+        assertThat(assignmentHistoryPersistencePort.saved()).isEmpty();
     }
 
     private Shop createShop(Long ceoId) {
@@ -93,7 +93,7 @@ class ShopLifecycleServiceTest {
         );
     }
 
-    private static final class FakeShopRepository implements ShopRepository {
+    private static final class FakeShopPersistencePort implements ShopPersistencePort {
         private final Map<Long, Shop> shops = new HashMap<>();
         private final AtomicLong sequence = new AtomicLong();
 
@@ -138,7 +138,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeShopBookmarkRepository implements ShopBookmarkRepository {
+    private static final class FakeShopBookmarkPersistencePort implements ShopBookmarkPersistencePort {
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
             return false;
@@ -154,8 +154,8 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeShopImageChangeRequestRepository
-        implements ShopImageChangeRequestRepository {
+    private static final class FakeShopImageChangeRequestPersistencePort
+        implements ShopImageChangeRequestPersistencePort {
         @Override
         public Optional<ShopImageChangeRequest> findById(Long id) {
             return Optional.empty();
@@ -181,7 +181,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeProhibitedWordRepository implements ProhibitedWordRepository {
+    private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
         @Override
         public java.util.List<ProhibitedWord> findAll() {
             return java.util.List.of();

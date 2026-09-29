@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
 import com.tastyhouse.application.rank.service.RankSettlementService;
 import com.tastyhouse.application.shared.marker.SharedApp;
 
@@ -13,9 +13,9 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class RankServiceConfig {
     @Bean
     public RankSettlementService rankSettlementService(
-        MemberReviewRankRepository memberReviewRankRepository,
+        MemberReviewRankPersistencePort memberReviewRankPersistencePort,
         MemberReviewCountPort memberReviewCountPort
     ) {
-        return new RankSettlementService(memberReviewRankRepository, memberReviewCountPort);
+        return new RankSettlementService(memberReviewRankPersistencePort, memberReviewCountPort);
     }
 }

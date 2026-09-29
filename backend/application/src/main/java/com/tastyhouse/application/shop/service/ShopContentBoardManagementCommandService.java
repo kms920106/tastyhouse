@@ -10,17 +10,17 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
 
 @Service
 @AdminApp
 @Transactional
 public class ShopContentBoardManagementCommandService implements ShopContentBoardManagementCommandUseCase {
 
-    private final ShopContentBoardRepository shopContentBoardRepository;
+    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
 
-    public ShopContentBoardManagementCommandService(ShopContentBoardRepository shopContentBoardRepository) {
-        this.shopContentBoardRepository = shopContentBoardRepository;
+    public ShopContentBoardManagementCommandService(ShopContentBoardPersistencePort shopContentBoardPersistencePort) {
+        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
     }
 
     @Override
@@ -33,18 +33,18 @@ public class ShopContentBoardManagementCommandService implements ShopContentBoar
         } else {
             shopContentBoard.unhide();
         }
-        shopContentBoardRepository.save(shopContentBoard);
+        shopContentBoardPersistencePort.save(shopContentBoard);
     }
 
     @Override
     public void deleteContentBoard(ShopContentBoardManagementDeleteCommand command) {
         Long contentBoardId = command.contentBoardId();
         loadContentBoard(contentBoardId);
-        shopContentBoardRepository.deleteById(contentBoardId);
+        shopContentBoardPersistencePort.deleteById(contentBoardId);
     }
 
     private ShopContentBoard loadContentBoard(Long contentBoardId) {
-        return shopContentBoardRepository.findById(contentBoardId)
+        return shopContentBoardPersistencePort.findById(contentBoardId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
     }
 }

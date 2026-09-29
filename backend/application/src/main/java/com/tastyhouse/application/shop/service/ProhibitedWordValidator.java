@@ -5,13 +5,13 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 
 public class ProhibitedWordValidator {
-    private final ProhibitedWordRepository prohibitedWordRepository;
+    private final ProhibitedWordPersistencePort prohibitedWordPersistencePort;
 
-    public ProhibitedWordValidator(ProhibitedWordRepository prohibitedWordRepository) {
-        this.prohibitedWordRepository = prohibitedWordRepository;
+    public ProhibitedWordValidator(ProhibitedWordPersistencePort prohibitedWordPersistencePort) {
+        this.prohibitedWordPersistencePort = prohibitedWordPersistencePort;
     }
 
     public List<String> findViolations(String text) {
@@ -21,7 +21,7 @@ public class ProhibitedWordValidator {
 
         String lowerText = text.toLowerCase();
 
-        return prohibitedWordRepository.findAll().stream()
+        return prohibitedWordPersistencePort.findAll().stream()
             .map(ProhibitedWord::getWord)
             .filter(word -> lowerText.contains(word.toLowerCase()))
             .toList();

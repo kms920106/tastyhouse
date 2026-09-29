@@ -22,23 +22,23 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 
 public class ShopDeliveryAreaRadiusService {
-    private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
-    private final AdminDongRepository adminDongRepository;
+    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
+    private final AdminDongPersistencePort adminDongPersistencePort;
     private final ShopDeliveryAreaService shopDeliveryAreaService;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryAreaRadiusService(
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
         ShopDeliveryAreaService shopDeliveryAreaService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
-        this.adminDongRepository = adminDongRepository;
+        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
+        this.adminDongPersistencePort = adminDongPersistencePort;
         this.shopDeliveryAreaService = shopDeliveryAreaService;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -87,7 +87,7 @@ public class ShopDeliveryAreaRadiusService {
             .approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS)
             .boundingBox();
 
-        return adminDongRepository.findAllWithinBoundingBox(candidateBox).stream()
+        return adminDongPersistencePort.findAllWithinBoundingBox(candidateBox).stream()
             .filter(AdminDong::hasCenter)
             .filter(adminDong -> center.distanceMetersTo(adminDong.getCenter()) <= radiusMeters)
             .map(adminDong -> AdminDongId.of(adminDong.getId()))
@@ -99,7 +99,7 @@ public class ShopDeliveryAreaRadiusService {
         Set<AdminDongId> keep,
         Function<Collection<AdminDongId>, List<String>> adminDongNamesById
     ) {
-        List<ShopDeliveryArea> closing = shopDeliveryAreaRepository
+        List<ShopDeliveryArea> closing = shopDeliveryAreaPersistencePort
             .findByShopIdAndSource(shopId, DeliveryAreaSource.MANUAL).stream()
             .filter(area -> !keep.contains(area.getAdminDongId()))
             .toList();
@@ -113,6 +113,6 @@ public class ShopDeliveryAreaRadiusService {
             adminDongNamesById
         );
 
-        closing.forEach(area -> shopDeliveryAreaRepository.deleteById(area.getId()));
+        closing.forEach(area -> shopDeliveryAreaPersistencePort.deleteById(area.getId()));
     }
 }

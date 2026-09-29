@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.application.ceo.port.in.CeoOwnerQueryUseCase;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
@@ -15,18 +15,18 @@ import com.tastyhouse.application.shared.marker.CeoApp;
 @Transactional(readOnly = true)
 public class CeoOwnerQueryService implements CeoOwnerQueryUseCase {
 
-    private final CeoRepository ceoRepository;
+    private final CeoPersistencePort ceoPersistencePort;
 
-    public CeoOwnerQueryService(CeoRepository ceoRepository) {
-        this.ceoRepository = ceoRepository;
+    public CeoOwnerQueryService(CeoPersistencePort ceoPersistencePort) {
+        this.ceoPersistencePort = ceoPersistencePort;
     }
 
     public Optional<Ceo> findByUsername(String username) {
-        return ceoRepository.findByUsername(username);
+        return ceoPersistencePort.findByUsername(username);
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return ceoRepository.existsByUsername(username);
+        return ceoPersistencePort.existsByUsername(username);
     }
 }

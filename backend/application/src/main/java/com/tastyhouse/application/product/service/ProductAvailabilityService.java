@@ -26,43 +26,43 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductAvailabilityService {
     private static final long MIN_SOLD_OUT_MINUTES = 30L;
 
     private static final long MAX_SOLD_OUT_DAYS = 7L;
 
-    private final ProductRepository productRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductCommonOptionRepository productCommonOptionRepository;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ProductCommonOptionGroupRepository productCommonOptionGroupRepository;
-    private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
-    private final ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductCommonOptionPersistencePort productCommonOptionPersistencePort;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductCommonOptionGroupPersistencePort productCommonOptionGroupPersistencePort;
+    private final ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort;
+    private final ProductCommonOptionGroupLinkPersistencePort productCommonOptionGroupLinkPersistencePort;
 
     public ProductAvailabilityService(
-        ProductRepository productRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductCommonOptionRepository productCommonOptionRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductCommonOptionGroupRepository productCommonOptionGroupRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository
+        ProductPersistencePort productPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductCommonOptionPersistencePort productCommonOptionPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductCommonOptionGroupPersistencePort productCommonOptionGroupPersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductCommonOptionGroupLinkPersistencePort productCommonOptionGroupLinkPersistencePort
     ) {
-        this.productRepository = productRepository;
-        this.productOptionRepository = productOptionRepository;
-        this.productCommonOptionRepository = productCommonOptionRepository;
-        this.productOptionGroupRepository = productOptionGroupRepository;
-        this.productCommonOptionGroupRepository = productCommonOptionGroupRepository;
-        this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
-        this.productCommonOptionGroupLinkRepository = productCommonOptionGroupLinkRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productCommonOptionPersistencePort = productCommonOptionPersistencePort;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productCommonOptionGroupPersistencePort = productCommonOptionGroupPersistencePort;
+        this.productOptionGroupLinkPersistencePort = productOptionGroupLinkPersistencePort;
+        this.productCommonOptionGroupLinkPersistencePort = productCommonOptionGroupLinkPersistencePort;
     }
 
     public void validateSoldOutUntil(LocalDateTime soldOutUntil, LocalDateTime now) {
@@ -91,10 +91,10 @@ public class ProductAvailabilityService {
             .toList();
 
         long visibleShortfall =
-            Math.max(0, 1 - (productRepository.countVisibleByShopId(shopId) - candidates.size()));
+            Math.max(0, 1 - (productPersistencePort.countVisibleByShopId(shopId) - candidates.size()));
         long representativeTargets = candidates.stream().filter(Product::isRepresentative).count();
         long representativeShortfall =
-            Math.max(0, 1 - (productRepository.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
+            Math.max(0, 1 - (productPersistencePort.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
 
         Map<Long, ProductAvailabilityFailure> rejected = new LinkedHashMap<>();
         rejectFromTail(candidates, rejected, representativeShortfall,
@@ -110,7 +110,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             product.deactivate();
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
 
@@ -135,7 +135,7 @@ public class ProductAvailabilityService {
             } else {
                 product.markSoldOut();
             }
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -147,7 +147,7 @@ public class ProductAvailabilityService {
         List<Long> succeeded = new ArrayList<>();
         for (Product product : loaded.found()) {
             product.releaseSoldOut();
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -168,7 +168,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 product.activate();
             }
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -192,7 +192,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             product.changeSoldOutUntil(soldOutUntil);
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, failed);
@@ -219,7 +219,7 @@ public class ProductAvailabilityService {
             } else {
                 option.markSoldOut();
             }
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : plan.commonOptions()) {
@@ -228,7 +228,7 @@ public class ProductAvailabilityService {
             } else {
                 option.markSoldOut();
             }
-            productCommonOptionRepository.save(option);
+            productCommonOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         succeeded.addAll(plan.alreadyInTargetState());
@@ -250,12 +250,12 @@ public class ProductAvailabilityService {
         List<Long> succeeded = new ArrayList<>();
         for (ProductOption option : plan.options()) {
             option.hide();
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : plan.commonOptions()) {
             option.hide();
-            productCommonOptionRepository.save(option);
+            productCommonOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         succeeded.addAll(plan.alreadyInTargetState());
@@ -279,7 +279,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 option.activate();
             }
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : loaded.commonOptions()) {
@@ -289,7 +289,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 option.activate();
             }
-            productCommonOptionRepository.save(option);
+            productCommonOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -314,7 +314,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : loaded.commonOptions()) {
@@ -324,7 +324,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
-            productCommonOptionRepository.save(option);
+            productCommonOptionPersistencePort.save(option);
             succeeded.add(option.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, failed);
@@ -332,7 +332,7 @@ public class ProductAvailabilityService {
 
     private LoadedProducts loadProducts(ShopId shopId, List<ProductId> productIds) {
         List<ProductId> distinctIds = distinct(productIds);
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(shopId, distinctIds);
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, distinctIds);
 
         Map<Long, Product> byId = new LinkedHashMap<>();
         found.forEach(product -> byId.put(product.getId(), product));
@@ -356,10 +356,10 @@ public class ProductAvailabilityService {
 
         List<ProductOption> options = distinctOptionIds.isEmpty()
             ? List.of()
-            : productOptionRepository.findAllByIdIn(distinctOptionIds);
+            : productOptionPersistencePort.findAllByIdIn(distinctOptionIds);
         List<ProductCommonOption> commonOptions = distinctCommonIds.isEmpty()
             ? List.of()
-            : productCommonOptionRepository.findAllByIdIn(distinctCommonIds);
+            : productCommonOptionPersistencePort.findAllByIdIn(distinctCommonIds);
 
         Map<Long, ProductOptionGroup> optionGroups = loadOptionGroups(options);
         Map<Long, ProductCommonOptionGroup> commonGroups = loadCommonOptionGroups(commonOptions);
@@ -447,7 +447,7 @@ public class ProductAvailabilityService {
             );
             List<ProductOption> groupTargets = sortedBySort(entry.getValue(), ProductOption::getSort);
 
-            long selectable = productOptionRepository
+            long selectable = productOptionPersistencePort
                 .findAllByOptionGroupId(ProductOptionGroupId.of(entry.getKey())).stream()
                 .filter(option -> !option.isSoldOut() && option.isVisible())
                 .count();
@@ -475,7 +475,7 @@ public class ProductAvailabilityService {
             List<ProductCommonOption> groupTargets =
                 sortedBySort(entry.getValue(), ProductCommonOption::getSort);
 
-            long selectable = productCommonOptionRepository
+            long selectable = productCommonOptionPersistencePort
                 .findAllByOptionGroupId(ProductOptionGroupId.of(entry.getKey())).stream()
                 .filter(option -> !option.isSoldOut() && option.isVisible())
                 .count();
@@ -524,7 +524,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
         Map<Long, ProductOptionGroup> byId = new LinkedHashMap<>();
-        productOptionGroupRepository.findAllByIdIn(groupIds)
+        productOptionGroupPersistencePort.findAllByIdIn(groupIds)
             .forEach(group -> byId.put(group.getId(), group));
         return byId;
     }
@@ -539,7 +539,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
         Map<Long, ProductCommonOptionGroup> byId = new LinkedHashMap<>();
-        productCommonOptionGroupRepository.findAllByIdIn(groupIds)
+        productCommonOptionGroupPersistencePort.findAllByIdIn(groupIds)
             .forEach(group -> byId.put(group.getId(), group));
         return byId;
     }
@@ -552,7 +552,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
 
-        List<ProductOptionGroupLink> links = productOptionGroupLinkRepository
+        List<ProductOptionGroupLink> links = productOptionGroupLinkPersistencePort
             .findAllByOptionGroupIdIn(groupIds);
         Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
             .map(ProductOptionGroupLink::getProductId)
@@ -574,7 +574,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
 
-        List<ProductCommonOptionGroupLink> links = productCommonOptionGroupLinkRepository
+        List<ProductCommonOptionGroupLink> links = productCommonOptionGroupLinkPersistencePort
             .findAllByOptionGroupIdIn(groupIds);
         Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
             .map(ProductCommonOptionGroupLink::getProductId)
@@ -591,7 +591,7 @@ public class ProductAvailabilityService {
     private Map<Long, ShopId> loadShopIdsOf(List<ProductId> productIds) {
         Map<Long, ShopId> shopIdByProductId = new LinkedHashMap<>();
         for (ProductId productId : distinct(productIds)) {
-            productRepository.findById(productId)
+            productPersistencePort.findById(productId)
                 .ifPresent(product -> shopIdByProductId.put(product.getId(), product.getShopId()));
         }
         return shopIdByProductId;

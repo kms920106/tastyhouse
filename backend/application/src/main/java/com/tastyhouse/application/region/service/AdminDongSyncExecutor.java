@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.application.shared.marker.BatchApp;
 
@@ -14,14 +14,14 @@ import com.tastyhouse.application.shared.marker.BatchApp;
 @BatchApp
 public class AdminDongSyncExecutor {
 
-    private final AdminDongRepository adminDongRepository;
+    private final AdminDongPersistencePort adminDongPersistencePort;
 
-    public AdminDongSyncExecutor(AdminDongRepository adminDongRepository) {
-        this.adminDongRepository = adminDongRepository;
+    public AdminDongSyncExecutor(AdminDongPersistencePort adminDongPersistencePort) {
+        this.adminDongPersistencePort = adminDongPersistencePort;
     }
 
     @Transactional
     public AdminDongSyncResult synchronizeInTx(List<AdminDong> adminDongs) {
-        return adminDongRepository.synchronize(adminDongs);
+        return adminDongPersistencePort.synchronize(adminDongs);
     }
 }

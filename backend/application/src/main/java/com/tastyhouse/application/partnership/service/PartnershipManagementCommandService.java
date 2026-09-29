@@ -11,7 +11,7 @@ import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
 import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRepository;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -19,10 +19,10 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class PartnershipManagementCommandService implements PartnershipManagementCommandUseCase {
 
-    private final PartnershipRepository partnershipRepository;
+    private final PartnershipPersistencePort partnershipPersistencePort;
 
-    public PartnershipManagementCommandService(PartnershipRepository partnershipRepository) {
-        this.partnershipRepository = partnershipRepository;
+    public PartnershipManagementCommandService(PartnershipPersistencePort partnershipPersistencePort) {
+        this.partnershipPersistencePort = partnershipPersistencePort;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class PartnershipManagementCommandService implements PartnershipManagemen
         PartnershipRequest partnershipRequest = findPartnershipRequestOrThrow(partnershipRequestId);
 
         partnershipRequest.changeStatus(partnershipStatus);
-        partnershipRepository.save(partnershipRequest);
+        partnershipPersistencePort.save(partnershipRequest);
     }
 
     @Override
@@ -41,11 +41,11 @@ public class PartnershipManagementCommandService implements PartnershipManagemen
         PartnershipRequest partnershipRequest = findPartnershipRequestOrThrow(partnershipRequestId);
 
         partnershipRequest.delete();
-        partnershipRepository.save(partnershipRequest);
+        partnershipPersistencePort.save(partnershipRequest);
     }
 
     private PartnershipRequest findPartnershipRequestOrThrow(PartnershipRequestId partnershipRequestId) {
-        return partnershipRepository.findById(partnershipRequestId)
+        return partnershipPersistencePort.findById(partnershipRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
     }
 }

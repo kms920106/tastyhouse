@@ -38,7 +38,7 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.product.service.ProductQueryService;
@@ -95,8 +95,8 @@ import com.tastyhouse.application.shop.port.out.ShopReviewStatisticsViewResult;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopVisibleDetailResult;
 import com.tastyhouse.application.shop.port.out.StationResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @WebApp
@@ -105,10 +105,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     private static final String UNCATEGORIZED_CATEGORY_NAME = "미분류";
 
-    private final ShopRepository shopRepository;
-    private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
+    private final ShopPersistencePort shopPersistencePort;
+    private final MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort;
     private final MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort;
-    private final ShopDeliveryTipRepository shopDeliveryTipRepository;
+    private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;
     private final ShopQueryPort shopQueryPort;
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopNoticeQueryPort shopNoticeQueryPort;
@@ -123,10 +123,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     private final ReviewQueryService reviewQueryService;
 
     public ShopQueryService(
-        ShopRepository shopRepository,
-        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
+        ShopPersistencePort shopPersistencePort,
+        MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort,
         MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort,
-        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
         ShopQueryPort shopQueryPort,
         ShopBasicInfoQueryPort shopBasicInfoQueryPort,
         ShopNoticeQueryPort shopNoticeQueryPort,
@@ -140,10 +140,10 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         ProductQueryService productQueryService,
         ReviewQueryService reviewQueryService
     ) {
-        this.shopRepository = shopRepository;
-        this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
+        this.shopPersistencePort = shopPersistencePort;
+        this.memberDeliveryAddressPersistencePort = memberDeliveryAddressPersistencePort;
         this.memberDeliveryAddressQueryPort = memberDeliveryAddressQueryPort;
-        this.shopDeliveryTipRepository = shopDeliveryTipRepository;
+        this.shopDeliveryTipPersistencePort = shopDeliveryTipPersistencePort;
         this.shopQueryPort = shopQueryPort;
         this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
         this.shopNoticeQueryPort = shopNoticeQueryPort;
@@ -400,7 +400,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             return null;
         }
 
-        MemberDeliveryAddress deliveryAddress = memberDeliveryAddressRepository.findById(deliveryAddressId)
+        MemberDeliveryAddress deliveryAddress = memberDeliveryAddressPersistencePort.findById(deliveryAddressId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!deliveryAddress.isOwnedBy(MemberId.of(memberId))) {
             throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
@@ -416,11 +416,11 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             deliveryAddress.getAdminDongId(),
             now,
             publicHolidayCalendar.isPublicHoliday(now.toLocalDate()),
-            shopDeliveryTipRepository.findSettingByShopId(typedShopId).orElse(null),
-            shopDeliveryTipRepository.findTiersByShopId(typedShopId),
-            shopDeliveryTipRepository.findRegionTipsByShopId(typedShopId),
-            shopDeliveryTipRepository.findScheduleTipsByShopId(typedShopId),
-            shopDeliveryTipRepository.findHolidayTipByShopId(typedShopId).orElse(null)
+            shopDeliveryTipPersistencePort.findSettingByShopId(typedShopId).orElse(null),
+            shopDeliveryTipPersistencePort.findTiersByShopId(typedShopId),
+            shopDeliveryTipPersistencePort.findRegionTipsByShopId(typedShopId),
+            shopDeliveryTipPersistencePort.findScheduleTipsByShopId(typedShopId),
+            shopDeliveryTipPersistencePort.findHolidayTipByShopId(typedShopId).orElse(null)
         ));
     }
 
@@ -708,7 +708,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     }
 
     private Shop findVisibleShopAggregate(Long shopId) {
-        return shopRepository.findVisibleById(ShopId.of(shopId))
+        return shopPersistencePort.findVisibleById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 

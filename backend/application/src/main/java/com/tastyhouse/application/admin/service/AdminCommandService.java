@@ -10,7 +10,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
 import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
-import com.tastyhouse.application.admin.port.out.write.AdminRepository;
+import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -18,18 +18,18 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class AdminCommandService implements AdminCommandUseCase {
 
-    private final AdminRepository adminRepository;
+    private final AdminPersistencePort adminPersistencePort;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminCommandService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
-        this.adminRepository = adminRepository;
+    public AdminCommandService(AdminPersistencePort adminPersistencePort, PasswordEncoder passwordEncoder) {
+        this.adminPersistencePort = adminPersistencePort;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Long createAdmin(AdminCreateCommand command) {
         String username = command.username();
-        if (adminRepository.existsByUsername(username)) {
+        if (adminPersistencePort.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.ADMIN_USERNAME_DUPLICATED);
         }
 
@@ -40,6 +40,6 @@ public class AdminCommandService implements AdminCommandUseCase {
             AdminRole.from(command.role())
         );
 
-        return adminRepository.save(admin).getAdminId().value();
+        return adminPersistencePort.save(admin).getAdminId().value();
     }
 }

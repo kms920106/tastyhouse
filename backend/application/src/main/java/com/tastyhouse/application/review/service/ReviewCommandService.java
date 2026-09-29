@@ -20,9 +20,9 @@ import com.tastyhouse.domain.review.service.ReviewRegistration;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.order.port.out.write.OrderProductRepository;
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
@@ -30,9 +30,9 @@ import com.tastyhouse.application.review.port.in.ReviewDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewLikeToggleCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
-import com.tastyhouse.application.review.port.out.write.ReviewCommentRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewReplyRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
@@ -41,29 +41,29 @@ import com.tastyhouse.application.shared.marker.WebApp;
 public class ReviewCommandService implements ReviewCommandUseCase {
 
     private final ReviewLifecycleService reviewLifecycleService;
-    private final ReviewRepository reviewRepository;
-    private final ReviewCommentRepository reviewCommentRepository;
-    private final ReviewReplyRepository reviewReplyRepository;
-    private final ProductRepository productRepository;
-    private final OrderProductRepository orderProductRepository;
-    private final OrderRepository orderRepository;
+    private final ReviewPersistencePort reviewPersistencePort;
+    private final ReviewCommentPersistencePort reviewCommentPersistencePort;
+    private final ReviewReplyPersistencePort reviewReplyPersistencePort;
+    private final ProductPersistencePort productPersistencePort;
+    private final OrderProductPersistencePort orderProductPersistencePort;
+    private final OrderPersistencePort orderPersistencePort;
 
     public ReviewCommandService(
         ReviewLifecycleService reviewLifecycleService,
-        ReviewRepository reviewRepository,
-        ReviewCommentRepository reviewCommentRepository,
-        ReviewReplyRepository reviewReplyRepository,
-        ProductRepository productRepository,
-        OrderProductRepository orderProductRepository,
-        OrderRepository orderRepository
+        ReviewPersistencePort reviewPersistencePort,
+        ReviewCommentPersistencePort reviewCommentPersistencePort,
+        ReviewReplyPersistencePort reviewReplyPersistencePort,
+        ProductPersistencePort productPersistencePort,
+        OrderProductPersistencePort orderProductPersistencePort,
+        OrderPersistencePort orderPersistencePort
     ) {
         this.reviewLifecycleService = reviewLifecycleService;
-        this.reviewRepository = reviewRepository;
-        this.reviewCommentRepository = reviewCommentRepository;
-        this.reviewReplyRepository = reviewReplyRepository;
-        this.productRepository = productRepository;
-        this.orderProductRepository = orderProductRepository;
-        this.orderRepository = orderRepository;
+        this.reviewPersistencePort = reviewPersistencePort;
+        this.reviewCommentPersistencePort = reviewCommentPersistencePort;
+        this.reviewReplyPersistencePort = reviewReplyPersistencePort;
+        this.productPersistencePort = productPersistencePort;
+        this.orderProductPersistencePort = orderProductPersistencePort;
+        this.orderPersistencePort = orderPersistencePort;
     }
 
     @Override
@@ -75,14 +75,14 @@ public class ReviewCommandService implements ReviewCommandUseCase {
 
         OrderId orderId = null;
         if (orderProductId != null) {
-            OrderProduct orderProduct = orderProductRepository.findById(OrderProductId.of(orderProductId))
+            OrderProduct orderProduct = orderProductPersistencePort.findById(OrderProductId.of(orderProductId))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
             validateOrderOwnership(orderId, MemberId.of(memberId));
         }
         validateDeliveryRating(orderId, deliveryRating, deliveryComment);
 
-        Product product = productRepository.findById(ProductId.of(command.productId()))
+        Product product = productPersistencePort.findById(ProductId.of(command.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
@@ -110,7 +110,7 @@ public class ReviewCommandService implements ReviewCommandUseCase {
         String deliveryComment = command.deliveryComment();
 
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
-        Review review = reviewRepository.findById(targetReviewId)
+        Review review = reviewPersistencePort.findById(targetReviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         validateDeliveryRating(review.getOrderId(), deliveryRating, deliveryComment);
 
@@ -133,14 +133,14 @@ public class ReviewCommandService implements ReviewCommandUseCase {
     @Override
     public void deleteReview(ReviewDeleteCommand command) {
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
-        Review review = reviewRepository.findById(targetReviewId)
+        Review review = reviewPersistencePort.findById(targetReviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         reviewLifecycleService.removeOwnedBy(targetReviewId, MemberId.of(command.memberId()), review.getProductId());
     }
 
     private void validateOrderOwnership(OrderId orderId, MemberId memberId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderPersistencePort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(memberId)) {
             throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
@@ -155,7 +155,7 @@ public class ReviewCommandService implements ReviewCommandUseCase {
             throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
-        Order order = orderRepository.findById(orderId)
+        Order order = orderPersistencePort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
             throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
@@ -171,7 +171,7 @@ public class ReviewCommandService implements ReviewCommandUseCase {
     @Override
     public Long createComment(ReviewCommentCreateCommand command) {
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
-        ReviewComment comment = reviewCommentRepository.save(
+        ReviewComment comment = reviewCommentPersistencePort.save(
             ReviewComment.of(targetReviewId, MemberId.of(command.memberId()), command.content())
         );
         return comment.getId();
@@ -179,7 +179,7 @@ public class ReviewCommandService implements ReviewCommandUseCase {
 
     @Override
     public Long findReviewIdOfComment(Long commentId) {
-        return reviewCommentRepository.findById(ReviewCommentId.of(commentId))
+        return reviewCommentPersistencePort.findById(ReviewCommentId.of(commentId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND))
             .getReviewId()
             .value();
@@ -189,7 +189,7 @@ public class ReviewCommandService implements ReviewCommandUseCase {
     public Long createReply(ReviewReplyCreateCommand command) {
         Long replyToMemberId = command.replyToMemberId();
         ReviewCommentId reviewCommentId = ReviewCommentId.of(command.commentId());
-        ReviewReply reply = reviewReplyRepository.save(ReviewReply.of(
+        ReviewReply reply = reviewReplyPersistencePort.save(ReviewReply.of(
             reviewCommentId,
             MemberId.of(command.memberId()),
             replyToMemberId == null ? null : MemberId.of(replyToMemberId),

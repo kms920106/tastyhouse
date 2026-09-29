@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
 
 @Service
 @CeoApp
@@ -30,20 +30,20 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
 
     private static final long MAX_CONTENT_BOARD_COUNT = 4;
 
-    private final ShopContentBoardRepository shopContentBoardRepository;
+    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final FileUploadOwnerCommandService fileUploadCommandService;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardOwnerCommandService(
-        ShopContentBoardRepository shopContentBoardRepository,
+        ShopContentBoardPersistencePort shopContentBoardPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
         FileUploadOwnerCommandService fileUploadCommandService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopContentBoardRepository = shopContentBoardRepository;
+        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
         this.fileUploadCommandService = fileUploadCommandService;
@@ -61,7 +61,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        if (shopContentBoardRepository.countByShopId(shopId) >= MAX_CONTENT_BOARD_COUNT) {
+        if (shopContentBoardPersistencePort.countByShopId(shopId) >= MAX_CONTENT_BOARD_COUNT) {
             throw new BusinessException(ErrorCode.SHOP_CONTENT_BOARD_LIMIT_EXCEEDED);
         }
 
@@ -71,7 +71,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         ShopContentBoard shopContentBoard = ShopContentBoard.of(
             ShopId.of(shopId), type, ShopContentTopic.from(topic), imageFileId, youtubeUrl, description
         );
-        ShopContentBoard saved = shopContentBoardRepository.save(shopContentBoard);
+        ShopContentBoard saved = shopContentBoardPersistencePort.save(shopContentBoard);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -104,7 +104,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
             : shopContentBoard.getImageFileId();
 
         shopContentBoard.update(ShopContentTopic.from(topic), imageFileId, youtubeUrl, description);
-        shopContentBoardRepository.save(shopContentBoard);
+        shopContentBoardPersistencePort.save(shopContentBoard);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -126,7 +126,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
         ShopContentBoard shopContentBoard = loadOwnedContentBoard(shopId, contentBoardId);
         String previousValue = describeContentBoard(shopContentBoard);
 
-        shopContentBoardRepository.deleteById(contentBoardId);
+        shopContentBoardPersistencePort.deleteById(contentBoardId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -149,7 +149,7 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
     }
 
     private ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
-        ShopContentBoard shopContentBoard = shopContentBoardRepository.findById(contentBoardId)
+        ShopContentBoard shopContentBoard = shopContentBoardPersistencePort.findById(contentBoardId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
         if (!shopContentBoard.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);

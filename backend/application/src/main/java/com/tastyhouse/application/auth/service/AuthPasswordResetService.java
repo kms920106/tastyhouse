@@ -12,7 +12,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.service.MemberCommandService;
 import com.tastyhouse.application.shared.marker.WebApp;
 
@@ -22,18 +22,18 @@ public class AuthPasswordResetService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthPasswordResetService.class);
 
-    private final MemberRepository memberRepository;
+    private final MemberPersistencePort memberPersistencePort;
     private final MailVerificationService mailVerificationService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberCommandService memberCommandService;
 
     public AuthPasswordResetService(
-        MemberRepository memberRepository,
+        MemberPersistencePort memberPersistencePort,
         MailVerificationService mailVerificationService,
         MemberJwtTokenProvider jwtTokenProvider,
         MemberCommandService memberCommandService
     ) {
-        this.memberRepository = memberRepository;
+        this.memberPersistencePort = memberPersistencePort;
         this.mailVerificationService = mailVerificationService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.memberCommandService = memberCommandService;
@@ -41,7 +41,7 @@ public class AuthPasswordResetService {
 
     @Transactional
     public void sendPasswordResetCode(String username) {
-        if (!memberRepository.existsByUsername(username)) {
+        if (!memberPersistencePort.existsByUsername(username)) {
             log.info("비밀번호 재설정 요청: 존재하지 않는 아이디. username={}", username);
             return;
         }
@@ -63,7 +63,7 @@ public class AuthPasswordResetService {
 
         String username = jwtTokenProvider.getUsernameFromPasswordResetToken(passwordResetToken);
 
-        Member member = memberRepository.findByUsername(username)
+        Member member = memberPersistencePort.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         MemberPasswordUpdateCommand command =

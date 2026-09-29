@@ -18,8 +18,8 @@ import com.tastyhouse.application.product.port.in.ProductImageChangeRequestComma
 import com.tastyhouse.application.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -29,23 +29,23 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 public class ProductImageCommandService implements ProductImageCommandUseCase {
 
     private final ProductImageApprovalService productImageApprovalService;
-    private final ProductRepository productRepository;
-    private final ProductImageRepository productImageRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductImagePersistencePort productImagePersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductImageSpecValidator productImageSpecValidator;
     private final FileUploadOwnerCommandService fileUploadCommandService;
 
     public ProductImageCommandService(
         ProductImageApprovalService productImageApprovalService,
-        ProductRepository productRepository,
-        ProductImageRepository productImageRepository,
+        ProductPersistencePort productPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductImageSpecValidator productImageSpecValidator,
         FileUploadOwnerCommandService fileUploadCommandService
     ) {
         this.productImageApprovalService = productImageApprovalService;
-        this.productRepository = productRepository;
-        this.productImageRepository = productImageRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productImagePersistencePort = productImagePersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productImageSpecValidator = productImageSpecValidator;
         this.fileUploadCommandService = fileUploadCommandService;
@@ -85,13 +85,13 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductImage image = productImageRepository.findById(imageId)
+        ProductImage image = productImagePersistencePort.findById(imageId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND));
         if (notOwnedBy(shopId, image.getProductId())) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND);
         }
 
-        productImageRepository.delete(image);
+        productImagePersistencePort.delete(image);
     }
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
@@ -102,7 +102,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
     }
 
     private boolean notOwnedBy(Long shopId, ProductId productId) {
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
         return found.isEmpty();
     }
 }

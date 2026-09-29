@@ -12,7 +12,7 @@ import com.tastyhouse.domain.file.event.FileUploadedEvent;
 import com.tastyhouse.domain.file.model.UploadedFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
+import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class FileUploadService {
@@ -23,16 +23,16 @@ public class FileUploadService {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
-    private final UploadedFileRepository uploadedFileRepository;
+    private final UploadedFilePersistencePort uploadedFilePersistencePort;
     private final FileStoragePort fileStoragePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public FileUploadService(
-        UploadedFileRepository uploadedFileRepository,
+        UploadedFilePersistencePort uploadedFilePersistencePort,
         FileStoragePort fileStoragePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.uploadedFileRepository = uploadedFileRepository;
+        this.uploadedFilePersistencePort = uploadedFilePersistencePort;
         this.fileStoragePort = fileStoragePort;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -46,7 +46,7 @@ public class FileUploadService {
 
         String filePath = fileStoragePort.store(command.content(), storedFilename, datePath, command.contentType());
 
-        UploadedFile saved = uploadedFileRepository.save(UploadedFile.of(
+        UploadedFile saved = uploadedFilePersistencePort.save(UploadedFile.of(
             command.originalFilename(),
             storedFilename,
             filePath,

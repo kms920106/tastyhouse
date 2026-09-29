@@ -40,7 +40,7 @@ backend/infrastructure/mail/
 
 ## 도메인 서비스 등록은 이제 어디인가 — `application`의 `MailServiceConfig`
 
-`MailVerificationService`(생성자로 `MailSender`·`MemberRepository`·`MailVerificationRepository`·`DomainEventPublisher`를 요구)는 `application/mail/service/`의 annotation-free POJO이고, `application`의 `mail/config/MailServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다 — 과거 이 모듈이 지키던 "포트 구현이 web에만 있다"는 제약이 이제 `application` 쪽 마커로 표현된다.
+`MailVerificationService`(생성자로 `MailSender`·`MemberPersistencePort`·`MailVerificationPersistencePort`·`DomainEventPublisher`를 요구)는 `application/mail/service/`의 annotation-free POJO이고, `application`의 `mail/config/MailServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다 — 과거 이 모듈이 지키던 "포트 구현이 web에만 있다"는 제약이 이제 `application` 쪽 마커로 표현된다.
 
 **이 모듈은 그 등록에 관여하지 않는다.** 벤더(javamail/aws-ses)를 조립해 `MailSender` 구현체를 web-api의 클래스패스에 올리는 것까지가 이 모듈의 일이고, 그 구현체를 누가 소비하는지는 알지 못한다.
 

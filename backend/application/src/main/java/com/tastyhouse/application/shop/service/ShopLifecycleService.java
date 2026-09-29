@@ -17,37 +17,37 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.StationRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
 
 public class ShopLifecycleService {
     private static final int SHOP_INTRODUCTION_MAX_LENGTH = 500;
 
-    private final ShopRepository shopRepository;
-    private final ShopDetailRepository shopDetailRepository;
-    private final ShopBookmarkRepository shopBookmarkRepository;
-    private final StationRepository stationRepository;
+    private final ShopPersistencePort shopPersistencePort;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopBookmarkPersistencePort shopBookmarkPersistencePort;
+    private final StationPersistencePort stationPersistencePort;
     private final ShopImageApprovalService shopImageApprovalService;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;
 
     public ShopLifecycleService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopBookmarkRepository shopBookmarkRepository,
-        StationRepository stationRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopBookmarkPersistencePort shopBookmarkPersistencePort,
+        StationPersistencePort stationPersistencePort,
         ShopImageApprovalService shopImageApprovalService,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
-        this.shopRepository = shopRepository;
-        this.shopDetailRepository = shopDetailRepository;
-        this.shopBookmarkRepository = shopBookmarkRepository;
-        this.stationRepository = stationRepository;
+        this.shopPersistencePort = shopPersistencePort;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopBookmarkPersistencePort = shopBookmarkPersistencePort;
+        this.stationPersistencePort = stationPersistencePort;
         this.shopImageApprovalService = shopImageApprovalService;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
@@ -78,7 +78,7 @@ public class ShopLifecycleService {
             thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
         shop.assignCeo(ceoId == null ? null : CeoId.of(ceoId));
-        Shop savedShop = shopRepository.save(shop);
+        Shop savedShop = shopPersistencePort.save(shop);
 
         if (ceoId != null) {
             shopCeoAssignmentRecorder.recordGrant(savedShop.getShopId(), CeoId.of(ceoId), adminId);
@@ -109,19 +109,19 @@ public class ShopLifecycleService {
             phoneNumber,
             thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 
     public void closeShop(ShopId shopId) {
         Shop shop = loadShop(shopId);
         shop.close();
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 
     public void changeCupDepositEnabled(ShopId shopId, boolean cupDepositEnabled) {
         Shop shop = loadShop(shopId);
         shop.changeCupDepositEnabled(cupDepositEnabled);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 
     public void updateHolidayClosure(ShopId shopId, boolean closedOnPublicHolidays, ShopChangeActor actor) {
@@ -129,7 +129,7 @@ public class ShopLifecycleService {
         String previousValue = describeHolidayClosure(shop.isClosedOnPublicHolidays());
 
         shop.updateHolidayClosure(closedOnPublicHolidays);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -153,7 +153,7 @@ public class ShopLifecycleService {
         } else {
             shop.show();
         }
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -180,13 +180,13 @@ public class ShopLifecycleService {
         prohibitedWordValidator.validate(message);
 
         String previousValue = describeIntroduction(
-            shopDetailRepository.findLatestOwnerMessage(shopId)
+            shopDetailPersistencePort.findLatestOwnerMessage(shopId)
                 .map(ShopOwnerMessageHistory::getMessage)
                 .orElse(null)
         );
 
         ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(ShopId.of(shopId), message);
-        shopDetailRepository.saveOwnerMessage(ownerMessageHistory);
+        shopDetailPersistencePort.saveOwnerMessage(ownerMessageHistory);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -203,22 +203,22 @@ public class ShopLifecycleService {
     }
 
     public boolean toggleBookmark(Long shopId, MemberId memberId) {
-        if (shopBookmarkRepository.existsByShopIdAndMemberId(shopId, memberId)) {
-            shopBookmarkRepository.deleteByShopIdAndMemberId(shopId, memberId);
+        if (shopBookmarkPersistencePort.existsByShopIdAndMemberId(shopId, memberId)) {
+            shopBookmarkPersistencePort.deleteByShopIdAndMemberId(shopId, memberId);
             return false;
         }
         loadShop(ShopId.of(shopId));
-        shopBookmarkRepository.save(ShopBookmark.of(ShopId.of(shopId), memberId));
+        shopBookmarkPersistencePort.save(ShopBookmark.of(ShopId.of(shopId), memberId));
         return true;
     }
 
     private Shop loadShop(ShopId shopId) {
-        return shopRepository.findById(shopId)
+        return shopPersistencePort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateStationExists(Long stationId) {
-        if (!stationRepository.existsById(stationId)) {
+        if (!stationPersistencePort.existsById(stationId)) {
             throw new ResourceNotFoundException(ErrorCode.STATION_NOT_FOUND);
         }
     }

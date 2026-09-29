@@ -8,7 +8,7 @@ import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.review.port.in.ShopReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ShopReviewSortTypeChangeCommand;
-import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingRepository;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -17,14 +17,14 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 public class ShopReviewCommandService implements ShopReviewCommandUseCase {
 
-    private final ShopReviewDisplaySettingRepository shopReviewDisplaySettingRepository;
+    private final ShopReviewDisplaySettingPersistencePort shopReviewDisplaySettingPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopReviewCommandService(
-        ShopReviewDisplaySettingRepository shopReviewDisplaySettingRepository,
+        ShopReviewDisplaySettingPersistencePort shopReviewDisplaySettingPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopReviewDisplaySettingRepository = shopReviewDisplaySettingRepository;
+        this.shopReviewDisplaySettingPersistencePort = shopReviewDisplaySettingPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -35,10 +35,10 @@ public class ShopReviewCommandService implements ShopReviewCommandUseCase {
         shopOwnershipValidator.validateOwnership(command.ceoId(), shopId);
 
         ReviewSortType newSortType = ReviewSortType.from(command.sortType());
-        ShopReviewDisplaySetting setting = shopReviewDisplaySettingRepository.findByShopId(ShopId.of(shopId))
+        ShopReviewDisplaySetting setting = shopReviewDisplaySettingPersistencePort.findByShopId(ShopId.of(shopId))
             .orElseGet(() -> ShopReviewDisplaySetting.of(ShopId.of(shopId), newSortType));
         setting.changeSortType(newSortType);
 
-        shopReviewDisplaySettingRepository.save(setting);
+        shopReviewDisplaySettingPersistencePort.save(setting);
     }
 }

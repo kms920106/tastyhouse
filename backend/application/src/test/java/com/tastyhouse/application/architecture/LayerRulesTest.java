@@ -58,7 +58,7 @@ class LayerRulesTest {
         };
 
     @Test
-    void commandServicesShouldNotDependOnQueryDaos() {
+    void commandServicesShouldNotDependOnQueryPorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("CommandService")
             .should().dependOnClassesThat().haveSimpleNameEndingWith("QueryPort")
@@ -77,6 +77,18 @@ class LayerRulesTest {
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerQueryService")
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .because("QueryService는 write 포트(도메인 타입 리포지토리)를 주입하지 않는다(CQRS 교차 주입 금지)");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void writePortsShouldBeNamedPort() {
+        ArchRule rule = classes()
+            .that().resideInAPackage("com.tastyhouse.application..port.out.write..")
+            .and().areInterfaces()
+            .should().haveSimpleNameEndingWith("Port")
+            .because("쓰기 포트는 XxxPersistencePort로 짓는다 — 옛 XxxRepository 이름은 RuleAnchorTest#writePortsExist와 "
+                + "컨트롤러 가드의 이름 기반 대상에서 빠진다");
 
         rule.check(classes);
     }

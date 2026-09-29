@@ -26,9 +26,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -281,22 +281,22 @@ class ProductOptionGroupMergeServiceTest {
     }
 
     private static final class Fixture {
-        private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
+        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
-        private final FakeProductOptionRepository options = new FakeProductOptionRepository();
+        private final FakeProductOptionPersistencePort options = new FakeProductOptionPersistencePort();
         private final List<ProductOptionGroupMergeHistory> histories = new ArrayList<>();
         private final ProductOptionGroupMergeService service;
 
         private Fixture() {
             ProductOptionGroupLinkService linkService =
-                new ProductOptionGroupLinkService(links, new StubProductRepository(products));
+                new ProductOptionGroupLinkService(links, new StubProductPersistencePort(products));
             this.service = new ProductOptionGroupMergeService(
-                new StubOptionGroupRepository(groups),
+                new StubOptionGroupPersistencePort(groups),
                 options,
                 links,
                 linkService,
-                new RecordingMergeHistoryRepository(histories)
+                new RecordingMergeHistoryPersistencePort(histories)
             );
         }
 
@@ -346,7 +346,7 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class FakeProductOptionRepository implements ProductOptionRepository {
+    private static final class FakeProductOptionPersistencePort implements ProductOptionPersistencePort {
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
 
@@ -396,10 +396,10 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class StubOptionGroupRepository implements ProductOptionGroupRepository {
+    private static final class StubOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
         private final Map<Long, ProductOptionGroup> groups;
 
-        private StubOptionGroupRepository(Map<Long, ProductOptionGroup> groups) {
+        private StubOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
             this.groups = groups;
         }
 
@@ -423,11 +423,11 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class RecordingMergeHistoryRepository
-        implements ProductOptionGroupMergeHistoryRepository {
+    private static final class RecordingMergeHistoryPersistencePort
+        implements ProductOptionGroupMergeHistoryPersistencePort {
         private final List<ProductOptionGroupMergeHistory> histories;
 
-        private RecordingMergeHistoryRepository(List<ProductOptionGroupMergeHistory> histories) {
+        private RecordingMergeHistoryPersistencePort(List<ProductOptionGroupMergeHistory> histories) {
             this.histories = histories;
         }
 

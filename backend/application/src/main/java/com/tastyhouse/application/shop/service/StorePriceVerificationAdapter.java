@@ -5,13 +5,13 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class StorePriceVerificationAdapter implements StorePriceVerificationPort {
-    private final ShopRepository shopRepository;
+    private final ShopPersistencePort shopPersistencePort;
 
-    public StorePriceVerificationAdapter(ShopRepository shopRepository) {
-        this.shopRepository = shopRepository;
+    public StorePriceVerificationAdapter(ShopPersistencePort shopPersistencePort) {
+        this.shopPersistencePort = shopPersistencePort;
     }
 
     @Override
@@ -23,18 +23,18 @@ public class StorePriceVerificationAdapter implements StorePriceVerificationPort
     public void verifyStorePrice(Long shopId) {
         Shop shop = loadShop(shopId);
         shop.verifyStorePrice();
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 
     @Override
     public void clearStorePriceVerification(Long shopId) {
         Shop shop = loadShop(shopId);
         shop.clearStorePriceVerification();
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 
     private Shop loadShop(Long shopId) {
-        return shopRepository.findById(ShopId.of(shopId))
+        return shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 }

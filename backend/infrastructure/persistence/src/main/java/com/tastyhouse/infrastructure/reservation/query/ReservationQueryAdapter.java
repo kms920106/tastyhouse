@@ -1,0 +1,151 @@
+package com.tastyhouse.infrastructure.reservation.query;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.reservation.port.out.ReservationDetailResult;
+import com.tastyhouse.application.reservation.port.out.ReservationQueryPort;
+import com.tastyhouse.application.reservation.port.out.ReservationResult;
+import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
+import static com.tastyhouse.infrastructure.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
+import static com.tastyhouse.infrastructure.reservation.persistence.QReservationSlotJpaEntity.reservationSlotJpaEntity;
+import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shopJpaEntity;
+
+@Repository
+public class ReservationQueryAdapter implements ReservationQueryPort {
+    private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
+
+    public ReservationQueryAdapter(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
+
+    @Override
+    public List<ReservationResult> findReservationsByMemberId(Long memberId) {
+        return reservationQuery()
+            .where(reservationJpaEntity.memberId.eq(memberId))
+            .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
+            .fetch();
+    }
+
+    @Override
+    public List<ReservationResult> findReservationsByShopId(Long shopId) {
+        return reservationQuery()
+            .where(reservationJpaEntity.shopId.eq(shopId))
+            .orderBy(reservationJpaEntity.reservationDate.desc(), reservationJpaEntity.reservationTime.desc())
+            .fetch();
+    }
+
+    @Override
+    public Optional<ReservationResult> findReservationById(Long id) {
+        return Optional.ofNullable(
+                reservationQuery()
+                    .where(reservationJpaEntity.id.eq(id))
+                    .fetchOne()
+            );
+    }
+
+    @Override
+    public Optional<ReservationDetailResult> findReservationDetailById(Long id) {
+        ReservationDetailResult result = queryFactory
+            .select(Projections.constructor(ReservationDetailResult.class,
+                reservationJpaEntity.id,
+                reservationJpaEntity.shopId,
+                shopJpaEntity.name,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+                shopJpaEntity.roadAddress,
+                shopJpaEntity.lotAddress,
+                reservationJpaEntity.memberId,
+                memberJpaEntity.fullName,
+                memberJpaEntity.phoneNumber.value,
+                memberJpaEntity.username,
+                reservationJpaEntity.reservationDate,
+                reservationJpaEntity.reservationTime,
+                reservationJpaEntity.partySize,
+                reservationJpaEntity.status,
+                reservationJpaEntity.request,
+                reservationJpaEntity.createdAt
+            ))
+            .from(reservationJpaEntity)
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationJpaEntity.shopId))
+            .innerJoin(memberJpaEntity).on(memberJpaEntity.id.eq(reservationJpaEntity.memberId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()))
+            .where(reservationJpaEntity.id.eq(id))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<SlotOccupancyResult> findSlotOccupancies(Long shopId, LocalDate date) {
+        return queryFactory
+            .select(Projections.constructor(SlotOccupancyResult.class,
+                reservationSlotJpaEntity.slotTime,
+                reservationSlotJpaEntity.capacity.subtract(reservationSlotJpaEntity.reservedCount)
+            ))
+            .from(reservationSlotJpaEntity)
+            .where(
+                reservationSlotJpaEntity.shopId.eq(shopId),
+                reservationSlotJpaEntity.slotDate.eq(date)
+            )
+            .fetch();
+    }
+
+    @Override
+    public boolean existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses) {
+        return queryFactory.selectOne()
+            .from(reservationJpaEntity)
+            .where(
+                reservationJpaEntity.memberId.eq(memberId),
+                reservationJpaEntity.shopId.eq(shopId),
+                reservationJpaEntity.reservationDate.eq(date),
+                reservationJpaEntity.status.in(blockingStatuses)
+            )
+            .fetchFirst() != null;
+    }
+
+    private JPQLQuery<ReservationResult> reservationQuery() {
+        return queryFactory
+            .select(reservationProjection())
+            .from(reservationJpaEntity)
+            .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(reservationJpaEntity.shopId))
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopThumbnailImageFileId()));
+    }
+
+    private ConstructorExpression<ReservationResult> reservationProjection() {
+        return Projections.constructor(ReservationResult.class,
+                reservationJpaEntity.id,
+            reservationJpaEntity.shopId,
+            shopJpaEntity.name,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+            shopJpaEntity.roadAddress,
+            shopJpaEntity.lotAddress,
+            reservationJpaEntity.memberId,
+            reservationJpaEntity.reservationDate,
+            reservationJpaEntity.reservationTime,
+            reservationJpaEntity.partySize,
+            reservationJpaEntity.status.stringValue(),
+            reservationJpaEntity.request,
+            reservationJpaEntity.createdAt
+        );
+    }
+
+    private NumberPath<Long> shopThumbnailImageFileId() {
+        return Expressions.numberPath(Long.class, shopJpaEntity, "thumbnailImageFileId");
+    }
+}

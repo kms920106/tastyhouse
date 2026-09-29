@@ -18,7 +18,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,7 +42,7 @@ class OrderTransitionServiceTest {
     @DisplayName("없는 주문을 로드하면 ORDER_NOT_FOUND")
     void load_notFound() {
         Fixture fixture = new Fixture();
-        fixture.orderRepository.stored = null;
+        fixture.orderPersistencePort.stored = null;
 
         assertThatThrownBy(() -> fixture.service.load(OrderId.of(ORDER_ID)))
             .isInstanceOf(ResourceNotFoundException.class);
@@ -74,8 +74,8 @@ class OrderTransitionServiceTest {
 
         fixture.service.changeStatus(OrderId.of(ORDER_ID), OrderStatus.CONFIRMED);
 
-        assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.orderPersistencePort.saved).hasSize(1);
+        assertThat(fixture.orderPersistencePort.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
 
     @Test
@@ -86,8 +86,8 @@ class OrderTransitionServiceTest {
 
         fixture.service.changeStatus(order, OrderStatus.CANCELLED);
 
-        assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(fixture.orderPersistencePort.saved).hasSize(1);
+        assertThat(fixture.orderPersistencePort.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test
@@ -98,14 +98,14 @@ class OrderTransitionServiceTest {
         assertThatThrownBy(() -> fixture.service.changeStatus(OrderId.of(ORDER_ID), OrderStatus.COMPLETED))
             .isInstanceOf(BusinessException.class);
 
-        assertThat(fixture.orderRepository.saved).isEmpty();
+        assertThat(fixture.orderPersistencePort.saved).isEmpty();
     }
 
     @Test
     @DisplayName("이미 취소된 주문의 결제 확정은 저장 없이 ORDER_ALREADY_CANCELLED로 실패한다")
     void confirm_onCancelledOrder_throwsAndDoesNotSave() {
         Fixture fixture = new Fixture();
-        fixture.orderRepository.stored = Fixture.orderWithStatus(OrderStatus.CANCELLED);
+        fixture.orderPersistencePort.stored = Fixture.orderWithStatus(OrderStatus.CANCELLED);
         Order order = fixture.service.load(OrderId.of(ORDER_ID));
 
         assertThatThrownBy(() -> fixture.service.confirm(order))
@@ -113,14 +113,14 @@ class OrderTransitionServiceTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_ALREADY_CANCELLED);
 
-        assertThat(fixture.orderRepository.saved).isEmpty();
+        assertThat(fixture.orderPersistencePort.saved).isEmpty();
     }
 
     @Test
     @DisplayName("조리 시작된 주문의 결제 취소는 저장 없이 ORDER_ALREADY_PREPARING으로 실패한다")
     void cancel_onPreparingOrder_throwsAndDoesNotSave() {
         Fixture fixture = new Fixture();
-        fixture.orderRepository.stored = Fixture.orderWithStatus(OrderStatus.PREPARING);
+        fixture.orderPersistencePort.stored = Fixture.orderWithStatus(OrderStatus.PREPARING);
         Order order = fixture.service.load(OrderId.of(ORDER_ID));
 
         assertThatThrownBy(() -> fixture.service.cancel(order))
@@ -128,7 +128,7 @@ class OrderTransitionServiceTest {
             .extracting("errorCode")
             .isEqualTo(ErrorCode.ORDER_ALREADY_PREPARING);
 
-        assertThat(fixture.orderRepository.saved).isEmpty();
+        assertThat(fixture.orderPersistencePort.saved).isEmpty();
     }
 
     @Test
@@ -139,8 +139,8 @@ class OrderTransitionServiceTest {
 
         fixture.service.confirm(order);
 
-        assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.orderPersistencePort.saved).hasSize(1);
+        assertThat(fixture.orderPersistencePort.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
 
     @Test
@@ -151,8 +151,8 @@ class OrderTransitionServiceTest {
 
         fixture.service.cancel(order);
 
-        assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(fixture.orderPersistencePort.saved).hasSize(1);
+        assertThat(fixture.orderPersistencePort.saved.getFirst().getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test
@@ -162,16 +162,16 @@ class OrderTransitionServiceTest {
 
         fixture.service.delete(OrderId.of(ORDER_ID));
 
-        assertThat(fixture.orderRepository.saved).hasSize(1);
-        assertThat(fixture.orderRepository.saved.getFirst().isDeleted()).isTrue();
+        assertThat(fixture.orderPersistencePort.saved).hasSize(1);
+        assertThat(fixture.orderPersistencePort.saved.getFirst().isDeleted()).isTrue();
     }
 
     private static final class Fixture {
-        private final StubOrderRepository orderRepository = new StubOrderRepository();
-        private final OrderTransitionService service = new OrderTransitionService(orderRepository);
+        private final StubOrderPersistencePort orderPersistencePort = new StubOrderPersistencePort();
+        private final OrderTransitionService service = new OrderTransitionService(orderPersistencePort);
 
         private Fixture() {
-            orderRepository.stored = orderWithStatus(OrderStatus.PENDING);
+            orderPersistencePort.stored = orderWithStatus(OrderStatus.PENDING);
         }
 
         private static Order orderWithStatus(OrderStatus status) {
@@ -193,7 +193,7 @@ class OrderTransitionServiceTest {
         }
     }
 
-    private static final class StubOrderRepository implements OrderRepository {
+    private static final class StubOrderPersistencePort implements OrderPersistencePort {
         private Order stored;
         private final List<Order> saved = new ArrayList<>();
 

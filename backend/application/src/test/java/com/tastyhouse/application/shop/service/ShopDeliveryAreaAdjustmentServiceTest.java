@@ -22,26 +22,26 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryAreaAdjustmentServiceTest {
-    private FakeRepository repository;
-    private RecordingShopChangeHistoryRepository historyRepository;
-    private RecordingShopRequestIndexRepository indexRepository;
+    private FakePersistencePort repository;
+    private RecordingShopChangeHistoryPersistencePort historyPersistencePort;
+    private RecordingShopRequestIndexPersistencePort indexPersistencePort;
     private ShopDeliveryAreaAdjustmentService service;
 
     @BeforeEach
     void setUp() {
-        repository = new FakeRepository();
-        historyRepository = new RecordingShopChangeHistoryRepository();
-        indexRepository = new RecordingShopRequestIndexRepository();
+        repository = new FakePersistencePort();
+        historyPersistencePort = new RecordingShopChangeHistoryPersistencePort();
+        indexPersistencePort = new RecordingShopRequestIndexPersistencePort();
         service = new ShopDeliveryAreaAdjustmentService(
             repository,
-            new ShopChangeHistoryRecorder(historyRepository),
-            new ShopRequestIndexRecorder(indexRepository)
+            new ShopChangeHistoryRecorder(historyPersistencePort),
+            new ShopRequestIndexRecorder(indexPersistencePort)
         );
     }
 
@@ -51,7 +51,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         request();
 
         List<ShopChangeHistory> histories =
-            historyRepository.savedOf(ShopChangeType.DELIVERY_AREA_ADJUSTMENT);
+            historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA_ADJUSTMENT);
         assertThat(histories).hasSize(1);
         assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.CREATE);
         assertThat(histories.getFirst().getPreviousValue()).isNull();
@@ -62,12 +62,12 @@ class ShopDeliveryAreaAdjustmentServiceTest {
     @DisplayName("이후 상태 전이는 가게 설정 변경이 아니므로 변경이력을 남기지 않는다")
     void statusTransitions_recordNoHistory() {
         Long requestId = request();
-        int afterRequest = historyRepository.saved().size();
+        int afterRequest = historyPersistencePort.saved().size();
 
         service.startProgress(requestId);
         service.complete(requestId);
 
-        assertThat(historyRepository.saved()).hasSize(afterRequest);
+        assertThat(historyPersistencePort.saved()).hasSize(afterRequest);
     }
 
     @Test
@@ -149,7 +149,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         Long requestId = request();
 
         ShopRequestIndex index =
-            indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
+            indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
         assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.PENDING);
         assertThat(index.getSummary()).isEqualTo("맛있는집 강남점 (맛있는집 본사)");
         assertThat(index.getRequestedByCeoId()).isEqualTo(9L);
@@ -162,7 +162,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
 
         service.startProgress(requestId);
 
-        assertThat(indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
+        assertThat(indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
             .isEqualTo(ShopRequestStatus.IN_PROGRESS);
     }
 
@@ -174,7 +174,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
 
         service.complete(requestId);
 
-        assertThat(indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
+        assertThat(indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId).getStatus())
             .isEqualTo(ShopRequestStatus.APPROVED);
     }
 
@@ -186,7 +186,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         service.reject(requestId, "동의서가 식별되지 않습니다.");
 
         ShopRequestIndex index =
-            indexRepository.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
+            indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, requestId);
         assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.REJECTED);
         assertThat(index.getRejectReason()).isEqualTo("동의서가 식별되지 않습니다.");
         assertThat(index.getProcessedAt()).isNotNull();
@@ -217,7 +217,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         );
     }
 
-    private static final class FakeRepository implements ShopDeliveryAreaAdjustmentRequestRepository {
+    private static final class FakePersistencePort implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private final List<ShopDeliveryAreaAdjustmentRequest> saved = new ArrayList<>();
         private long sequence = 0L;

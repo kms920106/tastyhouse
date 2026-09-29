@@ -13,8 +13,8 @@ import com.tastyhouse.application.product.port.in.ProductCategoryCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -27,21 +27,21 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
     private static final boolean DEFAULT_VISIBLE = true;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductCategoryRepository productCategoryRepository;
-    private final ProductRepository productRepository;
+    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductPersistencePort productPersistencePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductCategoryCommandService(
         ProductRegistrationService productRegistrationService,
-        ProductCategoryRepository productCategoryRepository,
-        ProductRepository productRepository,
+        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductPersistencePort productPersistencePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productCategoryRepository = productCategoryRepository;
-        this.productRepository = productRepository;
+        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productPersistencePort = productPersistencePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -81,7 +81,7 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
 
         ProductCategory category = loadOwnedCategory(shopId, productCategoryId);
         category.changeDetails(name, description);
-        productCategoryRepository.save(category);
+        productCategoryPersistencePort.save(category);
     }
 
     @Override
@@ -93,14 +93,14 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductCategory category = loadOwnedCategory(shopId, productCategoryId);
-        if (productRepository.countByCategoryId(ProductCategoryId.of(productCategoryId)) > 0) {
+        if (productPersistencePort.countByCategoryId(ProductCategoryId.of(productCategoryId)) > 0) {
             throw new BusinessException(ErrorCode.PRODUCT_CATEGORY_HAS_PRODUCTS);
         }
-        productCategoryRepository.delete(category);
+        productCategoryPersistencePort.delete(category);
     }
 
     private ProductCategory loadOwnedCategory(Long shopId, Long productCategoryId) {
-        ProductCategory category = productCategoryRepository.findById(ProductCategoryId.of(productCategoryId))
+        ProductCategory category = productCategoryPersistencePort.findById(ProductCategoryId.of(productCategoryId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_CATEGORY_NOT_FOUND));
         if (!category.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_CATEGORY_NOT_FOUND);
@@ -109,6 +109,6 @@ public class ProductCategoryCommandService implements ProductCategoryCommandUseC
     }
 
     private Integer nextSort(Long shopId) {
-        return productCategoryRepository.findAllByShopId(ShopId.of(shopId)).size();
+        return productCategoryPersistencePort.findAllByShopId(ShopId.of(shopId)).size();
     }
 }

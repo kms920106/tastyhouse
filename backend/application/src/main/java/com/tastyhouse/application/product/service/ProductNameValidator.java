@@ -8,7 +8,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Component
@@ -18,22 +18,22 @@ public class ProductNameValidator {
     private static final Pattern ALLOWED_NAME =
         Pattern.compile("^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\\s:,./~%&()+\\[\\]™®]*$");
 
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
 
-    public ProductNameValidator(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductNameValidator(ProductPersistencePort productPersistencePort) {
+        this.productPersistencePort = productPersistencePort;
     }
 
     public void validateForCreate(Long shopId, String name) {
         validateCharacters(name);
-        if (productRepository.existsByShopIdAndName(ShopId.of(shopId), name)) {
+        if (productPersistencePort.existsByShopIdAndName(ShopId.of(shopId), name)) {
             throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }
 
     public void validateForUpdate(Long shopId, Long productId, String name) {
         validateCharacters(name);
-        if (productRepository.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
+        if (productPersistencePort.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
             throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }

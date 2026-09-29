@@ -24,8 +24,8 @@ import com.tastyhouse.application.product.port.in.ProductOptionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -39,8 +39,8 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
     private static final boolean DEFAULT_VISIBLE = true;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
@@ -48,16 +48,16 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
 
     public ProductOptionCommandService(
         ProductRegistrationService productRegistrationService,
-        ProductOptionRepository productOptionRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
         CupDepositPolicy cupDepositPolicy,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productOptionRepository = productOptionRepository;
-        this.productOptionGroupRepository = productOptionGroupRepository;
+        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
@@ -127,7 +127,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
 
         validateZeroPriceOptionAfterChange(option);
 
-        productOptionRepository.save(option);
+        productOptionPersistencePort.save(option);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
 
         List<ProductOption> groupOptions =
-            productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
+            productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
 
         ProductOptionSelectionRule.validateRemainingAfterBlocking(group, option, groupOptions);
 
@@ -155,7 +155,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
             .toList();
         ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptionsAfterHide);
 
-        productOptionRepository.save(option);
+        productOptionPersistencePort.save(option);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         productOptionGroupOwnershipValidator.validateOptionGroupShop(shopId, optionGroupId);
 
-        Map<Long, ProductOption> byId = productOptionRepository
+        Map<Long, ProductOption> byId = productOptionPersistencePort
             .findAllByOptionGroupId(ProductOptionGroupId.of(optionGroupId)).stream()
             .collect(Collectors.toMap(ProductOption::getId, Function.identity()));
 
@@ -188,19 +188,19 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
                 option.getCupCount(),
                 option.getPersonalCupDiscountAmount()
             );
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
         }
     }
 
     private void validateZeroPriceOptionAfterChange(ProductOption changed) {
-        ProductOptionGroup group = productOptionGroupRepository
+        ProductOptionGroup group = productOptionGroupPersistencePort
             .findById(changed.getOptionGroupId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         if (!group.isRequired()) {
             return;
         }
 
-        List<ProductOption> options = productOptionRepository
+        List<ProductOption> options = productOptionPersistencePort
             .findAllByOptionGroupId(changed.getOptionGroupId()).stream()
             .map(option -> option.getId().equals(changed.getId()) ? changed : option)
             .toList();
@@ -208,7 +208,7 @@ public class ProductOptionCommandService implements ProductOptionCommandUseCase 
     }
 
     private Integer nextSort(Long optionGroupId) {
-        return productOptionRepository.findAllByOptionGroupId(ProductOptionGroupId.of(optionGroupId)).size();
+        return productOptionPersistencePort.findAllByOptionGroupId(ProductOptionGroupId.of(optionGroupId)).size();
     }
 
     private List<Long> distinct(List<Long> ids) {

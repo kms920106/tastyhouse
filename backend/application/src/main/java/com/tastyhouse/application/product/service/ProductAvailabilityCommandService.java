@@ -40,7 +40,7 @@ import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeComma
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeUseCase;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -54,20 +54,20 @@ public class ProductAvailabilityCommandService implements ProductSoldOutOwnerUse
 
     private final ProductAvailabilityService productAvailabilityService;
     private final ShopNextOpenTimeCalculator shopNextOpenTimeCalculator;
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
     private final PublicHolidayCalendar publicHolidayCalendar;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductAvailabilityCommandService(
         ProductAvailabilityService productAvailabilityService,
         ShopNextOpenTimeCalculator shopNextOpenTimeCalculator,
-        ShopDetailRepository shopDetailRepository,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         PublicHolidayCalendar publicHolidayCalendar,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productAvailabilityService = productAvailabilityService;
         this.shopNextOpenTimeCalculator = shopNextOpenTimeCalculator;
-        this.shopDetailRepository = shopDetailRepository;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
         this.publicHolidayCalendar = publicHolidayCalendar;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -189,8 +189,8 @@ public class ProductAvailabilityCommandService implements ProductSoldOutOwnerUse
 
         ShopNextOpenTimeContext context = ShopNextOpenTimeContext.of(
             now,
-            shopDetailRepository.findBusinessHoursByShopId(shopId),
-            shopDetailRepository.findClosedDaysByShopId(shopId),
+            shopDetailPersistencePort.findBusinessHoursByShopId(shopId),
+            shopDetailPersistencePort.findClosedDaysByShopId(shopId),
             publicHolidays
         );
 

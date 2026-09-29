@@ -22,13 +22,13 @@ class ReviewLifecycleServiceTest {
 
     @BeforeEach
     void setUp() {
-        FakeReviewRepository reviewRepository = new FakeReviewRepository();
+        FakeReviewPersistencePort reviewPersistencePort = new FakeReviewPersistencePort();
         reviewLifecycleService = new ReviewLifecycleService(
-            reviewRepository,
-            new FakeReviewImageRepository(),
-            new FakeReviewTagRepository(),
-            new FakeReviewLikeRepository(),
-            new FakeTagRepository(),
+            reviewPersistencePort,
+            new FakeReviewImagePersistencePort(),
+            new FakeReviewTagPersistencePort(),
+            new FakeReviewLikePersistencePort(),
+            new FakeTagPersistencePort(),
             new FakeDomainEventPublisher()
         );
     }

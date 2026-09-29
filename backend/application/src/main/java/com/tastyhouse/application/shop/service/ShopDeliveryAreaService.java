@@ -21,40 +21,40 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
 public class ShopDeliveryAreaService {
-    private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
-    private final AdminDongRepository adminDongRepository;
-    private final ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup;
+    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
+    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryAreaService(
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
+        ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
-        this.adminDongRepository = adminDongRepository;
-        this.shopDeliveryTipRegionLookup = shopDeliveryTipRegionLookup;
+        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
+        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.shopDeliveryTipRegionLookupPort = shopDeliveryTipRegionLookupPort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     public Long addArea(ShopId shopId, AdminDongId adminDongId, ShopChangeActor actor) {
-        if (!adminDongRepository.existsById(adminDongId)) {
+        if (!adminDongPersistencePort.existsById(adminDongId)) {
             throw new ResourceNotFoundException(ErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
-        if (shopDeliveryAreaRepository.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
+        if (shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
             throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
         }
 
-        ShopDeliveryAreaPolicy.validateTotalCount((int) shopDeliveryAreaRepository.countByShopId(shopId) + 1);
+        ShopDeliveryAreaPolicy.validateTotalCount((int) shopDeliveryAreaPersistencePort.countByShopId(shopId) + 1);
 
-        ShopDeliveryArea saved = shopDeliveryAreaRepository.save(ShopDeliveryArea.of(shopId, adminDongId));
+        ShopDeliveryArea saved = shopDeliveryAreaPersistencePort.save(ShopDeliveryArea.of(shopId, adminDongId));
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -68,7 +68,7 @@ public class ShopDeliveryAreaService {
     }
 
     public BulkResult addAreas(ShopId shopId, Collection<AdminDongId> adminDongIds, ShopChangeActor actor) {
-        String previousValue = describeAreas(shopDeliveryAreaRepository.findAdminDongIdsByShopId(shopId));
+        String previousValue = describeAreas(shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId));
 
         BulkResult result = addAreasWithoutHistory(shopId, adminDongIds);
 
@@ -78,7 +78,7 @@ public class ShopDeliveryAreaService {
             ShopChangeActionType.UPDATE,
             actor,
             previousValue,
-            describeAreas(shopDeliveryAreaRepository.findAdminDongIdsByShopId(shopId))
+            describeAreas(shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId))
         );
         return result;
     }
@@ -86,16 +86,16 @@ public class ShopDeliveryAreaService {
     BulkResult addAreasWithoutHistory(ShopId shopId, Collection<AdminDongId> adminDongIds) {
         Set<AdminDongId> requested = new LinkedHashSet<>(adminDongIds);
         if (requested.isEmpty()) {
-            long total = shopDeliveryAreaRepository.countByShopId(shopId);
+            long total = shopDeliveryAreaPersistencePort.countByShopId(shopId);
             return new BulkResult(0, 0, 0, (int) total);
         }
 
-        Set<AdminDongId> existingDongs = adminDongRepository.filterExistingIds(requested);
+        Set<AdminDongId> existingDongs = adminDongPersistencePort.filterExistingIds(requested);
         if (existingDongs.size() != requested.size()) {
             throw new ResourceNotFoundException(ErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
-        Set<AdminDongId> alreadyRegistered = shopDeliveryAreaRepository.findAdminDongIdsByShopId(shopId);
+        Set<AdminDongId> alreadyRegistered = shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId);
         List<ShopDeliveryArea> toAdd = requested.stream()
             .filter(adminDongId -> !alreadyRegistered.contains(adminDongId))
             .map(adminDongId -> ShopDeliveryArea.of(shopId, adminDongId, DeliveryAreaSource.MANUAL))
@@ -105,7 +105,7 @@ public class ShopDeliveryAreaService {
         ShopDeliveryAreaPolicy.validateTotalCount(totalAfterApply);
 
         if (!toAdd.isEmpty()) {
-            shopDeliveryAreaRepository.saveAll(toAdd);
+            shopDeliveryAreaPersistencePort.saveAll(toAdd);
         }
 
         return new BulkResult(requested.size(), toAdd.size(), requested.size() - toAdd.size(), totalAfterApply);
@@ -118,7 +118,7 @@ public class ShopDeliveryAreaService {
         ShopChangeActor actor
     ) {
         Set<AdminDongId> requested = new LinkedHashSet<>(adminDongIds);
-        Set<AdminDongId> registered = shopDeliveryAreaRepository.findAdminDongIdsByShopId(shopId);
+        Set<AdminDongId> registered = shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId);
 
         Set<AdminDongId> targets = requested.stream()
             .filter(registered::contains)
@@ -128,10 +128,10 @@ public class ShopDeliveryAreaService {
 
         String previousValue = describeAreas(registered);
 
-        List<ShopDeliveryArea> removable = shopDeliveryAreaRepository.findByShopId(shopId).stream()
+        List<ShopDeliveryArea> removable = shopDeliveryAreaPersistencePort.findByShopId(shopId).stream()
             .filter(area -> targets.contains(area.getAdminDongId()))
             .toList();
-        removable.forEach(area -> shopDeliveryAreaRepository.deleteById(area.getId()));
+        removable.forEach(area -> shopDeliveryAreaPersistencePort.deleteById(area.getId()));
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -139,7 +139,7 @@ public class ShopDeliveryAreaService {
             ShopChangeActionType.UPDATE,
             actor,
             previousValue,
-            describeAreas(shopDeliveryAreaRepository.findAdminDongIdsByShopId(shopId))
+            describeAreas(shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId))
         );
 
         return new BulkResult(requested.size(), 0, requested.size() - removable.size(), registered.size() - removable.size());
@@ -154,7 +154,7 @@ public class ShopDeliveryAreaService {
             return;
         }
 
-        Set<AdminDongId> referenced = shopDeliveryTipRegionLookup.findRegionTipAdminDongIds(shopId);
+        Set<AdminDongId> referenced = shopDeliveryTipRegionLookupPort.findRegionTipAdminDongIds(shopId);
         List<AdminDongId> blocked = targets.stream()
             .filter(referenced::contains)
             .toList();
@@ -179,10 +179,10 @@ public class ShopDeliveryAreaService {
     }
 
     public void removeArea(Long deliveryAreaId, ShopChangeActor actor) {
-        ShopDeliveryArea deliveryArea = shopDeliveryAreaRepository.findById(deliveryAreaId)
+        ShopDeliveryArea deliveryArea = shopDeliveryAreaPersistencePort.findById(deliveryAreaId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
 
-        boolean referencedByRegionTip = shopDeliveryTipRegionLookup.existsRegionTipByShopIdAndAdminDongId(
+        boolean referencedByRegionTip = shopDeliveryTipRegionLookupPort.existsRegionTipByShopIdAndAdminDongId(
             deliveryArea.getShopId(),
             deliveryArea.getAdminDongId()
         );
@@ -192,7 +192,7 @@ public class ShopDeliveryAreaService {
 
         String previousValue = describeArea(deliveryArea.getAdminDongId());
 
-        shopDeliveryAreaRepository.deleteById(deliveryAreaId);
+        shopDeliveryAreaPersistencePort.deleteById(deliveryAreaId);
 
         shopChangeHistoryRecorder.record(
             deliveryArea.getShopId(),
@@ -205,13 +205,13 @@ public class ShopDeliveryAreaService {
     }
 
     private String describeArea(AdminDongId adminDongId) {
-        return adminDongRepository.findById(adminDongId)
+        return adminDongPersistencePort.findById(adminDongId)
             .map(AdminDong::fullName)
             .orElseGet(() -> "행정동 " + adminDongId.value());
     }
 
     private String describeAreas(Collection<AdminDongId> adminDongIds) {
-        Map<Long, String> namesById = adminDongRepository.findAllByIds(adminDongIds).stream()
+        Map<Long, String> namesById = adminDongPersistencePort.findAllByIds(adminDongIds).stream()
             .collect(Collectors.toMap(AdminDong::getId, AdminDong::fullName, (first, second) -> first));
 
         return ShopChangeValueFormatter.snapshot(

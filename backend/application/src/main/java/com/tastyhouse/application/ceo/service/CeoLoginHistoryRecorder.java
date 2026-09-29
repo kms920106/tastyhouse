@@ -4,15 +4,15 @@ import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistencePort;
 
 public class CeoLoginHistoryRecorder {
     private static final int USER_AGENT_MAX_LENGTH = 500;
 
-    private final CeoLoginHistoryRepository ceoLoginHistoryRepository;
+    private final CeoLoginHistoryPersistencePort ceoLoginHistoryPersistencePort;
 
-    public CeoLoginHistoryRecorder(CeoLoginHistoryRepository ceoLoginHistoryRepository) {
-        this.ceoLoginHistoryRepository = ceoLoginHistoryRepository;
+    public CeoLoginHistoryRecorder(CeoLoginHistoryPersistencePort ceoLoginHistoryPersistencePort) {
+        this.ceoLoginHistoryPersistencePort = ceoLoginHistoryPersistencePort;
     }
 
     public void recordSuccess(CeoId ceoId, String ipAddress, String userAgent) {
@@ -42,7 +42,7 @@ public class CeoLoginHistoryRecorder {
             ipAddress,
             truncateUserAgent(userAgent)
         );
-        ceoLoginHistoryRepository.save(history);
+        ceoLoginHistoryPersistencePort.save(history);
     }
 
     private String truncateUserAgent(String userAgent) {

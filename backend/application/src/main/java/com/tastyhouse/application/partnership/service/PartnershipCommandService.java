@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.application.partnership.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipRepository;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
@@ -14,10 +14,10 @@ import com.tastyhouse.application.shared.marker.WebApp;
 @Transactional
 public class PartnershipCommandService implements PartnershipCommandUseCase {
 
-    private final PartnershipRepository partnershipRepository;
+    private final PartnershipPersistencePort partnershipPersistencePort;
 
-    public PartnershipCommandService(PartnershipRepository partnershipRepository) {
-        this.partnershipRepository = partnershipRepository;
+    public PartnershipCommandService(PartnershipPersistencePort partnershipPersistencePort) {
+        this.partnershipPersistencePort = partnershipPersistencePort;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class PartnershipCommandService implements PartnershipCommandUseCase {
             command.businessName(), command.address(), command.addressDetail(),
             command.contactName(), command.contactPhone(), command.consultationRequestedAt()
         );
-        PartnershipRequest saved = partnershipRepository.save(partnershipRequest);
+        PartnershipRequest saved = partnershipPersistencePort.save(partnershipRequest);
         return saved.getPartnershipRequestId().value();
     }
 }

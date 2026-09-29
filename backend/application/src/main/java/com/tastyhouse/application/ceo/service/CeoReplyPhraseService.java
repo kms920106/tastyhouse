@@ -7,19 +7,19 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
 
 public class CeoReplyPhraseService {
     private static final int MAX_PHRASE_COUNT = 5;
 
-    private final CeoReplyPhraseRepository ceoReplyPhraseRepository;
+    private final CeoReplyPhrasePersistencePort ceoReplyPhrasePersistencePort;
     private final ReplyPhraseTextValidator replyPhraseTextValidator;
 
     public CeoReplyPhraseService(
-        CeoReplyPhraseRepository ceoReplyPhraseRepository,
+        CeoReplyPhrasePersistencePort ceoReplyPhrasePersistencePort,
         ReplyPhraseTextValidator replyPhraseTextValidator
     ) {
-        this.ceoReplyPhraseRepository = ceoReplyPhraseRepository;
+        this.ceoReplyPhrasePersistencePort = ceoReplyPhrasePersistencePort;
         this.replyPhraseTextValidator = replyPhraseTextValidator;
     }
 
@@ -27,12 +27,12 @@ public class CeoReplyPhraseService {
         CeoId ownerId = CeoId.of(ceoId);
         replyPhraseTextValidator.validate(content);
 
-        long count = ceoReplyPhraseRepository.countByCeoId(ownerId);
+        long count = ceoReplyPhrasePersistencePort.countByCeoId(ownerId);
         if (count >= MAX_PHRASE_COUNT) {
             throw new BusinessException(ErrorCode.CEO_REPLY_PHRASE_LIMIT_EXCEEDED);
         }
 
-        CeoReplyPhrase saved = ceoReplyPhraseRepository.save(
+        CeoReplyPhrase saved = ceoReplyPhrasePersistencePort.save(
             CeoReplyPhrase.of(ownerId, name, content, (int) count)
         );
         return saved.getId();
@@ -43,16 +43,16 @@ public class CeoReplyPhraseService {
 
         CeoReplyPhrase phrase = loadOwnPhrase(ceoId, phraseId);
         phrase.updateContent(name, content);
-        ceoReplyPhraseRepository.save(phrase);
+        ceoReplyPhrasePersistencePort.save(phrase);
     }
 
     public void remove(Long ceoId, Long phraseId) {
         CeoReplyPhrase phrase = loadOwnPhrase(ceoId, phraseId);
-        ceoReplyPhraseRepository.delete(phrase);
+        ceoReplyPhrasePersistencePort.delete(phrase);
     }
 
     private CeoReplyPhrase loadOwnPhrase(Long ceoId, Long phraseId) {
-        CeoReplyPhrase phrase = ceoReplyPhraseRepository.findById(CeoReplyPhraseId.of(phraseId))
+        CeoReplyPhrase phrase = ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CEO_REPLY_PHRASE_NOT_FOUND));
         if (!phrase.getCeoId().equals(CeoId.of(ceoId))) {
             throw new BusinessException(ErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);

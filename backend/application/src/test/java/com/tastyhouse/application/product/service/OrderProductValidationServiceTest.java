@@ -33,11 +33,11 @@ import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -294,19 +294,19 @@ class OrderProductValidationServiceTest {
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
-        private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
-        private final MapProductPriceRepository prices = new MapProductPriceRepository();
+        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
+        private final MapProductPricePersistencePort prices = new MapProductPricePersistencePort();
         private final OrderProductValidationService service;
 
         private Fixture() {
             this.service = new OrderProductValidationService(
-                new StubProductRepository(products),
+                new StubProductPersistencePort(products),
                 prices,
-                new MapOptionGroupRepository(groups),
-                new MapOptionRepository(options),
-                new NoImageRepository(),
+                new MapOptionGroupPersistencePort(groups),
+                new MapOptionPersistencePort(options),
+                new NoImagePersistencePort(),
                 links,
-                new NoExposureHourRepository(),
+                new NoExposureHourPersistencePort(),
                 new ProductExposureCalculator(),
                 new CupDepositPolicy()
             );
@@ -375,10 +375,10 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapOptionGroupRepository implements ProductOptionGroupRepository {
+    private static final class MapOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
         private final Map<Long, ProductOptionGroup> groups;
 
-        private MapOptionGroupRepository(Map<Long, ProductOptionGroup> groups) {
+        private MapOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
             this.groups = groups;
         }
 
@@ -402,10 +402,10 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapOptionRepository implements ProductOptionRepository {
+    private static final class MapOptionPersistencePort implements ProductOptionPersistencePort {
         private final Map<Long, ProductOption> options;
 
-        private MapOptionRepository(Map<Long, ProductOption> options) {
+        private MapOptionPersistencePort(Map<Long, ProductOption> options) {
             this.options = options;
         }
 
@@ -441,7 +441,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class NoImageRepository implements ProductImageRepository {
+    private static final class NoImagePersistencePort implements ProductImagePersistencePort {
         @Override
         public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
             return null;
@@ -468,7 +468,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class NoExposureHourRepository implements ProductExposureHourRepository {
+    private static final class NoExposureHourPersistencePort implements ProductExposureHourPersistencePort {
         @Override
         public List<ProductExposureHour> saveAll(List<ProductExposureHour> hours) {
             throw new UnsupportedOperationException();
@@ -485,7 +485,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapProductPriceRepository implements ProductPriceRepository {
+    private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
         private final Map<Long, ProductPrice> prices = new LinkedHashMap<>();
 
         private void seed(ProductPrice price) {

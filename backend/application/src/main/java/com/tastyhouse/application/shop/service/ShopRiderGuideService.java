@@ -15,23 +15,23 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
 public class ShopRiderGuideService {
-    private final ShopRiderGuideRepository shopRiderGuideRepository;
-    private final ShopRepository shopRepository;
+    private final ShopRiderGuidePersistencePort shopRiderGuidePersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final ShopRiderGuideValidator shopRiderGuideValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopRiderGuideService(
-        ShopRiderGuideRepository shopRiderGuideRepository,
-        ShopRepository shopRepository,
+        ShopRiderGuidePersistencePort shopRiderGuidePersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopRiderGuideValidator shopRiderGuideValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopRiderGuideRepository = shopRiderGuideRepository;
-        this.shopRepository = shopRepository;
+        this.shopRiderGuidePersistencePort = shopRiderGuidePersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
         this.shopRiderGuideValidator = shopRiderGuideValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -44,9 +44,9 @@ public class ShopRiderGuideService {
         String previousVisitGuide = riderGuide.getVisitGuide();
 
         riderGuide.changeVisitGuide(visitGuide);
-        shopRiderGuideRepository.save(riderGuide);
+        shopRiderGuidePersistencePort.save(riderGuide);
 
-        shopRiderGuideRepository.saveHistory(ShopRiderGuideHistory.of(
+        shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             actorType,
             actorId,
@@ -71,7 +71,7 @@ public class ShopRiderGuideService {
     public void deleteVisitGuide(Long shopId, Long adminId, String reason) {
         findShop(shopId);
 
-        ShopRiderGuide riderGuide = shopRiderGuideRepository.findByShopId(ShopId.of(shopId))
+        ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String previousVisitGuide = riderGuide.getVisitGuide();
@@ -80,9 +80,9 @@ public class ShopRiderGuideService {
         }
 
         riderGuide.changeVisitGuide(null);
-        shopRiderGuideRepository.save(riderGuide);
+        shopRiderGuidePersistencePort.save(riderGuide);
 
-        shopRiderGuideRepository.saveHistory(ShopRiderGuideHistory.of(
+        shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             RiderGuideActorType.ADMIN,
             adminId,
@@ -96,7 +96,7 @@ public class ShopRiderGuideService {
     public Long requestRevision(Long shopId, Long adminId, String reason) {
         findShop(shopId);
 
-        ShopRiderGuide riderGuide = shopRiderGuideRepository.findByShopId(ShopId.of(shopId))
+        ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String currentVisitGuide = riderGuide.getVisitGuide();
@@ -104,7 +104,7 @@ public class ShopRiderGuideService {
             throw new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
         }
 
-        ShopRiderGuideHistory history = shopRiderGuideRepository.saveHistory(ShopRiderGuideHistory.of(
+        ShopRiderGuideHistory history = shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             RiderGuideActorType.ADMIN,
             adminId,
@@ -133,7 +133,7 @@ public class ShopRiderGuideService {
         String previousValue = describePickupLocation(riderGuide);
 
         riderGuide.changePickupLocation(roadAddress, lotAddress, detailAddress, latitude, longitude);
-        shopRiderGuideRepository.save(riderGuide);
+        shopRiderGuidePersistencePort.save(riderGuide);
 
         if (actorType == RiderGuideActorType.CEO) {
             shopChangeHistoryRecorder.record(
@@ -150,11 +150,11 @@ public class ShopRiderGuideService {
     public void clearPickupLocation(Long shopId, RiderGuideActorType actorType, Long actorId) {
         findActiveShop(shopId);
 
-        shopRiderGuideRepository.findByShopId(ShopId.of(shopId)).ifPresent(riderGuide -> {
+        shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId)).ifPresent(riderGuide -> {
             String previousValue = describePickupLocation(riderGuide);
 
             riderGuide.clearPickupLocation();
-            shopRiderGuideRepository.save(riderGuide);
+            shopRiderGuidePersistencePort.save(riderGuide);
 
             if (actorType == RiderGuideActorType.CEO) {
                 shopChangeHistoryRecorder.record(
@@ -191,12 +191,12 @@ public class ShopRiderGuideService {
     }
 
     private ShopRiderGuide findOrCreate(Long shopId) {
-        return shopRiderGuideRepository.findByShopId(ShopId.of(shopId))
+        return shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
             .orElseGet(() -> ShopRiderGuide.of(ShopId.of(shopId)));
     }
 
     private Shop findShop(Long shopId) {
-        return shopRepository.findById(ShopId.of(shopId))
+        return shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 

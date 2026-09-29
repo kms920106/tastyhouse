@@ -18,8 +18,8 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,18 +31,18 @@ class ShopCeoAssignmentServiceTest {
     private static final Long CEO_B = 8L;
     private static final Long ADMIN_ID = 99L;
 
-    private FakeShopRepository shopRepository;
-    private RecordingShopCeoAssignmentHistoryRepository historyRepository;
+    private FakeShopPersistencePort shopPersistencePort;
+    private RecordingShopCeoAssignmentHistoryPersistencePort historyPersistencePort;
     private ShopCeoAssignmentService shopCeoAssignmentService;
 
     @BeforeEach
     void setUp() {
-        shopRepository = new FakeShopRepository();
-        historyRepository = new RecordingShopCeoAssignmentHistoryRepository();
+        shopPersistencePort = new FakeShopPersistencePort();
+        historyPersistencePort = new RecordingShopCeoAssignmentHistoryPersistencePort();
         shopCeoAssignmentService = new ShopCeoAssignmentService(
-            shopRepository,
-            new FakeCeoRepository(),
-            new ShopCeoAssignmentRecorder(historyRepository)
+            shopPersistencePort,
+            new FakeCeoPersistencePort(),
+            new ShopCeoAssignmentRecorder(historyPersistencePort)
         );
     }
 
@@ -51,23 +51,23 @@ class ShopCeoAssignmentServiceTest {
     void assign_fromUnassigned_recordsSingleGrant() {
         shopCeoAssignmentService.assign(ShopId.of(SHOP_ID), CeoId.of(CEO_A), ADMIN_ID);
 
-        assertThat(shopRepository.find().getCeoId()).isEqualTo(CeoId.of(CEO_A));
-        assertThat(historyRepository.saved())
+        assertThat(shopPersistencePort.find().getCeoId()).isEqualTo(CeoId.of(CEO_A));
+        assertThat(historyPersistencePort.saved())
             .extracting(ShopCeoAssignmentHistory::getActionType, ShopCeoAssignmentHistory::getCeoId)
             .containsExactly(tuple(ShopCeoAssignmentActionType.GRANT, CeoId.of(CEO_A)));
-        assertThat(historyRepository.saved().getFirst().getShopId()).isEqualTo(ShopId.of(SHOP_ID));
-        assertThat(historyRepository.saved().getFirst().getActorAdminId()).isEqualTo(ADMIN_ID);
+        assertThat(historyPersistencePort.saved().getFirst().getShopId()).isEqualTo(ShopId.of(SHOP_ID));
+        assertThat(historyPersistencePort.saved().getFirst().getActorAdminId()).isEqualTo(ADMIN_ID);
     }
 
     @Test
     @DisplayName("A 배정 → B 재배정: REVOKE(A) + GRANT(B) 2행이 순서대로 남는다")
     void assign_reassignToAnotherCeo_recordsRevokeThenGrant() {
-        shopRepository.assignCeoA();
+        shopPersistencePort.assignCeoA();
 
         shopCeoAssignmentService.assign(ShopId.of(SHOP_ID), CeoId.of(CEO_B), ADMIN_ID);
 
-        assertThat(shopRepository.find().getCeoId()).isEqualTo(CeoId.of(CEO_B));
-        assertThat(historyRepository.saved())
+        assertThat(shopPersistencePort.find().getCeoId()).isEqualTo(CeoId.of(CEO_B));
+        assertThat(historyPersistencePort.saved())
             .extracting(ShopCeoAssignmentHistory::getActionType, ShopCeoAssignmentHistory::getCeoId)
             .containsExactly(
                 tuple(ShopCeoAssignmentActionType.REVOKE, CeoId.of(CEO_A)),
@@ -78,7 +78,7 @@ class ShopCeoAssignmentServiceTest {
     @Test
     @DisplayName("A 배정 → A 재배정: 409로 거부하고 이력을 남기지 않는다")
     void assign_sameCeoAgain_rejectsWithoutRecording() {
-        shopRepository.assignCeoA();
+        shopPersistencePort.assignCeoA();
 
         assertThatThrownBy(() ->
             shopCeoAssignmentService.assign(ShopId.of(SHOP_ID), CeoId.of(CEO_A), ADMIN_ID))
@@ -86,19 +86,19 @@ class ShopCeoAssignmentServiceTest {
             .extracting(e -> ((BusinessException) e).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_CEO_ALREADY_ASSIGNED);
 
-        assertThat(historyRepository.saved()).isEmpty();
-        assertThat(shopRepository.find().getCeoId()).isEqualTo(CeoId.of(CEO_A));
+        assertThat(historyPersistencePort.saved()).isEmpty();
+        assertThat(shopPersistencePort.find().getCeoId()).isEqualTo(CeoId.of(CEO_A));
     }
 
     @Test
     @DisplayName("배정 → 해제: REVOKE 1행이 남고 SHOP.ceo_id가 NULL이 된다")
     void revoke_fromAssigned_recordsSingleRevoke() {
-        shopRepository.assignCeoA();
+        shopPersistencePort.assignCeoA();
 
         shopCeoAssignmentService.revoke(ShopId.of(SHOP_ID), ADMIN_ID);
 
-        assertThat(shopRepository.find().getCeoId()).isNull();
-        assertThat(historyRepository.saved())
+        assertThat(shopPersistencePort.find().getCeoId()).isNull();
+        assertThat(historyPersistencePort.saved())
             .extracting(ShopCeoAssignmentHistory::getActionType, ShopCeoAssignmentHistory::getCeoId)
             .containsExactly(tuple(ShopCeoAssignmentActionType.REVOKE, CeoId.of(CEO_A)));
     }
@@ -111,7 +111,7 @@ class ShopCeoAssignmentServiceTest {
             .extracting(e -> ((BusinessException) e).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_CEO_NOT_ASSIGNED);
 
-        assertThat(historyRepository.saved()).isEmpty();
+        assertThat(historyPersistencePort.saved()).isEmpty();
     }
 
     @Test
@@ -125,8 +125,8 @@ class ShopCeoAssignmentServiceTest {
             .extracting(e -> ((ResourceNotFoundException) e).getErrorCode())
             .isEqualTo(ErrorCode.CEO_NOT_FOUND);
 
-        assertThat(historyRepository.saved()).isEmpty();
-        assertThat(shopRepository.find().getCeoId()).isNull();
+        assertThat(historyPersistencePort.saved()).isEmpty();
+        assertThat(shopPersistencePort.find().getCeoId()).isNull();
     }
 
     @Test
@@ -138,13 +138,13 @@ class ShopCeoAssignmentServiceTest {
             .extracting(e -> ((ResourceNotFoundException) e).getErrorCode())
             .isEqualTo(ErrorCode.SHOP_NOT_FOUND);
 
-        assertThat(historyRepository.saved()).isEmpty();
+        assertThat(historyPersistencePort.saved()).isEmpty();
     }
 
-    private static final class FakeShopRepository implements ShopRepository {
+    private static final class FakeShopPersistencePort implements ShopPersistencePort {
         private final Map<Long, Shop> shops = new HashMap<>();
 
-        FakeShopRepository() {
+        FakeShopPersistencePort() {
             shops.put(SHOP_ID, Shop.reconstitute(
                 SHOP_ID, null, null, "맛있는 분식",
                 BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621), 4.5,
@@ -178,10 +178,10 @@ class ShopCeoAssignmentServiceTest {
         }
     }
 
-    private static final class FakeCeoRepository implements CeoRepository {
+    private static final class FakeCeoPersistencePort implements CeoPersistencePort {
         private final Map<Long, Ceo> ceos = new HashMap<>();
 
-        FakeCeoRepository() {
+        FakeCeoPersistencePort() {
             ceos.put(CEO_A, Ceo.reconstitute(CEO_A, "ceoA", "encoded", "점주A", null, null, null, null));
             ceos.put(CEO_B, Ceo.reconstitute(CEO_B, "ceoB", "encoded", "점주B", null, null, null, null));
         }

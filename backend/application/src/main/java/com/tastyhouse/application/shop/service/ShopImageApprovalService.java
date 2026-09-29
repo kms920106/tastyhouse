@@ -13,33 +13,33 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopImageApprovalService {
-    private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;
-    private final ShopRepository shopRepository;
+    private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopImageApprovalService(
-        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
-        ShopRepository shopRepository,
+        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopImageChangeRequestRepository = shopImageChangeRequestRepository;
-        this.shopRepository = shopRepository;
+        this.shopImageChangeRequestPersistencePort = shopImageChangeRequestPersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
     public Long requestImageChange(Long shopId, ShopImageType imageType, Long imageFileId, ShopChangeActor actor) {
-        if (shopImageChangeRequestRepository.existsByShopIdAndImageTypeAndStatus(shopId, imageType, ApprovalStatus.PENDING)) {
+        if (shopImageChangeRequestPersistencePort.existsByShopIdAndImageTypeAndStatus(shopId, imageType, ApprovalStatus.PENDING)) {
             throw new BusinessException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
-        ShopImageChangeRequest saved = shopImageChangeRequestRepository.save(
+        ShopImageChangeRequest saved = shopImageChangeRequestPersistencePort.save(
             ShopImageChangeRequest.of(ShopId.of(shopId), imageType, UploadedFileId.of(imageFileId))
         );
 
@@ -80,20 +80,20 @@ public class ShopImageApprovalService {
     }
 
     public void approveImageChange(Long id) {
-        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestRepository.findById(id)
+        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.approve();
-        shopImageChangeRequestRepository.save(shopImageChangeRequest);
+        shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
 
         ShopId shopId = shopImageChangeRequest.getShopId();
-        Shop shop = shopRepository.findById(shopId)
+        Shop shop = shopPersistencePort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shopImageChangeRequest.getImageType() == ShopImageType.TRADEMARK) {
             shop.changeTrademarkImage(shopImageChangeRequest.getImageFileId());
         } else {
             shop.changeThumbnailImage(shopImageChangeRequest.getImageFileId());
         }
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         shopRequestIndexRecorder.syncImageChangeStatus(
             requestTypeOf(shopImageChangeRequest.getImageType()),
@@ -104,10 +104,10 @@ public class ShopImageApprovalService {
     }
 
     public void rejectImageChange(Long id, String reason) {
-        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestRepository.findById(id)
+        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.reject(reason);
-        shopImageChangeRequestRepository.save(shopImageChangeRequest);
+        shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
         shopRequestIndexRecorder.syncImageChangeStatus(
             requestTypeOf(shopImageChangeRequest.getImageType()),
             id,
@@ -117,6 +117,6 @@ public class ShopImageApprovalService {
     }
 
     public boolean existsPendingByShopId(Long shopId) {
-        return shopImageChangeRequestRepository.existsByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
+        return shopImageChangeRequestPersistencePort.existsByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
     }
 }

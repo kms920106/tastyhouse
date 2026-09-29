@@ -12,34 +12,34 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
 
 public class ShopPhoneNumberRegistryService {
     private static final int MAX_PHONE_NUMBER_COUNT = 10;
 
-    private final ShopPhoneNumberRepository shopPhoneNumberRepository;
-    private final ShopRepository shopRepository;
+    private final ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopPhoneNumberRegistryService(
-        ShopPhoneNumberRepository shopPhoneNumberRepository,
-        ShopRepository shopRepository,
+        ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopPhoneNumberRepository = shopPhoneNumberRepository;
-        this.shopRepository = shopRepository;
+        this.shopPhoneNumberPersistencePort = shopPhoneNumberPersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     public Long addPhoneNumber(Long shopId, String phoneNumber, boolean virtual, ShopChangeActor actor) {
-        List<ShopPhoneNumber> existingPhoneNumbers = shopPhoneNumberRepository.findByShopId(shopId);
+        List<ShopPhoneNumber> existingPhoneNumbers = shopPhoneNumberPersistencePort.findByShopId(shopId);
         if (existingPhoneNumbers.size() >= MAX_PHONE_NUMBER_COUNT) {
             throw new BusinessException(ErrorCode.SHOP_PHONE_NUMBER_LIMIT_EXCEEDED);
         }
 
         boolean primary = existingPhoneNumbers.isEmpty();
-        ShopPhoneNumber saved = shopPhoneNumberRepository.save(
+        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(
             ShopPhoneNumber.of(ShopId.of(shopId), phoneNumber, primary, virtual)
         );
 
@@ -68,9 +68,9 @@ public class ShopPhoneNumberRegistryService {
     }
 
     public void deletePhoneNumber(Long id, ShopChangeActor actor) {
-        ShopPhoneNumber phoneNumber = shopPhoneNumberRepository.findById(id)
+        ShopPhoneNumber phoneNumber = shopPhoneNumberPersistencePort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
-        shopPhoneNumberRepository.deleteById(id);
+        shopPhoneNumberPersistencePort.deleteById(id);
 
         shopChangeHistoryRecorder.record(
             phoneNumber.getShopId(),
@@ -85,14 +85,14 @@ public class ShopPhoneNumberRegistryService {
             return;
         }
 
-        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberRepository.findByShopId(phoneNumber.getShopId().value());
+        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberPersistencePort.findByShopId(phoneNumber.getShopId().value());
         if (remainingPhoneNumbers.isEmpty()) {
             return;
         }
 
         ShopPhoneNumber newPrimary = remainingPhoneNumbers.getFirst();
         newPrimary.markPrimary();
-        ShopPhoneNumber saved = shopPhoneNumberRepository.save(newPrimary);
+        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(newPrimary);
         syncShopPhoneNumber(phoneNumber.getShopId().value(), saved.getPhoneNumber());
 
         shopChangeHistoryRecorder.record(
@@ -106,21 +106,21 @@ public class ShopPhoneNumberRegistryService {
     }
 
     public void designatePrimary(Long id, ShopChangeActor actor) {
-        ShopPhoneNumber target = shopPhoneNumberRepository.findById(id)
+        ShopPhoneNumber target = shopPhoneNumberPersistencePort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
 
-        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberRepository.findByShopId(target.getShopId().value());
+        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberPersistencePort.findByShopId(target.getShopId().value());
         String previousPrimaryPhoneNumber = null;
         for (ShopPhoneNumber phoneNumber : phoneNumbers) {
             if (phoneNumber.isPrimary() && !phoneNumber.getId().equals(target.getId())) {
                 previousPrimaryPhoneNumber = phoneNumber.getPhoneNumber();
                 phoneNumber.unmarkPrimary();
-                shopPhoneNumberRepository.save(phoneNumber);
+                shopPhoneNumberPersistencePort.save(phoneNumber);
             }
         }
 
         target.markPrimary();
-        ShopPhoneNumber saved = shopPhoneNumberRepository.save(target);
+        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(target);
         syncShopPhoneNumber(saved.getShopId().value(), saved.getPhoneNumber());
 
         shopChangeHistoryRecorder.record(
@@ -146,9 +146,9 @@ public class ShopPhoneNumberRegistryService {
 
     private void syncShopPhoneNumber(Long shopId, String phoneNumber) {
         ShopId targetShopId = ShopId.of(shopId);
-        Shop shop = shopRepository.findById(targetShopId)
+        Shop shop = shopPersistencePort.findById(targetShopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         shop.changePhoneNumber(phoneNumber);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
     }
 }

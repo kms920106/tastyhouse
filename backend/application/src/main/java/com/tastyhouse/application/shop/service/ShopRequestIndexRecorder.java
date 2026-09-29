@@ -11,13 +11,13 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
 public class ShopRequestIndexRecorder {
-    private final ShopRequestIndexRepository shopRequestIndexRepository;
+    private final ShopRequestIndexPersistencePort shopRequestIndexPersistencePort;
 
-    public ShopRequestIndexRecorder(ShopRequestIndexRepository shopRequestIndexRepository) {
-        this.shopRequestIndexRepository = shopRequestIndexRepository;
+    public ShopRequestIndexRecorder(ShopRequestIndexPersistencePort shopRequestIndexPersistencePort) {
+        this.shopRequestIndexPersistencePort = shopRequestIndexPersistencePort;
     }
 
     public void record(
@@ -28,7 +28,7 @@ public class ShopRequestIndexRecorder {
         UploadedFileId attachmentFileId,
         Long requestedByCeoId
     ) {
-        shopRequestIndexRepository.save(ShopRequestIndex.of(
+        shopRequestIndexPersistencePort.save(ShopRequestIndex.of(
             shopId,
             requestType,
             sourceRequestId,
@@ -78,11 +78,11 @@ public class ShopRequestIndexRecorder {
         ShopRequestStatus status,
         String rejectReason
     ) {
-        ShopRequestIndex index = shopRequestIndexRepository
+        ShopRequestIndex index = shopRequestIndexPersistencePort
             .findByRequestTypeAndSourceRequestId(requestType, sourceRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
         index.syncStatus(status, rejectReason, LocalDateTime.now());
-        shopRequestIndexRepository.save(index);
+        shopRequestIndexPersistencePort.save(index);
     }
 
     private static ShopRequestStatus toRequestStatus(ApprovalStatus status) {
@@ -105,7 +105,7 @@ public class ShopRequestIndexRecorder {
     }
 
     public ShopRequestIndex getRequest(Long requestId) {
-        return shopRequestIndexRepository.findById(requestId)
+        return shopRequestIndexPersistencePort.findById(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
     }
 

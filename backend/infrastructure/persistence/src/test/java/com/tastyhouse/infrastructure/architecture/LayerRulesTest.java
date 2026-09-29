@@ -45,7 +45,7 @@ class LayerRulesTest {
                 .or(sealed())
                 .as("..query.. 와 봉인된 조회 어댑터"))
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
-            .because("조회 DAO는 domain-free 읽기 계약만 구현한다 — 도메인 모델을 쓰는 것은 write 어댑터(XxxRepositoryImpl)뿐이다");
+            .because("조회 어댑터는 domain-free 읽기 계약만 구현한다 — 도메인 모델을 쓰는 것은 영속 어댑터(XxxPersistenceAdapter)뿐이다");
 
         rule.check(classes);
     }
@@ -95,14 +95,25 @@ class LayerRulesTest {
     );
 
     @Test
-    void queryDaosShouldImplementQueryPorts() {
+    void queryAdaptersShouldImplementQueryPorts() {
         ArchRule rule = classes()
-            .that().haveSimpleNameEndingWith("QueryDao")
+            .that().haveSimpleNameEndingWith("QueryAdapter")
             .should().implement(
                 resideInAPackage("com.tastyhouse.application..port.out..")
                     .or(infraOwnedQueryPort()))
-            .because("조회 계약은 응용 계층이 소유하고 DAO가 구현한다. "
+            .because("조회 계약은 응용 계층이 소유하고 조회 어댑터가 구현한다. "
                 + "단 application 소비자가 없는 내부 투영 계약은 infra가 자체 소유한다(봉인 목록)");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void adaptersShouldNotUseRetiredSuffixes() {
+        ArchRule rule = noClasses()
+            .should().haveSimpleNameEndingWith("RepositoryImpl")
+            .orShould().haveSimpleNameEndingWith("QueryDao")
+            .because("영속 어댑터는 XxxPersistenceAdapter, 조회 어댑터는 XxxQueryAdapter로 짓는다 — "
+                + "옛 접미어를 쓰면 queryAdaptersShouldImplementQueryPorts 등 이름 기반 규칙의 대상에서 빠진다");
 
         rule.check(classes);
     }
@@ -123,7 +134,7 @@ class LayerRulesTest {
         if (INFRA_OWNED_QUERY_PORTS.isEmpty()) {
             throw new AssertionError(
                 "봉인 목록이 비었습니다 — INFRA_OWNED_QUERY_PORTS와 짝 테스트를 제거하고 "
-                    + "queryDaosShouldImplementQueryPorts를 순수 강제로 되돌리세요.");
+                    + "queryAdaptersShouldImplementQueryPorts를 순수 강제로 되돌리세요.");
         }
     }
 

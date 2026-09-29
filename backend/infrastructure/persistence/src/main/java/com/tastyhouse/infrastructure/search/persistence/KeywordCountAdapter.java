@@ -8,19 +8,19 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
 import com.tastyhouse.application.search.port.out.KeywordCountResult;
-import com.tastyhouse.infrastructure.search.query.SearchQueryDao;
+import com.tastyhouse.infrastructure.search.query.SearchQueryAdapter;
 
 @Component
 public class KeywordCountAdapter implements KeywordCountPort {
-    private final SearchQueryDao searchQueryDao;
+    private final SearchQueryAdapter searchQueryAdapter;
 
-    public KeywordCountAdapter(SearchQueryDao searchQueryDao) {
-        this.searchQueryDao = searchQueryDao;
+    public KeywordCountAdapter(SearchQueryAdapter searchQueryAdapter) {
+        this.searchQueryAdapter = searchQueryAdapter;
     }
 
     @Override
     public List<KeywordCount> findTopKeywordsSince(LocalDateTime since) {
-        return searchQueryDao.findTopKeywordsSince(since).stream()
+        return searchQueryAdapter.findTopKeywordsSince(since).stream()
             .map(this::toKeywordCount)
             .toList();
     }

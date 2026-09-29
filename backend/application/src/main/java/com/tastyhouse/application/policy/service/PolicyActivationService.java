@@ -4,30 +4,30 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentRepository;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PolicyActivationService {
-    private final PolicyDocumentRepository policyDocumentRepository;
+    private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public PolicyActivationService(
-        PolicyDocumentRepository policyDocumentRepository,
+        PolicyDocumentPersistencePort policyDocumentPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.policyDocumentRepository = policyDocumentRepository;
+        this.policyDocumentPersistencePort = policyDocumentPersistencePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public void activate(PolicyDocument newPolicy) {
-        policyDocumentRepository.findCurrentEntityByType(newPolicy.getType())
+        policyDocumentPersistencePort.findCurrentEntityByType(newPolicy.getType())
             .ifPresent(current -> {
                 current.deactivate();
-                policyDocumentRepository.save(current);
+                policyDocumentPersistencePort.save(current);
             });
 
         newPolicy.activate();
-        policyDocumentRepository.save(newPolicy);
+        policyDocumentPersistencePort.save(newPolicy);
 
         domainEventPublisher.publish(new PolicyActivatedEvent(
             newPolicy.getPolicyDocumentId(),

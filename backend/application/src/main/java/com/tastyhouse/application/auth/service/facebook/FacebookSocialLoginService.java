@@ -27,8 +27,8 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
 import com.tastyhouse.application.member.service.MemberCommandService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.token.FacebookTempTokenRepository;
@@ -39,8 +39,8 @@ public class FacebookSocialLoginService {
 
     private final SocialOAuthClient facebookOAuthClient;
     private final MemberCommandService memberCommandService;
-    private final MemberRepository memberRepository;
-    private final MemberSocialAccountRepository memberSocialAccountRepository;
+    private final MemberPersistencePort memberPersistencePort;
+    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final FacebookTempTokenRepository facebookTempTokenRepository;
@@ -48,16 +48,16 @@ public class FacebookSocialLoginService {
     public FacebookSocialLoginService(
         @Qualifier("facebookOAuthClient") SocialOAuthClient facebookOAuthClient,
         MemberCommandService memberCommandService,
-        MemberRepository memberRepository,
-        MemberSocialAccountRepository memberSocialAccountRepository,
+        MemberPersistencePort memberPersistencePort,
+        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
         FacebookTempTokenRepository facebookTempTokenRepository
     ) {
         this.facebookOAuthClient = facebookOAuthClient;
         this.memberCommandService = memberCommandService;
-        this.memberRepository = memberRepository;
-        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.memberPersistencePort = memberPersistencePort;
+        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.facebookTempTokenRepository = facebookTempTokenRepository;
@@ -73,20 +73,20 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountRepository.findByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId);
+            memberSocialAccountPersistencePort.findByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl());
             memberCommandService.saveSocialAccount(socialAccount);
 
-            Member member = memberRepository.findById(socialAccount.getMemberId())
+            Member member = memberPersistencePort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         String facebookEmail = facebookUser.email();
-        if (StringUtils.hasText(facebookEmail) && memberRepository.existsByUsername(facebookEmail)) {
+        if (StringUtils.hasText(facebookEmail) && memberPersistencePort.existsByUsername(facebookEmail)) {
             String facebookTempToken = issueTempToken(credential.value());
             return SocialLoginResult.ofLinkingRequired(facebookTempToken);
         }
@@ -110,12 +110,12 @@ public class FacebookSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
-        if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
+        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
-        Optional<Member> memberOpt = memberRepository.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isEmpty()) {
             return SocialLinkResult.ofSignUpRequired(
@@ -162,7 +162,7 @@ public class FacebookSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
-        if (memberSocialAccountRepository.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
+        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 

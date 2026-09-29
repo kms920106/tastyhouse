@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
-import com.tastyhouse.application.admin.port.out.write.AdminRepository;
+import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -15,18 +15,18 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional(readOnly = true)
 public class AdminQueryService implements AdminQueryUseCase {
 
-    private final AdminRepository adminRepository;
+    private final AdminPersistencePort adminPersistencePort;
 
-    public AdminQueryService(AdminRepository adminRepository) {
-        this.adminRepository = adminRepository;
+    public AdminQueryService(AdminPersistencePort adminPersistencePort) {
+        this.adminPersistencePort = adminPersistencePort;
     }
 
     public Optional<Admin> findByUsername(String username) {
-        return adminRepository.findByUsername(username);
+        return adminPersistencePort.findByUsername(username);
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return adminRepository.existsByUsername(username);
+        return adminPersistencePort.existsByUsername(username);
     }
 }

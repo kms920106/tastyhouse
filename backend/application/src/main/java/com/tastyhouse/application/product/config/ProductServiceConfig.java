@@ -9,28 +9,28 @@ import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductAllergenRepository;
-import com.tastyhouse.application.product.port.out.write.ProductBbqRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadRepository;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductNutritionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestRepository;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationRepository;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
 import com.tastyhouse.application.product.service.OrderProductValidationService;
 import com.tastyhouse.application.product.service.ProductAvailabilityService;
 import com.tastyhouse.application.product.service.ProductDeletionService;
@@ -55,55 +55,55 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class ProductServiceConfig {
     @Bean
     public ProductRegistrationService productRegistrationService(
-        ProductRepository productRepository,
-        ProductCategoryRepository productCategoryRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductShopLinkRepository productShopLinkRepository
+        ProductPersistencePort productPersistencePort,
+        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
+        ProductBbqPersistencePort productBbqPersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductShopLinkPersistencePort productShopLinkPersistencePort
     ) {
         return new ProductRegistrationService(
-            productRepository,
-            productCategoryRepository,
-            productOptionGroupRepository,
-            productOptionRepository,
-            productImageRepository,
-            productBbqRepository,
-            productOptionGroupLinkRepository,
-            productShopLinkRepository
+            productPersistencePort,
+            productCategoryPersistencePort,
+            productOptionGroupPersistencePort,
+            productOptionPersistencePort,
+            productImagePersistencePort,
+            productBbqPersistencePort,
+            productOptionGroupLinkPersistencePort,
+            productShopLinkPersistencePort
         );
     }
 
     @Bean
     public ProductReviewStatsService productReviewStatsService(
-        ProductRepository productRepository,
+        ProductPersistencePort productPersistencePort,
         ProductReviewStatisticsPort productReviewStatisticsPort
     ) {
-        return new ProductReviewStatsService(productRepository, productReviewStatisticsPort);
+        return new ProductReviewStatsService(productPersistencePort, productReviewStatisticsPort);
     }
 
     @Bean
     public OrderProductValidationService orderProductValidationService(
-        ProductRepository productRepository,
-        ProductPriceRepository productPriceRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductExposureHourRepository productExposureHourRepository,
+        ProductPersistencePort productPersistencePort,
+        ProductPricePersistencePort productPricePersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductExposureHourPersistencePort productExposureHourPersistencePort,
         ProductExposureCalculator productExposureCalculator,
         CupDepositPolicy cupDepositPolicy
     ) {
         return new OrderProductValidationService(
-            productRepository,
-            productPriceRepository,
-            productOptionGroupRepository,
-            productOptionRepository,
-            productImageRepository,
-            productOptionGroupLinkRepository,
-            productExposureHourRepository,
+            productPersistencePort,
+            productPricePersistencePort,
+            productOptionGroupPersistencePort,
+            productOptionPersistencePort,
+            productImagePersistencePort,
+            productOptionGroupLinkPersistencePort,
+            productExposureHourPersistencePort,
             productExposureCalculator,
             cupDepositPolicy
         );
@@ -111,60 +111,60 @@ public class ProductServiceConfig {
 
     @Bean
     public ProductAvailabilityService productAvailabilityService(
-        ProductRepository productRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductCommonOptionRepository productCommonOptionRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductCommonOptionGroupRepository productCommonOptionGroupRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductCommonOptionGroupLinkRepository productCommonOptionGroupLinkRepository
+        ProductPersistencePort productPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductCommonOptionPersistencePort productCommonOptionPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductCommonOptionGroupPersistencePort productCommonOptionGroupPersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductCommonOptionGroupLinkPersistencePort productCommonOptionGroupLinkPersistencePort
     ) {
         return new ProductAvailabilityService(
-            productRepository,
-            productOptionRepository,
-            productCommonOptionRepository,
-            productOptionGroupRepository,
-            productCommonOptionGroupRepository,
-            productOptionGroupLinkRepository,
-            productCommonOptionGroupLinkRepository
+            productPersistencePort,
+            productOptionPersistencePort,
+            productCommonOptionPersistencePort,
+            productOptionGroupPersistencePort,
+            productCommonOptionGroupPersistencePort,
+            productOptionGroupLinkPersistencePort,
+            productCommonOptionGroupLinkPersistencePort
         );
     }
 
     @Bean
-    public ProductDeletionService productDeletionService(ProductRepository productRepository) {
-        return new ProductDeletionService(productRepository);
+    public ProductDeletionService productDeletionService(ProductPersistencePort productPersistencePort) {
+        return new ProductDeletionService(productPersistencePort);
     }
 
     @Bean
     public ProductSortService productSortService(
-        ProductRepository productRepository,
-        ProductCategoryRepository productCategoryRepository
+        ProductPersistencePort productPersistencePort,
+        ProductCategoryPersistencePort productCategoryPersistencePort
     ) {
-        return new ProductSortService(productRepository, productCategoryRepository);
+        return new ProductSortService(productPersistencePort, productCategoryPersistencePort);
     }
 
     @Bean
     public ProductOptionGroupLinkService productOptionGroupLinkService(
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductRepository productRepository
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
-        return new ProductOptionGroupLinkService(productOptionGroupLinkRepository, productRepository);
+        return new ProductOptionGroupLinkService(productOptionGroupLinkPersistencePort, productPersistencePort);
     }
 
     @Bean
     public ProductOptionGroupMergeService productOptionGroupMergeService(
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
         ProductOptionGroupLinkService productOptionGroupLinkService,
-        ProductOptionGroupMergeHistoryRepository productOptionGroupMergeHistoryRepository
+        ProductOptionGroupMergeHistoryPersistencePort productOptionGroupMergeHistoryPersistencePort
     ) {
         return new ProductOptionGroupMergeService(
-            productOptionGroupRepository,
-            productOptionRepository,
-            productOptionGroupLinkRepository,
+            productOptionGroupPersistencePort,
+            productOptionPersistencePort,
+            productOptionGroupLinkPersistencePort,
             productOptionGroupLinkService,
-            productOptionGroupMergeHistoryRepository
+            productOptionGroupMergeHistoryPersistencePort
         );
     }
 
@@ -180,92 +180,92 @@ public class ProductServiceConfig {
 
     @Bean
     public ProductExposureService productExposureService(
-        ProductRepository productRepository,
-        ProductExposureHourRepository productExposureHourRepository,
+        ProductPersistencePort productPersistencePort,
+        ProductExposureHourPersistencePort productExposureHourPersistencePort,
         ProductExposureCalculator productExposureCalculator
     ) {
         return new ProductExposureService(
-            productRepository,
-            productExposureHourRepository,
+            productPersistencePort,
+            productExposureHourPersistencePort,
             productExposureCalculator
         );
     }
 
     @Bean
     public ProductImageApprovalService productImageApprovalService(
-        ProductImageChangeRequestRepository productImageChangeRequestRepository,
-        ProductImageRepository productImageRepository,
-        ProductRepository productRepository
+        ProductImageChangeRequestPersistencePort productImageChangeRequestPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
         return new ProductImageApprovalService(
-            productImageChangeRequestRepository,
-            productImageRepository,
-            productRepository
+            productImageChangeRequestPersistencePort,
+            productImagePersistencePort,
+            productPersistencePort
         );
     }
 
     @Bean
     public ProductNutritionService productNutritionService(
-        ProductNutritionRepository productNutritionRepository,
-        ProductAllergenRepository productAllergenRepository,
-        ProductRepository productRepository
+        ProductNutritionPersistencePort productNutritionPersistencePort,
+        ProductAllergenPersistencePort productAllergenPersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
         return new ProductNutritionService(
-            productNutritionRepository,
-            productAllergenRepository,
-            productRepository
+            productNutritionPersistencePort,
+            productAllergenPersistencePort,
+            productPersistencePort
         );
     }
 
     @Bean
     public ProductVegetarianApprovalService productVegetarianApprovalService(
-        ProductVegetarianRequestRepository productVegetarianRequestRepository,
-        ProductRepository productRepository
+        ProductVegetarianRequestPersistencePort productVegetarianRequestPersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
         return new ProductVegetarianApprovalService(
-            productVegetarianRequestRepository,
-            productRepository
+            productVegetarianRequestPersistencePort,
+            productPersistencePort
         );
     }
 
     @Bean
     public ProductRepresentativeApprovalService productRepresentativeApprovalService(
-        ProductRepresentativeRequestRepository productRepresentativeRequestRepository,
-        ProductRepository productRepository,
-        ProductImageRepository productImageRepository
+        ProductRepresentativeRequestPersistencePort productRepresentativeRequestPersistencePort,
+        ProductPersistencePort productPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort
     ) {
         return new ProductRepresentativeApprovalService(
-            productRepresentativeRequestRepository,
-            productRepository,
-            productImageRepository
+            productRepresentativeRequestPersistencePort,
+            productPersistencePort,
+            productImagePersistencePort
         );
     }
 
     @Bean
     public ProductPriceService productPriceService(
-        ProductPriceRepository productPriceRepository,
-        ProductRepository productRepository,
+        ProductPricePersistencePort productPricePersistencePort,
+        ProductPersistencePort productPersistencePort,
         StorePriceVerificationPort storePriceVerificationPort
     ) {
         return new ProductPriceService(
-            productPriceRepository,
-            productRepository,
+            productPricePersistencePort,
+            productPersistencePort,
             storePriceVerificationPort
         );
     }
 
     @Bean
     public StorePriceVerificationService storePriceVerificationService(
-        StorePriceVerificationRepository storePriceVerificationRepository,
-        ProductPriceRepository productPriceRepository,
-        ProductRepository productRepository,
+        StorePriceVerificationPersistencePort storePriceVerificationPersistencePort,
+        ProductPricePersistencePort productPricePersistencePort,
+        ProductPersistencePort productPersistencePort,
         StorePriceVerificationPort storePriceVerificationPort,
         ShopRequestIndexSyncPort shopRequestIndexSyncPort
     ) {
         return new StorePriceVerificationService(
-            storePriceVerificationRepository,
-            productPriceRepository,
-            productRepository,
+            storePriceVerificationPersistencePort,
+            productPricePersistencePort,
+            productPersistencePort,
             storePriceVerificationPort,
             shopRequestIndexSyncPort
         );
@@ -278,27 +278,27 @@ public class ProductServiceConfig {
 
     @Bean
     public ProductFeedbackService productFeedbackService(
-        ProductRepository productRepository,
-        ProductFeedbackRepository productFeedbackRepository,
-        ProductFeedbackReadRepository productFeedbackReadRepository
+        ProductPersistencePort productPersistencePort,
+        ProductFeedbackPersistencePort productFeedbackPersistencePort,
+        ProductFeedbackReadPersistencePort productFeedbackReadPersistencePort
     ) {
         return new ProductFeedbackService(
-            productRepository,
-            productFeedbackRepository,
-            productFeedbackReadRepository
+            productPersistencePort,
+            productFeedbackPersistencePort,
+            productFeedbackReadPersistencePort
         );
     }
 
     @Bean
     public ProductShopLinkService productShopLinkService(
-        ProductRepository productRepository,
-        ProductShopLinkRepository productShopLinkRepository,
-        ProductCategoryRepository productCategoryRepository
+        ProductPersistencePort productPersistencePort,
+        ProductShopLinkPersistencePort productShopLinkPersistencePort,
+        ProductCategoryPersistencePort productCategoryPersistencePort
     ) {
         return new ProductShopLinkService(
-            productRepository,
-            productShopLinkRepository,
-            productCategoryRepository
+            productPersistencePort,
+            productShopLinkPersistencePort,
+            productCategoryPersistencePort
         );
     }
 }

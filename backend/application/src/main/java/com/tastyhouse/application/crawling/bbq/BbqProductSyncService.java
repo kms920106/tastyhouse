@@ -19,7 +19,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 import com.tastyhouse.application.product.service.ProductRegistrationService;
 import com.tastyhouse.application.shared.marker.BatchApp;
 
@@ -29,22 +29,22 @@ import com.tastyhouse.application.shared.marker.BatchApp;
 public class BbqProductSyncService {
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductCategoryRepository productCategoryRepository;
+    private final ProductCategoryPersistencePort productCategoryPersistencePort;
     private final ProductBbqSyncQueryPort productBbqSyncQueryPort;
 
     public BbqProductSyncService(
         ProductRegistrationService productRegistrationService,
-        ProductCategoryRepository productCategoryRepository,
+        ProductCategoryPersistencePort productCategoryPersistencePort,
         ProductBbqSyncQueryPort productBbqSyncQueryPort
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productCategoryRepository = productCategoryRepository;
+        this.productCategoryPersistencePort = productCategoryPersistencePort;
         this.productBbqSyncQueryPort = productBbqSyncQueryPort;
     }
 
     public Long resolveCategoryId(Long shopId, String name, int sort) {
         ShopId targetShopId = ShopId.of(shopId);
-        List<ProductCategory> existing = productCategoryRepository.findCategoriesByNameAndShopId(name, targetShopId);
+        List<ProductCategory> existing = productCategoryPersistencePort.findCategoriesByNameAndShopId(name, targetShopId);
         if (!existing.isEmpty()) {
             return existing.getFirst().getId();
         }

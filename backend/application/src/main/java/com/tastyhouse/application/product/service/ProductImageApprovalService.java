@@ -13,60 +13,60 @@ import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductImageApprovalService {
-    private final ProductImageChangeRequestRepository requestRepository;
-    private final ProductImageRepository productImageRepository;
-    private final ProductRepository productRepository;
+    private final ProductImageChangeRequestPersistencePort requestPersistencePort;
+    private final ProductImagePersistencePort productImagePersistencePort;
+    private final ProductPersistencePort productPersistencePort;
 
     public ProductImageApprovalService(
-        ProductImageChangeRequestRepository requestRepository,
-        ProductImageRepository productImageRepository,
-        ProductRepository productRepository
+        ProductImageChangeRequestPersistencePort requestPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
-        this.requestRepository = requestRepository;
-        this.productImageRepository = productImageRepository;
-        this.productRepository = productRepository;
+        this.requestPersistencePort = requestPersistencePort;
+        this.productImagePersistencePort = productImagePersistencePort;
+        this.productPersistencePort = productPersistencePort;
     }
 
     public Long requestImageChange(ProductId productId, UploadedFileId imageFileId) {
         requireProductExists(productId);
-        if (requestRepository.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
+        if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
             throw new BusinessException(ErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
         ProductImageChangeRequest saved =
-            requestRepository.save(ProductImageChangeRequest.of(productId, imageFileId));
+            requestPersistencePort.save(ProductImageChangeRequest.of(productId, imageFileId));
         return saved.getId();
     }
 
     public void approve(ProductImageChangeRequestId requestId) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.approve();
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
 
-        int nextSort = productImageRepository.findAllByProductId(request.getProductId()).size();
-        productImageRepository.save(
+        int nextSort = productImagePersistencePort.findAllByProductId(request.getProductId()).size();
+        productImagePersistencePort.save(
             ProductImage.of(request.getProductId(), request.getImageFileId(), nextSort, true));
     }
 
     public void reject(ProductImageChangeRequestId requestId, String rejectReason) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
     }
 
     public void cancel(ProductImageChangeRequestId requestId) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.cancel();
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
     }
 
     public void reorderImages(ProductId productId, List<Long> orderedImageIds) {
-        List<ProductImage> current = productImageRepository.findAllByProductId(productId);
+        List<ProductImage> current = productImagePersistencePort.findAllByProductId(productId);
         Set<Long> currentIds = current.stream().map(ProductImage::getId).collect(Collectors.toSet());
         List<Long> requested = orderedImageIds == null ? List.of()
             : orderedImageIds.stream().filter(Objects::nonNull).distinct().toList();
@@ -81,7 +81,7 @@ public class ProductImageApprovalService {
                 .filter(candidate -> candidate.getId().equals(imageId))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND));
-            productImageRepository.save(rebuildWithSort(image, index));
+            productImagePersistencePort.save(rebuildWithSort(image, index));
         }
     }
 
@@ -96,12 +96,12 @@ public class ProductImageApprovalService {
     }
 
     private ProductImageChangeRequest loadRequest(ProductImageChangeRequestId requestId) {
-        return requestRepository.findById(requestId)
+        return requestPersistencePort.findById(requestId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_FOUND));
     }
 
     private void requireProductExists(ProductId productId) {
-        if (productRepository.findById(productId).isEmpty()) {
+        if (productPersistencePort.findById(productId).isEmpty()) {
             throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
         }
     }

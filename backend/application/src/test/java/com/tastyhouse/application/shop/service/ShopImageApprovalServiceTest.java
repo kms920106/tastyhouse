@@ -22,19 +22,19 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopImageApprovalServiceTest {
     private static final Long SHOP_ID = 1L;
 
-    private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
-    private RecordingShopRequestIndexRepository shopRequestIndexRepository;
+    private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
+    private RecordingShopRequestIndexPersistencePort shopRequestIndexPersistencePort;
     private ShopImageApprovalService shopImageApprovalService;
 
-    private static final class FakeShopImageChangeRequestRepository implements ShopImageChangeRequestRepository {
+    private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
 
@@ -75,10 +75,10 @@ class ShopImageApprovalServiceTest {
         }
     }
 
-    private static final class FakeShopRepository implements ShopRepository {
+    private static final class FakeShopPersistencePort implements ShopPersistencePort {
         private final Map<Long, Shop> shops = new HashMap<>();
 
-        FakeShopRepository() {
+        FakeShopPersistencePort() {
             shops.put(SHOP_ID, Shop.reconstitute(
                 SHOP_ID, null, null, "맛있는 분식",
                 BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621), 4.5,
@@ -106,13 +106,13 @@ class ShopImageApprovalServiceTest {
 
     @BeforeEach
     void setUp() {
-        shopChangeHistoryRepository = new RecordingShopChangeHistoryRepository();
-        shopRequestIndexRepository = new RecordingShopRequestIndexRepository();
+        shopChangeHistoryPersistencePort = new RecordingShopChangeHistoryPersistencePort();
+        shopRequestIndexPersistencePort = new RecordingShopRequestIndexPersistencePort();
         shopImageApprovalService = new ShopImageApprovalService(
-            new FakeShopImageChangeRequestRepository(),
-            new FakeShopRepository(),
-            new ShopChangeHistoryRecorder(shopChangeHistoryRepository),
-            new ShopRequestIndexRecorder(shopRequestIndexRepository)
+            new FakeShopImageChangeRequestPersistencePort(),
+            new FakeShopPersistencePort(),
+            new ShopChangeHistoryRecorder(shopChangeHistoryPersistencePort),
+            new ShopRequestIndexRecorder(shopRequestIndexPersistencePort)
         );
     }
 
@@ -123,9 +123,9 @@ class ShopImageApprovalServiceTest {
             SHOP_ID, ShopImageType.TRADEMARK, 4821L, ShopChangeActor.ceo(7L)
         );
 
-        assertThat(shopChangeHistoryRepository.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST)).hasSize(1);
+        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST)).hasSize(1);
         ShopChangeHistory history =
-            shopChangeHistoryRepository.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST).getFirst();
+            shopChangeHistoryPersistencePort.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST).getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopChangeActionType.CREATE);
         assertThat(history.getActorType()).isEqualTo(ShopChangeActorType.CEO);
         assertThat(history.getActorId()).isEqualTo(7L);
@@ -140,8 +140,8 @@ class ShopImageApprovalServiceTest {
             SHOP_ID, ShopImageType.THUMBNAIL, 902L, ShopChangeActor.ceo(7L)
         );
 
-        assertThat(shopChangeHistoryRepository.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST)).isEmpty();
-        assertThat(shopChangeHistoryRepository.savedOf(ShopChangeType.THUMBNAIL_CHANGE_REQUEST))
+        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.TRADEMARK_CHANGE_REQUEST)).isEmpty();
+        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.THUMBNAIL_CHANGE_REQUEST))
             .singleElement()
             .satisfies(history ->
                 assertThat(history.getNewValue()).isEqualTo("대표이미지 변경요청(파일 #902)"));
@@ -160,7 +160,7 @@ class ShopImageApprovalServiceTest {
         shopImageApprovalService.approveImageChange(trademarkRequestId);
         shopImageApprovalService.rejectImageChange(thumbnailRequestId, "해상도가 낮습니다.");
 
-        assertThat(shopChangeHistoryRepository.saved()).hasSize(2);
+        assertThat(shopChangeHistoryPersistencePort.saved()).hasSize(2);
     }
 
     @Test
@@ -170,7 +170,7 @@ class ShopImageApprovalServiceTest {
             SHOP_ID, ShopImageType.TRADEMARK, 4821L, ShopChangeActor.ceo(7L)
         );
 
-        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
+        ShopRequestIndex index = shopRequestIndexPersistencePort.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
         assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.PENDING);
         assertThat(index.getSummary()).isEqualTo("상표 변경요청(파일 #4821)");
         assertThat(index.getRequestedByCeoId()).isEqualTo(7L);
@@ -184,7 +184,7 @@ class ShopImageApprovalServiceTest {
             SHOP_ID, ShopImageType.THUMBNAIL, 902L, ShopChangeActor.ceo(7L)
         );
 
-        assertThat(shopRequestIndexRepository.require(ShopRequestType.THUMBNAIL_CHANGE, requestId).getSummary())
+        assertThat(shopRequestIndexPersistencePort.require(ShopRequestType.THUMBNAIL_CHANGE, requestId).getSummary())
             .isEqualTo("대표이미지 변경요청(파일 #902)");
     }
 
@@ -197,7 +197,7 @@ class ShopImageApprovalServiceTest {
 
         shopImageApprovalService.approveImageChange(requestId);
 
-        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
+        ShopRequestIndex index = shopRequestIndexPersistencePort.require(ShopRequestType.TRADEMARK_CHANGE, requestId);
         assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.APPROVED);
         assertThat(index.getProcessedAt()).isNotNull();
     }
@@ -211,7 +211,7 @@ class ShopImageApprovalServiceTest {
 
         shopImageApprovalService.rejectImageChange(requestId, "해상도가 낮습니다.");
 
-        ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.THUMBNAIL_CHANGE, requestId);
+        ShopRequestIndex index = shopRequestIndexPersistencePort.require(ShopRequestType.THUMBNAIL_CHANGE, requestId);
         assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.REJECTED);
         assertThat(index.getRejectReason()).isEqualTo("해상도가 낮습니다.");
         assertThat(index.getProcessedAt()).isNotNull();

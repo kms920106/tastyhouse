@@ -10,23 +10,23 @@ import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 
 public class MemberDeliveryAddressService {
     private static final int MAX_ADDRESS_COUNT = 10;
 
     private static final int ADDRESS_TOKEN_MIN_COUNT = 3;
 
-    private final MemberDeliveryAddressRepository memberDeliveryAddressRepository;
-    private final AdminDongRepository adminDongRepository;
+    private final MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort;
+    private final AdminDongPersistencePort adminDongPersistencePort;
 
     public MemberDeliveryAddressService(
-        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
-        AdminDongRepository adminDongRepository
+        MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort
     ) {
-        this.memberDeliveryAddressRepository = memberDeliveryAddressRepository;
-        this.adminDongRepository = adminDongRepository;
+        this.memberDeliveryAddressPersistencePort = memberDeliveryAddressPersistencePort;
+        this.adminDongPersistencePort = adminDongPersistencePort;
     }
 
     public Long create(
@@ -39,7 +39,7 @@ public class MemberDeliveryAddressService {
         BigDecimal longitude,
         boolean isDefault
     ) {
-        if (memberDeliveryAddressRepository.countByMemberId(memberId) >= MAX_ADDRESS_COUNT) {
+        if (memberDeliveryAddressPersistencePort.countByMemberId(memberId) >= MAX_ADDRESS_COUNT) {
             throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
         }
 
@@ -59,7 +59,7 @@ public class MemberDeliveryAddressService {
             longitude,
             isDefault
         );
-        return memberDeliveryAddressRepository.save(address).getId();
+        return memberDeliveryAddressPersistencePort.save(address).getId();
     }
 
     public void update(
@@ -83,12 +83,12 @@ public class MemberDeliveryAddressService {
             latitude,
             longitude
         );
-        memberDeliveryAddressRepository.save(address);
+        memberDeliveryAddressPersistencePort.save(address);
     }
 
     public void delete(MemberId memberId, Long addressId) {
         MemberDeliveryAddress address = loadOwnedAddress(memberId, addressId);
-        memberDeliveryAddressRepository.deleteById(address.getId());
+        memberDeliveryAddressPersistencePort.deleteById(address.getId());
     }
 
     public void changeDefault(MemberId memberId, Long addressId) {
@@ -97,7 +97,7 @@ public class MemberDeliveryAddressService {
         unmarkExistingDefault(memberId);
 
         address.markAsDefault();
-        memberDeliveryAddressRepository.save(address);
+        memberDeliveryAddressPersistencePort.save(address);
     }
 
     public MemberDeliveryAddress findOwnedAddress(MemberId memberId, Long addressId) {
@@ -105,7 +105,7 @@ public class MemberDeliveryAddressService {
     }
 
     private MemberDeliveryAddress loadOwnedAddress(MemberId memberId, Long addressId) {
-        MemberDeliveryAddress address = memberDeliveryAddressRepository.findById(addressId)
+        MemberDeliveryAddress address = memberDeliveryAddressPersistencePort.findById(addressId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!address.isOwnedBy(memberId)) {
             throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
@@ -114,9 +114,9 @@ public class MemberDeliveryAddressService {
     }
 
     private void unmarkExistingDefault(MemberId memberId) {
-        memberDeliveryAddressRepository.findDefaultByMemberId(memberId).ifPresent(existing -> {
+        memberDeliveryAddressPersistencePort.findDefaultByMemberId(memberId).ifPresent(existing -> {
             existing.unmarkDefault();
-            memberDeliveryAddressRepository.save(existing);
+            memberDeliveryAddressPersistencePort.save(existing);
         });
     }
 
@@ -137,6 +137,6 @@ public class MemberDeliveryAddressService {
         if (tokens.length < ADDRESS_TOKEN_MIN_COUNT) {
             return Optional.empty();
         }
-        return adminDongRepository.findByDongNameMatch(tokens[0], tokens[1], tokens[2]);
+        return adminDongPersistencePort.findByDongNameMatch(tokens[0], tokens[1], tokens[2]);
     }
 }

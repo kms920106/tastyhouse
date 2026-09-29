@@ -18,31 +18,31 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 public class ShopOperatingStatusService {
     private static final boolean PUBLIC_HOLIDAY = false;
 
-    private final ShopRepository shopRepository;
-    private final ShopDetailRepository shopDetailRepository;
-    private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
-    private final ShopSuspensionRepository shopSuspensionRepository;
+    private final ShopPersistencePort shopPersistencePort;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
+    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;
 
     public ShopOperatingStatusService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
-        ShopSuspensionRepository shopSuspensionRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
-        this.shopRepository = shopRepository;
-        this.shopDetailRepository = shopDetailRepository;
-        this.shopTemporaryClosureRepository = shopTemporaryClosureRepository;
-        this.shopSuspensionRepository = shopSuspensionRepository;
+        this.shopPersistencePort = shopPersistencePort;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
+        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
         this.shopOperatingStatusCalculator = shopOperatingStatusCalculator;
     }
 
@@ -51,7 +51,7 @@ public class ShopOperatingStatusService {
     }
 
     public ShopOperatingStatusResult findOrderAvailability(Long shopId, OrderMethod orderMethod, LocalDateTime now) {
-        Shop shop = shopRepository.findById(ShopId.of(shopId))
+        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         return calculate(shop, shopId, orderMethod, now);
     }
@@ -66,13 +66,13 @@ public class ShopOperatingStatusService {
     }
 
     public Map<OrderMethod, ShopOperatingStatusResult> findOrderMethodAvailabilities(Long shopId, LocalDateTime now) {
-        Shop shop = shopRepository.findById(ShopId.of(shopId))
+        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         ShopOperatingStatusAggregates aggregates = loadAggregates(shopId);
 
         Map<OrderMethod, ShopOperatingStatusResult> availabilities = new LinkedHashMap<>();
-        for (ShopOrderMethod assigned : shopDetailRepository.findOrderMethodsByShopId(shopId)) {
+        for (ShopOrderMethod assigned : shopDetailPersistencePort.findOrderMethodsByShopId(shopId)) {
             OrderMethod orderMethod = assigned.getOrderMethod();
             availabilities.put(orderMethod, shopOperatingStatusCalculator.calculate(
                 aggregates.toContext(shop, orderMethod, PUBLIC_HOLIDAY, now)
@@ -87,7 +87,7 @@ public class ShopOperatingStatusService {
             .collect(Collectors.toMap(
                 Function.identity(),
 
-                shopId -> shopRepository.findById(ShopId.of(shopId))
+                shopId -> shopPersistencePort.findById(ShopId.of(shopId))
                     .map(shop -> calculate(shop, shopId, null, now).status())
                     .orElse(ShopOperatingStatus.PREPARING)
             ));
@@ -106,11 +106,11 @@ public class ShopOperatingStatusService {
 
     private ShopOperatingStatusAggregates loadAggregates(Long shopId) {
         return ShopOperatingStatusAggregates.of(
-            shopDetailRepository.findBusinessHoursByShopId(shopId),
-            shopDetailRepository.findBreakTimesByShopId(shopId),
-            shopDetailRepository.findClosedDaysByShopId(shopId),
-            shopTemporaryClosureRepository.findByShopId(shopId),
-            shopSuspensionRepository.findByShopId(shopId)
+            shopDetailPersistencePort.findBusinessHoursByShopId(shopId),
+            shopDetailPersistencePort.findBreakTimesByShopId(shopId),
+            shopDetailPersistencePort.findClosedDaysByShopId(shopId),
+            shopTemporaryClosurePersistencePort.findByShopId(shopId),
+            shopSuspensionPersistencePort.findByShopId(shopId)
         );
     }
 }

@@ -5,19 +5,19 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 public class MemberFollowService {
-    private final MemberFollowRepository memberFollowRepository;
-    private final MemberRepository memberRepository;
+    private final MemberFollowPersistencePort memberFollowPersistencePort;
+    private final MemberPersistencePort memberPersistencePort;
 
     public MemberFollowService(
-        MemberFollowRepository memberFollowRepository,
-        MemberRepository memberRepository
+        MemberFollowPersistencePort memberFollowPersistencePort,
+        MemberPersistencePort memberPersistencePort
     ) {
-        this.memberFollowRepository = memberFollowRepository;
-        this.memberRepository = memberRepository;
+        this.memberFollowPersistencePort = memberFollowPersistencePort;
+        this.memberPersistencePort = memberPersistencePort;
     }
 
     public Long follow(MemberId followerId, MemberId followingId) {
@@ -25,29 +25,29 @@ public class MemberFollowService {
             throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (memberRepository.findById(followingId).isEmpty()) {
+        if (memberPersistencePort.findById(followingId).isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
-        if (memberFollowRepository.existsByFollowerIdAndFollowingId(followerId, followingId)) {
+        if (memberFollowPersistencePort.existsByFollowerIdAndFollowingId(followerId, followingId)) {
             throw new BusinessException(ErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
-        MemberFollow saved = memberFollowRepository.save(MemberFollow.of(followerId, followingId));
+        MemberFollow saved = memberFollowPersistencePort.save(MemberFollow.of(followerId, followingId));
         return saved.getId();
     }
 
     public void unfollow(MemberId followerId, MemberId followingId) {
-        MemberFollow memberFollow = memberFollowRepository.findByFollowerIdAndFollowingId(followerId, followingId)
+        MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, followingId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        memberFollowRepository.delete(memberFollow);
+        memberFollowPersistencePort.delete(memberFollow);
     }
 
     public void removeFollower(MemberId memberId, MemberId followerId) {
-        MemberFollow memberFollow = memberFollowRepository.findByFollowerIdAndFollowingId(followerId, memberId)
+        MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
 
-        memberFollowRepository.delete(memberFollow);
+        memberFollowPersistencePort.delete(memberFollow);
     }
 }

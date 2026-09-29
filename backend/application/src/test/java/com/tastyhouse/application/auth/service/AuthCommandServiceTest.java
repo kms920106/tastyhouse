@@ -24,7 +24,7 @@ import com.tastyhouse.application.auth.token.CeoTokenService;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,7 +48,7 @@ class AuthCommandServiceTest {
 
     private AuthenticationManager authenticationManager;
     private CeoTokenService tokenService;
-    private CeoRepository ceoRepository;
+    private CeoPersistencePort ceoPersistencePort;
     private CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandService;
     private CeoAuthCommandService authCommandService;
 
@@ -56,12 +56,12 @@ class AuthCommandServiceTest {
     void setUp() {
         authenticationManager = mock(AuthenticationManager.class);
         tokenService = mock(CeoTokenService.class);
-        ceoRepository = mock(CeoRepository.class);
+        ceoPersistencePort = mock(CeoPersistencePort.class);
         ceoLoginHistoryCommandService = mock(CeoLoginHistoryCommandUseCase.class);
         authCommandService = new CeoAuthCommandService(
             authenticationManager,
             tokenService,
-            ceoRepository,
+            ceoPersistencePort,
             ceoLoginHistoryCommandService
         );
         SecurityContextHolder.clearContext();
@@ -78,7 +78,7 @@ class AuthCommandServiceTest {
 
         assertThat(actual).isEqualTo(expected);
         verify(ceoLoginHistoryCommandService).recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
-        verifyNoInteractions(ceoRepository);
+        verifyNoInteractions(ceoPersistencePort);
     }
 
     @Test
@@ -132,7 +132,7 @@ class AuthCommandServiceTest {
     void login_unknownUsername_recordsNothing() {
         BadCredentialsException authenticationException = new BadCredentialsException("bad credentials");
         givenAuthenticationFailsWith(authenticationException);
-        when(ceoRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
+        when(ceoPersistencePort.findByUsername(USERNAME)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authCommandService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
@@ -201,6 +201,6 @@ class AuthCommandServiceTest {
 
     private void givenCeoExists() {
         Ceo ceo = Ceo.reconstitute(CEO_ID, USERNAME, "encoded", "점주", null, null, null, null);
-        when(ceoRepository.findByUsername(USERNAME)).thenReturn(Optional.of(ceo));
+        when(ceoPersistencePort.findByUsername(USERNAME)).thenReturn(Optional.of(ceo));
     }
 }

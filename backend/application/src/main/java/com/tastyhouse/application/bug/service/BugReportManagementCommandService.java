@@ -16,7 +16,7 @@ import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.application.bug.port.out.write.BugReportRepository;
+import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -24,10 +24,10 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class BugReportManagementCommandService implements BugReportManagementCommandUseCase {
 
-    private final BugReportRepository bugReportRepository;
+    private final BugReportPersistencePort bugReportPersistencePort;
 
-    public BugReportManagementCommandService(BugReportRepository bugReportRepository) {
-        this.bugReportRepository = bugReportRepository;
+    public BugReportManagementCommandService(BugReportPersistencePort bugReportPersistencePort) {
+        this.bugReportPersistencePort = bugReportPersistencePort;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class BugReportManagementCommandService implements BugReportManagementCom
             case RECEIVED -> throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
         }
 
-        bugReportRepository.save(bugReport);
+        bugReportPersistencePort.save(bugReport);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class BugReportManagementCommandService implements BugReportManagementCom
         BugReport bugReport = findBugReportOrThrow(bugReportId);
 
         bugReport.classify(bugReportCategory, bugReportPriority);
-        bugReportRepository.save(bugReport);
+        bugReportPersistencePort.save(bugReport);
     }
 
     @Override
@@ -66,11 +66,11 @@ public class BugReportManagementCommandService implements BugReportManagementCom
 
         AdminId adminId = AdminId.of(command.assigneeAdminId());
         bugReport.assignTo(adminId);
-        bugReportRepository.save(bugReport);
+        bugReportPersistencePort.save(bugReport);
     }
 
     private BugReport findBugReportOrThrow(BugReportId bugReportId) {
-        return bugReportRepository.findById(bugReportId)
+        return bugReportPersistencePort.findById(bugReportId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
     }
 }

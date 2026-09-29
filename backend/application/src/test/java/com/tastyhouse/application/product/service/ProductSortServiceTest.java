@@ -17,8 +17,8 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -212,7 +212,7 @@ class ProductSortServiceTest {
 
         private Fixture() {
             this.service = new ProductSortService(
-                new StubProductRepository(products), new StubProductCategoryRepository(categories));
+                new StubProductPersistencePort(products), new StubProductCategoryPersistencePort(categories));
         }
 
         private void addProduct(Long id, Long categoryId, Integer sort) {
@@ -237,7 +237,7 @@ class ProductSortServiceTest {
         }
     }
 
-    private record StubProductRepository(Map<Long, Product> products) implements ProductRepository {
+    private record StubProductPersistencePort(Map<Long, Product> products) implements ProductPersistencePort {
         @Override
         public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
             Long target = productCategoryId == null ? null : productCategoryId.value();
@@ -311,8 +311,8 @@ class ProductSortServiceTest {
         }
     }
 
-    private record StubProductCategoryRepository(Map<Long, ProductCategory> categories)
-        implements ProductCategoryRepository {
+    private record StubProductCategoryPersistencePort(Map<Long, ProductCategory> categories)
+        implements ProductCategoryPersistencePort {
         @Override
         public List<ProductCategory> findAllByShopId(ShopId shopId) {
             return categories.values().stream()

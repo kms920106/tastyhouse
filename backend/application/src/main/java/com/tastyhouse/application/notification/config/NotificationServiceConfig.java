@@ -3,7 +3,7 @@ package com.tastyhouse.application.notification.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.application.notification.port.out.write.NotificationRepository;
+import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
 import com.tastyhouse.application.notification.service.NotificationService;
 import com.tastyhouse.application.shared.marker.SharedApp;
 
@@ -11,7 +11,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @SharedApp
 public class NotificationServiceConfig {
     @Bean
-    public NotificationService notificationService(NotificationRepository notificationRepository) {
-        return new NotificationService(notificationRepository);
+    public NotificationService notificationService(NotificationPersistencePort notificationPersistencePort) {
+        return new NotificationService(notificationPersistencePort);
     }
 }

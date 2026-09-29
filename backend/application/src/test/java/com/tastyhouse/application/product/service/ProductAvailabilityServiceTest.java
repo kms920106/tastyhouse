@@ -27,13 +27,13 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -380,13 +380,13 @@ class ProductAvailabilityServiceTest {
                 .toList();
 
             this.service = new ProductAvailabilityService(
-                new ProductRepositoryStub(owned, visibleCount, visibleRepresentativeCount),
-                new ProductOptionRepositoryStub(options),
-                new ProductCommonOptionRepositoryStub(commonOptions),
-                new ProductOptionGroupRepositoryStub(optionGroups),
-                new ProductCommonOptionGroupRepositoryStub(commonOptionGroups),
-                new ProductOptionGroupLinkRepositoryStub(optionGroupLinks),
-                new ProductCommonOptionGroupLinkRepositoryStub(commonOptionGroupLinks)
+                new ProductPersistencePortStub(owned, visibleCount, visibleRepresentativeCount),
+                new ProductOptionPersistencePortStub(options),
+                new ProductCommonOptionPersistencePortStub(commonOptions),
+                new ProductOptionGroupPersistencePortStub(optionGroups),
+                new ProductCommonOptionGroupPersistencePortStub(commonOptionGroups),
+                new ProductOptionGroupLinkPersistencePortStub(optionGroupLinks),
+                new ProductCommonOptionGroupLinkPersistencePortStub(commonOptionGroupLinks)
             );
         }
 
@@ -411,11 +411,11 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductRepositoryStub(
+    private record ProductPersistencePortStub(
         List<Product> products,
         long visibleCount,
         long visibleRepresentativeCount
-    ) implements ProductRepository {
+    ) implements ProductPersistencePort {
         @Override
         public Optional<Product> findById(ProductId id) {
             return products.stream().filter(product -> product.getId().equals(id.value())).findFirst();
@@ -480,7 +480,7 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionRepositoryStub(List<ProductOption> options) implements ProductOptionRepository {
+    private record ProductOptionPersistencePortStub(List<ProductOption> options) implements ProductOptionPersistencePort {
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -510,9 +510,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionRepositoryStub(
+    private record ProductCommonOptionPersistencePortStub(
         List<ProductCommonOption> options
-    ) implements ProductCommonOptionRepository {
+    ) implements ProductCommonOptionPersistencePort {
         @Override
         public Optional<ProductCommonOption> findById(ProductCommonOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -542,9 +542,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionGroupRepositoryStub(
+    private record ProductOptionGroupPersistencePortStub(
         List<ProductOptionGroup> groups
-    ) implements ProductOptionGroupRepository {
+    ) implements ProductOptionGroupPersistencePort {
         @Override
         public Optional<ProductOptionGroup> findById(ProductOptionGroupId id) {
             return groups.stream().filter(group -> group.getId().equals(id.value())).findFirst();
@@ -562,9 +562,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionGroupRepositoryStub(
+    private record ProductCommonOptionGroupPersistencePortStub(
         List<ProductCommonOptionGroup> groups
-    ) implements ProductCommonOptionGroupRepository {
+    ) implements ProductCommonOptionGroupPersistencePort {
         @Override
         public ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup) {
             return productCommonOptionGroup;
@@ -577,9 +577,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionGroupLinkRepositoryStub(
+    private record ProductOptionGroupLinkPersistencePortStub(
         List<ProductOptionGroupLink> links
-    ) implements ProductOptionGroupLinkRepository {
+    ) implements ProductOptionGroupLinkPersistencePort {
         @Override
         public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
             return links.stream()
@@ -628,9 +628,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionGroupLinkRepositoryStub(
+    private record ProductCommonOptionGroupLinkPersistencePortStub(
         List<ProductCommonOptionGroupLink> links
-    ) implements ProductCommonOptionGroupLinkRepository {
+    ) implements ProductCommonOptionGroupLinkPersistencePort {
         @Override
         public List<ProductCommonOptionGroupLink> findAllByOptionGroupIdIn(
             List<ProductOptionGroupId> optionGroupIds

@@ -8,7 +8,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.ceo.port.in.CeoCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoCreateCommand;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
@@ -16,10 +16,10 @@ import com.tastyhouse.application.shared.marker.CeoApp;
 @Transactional
 public class CeoCommandService implements CeoCommandUseCase {
 
-    private final CeoRepository ceoRepository;
+    private final CeoPersistencePort ceoPersistencePort;
 
-    public CeoCommandService(CeoRepository ceoRepository) {
-        this.ceoRepository = ceoRepository;
+    public CeoCommandService(CeoPersistencePort ceoPersistencePort) {
+        this.ceoPersistencePort = ceoPersistencePort;
     }
 
     @Override
@@ -28,12 +28,12 @@ public class CeoCommandService implements CeoCommandUseCase {
         String encodedPassword = command.encodedPassword();
         String name = command.name();
 
-        if (ceoRepository.existsByUsername(username)) {
+        if (ceoPersistencePort.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.CEO_USERNAME_DUPLICATED);
         }
 
         Ceo ceo = Ceo.create(username, encodedPassword, name);
 
-        ceoRepository.save(ceo);
+        ceoPersistencePort.save(ceo);
     }
 }

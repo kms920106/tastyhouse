@@ -21,8 +21,8 @@ import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
-import com.tastyhouse.application.rank.port.out.write.RankPeriodRepository;
-import com.tastyhouse.application.rank.port.out.write.RankPrizeRepository;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -32,17 +32,17 @@ public class RankCommandService implements RankCommandUseCase {
 
     private static final int DEFAULT_AGGREGATE_LIMIT = 10;
 
-    private final RankPeriodRepository rankPeriodRepository;
-    private final RankPrizeRepository rankPrizeRepository;
+    private final RankPeriodPersistencePort rankPeriodPersistencePort;
+    private final RankPrizePersistencePort rankPrizePersistencePort;
     private final RankSettlementService rankSettlementService;
 
     public RankCommandService(
-        RankPeriodRepository rankPeriodRepository,
-        RankPrizeRepository rankPrizeRepository,
+        RankPeriodPersistencePort rankPeriodPersistencePort,
+        RankPrizePersistencePort rankPrizePersistencePort,
         RankSettlementService rankSettlementService
     ) {
-        this.rankPeriodRepository = rankPeriodRepository;
-        this.rankPrizeRepository = rankPrizeRepository;
+        this.rankPeriodPersistencePort = rankPeriodPersistencePort;
+        this.rankPrizePersistencePort = rankPrizePersistencePort;
         this.rankSettlementService = rankSettlementService;
     }
 
@@ -65,7 +65,7 @@ public class RankCommandService implements RankCommandUseCase {
     @Override
     public Long createPeriod(RankPeriodCreateCommand command) {
         RankPeriod period = RankPeriod.of(command.startAt(), command.endAt(), command.visible());
-        RankPeriod saved = rankPeriodRepository.save(period);
+        RankPeriod saved = rankPeriodPersistencePort.save(period);
         return saved.getRankPeriodId().value();
     }
 
@@ -75,7 +75,7 @@ public class RankCommandService implements RankCommandUseCase {
         RankPeriod period = findPeriodOrThrow(periodId);
 
         period.update(command.startAt(), command.endAt(), command.visible());
-        rankPeriodRepository.save(period);
+        rankPeriodPersistencePort.save(period);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class RankCommandService implements RankCommandUseCase {
         RankPeriodId periodId = RankPeriodId.of(command.rankPeriodId());
         RankPeriod period = findPeriodOrThrow(periodId);
 
-        rankPeriodRepository.delete(period);
+        rankPeriodPersistencePort.delete(period);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class RankCommandService implements RankCommandUseCase {
         UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
         RankPrize prize = RankPrize.of(rankPeriodId, command.prizeRank(), command.name(), command.brand(), uploadedFileId);
-        RankPrize saved = rankPrizeRepository.save(prize);
+        RankPrize saved = rankPrizePersistencePort.save(prize);
         return saved.getRankPrizeId().value();
     }
 
@@ -105,7 +105,7 @@ public class RankCommandService implements RankCommandUseCase {
         UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
         prize.update(command.prizeRank(), command.name(), command.brand(), uploadedFileId);
-        rankPrizeRepository.save(prize);
+        rankPrizePersistencePort.save(prize);
     }
 
     @Override
@@ -113,16 +113,16 @@ public class RankCommandService implements RankCommandUseCase {
         RankPrizeId prizeId = RankPrizeId.of(command.rankPrizeId());
         RankPrize prize = findPrizeOrThrow(prizeId);
 
-        rankPrizeRepository.delete(prize);
+        rankPrizePersistencePort.delete(prize);
     }
 
     private RankPeriod findPeriodOrThrow(RankPeriodId periodId) {
-        return rankPeriodRepository.findById(periodId)
+        return rankPeriodPersistencePort.findById(periodId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
     }
 
     private RankPrize findPrizeOrThrow(RankPrizeId prizeId) {
-        return rankPrizeRepository.findById(prizeId)
+        return rankPrizePersistencePort.findById(prizeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

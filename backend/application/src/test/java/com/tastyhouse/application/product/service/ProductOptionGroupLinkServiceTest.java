@@ -175,12 +175,12 @@ class ProductOptionGroupLinkServiceTest {
     }
 
     private static final class Fixture {
-        private final FakeProductOptionGroupLinkRepository links = new FakeProductOptionGroupLinkRepository();
+        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final ProductOptionGroupLinkService service;
 
         private Fixture() {
-            this.service = new ProductOptionGroupLinkService(links, new StubProductRepository(products));
+            this.service = new ProductOptionGroupLinkService(links, new StubProductPersistencePort(products));
         }
 
         private void addProduct(Long id, ShopId shopId) {

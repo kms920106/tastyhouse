@@ -18,8 +18,8 @@ import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
@@ -27,21 +27,21 @@ import com.tastyhouse.application.shared.marker.WebApp;
 @Transactional
 public class MemberCommandService implements MemberCommandUseCase {
 
-    private final MemberRepository memberRepository;
-    private final MemberSocialAccountRepository memberSocialAccountRepository;
+    private final MemberPersistencePort memberPersistencePort;
+    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
     private final MemberRegistrationService memberRegistrationService;
     private final MemberWithdrawalService memberWithdrawalService;
     private final PasswordEncoder passwordEncoder;
 
     public MemberCommandService(
-        MemberRepository memberRepository,
-        MemberSocialAccountRepository memberSocialAccountRepository,
+        MemberPersistencePort memberPersistencePort,
+        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
         MemberRegistrationService memberRegistrationService,
         MemberWithdrawalService memberWithdrawalService,
         PasswordEncoder passwordEncoder
     ) {
-        this.memberRepository = memberRepository;
-        this.memberSocialAccountRepository = memberSocialAccountRepository;
+        this.memberPersistencePort = memberPersistencePort;
+        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
         this.memberRegistrationService = memberRegistrationService;
         this.memberWithdrawalService = memberWithdrawalService;
         this.passwordEncoder = passwordEncoder;
@@ -107,7 +107,7 @@ public class MemberCommandService implements MemberCommandUseCase {
         Member member = loadMember(command.memberId());
         UploadedFileId uploadedFileId = profileImageFileId == null ? null : UploadedFileId.of(profileImageFileId);
         member.updateProfile(command.nickname(), command.statusMessage(), uploadedFileId);
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class MemberCommandService implements MemberCommandUseCase {
             Boolean.TRUE.equals(command.marketingInfoEnabled()),
             Boolean.TRUE.equals(command.eventInfoEnabled())
         );
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class MemberCommandService implements MemberCommandUseCase {
         }
 
         member.updatePassword(passwordEncoder.encode(newPassword));
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
     }
 
     @Override
@@ -152,11 +152,11 @@ public class MemberCommandService implements MemberCommandUseCase {
     }
 
     public void saveSocialAccount(MemberSocialAccount socialAccount) {
-        memberSocialAccountRepository.save(socialAccount);
+        memberSocialAccountPersistencePort.save(socialAccount);
     }
 
     private Member loadMember(Long memberId) {
-        return memberRepository.findById(MemberId.of(memberId))
+        return memberPersistencePort.findById(MemberId.of(memberId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

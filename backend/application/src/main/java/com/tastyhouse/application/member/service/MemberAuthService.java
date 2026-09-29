@@ -12,25 +12,25 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp
 public class MemberAuthService {
 
-    private final MemberRepository memberRepository;
+    private final MemberPersistencePort memberPersistencePort;
     private final PasswordEncoder passwordEncoder;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberTokenService tokenService;
 
     public MemberAuthService(
-        MemberRepository memberRepository,
+        MemberPersistencePort memberPersistencePort,
         PasswordEncoder passwordEncoder,
         MemberJwtTokenProvider jwtTokenProvider,
         MemberTokenService tokenService
     ) {
-        this.memberRepository = memberRepository;
+        this.memberPersistencePort = memberPersistencePort;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
@@ -38,7 +38,7 @@ public class MemberAuthService {
 
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberRepository.findById(MemberId.of(memberId))
+        Member member = memberPersistencePort.findById(MemberId.of(memberId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {

@@ -24,8 +24,8 @@ import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImagePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 @Service
 @CeoApp
@@ -34,8 +34,8 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
 
     private static final int MAX_NOTICE_IMAGE_COUNT = 3;
 
-    private final ShopNoticeRepository shopNoticeRepository;
-    private final ShopNoticeImageRepository shopNoticeImageRepository;
+    private final ShopNoticePersistencePort shopNoticePersistencePort;
+    private final ShopNoticeImagePersistencePort shopNoticeImagePersistencePort;
     private final ShopNoticeExposureService shopNoticeExposureService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
@@ -44,8 +44,8 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeOwnerCommandService(
-        ShopNoticeRepository shopNoticeRepository,
-        ShopNoticeImageRepository shopNoticeImageRepository,
+        ShopNoticePersistencePort shopNoticePersistencePort,
+        ShopNoticeImagePersistencePort shopNoticeImagePersistencePort,
         ShopNoticeExposureService shopNoticeExposureService,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
@@ -53,8 +53,8 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         FileUploadOwnerCommandService fileUploadCommandService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopNoticeRepository = shopNoticeRepository;
-        this.shopNoticeImageRepository = shopNoticeImageRepository;
+        this.shopNoticePersistencePort = shopNoticePersistencePort;
+        this.shopNoticeImagePersistencePort = shopNoticeImagePersistencePort;
         this.shopNoticeExposureService = shopNoticeExposureService;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
@@ -76,7 +76,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         List<MultipartFile> images = normalizeFiles(files);
         validateImageCount(images);
 
-        ShopNotice saved = shopNoticeRepository.save(ShopNotice.of(ShopId.of(shopId), content));
+        ShopNotice saved = shopNoticePersistencePort.save(ShopNotice.of(ShopId.of(shopId), content));
         saveImages(saved.getId(), images);
 
         if (Boolean.TRUE.equals(exposed)) {
@@ -112,12 +112,12 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         if (!Boolean.TRUE.equals(keepExistingImages)) {
             List<MultipartFile> images = normalizeFiles(files);
             validateImageCount(images);
-            shopNoticeImageRepository.deleteByShopNoticeId(noticeId);
+            shopNoticeImagePersistencePort.deleteByShopNoticeId(noticeId);
             saveImages(noticeId, images);
         }
 
         notice.updateContent(content);
-        shopNoticeRepository.save(notice);
+        shopNoticePersistencePort.save(notice);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -139,8 +139,8 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         ShopNotice notice = loadOwnedNotice(shopId, noticeId);
         String previousValue = describeNotice(notice);
 
-        shopNoticeImageRepository.deleteByShopNoticeId(noticeId);
-        shopNoticeRepository.deleteById(noticeId);
+        shopNoticeImagePersistencePort.deleteByShopNoticeId(noticeId);
+        shopNoticePersistencePort.deleteById(noticeId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -185,7 +185,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
     }
 
     private ShopNotice loadOwnedNotice(Long shopId, Long noticeId) {
-        ShopNotice notice = shopNoticeRepository.findById(noticeId)
+        ShopNotice notice = shopNoticePersistencePort.findById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND));
         if (!notice.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND);
@@ -205,7 +205,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
             MultipartFile file = images.get(sortOrder);
             noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileUploadCommandService.upload(file)), sortOrder));
         }
-        shopNoticeImageRepository.saveAll(noticeImages);
+        shopNoticeImagePersistencePort.saveAll(noticeImages);
     }
 
     private void validateImageCount(List<MultipartFile> images) {

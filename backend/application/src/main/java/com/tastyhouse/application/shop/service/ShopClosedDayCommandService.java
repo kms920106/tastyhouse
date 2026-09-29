@@ -23,7 +23,7 @@ import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopHolidayClosureUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 @Service
 @CeoApp
@@ -34,20 +34,20 @@ public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase 
 
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopLifecycleService shopLifecycleService;
-    private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
+    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopClosedDayCommandService(
         ShopBusinessHourService shopBusinessHourService,
         ShopLifecycleService shopLifecycleService,
-        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
+        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopBusinessHourService = shopBusinessHourService;
         this.shopLifecycleService = shopLifecycleService;
-        this.shopTemporaryClosureRepository = shopTemporaryClosureRepository;
+        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -99,14 +99,14 @@ public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase 
         ShopId targetShopId = ShopId.of(shopId);
         ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(targetShopId, startDate, endDate);
 
-        long accumulatedDays = shopTemporaryClosureRepository.findByShopId(shopId).stream()
+        long accumulatedDays = shopTemporaryClosurePersistencePort.findByShopId(shopId).stream()
             .mapToLong(ShopTemporaryClosure::days)
             .sum();
         if (accumulatedDays + temporaryClosure.days() > MAX_ACCUMULATED_CLOSURE_DAYS) {
             throw new BusinessException(ErrorCode.SHOP_TEMPORARY_CLOSURE_LIMIT_EXCEEDED);
         }
 
-        ShopTemporaryClosure saved = shopTemporaryClosureRepository.save(temporaryClosure);
+        ShopTemporaryClosure saved = shopTemporaryClosurePersistencePort.save(temporaryClosure);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(
@@ -125,9 +125,9 @@ public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase 
         Long ceoId = command.ceoId();
         Long temporaryClosureId = command.temporaryClosureId();
 
-        ShopTemporaryClosure temporaryClosure = shopTemporaryClosureRepository.findById(temporaryClosureId)
+        ShopTemporaryClosure temporaryClosure = shopTemporaryClosurePersistencePort.findById(temporaryClosureId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
-        shopTemporaryClosureRepository.deleteById(temporaryClosureId);
+        shopTemporaryClosurePersistencePort.deleteById(temporaryClosureId);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(

@@ -14,7 +14,7 @@ import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
-import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
+import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -22,11 +22,11 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class CouponCommandService implements CouponCommandUseCase {
 
-    private final CouponRepository couponRepository;
+    private final CouponPersistencePort couponPersistencePort;
     private final CouponIssueService couponIssueService;
 
-    public CouponCommandService(CouponRepository couponRepository, CouponIssueService couponIssueService) {
-        this.couponRepository = couponRepository;
+    public CouponCommandService(CouponPersistencePort couponPersistencePort, CouponIssueService couponIssueService) {
+        this.couponPersistencePort = couponPersistencePort;
         this.couponIssueService = couponIssueService;
     }
 
@@ -46,7 +46,7 @@ public class CouponCommandService implements CouponCommandUseCase {
             command.useEndAt(),
             command.visible()
         );
-        Coupon saved = couponRepository.save(coupon);
+        Coupon saved = couponPersistencePort.save(coupon);
         return saved.getCouponId().value();
     }
 
@@ -69,7 +69,7 @@ public class CouponCommandService implements CouponCommandUseCase {
             command.useEndAt(),
             command.visible()
         );
-        couponRepository.save(coupon);
+        couponPersistencePort.save(coupon);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class CouponCommandService implements CouponCommandUseCase {
         Coupon coupon = findCouponOrThrow(couponId);
 
         coupon.delete();
-        couponRepository.save(coupon);
+        couponPersistencePort.save(coupon);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class CouponCommandService implements CouponCommandUseCase {
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponRepository.findById(couponId)
+        return couponPersistencePort.findById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 }

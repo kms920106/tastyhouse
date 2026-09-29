@@ -29,10 +29,10 @@ import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
 import com.tastyhouse.application.order.service.OrderTransitionService;
-import com.tastyhouse.application.payment.port.out.write.PaymentRefundRepository;
-import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,9 +52,9 @@ class PaymentCancellationServiceTest {
         PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
 
         assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
-        assertThat(fixture.paymentRepository.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
-        assertThat(fixture.paymentRepository.lastSaved.getCancelReason()).isEqualTo("고객 변심");
-        assertThat(fixture.orderRepository.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(fixture.paymentPersistencePort.lastSaved.getCancelReason()).isEqualTo("고객 변심");
+        assertThat(fixture.orderPersistencePort.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         PaymentCancelledEvent event = (PaymentCancelledEvent) fixture.eventPublisher.published.getFirst();
         assertThat(event.usedPoint()).isEqualTo(500);
@@ -105,8 +105,8 @@ class PaymentCancellationServiceTest {
 
         fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
 
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
+        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
         assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
@@ -120,8 +120,8 @@ class PaymentCancellationServiceTest {
         assertThat(target.isRejected()).isTrue();
         assertThat(target.rejectCode()).isEqualTo(PaymentCancelCode.ALREADY_PREPARING);
         assertThat(target.pgCancelRequired()).isFalse();
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
+        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
         assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
@@ -142,8 +142,8 @@ class PaymentCancellationServiceTest {
         PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
 
         assertThat(code).isEqualTo(PaymentCancelCode.ALREADY_PREPARING);
-        assertThat(fixture.paymentRepository.lastSaved).isNull();
-        assertThat(fixture.orderRepository.lastSaved).isNull();
+        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
+        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
         assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
@@ -160,8 +160,8 @@ class PaymentCancellationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
-        assertThat(applyFixture.paymentRepository.lastSaved).isNull();
-        assertThat(applyFixture.orderRepository.lastSaved).isNull();
+        assertThat(applyFixture.paymentPersistencePort.lastSaved).isNull();
+        assertThat(applyFixture.orderPersistencePort.lastSaved).isNull();
     }
 
     @Test
@@ -171,8 +171,8 @@ class PaymentCancellationServiceTest {
 
         fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "일부 환불");
 
-        assertThat(fixture.paymentRefundRepository.saved).hasSize(1);
-        PaymentRefund refund = fixture.paymentRefundRepository.saved.getFirst();
+        assertThat(fixture.paymentRefundPersistencePort.saved).hasSize(1);
+        PaymentRefund refund = fixture.paymentRefundPersistencePort.saved.getFirst();
         assertThat(refund.getRefundAmount().value()).isEqualTo(5000);
         assertThat(refund.getRefundStatus()).isEqualTo(RefundStatus.PENDING);
 
@@ -190,7 +190,7 @@ class PaymentCancellationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_NOT_COMPLETED.getDefaultMessage());
 
-        assertThat(fixture.paymentRefundRepository.saved).isEmpty();
+        assertThat(fixture.paymentRefundPersistencePort.saved).isEmpty();
     }
 
     @Test
@@ -202,25 +202,25 @@ class PaymentCancellationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
 
-        assertThat(fixture.paymentRefundRepository.saved).isEmpty();
+        assertThat(fixture.paymentRefundPersistencePort.saved).isEmpty();
     }
 
     private static final class Fixture {
         private final PaymentCancellationService service;
-        private final PaymentRepositoryStub paymentRepository;
-        private final OrderRepositoryStub orderRepository;
-        private final PaymentRefundRepositoryStub paymentRefundRepository;
+        private final PaymentPersistencePortStub paymentPersistencePort;
+        private final OrderPersistencePortStub orderPersistencePort;
+        private final PaymentRefundPersistencePortStub paymentRefundPersistencePort;
         private final DomainEventPublisherStub eventPublisher;
 
         private Fixture(Payment payment, Order order) {
-            this.paymentRepository = new PaymentRepositoryStub(payment);
-            this.orderRepository = new OrderRepositoryStub(order);
-            this.paymentRefundRepository = new PaymentRefundRepositoryStub();
+            this.paymentPersistencePort = new PaymentPersistencePortStub(payment);
+            this.orderPersistencePort = new OrderPersistencePortStub(order);
+            this.paymentRefundPersistencePort = new PaymentRefundPersistencePortStub();
             this.eventPublisher = new DomainEventPublisherStub();
             this.service = new PaymentCancellationService(
-                paymentRepository,
-                paymentRefundRepository,
-                new OrderTransitionService(orderRepository),
+                paymentPersistencePort,
+                paymentRefundPersistencePort,
+                new OrderTransitionService(orderPersistencePort),
                 eventPublisher
             );
         }
@@ -252,11 +252,11 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class PaymentRepositoryStub implements PaymentRepository {
+    private static final class PaymentPersistencePortStub implements PaymentPersistencePort {
         private final Payment stored;
         private Payment lastSaved;
 
-        private PaymentRepositoryStub(Payment stored) {
+        private PaymentPersistencePortStub(Payment stored) {
             this.stored = stored;
         }
 
@@ -282,11 +282,11 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class OrderRepositoryStub implements OrderRepository {
+    private static final class OrderPersistencePortStub implements OrderPersistencePort {
         private final Order stored;
         private Order lastSaved;
 
-        private OrderRepositoryStub(Order stored) {
+        private OrderPersistencePortStub(Order stored) {
             this.stored = stored;
         }
 
@@ -302,7 +302,7 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class PaymentRefundRepositoryStub implements PaymentRefundRepository {
+    private static final class PaymentRefundPersistencePortStub implements PaymentRefundPersistencePort {
         private final List<PaymentRefund> saved = new ArrayList<>();
 
         @Override

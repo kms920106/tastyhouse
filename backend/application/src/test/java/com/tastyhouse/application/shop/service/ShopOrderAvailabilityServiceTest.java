@@ -33,10 +33,10 @@ import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -170,15 +170,15 @@ class ShopOrderAvailabilityServiceTest {
         List<OrderMethod> assignedOrderMethods,
         List<ShopSuspension> suspensions
     ) {
-        ShopDetailRepository shopDetailRepository = new ShopDetailRepositoryFake(assignedOrderMethods);
+        ShopDetailPersistencePort shopDetailPersistencePort = new ShopDetailPersistencePortFake(assignedOrderMethods);
         ShopOperatingStatusService operatingStatusService = new ShopOperatingStatusService(
-            new ShopRepositoryFake(shop),
-            shopDetailRepository,
-            new ShopTemporaryClosureRepositoryFake(),
-            new ShopSuspensionRepositoryFake(suspensions),
+            new ShopPersistencePortFake(shop),
+            shopDetailPersistencePort,
+            new ShopTemporaryClosurePersistencePortFake(),
+            new ShopSuspensionPersistencePortFake(suspensions),
             new ShopOperatingStatusCalculator()
         );
-        return new ShopOrderAvailabilityService(operatingStatusService, shopDetailRepository);
+        return new ShopOrderAvailabilityService(operatingStatusService, shopDetailPersistencePort);
     }
 
     private Shop openShop() {
@@ -196,10 +196,10 @@ class ShopOrderAvailabilityServiceTest {
         );
     }
 
-    private static final class ShopRepositoryFake implements ShopRepository {
+    private static final class ShopPersistencePortFake implements ShopPersistencePort {
         private final Shop shop;
 
-        private ShopRepositoryFake(Shop shop) {
+        private ShopPersistencePortFake(Shop shop) {
             this.shop = shop;
         }
 
@@ -219,10 +219,10 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopSuspensionRepositoryFake implements ShopSuspensionRepository {
+    private static final class ShopSuspensionPersistencePortFake implements ShopSuspensionPersistencePort {
         private final List<ShopSuspension> suspensions;
 
-        private ShopSuspensionRepositoryFake(List<ShopSuspension> suspensions) {
+        private ShopSuspensionPersistencePortFake(List<ShopSuspension> suspensions) {
             this.suspensions = suspensions;
         }
 
@@ -242,7 +242,7 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopTemporaryClosureRepositoryFake implements ShopTemporaryClosureRepository {
+    private static final class ShopTemporaryClosurePersistencePortFake implements ShopTemporaryClosurePersistencePort {
         @Override
         public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {
             throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
@@ -264,10 +264,10 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopDetailRepositoryFake implements ShopDetailRepository {
+    private static final class ShopDetailPersistencePortFake implements ShopDetailPersistencePort {
         private final List<OrderMethod> assignedOrderMethods;
 
-        private ShopDetailRepositoryFake(List<OrderMethod> assignedOrderMethods) {
+        private ShopDetailPersistencePortFake(List<OrderMethod> assignedOrderMethods) {
             this.assignedOrderMethods = assignedOrderMethods;
         }
 

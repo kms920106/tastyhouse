@@ -13,33 +13,33 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
-import com.tastyhouse.application.coupon.port.out.write.MemberCouponRepository;
+import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class CouponIssueService {
-    private final CouponRepository couponRepository;
-    private final MemberCouponRepository memberCouponRepository;
+    private final CouponPersistencePort couponPersistencePort;
+    private final MemberCouponPersistencePort memberCouponPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public CouponIssueService(
-        CouponRepository couponRepository,
-        MemberCouponRepository memberCouponRepository,
+        CouponPersistencePort couponPersistencePort,
+        MemberCouponPersistencePort memberCouponPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.couponRepository = couponRepository;
-        this.memberCouponRepository = memberCouponRepository;
+        this.couponPersistencePort = couponPersistencePort;
+        this.memberCouponPersistencePort = memberCouponPersistencePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public MemberCouponId issueCoupon(MemberId memberId, CouponId couponId) {
         Coupon coupon = findCouponOrThrow(couponId);
 
-        if (memberCouponRepository.existsByMemberIdAndCouponId(memberId, couponId)) {
+        if (memberCouponPersistencePort.existsByMemberIdAndCouponId(memberId, couponId)) {
             throw new BusinessException(ErrorCode.COUPON_ALREADY_ISSUED);
         }
 
-        MemberCoupon issued = memberCouponRepository.save(
+        MemberCoupon issued = memberCouponPersistencePort.save(
             MemberCoupon.of(memberId, couponId, false, null, coupon.getUseEndAt())
         );
         MemberCouponId memberCouponId = issued.getMemberCouponId();
@@ -55,21 +55,21 @@ public class CouponIssueService {
     }
 
     public CouponUseResult useCoupon(MemberCouponId memberCouponId, MemberId memberId, int orderAmountAfterProductDiscount) {
-        MemberCoupon memberCoupon = memberCouponRepository.findById(memberCouponId)
+        MemberCoupon memberCoupon = memberCouponPersistencePort.findById(memberCouponId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
 
         if (!memberCoupon.getMemberId().equals(memberId)) {
             throw new BusinessException(ErrorCode.COUPON_ACCESS_DENIED);
         }
 
-        Coupon coupon = couponRepository.findById(memberCoupon.getCouponId())
+        Coupon coupon = couponPersistencePort.findById(memberCoupon.getCouponId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(orderAmountAfterProductDiscount);
         int discountAmount = coupon.calculateDiscount(orderAmountAfterProductDiscount);
 
         memberCoupon.use();
-        memberCouponRepository.save(memberCoupon);
+        memberCouponPersistencePort.save(memberCoupon);
 
         domainEventPublisher.publish(new MemberCouponUsedEvent(
             memberCoupon.getMemberCouponId(),
@@ -82,7 +82,7 @@ public class CouponIssueService {
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponRepository.findById(couponId)
+        return couponPersistencePort.findById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
     }
 }

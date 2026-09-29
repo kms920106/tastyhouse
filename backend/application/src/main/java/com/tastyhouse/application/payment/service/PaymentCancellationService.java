@@ -19,24 +19,24 @@ import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
-import com.tastyhouse.application.payment.port.out.write.PaymentRefundRepository;
-import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PaymentCancellationService {
-    private final PaymentRepository paymentRepository;
-    private final PaymentRefundRepository paymentRefundRepository;
+    private final PaymentPersistencePort paymentPersistencePort;
+    private final PaymentRefundPersistencePort paymentRefundPersistencePort;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
 
     public PaymentCancellationService(
-        PaymentRepository paymentRepository,
-        PaymentRefundRepository paymentRefundRepository,
+        PaymentPersistencePort paymentPersistencePort,
+        PaymentRefundPersistencePort paymentRefundPersistencePort,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.paymentRepository = paymentRepository;
-        this.paymentRefundRepository = paymentRefundRepository;
+        this.paymentPersistencePort = paymentPersistencePort;
+        this.paymentRefundPersistencePort = paymentRefundPersistencePort;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -73,7 +73,7 @@ public class PaymentCancellationService {
         LocalDateTime now = LocalDateTime.now();
         payment.cancel(cancelReason, now);
 
-        paymentRepository.save(payment);
+        paymentPersistencePort.save(payment);
         orderTransitionService.cancel(order);
 
         domainEventPublisher.publish(new PaymentCancelledEvent(
@@ -107,7 +107,7 @@ public class PaymentCancellationService {
         }
 
         Amount amount = new Amount(refundAmount);
-        PaymentRefund savedRefund = paymentRefundRepository.save(
+        PaymentRefund savedRefund = paymentRefundPersistencePort.save(
             PaymentRefund.create(paymentId, amount, refundReason)
         );
 
@@ -124,7 +124,7 @@ public class PaymentCancellationService {
     }
 
     private Payment loadPayment(PaymentId paymentId) {
-        return paymentRepository.findById(paymentId)
+        return paymentPersistencePort.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
     }
 

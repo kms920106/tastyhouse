@@ -8,21 +8,21 @@ import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberRegistrationService {
-    private final MemberRepository memberRepository;
+    private final MemberPersistencePort memberPersistencePort;
     private final ReferralRegistrationService referralRegistrationService;
     private final DomainEventPublisher domainEventPublisher;
 
     public MemberRegistrationService(
-        MemberRepository memberRepository,
+        MemberPersistencePort memberPersistencePort,
         ReferralRegistrationService referralRegistrationService,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberRepository = memberRepository;
+        this.memberPersistencePort = memberPersistencePort;
         this.referralRegistrationService = referralRegistrationService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -40,17 +40,17 @@ public class MemberRegistrationService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        if (memberRepository.existsByUsername(username)) {
+        if (memberPersistencePort.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
-        if (memberRepository.existsByNickname(nickname)) {
+        if (memberPersistencePort.existsByNickname(nickname)) {
             throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
-        if (memberRepository.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
+        if (memberPersistencePort.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
             throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = memberRepository.save(Member.of(
+        Member member = memberPersistencePort.save(Member.of(
             username, encodedPassword, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         ));
@@ -73,7 +73,7 @@ public class MemberRegistrationService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        Member member = memberRepository.save(Member.ofSocial(
+        Member member = memberPersistencePort.save(Member.ofSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         ));
@@ -92,7 +92,7 @@ public class MemberRegistrationService {
             throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
         }
 
-        Member referrer = memberRepository.findByNickname(referrerNickname)
+        Member referrer = memberPersistencePort.findByNickname(referrerNickname)
             .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
         referralRegistrationService.register(referrer.getMemberId(), member.getMemberId());

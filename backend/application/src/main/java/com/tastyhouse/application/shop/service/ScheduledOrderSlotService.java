@@ -18,34 +18,34 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 public class ScheduledOrderSlotService {
-    private final ShopRepository shopRepository;
-    private final ShopDetailRepository shopDetailRepository;
-    private final ShopTemporaryClosureRepository shopTemporaryClosureRepository;
-    private final ShopSuspensionRepository shopSuspensionRepository;
+    private final ShopPersistencePort shopPersistencePort;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
+    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
     private final ScheduledOrderSlotCalculator scheduledOrderSlotCalculator;
 
     public ScheduledOrderSlotService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
-        ShopSuspensionRepository shopSuspensionRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
         ScheduledOrderSlotCalculator scheduledOrderSlotCalculator
     ) {
-        this.shopRepository = shopRepository;
-        this.shopDetailRepository = shopDetailRepository;
-        this.shopTemporaryClosureRepository = shopTemporaryClosureRepository;
-        this.shopSuspensionRepository = shopSuspensionRepository;
+        this.shopPersistencePort = shopPersistencePort;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
+        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
         this.scheduledOrderSlotCalculator = scheduledOrderSlotCalculator;
     }
 
     public List<ScheduledOrderSlot> findAvailableSlots(ShopId shopId, OrderMethod orderMethod, LocalDateTime now) {
-        Shop shop = shopRepository.findById(shopId)
+        Shop shop = shopPersistencePort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         return scheduledOrderSlotCalculator.calculate(buildContext(shop, shopId, orderMethod, now));
@@ -71,12 +71,12 @@ public class ScheduledOrderSlotService {
         LocalDateTime now
     ) {
         Long rawShopId = shopId.value();
-        List<ShopBusinessHour> businessHours = shopDetailRepository.findBusinessHoursByShopId(rawShopId);
-        List<ShopBreakTime> breakTimes = shopDetailRepository.findBreakTimesByShopId(rawShopId);
-        List<ShopClosedDay> closedDays = shopDetailRepository.findClosedDaysByShopId(rawShopId);
-        List<ShopTemporaryClosure> temporaryClosures = shopTemporaryClosureRepository.findByShopId(rawShopId);
-        List<ShopSuspension> suspensions = shopSuspensionRepository.findByShopId(rawShopId);
-        List<ShopOrderMethod> shopOrderMethods = shopDetailRepository.findOrderMethodsByShopId(rawShopId);
+        List<ShopBusinessHour> businessHours = shopDetailPersistencePort.findBusinessHoursByShopId(rawShopId);
+        List<ShopBreakTime> breakTimes = shopDetailPersistencePort.findBreakTimesByShopId(rawShopId);
+        List<ShopClosedDay> closedDays = shopDetailPersistencePort.findClosedDaysByShopId(rawShopId);
+        List<ShopTemporaryClosure> temporaryClosures = shopTemporaryClosurePersistencePort.findByShopId(rawShopId);
+        List<ShopSuspension> suspensions = shopSuspensionPersistencePort.findByShopId(rawShopId);
+        List<ShopOrderMethod> shopOrderMethods = shopDetailPersistencePort.findOrderMethodsByShopId(rawShopId);
 
         return ScheduledOrderSlotContext.of(
             shop,

@@ -5,13 +5,13 @@ import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
 
 public class ShopChangeHistoryRecorder {
-    private final ShopChangeHistoryRepository shopChangeHistoryRepository;
+    private final ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
 
-    public ShopChangeHistoryRecorder(ShopChangeHistoryRepository shopChangeHistoryRepository) {
-        this.shopChangeHistoryRepository = shopChangeHistoryRepository;
+    public ShopChangeHistoryRecorder(ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort) {
+        this.shopChangeHistoryPersistencePort = shopChangeHistoryPersistencePort;
     }
 
     public void record(
@@ -30,6 +30,6 @@ public class ShopChangeHistoryRecorder {
             previousValue,
             newValue
         );
-        shopChangeHistoryRepository.save(history);
+        shopChangeHistoryPersistencePort.save(history);
     }
 }

@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ class ShopChangeHistoryRecorderTest {
     @Test
     @DisplayName("record는 전달받은 값으로 이력 1행을 저장한다")
     void record_savesSingleHistoryRow() {
-        FakeShopChangeHistoryRepository repository = new FakeShopChangeHistoryRepository();
+        FakeShopChangeHistoryPersistencePort repository = new FakeShopChangeHistoryPersistencePort();
         ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(repository);
 
         recorder.record(
@@ -47,7 +47,7 @@ class ShopChangeHistoryRecorderTest {
     @Test
     @DisplayName("대분류는 중분류에서 파생되므로 따로 전달하지 않아도 채워진다")
     void record_derivesCategoryFromChangeType() {
-        FakeShopChangeHistoryRepository repository = new FakeShopChangeHistoryRepository();
+        FakeShopChangeHistoryPersistencePort repository = new FakeShopChangeHistoryPersistencePort();
         ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(repository);
 
         recorder.record(
@@ -65,7 +65,7 @@ class ShopChangeHistoryRecorderTest {
     @Test
     @DisplayName("등록은 previousValue가, 삭제는 newValue가 null로 남는다")
     void record_keepsNullSideForCreateAndDelete() {
-        FakeShopChangeHistoryRepository repository = new FakeShopChangeHistoryRepository();
+        FakeShopChangeHistoryPersistencePort repository = new FakeShopChangeHistoryPersistencePort();
         ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(repository);
 
         recorder.record(ShopId.of(1L), ShopChangeType.CLOSED_DAY, ShopChangeActionType.CREATE,
@@ -79,7 +79,7 @@ class ShopChangeHistoryRecorderTest {
         assertThat(repository.saved.get(1).getNewValue()).isNull();
     }
 
-    private static class FakeShopChangeHistoryRepository implements ShopChangeHistoryRepository {
+    private static class FakeShopChangeHistoryPersistencePort implements ShopChangeHistoryPersistencePort {
         private final List<ShopChangeHistory> saved = new ArrayList<>();
 
         @Override

@@ -9,23 +9,23 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductAllergenRepository;
-import com.tastyhouse.application.product.port.out.write.ProductNutritionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductNutritionService {
-    private final ProductNutritionRepository productNutritionRepository;
-    private final ProductAllergenRepository productAllergenRepository;
-    private final ProductRepository productRepository;
+    private final ProductNutritionPersistencePort productNutritionPersistencePort;
+    private final ProductAllergenPersistencePort productAllergenPersistencePort;
+    private final ProductPersistencePort productPersistencePort;
 
     public ProductNutritionService(
-        ProductNutritionRepository productNutritionRepository,
-        ProductAllergenRepository productAllergenRepository,
-        ProductRepository productRepository
+        ProductNutritionPersistencePort productNutritionPersistencePort,
+        ProductAllergenPersistencePort productAllergenPersistencePort,
+        ProductPersistencePort productPersistencePort
     ) {
-        this.productNutritionRepository = productNutritionRepository;
-        this.productAllergenRepository = productAllergenRepository;
-        this.productRepository = productRepository;
+        this.productNutritionPersistencePort = productNutritionPersistencePort;
+        this.productAllergenPersistencePort = productAllergenPersistencePort;
+        this.productPersistencePort = productPersistencePort;
     }
 
     public void upsertNutrition(
@@ -49,7 +49,7 @@ public class ProductNutritionService {
     ) {
         validateProductExists(productId);
 
-        ProductNutrition existing = productNutritionRepository.findByProductId(productId).orElse(null);
+        ProductNutrition existing = productNutritionPersistencePort.findByProductId(productId).orElse(null);
         ProductNutrition productNutrition;
         if (existing == null) {
             productNutrition = ProductNutrition.of(productId, servingSize, totalAmount, flavor, size,
@@ -62,20 +62,20 @@ public class ProductNutritionService {
             productNutrition = existing;
         }
 
-        productNutritionRepository.save(productNutrition);
+        productNutritionPersistencePort.save(productNutrition);
         replaceAllergens(productId, allergenTypes);
     }
 
     public void deleteNutrition(ProductId productId) {
-        ProductNutrition productNutrition = productNutritionRepository.findByProductId(productId)
+        ProductNutrition productNutrition = productNutritionPersistencePort.findByProductId(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NUTRITION_NOT_FOUND));
 
-        productAllergenRepository.deleteAllByProductId(productId);
-        productNutritionRepository.delete(productNutrition);
+        productAllergenPersistencePort.deleteAllByProductId(productId);
+        productNutritionPersistencePort.delete(productNutrition);
     }
 
     private void replaceAllergens(ProductId productId, List<AllergenType> allergenTypes) {
-        productAllergenRepository.deleteAllByProductId(productId);
+        productAllergenPersistencePort.deleteAllByProductId(productId);
 
         if (allergenTypes == null || allergenTypes.isEmpty()) {
             return;
@@ -85,11 +85,11 @@ public class ProductNutritionService {
             .distinct()
             .map(allergenType -> ProductAllergen.of(productId, allergenType))
             .toList();
-        productAllergenRepository.saveAll(allergens);
+        productAllergenPersistencePort.saveAll(allergens);
     }
 
     private void validateProductExists(ProductId productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productPersistencePort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.isDeleted()) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

@@ -15,13 +15,13 @@ import com.tastyhouse.domain.product.service.ProductAvailabilityChangeResult;
 import com.tastyhouse.domain.product.service.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductDeletionService {
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
 
-    public ProductDeletionService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductDeletionService(ProductPersistencePort productPersistencePort) {
+        this.productPersistencePort = productPersistencePort;
     }
 
     public ProductAvailabilityChangeResult deleteProducts(ShopId shopId, List<ProductId> productIds) {
@@ -30,7 +30,7 @@ public class ProductDeletionService {
             throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
 
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(shopId, distinctIds);
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, distinctIds);
         Map<Long, Product> byId = new LinkedHashMap<>();
         found.forEach(product -> byId.put(product.getId(), product));
 
@@ -47,10 +47,10 @@ public class ProductDeletionService {
             .toList();
 
         long visibleShortfall =
-            Math.max(0, 1 - (productRepository.countVisibleByShopId(shopId) - visibleTargets.size()));
+            Math.max(0, 1 - (productPersistencePort.countVisibleByShopId(shopId) - visibleTargets.size()));
         long representativeTargets = visibleTargets.stream().filter(Product::isRepresentative).count();
         long representativeShortfall = Math.max(0,
-            1 - (productRepository.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
+            1 - (productPersistencePort.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
 
         Map<Long, ProductAvailabilityFailure> rejected = new LinkedHashMap<>();
         rejectFromTail(visibleTargets, rejected, representativeShortfall,
@@ -70,7 +70,7 @@ public class ProductDeletionService {
                 continue;
             }
             product.delete();
-            productRepository.save(product);
+            productPersistencePort.save(product);
             succeeded.add(product.getId());
         }
 

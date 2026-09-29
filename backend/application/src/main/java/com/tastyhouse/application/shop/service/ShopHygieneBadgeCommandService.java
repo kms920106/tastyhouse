@@ -14,17 +14,17 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistencePort;
 
 @Service
 @AdminApp
 @Transactional
 public class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUseCase {
 
-    private final ShopHygieneBadgeRepository shopHygieneBadgeRepository;
+    private final ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort;
 
-    public ShopHygieneBadgeCommandService(ShopHygieneBadgeRepository shopHygieneBadgeRepository) {
-        this.shopHygieneBadgeRepository = shopHygieneBadgeRepository;
+    public ShopHygieneBadgeCommandService(ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort) {
+        this.shopHygieneBadgePersistencePort = shopHygieneBadgePersistencePort;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUs
         LocalDate certifiedDate = command.certifiedDate();
         String lastInspectionMonth = command.lastInspectionMonth();
 
-        ShopHygieneBadge saved = shopHygieneBadgeRepository.save(
+        ShopHygieneBadge saved = shopHygieneBadgePersistencePort.save(
             ShopHygieneBadge.of(
                 ShopId.of(shopId),
                 HygieneBadgeType.from(badgeType),
@@ -48,8 +48,8 @@ public class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUs
     @Override
     public void deleteHygieneBadge(ShopHygieneBadgeDeleteCommand command) {
         Long hygieneBadgeId = command.hygieneBadgeId();
-        shopHygieneBadgeRepository.findById(hygieneBadgeId)
+        shopHygieneBadgePersistencePort.findById(hygieneBadgeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
-        shopHygieneBadgeRepository.deleteById(hygieneBadgeId);
+        shopHygieneBadgePersistencePort.deleteById(hygieneBadgeId);
     }
 }

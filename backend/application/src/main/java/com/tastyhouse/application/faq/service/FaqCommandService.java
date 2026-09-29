@@ -12,8 +12,8 @@ import com.tastyhouse.application.faq.port.in.FaqCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqUpdateCommand;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryRepository;
-import com.tastyhouse.application.faq.port.out.write.FaqRepository;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -21,12 +21,12 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class FaqCommandService implements FaqCommandUseCase {
 
-    private final FaqRepository faqRepository;
-    private final FaqCategoryRepository faqCategoryRepository;
+    private final FaqPersistencePort faqPersistencePort;
+    private final FaqCategoryPersistencePort faqCategoryPersistencePort;
 
-    public FaqCommandService(FaqRepository faqRepository, FaqCategoryRepository faqCategoryRepository) {
-        this.faqRepository = faqRepository;
-        this.faqCategoryRepository = faqCategoryRepository;
+    public FaqCommandService(FaqPersistencePort faqPersistencePort, FaqCategoryPersistencePort faqCategoryPersistencePort) {
+        this.faqPersistencePort = faqPersistencePort;
+        this.faqCategoryPersistencePort = faqCategoryPersistencePort;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class FaqCommandService implements FaqCommandUseCase {
         validateCategoryExists(faqCategoryId);
 
         Faq faq = Faq.of(faqCategoryId, command.question(), command.answer(), command.sort(), command.visible());
-        Faq saved = faqRepository.save(faq);
+        Faq saved = faqPersistencePort.save(faq);
         return saved.getFaqId().value();
     }
 
@@ -48,7 +48,7 @@ public class FaqCommandService implements FaqCommandUseCase {
         Faq faq = findFaqOrThrow(faqId);
 
         faq.update(faqCategoryId, command.question(), command.answer(), command.sort(), command.visible());
-        faqRepository.save(faq);
+        faqPersistencePort.save(faq);
     }
 
     @Override
@@ -57,16 +57,16 @@ public class FaqCommandService implements FaqCommandUseCase {
         Faq faq = findFaqOrThrow(faqId);
 
         faq.delete();
-        faqRepository.save(faq);
+        faqPersistencePort.save(faq);
     }
 
     private Faq findFaqOrThrow(FaqId faqId) {
-        return faqRepository.findById(faqId)
+        return faqPersistencePort.findById(faqId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_NOT_FOUND));
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
-        faqCategoryRepository.findById(faqCategoryId)
+        faqCategoryPersistencePort.findById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

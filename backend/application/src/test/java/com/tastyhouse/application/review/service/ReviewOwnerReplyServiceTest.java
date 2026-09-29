@@ -21,8 +21,8 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyRepository;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +38,7 @@ class ReviewOwnerReplyServiceTest {
     private static final LocalDate REVIEW_CREATED_DATE = LocalDate.of(2026, 6, 1);
     private static final LocalDate DEADLINE = REVIEW_CREATED_DATE.plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
 
-    private FakeReviewOwnerReplyRepository reviewOwnerReplyRepository;
+    private FakeReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort;
     private FakeDomainEventPublisher domainEventPublisher;
     private ReviewOwnerReplyService reviewOwnerReplyService;
 
@@ -46,18 +46,18 @@ class ReviewOwnerReplyServiceTest {
 
     @BeforeEach
     void setUp() {
-        FakeReviewRepository reviewRepository = new FakeReviewRepository();
-        reviewOwnerReplyRepository = new FakeReviewOwnerReplyRepository();
+        FakeReviewPersistencePort reviewPersistencePort = new FakeReviewPersistencePort();
+        reviewOwnerReplyPersistencePort = new FakeReviewOwnerReplyPersistencePort();
         domainEventPublisher = new FakeDomainEventPublisher();
         reviewOwnerReplyService = new ReviewOwnerReplyService(
-            reviewOwnerReplyRepository,
-            reviewRepository,
-            new ProhibitedWordValidator(new FakeProhibitedWordRepository()),
+            reviewOwnerReplyPersistencePort,
+            reviewPersistencePort,
+            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
             domainEventPublisher
         );
 
         reviewId = 100L;
-        reviewRepository.save(Review.reconstitute(
+        reviewPersistencePort.save(Review.reconstitute(
             reviewId,
             ShopId.of(SHOP_ID),
             null,
@@ -110,7 +110,7 @@ class ReviewOwnerReplyServiceTest {
 
         assertThatCode(() -> reviewOwnerReplyService.modify(SHOP_ID, reviewId, "오타를 고쳤습니다."))
             .doesNotThrowAnyException();
-        assertThat(reviewOwnerReplyRepository.findByReviewId(ReviewId.of(reviewId)))
+        assertThat(reviewOwnerReplyPersistencePort.findByReviewId(ReviewId.of(reviewId)))
             .get()
             .extracting(ReviewOwnerReply::getContent)
             .isEqualTo("오타를 고쳤습니다.");
@@ -123,7 +123,7 @@ class ReviewOwnerReplyServiceTest {
 
         assertThatCode(() -> reviewOwnerReplyService.remove(SHOP_ID, reviewId))
             .doesNotThrowAnyException();
-        assertThat(reviewOwnerReplyRepository.findByReviewId(ReviewId.of(reviewId))).isEmpty();
+        assertThat(reviewOwnerReplyPersistencePort.findByReviewId(ReviewId.of(reviewId))).isEmpty();
     }
 
     @Test
@@ -155,7 +155,7 @@ class ReviewOwnerReplyServiceTest {
             .isEqualTo(ErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
     }
 
-    private static class FakeReviewOwnerReplyRepository implements ReviewOwnerReplyRepository {
+    private static class FakeReviewOwnerReplyPersistencePort implements ReviewOwnerReplyPersistencePort {
         private final Map<Long, ReviewOwnerReply> replies = new HashMap<>();
         private long sequence = 0L;
 
@@ -202,7 +202,7 @@ class ReviewOwnerReplyServiceTest {
         }
     }
 
-    private static class FakeProhibitedWordRepository implements ProhibitedWordRepository {
+    private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

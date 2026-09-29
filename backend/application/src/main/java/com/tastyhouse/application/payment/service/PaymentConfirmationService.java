@@ -21,26 +21,26 @@ import com.tastyhouse.domain.payment.vo.PgOrderId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
-import com.tastyhouse.application.payment.port.out.write.PaymentRepository;
-import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordRepository;
+import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PaymentConfirmationService {
     private static final int CASH_POINT_EARN_RATE = 10;
 
-    private final PaymentRepository paymentRepository;
-    private final TossPaymentRecordRepository tossPaymentRecordRepository;
+    private final PaymentPersistencePort paymentPersistencePort;
+    private final TossPaymentRecordPersistencePort tossPaymentRecordPersistencePort;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
 
     public PaymentConfirmationService(
-        PaymentRepository paymentRepository,
-        TossPaymentRecordRepository tossPaymentRecordRepository,
+        PaymentPersistencePort paymentPersistencePort,
+        TossPaymentRecordPersistencePort tossPaymentRecordPersistencePort,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.paymentRepository = paymentRepository;
-        this.tossPaymentRecordRepository = tossPaymentRecordRepository;
+        this.paymentPersistencePort = paymentPersistencePort;
+        this.tossPaymentRecordPersistencePort = tossPaymentRecordPersistencePort;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -52,7 +52,7 @@ public class PaymentConfirmationService {
             throw new BusinessException(ErrorCode.PAYMENT_INVALID_ORDER_STATUS);
         }
 
-        if (paymentRepository.existsByOrderId(orderId)) {
+        if (paymentPersistencePort.existsByOrderId(orderId)) {
             throw new BusinessException(ErrorCode.PAYMENT_ALREADY_IN_PROGRESS);
         }
 
@@ -62,7 +62,7 @@ public class PaymentConfirmationService {
             new Amount(order.getFinalAmount()),
             PgOrderId.generate()
         );
-        return paymentRepository.save(payment).getPaymentId();
+        return paymentPersistencePort.save(payment).getPaymentId();
     }
 
     public PaymentId confirm(PaymentId paymentId, PgConfirmation confirmation) {
@@ -81,14 +81,14 @@ public class PaymentConfirmationService {
 
         payment.complete(confirmation.pgTid(), LocalDateTime.now(), confirmation.receiptUrl());
 
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment = paymentPersistencePort.save(payment);
         orderTransitionService.confirm(order);
 
         return savedPayment.getPaymentId();
     }
 
     public PgConfirmationTarget preparePgConfirmation(MemberId memberId, String pgOrderId, int amount) {
-        Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
+        Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED);
@@ -110,7 +110,7 @@ public class PaymentConfirmationService {
         String pgOrderId,
         PgConfirmResult result
     ) {
-        Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
+        Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
@@ -131,7 +131,7 @@ public class PaymentConfirmationService {
 
         payment.complete(result.paymentKey(), result.approvedAt(), result.receiptUrl());
 
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment = paymentPersistencePort.save(payment);
         orderTransitionService.confirm(order);
 
         domainEventPublisher.publish(new PaymentCompletedEvent(
@@ -148,7 +148,7 @@ public class PaymentConfirmationService {
     }
 
     public void failPgConfirmation(String pgOrderId, PgConfirmResult result) {
-        Payment payment = paymentRepository.findByPgOrderId(pgOrderId)
+        Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         recordTossDetail(payment.getPaymentId(), result.detail());
@@ -158,11 +158,11 @@ public class PaymentConfirmationService {
         }
 
         payment.fail();
-        paymentRepository.save(payment);
+        paymentPersistencePort.save(payment);
     }
 
     public PaymentId completeOnSitePayment(MemberId memberId, PaymentId paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentPersistencePort.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
@@ -181,7 +181,7 @@ public class PaymentConfirmationService {
         payment.complete(null, now, null);
         order.updateEarnedPoint(calculateEarnedPoint(payment.getAmount()));
 
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment = paymentPersistencePort.save(payment);
         orderTransitionService.confirm(order);
 
         domainEventPublisher.publish(new PaymentCompletedEvent(
@@ -206,7 +206,7 @@ public class PaymentConfirmationService {
     }
 
     private Payment loadPendingPayment(PaymentId paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+        Payment payment = paymentPersistencePort.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
@@ -223,7 +223,7 @@ public class PaymentConfirmationService {
         if (detail == null) {
             return;
         }
-        tossPaymentRecordRepository.save(toTossPaymentRecord(paymentId, detail));
+        tossPaymentRecordPersistencePort.save(toTossPaymentRecord(paymentId, detail));
     }
 
     private TossPaymentRecord toTossPaymentRecord(PaymentId paymentId, TossPaymentDetail detail) {

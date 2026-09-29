@@ -35,10 +35,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCr
 import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @AdminApp
@@ -54,21 +54,21 @@ public class ProductManagementCommandService implements
     ProductCategoryCreateUseCase {
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductRepository productRepository;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ShopRepository shopRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final CupDepositPolicy cupDepositPolicy;
 
     public ProductManagementCommandService(
         ProductRegistrationService productRegistrationService,
-        ProductRepository productRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ShopRepository shopRepository,
+        ProductPersistencePort productPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         CupDepositPolicy cupDepositPolicy
     ) {
-        this.productRepository = productRepository;
-        this.productOptionGroupRepository = productOptionGroupRepository;
-        this.shopRepository = shopRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.productRegistrationService = productRegistrationService;
     }
@@ -196,9 +196,9 @@ public class ProductManagementCommandService implements
     }
 
     private Shop loadShopOf(ProductId productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productPersistencePort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        return shopRepository.findById(product.getShopId())
+        return shopPersistencePort.findById(product.getShopId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
@@ -213,7 +213,7 @@ public class ProductManagementCommandService implements
         Integer cupCount = command.cupCount();
         Integer personalCupDiscountAmount = command.personalCupDiscountAmount();
 
-        ProductOptionGroup optionGroup = productOptionGroupRepository
+        ProductOptionGroup optionGroup = productOptionGroupPersistencePort
             .findById(ProductOptionGroupId.of(groupId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         CupDepositOptionRule.validateOptionValues(

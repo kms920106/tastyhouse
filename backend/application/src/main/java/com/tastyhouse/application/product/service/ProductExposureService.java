@@ -17,24 +17,24 @@ import com.tastyhouse.domain.product.service.ProductExposureContext;
 import com.tastyhouse.domain.product.service.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductExposureService {
     private static final Set<DayType> GROUP_DAY_TYPES =
         Set.of(DayType.DAILY, DayType.WEEKDAY, DayType.WEEKEND, DayType.HOLIDAY);
 
-    private final ProductRepository productRepository;
-    private final ProductExposureHourRepository productExposureHourRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductExposureHourPersistencePort productExposureHourPersistencePort;
     private final ProductExposureCalculator productExposureCalculator;
 
     public ProductExposureService(
-        ProductRepository productRepository,
-        ProductExposureHourRepository productExposureHourRepository,
+        ProductPersistencePort productPersistencePort,
+        ProductExposureHourPersistencePort productExposureHourPersistencePort,
         ProductExposureCalculator productExposureCalculator
     ) {
-        this.productRepository = productRepository;
-        this.productExposureHourRepository = productExposureHourRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productExposureHourPersistencePort = productExposureHourPersistencePort;
         this.productExposureCalculator = productExposureCalculator;
     }
 
@@ -48,19 +48,19 @@ public class ProductExposureService {
         validateDayTypes(hours);
 
         product.changeExposurePeriod(startDate, endDate);
-        productRepository.save(product);
+        productPersistencePort.save(product);
 
-        productExposureHourRepository.deleteAllByProductId(productId);
+        productExposureHourPersistencePort.deleteAllByProductId(productId);
         if (hours != null && !hours.isEmpty()) {
-            productExposureHourRepository.saveAll(hours);
+            productExposureHourPersistencePort.saveAll(hours);
         }
     }
 
     public void clearSchedule(ProductId productId) {
         Product product = loadProduct(productId);
         product.changeExposurePeriod(null, null);
-        productRepository.save(product);
-        productExposureHourRepository.deleteAllByProductId(productId);
+        productPersistencePort.save(product);
+        productExposureHourPersistencePort.deleteAllByProductId(productId);
     }
 
     public ProductExposureResult evaluate(ProductId productId, LocalDateTime now, boolean publicHoliday,
@@ -70,7 +70,7 @@ public class ProductExposureService {
             product.isVisible(),
             product.getExposureStartDate(),
             product.getExposureEndDate(),
-            productExposureHourRepository.findAllByProductId(productId),
+            productExposureHourPersistencePort.findAllByProductId(productId),
             now,
             publicHoliday,
             previousDayPublicHoliday
@@ -78,7 +78,7 @@ public class ProductExposureService {
     }
 
     public List<ProductExposureHour> findHours(ProductId productId) {
-        return productExposureHourRepository.findAllByProductId(productId);
+        return productExposureHourPersistencePort.findAllByProductId(productId);
     }
 
     private void validateDayTypes(List<ProductExposureHour> hours) {
@@ -103,7 +103,7 @@ public class ProductExposureService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productRepository.findById(productId)
+        return productPersistencePort.findById(productId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 }

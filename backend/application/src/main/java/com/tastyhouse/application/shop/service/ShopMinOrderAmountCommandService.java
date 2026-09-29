@@ -12,23 +12,23 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @CeoApp
 @Transactional
 public class ShopMinOrderAmountCommandService implements ShopMinOrderAmountCommandUseCase {
 
-    private final ShopRepository shopRepository;
+    private final ShopPersistencePort shopPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopMinOrderAmountCommandService(
-        ShopRepository shopRepository,
+        ShopPersistencePort shopPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopRepository = shopRepository;
+        this.shopPersistencePort = shopPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -43,7 +43,7 @@ public class ShopMinOrderAmountCommandService implements ShopMinOrderAmountComma
         String previousValue = describeMinOrderAmount(shop.getMinOrderAmount());
 
         shop.changeMinOrderAmount(minOrderAmount);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         ShopId id = ShopId.of(shopId);
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);

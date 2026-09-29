@@ -23,30 +23,30 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
 
 public class StorePriceVerificationService {
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =
         List.of(StorePriceVerificationStatus.PENDING, StorePriceVerificationStatus.IN_PROGRESS);
 
-    private final StorePriceVerificationRepository verificationRepository;
-    private final ProductPriceRepository productPriceRepository;
-    private final ProductRepository productRepository;
+    private final StorePriceVerificationPersistencePort verificationPersistencePort;
+    private final ProductPricePersistencePort productPricePersistencePort;
+    private final ProductPersistencePort productPersistencePort;
     private final StorePriceVerificationPort storePriceVerificationPort;
     private final ShopRequestIndexSyncPort shopRequestIndexSyncPort;
 
     public StorePriceVerificationService(
-        StorePriceVerificationRepository verificationRepository,
-        ProductPriceRepository productPriceRepository,
-        ProductRepository productRepository,
+        StorePriceVerificationPersistencePort verificationPersistencePort,
+        ProductPricePersistencePort productPricePersistencePort,
+        ProductPersistencePort productPersistencePort,
         StorePriceVerificationPort storePriceVerificationPort,
         ShopRequestIndexSyncPort shopRequestIndexSyncPort
     ) {
-        this.verificationRepository = verificationRepository;
-        this.productPriceRepository = productPriceRepository;
-        this.productRepository = productRepository;
+        this.verificationPersistencePort = verificationPersistencePort;
+        this.productPricePersistencePort = productPricePersistencePort;
+        this.productPersistencePort = productPersistencePort;
         this.storePriceVerificationPort = storePriceVerificationPort;
         this.shopRequestIndexSyncPort = shopRequestIndexSyncPort;
     }
@@ -57,7 +57,7 @@ public class StorePriceVerificationService {
         List<StorePriceVerificationItemSpec> items,
         Long requestedByCeoId
     ) {
-        if (verificationRepository.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
+        if (verificationPersistencePort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
             throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_IN_PROGRESS);
         }
         if (items == null || items.isEmpty()) {
@@ -66,11 +66,11 @@ public class StorePriceVerificationService {
 
         List<ResolvedItem> resolved = resolveItems(shopId, items);
 
-        StorePriceVerification saved = verificationRepository.save(
+        StorePriceVerification saved = verificationPersistencePort.save(
             StorePriceVerification.of(shopId, priceListFileId, requestedByCeoId));
 
         for (ResolvedItem item : resolved) {
-            verificationRepository.saveItem(StorePriceVerificationItem.of(
+            verificationPersistencePort.saveItem(StorePriceVerificationItem.of(
                 saved.getVerificationId(),
                 item.productId(),
                 item.productPriceId(),
@@ -96,7 +96,7 @@ public class StorePriceVerificationService {
                         + ": " + product.getName());
             }
 
-            ProductPrice price = productPriceRepository.findById(ProductPriceId.of(item.priceId()))
+            ProductPrice price = productPricePersistencePort.findById(ProductPriceId.of(item.priceId()))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
 
             if (!price.getProductId().equals(productId)) {
@@ -116,23 +116,23 @@ public class StorePriceVerificationService {
     public void startReview(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.startReview(now);
-        verificationRepository.save(verification);
+        verificationPersistencePort.save(verification);
         syncIndex(verification, null);
     }
 
     public void approve(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
 
-        for (StorePriceVerificationItem item : verificationRepository
+        for (StorePriceVerificationItem item : verificationPersistencePort
             .findAllItemsByVerificationId(verificationId)) {
-            ProductPrice price = productPriceRepository.findById(item.getProductPriceId())
+            ProductPrice price = productPricePersistencePort.findById(item.getProductPriceId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
             price.applyVerifiedStorePrice(item.getStorePrice(), item.isApplyPickupSamePrice(), now);
-            productPriceRepository.save(price);
+            productPricePersistencePort.save(price);
         }
 
         verification.approve(now);
-        verificationRepository.save(verification);
+        verificationPersistencePort.save(verification);
         syncIndex(verification, null);
 
         storePriceVerificationPort.verifyStorePrice(verification.getShopId().value());
@@ -141,21 +141,21 @@ public class StorePriceVerificationService {
     public void reject(StorePriceVerificationId verificationId, String rejectReason, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.reject(rejectReason, now);
-        verificationRepository.save(verification);
+        verificationPersistencePort.save(verification);
         syncIndex(verification, rejectReason);
     }
 
     public void cancel(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.cancel(now);
-        verificationRepository.save(verification);
+        verificationPersistencePort.save(verification);
         syncIndex(verification, null);
     }
 
     public List<StorePriceUnverifiedItem> findUnverifiedItems(ShopId shopId) {
         Map<Long, StorePriceUnverifiedItem> byProductId = new LinkedHashMap<>();
 
-        for (ProductPrice price : productPriceRepository.findAllByShopId(shopId)) {
+        for (ProductPrice price : productPricePersistencePort.findAllByShopId(shopId)) {
             var reason = price.resolveUnverifiedReason();
             if (reason == null) {
                 continue;
@@ -164,7 +164,7 @@ public class StorePriceVerificationService {
             if (byProductId.containsKey(productId)) {
                 continue;
             }
-            Product product = productRepository.findById(price.getProductId()).orElse(null);
+            Product product = productPersistencePort.findById(price.getProductId()).orElse(null);
             if (product == null || product.isDeleted()) {
                 continue;
             }
@@ -192,13 +192,13 @@ public class StorePriceVerificationService {
     }
 
     private StorePriceVerification loadVerification(StorePriceVerificationId verificationId) {
-        return verificationRepository.findById(verificationId)
+        return verificationPersistencePort.findById(verificationId)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }

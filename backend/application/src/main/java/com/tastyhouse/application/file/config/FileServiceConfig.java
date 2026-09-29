@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.application.file.port.out.write.UploadedFileRepository;
+import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 import com.tastyhouse.application.file.service.FileUploadService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.marker.SharedApp;
@@ -15,10 +15,10 @@ public class FileServiceConfig {
 
     @Bean
     public FileUploadService fileUploadService(
-        UploadedFileRepository uploadedFileRepository,
+        UploadedFilePersistencePort uploadedFilePersistencePort,
         FileStoragePort fileStoragePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new FileUploadService(uploadedFileRepository, fileStoragePort, domainEventPublisher);
+        return new FileUploadService(uploadedFilePersistencePort, fileStoragePort, domainEventPublisher);
     }
 }

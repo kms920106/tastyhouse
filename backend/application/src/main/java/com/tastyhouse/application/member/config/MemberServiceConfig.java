@@ -3,13 +3,13 @@ package com.tastyhouse.application.member.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowRepository;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
 import com.tastyhouse.application.member.follow.service.MemberFollowService;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.member.port.out.write.MemberWithdrawalRepository;
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersistencePort;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService;
 import com.tastyhouse.application.member.service.GradeSettlementService;
@@ -17,7 +17,7 @@ import com.tastyhouse.application.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.member.service.MemberWithdrawalService;
 import com.tastyhouse.application.member.service.OrdererLookupService;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.marker.SharedApp;
 
@@ -26,63 +26,63 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class MemberServiceConfig {
     @Bean
     public MemberRegistrationService memberRegistrationService(
-        MemberRepository memberRepository,
+        MemberPersistencePort memberPersistencePort,
         ReferralRegistrationService referralRegistrationService,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new MemberRegistrationService(memberRepository, referralRegistrationService, domainEventPublisher);
+        return new MemberRegistrationService(memberPersistencePort, referralRegistrationService, domainEventPublisher);
     }
 
     @Bean
     public MemberWithdrawalService memberWithdrawalService(
-        MemberRepository memberRepository,
-        MemberWithdrawalRepository memberWithdrawalRepository,
+        MemberPersistencePort memberPersistencePort,
+        MemberWithdrawalPersistencePort memberWithdrawalPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new MemberWithdrawalService(memberRepository, memberWithdrawalRepository, domainEventPublisher);
+        return new MemberWithdrawalService(memberPersistencePort, memberWithdrawalPersistencePort, domainEventPublisher);
     }
 
     @Bean
     public MemberFollowService memberFollowService(
-        MemberFollowRepository memberFollowRepository,
-        MemberRepository memberRepository
+        MemberFollowPersistencePort memberFollowPersistencePort,
+        MemberPersistencePort memberPersistencePort
     ) {
-        return new MemberFollowService(memberFollowRepository, memberRepository);
+        return new MemberFollowService(memberFollowPersistencePort, memberPersistencePort);
     }
 
     @Bean
     public ReferralRegistrationService referralRegistrationService(
-        MemberReferralRepository memberReferralRepository,
+        MemberReferralPersistencePort memberReferralPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new ReferralRegistrationService(memberReferralRepository, domainEventPublisher);
+        return new ReferralRegistrationService(memberReferralPersistencePort, domainEventPublisher);
     }
 
     @Bean
     public ReferralRewardCompletionService referralRewardCompletionService(
-        MemberReferralRepository memberReferralRepository
+        MemberReferralPersistencePort memberReferralPersistencePort
     ) {
-        return new ReferralRewardCompletionService(memberReferralRepository);
+        return new ReferralRewardCompletionService(memberReferralPersistencePort);
     }
 
     @Bean
     public GradeSettlementService gradeSettlementService(
         MemberReviewCountPort memberReviewCountPort,
-        MemberRepository memberRepository
+        MemberPersistencePort memberPersistencePort
     ) {
-        return new GradeSettlementService(memberReviewCountPort, memberRepository);
+        return new GradeSettlementService(memberReviewCountPort, memberPersistencePort);
     }
 
     @Bean
     public MemberDeliveryAddressService memberDeliveryAddressService(
-        MemberDeliveryAddressRepository memberDeliveryAddressRepository,
-        AdminDongRepository adminDongRepository
+        MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort
     ) {
-        return new MemberDeliveryAddressService(memberDeliveryAddressRepository, adminDongRepository);
+        return new MemberDeliveryAddressService(memberDeliveryAddressPersistencePort, adminDongPersistencePort);
     }
 
     @Bean
-    public OrdererLookupService ordererLookupService(MemberRepository memberRepository) {
-        return new OrdererLookupService(memberRepository);
+    public OrdererLookupService ordererLookupService(MemberPersistencePort memberPersistencePort) {
+        return new OrdererLookupService(memberPersistencePort);
     }
 }

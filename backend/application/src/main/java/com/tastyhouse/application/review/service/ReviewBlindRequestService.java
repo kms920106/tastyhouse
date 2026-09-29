@@ -21,31 +21,31 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 
 public class ReviewBlindRequestService {
-    private final ReviewBlindRequestRepository reviewBlindRequestRepository;
-    private final ReviewBlindRequestAttachmentRepository reviewBlindRequestAttachmentRepository;
-    private final ReviewRepository reviewRepository;
+    private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
+    private final ReviewBlindRequestAttachmentPersistencePort reviewBlindRequestAttachmentPersistencePort;
+    private final ReviewPersistencePort reviewPersistencePort;
     private final ReviewLifecycleService reviewLifecycleService;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReviewBlindRequestService(
-        ReviewBlindRequestRepository reviewBlindRequestRepository,
-        ReviewBlindRequestAttachmentRepository reviewBlindRequestAttachmentRepository,
-        ReviewRepository reviewRepository,
+        ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort,
+        ReviewBlindRequestAttachmentPersistencePort reviewBlindRequestAttachmentPersistencePort,
+        ReviewPersistencePort reviewPersistencePort,
         ReviewLifecycleService reviewLifecycleService,
         ShopRequestIndexRecorder shopRequestIndexRecorder,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.reviewBlindRequestRepository = reviewBlindRequestRepository;
-        this.reviewBlindRequestAttachmentRepository = reviewBlindRequestAttachmentRepository;
-        this.reviewRepository = reviewRepository;
+        this.reviewBlindRequestPersistencePort = reviewBlindRequestPersistencePort;
+        this.reviewBlindRequestAttachmentPersistencePort = reviewBlindRequestAttachmentPersistencePort;
+        this.reviewPersistencePort = reviewPersistencePort;
         this.reviewLifecycleService = reviewLifecycleService;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
         this.domainEventPublisher = domainEventPublisher;
@@ -63,14 +63,14 @@ public class ReviewBlindRequestService {
         loadReviewOfShop(targetReviewId, shopId);
         validateDetailReason(reason, detailReason);
 
-        if (reviewBlindRequestRepository.existsByReviewIdAndStatus(targetReviewId, ReviewBlindStatus.PENDING)) {
+        if (reviewBlindRequestPersistencePort.existsByReviewIdAndStatus(targetReviewId, ReviewBlindStatus.PENDING)) {
             throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
         }
-        if (reviewBlindRequestRepository.existsTerminatedByReviewId(targetReviewId)) {
+        if (reviewBlindRequestPersistencePort.existsTerminatedByReviewId(targetReviewId)) {
             throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
         }
 
-        ReviewBlindRequest saved = reviewBlindRequestRepository.save(
+        ReviewBlindRequest saved = reviewBlindRequestPersistencePort.save(
             ReviewBlindRequest.of(targetReviewId, ShopId.of(shopId), CeoId.of(ceoId), reason, detailReason)
         );
 
@@ -90,12 +90,12 @@ public class ReviewBlindRequestService {
     public void approve(Long requestId, LocalDateTime now) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.approve(now.plusDays(ReviewBlindRequest.BLIND_PERIOD_DAYS));
-        request = reviewBlindRequestRepository.save(request);
+        request = reviewBlindRequestPersistencePort.save(request);
 
-        Review review = reviewRepository.findById(request.getReviewId())
+        Review review = reviewPersistencePort.findById(request.getReviewId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         review.hide();
-        reviewRepository.save(review);
+        reviewPersistencePort.save(review);
 
         domainEventPublisher.publish(ReviewBlindApprovedEvent.of(
             request.getReviewId(),
@@ -111,7 +111,7 @@ public class ReviewBlindRequestService {
     public void reject(Long requestId, String rejectReason) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        request = reviewBlindRequestRepository.save(request);
+        request = reviewBlindRequestPersistencePort.save(request);
 
         shopRequestIndexRecorder.syncBlindRequestStatus(request.getId(), toShopRequestStatus(request.getStatus()), rejectReason);
     }
@@ -122,7 +122,7 @@ public class ReviewBlindRequestService {
             throw new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND);
         }
         request.cancel();
-        request = reviewBlindRequestRepository.save(request);
+        request = reviewBlindRequestPersistencePort.save(request);
 
         shopRequestIndexRecorder.syncCanceled(ShopRequestType.REVIEW_BLIND, request.getId());
     }
@@ -130,11 +130,11 @@ public class ReviewBlindRequestService {
     public void consentToDelete(ReviewId reviewId, MemberId memberId) {
         Review review = loadOwnedReview(reviewId, memberId);
 
-        ReviewBlindRequest request = reviewBlindRequestRepository.findApprovedByReviewId(reviewId)
+        ReviewBlindRequest request = reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
             .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
 
         request.deleteByConsent();
-        request = reviewBlindRequestRepository.save(request);
+        request = reviewBlindRequestPersistencePort.save(request);
 
         reviewLifecycleService.removeOwnedBy(reviewId, memberId, review.getProductId());
 
@@ -144,25 +144,25 @@ public class ReviewBlindRequestService {
     public void rejectDeletion(ReviewId reviewId, MemberId memberId) {
         loadOwnedReview(reviewId, memberId);
 
-        reviewBlindRequestRepository.findApprovedByReviewId(reviewId)
+        reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
             .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
     }
 
     public void expire(Long requestId) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.expire();
-        request = reviewBlindRequestRepository.save(request);
+        request = reviewBlindRequestPersistencePort.save(request);
 
-        reviewRepository.findById(request.getReviewId()).ifPresent(review -> {
+        reviewPersistencePort.findById(request.getReviewId()).ifPresent(review -> {
             review.unhide();
-            reviewRepository.save(review);
+            reviewPersistencePort.save(review);
         });
 
         shopRequestIndexRecorder.syncBlindRequestStatus(request.getId(), toShopRequestStatus(request.getStatus()), null);
     }
 
     public List<ReviewBlindRequest> findExpirableBlinds(LocalDateTime now) {
-        return reviewBlindRequestRepository.findExpirableBlinds(now);
+        return reviewBlindRequestPersistencePort.findExpirableBlinds(now);
     }
 
     public static ShopRequestStatus toShopRequestStatus(ReviewBlindStatus status) {
@@ -190,7 +190,7 @@ public class ReviewBlindRequestService {
                 i + 1
             ));
         }
-        reviewBlindRequestAttachmentRepository.saveAll(attachments);
+        reviewBlindRequestAttachmentPersistencePort.saveAll(attachments);
     }
 
     private void validateDetailReason(ReviewBlindReason reason, String detailReason) {
@@ -205,12 +205,12 @@ public class ReviewBlindRequestService {
     }
 
     private ReviewBlindRequest loadRequest(Long requestId) {
-        return reviewBlindRequestRepository.findById(ReviewBlindRequestId.of(requestId))
+        return reviewBlindRequestPersistencePort.findById(ReviewBlindRequestId.of(requestId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
     }
 
     private void loadReviewOfShop(ReviewId reviewId, Long shopId) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewPersistencePort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         if (!review.getShopId().equals(ShopId.of(shopId))) {
             throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
@@ -218,7 +218,7 @@ public class ReviewBlindRequestService {
     }
 
     private Review loadOwnedReview(ReviewId reviewId, MemberId memberId) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewPersistencePort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
         if (!review.getMemberId().equals(memberId)) {
             throw new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND);

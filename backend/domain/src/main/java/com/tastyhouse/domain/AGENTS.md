@@ -17,7 +17,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `shared/model/ApprovalStatus.java` | 승인 워크플로 공용 enum(PENDING/APPROVED/REJECTED). 상표·대표이미지 변경요청 등에서 재사용 |
 | ~~`shared/page/PageQuery.java` / `PageResult.java`~~ | **이동됨 (덩어리 01)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/page/`로 `git mv`. domain 안에 사용처가 0건이었고, 소비자(persistence DAO 32곳·표현 계층)가 전부 application 쪽이라 domain이 소유할 이유가 없었다. 표현 계층이 domain을 끊는 데 필요한 이동이기도 하다 |
 | ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 `shared/config/SharedEventConfig`(`@SharedApp`)가 등록한다 |
-| ~~`shared/exception/OptimisticLockConflictException.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/`로 `git mv`. 던지는 쪽(persistence `ReservationSlotRepositoryImpl`)이 03b에서 domain 없이 참조할 수 있도록 `port/out` 아래에 둔다 |
+| ~~`shared/exception/OptimisticLockConflictException.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/`로 `git mv`. 던지는 쪽(persistence `ReservationSlotPersistenceAdapter`)이 03b에서 domain 없이 참조할 수 있도록 `port/out` 아래에 둔다 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
@@ -76,7 +76,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
         ↓                                              ↑ 구현
    domain (이 패키지)                       infrastructure-module
    · model/vo/event                            · <ctx>/persistence (write 어댑터)
-   · <ctx>/service (포트 없는 순수 계산기·정책)   · <ctx>/query (read: QueryDao + Result)
+   · <ctx>/service (포트 없는 순수 계산기·정책)   · <ctx>/query (read: QueryAdapter + Result)
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{firebase,aws-s3,aws-ses,aws-sns,
                                           kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,
@@ -87,7 +87,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - **domain 계층에 프레임워크 import 금지**: `org.springframework.*`·`jakarta.persistence.*`·`com.querydsl.*`를 넣지 않는다. build.gradle에 해당 의존이 없으므로 시도하면 컴파일이 깨진다 — 그 관심사는 `infrastructure-module` 소관이다.
 - **`@Entity`는 이 패키지에 없다**: 도메인 모델은 전 도메인 순수 POJO다. `@OneToMany`/`@ManyToOne`/`@ElementCollection`은 애초에 표현할 수 없으며, 외부 애그리거트 참조는 ID VO로만 한다.
 - **BC 간 통신**: 도메인 서비스 호출 또는 `DomainEventPublisher` 포트를 통한 DomainEvent로만 한다(다른 BC의 model 직접 조작 금지). 리스너는 `application`의 `<ctx>/listener/`에 둔다. 03a 이후 이 패키지 안에서는 컨텍스트 간 참조가 ID VO·이벤트 타입으로만 허용된다(`ContextBoundaryTest` — 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`).
-- **표현 목적 조회는 이 패키지에 두지 않는다**: Repository 인터페이스에는 write 포트만 남긴다(`findById`/`save`/`saveAndFlush`/`delete`/`existsByX`/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회). Result DTO·`PageResult` 반환·조인 투영·목록·검색·페이징은 infrastructure-module의 `<ctx>/query/{도메인}QueryDao`가 소유한다.
+- **표현 목적 조회는 이 패키지에 두지 않는다**: Repository 인터페이스에는 write 포트만 남긴다(`findById`/`save`/`saveAndFlush`/`delete`/`existsByX`/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회). Result DTO·`PageResult` 반환·조인 투영·목록·검색·페이징은 infrastructure-module의 `<ctx>/query/{도메인}QueryAdapter`가 소유한다.
 
 **ID 참조 규칙**:
 - 외부 BC의 애그리거트는 ID VO로만 참조한다(예: `Order.memberId : MemberId`, `Payment.orderId : OrderId`).
@@ -101,7 +101,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Service 분할 규칙 (CQS)** — api 모듈 측:
 - `{도메인}CommandService`(`@Transactional`): domain write 포트·도메인 서비스만 주입. 식별자만 반환.
-- `{도메인}QueryService`(`@Transactional(readOnly = true)`): infra `{도메인}QueryDao`만 주입. Response 조립은 private 매퍼.
+- `{도메인}QueryService`(`@Transactional(readOnly = true)`): infra `{도메인}QueryAdapter`만 주입. Response 조립은 private 매퍼.
 
 **DTO 규칙**:
 - 이 패키지는 조회 결과 DTO를 갖지 않는다. Result record(`@QueryProjection` 포함)와 `SearchCondition`은 infrastructure-module `<ctx>/query/` 소유이며, 접미어 `Result` 통일(`Dto` 금지)·admin 충돌 시 `Management` 한정어 규칙이 그 위치에서 적용된다.
@@ -119,13 +119,13 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Repository write 포트 + load-copy-save**:
 ```java
-// application/notice/port/out/write/NoticeRepository.java (03a로 이 패키지에서 이동 — 인터페이스만)
-public interface NoticeRepository {
+// application/notice/port/out/write/NoticePersistencePort.java (03a로 이 패키지에서 이동 — 인터페이스만)
+public interface NoticePersistencePort {
     Optional<Notice> findById(NoticeId noticeId);
     Notice save(Notice notice);
 }
 
-// infrastructure-module: <ctx>/persistence/NoticeRepositoryImpl (@Repository)
+// infrastructure-module: <ctx>/persistence/NoticePersistenceAdapter (@Repository)
 //  - save: id null이면 insert, 있으면 managed 엔티티 조회 후 Mapper.applyChanges 복사
 //  - detached merge 금지(@CreatedDate(updatable=false) 감사 필드 파손 방지)
 ```
@@ -203,7 +203,7 @@ public interface DomainEventPublisher {
 
 domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(POJO+마커 등록 패턴, `backend/application/AGENTS.md` 참고). `PgPaymentGateway`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGateway`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
 
-**QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryDao` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryDao`)는 `infrastructure-module/AGENTS.md` 참고.
+**QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryAdapter` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryAdapter`)는 `infrastructure-module/AGENTS.md` 참고.
 
 ## Dependencies
 

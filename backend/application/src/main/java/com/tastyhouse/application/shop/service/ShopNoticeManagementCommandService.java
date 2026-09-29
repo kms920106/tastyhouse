@@ -14,21 +14,21 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.in.ShopNoticeHideCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 @Service
 @AdminApp
 @Transactional
 public class ShopNoticeManagementCommandService implements ShopNoticeManagementCommandUseCase {
 
-    private final ShopNoticeRepository shopNoticeRepository;
+    private final ShopNoticePersistencePort shopNoticePersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeManagementCommandService(
-        ShopNoticeRepository shopNoticeRepository,
+        ShopNoticePersistencePort shopNoticePersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopNoticeRepository = shopNoticeRepository;
+        this.shopNoticePersistencePort = shopNoticePersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -43,7 +43,7 @@ public class ShopNoticeManagementCommandService implements ShopNoticeManagementC
         }
 
         notice.hide();
-        shopNoticeRepository.save(notice);
+        shopNoticePersistencePort.save(notice);
 
         shopChangeHistoryRecorder.record(
             notice.getShopId(),
@@ -65,7 +65,7 @@ public class ShopNoticeManagementCommandService implements ShopNoticeManagementC
         }
 
         notice.unhide();
-        shopNoticeRepository.save(notice);
+        shopNoticePersistencePort.save(notice);
 
         shopChangeHistoryRecorder.record(
             notice.getShopId(),
@@ -78,7 +78,7 @@ public class ShopNoticeManagementCommandService implements ShopNoticeManagementC
     }
 
     private ShopNotice loadNotice(Long noticeId) {
-        return shopNoticeRepository.findById(noticeId)
+        return shopNoticePersistencePort.findById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND));
     }
 }

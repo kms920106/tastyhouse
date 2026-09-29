@@ -22,34 +22,34 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.TagId;
-import com.tastyhouse.application.review.port.out.write.ReviewImageRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewLikeRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewTagRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewImagePersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shop.port.out.write.TagRepository;
+import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
 public class ReviewLifecycleService {
-    private final ReviewRepository reviewRepository;
-    private final ReviewImageRepository reviewImageRepository;
-    private final ReviewTagRepository reviewTagRepository;
-    private final ReviewLikeRepository reviewLikeRepository;
-    private final TagRepository tagRepository;
+    private final ReviewPersistencePort reviewPersistencePort;
+    private final ReviewImagePersistencePort reviewImagePersistencePort;
+    private final ReviewTagPersistencePort reviewTagPersistencePort;
+    private final ReviewLikePersistencePort reviewLikePersistencePort;
+    private final TagPersistencePort tagPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReviewLifecycleService(
-        ReviewRepository reviewRepository,
-        ReviewImageRepository reviewImageRepository,
-        ReviewTagRepository reviewTagRepository,
-        ReviewLikeRepository reviewLikeRepository,
-        TagRepository tagRepository,
+        ReviewPersistencePort reviewPersistencePort,
+        ReviewImagePersistencePort reviewImagePersistencePort,
+        ReviewTagPersistencePort reviewTagPersistencePort,
+        ReviewLikePersistencePort reviewLikePersistencePort,
+        TagPersistencePort tagPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.reviewRepository = reviewRepository;
-        this.reviewImageRepository = reviewImageRepository;
-        this.reviewTagRepository = reviewTagRepository;
-        this.reviewLikeRepository = reviewLikeRepository;
-        this.tagRepository = tagRepository;
+        this.reviewPersistencePort = reviewPersistencePort;
+        this.reviewImagePersistencePort = reviewImagePersistencePort;
+        this.reviewTagPersistencePort = reviewTagPersistencePort;
+        this.reviewLikePersistencePort = reviewLikePersistencePort;
+        this.tagPersistencePort = tagPersistencePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
@@ -68,7 +68,7 @@ public class ReviewLifecycleService {
         Integer deliveryRating,
         String deliveryComment
     ) {
-        if (orderId != null && reviewRepository.existsByOrderIdAndProductId(orderId, productId)) {
+        if (orderId != null && reviewPersistencePort.existsByOrderIdAndProductId(orderId, productId)) {
             throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
         }
 
@@ -88,7 +88,7 @@ public class ReviewLifecycleService {
             deliveryComment
         );
 
-        Review saved = reviewRepository.save(review);
+        Review saved = reviewPersistencePort.save(review);
 
         List<Long> savedFileIds = saveImages(saved.getReviewId(), uploadedFileIds);
         List<String> savedTags = saveTags(saved.getReviewId(), tags);
@@ -116,7 +116,7 @@ public class ReviewLifecycleService {
         Integer deliveryRating,
         String deliveryComment
     ) {
-        Review review = reviewRepository.findByIdAndMemberId(reviewId, memberId)
+        Review review = reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
 
         review.updateContent(
@@ -130,10 +130,10 @@ public class ReviewLifecycleService {
             deliveryComment
         );
 
-        Review saved = reviewRepository.save(review);
+        Review saved = reviewPersistencePort.save(review);
 
-        reviewImageRepository.deleteByReviewId(reviewId);
-        reviewTagRepository.deleteByReviewId(reviewId);
+        reviewImagePersistencePort.deleteByReviewId(reviewId);
+        reviewTagPersistencePort.deleteByReviewId(reviewId);
 
         List<Long> savedFileIds = saveImages(reviewId, uploadedFileIds);
         List<String> savedTags = saveTags(reviewId, tags);
@@ -142,7 +142,7 @@ public class ReviewLifecycleService {
     }
 
     public void removeOwnedBy(ReviewId reviewId, MemberId memberId, ProductId productId) {
-        reviewRepository.findByIdAndMemberId(reviewId, memberId)
+        reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
 
         deleteWithChildren(reviewId);
@@ -156,7 +156,7 @@ public class ReviewLifecycleService {
     }
 
     public void remove(ReviewId reviewId) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewPersistencePort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
 
         deleteWithChildren(reviewId);
@@ -170,21 +170,21 @@ public class ReviewLifecycleService {
     }
 
     public boolean toggleLike(ReviewId reviewId, MemberId memberId) {
-        boolean liked = !reviewLikeRepository.existsByReviewIdAndMemberId(reviewId, memberId);
+        boolean liked = !reviewLikePersistencePort.existsByReviewIdAndMemberId(reviewId, memberId);
 
         if (liked) {
-            reviewLikeRepository.save(ReviewLike.of(reviewId, memberId));
+            reviewLikePersistencePort.save(ReviewLike.of(reviewId, memberId));
         } else {
-            reviewLikeRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
+            reviewLikePersistencePort.deleteByReviewIdAndMemberId(reviewId, memberId);
         }
 
         return liked;
     }
 
     private void deleteWithChildren(ReviewId reviewId) {
-        reviewImageRepository.deleteByReviewId(reviewId);
-        reviewTagRepository.deleteByReviewId(reviewId);
-        reviewRepository.deleteById(reviewId);
+        reviewImagePersistencePort.deleteByReviewId(reviewId);
+        reviewTagPersistencePort.deleteByReviewId(reviewId);
+        reviewPersistencePort.deleteById(reviewId);
     }
 
     private double averageRating(Integer tasteRating, Integer amountRating, Integer priceRating) {
@@ -200,7 +200,7 @@ public class ReviewLifecycleService {
         for (int i = 0; i < uploadedFileIds.size(); i++) {
             images.add(ReviewImage.of(reviewId, UploadedFileId.of(uploadedFileIds.get(i)), i + 1));
         }
-        reviewImageRepository.saveAll(images);
+        reviewImagePersistencePort.saveAll(images);
 
         return uploadedFileIds;
     }
@@ -212,12 +212,12 @@ public class ReviewLifecycleService {
 
         List<ReviewTag> reviewTags = tagNames.stream()
             .map(tagName -> {
-                Tag tag = tagRepository.findByTagName(tagName)
-                    .orElseGet(() -> tagRepository.save(Tag.of(tagName)));
+                Tag tag = tagPersistencePort.findByTagName(tagName)
+                    .orElseGet(() -> tagPersistencePort.save(Tag.of(tagName)));
                 return ReviewTag.of(reviewId, TagId.of(tag.getId()));
             })
             .toList();
-        reviewTagRepository.saveAll(reviewTags);
+        reviewTagPersistencePort.saveAll(reviewTags);
 
         return tagNames;
     }

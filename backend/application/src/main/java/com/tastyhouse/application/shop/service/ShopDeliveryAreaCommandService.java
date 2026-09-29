@@ -17,7 +17,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
@@ -29,7 +29,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveComman
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 
 @Service
 @CeoApp
@@ -39,23 +39,23 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
     private final ShopDeliveryAreaService shopDeliveryAreaService;
     private final ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService;
     private final ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService;
-    private final ShopDeliveryAreaRepository shopDeliveryAreaRepository;
-    private final AdminDongRepository adminDongRepository;
+    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
+    private final AdminDongPersistencePort adminDongPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaCommandService(
         ShopDeliveryAreaService shopDeliveryAreaService,
         ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService,
         ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService,
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaService = shopDeliveryAreaService;
         this.shopDeliveryAreaPolygonService = shopDeliveryAreaPolygonService;
         this.shopDeliveryAreaRadiusService = shopDeliveryAreaRadiusService;
-        this.shopDeliveryAreaRepository = shopDeliveryAreaRepository;
-        this.adminDongRepository = adminDongRepository;
+        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
+        this.adminDongPersistencePort = adminDongPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -78,7 +78,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
         Long ceoId = command.ceoId();
         Long deliveryAreaId = command.deliveryAreaId();
 
-        ShopDeliveryArea deliveryArea = shopDeliveryAreaRepository.findById(deliveryAreaId)
+        ShopDeliveryArea deliveryArea = shopDeliveryAreaPersistencePort.findById(deliveryAreaId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, deliveryArea.getShopId().value());
 
@@ -181,7 +181,7 @@ public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUs
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongRepository.findAllByIds(adminDongIds).stream()
+        return adminDongPersistencePort.findAllByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

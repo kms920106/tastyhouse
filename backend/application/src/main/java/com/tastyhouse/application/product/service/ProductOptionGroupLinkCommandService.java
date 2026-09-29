@@ -15,7 +15,7 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOrderChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkCommand;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -25,18 +25,18 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 public class ProductOptionGroupLinkCommandService implements ProductOptionGroupLinkCommandUseCase {
 
     private final ProductOptionGroupLinkService productOptionGroupLinkService;
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupLinkCommandService(
         ProductOptionGroupLinkService productOptionGroupLinkService,
-        ProductRepository productRepository,
+        ProductPersistencePort productPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productOptionGroupLinkService = productOptionGroupLinkService;
-        this.productRepository = productRepository;
+        this.productPersistencePort = productPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -83,7 +83,7 @@ public class ProductOptionGroupLinkCommandService implements ProductOptionGroupL
     }
 
     private void loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productRepository.findById(ProductId.of(productId))
+        Product product = productPersistencePort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

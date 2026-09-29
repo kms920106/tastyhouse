@@ -25,10 +25,10 @@ import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,27 +37,27 @@ class ShopDeliveryAreaRadiusServiceTest {
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
 
-    private final AdminDongRepositoryFake adminDongRepository = new AdminDongRepositoryFake();
-    private final ShopDeliveryAreaRepositoryFake areaRepository = new ShopDeliveryAreaRepositoryFake();
-    private final RecordingShopChangeHistoryRepository historyRepository =
-        new RecordingShopChangeHistoryRepository();
-    private final ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(historyRepository);
+    private final AdminDongPersistencePortFake adminDongPersistencePort = new AdminDongPersistencePortFake();
+    private final ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
+    private final RecordingShopChangeHistoryPersistencePort historyPersistencePort =
+        new RecordingShopChangeHistoryPersistencePort();
+    private final ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(historyPersistencePort);
     private final ShopDeliveryAreaService deliveryAreaService = new ShopDeliveryAreaService(
-        areaRepository, adminDongRepository, new ShopDeliveryTipRegionLookupFake(), recorder
+        areaPersistencePort, adminDongPersistencePort, new ShopDeliveryTipRegionLookupPortFake(), recorder
     );
     private final ShopDeliveryAreaRadiusService service = new ShopDeliveryAreaRadiusService(
-        areaRepository, adminDongRepository, deliveryAreaService, recorder
+        areaPersistencePort, adminDongPersistencePort, deliveryAreaService, recorder
     );
 
     @Test
     @DisplayName("반경 적용은 열린 동 수와 무관하게 DELIVERY_AREA_RADIUS 이력 1행만 남긴다")
     void applyRadius_recordsSingleRadiusRow() {
-        adminDongRepository.add(10L, GeoPoint.of(37.501, 127.001));
-        adminDongRepository.add(11L, GeoPoint.of(37.502, 127.002));
+        adminDongPersistencePort.add(10L, GeoPoint.of(37.501, 127.001));
+        adminDongPersistencePort.add(11L, GeoPoint.of(37.502, 127.002));
 
         service.applyRadius(SHOP_ID, SHOP_LOCATION, 3500, false, ids -> List.of(), ACTOR);
 
-        List<ShopChangeHistory> histories = historyRepository.saved();
+        List<ShopChangeHistory> histories = historyPersistencePort.saved();
         assertThat(histories).hasSize(1);
         assertThat(histories.getFirst().getChangeType()).isEqualTo(ShopChangeType.DELIVERY_AREA_RADIUS);
         assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
@@ -66,26 +66,26 @@ class ShopDeliveryAreaRadiusServiceTest {
     @Test
     @DisplayName("반경 적용은 DELIVERY_AREA를 남기지 않는다 — 점주 조작은 '반경 설정' 하나다")
     void applyRadius_doesNotRecordDeliveryAreaHistory() {
-        adminDongRepository.add(10L, GeoPoint.of(37.501, 127.001));
+        adminDongPersistencePort.add(10L, GeoPoint.of(37.501, 127.001));
 
         service.applyRadius(SHOP_ID, SHOP_LOCATION, 3500, false, ids -> List.of(), ACTOR);
 
-        assertThat(historyRepository.savedOf(ShopChangeType.DELIVERY_AREA)).isEmpty();
+        assertThat(historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA)).isEmpty();
     }
 
     @Test
     @DisplayName("이력에는 적용 반경·교체 여부·반영 후 총 동 수를 담고, 변경 전 값은 없다(반경은 저장되지 않는다)")
     void applyRadius_summarizesRadiusAndResult() {
-        adminDongRepository.add(10L, GeoPoint.of(37.501, 127.001));
+        adminDongPersistencePort.add(10L, GeoPoint.of(37.501, 127.001));
 
         service.applyRadius(SHOP_ID, SHOP_LOCATION, 3500, true, ids -> List.of(), ACTOR);
 
-        ShopChangeHistory history = historyRepository.saved().getFirst();
+        ShopChangeHistory history = historyPersistencePort.saved().getFirst();
         assertThat(history.getPreviousValue()).isNull();
         assertThat(history.getNewValue()).isEqualTo("3.5km (교체 적용, 배달가능지역 1곳)");
     }
 
-    private static final class AdminDongRepositoryFake implements AdminDongRepository {
+    private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
         private final Map<Long, AdminDong> adminDongs = new LinkedHashMap<>();
 
         void add(long id, GeoPoint center) {
@@ -136,7 +136,7 @@ class ShopDeliveryAreaRadiusServiceTest {
         }
     }
 
-    private static final class ShopDeliveryAreaRepositoryFake implements ShopDeliveryAreaRepository {
+    private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -200,7 +200,7 @@ class ShopDeliveryAreaRadiusServiceTest {
         }
     }
 
-    private static final class ShopDeliveryTipRegionLookupFake implements ShopDeliveryTipRegionLookup {
+    private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
         @Override
         public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
             return false;

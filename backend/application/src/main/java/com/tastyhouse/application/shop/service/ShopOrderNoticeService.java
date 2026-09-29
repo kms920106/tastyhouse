@@ -5,38 +5,38 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
 public class ShopOrderNoticeService {
     private static final int MAX_CONTENT_LENGTH = 500;
 
-    private final ShopOrderNoticeRepository shopOrderNoticeRepository;
+    private final ShopOrderNoticePersistencePort shopOrderNoticePersistencePort;
 
-    public ShopOrderNoticeService(ShopOrderNoticeRepository shopOrderNoticeRepository) {
-        this.shopOrderNoticeRepository = shopOrderNoticeRepository;
+    public ShopOrderNoticeService(ShopOrderNoticePersistencePort shopOrderNoticePersistencePort) {
+        this.shopOrderNoticePersistencePort = shopOrderNoticePersistencePort;
     }
 
     public void upsert(ShopId shopId, String content) {
         String validated = validateContent(content);
 
-        shopOrderNoticeRepository.findByShopId(shopId)
+        shopOrderNoticePersistencePort.findByShopId(shopId)
             .map(existing -> {
                 existing.updateContent(validated);
-                return shopOrderNoticeRepository.save(existing);
+                return shopOrderNoticePersistencePort.save(existing);
             })
-            .orElseGet(() -> shopOrderNoticeRepository.save(ShopOrderNotice.of(shopId, validated)));
+            .orElseGet(() -> shopOrderNoticePersistencePort.save(ShopOrderNotice.of(shopId, validated)));
     }
 
     public void hide(ShopId shopId, String reason) {
         ShopOrderNotice notice = loadByShopId(shopId);
         notice.hide(reason);
-        shopOrderNoticeRepository.save(notice);
+        shopOrderNoticePersistencePort.save(notice);
     }
 
     public void unhide(ShopId shopId) {
         ShopOrderNotice notice = loadByShopId(shopId);
         notice.unhide();
-        shopOrderNoticeRepository.save(notice);
+        shopOrderNoticePersistencePort.save(notice);
     }
 
     private String validateContent(String content) {
@@ -52,7 +52,7 @@ public class ShopOrderNoticeService {
     }
 
     private ShopOrderNotice loadByShopId(ShopId shopId) {
-        return shopOrderNoticeRepository.findByShopId(shopId)
+        return shopOrderNoticePersistencePort.findByShopId(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_ORDER_NOTICE_NOT_FOUND));
     }
 }

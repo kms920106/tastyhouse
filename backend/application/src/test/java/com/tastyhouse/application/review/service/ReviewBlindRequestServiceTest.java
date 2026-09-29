@@ -37,36 +37,36 @@ class ReviewBlindRequestServiceTest {
     private static final Long REVIEW_ID = 100L;
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 17, 10, 0);
 
-    private FakeReviewRepository reviewRepository;
-    private FakeReviewBlindRequestRepository reviewBlindRequestRepository;
-    private FakeReviewBlindRequestAttachmentRepository attachmentRepository;
+    private FakeReviewPersistencePort reviewPersistencePort;
+    private FakeReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
+    private FakeReviewBlindRequestAttachmentPersistencePort attachmentPersistencePort;
     private FakeDomainEventPublisher domainEventPublisher;
-    private FakeShopRequestIndexRepository shopRequestIndexRepository;
+    private FakeShopRequestIndexPersistencePort shopRequestIndexPersistencePort;
     private ReviewBlindRequestService reviewBlindRequestService;
 
     @BeforeEach
     void setUp() {
-        reviewRepository = new FakeReviewRepository();
-        reviewBlindRequestRepository = new FakeReviewBlindRequestRepository();
-        attachmentRepository = new FakeReviewBlindRequestAttachmentRepository();
+        reviewPersistencePort = new FakeReviewPersistencePort();
+        reviewBlindRequestPersistencePort = new FakeReviewBlindRequestPersistencePort();
+        attachmentPersistencePort = new FakeReviewBlindRequestAttachmentPersistencePort();
         domainEventPublisher = new FakeDomainEventPublisher();
-        shopRequestIndexRepository = new FakeShopRequestIndexRepository();
+        shopRequestIndexPersistencePort = new FakeShopRequestIndexPersistencePort();
 
         ReviewLifecycleService reviewLifecycleService = new ReviewLifecycleService(
-            reviewRepository,
-            new FakeReviewImageRepository(),
-            new FakeReviewTagRepository(),
-            new FakeReviewLikeRepository(),
-            new FakeTagRepository(),
+            reviewPersistencePort,
+            new FakeReviewImagePersistencePort(),
+            new FakeReviewTagPersistencePort(),
+            new FakeReviewLikePersistencePort(),
+            new FakeTagPersistencePort(),
             domainEventPublisher
         );
 
         reviewBlindRequestService = new ReviewBlindRequestService(
-            reviewBlindRequestRepository,
-            attachmentRepository,
-            reviewRepository,
+            reviewBlindRequestPersistencePort,
+            attachmentPersistencePort,
+            reviewPersistencePort,
             reviewLifecycleService,
-            new ShopRequestIndexRecorder(shopRequestIndexRepository),
+            new ShopRequestIndexRecorder(shopRequestIndexPersistencePort),
             domainEventPublisher
         );
 
@@ -74,7 +74,7 @@ class ReviewBlindRequestServiceTest {
     }
 
     private void saveReview() {
-        reviewRepository.save(Review.reconstitute(
+        reviewPersistencePort.save(Review.reconstitute(
             REVIEW_ID,
             ShopId.of(SHOP_ID),
             null,
@@ -158,13 +158,13 @@ class ReviewBlindRequestServiceTest {
 
             reviewBlindRequestService.approve(requestId, NOW);
 
-            ReviewBlindRequest saved = reviewBlindRequestRepository
+            ReviewBlindRequest saved = reviewBlindRequestPersistencePort
                 .findById(com.tastyhouse.domain.review.vo.ReviewBlindRequestId.of(requestId))
                 .orElseThrow();
             assertThat(saved.getStatus()).isEqualTo(ReviewBlindStatus.APPROVED);
             assertThat(saved.getBlindUntil())
                 .isEqualTo(NOW.plusDays(ReviewBlindRequest.BLIND_PERIOD_DAYS));
-            assertThat(reviewRepository.findById(ReviewId.of(REVIEW_ID)).orElseThrow().isHidden()).isTrue();
+            assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID)).orElseThrow().isHidden()).isTrue();
         }
 
         @Test
@@ -197,12 +197,12 @@ class ReviewBlindRequestServiceTest {
                 ReviewId.of(REVIEW_ID), MemberId.of(REVIEWER_MEMBER_ID)
             );
 
-            ReviewBlindRequest saved = reviewBlindRequestRepository
+            ReviewBlindRequest saved = reviewBlindRequestPersistencePort
                 .findById(com.tastyhouse.domain.review.vo.ReviewBlindRequestId.of(requestId))
                 .orElseThrow();
             assertThat(saved.getStatus()).isEqualTo(ReviewBlindStatus.DELETED);
             assertThat(saved.getBlindUntil()).isNull();
-            assertThat(reviewRepository.findById(ReviewId.of(REVIEW_ID))).isEmpty();
+            assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID))).isEmpty();
         }
 
         @Test
@@ -219,7 +219,7 @@ class ReviewBlindRequestServiceTest {
             );
 
             assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
-            assertThat(reviewRepository.findById(ReviewId.of(REVIEW_ID))).isPresent();
+            assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID))).isPresent();
         }
 
         @Test
@@ -247,11 +247,11 @@ class ReviewBlindRequestServiceTest {
                 ReviewId.of(REVIEW_ID), MemberId.of(REVIEWER_MEMBER_ID)
             );
 
-            ReviewBlindRequest saved = reviewBlindRequestRepository
+            ReviewBlindRequest saved = reviewBlindRequestPersistencePort
                 .findById(com.tastyhouse.domain.review.vo.ReviewBlindRequestId.of(requestId))
                 .orElseThrow();
             assertThat(saved.getStatus()).isEqualTo(ReviewBlindStatus.APPROVED);
-            assertThat(reviewRepository.findById(ReviewId.of(REVIEW_ID))).isPresent();
+            assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID))).isPresent();
         }
     }
 
@@ -266,11 +266,11 @@ class ReviewBlindRequestServiceTest {
 
             reviewBlindRequestService.expire(requestId);
 
-            ReviewBlindRequest saved = reviewBlindRequestRepository
+            ReviewBlindRequest saved = reviewBlindRequestPersistencePort
                 .findById(com.tastyhouse.domain.review.vo.ReviewBlindRequestId.of(requestId))
                 .orElseThrow();
             assertThat(saved.getStatus()).isEqualTo(ReviewBlindStatus.EXPIRED);
-            assertThat(reviewRepository.findById(ReviewId.of(REVIEW_ID)).orElseThrow().isHidden()).isFalse();
+            assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID)).orElseThrow().isHidden()).isFalse();
         }
 
         @Test
@@ -289,11 +289,11 @@ class ReviewBlindRequestServiceTest {
         void expireSucceedsWhenReviewAlreadyDeleted() {
             Long requestId = request();
             reviewBlindRequestService.approve(requestId, NOW);
-            reviewRepository.deleteById(ReviewId.of(REVIEW_ID));
+            reviewPersistencePort.deleteById(ReviewId.of(REVIEW_ID));
 
             assertThatCode(() -> reviewBlindRequestService.expire(requestId)).doesNotThrowAnyException();
 
-            ReviewBlindRequest saved = reviewBlindRequestRepository
+            ReviewBlindRequest saved = reviewBlindRequestPersistencePort
                 .findById(com.tastyhouse.domain.review.vo.ReviewBlindRequestId.of(requestId))
                 .orElseThrow();
             assertThat(saved.getStatus()).isEqualTo(ReviewBlindStatus.EXPIRED);
@@ -311,7 +311,7 @@ class ReviewBlindRequestServiceTest {
 
             reviewBlindRequestService.expire(requestId);
 
-            assertThat(shopRequestIndexRepository.require(ShopRequestType.REVIEW_BLIND, requestId).getStatus())
+            assertThat(shopRequestIndexPersistencePort.require(ShopRequestType.REVIEW_BLIND, requestId).getStatus())
                 .isEqualTo(ShopRequestStatus.APPROVED);
         }
 
@@ -325,7 +325,7 @@ class ReviewBlindRequestServiceTest {
                 ReviewId.of(REVIEW_ID), MemberId.of(REVIEWER_MEMBER_ID)
             );
 
-            assertThat(shopRequestIndexRepository.require(ShopRequestType.REVIEW_BLIND, requestId).getStatus())
+            assertThat(shopRequestIndexPersistencePort.require(ShopRequestType.REVIEW_BLIND, requestId).getStatus())
                 .isEqualTo(ShopRequestStatus.APPROVED);
         }
 
@@ -336,7 +336,7 @@ class ReviewBlindRequestServiceTest {
 
             reviewBlindRequestService.reject(requestId, "위반 사실이 확인되지 않습니다.");
 
-            ShopRequestIndex index = shopRequestIndexRepository.require(ShopRequestType.REVIEW_BLIND, requestId);
+            ShopRequestIndex index = shopRequestIndexPersistencePort.require(ShopRequestType.REVIEW_BLIND, requestId);
             assertThat(index.getStatus()).isEqualTo(ShopRequestStatus.REJECTED);
             assertThat(index.getRejectReason()).isEqualTo("위반 사실이 확인되지 않습니다.");
         }
@@ -352,7 +352,7 @@ class ReviewBlindRequestServiceTest {
                 SHOP_ID, REVIEW_ID, CEO_ID, ReviewBlindReason.PRIVACY, null, List.of(11L, 22L, 33L)
             );
 
-            assertThat(attachmentRepository.saved())
+            assertThat(attachmentPersistencePort.saved())
                 .extracting(attachment -> attachment.getAttachmentFileId().value(), ReviewBlindRequestAttachment::getSort)
                 .containsExactly(
                     org.assertj.core.api.Assertions.tuple(11L, 1),
@@ -366,7 +366,7 @@ class ReviewBlindRequestServiceTest {
         void noAttachmentsSavedWhenEmpty() {
             request();
 
-            assertThat(attachmentRepository.saved()).isEmpty();
+            assertThat(attachmentPersistencePort.saved()).isEmpty();
         }
     }
 }

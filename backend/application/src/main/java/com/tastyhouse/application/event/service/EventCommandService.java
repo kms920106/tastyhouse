@@ -20,9 +20,9 @@ import com.tastyhouse.application.event.port.in.EventDeleteCommand;
 import com.tastyhouse.application.event.port.in.EventUpdateCommand;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
 import com.tastyhouse.application.event.port.in.EventWinnerDeleteCommand;
-import com.tastyhouse.application.event.port.out.write.EventAnnouncementRepository;
-import com.tastyhouse.application.event.port.out.write.EventRepository;
-import com.tastyhouse.application.event.port.out.write.EventWinnerRepository;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -30,18 +30,18 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class EventCommandService implements EventCommandUseCase {
 
-    private final EventRepository eventRepository;
-    private final EventAnnouncementRepository eventAnnouncementRepository;
-    private final EventWinnerRepository eventWinnerRepository;
+    private final EventPersistencePort eventPersistencePort;
+    private final EventAnnouncementPersistencePort eventAnnouncementPersistencePort;
+    private final EventWinnerPersistencePort eventWinnerPersistencePort;
 
     public EventCommandService(
-        EventRepository eventRepository,
-        EventAnnouncementRepository eventAnnouncementRepository,
-        EventWinnerRepository eventWinnerRepository
+        EventPersistencePort eventPersistencePort,
+        EventAnnouncementPersistencePort eventAnnouncementPersistencePort,
+        EventWinnerPersistencePort eventWinnerPersistencePort
     ) {
-        this.eventRepository = eventRepository;
-        this.eventAnnouncementRepository = eventAnnouncementRepository;
-        this.eventWinnerRepository = eventWinnerRepository;
+        this.eventPersistencePort = eventPersistencePort;
+        this.eventAnnouncementPersistencePort = eventAnnouncementPersistencePort;
+        this.eventWinnerPersistencePort = eventWinnerPersistencePort;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class EventCommandService implements EventCommandUseCase {
             command.startAt(),
             command.endAt()
         );
-        Event saved = eventRepository.save(event);
+        Event saved = eventPersistencePort.save(event);
         return saved.getEventId().value();
     }
 
@@ -82,7 +82,7 @@ public class EventCommandService implements EventCommandUseCase {
             command.startAt(),
             command.endAt()
         );
-        eventRepository.save(event);
+        eventPersistencePort.save(event);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class EventCommandService implements EventCommandUseCase {
         Event event = findEventOrThrow(eventId);
 
         event.delete();
-        eventRepository.save(event);
+        eventPersistencePort.save(event);
     }
 
     @Override
@@ -99,23 +99,23 @@ public class EventCommandService implements EventCommandUseCase {
         EventId eventId = EventId.of(command.eventId());
         findEventOrThrow(eventId);
 
-        if (eventAnnouncementRepository.existsByEventId(eventId)) {
+        if (eventAnnouncementPersistencePort.existsByEventId(eventId)) {
             throw new BusinessException(ErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
         }
 
         EventAnnouncement announcement = EventAnnouncement.of(eventId, command.name(), command.content(), command.announcedAt());
-        EventAnnouncement saved = eventAnnouncementRepository.save(announcement);
+        EventAnnouncement saved = eventAnnouncementPersistencePort.save(announcement);
         return saved.getId();
     }
 
     @Override
     public void updateAnnouncement(EventAnnouncementUpdateCommand command) {
         EventId eventId = EventId.of(command.eventId());
-        EventAnnouncement announcement = eventAnnouncementRepository.findByEventId(eventId)
+        EventAnnouncement announcement = eventAnnouncementPersistencePort.findByEventId(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
 
         announcement.update(command.name(), command.content(), command.announcedAt());
-        eventAnnouncementRepository.save(announcement);
+        eventAnnouncementPersistencePort.save(announcement);
     }
 
     @Override
@@ -124,21 +124,21 @@ public class EventCommandService implements EventCommandUseCase {
         findEventOrThrow(eventId);
 
         EventWinner winner = EventWinner.of(eventId, command.rankNo(), command.winnerName(), command.phoneNumber(), command.announcedAt());
-        EventWinner saved = eventWinnerRepository.save(winner);
+        EventWinner saved = eventWinnerPersistencePort.save(winner);
         return saved.getId();
     }
 
     @Override
     public void deleteWinner(EventWinnerDeleteCommand command) {
-        EventWinner winner = eventWinnerRepository.findById(command.winnerId())
+        EventWinner winner = eventWinnerPersistencePort.findById(command.winnerId())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
 
         winner.delete();
-        eventWinnerRepository.save(winner);
+        eventWinnerPersistencePort.save(winner);
     }
 
     private Event findEventOrThrow(EventId eventId) {
-        return eventRepository.findById(eventId)
+        return eventPersistencePort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
     }
 }

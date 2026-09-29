@@ -21,7 +21,7 @@ import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand
 import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
-import com.tastyhouse.application.reservation.port.out.write.ReservationRepository;
+import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 
@@ -35,16 +35,16 @@ public class ReservationCommandService implements ReservationCommandUseCase {
 
     private final ReservationBookingExecutor reservationBookingExecutor;
     private final ReservationBookingService reservationBookingService;
-    private final ReservationRepository reservationRepository;
+    private final ReservationPersistencePort reservationPersistencePort;
 
     public ReservationCommandService(
         ReservationBookingExecutor reservationBookingExecutor,
         ReservationBookingService reservationBookingService,
-        ReservationRepository reservationRepository
+        ReservationPersistencePort reservationPersistencePort
     ) {
         this.reservationBookingExecutor = reservationBookingExecutor;
         this.reservationBookingService = reservationBookingService;
-        this.reservationRepository = reservationRepository;
+        this.reservationPersistencePort = reservationPersistencePort;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ReservationCommandService implements ReservationCommandUseCase {
         ReservationId reservationId = ReservationId.of(command.reservationId());
         Reservation reservation = getReservation(reservationId);
         reservation.confirm();
-        reservationRepository.save(reservation);
+        reservationPersistencePort.save(reservation);
     }
 
     @Transactional
@@ -93,7 +93,7 @@ public class ReservationCommandService implements ReservationCommandUseCase {
         ReservationId reservationId = ReservationId.of(command.reservationId());
         Reservation reservation = getReservation(reservationId);
         reservation.complete();
-        reservationRepository.save(reservation);
+        reservationPersistencePort.save(reservation);
     }
 
     @Transactional
@@ -112,7 +112,7 @@ public class ReservationCommandService implements ReservationCommandUseCase {
     }
 
     private Reservation getReservation(ReservationId reservationId) {
-        return reservationRepository.findById(reservationId)
+        return reservationPersistencePort.findById(reservationId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     }
 }

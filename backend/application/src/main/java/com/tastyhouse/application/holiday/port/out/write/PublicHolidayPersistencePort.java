@@ -1,0 +1,12 @@
+package com.tastyhouse.application.holiday.port.out.write;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.tastyhouse.domain.holiday.model.PublicHoliday;
+
+public interface PublicHolidayPersistencePort {
+    boolean existsByHolidayDate(LocalDate holidayDate);
+
+    List<PublicHoliday> findAllByHolidayDateBetween(LocalDate from, LocalDate to);
+}

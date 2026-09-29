@@ -28,7 +28,7 @@ const toDegrees = (radians: number): number => (radians * 180) / Math.PI;
 /**
  * 두 지점 사이의 거리(m) — 하버사인.
  *
- * `ShopSearchQueryDao` 의 `METERS_PER_DEGREE = 111000` 사각 근사를 재사용하지 않는다.
+ * 백엔드 가게 검색 쿼리의 `METERS_PER_DEGREE = 111000` 사각 근사를 재사용하지 않는다.
  * 위경도 양쪽에 같은 값을 쓰기 때문에 위도 37.5°에서 동서 방향이 약 21% 좁게 나오고,
  * 200m 에서는 무해하지만 7km 로 확대하면 약 1.6km 가 어긋난다.
  */

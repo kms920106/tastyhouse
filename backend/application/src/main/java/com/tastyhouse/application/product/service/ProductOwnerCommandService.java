@@ -22,7 +22,7 @@ import com.tastyhouse.application.product.port.in.ProductOwnerUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOwnerUpdateUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkItemCommand;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.OwnedShopIdProvider;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
@@ -37,7 +37,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
 
     private final ProductRegistrationService productRegistrationService;
     private final ProductDeletionService productDeletionService;
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ProductNameValidator productNameValidator;
     private final ProductShopLinkService productShopLinkService;
@@ -47,7 +47,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
     public ProductOwnerCommandService(
         ProductRegistrationService productRegistrationService,
         ProductDeletionService productDeletionService,
-        ProductRepository productRepository,
+        ProductPersistencePort productPersistencePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ProductNameValidator productNameValidator,
         ProductShopLinkService productShopLinkService,
@@ -56,7 +56,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
     ) {
         this.productRegistrationService = productRegistrationService;
         this.productDeletionService = productDeletionService;
-        this.productRepository = productRepository;
+        this.productPersistencePort = productPersistencePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.productNameValidator = productNameValidator;
         this.productShopLinkService = productShopLinkService;
@@ -164,7 +164,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
         if (categoryChanged) {
             product.relocate(categoryId, nextSort(shopId, categoryId));
         }
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     @Override
@@ -184,7 +184,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productRepository.findById(ProductId.of(productId))
+        Product product = productPersistencePort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
@@ -193,7 +193,7 @@ public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, Pr
     }
 
     private Integer nextSort(Long shopId, ProductCategoryId productCategoryId) {
-        return productRepository.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
+        return productPersistencePort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
     }
 
     private boolean isSameCategory(ProductCategoryId current, ProductCategoryId requested) {

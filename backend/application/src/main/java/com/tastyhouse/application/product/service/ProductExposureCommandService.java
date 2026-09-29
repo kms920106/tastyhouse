@@ -19,7 +19,7 @@ import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -29,16 +29,16 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 public class ProductExposureCommandService implements ProductExposureCommandUseCase {
 
     private final ProductExposureService productExposureService;
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductExposureCommandService(
         ProductExposureService productExposureService,
-        ProductRepository productRepository,
+        ProductPersistencePort productPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productExposureService = productExposureService;
-        this.productRepository = productRepository;
+        this.productPersistencePort = productPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -88,7 +88,7 @@ public class ProductExposureCommandService implements ProductExposureCommandUseC
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

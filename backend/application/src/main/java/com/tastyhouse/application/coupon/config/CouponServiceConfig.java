@@ -3,8 +3,8 @@ package com.tastyhouse.application.coupon.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.application.coupon.port.out.write.CouponRepository;
-import com.tastyhouse.application.coupon.port.out.write.MemberCouponRepository;
+import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
 import com.tastyhouse.application.coupon.service.CouponIssueService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.marker.SharedApp;
@@ -14,10 +14,10 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class CouponServiceConfig {
     @Bean
     public CouponIssueService couponIssueService(
-        CouponRepository couponRepository,
-        MemberCouponRepository memberCouponRepository,
+        CouponPersistencePort couponPersistencePort,
+        MemberCouponPersistencePort memberCouponPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        return new CouponIssueService(couponRepository, memberCouponRepository, domainEventPublisher);
+        return new CouponIssueService(couponPersistencePort, memberCouponPersistencePort, domainEventPublisher);
     }
 }

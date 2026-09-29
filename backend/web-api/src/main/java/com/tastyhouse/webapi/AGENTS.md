@@ -67,7 +67,7 @@
 - **@SpringBootTest + spring-security-test** — 통합 테스트 (JWT 토큰 생성, 보안 필터 검증).
 - MockMvc로 API 엔드포인트 검증, WithMockUser 또는 커스텀 인증 헤더로 JWT 시뮬레이션.
 - 예외 처리 테스트는 GlobalExceptionHandler 동작 확인.
-- **레이어 경계는 `architecture/LayerRulesTest`(ArchUnit)** — CQRS 서비스의 web 플럼빙 의존 금지, 컨트롤러의 Repository·QueryDao 의존 금지, CommandService의 QueryDao 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, 그리고 챕터 05 승격 규칙 `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` → `..application.service..` 금지)·`portInShouldBeFreeOfWebDomainAndInfrastructure`. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다. 챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다.
+- **레이어 경계는 `architecture/LayerRulesTest`(ArchUnit)** — CQRS 서비스의 web 플럼빙 의존 금지, 컨트롤러의 Repository·QueryAdapter 의존 금지, CommandService의 QueryAdapter 의존 금지, `com.querydsl..` 금지, `..infrastructure..persistence..` 금지, 그리고 챕터 05 승격 규칙 `webAdaptersShouldNotDependOnApplicationServices`(`..adapter.in.web..` → `..application.service..` 금지)·`portInShouldBeFreeOfWebDomainAndInfrastructure`. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다. 챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다.
 
 ### Common Patterns
 - **Controller + Request/Response DTO**: `@RestController @RequestMapping("/api/{domain}")` → `Method(@Valid {Domain}Request) → ResponseEntity<ApiResponse<{Domain}Response>>`.

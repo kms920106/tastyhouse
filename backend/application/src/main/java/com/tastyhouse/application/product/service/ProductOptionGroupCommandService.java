@@ -21,11 +21,11 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupCommandUseCa
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -39,29 +39,29 @@ public class ProductOptionGroupCommandService implements ProductOptionGroupComma
     private static final Integer NEXT_SORT_APPENDS_TO_TAIL = null;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductRepository productRepository;
-    private final ShopRepository shopRepository;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductPersistencePort productPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupCommandService(
         ProductRegistrationService productRegistrationService,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductRepository productRepository,
-        ShopRepository shopRepository,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductPersistencePort productPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productOptionGroupRepository = productOptionGroupRepository;
-        this.productOptionRepository = productOptionRepository;
-        this.productRepository = productRepository;
-        this.shopRepository = shopRepository;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productPersistencePort = productPersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
@@ -146,10 +146,10 @@ public class ProductOptionGroupCommandService implements ProductOptionGroupComma
         );
 
         List<ProductOption> groupOptions =
-            productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
+            productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
         ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptions);
 
-        productOptionGroupRepository.save(group);
+        productOptionGroupPersistencePort.save(group);
     }
 
     @Override
@@ -163,16 +163,16 @@ public class ProductOptionGroupCommandService implements ProductOptionGroupComma
         ProductOptionGroup group =
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
         group.hide();
-        productOptionGroupRepository.save(group);
+        productOptionGroupPersistencePort.save(group);
     }
 
     private Shop loadShop(Long shopId) {
-        return shopRepository.findById(ShopId.of(shopId))
+        return shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productRepository.findById(ProductId.of(productId))
+        Product product = productPersistencePort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

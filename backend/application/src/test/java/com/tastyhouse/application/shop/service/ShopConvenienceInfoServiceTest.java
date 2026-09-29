@@ -33,10 +33,10 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,10 +44,10 @@ class ShopConvenienceInfoServiceTest {
     private static final Long SHOP_ID = 1L;
     private static final Long PARKING_CATEGORY_ID = 11L;
 
-    private RecordingShopChangeHistoryRepository shopChangeHistoryRepository;
+    private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
     private ShopConvenienceInfoService shopConvenienceInfoService;
 
-    private static final class FakeShopConvenienceInfoRepository implements ShopConvenienceInfoRepository {
+    private static final class FakeShopConvenienceInfoPersistencePort implements ShopConvenienceInfoPersistencePort {
         private final Map<Long, ShopConvenienceInfo> infos = new HashMap<>();
 
         @Override
@@ -62,11 +62,11 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    private static final class FakeShopDetailRepository implements ShopDetailRepository {
+    private static final class FakeShopDetailPersistencePort implements ShopDetailPersistencePort {
         private final Map<Long, ShopAmenityCategory> categories = new HashMap<>();
         private long sequence = 0L;
 
-        FakeShopDetailRepository() {
+        FakeShopDetailPersistencePort() {
             categories.put(PARKING_CATEGORY_ID, ShopAmenityCategory.reconstitute(
                 PARKING_CATEGORY_ID, Amenity.PARKING, "주차 가능", null, null, 1, true
             ));
@@ -243,10 +243,10 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    private static final class FakeShopRepository implements ShopRepository {
+    private static final class FakeShopPersistencePort implements ShopPersistencePort {
         private final Map<Long, Shop> shops = new HashMap<>();
 
-        FakeShopRepository() {
+        FakeShopPersistencePort() {
             shops.put(SHOP_ID, Shop.reconstitute(
                 SHOP_ID, null, null, "맛있는 분식",
                 BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621), 4.5,
@@ -272,7 +272,7 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    private static final class FakeProhibitedWordRepository implements ProhibitedWordRepository {
+    private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));
@@ -281,13 +281,13 @@ class ShopConvenienceInfoServiceTest {
 
     @BeforeEach
     void setUp() {
-        shopChangeHistoryRepository = new RecordingShopChangeHistoryRepository();
+        shopChangeHistoryPersistencePort = new RecordingShopChangeHistoryPersistencePort();
         shopConvenienceInfoService = new ShopConvenienceInfoService(
-            new FakeShopConvenienceInfoRepository(),
-            new FakeShopRepository(),
-            new FakeShopDetailRepository(),
-            new ProhibitedWordValidator(new FakeProhibitedWordRepository()),
-            new ShopChangeHistoryRecorder(shopChangeHistoryRepository)
+            new FakeShopConvenienceInfoPersistencePort(),
+            new FakeShopPersistencePort(),
+            new FakeShopDetailPersistencePort(),
+            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
+            new ShopChangeHistoryRecorder(shopChangeHistoryPersistencePort)
         );
     }
 
@@ -299,9 +299,9 @@ class ShopConvenienceInfoServiceTest {
             ShopChangeActor.ceo(7L)
         );
 
-        assertThat(shopChangeHistoryRepository.savedOf(ShopChangeType.CONVENIENCE_INFO)).hasSize(1);
+        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.CONVENIENCE_INFO)).hasSize(1);
         ShopChangeHistory history =
-            shopChangeHistoryRepository.savedOf(ShopChangeType.CONVENIENCE_INFO).getFirst();
+            shopChangeHistoryPersistencePort.savedOf(ShopChangeType.CONVENIENCE_INFO).getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
         assertThat(history.getActorType()).isEqualTo(ShopChangeActorType.CEO);
         assertThat(history.getActorId()).isEqualTo(7L);
@@ -322,7 +322,7 @@ class ShopConvenienceInfoServiceTest {
         );
 
         List<ShopChangeHistory> histories =
-            shopChangeHistoryRepository.savedOf(ShopChangeType.CONVENIENCE_INFO);
+            shopChangeHistoryPersistencePort.savedOf(ShopChangeType.CONVENIENCE_INFO);
         assertThat(histories).hasSize(2);
         assertThat(histories.get(1).getPreviousValue()).contains("주차: 불가", "찾아오는길: 이전 안내");
         assertThat(histories.get(1).getNewValue()).contains("주차: 가능(무료)", "찾아오는길: 새 안내");
@@ -334,7 +334,7 @@ class ShopConvenienceInfoServiceTest {
         shopConvenienceInfoService.assignAmenity(SHOP_ID, PARKING_CATEGORY_ID, ShopChangeActor.ceo(7L));
         shopConvenienceInfoService.unassignAmenity(SHOP_ID, PARKING_CATEGORY_ID, ShopChangeActor.admin(3L));
 
-        List<ShopChangeHistory> histories = shopChangeHistoryRepository.savedOf(ShopChangeType.AMENITY);
+        List<ShopChangeHistory> histories = shopChangeHistoryPersistencePort.savedOf(ShopChangeType.AMENITY);
         assertThat(histories).hasSize(2);
 
         assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.CREATE);

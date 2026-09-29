@@ -12,25 +12,25 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadRepository;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductFeedbackService {
     public static final int FEEDBACK_WINDOW_DAYS = 7;
 
-    private final ProductRepository productRepository;
-    private final ProductFeedbackRepository productFeedbackRepository;
-    private final ProductFeedbackReadRepository productFeedbackReadRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductFeedbackPersistencePort productFeedbackPersistencePort;
+    private final ProductFeedbackReadPersistencePort productFeedbackReadPersistencePort;
 
     public ProductFeedbackService(
-        ProductRepository productRepository,
-        ProductFeedbackRepository productFeedbackRepository,
-        ProductFeedbackReadRepository productFeedbackReadRepository
+        ProductPersistencePort productPersistencePort,
+        ProductFeedbackPersistencePort productFeedbackPersistencePort,
+        ProductFeedbackReadPersistencePort productFeedbackReadPersistencePort
     ) {
-        this.productRepository = productRepository;
-        this.productFeedbackRepository = productFeedbackRepository;
-        this.productFeedbackReadRepository = productFeedbackReadRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productFeedbackPersistencePort = productFeedbackPersistencePort;
+        this.productFeedbackReadPersistencePort = productFeedbackReadPersistencePort;
     }
 
     public ProductFeedback submit(
@@ -40,36 +40,36 @@ public class ProductFeedbackService {
         String content,
         LocalDateTime now
     ) {
-        Product product = productRepository.findById(productId)
+        Product product = productPersistencePort.findById(productId)
             .filter(found -> !found.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         LocalDateTime windowStart = now.minusDays(FEEDBACK_WINDOW_DAYS);
-        if (productFeedbackRepository.existsRecentDuplicate(memberId, productId, feedbackType, windowStart)) {
+        if (productFeedbackPersistencePort.existsRecentDuplicate(memberId, productId, feedbackType, windowStart)) {
             throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_ALREADY_SUBMITTED);
         }
 
         ProductFeedback feedback = ProductFeedback.of(
             productId, product.getShopId(), memberId, feedbackType, content
         );
-        return productFeedbackRepository.save(feedback);
+        return productFeedbackPersistencePort.save(feedback);
     }
 
     public boolean hasUnread(ShopId shopId, LocalDateTime now) {
         LocalDateTime windowStart = now.minusDays(FEEDBACK_WINDOW_DAYS);
-        LocalDateTime since = productFeedbackReadRepository.findByShopId(shopId)
+        LocalDateTime since = productFeedbackReadPersistencePort.findByShopId(shopId)
             .map(ProductFeedbackRead::getReadAt)
 
             .filter(readAt -> readAt.isAfter(windowStart))
             .orElse(windowStart);
 
-        return productFeedbackRepository.existsByShopIdAndCreatedAtAfter(shopId, since);
+        return productFeedbackPersistencePort.existsByShopIdAndCreatedAtAfter(shopId, since);
     }
 
     public void markRead(ShopId shopId, LocalDateTime now) {
-        ProductFeedbackRead feedbackRead = productFeedbackReadRepository.findByShopId(shopId)
+        ProductFeedbackRead feedbackRead = productFeedbackReadPersistencePort.findByShopId(shopId)
             .orElseGet(() -> ProductFeedbackRead.of(shopId, now));
         feedbackRead.markRead(now);
-        productFeedbackReadRepository.save(feedbackRead);
+        productFeedbackReadPersistencePort.save(feedbackRead);
     }
 }

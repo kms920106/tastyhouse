@@ -6,21 +6,21 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopCeoAssignmentService {
-    private final ShopRepository shopRepository;
-    private final CeoRepository ceoRepository;
+    private final ShopPersistencePort shopPersistencePort;
+    private final CeoPersistencePort ceoPersistencePort;
     private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;
 
     public ShopCeoAssignmentService(
-        ShopRepository shopRepository,
-        CeoRepository ceoRepository,
+        ShopPersistencePort shopPersistencePort,
+        CeoPersistencePort ceoPersistencePort,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
-        this.shopRepository = shopRepository;
-        this.ceoRepository = ceoRepository;
+        this.shopPersistencePort = shopPersistencePort;
+        this.ceoPersistencePort = ceoPersistencePort;
         this.shopCeoAssignmentRecorder = shopCeoAssignmentRecorder;
     }
 
@@ -34,7 +34,7 @@ public class ShopCeoAssignmentService {
         }
 
         shop.assignCeo(ceoId);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         if (currentCeoId != null) {
             shopCeoAssignmentRecorder.recordRevoke(shopId, currentCeoId, actorAdminId);
@@ -51,18 +51,18 @@ public class ShopCeoAssignmentService {
         }
 
         shop.assignCeo(null);
-        shopRepository.save(shop);
+        shopPersistencePort.save(shop);
 
         shopCeoAssignmentRecorder.recordRevoke(shopId, currentCeoId, actorAdminId);
     }
 
     private Shop loadShop(ShopId shopId) {
-        return shopRepository.findById(shopId)
+        return shopPersistencePort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateCeoExists(CeoId ceoId) {
-        if (ceoRepository.findById(ceoId).isEmpty()) {
+        if (ceoPersistencePort.findById(ceoId).isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.CEO_NOT_FOUND);
         }
     }

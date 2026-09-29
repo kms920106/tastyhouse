@@ -23,8 +23,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -281,7 +281,7 @@ class ProductPriceServiceTest {
 
     private static final class Fixture {
         private final Map<Long, Product> products = new LinkedHashMap<>();
-        private final MapProductPriceRepository prices = new MapProductPriceRepository();
+        private final MapProductPricePersistencePort prices = new MapProductPricePersistencePort();
         private final RecordingVerificationPort verificationPort = new RecordingVerificationPort();
         private final ProductPriceService service;
 
@@ -299,7 +299,7 @@ class ProductPriceServiceTest {
                 false, false, null, false, null, null, null, null, null, null
             ));
             this.service = new ProductPriceService(
-                prices, new OwnedProductRepository(products), verificationPort);
+                prices, new OwnedProductPersistencePort(products), verificationPort);
         }
 
         private void replace(List<ProductPriceSpec> specs) {
@@ -311,10 +311,10 @@ class ProductPriceServiceTest {
         }
     }
 
-    private static final class OwnedProductRepository implements ProductRepository {
+    private static final class OwnedProductPersistencePort implements ProductPersistencePort {
         private final Map<Long, Product> products;
 
-        private OwnedProductRepository(Map<Long, Product> products) {
+        private OwnedProductPersistencePort(Map<Long, Product> products) {
             this.products = products;
         }
 
@@ -387,7 +387,7 @@ class ProductPriceServiceTest {
         }
     }
 
-    private static final class MapProductPriceRepository implements ProductPriceRepository {
+    private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
         private final Map<Long, ProductPrice> rows = new LinkedHashMap<>();
         private final List<Long> deleted = new ArrayList<>();
         private final AtomicLong sequence = new AtomicLong(1000L);

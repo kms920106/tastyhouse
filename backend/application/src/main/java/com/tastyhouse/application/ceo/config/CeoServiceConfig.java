@@ -4,8 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryRepository;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
 import com.tastyhouse.application.ceo.service.CeoLoginHistoryRecorder;
 import com.tastyhouse.application.ceo.service.CeoReplyPhraseService;
 import com.tastyhouse.application.shared.marker.SharedApp;
@@ -15,16 +15,16 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class CeoServiceConfig {
     @Bean
     public CeoLoginHistoryRecorder ceoLoginHistoryRecorder(
-        CeoLoginHistoryRepository ceoLoginHistoryRepository
+        CeoLoginHistoryPersistencePort ceoLoginHistoryPersistencePort
     ) {
-        return new CeoLoginHistoryRecorder(ceoLoginHistoryRepository);
+        return new CeoLoginHistoryRecorder(ceoLoginHistoryPersistencePort);
     }
 
     @Bean
     public CeoReplyPhraseService ceoReplyPhraseService(
-        CeoReplyPhraseRepository ceoReplyPhraseRepository,
+        CeoReplyPhrasePersistencePort ceoReplyPhrasePersistencePort,
         ReplyPhraseTextValidator replyPhraseTextValidator
     ) {
-        return new CeoReplyPhraseService(ceoReplyPhraseRepository, replyPhraseTextValidator);
+        return new CeoReplyPhraseService(ceoReplyPhrasePersistencePort, replyPhraseTextValidator);
     }
 }

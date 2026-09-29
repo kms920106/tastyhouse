@@ -13,26 +13,26 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopOriginInfoService {
-    private final ShopOriginInfoRepository shopOriginInfoRepository;
-    private final ShopRepository shopRepository;
+    private final ShopOriginInfoPersistencePort shopOriginInfoPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopOriginInfoService(
-        ShopOriginInfoRepository shopOriginInfoRepository,
-        ShopRepository shopRepository,
+        ShopOriginInfoPersistencePort shopOriginInfoPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopOriginInfoRepository = shopOriginInfoRepository;
+        this.shopOriginInfoPersistencePort = shopOriginInfoPersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
-        this.shopRepository = shopRepository;
+        this.shopPersistencePort = shopPersistencePort;
     }
 
     public Optional<ShopOriginInfo> findByShopId(Long shopId) {
-        return shopOriginInfoRepository.findByShopId(shopId);
+        return shopOriginInfoPersistencePort.findByShopId(shopId);
     }
 
     public void upsertOriginInfo(
@@ -44,7 +44,7 @@ public class ShopOriginInfoService {
     ) {
         validateShopExists(shopId);
 
-        ShopOriginInfo existing = shopOriginInfoRepository.findByShopId(shopId).orElse(null);
+        ShopOriginInfo existing = shopOriginInfoPersistencePort.findByShopId(shopId).orElse(null);
         String previousValue = describeOriginInfo(existing);
 
         ShopOriginInfo shopOriginInfo;
@@ -55,7 +55,7 @@ public class ShopOriginInfoService {
             shopOriginInfo = existing;
         }
 
-        shopOriginInfoRepository.save(shopOriginInfo);
+        shopOriginInfoPersistencePort.save(shopOriginInfo);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -68,7 +68,7 @@ public class ShopOriginInfoService {
     }
 
     private void validateShopExists(Long shopId) {
-        shopRepository.findById(ShopId.of(shopId))
+        shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
     }
 

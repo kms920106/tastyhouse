@@ -9,20 +9,20 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Component
 @CeoApp
 public class ShopOwnershipValidator {
 
-    private final ShopRepository shopRepository;
+    private final ShopPersistencePort shopPersistencePort;
 
-    public ShopOwnershipValidator(ShopRepository shopRepository) {
-        this.shopRepository = shopRepository;
+    public ShopOwnershipValidator(ShopPersistencePort shopPersistencePort) {
+        this.shopPersistencePort = shopPersistencePort;
     }
 
     public Shop validateOwnership(Long ceoId, Long shopId) {
-        Shop shop = shopRepository.findById(ShopId.of(shopId))
+        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
         if (shop.getCeoId() == null || !shop.getCeoId().equals(CeoId.of(ceoId))) {
             throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);

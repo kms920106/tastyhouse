@@ -7,20 +7,20 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryDao;
+import com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryAdapter;
 import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
 @Component
 public class MemberGradeReviewCountAdapter implements MemberReviewCountPort {
-    private final MemberReviewCountQueryDao memberReviewCountQueryDao;
+    private final MemberReviewCountQueryAdapter memberReviewCountQueryAdapter;
 
-    public MemberGradeReviewCountAdapter(MemberReviewCountQueryDao memberReviewCountQueryDao) {
-        this.memberReviewCountQueryDao = memberReviewCountQueryDao;
+    public MemberGradeReviewCountAdapter(MemberReviewCountQueryAdapter memberReviewCountQueryAdapter) {
+        this.memberReviewCountQueryAdapter = memberReviewCountQueryAdapter;
     }
 
     @Override
     public List<MemberReviewCount> countReviewsByMemberWithPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        return memberReviewCountQueryDao.countReviewsByMemberWithPeriod(startDate, endDate).stream()
+        return memberReviewCountQueryAdapter.countReviewsByMemberWithPeriod(startDate, endDate).stream()
             .map(this::toMemberReviewCount)
             .toList();
     }

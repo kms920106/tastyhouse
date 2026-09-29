@@ -2,17 +2,17 @@ package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
 
 public class ShopRequestCommentService {
-    private final ShopRequestCommentRepository shopRequestCommentRepository;
+    private final ShopRequestCommentPersistencePort shopRequestCommentPersistencePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopRequestCommentService(
-        ShopRequestCommentRepository shopRequestCommentRepository,
+        ShopRequestCommentPersistencePort shopRequestCommentPersistencePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopRequestCommentRepository = shopRequestCommentRepository;
+        this.shopRequestCommentPersistencePort = shopRequestCommentPersistencePort;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
@@ -27,7 +27,7 @@ public class ShopRequestCommentService {
     }
 
     private Long save(Long requestId, ShopRequestCommentAuthor author, String content) {
-        ShopRequestComment saved = shopRequestCommentRepository.save(
+        ShopRequestComment saved = shopRequestCommentPersistencePort.save(
             ShopRequestComment.of(requestId, author, content)
         );
         return saved.getId();

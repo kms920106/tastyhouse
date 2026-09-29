@@ -21,9 +21,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,8 +41,8 @@ class ProductRepresentativeApprovalServiceTest {
 
         assertThat(requestIds).hasSize(1);
         assertThat(product.isRepresentative()).isFalse();
-        assertThat(fixture.requestRepository.saved).hasSize(1);
-        assertThat(fixture.requestRepository.saved.getFirst().getStatus()).isEqualTo(ApprovalStatus.PENDING);
+        assertThat(fixture.requestPersistencePort.saved).hasSize(1);
+        assertThat(fixture.requestPersistencePort.saved.getFirst().getStatus()).isEqualTo(ApprovalStatus.PENDING);
     }
 
     @Test
@@ -63,8 +63,8 @@ class ProductRepresentativeApprovalServiceTest {
             List.of(product(10L, false), product(11L, false)),
             List.of(10L, 11L)
         );
-        fixture.productRepository.visibleRepresentativeCount = 4L;
-        fixture.requestRepository.pendingCount = 1L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 4L;
+        fixture.requestPersistencePort.pendingCount = 1L;
 
         assertThatThrownBy(() -> fixture.service.requestRepresentative(
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L))))
@@ -77,8 +77,8 @@ class ProductRepresentativeApprovalServiceTest {
     @DisplayName("대기 건수를 세지 않으면 통과했을 조합(4 + 대기 1 + 1)이 정확히 6개로 통과한다")
     void limitIsInclusiveOfSix() {
         Fixture fixture = fixture(List.of(product(10L, false)), List.of(10L));
-        fixture.productRepository.visibleRepresentativeCount = 4L;
-        fixture.requestRepository.pendingCount = 1L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 4L;
+        fixture.requestPersistencePort.pendingCount = 1L;
 
         List<Long> requestIds = fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(10L)));
 
@@ -89,7 +89,7 @@ class ProductRepresentativeApprovalServiceTest {
     @DisplayName("이미 대표인 메뉴는 건너뛴다(멱등) — 개수에도 다시 세지 않는다")
     void alreadyRepresentativeIsSkipped() {
         Fixture fixture = fixture(List.of(product(10L, true)), List.of(10L));
-        fixture.productRepository.visibleRepresentativeCount = 6L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 6L;
 
         List<Long> requestIds = fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(10L)));
 
@@ -114,7 +114,7 @@ class ProductRepresentativeApprovalServiceTest {
     void approveRevalidatesLimit() {
         Fixture fixture = fixture(List.of(product(10L, false)), List.of(10L));
         fixture.givenPendingRequest();
-        fixture.productRepository.visibleRepresentativeCount = 6L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 6L;
 
         assertThatThrownBy(() -> fixture.service.approve(ProductRepresentativeRequestId.of(1L)))
             .isInstanceOf(BusinessException.class)
@@ -152,12 +152,12 @@ class ProductRepresentativeApprovalServiceTest {
     void clearTakesEffectImmediately() {
         Product product = product(10L, true);
         Fixture fixture = fixture(List.of(product), List.of(10L));
-        fixture.productRepository.visibleRepresentativeCount = 3L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 3L;
 
         fixture.service.clearRepresentative(SHOP_ID, ProductId.of(10L));
 
         assertThat(product.isRepresentative()).isFalse();
-        assertThat(fixture.requestRepository.saved).isEmpty();
+        assertThat(fixture.requestPersistencePort.saved).isEmpty();
     }
 
     @Test
@@ -165,7 +165,7 @@ class ProductRepresentativeApprovalServiceTest {
     void clearLastRepresentativeReusesExistingCode() {
         Product product = product(10L, true);
         Fixture fixture = fixture(List.of(product), List.of(10L));
-        fixture.productRepository.visibleRepresentativeCount = 1L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 1L;
 
         assertThatThrownBy(() -> fixture.service.clearRepresentative(SHOP_ID, ProductId.of(10L)))
             .isInstanceOf(BusinessException.class)
@@ -179,7 +179,7 @@ class ProductRepresentativeApprovalServiceTest {
     void clearIsIdempotent() {
         Product product = product(10L, false);
         Fixture fixture = fixture(List.of(product), List.of(10L));
-        fixture.productRepository.visibleRepresentativeCount = 0L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 0L;
 
         fixture.service.clearRepresentative(SHOP_ID, ProductId.of(10L));
 
@@ -217,14 +217,14 @@ class ProductRepresentativeApprovalServiceTest {
             targets.add(ProductId.of(id));
         }
         Fixture fixture = fixture(products, withImage);
-        fixture.productRepository.visibleRepresentativeCount = 0L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 0L;
 
         List<Long> requestIds = fixture.service.requestRepresentative(SHOP_ID, targets);
         assertThat(requestIds).hasSize(6);
 
         for (int index = 0; index < requestIds.size(); index++) {
-            fixture.productRepository.visibleRepresentativeCount = index;
-            fixture.requestRepository.pendingCount = 6L - index;
+            fixture.productPersistencePort.visibleRepresentativeCount = index;
+            fixture.requestPersistencePort.pendingCount = 6L - index;
             fixture.service.approve(ProductRepresentativeRequestId.of(requestIds.get(index)));
         }
 
@@ -236,8 +236,8 @@ class ProductRepresentativeApprovalServiceTest {
     void hiddenRepresentativesStillCountTowardTheLimit() {
         Fixture fixture = fixture(List.of(product(20L, false)), List.of(20L));
 
-        fixture.productRepository.visibleRepresentativeCount = 3L;
-        fixture.productRepository.totalRepresentativeCount = 6L;
+        fixture.productPersistencePort.visibleRepresentativeCount = 3L;
+        fixture.productPersistencePort.totalRepresentativeCount = 6L;
 
         assertThatThrownBy(() -> fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(20L))))
             .isInstanceOf(BusinessException.class)
@@ -245,36 +245,36 @@ class ProductRepresentativeApprovalServiceTest {
     }
 
     private static Fixture fixture(List<Product> products, List<Long> productIdsWithImage) {
-        FakeProductRepository productRepository = new FakeProductRepository(products);
-        FakeRepresentativeRequestRepository requestRepository = new FakeRepresentativeRequestRepository();
-        FakeProductImageRepository imageRepository = new FakeProductImageRepository(productIdsWithImage);
+        FakeProductPersistencePort productPersistencePort = new FakeProductPersistencePort(products);
+        FakeRepresentativeRequestPersistencePort requestPersistencePort = new FakeRepresentativeRequestPersistencePort();
+        FakeProductImagePersistencePort imagePersistencePort = new FakeProductImagePersistencePort(productIdsWithImage);
         return new Fixture(
-            new ProductRepresentativeApprovalService(requestRepository, productRepository, imageRepository),
-            productRepository,
-            requestRepository
+            new ProductRepresentativeApprovalService(requestPersistencePort, productPersistencePort, imagePersistencePort),
+            productPersistencePort,
+            requestPersistencePort
         );
     }
 
     private record Fixture(
         ProductRepresentativeApprovalService service,
-        FakeProductRepository productRepository,
-        FakeRepresentativeRequestRepository requestRepository
+        FakeProductPersistencePort productPersistencePort,
+        FakeRepresentativeRequestPersistencePort requestPersistencePort
     ) {
         ProductRepresentativeRequest givenPendingRequest() {
             Long requestId = 1L;
             ProductRepresentativeRequest request = ProductRepresentativeRequest.reconstitute(
                 requestId, ProductId.of(10L), SHOP_ID, ApprovalStatus.PENDING, null, null, null);
-            requestRepository.byId.put(requestId, request);
+            requestPersistencePort.byId.put(requestId, request);
             return request;
         }
     }
 
-    private static final class FakeProductRepository implements ProductRepository {
+    private static final class FakeProductPersistencePort implements ProductPersistencePort {
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private long visibleRepresentativeCount;
         private Long totalRepresentativeCount;
 
-        private FakeProductRepository(List<Product> products) {
+        private FakeProductPersistencePort(List<Product> products) {
             products.forEach(product -> this.products.put(product.getId(), product));
         }
 
@@ -346,8 +346,8 @@ class ProductRepresentativeApprovalServiceTest {
         }
     }
 
-    private static final class FakeRepresentativeRequestRepository
-        implements ProductRepresentativeRequestRepository {
+    private static final class FakeRepresentativeRequestPersistencePort
+        implements ProductRepresentativeRequestPersistencePort {
         private final Map<Long, ProductRepresentativeRequest> byId = new LinkedHashMap<>();
         private final List<ProductRepresentativeRequest> saved = new ArrayList<>();
         private long pendingCount;
@@ -396,10 +396,10 @@ class ProductRepresentativeApprovalServiceTest {
         }
     }
 
-    private static final class FakeProductImageRepository implements ProductImageRepository {
+    private static final class FakeProductImagePersistencePort implements ProductImagePersistencePort {
         private final List<Long> productIdsWithImage;
 
-        private FakeProductImageRepository(List<Long> productIdsWithImage) {
+        private FakeProductImagePersistencePort(List<Long> productIdsWithImage) {
             this.productIdsWithImage = productIdsWithImage;
         }
 

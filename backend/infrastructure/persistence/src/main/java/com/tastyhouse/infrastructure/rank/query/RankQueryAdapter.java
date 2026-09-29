@@ -1,0 +1,192 @@
+package com.tastyhouse.infrastructure.rank.query;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import com.querydsl.core.types.ConstructorExpression;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankDurationResult;
+import com.tastyhouse.application.rank.port.out.RankManagementQueryPort;
+import com.tastyhouse.application.rank.port.out.RankPeriodResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeResult;
+import com.tastyhouse.application.rank.port.out.RankQueryPort;
+import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
+
+import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.memberJpaEntity;
+import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
+import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
+import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
+
+@Repository
+public class RankQueryAdapter implements RankQueryPort, RankManagementQueryPort {
+    private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
+
+    public RankQueryAdapter(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
+
+    @Override
+    public Optional<RankDurationResult> findActiveDuration() {
+        RankDurationResult result = queryFactory
+            .select(Projections.constructor(RankDurationResult.class,
+                rankPeriodJpaEntity.startAt,
+                rankPeriodJpaEntity.endAt
+            ))
+            .from(rankPeriodJpaEntity)
+            .where(rankPeriodJpaEntity.visible.isTrue(), rankPeriodJpaEntity.deleted.isFalse())
+            .orderBy(rankPeriodJpaEntity.startAt.desc())
+            .limit(1)
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<RankPrizeResult> findActivePrizes() {
+        return queryFactory
+            .select(Projections.constructor(RankPrizeResult.class,
+                rankPrizeJpaEntity.id,
+                rankPrizeJpaEntity.prizeRank,
+                rankPrizeJpaEntity.name,
+                rankPrizeJpaEntity.brand,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
+            ))
+            .from(rankPeriodJpaEntity)
+            .innerJoin(rankPrizeJpaEntity).on(rankPrizeJpaEntity.rankId.eq(rankPeriodJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(rankPrizeJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .where(
+                rankPeriodJpaEntity.visible.isTrue(),
+                rankPeriodJpaEntity.deleted.isFalse(),
+                rankPrizeJpaEntity.deleted.isFalse()
+            )
+            .orderBy(rankPeriodJpaEntity.startAt.desc(), rankPrizeJpaEntity.prizeRank.asc())
+            .fetch();
+    }
+
+    @Override
+    public List<MemberRankResult> findMemberRanks(String rankType, LocalDate baseDate, int limit) {
+        return queryFactory
+            .select(memberRankProjection())
+            .from(memberReviewRankJpaEntity)
+            .innerJoin(memberJpaEntity).on(memberReviewRankJpaEntity.memberId.eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+            .where(
+                memberReviewRankJpaEntity.rankType.eq(rankType),
+                memberReviewRankJpaEntity.baseDate.eq(baseDate)
+            )
+            .orderBy(memberReviewRankJpaEntity.rankNo.asc())
+            .limit(limit)
+            .fetch();
+    }
+
+    @Override
+    public Optional<MemberRankResult> findMemberRank(Long memberId, String rankType, LocalDate baseDate) {
+        MemberRankResult result = queryFactory
+            .select(memberRankProjection())
+            .from(memberReviewRankJpaEntity)
+            .innerJoin(memberJpaEntity).on(memberReviewRankJpaEntity.memberId.eq(memberJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+            .where(
+                memberReviewRankJpaEntity.memberId.eq(memberId),
+                memberReviewRankJpaEntity.rankType.eq(rankType),
+                memberReviewRankJpaEntity.baseDate.eq(baseDate)
+            )
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<RankPeriodResult> findAllPeriods() {
+        return queryFactory
+            .select(rankPeriodProjection())
+            .from(rankPeriodJpaEntity)
+            .where(rankPeriodJpaEntity.deleted.isFalse())
+            .orderBy(rankPeriodJpaEntity.startAt.desc())
+            .fetch();
+    }
+
+    @Override
+    public Optional<RankPeriodResult> findPeriodById(Long id) {
+        RankPeriodResult result = queryFactory
+            .select(rankPeriodProjection())
+            .from(rankPeriodJpaEntity)
+            .where(rankPeriodJpaEntity.id.eq(id), rankPeriodJpaEntity.deleted.isFalse())
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<RankPrizeManagementResult> findPrizesByPeriodId(Long periodId) {
+        return queryFactory
+            .select(rankPrizeManagementProjection())
+            .from(rankPrizeJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
+            .where(rankPrizeJpaEntity.rankId.eq(periodId), rankPrizeJpaEntity.deleted.isFalse())
+            .orderBy(rankPrizeJpaEntity.prizeRank.asc())
+            .fetch();
+    }
+
+    @Override
+    public Optional<RankPrizeManagementResult> findPrizeById(Long id) {
+        RankPrizeManagementResult result = queryFactory
+            .select(rankPrizeManagementProjection())
+            .from(rankPrizeJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(rankPrizeJpaEntity.imageFileId))
+            .where(rankPrizeJpaEntity.id.eq(id), rankPrizeJpaEntity.deleted.isFalse())
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    private ConstructorExpression<MemberRankResult> memberRankProjection() {
+        return Projections.constructor(MemberRankResult.class,
+                memberReviewRankJpaEntity.memberId,
+            memberJpaEntity.nickname,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+            memberReviewRankJpaEntity.reviewCount,
+            memberReviewRankJpaEntity.rankNo,
+            memberJpaEntity.memberGrade.stringValue()
+        );
+    }
+
+    private ConstructorExpression<RankPeriodResult> rankPeriodProjection() {
+        return Projections.constructor(RankPeriodResult.class,
+                rankPeriodJpaEntity.id,
+            rankPeriodJpaEntity.startAt,
+            rankPeriodJpaEntity.endAt,
+            rankPeriodJpaEntity.visible,
+            rankPeriodJpaEntity.createdAt,
+            rankPeriodJpaEntity.updatedAt
+        );
+    }
+
+    private ConstructorExpression<RankPrizeManagementResult> rankPrizeManagementProjection() {
+        return Projections.constructor(RankPrizeManagementResult.class,
+                rankPrizeJpaEntity.id,
+            rankPrizeJpaEntity.rankId,
+            rankPrizeJpaEntity.prizeRank,
+            rankPrizeJpaEntity.name,
+            rankPrizeJpaEntity.brand,
+            rankPrizeJpaEntity.imageFileId,
+            uploadedFileJpaEntity.originalFilename,
+            fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
+        );
+    }
+
+    private NumberPath<Long> memberProfileImageFileId() {
+        return Expressions.numberPath(Long.class, memberJpaEntity, "profileImageFileId");
+    }
+}

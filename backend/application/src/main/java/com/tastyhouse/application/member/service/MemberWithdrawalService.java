@@ -9,33 +9,33 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
-import com.tastyhouse.application.member.port.out.write.MemberWithdrawalRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberWithdrawalService {
-    private final MemberRepository memberRepository;
-    private final MemberWithdrawalRepository memberWithdrawalRepository;
+    private final MemberPersistencePort memberPersistencePort;
+    private final MemberWithdrawalPersistencePort memberWithdrawalPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public MemberWithdrawalService(
-        MemberRepository memberRepository,
-        MemberWithdrawalRepository memberWithdrawalRepository,
+        MemberPersistencePort memberPersistencePort,
+        MemberWithdrawalPersistencePort memberWithdrawalPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberRepository = memberRepository;
-        this.memberWithdrawalRepository = memberWithdrawalRepository;
+        this.memberPersistencePort = memberPersistencePort;
+        this.memberWithdrawalPersistencePort = memberWithdrawalPersistencePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public void withdraw(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
-        Member member = memberRepository.findById(memberId)
+        Member member = memberPersistencePort.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         member.withdraw();
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
 
-        memberWithdrawalRepository.save(MemberWithdrawal.of(memberId, reason, reasonDetail));
+        memberWithdrawalPersistencePort.save(MemberWithdrawal.of(memberId, reason, reasonDetail));
 
         domainEventPublisher.publish(
             new MemberWithdrawnEvent(member.getMemberId(), reason, LocalDateTime.now())

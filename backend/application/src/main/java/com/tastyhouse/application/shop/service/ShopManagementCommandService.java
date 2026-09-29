@@ -107,9 +107,9 @@ import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 import com.tastyhouse.application.shop.port.in.TagCreateUseCase;
 import com.tastyhouse.application.shop.port.in.TagDeleteCommand;
 import com.tastyhouse.application.shop.port.in.TagDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopChoiceRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.TagRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopChoicePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
 @Service
 @AdminApp
@@ -157,26 +157,26 @@ public class ShopManagementCommandService implements
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopConvenienceInfoService shopConvenienceInfoService;
     private final ShopCeoAssignmentService shopCeoAssignmentService;
-    private final ShopDetailRepository shopDetailRepository;
-    private final ShopChoiceRepository shopChoiceRepository;
-    private final TagRepository tagRepository;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopChoicePersistencePort shopChoicePersistencePort;
+    private final TagPersistencePort tagPersistencePort;
 
     public ShopManagementCommandService(
         ShopLifecycleService shopLifecycleService,
         ShopBusinessHourService shopBusinessHourService,
         ShopConvenienceInfoService shopConvenienceInfoService,
         ShopCeoAssignmentService shopCeoAssignmentService,
-        ShopDetailRepository shopDetailRepository,
-        ShopChoiceRepository shopChoiceRepository,
-        TagRepository tagRepository
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopChoicePersistencePort shopChoicePersistencePort,
+        TagPersistencePort tagPersistencePort
     ) {
         this.shopLifecycleService = shopLifecycleService;
         this.shopBusinessHourService = shopBusinessHourService;
         this.shopConvenienceInfoService = shopConvenienceInfoService;
         this.shopCeoAssignmentService = shopCeoAssignmentService;
-        this.shopDetailRepository = shopDetailRepository;
-        this.shopChoiceRepository = shopChoiceRepository;
-        this.tagRepository = tagRepository;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopChoicePersistencePort = shopChoicePersistencePort;
+        this.tagPersistencePort = tagPersistencePort;
     }
 
     @Override
@@ -369,7 +369,7 @@ public class ShopManagementCommandService implements
             sort,
             visible
         );
-        return shopDetailRepository.saveAmenityCategory(amenityCategory).getId();
+        return shopDetailPersistencePort.saveAmenityCategory(amenityCategory).getId();
     }
 
     @Override
@@ -381,7 +381,7 @@ public class ShopManagementCommandService implements
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopAmenityCategory amenityCategory = shopDetailRepository.findAmenityCategoryById(categoryId)
+        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         amenityCategory.update(
             displayName,
@@ -390,7 +390,7 @@ public class ShopManagementCommandService implements
             sort,
             visible
         );
-        shopDetailRepository.saveAmenityCategory(amenityCategory);
+        shopDetailPersistencePort.saveAmenityCategory(amenityCategory);
     }
 
     @Override
@@ -410,7 +410,7 @@ public class ShopManagementCommandService implements
             sort,
             visible
         );
-        return shopDetailRepository.saveFoodTypeCategory(foodTypeCategory).getId();
+        return shopDetailPersistencePort.saveFoodTypeCategory(foodTypeCategory).getId();
     }
 
     @Override
@@ -422,7 +422,7 @@ public class ShopManagementCommandService implements
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopFoodTypeCategory foodTypeCategory = shopDetailRepository.findFoodTypeCategoryById(categoryId)
+        ShopFoodTypeCategory foodTypeCategory = shopDetailPersistencePort.findFoodTypeCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         foodTypeCategory.update(
             displayName,
@@ -431,7 +431,7 @@ public class ShopManagementCommandService implements
             sort,
             visible
         );
-        shopDetailRepository.saveFoodTypeCategory(foodTypeCategory);
+        shopDetailPersistencePort.saveFoodTypeCategory(foodTypeCategory);
     }
 
     @Override
@@ -459,9 +459,9 @@ public class ShopManagementCommandService implements
         Long id = command.shopId();
         Long foodTypeCategoryId = command.foodTypeCategoryId();
 
-        shopDetailRepository.findFoodTypeCategoryById(foodTypeCategoryId)
+        shopDetailPersistencePort.findFoodTypeCategoryById(foodTypeCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
-        ShopFoodType foodType = shopDetailRepository.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
+        ShopFoodType foodType = shopDetailPersistencePort.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
         return foodType.getId();
     }
 
@@ -470,14 +470,14 @@ public class ShopManagementCommandService implements
         Long id = command.shopId();
         Long foodTypeCategoryId = command.foodTypeCategoryId();
 
-        shopDetailRepository.deleteFoodTypeByShopIdAndCategoryId(id, foodTypeCategoryId);
+        shopDetailPersistencePort.deleteFoodTypeByShopIdAndCategoryId(id, foodTypeCategoryId);
     }
 
     @Override
     public Long createTag(TagCreateCommand command) {
         String tagName = command.tagName();
 
-        Tag tag = tagRepository.save(Tag.of(tagName));
+        Tag tag = tagPersistencePort.save(Tag.of(tagName));
         return tag.getId();
     }
 
@@ -485,7 +485,7 @@ public class ShopManagementCommandService implements
     public void deleteTag(TagDeleteCommand command) {
         Long id = command.tagId();
 
-        tagRepository.deleteById(id);
+        tagPersistencePort.deleteById(id);
     }
 
     @Override
@@ -493,7 +493,7 @@ public class ShopManagementCommandService implements
         Long id = command.shopId();
         String orderMethod = command.orderMethod();
 
-        ShopOrderMethod saved = shopDetailRepository.saveOrderMethod(
+        ShopOrderMethod saved = shopDetailPersistencePort.saveOrderMethod(
             ShopOrderMethod.of(ShopId.of(id), OrderMethod.from(orderMethod))
         );
         return saved.getId();
@@ -504,7 +504,7 @@ public class ShopManagementCommandService implements
         Long id = command.shopId();
         String orderMethod = command.orderMethod();
 
-        shopDetailRepository.deleteOrderMethodByShopIdAndOrderMethod(id, OrderMethod.from(orderMethod));
+        shopDetailPersistencePort.deleteOrderMethodByShopIdAndOrderMethod(id, OrderMethod.from(orderMethod));
     }
 
     @Override
@@ -513,7 +513,7 @@ public class ShopManagementCommandService implements
         Long imageFileId = command.imageFileId();
         Integer sort = command.sort();
 
-        ShopBannerImage bannerImage = shopDetailRepository.saveBannerImage(
+        ShopBannerImage bannerImage = shopDetailPersistencePort.saveBannerImage(
             ShopBannerImage.of(ShopId.of(id), UploadedFileId.of(imageFileId), sort)
         );
         return bannerImage.getId();
@@ -523,7 +523,7 @@ public class ShopManagementCommandService implements
     public void deleteBannerImage(ShopBannerImageDeleteCommand command) {
         Long bannerImageId = command.bannerImageId();
 
-        shopDetailRepository.deleteBannerImageById(bannerImageId);
+        shopDetailPersistencePort.deleteBannerImageById(bannerImageId);
     }
 
     @Override
@@ -531,7 +531,7 @@ public class ShopManagementCommandService implements
         Long id = command.shopId();
         String name = command.name();
 
-        ShopPhotoCategory photoCategory = shopDetailRepository.savePhotoCategory(ShopPhotoCategory.of(ShopId.of(id), name));
+        ShopPhotoCategory photoCategory = shopDetailPersistencePort.savePhotoCategory(ShopPhotoCategory.of(ShopId.of(id), name));
         return photoCategory.getId();
     }
 
@@ -540,17 +540,17 @@ public class ShopManagementCommandService implements
         Long categoryId = command.categoryId();
         String name = command.name();
 
-        ShopPhotoCategory photoCategory = shopDetailRepository.findPhotoCategoryById(categoryId)
+        ShopPhotoCategory photoCategory = shopDetailPersistencePort.findPhotoCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
         photoCategory.update(name);
-        shopDetailRepository.savePhotoCategory(photoCategory);
+        shopDetailPersistencePort.savePhotoCategory(photoCategory);
     }
 
     @Override
     public void deletePhotoCategory(ShopPhotoCategoryDeleteCommand command) {
         Long categoryId = command.categoryId();
 
-        shopDetailRepository.deletePhotoCategoryById(categoryId);
+        shopDetailPersistencePort.deletePhotoCategoryById(categoryId);
     }
 
     @Override
@@ -560,7 +560,7 @@ public class ShopManagementCommandService implements
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopPhotoCategoryImage image = shopDetailRepository.savePhotoCategoryImage(
+        ShopPhotoCategoryImage image = shopDetailPersistencePort.savePhotoCategoryImage(
             ShopPhotoCategoryImage.of(
                 ShopPhotoCategoryId.of(categoryId),
                 UploadedFileId.of(imageFileId),
@@ -578,17 +578,17 @@ public class ShopManagementCommandService implements
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopPhotoCategoryImage image = shopDetailRepository.findPhotoCategoryImageById(imageId)
+        ShopPhotoCategoryImage image = shopDetailPersistencePort.findPhotoCategoryImageById(imageId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
         image.update(UploadedFileId.of(imageFileId), sort, visible);
-        shopDetailRepository.savePhotoCategoryImage(image);
+        shopDetailPersistencePort.savePhotoCategoryImage(image);
     }
 
     @Override
     public void deletePhotoCategoryImage(ShopPhotoCategoryImageDeleteCommand command) {
         Long imageId = command.imageId();
 
-        shopDetailRepository.deletePhotoCategoryImageById(imageId);
+        shopDetailPersistencePort.deletePhotoCategoryImageById(imageId);
     }
 
     @Override
@@ -597,7 +597,7 @@ public class ShopManagementCommandService implements
         String title = command.title();
         String content = command.content();
 
-        ShopChoice shopChoice = shopChoiceRepository.save(ShopChoice.of(ShopId.of(shopId), title, content));
+        ShopChoice shopChoice = shopChoicePersistencePort.save(ShopChoice.of(ShopId.of(shopId), title, content));
         return shopChoice.getId();
     }
 
@@ -607,16 +607,16 @@ public class ShopManagementCommandService implements
         String title = command.title();
         String content = command.content();
 
-        ShopChoice shopChoice = shopChoiceRepository.findById(id)
+        ShopChoice shopChoice = shopChoicePersistencePort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
         shopChoice.update(title, content);
-        shopChoiceRepository.save(shopChoice);
+        shopChoicePersistencePort.save(shopChoice);
     }
 
     @Override
     public void deleteShopChoice(ShopChoiceDeleteCommand command) {
         Long id = command.choiceId();
 
-        shopChoiceRepository.deleteById(id);
+        shopChoicePersistencePort.deleteById(id);
     }
 }

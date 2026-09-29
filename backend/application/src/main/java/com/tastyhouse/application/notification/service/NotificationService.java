@@ -12,13 +12,13 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.notification.port.out.write.NotificationRepository;
+import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
 
 public class NotificationService {
-    private final NotificationRepository notificationRepository;
+    private final NotificationPersistencePort notificationPersistencePort;
 
-    public NotificationService(NotificationRepository notificationRepository) {
-        this.notificationRepository = notificationRepository;
+    public NotificationService(NotificationPersistencePort notificationPersistencePort) {
+        this.notificationPersistencePort = notificationPersistencePort;
     }
 
     public Long notify(
@@ -29,7 +29,7 @@ public class NotificationService {
         NotificationTargetType targetType,
         Long targetId
     ) {
-        Notification saved = notificationRepository.save(
+        Notification saved = notificationPersistencePort.save(
             Notification.of(memberId, type, title, body, targetType, targetId)
         );
         return saved.getId();
@@ -58,7 +58,7 @@ public class NotificationService {
     }
 
     public void markAsRead(NotificationId notificationId, MemberId memberId, LocalDateTime readAt) {
-        Notification notification = notificationRepository.findById(notificationId)
+        Notification notification = notificationPersistencePort.findById(notificationId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND));
 
         if (!notification.getMemberId().equals(memberId)) {
@@ -66,16 +66,16 @@ public class NotificationService {
         }
 
         notification.markAsRead(readAt);
-        notificationRepository.save(notification);
+        notificationPersistencePort.save(notification);
     }
 
     public void markAllAsRead(MemberId memberId, LocalDateTime readAt) {
-        List<Notification> unread = notificationRepository.findUnreadByMemberId(memberId);
+        List<Notification> unread = notificationPersistencePort.findUnreadByMemberId(memberId);
         if (unread.isEmpty()) {
             return;
         }
 
         unread.forEach(notification -> notification.markAsRead(readAt));
-        notificationRepository.saveAll(unread);
+        notificationPersistencePort.saveAll(unread);
     }
 }

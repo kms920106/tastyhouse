@@ -22,23 +22,23 @@ import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
 
 @Service
 @CeoApp
 @Transactional
 public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCase {
 
-    private final ShopSuspensionRepository shopSuspensionRepository;
+    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopSuspensionCommandService(
-        ShopSuspensionRepository shopSuspensionRepository,
+        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopSuspensionRepository = shopSuspensionRepository;
+        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -65,7 +65,7 @@ public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCas
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopSuspension shopSuspension = shopSuspensionRepository.findById(suspensionId)
+        ShopSuspension shopSuspension = shopSuspensionPersistencePort.findById(suspensionId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND));
         if (!shopSuspension.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND);
@@ -73,7 +73,7 @@ public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCas
 
         String previousValue = describeSuspension(shopSuspension);
         shopSuspension.release(LocalDateTime.now());
-        shopSuspensionRepository.save(shopSuspension);
+        shopSuspensionPersistencePort.save(shopSuspension);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(
@@ -116,10 +116,10 @@ public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCas
             : orderMethods.stream().map(OrderMethod::from).toList();
 
         ShopId shopIdVo = ShopId.of(shopId);
-        String previousValue = describeSuspensions(shopSuspensionRepository.findByShopId(shopId));
+        String previousValue = describeSuspensions(shopSuspensionPersistencePort.findByShopId(shopId));
 
         List<Long> createdIds = targetOrderMethods.stream()
-            .map(orderMethod -> shopSuspensionRepository
+            .map(orderMethod -> shopSuspensionPersistencePort
                 .save(ShopSuspension.of(shopIdVo, suspensionReason, orderMethod, startAt, endAt))
                 .getId())
             .toList();
@@ -130,7 +130,7 @@ public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCas
             ShopChangeActionType.CREATE,
             actor,
             previousValue,
-            describeSuspensions(shopSuspensionRepository.findByShopId(shopId))
+            describeSuspensions(shopSuspensionPersistencePort.findByShopId(shopId))
         );
         return createdIds;
     }

@@ -2,13 +2,13 @@ package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 public class ShopNoticeExposureService {
-    private final ShopNoticeRepository shopNoticeRepository;
+    private final ShopNoticePersistencePort shopNoticePersistencePort;
 
-    public ShopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
-        this.shopNoticeRepository = shopNoticeRepository;
+    public ShopNoticeExposureService(ShopNoticePersistencePort shopNoticePersistencePort) {
+        this.shopNoticePersistencePort = shopNoticePersistencePort;
     }
 
     public void expose(ShopId shopId, ShopNotice target) {
@@ -16,18 +16,18 @@ public class ShopNoticeExposureService {
             throw new IllegalArgumentException("영속되지 않은 공지는 노출할 수 없습니다.");
         }
 
-        shopNoticeRepository.findExposedByShopId(shopId)
+        shopNoticePersistencePort.findExposedByShopId(shopId)
             .filter(current -> !current.getId().equals(target.getId()))
             .ifPresent(current -> {
                 current.unexpose();
-                shopNoticeRepository.save(current);
+                shopNoticePersistencePort.save(current);
             });
         target.expose();
-        shopNoticeRepository.save(target);
+        shopNoticePersistencePort.save(target);
     }
 
     public void unexpose(ShopNotice target) {
         target.unexpose();
-        shopNoticeRepository.save(target);
+        shopNoticePersistencePort.save(target);
     }
 }

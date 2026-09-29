@@ -9,25 +9,25 @@ import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 
 public class ShopRequestCancelService {
-    private final ShopImageChangeRequestRepository shopImageChangeRequestRepository;
-    private final ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository;
-    private final ReviewBlindRequestRepository reviewBlindRequestRepository;
+    private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
+    private final ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort;
+    private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopRequestCancelService(
-        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
-        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
-        ReviewBlindRequestRepository reviewBlindRequestRepository,
+        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
+        ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort,
+        ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopImageChangeRequestRepository = shopImageChangeRequestRepository;
-        this.shopDeliveryAreaAdjustmentRequestRepository = shopDeliveryAreaAdjustmentRequestRepository;
-        this.reviewBlindRequestRepository = reviewBlindRequestRepository;
+        this.shopImageChangeRequestPersistencePort = shopImageChangeRequestPersistencePort;
+        this.shopDeliveryAreaAdjustmentRequestPersistencePort = shopDeliveryAreaAdjustmentRequestPersistencePort;
+        this.reviewBlindRequestPersistencePort = reviewBlindRequestPersistencePort;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
@@ -45,27 +45,27 @@ public class ShopRequestCancelService {
     }
 
     private void cancelImageChange(Long sourceRequestId) {
-        ShopImageChangeRequest request = shopImageChangeRequestRepository.findById(sourceRequestId)
+        ShopImageChangeRequest request = shopImageChangeRequestPersistencePort.findById(sourceRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
-        shopImageChangeRequestRepository.save(request);
+        shopImageChangeRequestPersistencePort.save(request);
     }
 
     private void cancelReviewBlind(Long sourceRequestId) {
-        ReviewBlindRequest request = reviewBlindRequestRepository
+        ReviewBlindRequest request = reviewBlindRequestPersistencePort
             .findById(ReviewBlindRequestId.of(sourceRequestId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
         if (request.getStatus() != ReviewBlindStatus.PENDING) {
             throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         request.cancel();
-        reviewBlindRequestRepository.save(request);
+        reviewBlindRequestPersistencePort.save(request);
     }
 
     private void cancelAdjustment(Long sourceRequestId) {
-        ShopDeliveryAreaAdjustmentRequest request = shopDeliveryAreaAdjustmentRequestRepository.findById(sourceRequestId)
+        ShopDeliveryAreaAdjustmentRequest request = shopDeliveryAreaAdjustmentRequestPersistencePort.findById(sourceRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
-        shopDeliveryAreaAdjustmentRequestRepository.save(request);
+        shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
     }
 }

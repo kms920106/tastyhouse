@@ -21,12 +21,12 @@ class ShopRequestIndexRecorderTest {
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long SOURCE_ID = 500L;
 
-    private RecordingShopRequestIndexRepository repository;
+    private RecordingShopRequestIndexPersistencePort repository;
     private ShopRequestIndexRecorder recorder;
 
     @BeforeEach
     void setUp() {
-        repository = new RecordingShopRequestIndexRepository();
+        repository = new RecordingShopRequestIndexPersistencePort();
         recorder = new ShopRequestIndexRecorder(repository);
     }
 

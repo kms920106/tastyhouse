@@ -14,20 +14,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReferralRewardCompletionServiceTest {
-    private final FakeMemberReferralRepository referralRepository = new FakeMemberReferralRepository();
+    private final FakeMemberReferralPersistencePort referralPersistencePort = new FakeMemberReferralPersistencePort();
     private final ReferralRewardCompletionService service =
-        new ReferralRewardCompletionService(referralRepository);
+        new ReferralRewardCompletionService(referralPersistencePort);
 
     @Test
     @DisplayName("보상 완료 전이는 REWARDED로 바꾼 결과를 저장까지 반영한다")
     void completesAndPersists() {
-        MemberReferral saved = referralRepository.save(
+        MemberReferral saved = referralPersistencePort.save(
             MemberReferral.register(MemberId.of(101L), MemberId.of(202L))
         );
 
         service.complete(saved.getReferralId());
 
-        assertThat(referralRepository.findById(saved.getReferralId()).orElseThrow().getStatus())
+        assertThat(referralPersistencePort.findById(saved.getReferralId()).orElseThrow().getStatus())
             .as("전이 후 save를 호출하지 않으면 변경이 유실된다")
             .isEqualTo(MemberReferralStatus.REWARDED);
     }
@@ -35,7 +35,7 @@ class ReferralRewardCompletionServiceTest {
     @Test
     @DisplayName("이미 보상 완료된 추천 관계를 다시 전이시키면 거절한다")
     void rejectsDuplicateCompletion() {
-        MemberReferral saved = referralRepository.save(
+        MemberReferral saved = referralPersistencePort.save(
             MemberReferral.register(MemberId.of(101L), MemberId.of(202L))
         );
         service.complete(saved.getReferralId());

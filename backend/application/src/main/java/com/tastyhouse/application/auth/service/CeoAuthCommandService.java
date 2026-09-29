@@ -24,7 +24,7 @@ import com.tastyhouse.application.auth.token.CeoTokenService;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
@@ -35,18 +35,18 @@ public class CeoAuthCommandService implements CeoAuthCommandUseCase {
 
     private final AuthenticationManager authenticationManager;
     private final CeoTokenService tokenService;
-    private final CeoRepository ceoRepository;
+    private final CeoPersistencePort ceoPersistencePort;
     private final CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandUseCase;
 
     public CeoAuthCommandService(
         AuthenticationManager authenticationManager,
         CeoTokenService tokenService,
-        CeoRepository ceoRepository,
+        CeoPersistencePort ceoPersistencePort,
         CeoLoginHistoryCommandUseCase ceoLoginHistoryCommandUseCase
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
-        this.ceoRepository = ceoRepository;
+        this.ceoPersistencePort = ceoPersistencePort;
         this.ceoLoginHistoryCommandUseCase = ceoLoginHistoryCommandUseCase;
     }
 
@@ -93,7 +93,7 @@ public class CeoAuthCommandService implements CeoAuthCommandUseCase {
         String userAgent
     ) {
         try {
-            Optional<Ceo> ceo = ceoRepository.findByUsername(username);
+            Optional<Ceo> ceo = ceoPersistencePort.findByUsername(username);
             if (ceo.isEmpty()) {
 
                 return;

@@ -10,8 +10,8 @@
 >
 > | 항목 | before (03b) | after (현행) |
 > |---|---|---|
-> | 구현하는 write 포트 | `application/<ctx>/port/out/write/XxxStatePort`(State 시그니처) | **`application/<ctx>/port/out/write/XxxRepository`**(도메인 모델 시그니처 — 03a와 같음) |
-> | 구현 클래스 | `<ctx>/persistence/XxxStatePortImpl` | **`<ctx>/persistence/XxxRepositoryImpl`**(`@Repository`) — 106개(`StationRepositoryImpl` 포함). application Store에 있던 로직(빈 컬렉션 조기 반환·`LinkedHashSet` 수집·도메인 정책 상수 호출)도 여기로 옮겼다 |
+> | 구현하는 write 포트 | `application/<ctx>/port/out/write/XxxStatePort`(State 시그니처) | **`application/<ctx>/port/out/write/XxxPersistencePort`**(도메인 모델 시그니처 — 03a와 같음) |
+> | 구현 클래스 | `<ctx>/persistence/XxxStatePortImpl` | **`<ctx>/persistence/XxxPersistenceAdapter`**(`@Repository`) — 106개(`StationPersistenceAdapter` 포함). application Store에 있던 로직(빈 컬렉션 조기 반환·`LinkedHashSet` 수집·도메인 정책 상수 호출)도 여기로 옮겼다 |
 > | 매퍼 `XxxMapper` | `toState(entity)`·`toEntity(state)`·`applyChanges(entity, state)` | **`toDomain(entity)`·`toEntity(domain)`·`applyChanges(entity, domain)`** — application `XxxStateMapper`의 표현식(null 가드·`valueOf`·`Xxx.of`)을 **한 글자도 바꾸지 않고** 흡수 |
 > | 엔티티 enum 필드 · `@Embedded` 대상 | `String` · `XxxEmbeddable` 5종 | **불변** — 아래 근거 |
 > | 매퍼 테스트 | application `store/*StateMapperTest` 81개 + 이 모듈 `*MapperTest` 5개 | **이 모듈 `<ctx>/persistence/XxxMapperTest`** — Domain→Entity / Entity→Domain 두 방향 검증(아래 봉인 항목) |
@@ -25,8 +25,8 @@
 >
 > | 항목 | before (03a까지) | after (03b) |
 > |---|---|---|
-> | 구현하는 write 포트 | `application/<ctx>/port/out/write/XxxRepository`(도메인 모델 시그니처) | **`application/<ctx>/port/out/write/XxxStatePort`**(`XxxState`·`Long`·`String` 시그니처, 메서드 이름은 Repository와 같음) |
-> | 구현 클래스 | `<ctx>/persistence/XxxRepositoryImpl` | **`<ctx>/persistence/XxxStatePortImpl`**(`git mv` 개명, `@Repository` 유지) — 105개. 예외: 도메인 타입을 쓰지 않는 `shop/persistence/StationRepositoryImpl`(`StationRepository#existsById(Long)`)만 이름·포트 그대로 |
+> | 구현하는 write 포트 | `application/<ctx>/port/out/write/XxxPersistencePort`(도메인 모델 시그니처) | **`application/<ctx>/port/out/write/XxxStatePort`**(`XxxState`·`Long`·`String` 시그니처, 메서드 이름은 Repository와 같음) |
+> | 구현 클래스 | `<ctx>/persistence/XxxPersistenceAdapter` | **`<ctx>/persistence/XxxStatePortImpl`**(`git mv` 개명, `@Repository` 유지) — 105개. 예외: 도메인 타입을 쓰지 않는 `shop/persistence/StationPersistenceAdapter`(`StationPersistencePort#existsById(Long)`)만 이름·포트 그대로 |
 > | 매퍼 `XxxMapper` | `toDomain(entity)`·`toEntity(domain)`·`applyChanges(entity, domain)` | **`toState(entity)`·`toEntity(state)`·`applyChanges(entity, state)`** |
 > | 엔티티 enum 필드 | 도메인 enum + `@Enumerated(EnumType.STRING)` | **`String`**, `@Enumerated` 0건. `@Column(... columnDefinition = "VARCHAR(n)")`은 글자 하나 바꾸지 않음(DDL 불변) |
 > | `@Embedded` 대상 | domain VO record(`PhoneNumber` 등) | **이 모듈 소유 `@Embeddable` record `XxxEmbeddable`** 5종 |
@@ -37,9 +37,9 @@
 >
 > **(03b) 감수한 동작 차이 — enum 문자열 앞뒤 공백.** 03a까지는 Hibernate `@Enumerated(STRING)`이 복원할 때 `EnumJavaType.fromName`에서 `Enum.valueOf(cls, value.trim())`을 호출해, DB 값에 앞뒤 공백이 있어도(`'ACTIVE '`) 정상 복원했다. 03b부터는 엔티티 필드가 `String`이고 `application/<ctx>/store/*StateMapper.toDomain`이 `Enum.valueOf(state.x())`를 trim 없이 호출하므로, 같은 값은 `IllegalArgumentException`(500)이 된다. **(persistence domain 재허용 후에도 유효)** 그 표현식을 이 모듈의 `XxxMapper#toDomain`이 그대로 옮겨 받았으므로 trim 없는 동작도 그대로다. 앱이 쓰는 값은 전부 `name()`이라 공백이 생기지 않으므로, 수동 입력·레거시 데이터에만 해당하는 차이로 보고 감수했다. 이런 데이터가 발견되면 매퍼(현행 `XxxMapper`)를 고치지 말고 데이터를 정정한다.
 
-> ~~**이 문서 본문의 `XxxRepositoryImpl`은 `XxxStatePortImpl`로, "매퍼의 `toDomain`"은 "매퍼의 `toState`"로 읽는다**(예: `FaqCategoryRepositoryImpl` → `FaqCategoryStatePortImpl`, `ReservationSlotRepositoryImpl` → `ReservationSlotStatePortImpl`).~~ **(번복됨 — persistence domain 재허용)** 이름이 다시 `XxxRepositoryImpl`·`toDomain`으로 돌아왔으므로 본문의 `XxxRepositoryImpl`·`toDomain`은 **그대로 현행**이다. 본문 곳곳의 "(03b) `XxxStatePortImpl`"·"`toState`" 표기는 `XxxRepositoryImpl`·`toDomain`으로 읽는다. 규칙의 내용(load-copy-save, PK 조회에 소프트 삭제 필터 금지, 벌크 delete 등)은 그대로다.
+> ~~**이 문서 본문의 `XxxPersistenceAdapter`은 `XxxStatePortImpl`로, "매퍼의 `toDomain`"은 "매퍼의 `toState`"로 읽는다**(예: `FaqCategoryPersistenceAdapter` → `FaqCategoryStatePortImpl`, `ReservationSlotPersistenceAdapter` → `ReservationSlotStatePortImpl`).~~ **(번복됨 — persistence domain 재허용)** 이름이 다시 `XxxPersistenceAdapter`·`toDomain`으로 돌아왔으므로 본문의 `XxxPersistenceAdapter`·`toDomain`은 **그대로 현행**이다. 본문 곳곳의 "(03b) `XxxStatePortImpl`"·"`toState`" 표기는 `XxxPersistenceAdapter`·`toDomain`으로 읽는다. 규칙의 내용(load-copy-save, PK 조회에 소프트 삭제 필터 금지, 벌크 delete 등)은 그대로다.
 
-`domain`의 순수 도메인 모델을 영속화하고(~~(03b) `application`이 도메인 모델에서 만든 `XxxState`를 영속화하고~~ — 번복됨, persistence domain 재허용), 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxRepository` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 domain 모델. ~~03b로 이 모듈이 구현하는 것은 `XxxStatePort`가 됐다~~ — 번복됨, 다시 `XxxRepository`를 구현한다)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain`의 순수 도메인 모델을 영속화하고(~~(03b) `application`이 도메인 모델에서 만든 `XxxState`를 영속화하고~~ — 번복됨, persistence domain 재허용), 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxPersistencePort` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 domain 모델. ~~03b로 이 모듈이 구현하는 것은 `XxxStatePort`가 됐다~~ — 번복됨, 다시 `XxxPersistencePort`를 구현한다)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
@@ -59,34 +59,34 @@ com.tastyhouse.infrastructure/
     │   ├── XxxMapper.java                엔티티 ↔ 도메인 변환 (package-private, toDomain/toEntity(domain)/applyChanges(entity, domain))
     │   │                                 enum valueOf/name, VO of/value, Embeddable 변환, null 가드
     │   ├── XxxJpaRepository.java         Spring Data JpaRepository<XxxJpaEntity, Long>
-    │   └── XxxRepositoryImpl.java        @Repository — application XxxRepository(port/out/write) 구현, load-copy-save
+    │   └── XxxPersistenceAdapter.java        @Repository — application XxxPersistencePort(port/out/write) 구현, load-copy-save
     │                                     (03b 동안은 XxxStatePortImpl — 번복됨. XxxIdConverter는 정책 B로 이미 삭제)
     └── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**, domain을 모른다(queryShouldNotDependOnDomain)
-        └── XxxQueryDao.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
+        └── XxxQueryAdapter.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
                                           (챕터 04 이후 포트는 소비 앱별로 갈려 DAO 하나가 여러 개를 구현한다)
                                           JPAQueryFactory + QXxxJpaEntity로 `Projections.constructor(XxxResult.class, ...)` 투영
 ```
 
-**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐고, 소유 모듈은 `application` 하나다(챕터 04로 공유 계약까지 돌아와 단독 소유가 됐다). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryDao`만 남는다.
+**Result record·SearchCondition은 이 패키지에 없다 (개정 — 읽기 경로 포트화, 챕터 04).** `{용도}Result`·`{도메인}SearchCondition`은 `com.tastyhouse.application.<ctx>.port.out`으로 이관됐고, 소유 모듈은 `application` 하나다(챕터 04로 공유 계약까지 돌아와 단독 소유가 됐다). `<ctx>/query/`에는 이제 읽기 포트를 구현하는 `XxxQueryAdapter`만 남는다.
 
 현재 `<ctx>/query/`를 가진 도메인: `banner`·`bug`·`ceo`·`coupon`·`event`·`faq`·`member`(+`follow`/`referral`)·`notice`·`order`·`partnership`·`payment`·`point`·`policy`·`product`·`rank`·`reservation`·`review`·`search`·`shop`. `<ctx>/listener/`는 이 모듈에 없다 — 도메인 이벤트 리스너 12종은 `application`으로 이동했다(아래 규칙 절의 번복 항목 참고).
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.infrastructure`** — **챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`으로 스스로 스캔**해 빈(RepositoryImpl·QueryDao·Config)을 등록한다(`redis` 하위 패키지는 `excludeFilters`로 제외 — 그쪽은 `RedisModuleAutoConfiguration`이 갖는다). 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄만 갖는다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
+- **패키지 루트는 `com.tastyhouse.infrastructure`** — **챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`으로 스스로 스캔**해 빈(PersistenceAdapter·QueryAdapter·Config)을 등록한다(`redis` 하위 패키지는 `excludeFilters`로 제외 — 그쪽은 `RedisModuleAutoConfiguration`이 갖는다). 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄만 갖는다. JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
 - **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
-- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. write 포트 `XxxRepository`(`..port.out.write..`)와 스펙 record(`ReviewSortSpec` 등, `..port.out..`)도 같은 예외로 보인다. ~~**(03b)** `XxxState`·`XxxSnapshot`·`XxxStatePort`가 여기 있었고, 도메인 타입을 쓰는 `application/<ctx>/store/`(`XxxRepository`·`XxxStore`)는 `port.out` 밖이라 이 모듈이 볼 수 없었다.~~ **(번복됨 — persistence domain 재허용)** `store`가 사라지고 `XxxRepository`가 `port.out.write`로 돌아와 이 예외로 보인다.
-- **조회 DAO(`..query..`)는 `domain`을 참조하지 않는다 (persistence domain 재허용으로 개정)**: `LayerRulesTest#queryShouldNotDependOnDomain` — 대상은 `com.tastyhouse.infrastructure..query..`와 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)다. `build.gradle`이 `:domain`을 다시 선언해 컴파일 게이트가 없으므로 **이 규칙이 유일한 방어선이다 — 지우지 않는다.** 조회 쪽에서 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 DAO에 domain을 들이지 말고, 원자료를 돌려주고 application의 QueryService가 판정하게 한다. write 어댑터(`..persistence..`의 `XxxRepositoryImpl`·`XxxMapper`)는 대상이 아니다 — 도메인 모델을 직접 다루는 것이 그 일이다.
+- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. write 포트 `XxxPersistencePort`(`..port.out.write..`)와 스펙 record(`ReviewSortSpec` 등, `..port.out..`)도 같은 예외로 보인다. ~~**(03b)** `XxxState`·`XxxSnapshot`·`XxxStatePort`가 여기 있었고, 도메인 타입을 쓰는 `application/<ctx>/store/`(`XxxPersistencePort`·`XxxStore`)는 `port.out` 밖이라 이 모듈이 볼 수 없었다.~~ **(번복됨 — persistence domain 재허용)** `store`가 사라지고 `XxxPersistencePort`가 `port.out.write`로 돌아와 이 예외로 보인다.
+- **조회 DAO(`..query..`)는 `domain`을 참조하지 않는다 (persistence domain 재허용으로 개정)**: `LayerRulesTest#queryShouldNotDependOnDomain` — 대상은 `com.tastyhouse.infrastructure..query..`와 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)다. `build.gradle`이 `:domain`을 다시 선언해 컴파일 게이트가 없으므로 **이 규칙이 유일한 방어선이다 — 지우지 않는다.** 조회 쪽에서 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 DAO에 domain을 들이지 말고, 원자료를 돌려주고 application의 QueryService가 판정하게 한다. write 어댑터(`..persistence..`의 `XxxPersistenceAdapter`·`XxxMapper`)는 대상이 아니다 — 도메인 모델을 직접 다루는 것이 그 일이다.
 - ~~**이 모듈은 `domain`을 참조하지 않는다 (덩어리 03b 신설)**: `LayerRulesTest#infrastructureShouldNotDependOnDomain`. `build.gradle`에서 `:domain`을 뺐으므로 컴파일 게이트가 1차 방어선이다.~~ **(번복됨 — persistence domain 재허용, 위 항목으로 대상 축소)**
 - **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
 - **Q타입 생성 위치 (개정됨)**: `QXxxJpaEntity`(엔티티)는 이 모듈에서 생성된다(`build/generated/sources/annotationProcessor/java/main`). **`QXxxResult`(Result DTO의 Q타입)는 더 이상 생성되지 않는다** — Result record가 QueryDSL을 모르는 계약 모듈로 이관되며 `@QueryProjection`을 뗐고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건). 계약 소유 모듈 어디에도 apt가 없어 Q타입이 생성되지 않는다.
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 `mail`·`sms` 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
 - **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`). **(번복됨 — 03b) `@Embedded` 대상은 domain VO가 아니라 이 모듈의 `@Embeddable` record다** — `shared/persistence/PhoneNumberEmbeddable(String value)`·`shared/persistence/VerificationCodeEmbeddable`·`product/persistence/ProductDiscountInfoEmbeddable`·`order/persistence/OrderDeliveryDestinationEmbeddable`·`order/persistence/OrderScheduleEmbeddable`. 이름 규칙은 `<domain VO 이름>Embeddable`, 위치는 쓰는 엔티티와 같은 패키지(여러 컨텍스트가 쓰면 `shared/persistence/`). 컴포넌트 이름은 domain VO와 같게 두어 `@AttributeOverride(name = ...)`를 한 글자도 바꾸지 않았고, **컴포넌트 선언 순서는 알파벳순**(`EmbeddedRecordComponentOrderTest`), 그 안의 enum·VO 컴포넌트는 원시 타입(`String`·`Long`·`Integer`·`BigDecimal`)이다. ~~State 쪽에서는 이 값이 `XxxSnapshot` record(예: `OrderDeliveryDestinationSnapshot`)나 원시 컴포넌트로 온다.~~ **(번복됨 — persistence domain 재허용)** `XxxSnapshot`은 삭제됐고 `XxxMapper`가 domain VO ↔ `XxxEmbeddable`을 직접 변환한다(예: `OrderDeliveryDestination` ↔ `OrderDeliveryDestinationEmbeddable`). domain을 다시 볼 수 있게 됐지만 **`@Embedded` 대상을 domain VO로 되돌리지 않는다** — 엔티티 `String` 컬럼을 유지하는 것과 같은 이유다.
-- **저장 시맨틱은 load-copy-save**: ~~**(03b — 위치만)** 아래 `save(domain)`은 지금 `XxxStatePortImpl#save(XxxState)`다.~~ **(번복됨 — persistence domain 재허용)** 다시 `XxxRepositoryImpl#save(domain)`이다(`domain.getId() == null`이면 `XxxMapper.toEntity(domain)` insert, 아니면 PK 조회 후 `XxxMapper.applyChanges(entity, domain)`, 반환은 `XxxMapper.toDomain(entity)`). `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
-- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotRepositoryImpl` — 03b 동안은 `ReservationSlotStatePortImpl`, 번복됨). 예외 타입은 `application/shared/port/out/`에 그대로 있다(03a가 03b를 위해 옮겨 둔 것 — persistence domain 재허용 후에도 되돌리지 않았다). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
+- **저장 시맨틱은 load-copy-save**: ~~**(03b — 위치만)** 아래 `save(domain)`은 지금 `XxxStatePortImpl#save(XxxState)`다.~~ **(번복됨 — persistence domain 재허용)** 다시 `XxxPersistenceAdapter#save(domain)`이다(`domain.getId() == null`이면 `XxxMapper.toEntity(domain)` insert, 아니면 PK 조회 후 `XxxMapper.applyChanges(entity, domain)`, 반환은 `XxxMapper.toDomain(entity)`). `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
+- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotPersistenceAdapter` — 03b 동안은 `ReservationSlotStatePortImpl`, 번복됨). 예외 타입은 `application/shared/port/out/`에 그대로 있다(03a가 03b를 위해 옮겨 둔 것 — persistence domain 재허용 후에도 되돌리지 않았다). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(도메인의 `ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
-- **엔티티 enum 매핑**: ~~항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지.~~ **(번복됨 — 03b)** 엔티티는 domain enum을 모르므로 **enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`**이다(`@Enumerated` 0건). 저장값은 여전히 **상수명 문자열**이다 — 강등(`name()`)·승격(`valueOf`)은 ~~`application/<ctx>/store/XxxStateMapper`~~ 이 모듈의 `XxxMapper`가 한다(ORDINAL 금지 취지의 승계, **(번복됨 — persistence domain 재허용: 위치만)**). **domain을 다시 볼 수 있게 됐지만 엔티티 필드를 enum으로 되돌리지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 되돌리면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, 03b가 `@Column`을 글자 하나 바꾸지 않았고 `n`이 `schema.sql` 길이의 문서이므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(~~`XxxCodes` 복제 상수~~ 번복됨 — `application/AGENTS.md` "enum 비교값 전달 규칙"). ~~이 모듈에는 enum 어휘가 없다.~~ 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxRepositoryImpl`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationRepositoryImpl`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙"의 번복 표기.
-- **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordRepository`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
+- **엔티티 enum 매핑**: ~~항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지.~~ **(번복됨 — 03b)** 엔티티는 domain enum을 모르므로 **enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`**이다(`@Enumerated` 0건). 저장값은 여전히 **상수명 문자열**이다 — 강등(`name()`)·승격(`valueOf`)은 ~~`application/<ctx>/store/XxxStateMapper`~~ 이 모듈의 `XxxMapper`가 한다(ORDINAL 금지 취지의 승계, **(번복됨 — persistence domain 재허용: 위치만)**). **domain을 다시 볼 수 있게 됐지만 엔티티 필드를 enum으로 되돌리지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 되돌리면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, 03b가 `@Column`을 글자 하나 바꾸지 않았고 `n`이 `schema.sql` 길이의 문서이므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(~~`XxxCodes` 복제 상수~~ 번복됨 — `application/AGENTS.md` "enum 비교값 전달 규칙"). ~~이 모듈에는 enum 어휘가 없다.~~ 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationPersistenceAdapter`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙"의 번복 표기.
+- **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordPersistencePort`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
   - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. 과거 함께 잔류하던 주입 없는 `MailVerificationEventListener`·`SmsVerificationEventListener`는 다른 리스너 10종과 함께 `application`의 `com.tastyhouse.application.{mail,sms}.listener`로 이동했다(`../../application/AGENTS.md` 참고).
 
     **(번복됨 — 덩어리 02/03a) `FileDomainConfig`도 이 모듈에서 사라졌다.** 이전 판단 기준("구현이 일부 앱에만 있는가")으로는 4개 앱 전부가 `FileStoragePort` 구현을 갖는 파일 저장이 예외 대상이 아니라고 봤으나, `FileUploadService`(+`FileUploadCommand`) 자체가 도메인 서비스가 아니라 유스케이스 계층의 순수 POJO로 재분류되어 `application/file/service/`로 옮겨갔고, 빈 등록도 `application/file/config/FileServiceConfig`(`@SharedApp`)가 맡는다. `FileDomainConfig`는 삭제됐다. 판정 기준 자체(포트 구현 앱 범위)는 여전히 유효하지만, 이 서비스는 애초에 그 판정 대상(도메인 서비스)이 아니게 됐다는 것이 이번 이동의 근거다.
@@ -99,15 +99,15 @@ com.tastyhouse.infrastructure/
   - **모듈 진입점인 `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다**(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지 — 앱의 `@Import` 때문이 아니라 챕터 02로 그 필요 자체가 사라졌다). `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, 리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다. ~~이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다.~~ **(03a)** 발행 구현도 `application`의 `shared/event/`로 옮겨가 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
-reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticeRepositoryImpl` — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/NoticeRepository`. 03b 동안의 `NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticeRepository,NoticeStore,NoticeStateMapper}`는 삭제됨), read 어댑터 `notice/query/`(`NoticeQueryDao` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
+reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticePersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/NoticePersistencePort`. 03b 동안의 `NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticePersistencePort,NoticeStore,NoticeStateMapper}`는 삭제됨), read 어댑터 `notice/query/`(`NoticeQueryAdapter` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
-표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxRepository`)가 아니라 이 패키지의 `{도메인}QueryDao`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryDao`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 ~~domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`~~ **(덩어리 01로 이동)** `application`의 `com.tastyhouse.application.shared.port.out.page.PageResult`, 페이징 입력은 같은 패키지의 `PageQuery`다.
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxPersistencePort`)가 아니라 이 패키지의 `{도메인}QueryAdapter`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryAdapter`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 ~~domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`~~ **(덩어리 01로 이동)** `application`의 `com.tastyhouse.application.shared.port.out.page.PageResult`, 페이징 입력은 같은 패키지의 `PageQuery`다.
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
-- **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryDao implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
-- **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다. `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryDaosShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다. 과거 사례였던 `ShopQueryDao#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동하면서 `ShopBasicInfoQueryPort`에 선언됐다(DAO는 `@Override`만 추가).
+- **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
+- **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다. `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryAdaptersShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다. 과거 사례였던 `ShopQueryAdapter#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동하면서 `ShopBasicInfoQueryPort`에 선언됐다(DAO는 `@Override`만 추가).
 - **Result 접미어는 `Result`로 통일하고 `Dto`는 쓰지 않는다**. admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management` 한정어를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지). 타입명에 역할 마커 `Admin`은 붙이지 않는다.
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
@@ -202,19 +202,19 @@ if (condition.title() != null) { where.and(noticeJpaEntity.title.containsIgnoreC
 - 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 **where 조립이 아닌 선행 데이터 계산**은 이 규칙 대상이 아니다(계산된 집합을 최종 where에 넣을 때만 `xxxIn(Set<Long>)` 헬퍼를 쓴다).
 - **크로스 도메인 조인은 정식 Q타입으로 한다**: 전 도메인이 이 모듈로 이동해 모든 JPA 엔티티 Q타입이 같은 모듈에 있으므로, 다른 도메인 엔티티를 조인할 때 `QXxxJpaEntity`를 직접 import한다. 과거 전환 과도기에 쓰였던 `PathBuilder<Object>("XxxJpaEntity")` 문자열 우회는 전부 정식 Q타입 조인으로 복원되었으며, 신규 코드에서 이 우회를 다시 도입하지 않는다.
 
-reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort` implements).
+reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort` implements).
 
 **대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 3개로 나눴다.
 
 | DAO | 담당 |
 |---|---|
-| `ShopQueryDao` | 가게별 설정·관리 조회(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 카테고리·배정·배너·사진) |
-| `ShopSearchQueryDao` | 목록·검색 대형 조인(지도 마커·베스트·최신·키워드 검색·즐겨찾기·관리 목록) |
-| `ShopChoiceQueryDao` | 가게에 종속되지 않는 독립 조회(에디터 추천 목록·전역 태그·역 목록) |
+| `ShopQueryAdapter` | 가게별 설정·관리 조회(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 카테고리·배정·배너·사진) |
+| `ShopSearchQueryAdapter` | 목록·검색 대형 조인(지도 마커·베스트·최신·키워드 검색·즐겨찾기·관리 목록) |
+| `ShopChoiceQueryAdapter` | 가게에 종속되지 않는 독립 조회(에디터 추천 목록·전역 태그·역 목록) |
 
 - 목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채운다 — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영은 카티전 곱이 생기기 때문이다.
 - **필드 셋이 달라 Result를 통합하지 않은 사례**: 사진 카테고리 이미지 조회는 회원용 `ShopPhotoCategoryImageResult`(노출분 표시용)와 관리용 `ShopPhotoCategoryImageManagementResult`(`visible` 포함 — 관리 화면은 미노출 이미지도 상태와 함께 보여줘야 함)로 나뉜다. 같은 패키지에 공존해 충돌하므로 `Management` 한정어를 부여했다.
-- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailRepository` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
+- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailPersistencePort` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
 
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 
@@ -223,9 +223,9 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 ## Dependencies
 
 ### Internal
-- `domain` (**implementation**) — write 어댑터(`<ctx>/persistence/`의 `XxxRepositoryImpl`·`XxxMapper`)가 도메인 모델·VO·enum을 직접 다루기 위해 의존한다. `implementation`이므로 이 모듈을 의존하는 앱 쪽으로 domain이 전이되지 않는다(과거 `api`였을 때와 다른 점). `..query..`와 봉인 조회 어댑터 3개는 `queryShouldNotDependOnDomain`으로 domain 참조가 막혀 있다. **(persistence domain 재허용으로 복원)**
+- `domain` (**implementation**) — write 어댑터(`<ctx>/persistence/`의 `XxxPersistenceAdapter`·`XxxMapper`)가 도메인 모델·VO·enum을 직접 다루기 위해 의존한다. `implementation`이므로 이 모듈을 의존하는 앱 쪽으로 domain이 전이되지 않는다(과거 `api`였을 때와 다른 점). `..query..`와 봉인 조회 어댑터 3개는 `queryShouldNotDependOnDomain`으로 domain 참조가 막혀 있다. **(persistence domain 재허용으로 복원)**
 - ~~`domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/event`·`shared/exception`·`exception` 참조. `shared/page` (덩어리 01로 이동 — 아래 `application` 줄)~~ ~~**(덩어리 03b) `domain` 의존은 제거됐다.** 도메인 모델은 `XxxState`로, 도메인 enum은 `String`(비교값은 포트 인자)으로, `@Embedded` VO는 `XxxEmbeddable`로, 도메인 예외는 `Optional`/`boolean` 반환 + application 판정으로 대체됐다. `api`였던 탓에 이 모듈을 의존하는 쪽으로 domain이 전이되던 경로도 함께 사라졌다~~ **(번복됨 — persistence domain 재허용)** 위 줄처럼 `implementation`으로 돌아왔다. 도메인 enum `String` 컬럼과 `XxxEmbeddable`은 유지한다
-- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryDao가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다. 보는 범위는 `..port.out..`(읽기 계약 + `port/out/write`의 `XxxRepository` + 스펙 record + `OptimisticLockConflictException`)뿐이다. ~~**(03b)** 이 한 줄이 이 모듈의 유일한 프로젝트 의존이었고, `port/out/write`에는 `XxxState`·`XxxSnapshot`·`XxxStatePort`가 있었다~~ **(번복됨 — persistence domain 재허용)**
+- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryAdapter가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다. 보는 범위는 `..port.out..`(읽기 계약 + `port/out/write`의 `XxxPersistencePort` + 스펙 record + `OptimisticLockConflictException`)뿐이다. ~~**(03b)** 이 한 줄이 이 모듈의 유일한 프로젝트 의존이었고, `port/out/write`에는 `XxxState`·`XxxSnapshot`·`XxxStatePort`가 있었다~~ **(번복됨 — persistence domain 재허용)**
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
@@ -244,7 +244,7 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/LayerRulesTest.java`
 → `SEALED_PERSISTENCE_TO_QUERY` · `persistenceShouldNotDependOnQuery()`
 
-`..persistence..`(write 어댑터)는 `..query..`(read 모델)를 의존하지 않는다. **반대 방향(`..query..` → `..persistence..`)은 정상이다** — DAO가 같은 모듈의 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태다. 금지하는 것은 그 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryDaos`)가 infra 안쪽에서 우회된다.
+`..persistence..`(write 어댑터)는 `..query..`(read 모델)를 의존하지 않는다. **반대 방향(`..query..` → `..persistence..`)은 정상이다** — DAO가 같은 모듈의 `QXxxJpaEntity`를 static import해 조인하는 것이 조회 구현의 기본 형태다. 금지하는 것은 그 역방향으로, write 경로가 표현용 투영에 결합되면 api 모듈에서 막아 둔 CQRS 교차 주입 금지(`commandServicesShouldNotDependOnQueryPorts`)가 infra 안쪽에서 우회된다.
 
 봉인 구성원 3개 — 전부 *도메인 출력 포트 어댑터*다. **(03b 재판정 — 3건 유지)** 이 모듈이 domain을 끊으면서 세 어댑터가 채우는 값 타입이 domain에서 application `port.out`(예: `application/rank/port/out/MemberReviewCount`)으로 바뀌었지만, 여전히 `..persistence..`에서 `..query..`의 DAO·Result를 부르므로 위반이 해소되지 않았다. 짝 테스트 `sealedPersistenceToQueryShouldNotBeStale`가 통과하는 것이 그 증거다. **(persistence domain 재허용 후)** 이 목록은 `queryShouldNotDependOnDomain`의 대상에도 더해진다 — 위치는 `..persistence..`지만 성격은 조회 어댑터라, write 어댑터와 달리 domain을 보지 않는다(값 타입은 application `port.out` 그대로).
 
@@ -262,15 +262,15 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 ### `INFRA_OWNED_QUERY_PORTS` 1건 — infra 자체 소유 읽기 계약 봉인
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/LayerRulesTest.java`
-→ `INFRA_OWNED_QUERY_PORTS` · `queryDaosShouldImplementQueryPorts()`
+→ `INFRA_OWNED_QUERY_PORTS` · `queryAdaptersShouldImplementQueryPorts()`
 
 봉인 구성원 1개 — `com.tastyhouse.infrastructure.review.query.MemberReviewCountQueryPort`.
 
 읽기 계약은 원칙적으로 응용 계층이 소유하지만, *application 소비자가 하나도 없고* infra 어댑터·DAO만 소비하는 내부 투영 계약은 계약 모듈을 부풀릴 뿐이므로 infra가 자체 소유한다(`ShopNoticeRow` 선례).
 
-**패키지 술어가 아니라 클래스명으로 봉인하는 이유**: 모든 QueryDao가 이미 `com.tastyhouse.infrastructure.<ctx>.query` 패키지에 살기 때문에, 예외를 `resideInAPackage("com.tastyhouse.infrastructure..query..")`로 표현하면 **DAO가 자기 패키지에 인터페이스를 하나 선언하기만 해도 통과한다** — 이 규칙이 원래 잡아야 할 위반("application이 소유해야 할 계약을 infra가 몰래 자기 패키지에 만드는 것")이 그대로 허용 범위가 되어 규칙이 무력해진다. 그래서 FQN으로 명시 제외하며, **목록은 줄어들기만 해야 한다.**
+**패키지 술어가 아니라 클래스명으로 봉인하는 이유**: 모든 QueryAdapter가 이미 `com.tastyhouse.infrastructure.<ctx>.query` 패키지에 살기 때문에, 예외를 `resideInAPackage("com.tastyhouse.infrastructure..query..")`로 표현하면 **DAO가 자기 패키지에 인터페이스를 하나 선언하기만 해도 통과한다** — 이 규칙이 원래 잡아야 할 위반("application이 소유해야 할 계약을 infra가 몰래 자기 패키지에 만드는 것")이 그대로 허용 범위가 되어 규칙이 무력해진다. 그래서 FQN으로 명시 제외하며, **목록은 줄어들기만 해야 한다.**
 
-**짝 테스트 2종**: `infraOwnedQueryPortListShouldNotBeStale()`(계약이 사라졌거나 application으로 되돌아갔으면 실패) · `infraOwnedQueryPortListShouldNotBeEmpty()`(목록이 비면 봉인 장치를 제거하고 `queryDaosShouldImplementQueryPorts`를 순수 강제로 되돌리라고 알림).
+**짝 테스트 2종**: `infraOwnedQueryPortListShouldNotBeStale()`(계약이 사라졌거나 application으로 되돌아갔으면 실패) · `infraOwnedQueryPortListShouldNotBeEmpty()`(목록이 비면 봉인 장치를 제거하고 `queryAdaptersShouldImplementQueryPorts`를 순수 강제로 되돌리라고 알림).
 
 ### `MemberGradeReviewCountAdapter` — 봉인 목록을 늘리는 대신 패키지를 옮긴 선례
 
@@ -284,28 +284,28 @@ reference 구현: `notice/query/NoticeQueryDao`(`com.tastyhouse.application.noti
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/persistence/ProductReviewStatisticsAdapter.java`
 
-위임 대상이 `ReviewStatisticsQueryDao` → `MenuReviewStatisticsQueryDao`로 바뀌었다(`PRODUCT.rating`의 근거가 REVIEW에서 MENU_REVIEW로 이관됐기 때문). **클래스 위치·이름은 그대로 두므로 `LayerRulesTest`의 `persistenceShouldNotDependOnQuery` 봉인 목록에 항목이 늘지 않는다.**
+위임 대상이 `ReviewStatisticsQueryAdapter` → `MenuReviewStatisticsQueryAdapter`로 바뀌었다(`PRODUCT.rating`의 근거가 REVIEW에서 MENU_REVIEW로 이관됐기 때문). **클래스 위치·이름은 그대로 두므로 `LayerRulesTest`의 `persistenceShouldNotDependOnQuery` 봉인 목록에 항목이 늘지 않는다.**
 
-### `EventQueryDao` — 삭제 필터링은 이관 이전 동작을 그대로 보존한다
+### `EventQueryAdapter` — 삭제 필터링은 이관 이전 동작을 그대로 보존한다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/event/query/EventQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/event/query/EventQueryAdapter.java`
 
 **삭제 필터링은 이관 이전 동작을 그대로 보존한다** — admin 관리 목록/상세와 당첨자 목록은 soft delete 분을 제외하고, **web 노출 목록/상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.**
 
 썸네일·배너 파일 경로는 `UploadedFileJpaEntity`를 **left join**해 얻는다(파일 미등록 이벤트도 목록에서 누락되지 않도록 inner join을 쓰지 않는다). URL은 두 alias를 각각 `fileUrlResolver.urlOf(thumbnailFile.filePath)`·`urlOf(bannerFile.filePath)`로 감싸 투영식 안에서 변환한다.
 
-### `MemberReviewCountQueryDaoTest` — 합산·병합·정렬 규칙 봉인
+### `MemberReviewCountQueryAdapterTest` — 합산·병합·정렬 규칙 봉인
 
-**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/review/query/MemberReviewCountQueryDaoTest.java`
-→ `MemberReviewCountQueryDao#mergeAndSort`
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/review/query/MemberReviewCountQueryAdapterTest.java`
+→ `MemberReviewCountQueryAdapter#mergeAndSort`
 
 **이 테스트가 필수인 이유**: 이 DAO를 소비하는 `RankSettlementService`·`GradeSettlementService` 테스트는 포트를 fake로 주입하는 순수 단위 테스트라 DAO의 합산·병합·정렬 변경을 **전혀 잡지 못한다.** 병합·정렬을 쿼리에서 분리해 둔 것도 DB 없이 이 규칙을 검증하기 위해서다.
 
 정렬 규칙: 건수 내림차순 → 마지막 작성 이른 순 → 회원 ID 오름차순.
 
-### `ProductQueryDao#soldQuantityOf` — `Expressions.asNumber(서브쿼리)` 금지
+### `ProductQueryAdapter#soldQuantityOf` — `Expressions.asNumber(서브쿼리)` 금지
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductQueryAdapter.java`
 → `soldQuantityOf(...)`
 
 **`numberTemplate(Long.class, "{0}", ...)`으로 감싼 것을 `Expressions.asNumber(subquery)`로 되돌리지 않는다.** `asNumber`는 반환 타입을 `Object`로 지워버린다 — 서브쿼리 자체는 `Long`을 보고하지만 `asNumber`를 거치면 `getType()`이 `Object`가 되고, `Projections.constructor`는 리플렉션으로 생성자를 찾으므로 **컴파일은 통과한 뒤 조회 시점에** 아래로 터진다.
@@ -316,7 +316,7 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `popular-products` 500 장애가 실제로 이 계열이었고, `numberTemplate`으로 대상 타입을 명시적으로 고정해 수정했다. `@QueryProjection` → `Projections.constructor` 전환으로 **컴파일 게이트가 이미 사라진 상태**라(위 [읽기 계약 가드 2종](#읽기-계약-가드-2종은-이-모듈이-소유한다-챕터-09--application-common-module에서-이관) 절) 이 자리를 되돌리면 다시 런타임에만 드러난다.
 
-### `ProductQueryDao#soldQuantityOf` — 수량 합은 `sumLong()`이다
+### `ProductQueryAdapter#soldQuantityOf` — 수량 합은 `sumLong()`이다
 
 **대상**: 위와 같음 → `soldQuantityOf(...)`의 `orderProductJpaEntity.quantity.sumLong()`
 
@@ -324,7 +324,7 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 ### QueryDSL 투영 생성자는 "미사용"으로 보여도 삭제하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`가 `Projections.constructor(...)`로 지목하는 모든 Result record
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryAdapter.java`가 `Projections.constructor(...)`로 지목하는 모든 Result record
 
 `Projections.constructor`는 **리플렉션으로 생성자를 찾으므로 정적 호출부가 0개**다. IDE·정적분석이 "사용되지 않는 생성자"로 표시하지만 삭제하면 조회 시점에 `No constructor found`로 터진다.
 
@@ -337,9 +337,9 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withResolved*` 헬퍼는 **전 컴포넌트를 위치 기반으로 재나열**하므로, 인접한 같은 타입 슬롯(썸네일 URL ↔ 상표 URL, active ↔ inactive 아이콘)을 바꿔 써도 컴파일되고 값만 조용히 뒤바뀐다. 어떤 가드도 이 `new` 호출을 검사하지 않는다 — `detectReordering`이 보는 것은 `Projections.constructor` 인자뿐이다. 그래서 개수를 봉인해 **새 헬퍼가 생기는 것 자체를 막는다.** URL 변환은 `fileUrlResolver.urlOf(...)`로 투영식 안에서 한다.
 
-- **상수는 0이고 올리지 않는다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙). 도입 시점 54개 → `BannerQueryDao` 파일럿(3개 제거)으로 51개 → 02 롤아웃에서 나머지 17개 DAO의 51개를 걷어내 **0개**. `ShopSearchQueryDao`의 헬퍼는 삭제가 아니라 URL 부분만 투영식으로 옮기고 `withTipRange`로 개명해 패턴에서 빠졌다(아래 `ShopSearchQueryDao` 절).
+- **상수는 0이고 올리지 않는다.** 올리는 것은 새 위반을 승인하는 것이다(`SEALED_PERSISTENCE_TO_QUERY`·`ContextBoundaryTest` 봉인 목록과 같은 원칙). 도입 시점 54개 → `BannerQueryAdapter` 파일럿(3개 제거)으로 51개 → 02 롤아웃에서 나머지 17개 DAO의 51개를 걷어내 **0개**. `ShopSearchQueryAdapter`의 헬퍼는 삭제가 아니라 URL 부분만 투영식으로 옮기고 `withTipRange`로 개명해 패턴에서 빠졌다(아래 `ShopSearchQueryAdapter` 절).
 - **상수 0에서는 두 단정이 모두 "헬퍼 0개"를 강제한다** — 상한(`isLessThanOrEqualTo(0)`)과 일치(`isEqualTo(0)`)가 같은 조건이 되어 `isZero()` 순수 강제와 동치다. 상수를 지우지 않고 0으로 둔 것은 봉인 이력(54 → 51 → 0)을 한 곳에서 읽히게 하려는 선택이다.
-- **알려진 한계 — 패턴은 `private … withResolved*(` 헬퍼만 센다.** 인라인 람다(`.map(row -> new XxxResult(..., resolve(row.xxx()), ...))`)나 public wither로 같은 재조립을 만들면 이 봉인을 빠져나간다. 02 롤아웃에서 실제로 그런 형태 4건(`ShopRequestQueryDao`의 이미지변경·배달지역 상세 람다 2건, `ShopNoticeQueryDao#findImageUrlsByNoticeIds` 람다, `OrderProductResult#withResolvedImageUrl` wither)을 함께 걷어냈다. Result record의 URL 슬롯을 `resolve(row.xxx())`로 다시 채우는 코드는 형태와 무관하게 리뷰에서 거절한다.
+- **알려진 한계 — 패턴은 `private … withResolved*(` 헬퍼만 센다.** 인라인 람다(`.map(row -> new XxxResult(..., resolve(row.xxx()), ...))`)나 public wither로 같은 재조립을 만들면 이 봉인을 빠져나간다. 02 롤아웃에서 실제로 그런 형태 4건(`ShopRequestQueryAdapter`의 이미지변경·배달지역 상세 람다 2건, `ShopNoticeQueryAdapter#findImageUrlsByNoticeIds` 람다, `OrderProductResult#withResolvedImageUrl` wither)을 함께 걷어냈다. Result record의 URL 슬롯을 `resolve(row.xxx())`로 다시 채우는 코드는 형태와 무관하게 리뷰에서 거절한다.
 - 패턴이 `private` 헬퍼만 세므로, 가시성을 바꿔 헬퍼를 늘리는 우회도 가능하다. 그것은 이 봉인의 의도를 우회한 것이므로 리뷰에서 거절한다.
 
 ### `urlOf(...)`는 `*.filePath` 컬럼만 감싼다 — 래핑 대상 단정
@@ -356,15 +356,15 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 
 ### enum 필드는 문자열로 투영한다 — `.stringValue()`와 `EnumLabelProjection` (덩어리 01)
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`의 `Projections.constructor(...)` 인자 중 enum 컬럼 · `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/query/EnumLabelProjection.java` → `labelOf(Expression<E>, Function<E, String>)`·`map(Tuple)` · `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java` → `trailingPropertyName`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryAdapter.java`의 `Projections.constructor(...)` 인자 중 enum 컬럼 · `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shared/query/EnumLabelProjection.java` → `labelOf(Expression<E>, Function<E, String>)`·`map(Tuple)` · `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/architecture/ProjectionConstructorMatchingTest.java` → `trailingPropertyName`
 
 > **(번복됨 — 덩어리 03b) `EnumLabelProjection`은 삭제됐고, 라벨은 이 모듈이 아니라 QueryService가 채운다.** 이 모듈이 domain enum(`Status::getDescription`)을 참조할 수 없게 됐기 때문이다. **(persistence domain 재허용 후에도 되살리지 않는다)** 모듈은 domain을 다시 의존하지만 조회 DAO(`..query..`)는 `queryShouldNotDependOnDomain`으로 domain-free를 유지하기로 했으므로, 라벨은 계속 QueryService가 채운다.
 >
 > | 항목 | 덩어리 01 (아래 본문) | 03b 이후 |
 > |---|---|---|
 > | enum 컬럼 투영 | `x.status.stringValue()` | 엔티티 필드가 `String`이라 `x.status`(`StringPath`)를 그대로 투영한다. 이미 붙어 있는 `.stringValue()`는 결과가 같아 남겨 둔 곳이 있다 — 지우든 두든 동작은 같다 |
-> | 라벨 슬롯(`{field}Description`/`{field}DisplayName`) | `EnumLabelProjection.labelOf(x.status, Status::getDescription)` | **`Expressions.nullExpression(String.class)`**로 자리만 채우고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)로 채운다. 참고: `.../shop/query/ShopQueryDao.java`·`.../shop/query/ShopCeoAssignmentHistoryQueryDao.java`의 `nullExpression` 슬롯 ↔ `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopChangeHistoryQueryService.java` |
-> | 상관 서브쿼리가 enum을 돌려줄 때 | `labelOf(..., ReviewBlindStatus::name)` | `Expression<String>`을 그대로 반환(`ShopReviewManagementQueryDao#latestBlindRequestStatus`) — 컬럼이 이미 문자열이다 |
+> | 라벨 슬롯(`{field}Description`/`{field}DisplayName`) | `EnumLabelProjection.labelOf(x.status, Status::getDescription)` | **`Expressions.nullExpression(String.class)`**로 자리만 채우고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)로 채운다. 참고: `.../shop/query/ShopQueryAdapter.java`·`.../shop/query/ShopCeoAssignmentHistoryQueryAdapter.java`의 `nullExpression` 슬롯 ↔ `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopChangeHistoryQueryService.java` |
+> | 상관 서브쿼리가 enum을 돌려줄 때 | `labelOf(..., ReviewBlindStatus::name)` | `Expression<String>`을 그대로 반환(`ShopReviewManagementQueryAdapter#latestBlindRequestStatus`) — 컬럼이 이미 문자열이다 |
 > | 테스트 | `ProjectionConstructorMatchingTest`가 `labelOf` 래퍼 인자를 이름 판정에서 제외 | 그 분기는 삭제됐다. `.stringValue()` 꼬리 벗기기(`STRING_VALUE_SUFFIX`)는 남아 있는 호출 때문에 유지 |
 >
 > **라벨 슬롯이 `null`로 도착하는 것은 정상**이다 — QueryService가 wither를 부르지 않으면 응답의 표시 문구가 비므로, 라벨 컴포넌트를 추가할 때는 DAO의 `nullExpression`과 QueryService의 채우기를 **한 벌로** 넣는다. 아래 본문은 덩어리 01 시점 기록이다.
@@ -379,50 +379,50 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 | record 컴포넌트 순서 | — | 기존 컴포넌트의 정규 순서는 불변(라벨 컴포넌트만 끼워 넣음) |
 
 - **`EnumLabelProjection`은 `FileUrlProjection`과 같은 `MappingProjection`이다** — SQL에서 enum 값을 읽고 Java에서 라벨 함수를 적용한다. `null`이면 `null`을 돌려준다(null-safe). 위 "투영 생성자는 미사용으로 보여도 삭제하지 않는다"와 같은 이유로 `map(Tuple)`은 정적 호출부가 0개여도 지우지 않는다.
-- **상관 서브쿼리 식에는 `.stringValue()`를 쓰지 않는다** — `ShopReviewManagementQueryDao`의 `latestBlindRequestStatus()`처럼 서브쿼리가 enum 식을 돌려주는 경우, SQL 캐스트 대신 `labelOf(..., ReviewBlindStatus::name)`으로 **Java 쪽에서 상수명을 꺼낸다.** 라벨 함수 자리에 `Enum::name`을 넣는 형태가 이 경우의 표준이다.
+- **상관 서브쿼리 식에는 `.stringValue()`를 쓰지 않는다** — `ShopReviewManagementQueryAdapter`의 `latestBlindRequestStatus()`처럼 서브쿼리가 enum 식을 돌려주는 경우, SQL 캐스트 대신 `labelOf(..., ReviewBlindStatus::name)`으로 **Java 쪽에서 상수명을 꺼낸다.** 라벨 함수 자리에 `Enum::name`을 넣는 형태가 이 경우의 표준이다.
 - **Java에서 Result를 조립하는 경로**(DAO 투영이 아닌 QueryService)는 그 서비스가 `.name()`·`getDescription()`으로 채운다 — 이 모듈의 규칙이 아니라 `application/AGENTS.md` 소관이다.
 - **`ProjectionConstructorMatchingTest#trailingPropertyName`은 꼬리 `.stringValue()`를 벗겨 낸다**(상수 `STRING_VALUE_SUFFIX`). before: `x.status.stringValue()`는 dotted path 패턴에 맞지 않아 `null`(이름 추출 불가)로 처리돼 **순서 검출이 그 인자에서 조용히 건너뛰어졌다.** after: `status`라는 이름으로 판정해 인접 슬롯 뒤바뀜을 계속 잡는다. **`labelOf(...)` 래퍼는 언랩하지 않는다** — 그 인자는 이름 판정에서 빠지므로(`null`), 라벨 컴포넌트의 위치는 "필드 바로 뒤" 규칙과 리뷰로 지킨다.
 
-### `ShopQueryDao` 파일 별칭 4종 — 공용 별칭 재사용 금지
+### `ShopQueryAdapter` 파일 별칭 4종 — 공용 별칭 재사용 금지
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryAdapter.java`
 → `activeFile` · `contentBoardImageFile` · `menuCollectionImageFile` · `shopThumbnailFile`
 
 `UPLOADED_FILE`을 목적별로 조인하므로 별칭 인스턴스를 목적마다 새로 만든다. **공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다** — 메뉴모음컷 검수 목록은 `SHOP`도 함께 조인하는 경로라 특히 그렇다. 예외도 로그도 없이 값만 틀어지므로 이 별칭들을 공용 인스턴스로 되돌리지 않는다.
 
-### `ShopQueryDao#findFoodTypeCategoryNames` — 아이콘 조인을 붙이지 않는다
+### `ShopQueryAdapter#findFoodTypeCategoryNames` — 아이콘 조인을 붙이지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryAdapter.java`
 → `findFoodTypeCategoryNames(Long)`
 
 정책 판정(채식 메뉴 등록 불가 카테고리 — product 컨텍스트)에 쓰이는 이름 집합만 뽑는다. 형제 메서드 `findFoodTypeAssignments`처럼 아이콘 파일을 조인하도록 "통일"하지 않는다 — **`activeImageFileId` 결측 시 inner join으로 카테고리가 조용히 누락돼 거절해야 할 요청이 통과한다.**
 
-### `ShopQueryDao#findExposedMenuCollectionImages` — 승인 상태 필터를 호출부로 올리지 않는다
+### `ShopQueryAdapter#findExposedMenuCollectionImages` — 승인 상태 필터를 호출부로 올리지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryAdapter.java`
 → `findExposedMenuCollectionImages(Long)`
 
 손님 화면용 메뉴모음컷의 승인 상태 필터는 이 투영이 소유한다. **필터를 소비 측(api 모듈)에 맡기면 새 소비 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출된다.**
 
-### `ShopSearchQueryDao#reviewCountsByShopId` — 두 필터를 함께 유지하고 짝 조회와 일치시킨다
+### `ShopSearchQueryAdapter#reviewCountsByShopId` — 두 필터를 함께 유지하고 짝 조회와 일치시킨다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryAdapter.java`
 → `reviewCountsByShopId(List<Long>)`
 
-숨김(관리자 게시중단)과 사장님만보기를 **둘 다** 제외한다. **`ownerOnly`를 빼면 목록 카드의 리뷰 수만 늘고 가게 리뷰 목록에는 그 리뷰가 없어, 건수 차이로 비공개 리뷰의 존재가 새어나간다**(비로그인도 호출 가능한 경로다). `ReviewStatisticsQueryDao#countVisibleByShopId`와 조건이 **일치해야 하며, 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.**
+숨김(관리자 게시중단)과 사장님만보기를 **둘 다** 제외한다. **`ownerOnly`를 빼면 목록 카드의 리뷰 수만 늘고 가게 리뷰 목록에는 그 리뷰가 없어, 건수 차이로 비공개 리뷰의 존재가 새어나간다**(비로그인도 호출 가능한 경로다). `ReviewStatisticsQueryAdapter#countVisibleByShopId`와 조건이 **일치해야 하며, 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.**
 
-### `ShopSearchQueryDao#deliveryAreaCovers` — 미설정 가게 통과와 null 무필터를 제거하지 않는다
+### `ShopSearchQueryAdapter#deliveryAreaCovers` — 미설정 가게 통과와 null 무필터를 제거하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryAdapter.java`
 → `deliveryAreaCovers(Long)`
 
 - **배달가능지역을 하나도 등록하지 않은 가게는 통과시킨다.** 이 예외를 "엄격하게" 없애면 미설정 가게가 배포 즉시 목록에서 전부 사라진다 — 기존 데이터 대부분이 0건이므로 사실상 서비스가 비는 것과 같다. 주문 접수 검사와 같은 원칙("정보를 안 넣은 것을 닫힌 것으로 보지 않는다")이다.
 - **행정동이 `null`이면 필터를 걸지 않는다.** 좁힐 근거가 없을 때 감추는 것은 노출 축소일 뿐이다.
 - 이 필터 자체를 없애면 고객이 **결제 마지막 단계에서야** 배달 불가를 안다(`ORDER_DELIVERY_AREA_NOT_COVERED`). `OrderPlacementService#validateDeliveryArea`와 같은 규칙을 유지한다.
 
-### `ShopDeliveryTipQueryDao#findTipRanges` — 하한에 추가 배달팁을 더하지 않는다
+### `ShopDeliveryTipQueryAdapter#findTipRanges` — 하한에 추가 배달팁을 더하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryTipQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryTipQueryAdapter.java`
 → `findTipRanges(List<Long>)` · `distanceUpperBound(ShopDeliveryTipSettingResult)` · `MAX_DELIVERY_DISTANCE_METERS`
 
 - **추가 배달팁 4종(거리별·지역별·시간별·공휴일) 중 어느 것도 하한에 넣지 않는다.** 넣으면 실제로 달성 가능한 금액보다 높은 "최소 ○○원"을 광고하게 된다. **표시 가격은 실제보다 낮게 틀리는 편이 안전하지 높게 틀리면 안 된다.**
@@ -430,9 +430,9 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 - **이 산출은 현재 시각·고객 주소에 의존하지 않는다.** 목록은 정렬·캐시 대상이라 요청마다 값이 달라지면 안 되므로 "지금 이 주문에 붙는 금액"을 내지 않는다.
 - 이 메서드가 하한/상한 산출 규칙의 **유일한 소유자**다(목록·카드·상세·팝업이 공유). 소비 측에 별도 산출을 만들지 않는다.
 
-### `ReviewQueryDao#findMyReviews` ↔ `#findReviewsByMemberId` — 정책이 정반대인 쌍둥이 쿼리
+### `ReviewQueryAdapter#findMyReviews` ↔ `#findReviewsByMemberId` — 정책이 정반대인 쌍둥이 쿼리
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryAdapter.java`
 → `findMyReviews(Long, PageQuery)` · `findReviewsByMemberId(Long, PageQuery)` · `visibleToCustomer()`
 
 두 메서드는 쿼리가 거의 같지만 **사장님만보기(`ownerOnly`) 처리가 정반대다.**
@@ -448,34 +448,34 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 
 ### `visibleToCustomer()` — where절과 count절 양쪽에 걸어야 한다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryAdapter.java`
 → `visibleToCustomer()`
 
 목록의 where절과 count절이 분리된 곳에서는 **양쪽 모두**에 걸어야 한다. **한쪽만 고치면 `totalElements`와 실제 목록 길이가 어긋나 프론트 무한스크롤이 빈 페이지로 깨진다.**
 
-### `ReviewStatisticsQueryDao` — 상품 단위 집계 4종은 `PRODUCT.rating` 재집계용이 아니다
+### `ReviewStatisticsQueryAdapter` — 상품 단위 집계 4종은 `PRODUCT.rating` 재집계용이 아니다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryAdapter.java`
 → `countVisibleByProductId` · `getAverageTasteRatingByProductId` · `getAverageAmountRatingByProductId` · `getAveragePriceRatingByProductId`
 
-`PRODUCT.rating` 재집계의 근거는 **MENU_REVIEW로 완전히 이관되어 `MenuReviewStatisticsQueryDao`가 담당한다.** 이 DAO의 상품 집계는 **상품 상세 화면의 매장 리뷰 통계 응답**(`GET /api/products/v1/{id}/reviews/statistics`·평점대별 목록)이 계속 소비하는 **별개 계약이므로 남는다.**
+`PRODUCT.rating` 재집계의 근거는 **MENU_REVIEW로 완전히 이관되어 `MenuReviewStatisticsQueryAdapter`가 담당한다.** 이 DAO의 상품 집계는 **상품 상세 화면의 매장 리뷰 통계 응답**(`GET /api/products/v1/{id}/reviews/statistics`·평점대별 목록)이 계속 소비하는 **별개 계약이므로 남는다.**
 
 **상품 평점 재집계 코드를 여기로 되돌리지 말 것.**
 
-### `ReviewStatisticsQueryDao` ↔ `ShopReviewManagementQueryDao` — `hidden` 축의 의도된 비대칭
+### `ReviewStatisticsQueryAdapter` ↔ `ShopReviewManagementQueryAdapter` — `hidden` 축의 의도된 비대칭
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java` · `.../ShopReviewManagementQueryDao.java`
-→ 통계 DAO의 모든 집계 메서드 · `ShopReviewManagementQueryDao#tabPredicate(ReviewListTab)`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryAdapter.java` · `.../ShopReviewManagementQueryAdapter.java`
+→ 통계 DAO의 모든 집계 메서드 · `ShopReviewManagementQueryAdapter#tabPredicate(ReviewListTab)`
 
-**통계 DAO의 모든 집계는 `hidden = false`로 숨김 리뷰를 제외한다.** 반면 점주 리뷰 목록(`ShopReviewManagementQueryDao`)은 차단 탭을 위해 숨김을 **포함**하므로, 두 화면의 건수가 **의도적으로 다르다** — 목록 `totalElements`가 20인데 대시보드 `totalReviewCount`가 17일 수 있다.
+**통계 DAO의 모든 집계는 `hidden = false`로 숨김 리뷰를 제외한다.** 반면 점주 리뷰 목록(`ShopReviewManagementQueryAdapter`)은 차단 탭을 위해 숨김을 **포함**하므로, 두 화면의 건수가 **의도적으로 다르다** — 목록 `totalElements`가 20인데 대시보드 `totalReviewCount`가 17일 수 있다.
 
 이 비대칭은 실수가 아니라 판단이다. 통계는 "내 가게가 손님에게 어떻게 평가되는가"를 답하는 지표이고 **게시중단된 리뷰는 손님에게 보이지 않으므로 평균·분포에 반영되면 안 된다.** 반대로 목록은 "내가 관리해야 할 리뷰"라서 차단된 것도 보여야 한다.
 
 **다음 세션이 두 화면의 숫자가 다르다는 이유로 한쪽 필터를 맞추지 말 것** — 맞추면 차단된 악성 리뷰가 평점을 계속 끌어내리거나(통계에 포함), 점주가 차단 리뷰를 볼 수 없게 된다(목록에서 제외).
 
-### `ReviewStatisticsQueryDao` — `ownerOnly` 축은 오버로드마다 정반대다
+### `ReviewStatisticsQueryAdapter` — `ownerOnly` 축은 오버로드마다 정반대다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryAdapter.java`
 → `visibleToCustomer()` · `getRatingCounts(Long)` ↔ `getRatingCounts(Long, LocalDateTime, LocalDateTime)` · `getMonthlyReviewCounts(Long, int)` ↔ `getMonthlyReviewCounts(Long, LocalDateTime, LocalDateTime)`
 
 위 `hidden` 축과 달리 **`ownerOnly`(사장님만보기)는 이 DAO 안에서 메서드마다 처리가 정반대다.**
@@ -487,9 +487,9 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 
 **두 화면의 숫자가 다르다는 이유로 한쪽에 맞추지 말 것** — 맞추면 비공개로 쓴 리뷰가 고객 화면 평점에 새어나가거나(고객용에 포함), 점주가 자기 가게 피드백의 일부를 볼 수 없게 된다(점주용에서 제외).
 
-### `ShopReviewManagementQueryDao#tabPredicate` — 어느 탭에서도 `hidden`을 강제로 끄지 않는다
+### `ShopReviewManagementQueryAdapter#tabPredicate` — 어느 탭에서도 `hidden`을 강제로 끄지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryAdapter.java`
 → `tabPredicate(ReviewListTab)`
 
 `ALL`은 조건 없음이며, **어느 탭에서도 `hidden`을 강제로 끄지 않는다.**
@@ -498,44 +498,44 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 - `BLINDED` — "게시중단 요청이 승인된 것"이 아니라 **리뷰가 실제로 숨겨진 것**을 기준으로 한다. 관리자가 요청 없이 직접 숨긴 리뷰도 점주에게는 차단된 리뷰이기 때문이다.
 - `OWNER_ONLY` — 작성자가 비공개로 등록한 리뷰다. `BLINDED`와 **직교**하므로 한 리뷰가 두 탭에 동시에 나타날 수 있다(비공개 리뷰가 정책 위반이라 게시중단된 경우).
 
-### `ShopReviewManagementQueryDao#createdAtLt` — 종료일은 다음날 00:00 미만이다
+### `ShopReviewManagementQueryAdapter#createdAtLt` — 종료일은 다음날 00:00 미만이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryAdapter.java`
 → `createdAtLt(LocalDate)`
 
 **`loe(endDate.atStartOfDay())`로 바꾸지 않는다** — 그렇게 쓰면 **종료일 당일에 작성된 리뷰가 통째로 빠진다.**
 
-### `ShopReviewManagementQueryDao#ratingEq` — 별점 필터는 내림 정수 기준이다
+### `ShopReviewManagementQueryAdapter#ratingEq` — 별점 필터는 내림 정수 기준이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryAdapter.java`
 → `ratingEq(Integer)`
 
-**4점 필터가 4.0~4.9를 포함해야** 별점 분포 통계(`ReviewStatisticsQueryDao#getRatingCounts`의 `floor`)와 **같은 집합을 가리킨다.** 정확 일치로 바꾸면 목록과 분포 그래프의 숫자가 어긋난다.
+**4점 필터가 4.0~4.9를 포함해야** 별점 분포 통계(`ReviewStatisticsQueryAdapter#getRatingCounts`의 `floor`)와 **같은 집합을 가리킨다.** 정확 일치로 바꾸면 목록과 분포 그래프의 숫자가 어긋난다.
 
-### `ShopReviewManagementQueryDao#hasImageEq` — `false`는 "필터 무시"가 아니다
+### `ShopReviewManagementQueryAdapter#hasImageEq` — `false`는 "필터 무시"가 아니다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryAdapter.java`
 → `hasImageEq(Boolean)`
 
 `false`는 **사진 없는 리뷰만**이다(`NOT EXISTS`). 미지정(`null`)이 전체를 뜻하므로 **`false`에 같은 의미를 주면 값 하나가 낭비된다.** web 목록의 `hasImage`와 같은 해석을 유지한다.
 
-### `OrderQueryDao#findOrderProductOwnership` — left join이다
+### `OrderQueryAdapter#findOrderProductOwnership` — left join이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryAdapter.java`
 → `findOrderProductOwnership(Long)`의 `leftJoin(orderJpaEntity)`
 
 **inner join으로 묶지 않는다.** inner join으로 묶으면 주문이 사라진 주문 상품(`ORDER_PRODUCT.order_id`에 FK 제약이 없어 가능한 상태)이 "주문 상품 없음"으로 뭉뚱그려져, **소비 측이 원래 구분하던 `ORDER_NOT_FOUND`를 낼 수 없다.** 주문자 ID가 `null`인 것으로 그 상태를 구분해 넘긴다.
 
-### `OrderQueryDao#findPayment` — `fetchOne`의 fail-loud를 유지한다
+### `OrderQueryAdapter#findPayment` — `fetchOne`의 fail-loud를 유지한다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryAdapter.java`
 → `findPayment(OrderId)`
 
-`PAYMENT.order_id`의 unique 제약이 깨져 동일 주문에 결제 행이 2건이 되면, **임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다.** `fetchFirst`로 바꾸지 않는다 — 기존 `PaymentRepository#findByOrderId`와 동일한 fail-loud 시맨틱이다.
+`PAYMENT.order_id`의 unique 제약이 깨져 동일 주문에 결제 행이 2건이 되면, **임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다.** `fetchFirst`로 바꾸지 않는다 — 기존 `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱이다.
 
-### `OrderQueryDao#withUnwrappedAmount` — 언랩을 없애면 api 모듈 규약이 깨진다
+### `OrderQueryAdapter#withUnwrappedAmount` — 언랩을 없애면 api 모듈 규약이 깨진다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryAdapter.java`
 → `withUnwrappedAmount(PaymentProjection)`
 
 > **(번복됨 — 덩어리 03b) 이 봉인은 대상이 사라졌다.** `AmountConverter`가 삭제되고 `PaymentJpaEntity.amount`가 `Integer` 필드가 되어 QueryDSL이 `NumberPath<Integer>`를 만든다. DAO는 `paymentJpaEntity.amount`를 `OrderPaymentResult`에 **직접** 투영하고, `withUnwrappedAmount`·`PaymentProjection`은 삭제됐다. 읽기 계약이 `Integer`라는 결론(api 모듈이 `Amount`를 만지지 않는다)은 그대로이며, 지금은 엔티티에 VO가 없어 **되돌릴 방법 자체가 없다**. 아래는 당시 기록이다.
@@ -561,140 +561,140 @@ Hibernate 6의 `Component#sortProperties()`는 embeddable 프로퍼티를 **이�
 `@AttributeOverride`의 `name`은 **컴포넌트명으로 매칭**되므로 선언 순서를 바꿔도 컬럼 매핑은 영향받지 않는다 — 즉 알파벳순 정렬은 DDL·컬럼 계약을 건드리지 않고 안전하게 지킬 수 있는 규약이다. "순서를 바꾸면 컬럼이 어긋날까 봐" 미루지 않는다.
 
 
-### `ShopOrderNoticeQueryDao` 메서드 2종 — 노출 필터를 Service로 올리지 않는다
+### `ShopOrderNoticeQueryAdapter` 메서드 2종 — 노출 필터를 Service로 올리지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopOrderNoticeQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopOrderNoticeQueryAdapter.java`
 → `findOrderNotice` · `findVisibleOrderNotice`
 
 점주용과 손님용을 **한 메서드로 합치고 게시중단 분기를 Service의 if 문으로 옮기지 않는다.** 손님 경로에서 필터를 빠뜨리면 게시중단된 문구가 그대로 노출되는 결함이 되는데, 쿼리 자체가 걸러내면 그 실수가 **물리적으로 불가능**해진다. 점주가 게시중단 건도 받는 것은 자기 문구가 왜 내려갔는지 봐야 하기 때문이며, 이 비대칭은 의도한 것이다.
 
-### `ShopDeliveryAreaQueryDao#findShopLocation` — `ceo_id` 조건을 조회에서 빼지 않는다
+### `ShopDeliveryAreaQueryAdapter#findShopLocation` — `ceo_id` 조건을 조회에서 빼지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryAreaQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryAreaQueryAdapter.java`
 → `findShopLocation`
 
 소유권을 **조회 조건으로 함께 건다.** 조회 서비스는 write 포트를 주입할 수 없어(`queryServicesShouldNotDependOnWritePorts`) `ShopOwnershipValidator`를 쓸 수 없고, 검증을 생략하면 **남의 가게 좌표를 읽는 IDOR**이 된다. 이 조건을 "중복 필터"로 보고 걷어내지 않는다.
 
-### `ShopRiderGuideQueryDao` — web-api 경로에서 `SHOP_RIDER_GUIDE`를 조인하지 않는다
+### `ShopRiderGuideQueryAdapter` — web-api 경로에서 `SHOP_RIDER_GUIDE`를 조인하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopRiderGuideQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopRiderGuideQueryAdapter.java`
 → 클래스 전체
 
 라이더 안내는 **고객에게 노출되지 않는다.** 이 DAO는 ceo-api·admin-api의 query 서비스만 주입해 쓰며, web-api의 가게 상세·목록 조회는 이 테이블을 조인하지 않는다. "가게 정보를 한 번에 내려주자"는 취지로 web 경로에 조인을 추가하면 비노출 보장이 깨진다.
 
-### `ShopRiderGuideQueryDao#findRiderGuide` — 라이더 안내 테이블은 `leftJoin`이다
+### `ShopRiderGuideQueryAdapter#findRiderGuide` — 라이더 안내 테이블은 `leftJoin`이다
 
 **대상**: 같은 파일 → `findRiderGuide`
 
 **미등록은 오류가 아니라 정상 상태다.** 등록 이력이 없어도 가게가 존재하면 결과를 반환해야 하므로 inner join으로 바꾸지 않는다.
 
-### `ShopRiderGuideQueryDao#visitGuidePresenceEq` — `false`를 "미지정과 동일"로 두지 않는다
+### `ShopRiderGuideQueryAdapter#visitGuidePresenceEq` — `false`를 "미지정과 동일"로 두지 않는다
 
 **대상**: 같은 파일 → `visitGuidePresenceEq`
 
 `false`를 무필터로 처리하면 그 값이 응답을 전혀 바꾸지 않아 파라미터가 무의미해지고, **"문구 미등록 가게만" 조회할 방법도 사라진다.** 다른 boolean 필터와 동일하게 여집합으로 판정한다.
 
-### `ShopRiderGuideQueryDao` 목록 — 픽업 위치 판정을 SQL 술어로 내리지 않는다
+### `ShopRiderGuideQueryAdapter` 목록 — 픽업 위치 판정을 SQL 술어로 내리지 않는다
 
 **대상**: 같은 파일 → `findRiderGuidePage` (중간 투영 `ShopRiderGuidePickupPresenceResult`)
 
 "픽업 위치가 설정되었는가"를 select 절 술어로 투영하지 않고 **원본 컬럼을 읽어 Java에서 판정한다.** 판정 기준(도로명·위경도가 모두 채워졌는가)을 `ShopRiderGuide#hasPickupLocation`과 한 곳에서 일치시키기 위함이다. SQL로 내리면 두 판정이 조용히 갈린다.
 
-### `ShopChangeHistoryQueryDao#createdAtOnDate` — 보관 하한을 DAO에서 제거하지 않는다
+### `ShopChangeHistoryQueryAdapter#createdAtOnDate` — 보관 하한을 DAO에서 제거하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopChangeHistoryQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopChangeHistoryQueryAdapter.java`
 → `createdAtOnDate`
 
 서비스가 이미 400으로 거부한 뒤에도 6개월 보관 하한을 **항상 실어 보낸다.** 조회 대상 하루가 하한보다 뒤이므로 결과는 달라지지 않지만, 정책이 DAO에도 남아 **다른 호출자가 생겨도 6개월 밖 데이터가 새지 않는다.** 중복이라고 걷어내는 것이 이 안전망을 없앤다.
 
-### `PaymentQueryDao#findPaymentByOrderId` — `fetchOne`을 `fetchFirst`로 바꾸지 않는다
+### `PaymentQueryAdapter#findPaymentByOrderId` — `fetchOne`을 `fetchFirst`로 바꾸지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/payment/query/PaymentQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/payment/query/PaymentQueryAdapter.java`
 → `findPaymentByOrderId`
 
-`PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 즉시 실패시킨다** — `PaymentRepository#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다.
+`PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 즉시 실패시킨다** — `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다.
 
-### `PaymentQueryDao` — 호출부 없는 조회를 미리 만들지 않는다
+### `PaymentQueryAdapter` — 호출부 없는 조회를 미리 만들지 않는다
 
 **대상**: 같은 파일 → 클래스 전체
 
 관리자 결제·환불 내역 조회는 **admin-api에 결제 소비자가 생길 때** 이 DAO에 메서드로 추가한다. 지금 미리 만들지 않는다.
 
-### `MenuReviewStatisticsQueryDao` — `ownerOnly` 필터를 추가하지 않는다
+### `MenuReviewStatisticsQueryAdapter` — `ownerOnly` 필터를 추가하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/menureview/query/MenuReviewStatisticsQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/menureview/query/MenuReviewStatisticsQueryAdapter.java`
 → 클래스 전체
 
-**MENU_REVIEW에는 사장님만보기(`ownerOnly`) 개념이 없다.** 고객 노출 조건은 `hidden = false` 하나뿐이며, 두 축을 함께 거는 매장 리뷰 집계(`ReviewStatisticsQueryDao`)와 비교하며 "필터가 누락됐다"고 오해해 추가하지 않는다.
+**MENU_REVIEW에는 사장님만보기(`ownerOnly`) 개념이 없다.** 고객 노출 조건은 `hidden = false` 하나뿐이며, 두 축을 함께 거는 매장 리뷰 집계(`ReviewStatisticsQueryAdapter`)와 비교하며 "필터가 누락됐다"고 오해해 추가하지 않는다.
 
-### `MenuReviewStatisticsQueryDao#getAverageRatingByProductId` — 없으면 `null`이다
+### `MenuReviewStatisticsQueryAdapter#getAverageRatingByProductId` — 없으면 `null`이다
 
 **대상**: 같은 파일 → `getAverageRatingByProductId`
 
 대상이 없을 때 0.0으로 대체하지 않는다. **"평점 0점"과 구분해야 한다.**
 
-### `MenuReviewStatisticsQueryDao#countByMemberWithPeriod` — 정렬을 추가하지 않는다
+### `MenuReviewStatisticsQueryAdapter#countByMemberWithPeriod` — 정렬을 추가하지 않는다
 
 **대상**: 같은 파일 → `countByMemberWithPeriod`
 
-소비 측(`MemberReviewCountQueryDao`)이 REVIEW 집계와 병합한 **뒤에** 정렬하므로, 여기서 정렬해도 그 결과가 유지되지 않는다.
+소비 측(`MemberReviewCountQueryAdapter`)이 REVIEW 집계와 병합한 **뒤에** 정렬하므로, 여기서 정렬해도 그 결과가 유지되지 않는다.
 
-### `MenuReviewQueryDao#findWritableItemsByOrderId` — 상품 조인은 `leftJoin`이고 `deleted` 필터를 걸지 않는다
+### `MenuReviewQueryAdapter#findWritableItemsByOrderId` — 상품 조인은 `leftJoin`이고 `deleted` 필터를 걸지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/menureview/query/MenuReviewQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/menureview/query/MenuReviewQueryAdapter.java`
 → `findWritableItemsByOrderId`
 
 inner join으로 바꾸면 상품 행이 사라지는 순간(소프트 삭제 후 필터, 혹은 향후 하드 삭제) 그 메뉴를 주문했던 회원의 **리뷰 작성 항목이 통째로 소멸한다.** 같은 이유로 여기에는 `deleted` 필터를 걸지 않으며, 평가 제외 판정에서도 **`ratingExcluded`가 null인 경우를 명시적으로 통과**시킨다(주문 스냅샷만으로 평가할 수 있어야 한다).
 
-### `CouponQueryDao` 내 쿠폰 조회 — 원본 쿠폰의 삭제 필터를 추가하지 않는다
+### `CouponQueryAdapter` 내 쿠폰 조회 — 원본 쿠폰의 삭제 필터를 추가하지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/coupon/query/CouponQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/coupon/query/CouponQueryAdapter.java`
 → `findMemberCoupons` · `findAvailableMemberCoupons`
 
 admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회는 이관 이전 동작을 그대로 보존해 필터링하지 않는다.** 일관성을 이유로 없던 필터를 넣으면 이미 발급된 보유분이 회원 쿠폰함에서 사라진다.
 
-### `ProductFeedbackQueryDao` — 제보자 정보를 어떤 투영에도 담지 않는다
+### `ProductFeedbackQueryAdapter` — 제보자 정보를 어떤 투영에도 담지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductFeedbackQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductFeedbackQueryAdapter.java`
 → 클래스 전체
 
 **점주가 특정 손님을 식별하면 보복 우려가 있다.** 제보의 목적은 정보 수정이지 손님 응대가 아니므로, `member_id`는 중복 방지 판정(write 포트)에만 쓰고 투영·응답 어디에도 싣지 않는다.
 
-### `ProductFeedbackQueryDao` 메뉴 조인 — `leftJoin`을 유지한다
+### `ProductFeedbackQueryAdapter` 메뉴 조인 — `leftJoin`을 유지한다
 
 **대상**: 같은 파일 → `findFeedbackSummaries`
 
 메뉴가 소프트 삭제돼도 제보는 남는다. inner join으로 바꾸면 **삭제된 메뉴에 대한 지적이 통째로 사라져** 점주가 원인을 파악할 근거를 잃는다.
 
-### `ProductFeedbackQueryDao#MAX_CONTENTS_PER_GROUP` — 상한을 풀지 않고, 창 함수로 바꾸지 않는다
+### `ProductFeedbackQueryAdapter#MAX_CONTENTS_PER_GROUP` — 상한을 풀지 않고, 창 함수로 바꾸지 않는다
 
 **대상**: 같은 파일 → `MAX_CONTENTS_PER_GROUP` · `findEtcContents`
 
 무제한으로 실으면 제보가 많은 메뉴 하나가 응답을 뒤덮어 다른 메뉴의 지적이 묻힌다. 상한은 **자바에서 적용한다** — 그룹별 LIMIT은 표준 SQL로 표현할 수 없고, 창 함수를 쓰면 이 조회만 네이티브 SQL이 되어 컴파일 검증에서 벗어난다.
 
-### `StorePriceVerificationQueryDao` — 가격표 이미지는 `left join`이다
+### `StorePriceVerificationQueryAdapter` — 가격표 이미지는 `left join`이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/StorePriceVerificationQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/StorePriceVerificationQueryAdapter.java`
 → `verificationProjection`
 
 컬럼이 `NOT NULL`이라 정상 데이터라면 항상 맞지만, inner join으로 두면 **파일 행이 유실된 요청이 검수 목록에서 조용히 사라져** 처리 불가 상태가 된다.
 
-### `StorePriceVerificationQueryDao` — 항목을 목록 조회에 조인하지 않는다
+### `StorePriceVerificationQueryAdapter` — 항목을 목록 조회에 조인하지 않는다
 
 **대상**: 같은 파일 → `verificationProjection` · `findVerificationItems`
 
 요청 1건에 메뉴가 N건 달리므로 목록에 조인하면 행이 부풀어 페이징이 깨진다. `itemCount`도 **스칼라 서브쿼리**여야 한다 — 조인 후 `GROUP BY`로 세면 페이징 대상 행이 부풀고 **항목이 0건인 요청이 조인에서 탈락한다.**
 
-### `ShopChoiceQueryDao` 대표 상품 그룹핑 — `PRODUCT.shop_id`로 되돌리지 않는다
+### `ShopChoiceQueryAdapter` 대표 상품 그룹핑 — `PRODUCT.shop_id`로 되돌리지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopChoiceQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopChoiceQueryAdapter.java`
 → `productsByShopId`
 
 메뉴-가게 N:M 도입으로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은 **`PRODUCT_SHOP_LINK`**다. 그룹핑 키를 원본 컬럼으로 되돌리면 **다른 가게에서 불러온 메뉴가 그 가게 목록에 나타나지 않는다.**
 
-### `BannerQueryDao` — 노출 조회는 `inner join`, 관리 조회는 `left join`이다
+### `BannerQueryAdapter` — 노출 조회는 `inner join`, 관리 조회는 `left join`이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/banner/query/BannerQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/banner/query/BannerQueryAdapter.java`
 → `findVisibleBannersByType` · `findAllBanners` · `findDetailById`
 
 이 비대칭을 한쪽으로 통일하지 않는다. inner로 통일하면 이미지 없는 배너가 **관리 화면에서 사라지고**, left로 통일하면 이미지 없는 배너가 **회원에게 노출된다.**
@@ -706,9 +706,9 @@ admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회
 
 어댑터 내부 타입이라 읽기 계약 패키지로 옮기지 않았지만, **`@QueryProjection`은 쓰지 않는다.** 그 어노테이션이 리포에 하나라도 남으면 "읽기 투영은 `Projections.constructor`로 한다"는 규칙에 예외가 생기고 Q타입 생성물이 다시 늘어난다.
 
-### `BugReportQueryDao#toDetailResult` — 조립 팩토리를 포트 DTO에 두지 않는다
+### `BugReportQueryAdapter#toDetailResult` — 조립 팩토리를 포트 DTO에 두지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/bug/query/BugReportQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/bug/query/BugReportQueryAdapter.java`
 → `toDetailResult`
 
 `BugReportDetailProjection`은 어댑터 내부 전용 타입이라 포트 DTO 쪽에 팩토리를 두면 **읽기 계약이 infra를 참조하게 된다.**
@@ -720,30 +720,30 @@ admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회
 
 `FileStoragePort#getFileUrl`은 네트워크·SDK·DB 접근이 없는 순수 문자열 변환이라 행 단위로 반복 호출해도 비용이 사실상 없다. **캐싱은 값비싼 연산에 쓰는 수단이며, 여기 도입하면 baseUrl 설정 변경 시 무효화 책임만 새로 생긴다.**
 
-### `CeoQueryDao` — 인증·시드 조회를 이 DAO로 옮기지 않는다
+### `CeoQueryAdapter` — 인증·시드 조회를 이 DAO로 옮기지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/ceo/query/CeoQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/ceo/query/CeoQueryAdapter.java`
 → 클래스 전체
 
 `findByUsername`/`existsByUsername`은 **불변식 검증 경로**이므로 write 포트에 잔류한다. 표현 목적 조회가 아니다.
 
-### `CeoReplyPhraseQueryDao#findReplyPhrases` — 2차 정렬 키 `id`를 빼지 않는다
+### `CeoReplyPhraseQueryAdapter#findReplyPhrases` — 2차 정렬 키 `id`를 빼지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/ceo/query/CeoReplyPhraseQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/ceo/query/CeoReplyPhraseQueryAdapter.java`
 → `findReplyPhrases`
 
 삭제 후 `sort`를 재정렬하지 않아 **순번이 같은 행이 생길 수 있다.** 2차 키를 빼면 동률 행의 순서가 요청마다 달라진다.
 
-### `AdminDongQueryDao` 경계 조회 — 경계 미보유 동을 목록에서 빼지 않는다
+### `AdminDongQueryAdapter` 경계 조회 — 경계 미보유 동을 목록에서 빼지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/query/AdminDongQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/query/AdminDongQueryAdapter.java`
 → `findBoundariesWithinBoundingBox`
 
 경계가 없다고 빼면 화면이 **"이 지역에 동이 없다"로 오해**하게 된다. 실제로는 좌표만 있고 경계 시드가 아직 안 들어온 정상 상태다.
 
-### `MemberDeliveryAddressQueryDao` — 행정동은 `left join`이다
+### `MemberDeliveryAddressQueryAdapter` — 행정동은 `left join`이다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/member/query/MemberDeliveryAddressQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/member/query/MemberDeliveryAddressQueryAdapter.java`
 → `findByMemberId` · `regionNameExpression`
 
 주소 문자열 매칭에 실패해 `admin_dong_id`가 null인 주소도 **목록에서 빠지면 안 된다.** 그 경우 `regionName`은 null로 내려가며, 이는 정상 동작이다.
@@ -784,7 +784,7 @@ IDE·정적분석이 "assigned but never accessed" / "never used" / "never assig
 
 **대상**: append-only 이력·불변 사실 기록·replace-all 컬렉션·read-only 마스터 엔티티 전부. 대표 예 — `.../shop/persistence/ShopChangeHistoryJpaEntity.java` · `.../product/persistence/ProductOptionGroupMergeHistoryJpaEntity.java` · `.../product/persistence/ProductOptionGroupMergeExclusionJpaEntity.java` · `.../product/persistence/ProductFeedbackJpaEntity.java` · `.../product/persistence/StorePriceVerificationItemJpaEntity.java` · `.../payment/persistence/PaymentRefundJpaEntity.java` · `.../payment/persistence/TossPaymentRecordJpaEntity.java` · `.../rank/persistence/MemberReviewRankJpaEntity.java` · `.../review/persistence/ReviewBlindRequestAttachmentJpaEntity.java` · `.../shop/persistence/ShopNoticeImageJpaEntity.java`
 
-`applyChanges`의 부재는 **update 경로가 존재하지 않는다는 구조적 표현**이다. 추가하면 "언젠가 바꿀 수 있다"는 잘못된 신호가 되고, **이력 행이 사후에 바뀌면 감사 근거로서의 가치가 사라진다.** 실제로 갱신 경로가 생길 때만 추가한다. 대응하는 write 어댑터(`*RepositoryImpl`)의 `save`에도 update 분기를 두지 않는다.
+`applyChanges`의 부재는 **update 경로가 존재하지 않는다는 구조적 표현**이다. 추가하면 "언젠가 바꿀 수 있다"는 잘못된 신호가 되고, **이력 행이 사후에 바뀌면 감사 근거로서의 가치가 사라진다.** 실제로 갱신 경로가 생길 때만 추가한다. 대응하는 write 어댑터(`*PersistenceAdapter`)의 `save`에도 update 분기를 두지 않는다.
 
 #### 복사 대상에서 뺀 필드를 `applyChanges`에 넣지 않는다
 
@@ -798,15 +798,15 @@ IDE·정적분석이 "assigned but never accessed" / "never used" / "never assig
 
 #### `save`의 PK 조회를 detached merge로 바꾸지 않는다
 
-**대상**: `.../**/persistence/*RepositoryImpl.java` → `save`
+**대상**: `.../**/persistence/*PersistenceAdapter.java` → `save`
 
 detached 인스턴스를 그대로 `save`(merge)하면 **`@CreatedDate(updatable = false)` 감사 필드가 파손되고** 새 행이 중복 생성될 수 있다. managed 엔티티를 PK로 조회한 뒤 변경 필드만 복사해 dirty checking으로 flush하는 형태를 유지한다.
 
 #### `save`·삭제 경로의 PK 조회에 소프트 삭제 필터를 걸지 않는다
 
-**대상**: `.../partnership/persistence/PartnershipRepositoryImpl.java` · `.../product/persistence/ProductRepositoryImpl.java` → `save` · `findByIdIncludingDeleted` · `.../rank/persistence/RankPeriodRepositoryImpl.java` · `.../rank/persistence/RankPrizeRepositoryImpl.java` → `delete`
+**대상**: `.../partnership/persistence/PartnershipPersistenceAdapter.java` · `.../product/persistence/ProductPersistenceAdapter.java` → `save` · `findByIdIncludingDeleted` · `.../rank/persistence/RankPeriodPersistenceAdapter.java` · `.../rank/persistence/RankPrizePersistenceAdapter.java` → `delete`
 
-삭제 전이를 저장하는 경로가 바로 이 자리이므로 **필터 없는 순수 PK 조회여야 한다.** 일반 로드용 필터 걸린 조회(`findById`)를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **삭제가 영원히 실패하고 멱등 처리·상태 확인이 불가능해진다**(`RankPeriodRepositoryImpl#delete` 선례).
+삭제 전이를 저장하는 경로가 바로 이 자리이므로 **필터 없는 순수 PK 조회여야 한다.** 일반 로드용 필터 걸린 조회(`findById`)를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **삭제가 영원히 실패하고 멱등 처리·상태 확인이 불가능해진다**(`RankPeriodPersistenceAdapter#delete` 선례).
 
 반대로 **일반 로드에서는 필터를 빼지 않는다** — `ProductJpaRepository`의 상속받은 `findById`에는 `deleted` 필터가 없으므로 일반 로드에는 `findByIdAndDeletedFalse`를 쓴다. 이 필터가 신규 주문·신규 메뉴평가 차단을 자동으로 성립시킨다.
 
@@ -816,7 +816,7 @@ detached 인스턴스를 그대로 `save`(merge)하면 **`@CreatedDate(updatable
 
 derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **Hibernate의 기본 flush 순서는 action을 타입별로 묶어 insert를 delete보다 먼저 실행한다.** 같은 키를 재사용하는 교체는 **항상 유니크 키 중복으로 실패한다**(`uk_product_allergen_product_type`·`uk_product_exposure_hour`·`uk_shop_delivery_tip_tier`·`uk_shop_delivery_tip_region`·`uk_shop_delivery_tip_holiday_shop_id`).
 
-**`clearAutomatically`도 함께 유지한다** — 벌크 연산은 1차 캐시를 우회하므로 삭제된 행이 캐시에 남아 뒤이은 조회를 오염시키거나, 재삽입이 이미 삭제된 엔티티를 보고 유니크 제약을 오판한다. `.../shop/persistence/ShopNoticeImageRepositoryImpl.java#deleteByShopNoticeId`와 `.../rank/persistence/MemberReviewRankRepositoryImpl.java#deleteByRankTypeAndBaseDate`의 캐시 비우기도 같은 이유로 제거하지 않는다.
+**`clearAutomatically`도 함께 유지한다** — 벌크 연산은 1차 캐시를 우회하므로 삭제된 행이 캐시에 남아 뒤이은 조회를 오염시키거나, 재삽입이 이미 삭제된 엔티티를 보고 유니크 제약을 오판한다. `.../shop/persistence/ShopNoticeImagePersistenceAdapter.java#deleteByShopNoticeId`와 `.../rank/persistence/MemberReviewRankPersistenceAdapter.java#deleteByRankTypeAndBaseDate`의 캐시 비우기도 같은 이유로 제거하지 않는다.
 
 #### `findFirstBy~`를 `findBy~`로 바꾸지 않는다
 
@@ -824,23 +824,23 @@ derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **
 
 노출 공지 1건 불변식은 도메인 서비스가 지킬 뿐 **DB 제약이 없다**(MySQL 부분 유니크 인덱스 미지원). `is_exposed = 1`이 2건 이상인 상태가 물리적으로 가능하며, 단건 시그니처는 그때 `IncorrectResultSizeDataAccessException`으로 **해당 가게의 공지 기능을 통째로 500으로 만든다.**
 
-같은 이유로 `.../review/persistence/ReviewBlindRequestRepositoryImpl.java#findApprovedByReviewId`도 `fetchOne`을 쓰지 않는다 — 1회 제한이 애플리케이션 검사라 동시 요청에 이론상 뚫린다.
+같은 이유로 `.../review/persistence/ReviewBlindRequestPersistenceAdapter.java#findApprovedByReviewId`도 `fetchOne`을 쓰지 않는다 — 1회 제한이 애플리케이션 검사라 동시 요청에 이론상 뚫린다.
 
 `.../shop/persistence/ShopOrderNoticeJpaRepository.java#findByShopId`가 단건 시그니처인 것은 `shop_id`에 컬럼 단위 유니크 제약이 있어서다. **그 유니크 제약을 제거하면 이 조회도 함께 깨진다.**
 
 #### null 파라미터로 파생 쿼리를 합치지 않는다
 
-**대상**: `.../product/persistence/ProductJpaRepository.java` → `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `.../product/persistence/ProductRepositoryImpl.java` → `findAllByShopIdAndCategoryId`
+**대상**: `.../product/persistence/ProductJpaRepository.java` → `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `.../product/persistence/ProductPersistenceAdapter.java` → `findAllByShopIdAndCategoryId`
 
 미분류 메뉴 조회를 `productCategoryId = null` 하나로 합치면 **null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.**
 
 #### 메뉴판 판정을 `PRODUCT.shop_id`로 되돌리지 않는다
 
-**대상**: `.../product/persistence/ProductJpaRepository.java` → `countVisibleByShopLink` · `.../product/persistence/ProductRepositoryImpl.java` · `.../product/persistence/ProductPriceJpaRepository.java`
+**대상**: `.../product/persistence/ProductJpaRepository.java` → `countVisibleByShopLink` · `.../product/persistence/ProductPersistenceAdapter.java` · `.../product/persistence/ProductPriceJpaRepository.java`
 
 메뉴-가게 N:M 도입 이후 **"이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은 `PRODUCT_SHOP_LINK`다.** `PRODUCT.shop_id`로 세면 다른 가게에서 불러온 메뉴가 빠지고, 반대로 이 가게 메뉴판에 없는 원본 메뉴가 잘못 포함된다. `distinct`도 조인 형태가 바뀌어도 개수가 부풀지 않게 하는 방어이므로 지우지 않는다.
 
-`ProductPriceJpaRepository`의 가게별 가격 조회 조건은 **`ProductQueryDao#findShopProductPrices`와 반드시 같아야 한다** — 갈리면 매장가격 뱃지가 두 화면에서 달라진다.
+`ProductPriceJpaRepository`의 가게별 가격 조회 조건은 **`ProductQueryAdapter#findShopProductPrices`와 반드시 같아야 한다** — 갈리면 매장가격 뱃지가 두 화면에서 달라진다.
 
 #### VO 승격을 `IdMapping` 없이 직접 호출하지 않는다
 
@@ -888,13 +888,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 `MySQL GEOMETRY`·JSON으로 되돌리지 않는다 — 근거는 [코드 주석에서 이관된 설계 근거](#코드-주석에서-이관된-설계-근거)의 해당 절.
 
-#### `AdminDongRepositoryImpl`의 두 방어선을 제거하지 않는다
+#### `AdminDongPersistenceAdapter`의 두 방어선을 제거하지 않는다
 
-**대상**: `.../region/persistence/AdminDongRepositoryImpl.java`(03b 동안 `AdminDongStatePortImpl` — 번복됨) → `synchronize` · `deactivateMissing` · `AdminDongJpaRepository`의 `...ActiveIsTrue` 파생 쿼리 · `.../region/persistence/AdminDongMapper.java` → `enclosingBoundingBox`
+**대상**: `.../region/persistence/AdminDongPersistenceAdapter.java`(03b 동안 `AdminDongStatePortImpl` — 번복됨) → `synchronize` · `deactivateMissing` · `AdminDongJpaRepository`의 `...ActiveIsTrue` 파생 쿼리 · `.../region/persistence/AdminDongMapper.java` → `enclosingBoundingBox`
 
 > **(03b)** 두 방어선(`is_active = 1` 필터·빈 목록 동기화 차단)과 제자리 갱신은 `AdminDongStatePortImpl`에 그대로 있다. **바뀐 것은 마지막 항목(바운딩박스 파생)의 위치다** — 경계 인코딩과 바운딩박스 계산이 domain 기하 타입을 필요로 해 application `region/store/AdminDongStateMapper#toBoundarySnapshot`으로 옮겨 갔고, `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 한 record로 **경계와 박스를 한 번에** 넘긴다. 그래서 "두 값을 각각 받으면 어긋난다"는 위험은 Snapshot 하나로 구조적으로 막히고, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 그 Snapshot을 컬럼에 그대로 옮긴다(경계가 없으면 Snapshot이 `null`이라 박스도 함께 `null`).
 >
-> **(번복됨 — persistence domain 재허용)** 방어선 두 개와 제자리 갱신은 `AdminDongRepositoryImpl`에 있다. `AdminDongBoundarySnapshot`은 삭제됐고, 바운딩박스 파생은 **이 모듈의 `AdminDongMapper`로 돌아왔다** — `toEntity`와 `applyChanges`가 도메인 경계(`List<GeoRing>`)에서 같은 private 헬퍼 `enclosingBoundingBox`로 min/max를 계산한다(StateMapper의 계산을 그대로 옮김). 아래 마지막 항목의 원래 서술("`toEntity`와 `applyChanges`가 같은 파생 헬퍼를 쓴다")이 다시 현행이다.
+> **(번복됨 — persistence domain 재허용)** 방어선 두 개와 제자리 갱신은 `AdminDongPersistenceAdapter`에 있다. `AdminDongBoundarySnapshot`은 삭제됐고, 바운딩박스 파생은 **이 모듈의 `AdminDongMapper`로 돌아왔다** — `toEntity`와 `applyChanges`가 도메인 경계(`List<GeoRing>`)에서 같은 private 헬퍼 `enclosingBoundingBox`로 min/max를 계산한다(StateMapper의 계산을 그대로 옮김). 아래 마지막 항목의 원래 서술("`toEntity`와 `applyChanges`가 같은 파생 헬퍼를 쓴다")이 다시 현행이다.
 
 - **모든 조회의 `is_active = 1` 필터** — 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.** 빠지면 폐지된 행정동이 "검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는" 비대칭이 되살아난다.
 - **빈 목록 동기화 차단** — 원천을 못 읽었을 때 마스터를 비우면 **전국 배달지역이 통째로 죽는다.**
@@ -917,7 +917,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 예약 슬롯의 낙관적 락 배선을 바꾸지 않는다
 
-**대상**: `.../reservation/persistence/ReservationSlotRepositoryImpl.java`(03b 동안 `ReservationSlotStatePortImpl` — 번복됨) · `.../reservation/persistence/ReservationSlotJpaRepository.java`
+**대상**: `.../reservation/persistence/ReservationSlotPersistenceAdapter.java`(03b 동안 `ReservationSlotStatePortImpl` — 번복됨) · `.../reservation/persistence/ReservationSlotJpaRepository.java`
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역하는 자리도 유지한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
 
@@ -956,9 +956,9 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 ### 남긴 `Tuple`은 key→value 룩업 빌더다 — record로 바꾸지 않는다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryDao.java`의 잔존 `com.querydsl.core.Tuple` 사용처 — `ShopReviewManagementQueryDao`·`ReviewQueryDao`·`ProductFeedbackQueryDao`의 `(reviewId, filePath) → Map<Long, List<String>>` 수집, `ReviewStatisticsQueryDao#getRatingCounts`·`getMonthly*`, `ShopChoiceQueryDao`의 `select(shopId, ConstructorExpression<ProductSimpleResult>)`, `ShopDeliveryTipQueryDao#findSettings`의 `select(shopId, Projections.constructor(ShopDeliveryTipSettingResult.class, ...))`, `ProductQueryDao`의 메서드 내부 전용 `Map<Long, Tuple>` 그룹 조회
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/query/*QueryAdapter.java`의 잔존 `com.querydsl.core.Tuple` 사용처 — `ShopReviewManagementQueryAdapter`·`ReviewQueryAdapter`·`ProductFeedbackQueryAdapter`의 `(reviewId, filePath) → Map<Long, List<String>>` 수집, `ReviewStatisticsQueryAdapter#getRatingCounts`·`getMonthly*`, `ShopChoiceQueryAdapter`의 `select(shopId, ConstructorExpression<ProductSimpleResult>)`, `ShopDeliveryTipQueryAdapter#findSettings`의 `select(shopId, Projections.constructor(ShopDeliveryTipSettingResult.class, ...))`, `ProductQueryAdapter`의 메서드 내부 전용 `Map<Long, Tuple>` 그룹 조회
 
-위치 인덱스 접근을 투영 record로 교체한 것은 **03 덩어리의 3건뿐**이다(`ProductQueryDao#findActiveProductSummaries`·`ReviewStatisticsQueryDao#getCategoryAverages`·`ShopDeliveryTipQueryDao#findTipRanges`). 위 목록은 **의도적으로 남긴 것**이며 "Tuple 전량 제거"를 근거로 바꾸지 않는다.
+위치 인덱스 접근을 투영 record로 교체한 것은 **03 덩어리의 3건뿐**이다(`ProductQueryAdapter#findActiveProductSummaries`·`ReviewStatisticsQueryAdapter#getCategoryAverages`·`ShopDeliveryTipQueryAdapter#findTipRanges`). 위 목록은 **의도적으로 남긴 것**이며 "Tuple 전량 제거"를 근거로 바꾸지 않는다.
 
 - **2컬럼 key→value 수집은 Tuple의 정당한 용법이다.** 표현식 인스턴스로 `tuple.get(path)`를 꺼내므로 위치 착오가 없고, record로 바꾸면 타입만 늘어난다.
 - **Tuple을 메서드 밖으로 내보내지 않는다.** 반환 타입·필드·맵 값으로 Tuple이 메서드 경계를 넘으면 타입 없는 DTO가 된다 — 그때는 이 목록 대상이 아니라 투영 record 전환 대상이다(`findActiveProductSummaries`가 그 선례).
@@ -970,15 +970,15 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 원문 주석은 코드에서 제거됐으므로, 여기가 각 쿼리 전략의 유일한 소재지다. 항목마다 **파일 경로 + 코드 요소명**을 앵커로 남긴다(줄 번호는 쓰지 않는다 — 코드가 바뀌면 즉시 틀리기 때문이다).
 
-### `ProductQueryDao` — 쿼리 전략
+### `ProductQueryAdapter` — 쿼리 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductQueryAdapter.java`
 
 이 저장소에서 주석이 가장 많던 파일(497줄)이며, 아래 규칙들은 대부분 **한 번씩 사고를 내고 확정된 것**이다.
 
-#### `ProductQueryDao` 클래스 역할
+#### `ProductQueryAdapter` 클래스 역할
 
-`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductRepository` 등 9개)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 `ProductQueryService`가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
+`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductPersistencePort` 등 9개)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 `ProductQueryService`가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
 
 | 소비자 | 메서드 |
 |---|---|
@@ -1171,9 +1171,9 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 | DAO 메서드 | 같은 데이터를 읽는 write 포트 | 반드시 조건이 일치해야 하는 이유 |
 |---|---|---|
-| `findProductPrices` | `ProductPriceRepository#findAllByProductId` | — |
-| `findShopProductPrices` | `ProductPriceRepository#findAllByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
-| `countVisibleProducts` | `ProductRepository#countVisibleByShopId` | 조건(`visible = true` **이고** `deleted = false`)이 어긋나면 같은 가게의 뱃지가 점주·손님 화면에서 다르게 켜진다 |
+| `findProductPrices` | `ProductPricePersistencePort#findAllByProductId` | — |
+| `findShopProductPrices` | `ProductPricePersistencePort#findAllByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
+| `countVisibleProducts` | `ProductPersistencePort#countVisibleByShopId` | 조건(`visible = true` **이고** `deleted = false`)이 어긋나면 같은 가게의 뱃지가 점주·손님 화면에서 다르게 켜진다 |
 | `findOptionGroupMergeExcludedSignatures` | exclusion write 포트 | 추천 목록을 만드는 것이 query 서비스라 write 포트를 주입할 수 없다 |
 
 가격 행이 `shop_id`를 직접 들고 있지 않으므로 `findShopProductPrices`는 `PRODUCT_SHOP_LINK`로 조인해 노출 가게와 소프트 삭제를 함께 판정한다. **뱃지는 "이 가게에서 파는 메뉴들이 매장가와 같은가"를 묻는 것**이므로 판정 대상은 그 가게 메뉴판의 구성이며, 가격은 연결된 가게끼리 공유되므로 가격 행 자체는 메뉴 단위 그대로다.
@@ -1182,7 +1182,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 → `findExposurePeriod(Long)`
 
-요일·시간대 축은 판정 계산기가 **도메인 모델을 필요로 하므로** write 포트(`ProductExposureHourRepository`)를 통해 별도로 읽는다. 이 투영은 기간 축과 소유 가게만 담는다.
+요일·시간대 축은 판정 계산기가 **도메인 모델을 필요로 하므로** write 포트(`ProductExposureHourPersistencePort`)를 통해 별도로 읽는다. 이 투영은 기간 축과 소유 가게만 담는다.
 
 #### `BatchOptionInfo`는 DAO 밖으로 나가지 않는다
 
@@ -1209,13 +1209,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 - **`FileUrlProjection`은 package-private이어도 된다 — Result record가 `public`이어야 하는 규칙과는 층위가 다르다.** QueryDSL은 이 클래스를 리플렉션으로 생성하지 않는다. DAO가 `urlOf`로 **직접 인스턴스를 만들어** 넘기고, QueryDSL은 받은 인스턴스의 `newInstance`만 호출한다. 반면 `Projections.constructor`의 대상 record는 QueryDSL이 `getConstructors()`로 **public 생성자를 찾아** 호출하므로 public이어야 한다(`QueryResultRecordVisibilityTest`). `FileUrlProjection`은 record가 아니라 class라 그 테스트의 대상도 아니다. 외부에 노출할 이유가 없으므로 진입점은 `FileUrlResolver#urlOf` 하나로 둔다.
 - **`urlOf`를 다인자로 확장하지 않는다.** `MappingProjection` 생성자는 `ExpressionUtils.distinctList(args)`로 인자를 `LinkedHashSet`에 합친다. 같은 인자(같은 alias의 같은 컬럼)를 두 번 넘기면 `Expression.equals` 기준으로 같아 **예외 없이 1개로 줄어들고**, `map`이 기대한 위치와 다른 값을 읽는다. 1-인자면 합쳐질 대상이 없어 안전하다. URL 슬롯이 둘인 투영(아이콘 active/inactive, 썸네일/배너)은 **`urlOf`를 슬롯마다 한 번씩 호출**한다. 서로 다른 alias(`activeFile`·`inactiveFile`)는 별개 `QUploadedFileJpaEntity` 인스턴스라 `equals` 기준으로 다르므로 각각 감싸도 충돌하지 않는다. `map`이 인덱스가 아니라 `row.get(filePath)`로 읽는 것도 같은 이유다.
 - **`resolver` 필드의 `transient`.** `MappingProjection`이 `Serializable`(`Expression<T> extends Serializable`)이라, 직렬화 대상이 아닌 Spring 빈(`FileUrlResolver`)을 필드로 들면 정적 분석이 비직렬화 필드 경고를 낸다. 투영식은 쿼리 1회 동안만 사는 객체이고 직렬화될 일이 없으므로, 빈 참조를 직렬화 그래프에서 빼 의도를 명시한다.
-- **`null` 경로는 `null` URL이다.** `leftJoin`에서 파일이 없으면 `row.get(filePath)`가 `null`이고 `FileUrlResolver#resolve`가 `null`을 그대로 돌려준다 — 예외가 아니다(`BannerQueryDao#findAllBanners`·`#findDetailById`의 이미지 없는 배너).
+- **`null` 경로는 `null` URL이다.** `leftJoin`에서 파일이 없으면 `row.get(filePath)`가 `null`이고 `FileUrlResolver#resolve`가 `null`을 그대로 돌려준다 — 예외가 아니다(`BannerQueryAdapter#findAllBanners`·`#findDetailById`의 이미지 없는 배너).
 - **`urlOf`는 `*.filePath`만 감싸고, `Projections.constructor`의 최상위 인자로 둔다.** 그 이유와 가드는 [`urlOf(...)`는 `*.filePath` 컬럼만 감싼다](#urlof는-filepath-컬럼만-감싼다--래핑-대상-단정) 절에 있다.
 - **`resolve`·`resolveAll` 2종은 유지한다.** 별도 쿼리로 얻은 Map/Collection을 배치 변환하는 경로(이미지 목록·태그 보강 등)는 컬럼 표현식이 아니므로 post-fetch가 정상이다.
 
-### 전 `*QueryDao` 공통 — 반복되던 클래스 Javadoc
+### 전 `*QueryAdapter` 공통 — 반복되던 클래스 Javadoc
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/*/query/*QueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/*/query/*QueryAdapter.java`
 
 거의 모든 DAO의 클래스 Javadoc이 아래를 **글자만 바꿔 반복**하고 있었다. 전부 위 [`<ctx>/query/` 절](#ctxquery--read-어댑터-cqrs-query-측-개정됨--읽기-경로-포트화)이 이미 규칙으로 갖고 있는 내용이라 개별 이관하지 않고 여기 한 번만 적는다.
 
@@ -1234,7 +1234,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 | 관용구 | 이유 |
 |---|---|
 | `@Convert` VO 컬럼의 raw `Long` path 헬퍼 (`shopThumbnailImageFileId()` · `memberProfileImageFileId()` · `shopStationId()` 등) | VO로 변환되는 컬럼을 QueryDSL에서 원시 타입으로 비교·조인하기 위해 별도 path를 만든다 |
-| 같은 테이블 두 번 조인 시 **별칭 분리** (`replyToMember` 등) | 별칭을 재사용하면 조인이 서로를 덮는다. `ProductQueryDao`의 서브쿼리 별칭과 같은 사유다 |
+| 같은 테이블 두 번 조인 시 **별칭 분리** (`replyToMember` 등) | 별칭을 재사용하면 조인이 서로를 덮는다. `ProductQueryAdapter`의 서브쿼리 별칭과 같은 사유다 |
 | **count와 content의 술어·조인 공유** | 따로 두면 한쪽만 고쳐져 페이징 `totalElements`가 어긋나고 마지막 페이지가 빈다. **`innerJoin`은 count에서도 재현**해야 하고(짝이 없는 행을 제외하므로), 1:1 조인이라 행이 늘지 않으면 `countDistinct`는 필요 없다 |
 | **파일 조인은 `leftJoin`** | 파일 미등록 행이 목록에서 통째로 누락되지 않게 한다 |
 
@@ -1244,9 +1244,9 @@ fetch 뒤 wither(`withImageUrls`·`withOptions`·`withTipRange` 등)로 record�
 
 아래는 위 공통 규칙으로 설명되지 않는 것들이다.
 
-#### `ShopRequestQueryDao` — 인덱스 테이블 단독 조회와 반열림 날짜 구간
+#### `ShopRequestQueryAdapter` — 인덱스 테이블 단독 조회와 반열림 날짜 구간
 
-**대상**: `.../shop/query/ShopRequestQueryDao.java`
+**대상**: `.../shop/query/ShopRequestQueryAdapter.java`
 
 - **목록은 인덱스 테이블 단독으로 조회한다** — 유형별 원본을 UNION하지 않으므로 정렬·페이징·필터가 단일 테이블 인덱스로 해결되고, **유형이 늘어도 이 코드는 그대로다.** 진입 인덱스는 `(shop_id, created_at)`이며 기본 정렬 `created_at DESC, id DESC`가 이를 그대로 탄다.
 - **상세는 인덱스와 원본을 함께 읽는다.** 인덱스에서 `requestType`/`sourceRequestId`를 얻어 유형별 원본을 별도 투영하며, **상태·반려 사유는 원본 값으로 응답한다**(인덱스는 파생 읽기모델이라 진실원이 아니다).
@@ -1255,41 +1255,41 @@ fetch 뒤 wither(`withImageUrls`·`withOptions`·`withTipRange` 등)로 record�
 - `commentCount()` 상관 서브쿼리는 `(shop_request_index_id, id)` 인덱스가 커버하며, **목록 size가 최대 100이라 행마다 실행돼도 비용이 낮다**(그래서 배치 조회로 바꾸지 않았다).
 - 첨부 URL은 목록에서 join 없이 **존재 여부만** 담고, 상세에서만 완성한다. 응답에 `~FileId`를 노출하지 않는 규칙에 따라 URL로 변환해 내보낸다.
 
-#### `ReviewManagementQueryDao` — 관리자는 전량 열람이 기본이다
+#### `ReviewManagementQueryAdapter` — 관리자는 전량 열람이 기본이다
 
-**대상**: `.../review/query/ReviewManagementQueryDao.java`
+**대상**: `.../review/query/ReviewManagementQueryAdapter.java`
 
-web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전용 조회만 둔다. **관리 화면은 숨김 처리된 리뷰·댓글·답글까지 모두 봐야 하므로 `hidden` 필터를 걸지 않는다.**
+web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 전용 조회만 둔다. **관리 화면은 숨김 처리된 리뷰·댓글·답글까지 모두 봐야 하므로 `hidden` 필터를 걸지 않는다.**
 
 `ownerOnlyEq`·`hidden` 두 축 모두 **필터를 강제하지 않고 검색 수단으로만 제공한다**(`null`이면 조건 없음 = 전체). 관리자에게는 전량 열람이 기본이기 때문이다.
 
 댓글·답글 목록은 **회원 테이블을 join해 한 번에 투영한다** — 과거 조회 서비스가 도메인 모델을 읽은 뒤 작성자 닉네임을 별도 조회해 맵으로 붙이던 것을 대체했다.
 
-#### `ReservationQueryDao` — 차단 상태의 단일 원천은 도메인이다
+#### `ReservationQueryAdapter` — 차단 상태의 단일 원천은 도메인이다
 
-**대상**: `.../reservation/query/ReservationQueryDao.java`
+**대상**: `.../reservation/query/ReservationQueryAdapter.java`
 
-- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다. **(번복됨 — 03b, 형태만)** 이 DAO는 domain을 볼 수 없으므로 차단 상태를 **파라미터 `Collection<String> blockingStatuses`로 받는다**(`existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses)`). 목록은 호출하는 application이 `ReservationStatus.blockingStatuses()`에서 `name()`으로 만들어 넘긴다 — `application/reservation/service/ReservationQueryService`(읽기 경로)·~~`application/reservation/store/ReservationStore`(write 포트 `existsBlockingByMemberShopDate`)~~ — **(번복됨 — persistence domain 재허용)** write 경로는 이제 이 모듈의 `reservation/persistence/ReservationRepositoryImpl`이 `ReservationStatus.blockingStatuses()`에서 직접 `name()` 목록을 만든다(조회 DAO는 여전히 파라미터로 받는다). "단일 원천은 도메인"이라는 취지는 그대로이며, **이 DAO에 상태 문자열 목록을 하드코딩하지 않는다.**
+- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다. **(번복됨 — 03b, 형태만)** 이 DAO는 domain을 볼 수 없으므로 차단 상태를 **파라미터 `Collection<String> blockingStatuses`로 받는다**(`existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses)`). 목록은 호출하는 application이 `ReservationStatus.blockingStatuses()`에서 `name()`으로 만들어 넘긴다 — `application/reservation/service/ReservationQueryService`(읽기 경로)·~~`application/reservation/store/ReservationStore`(write 포트 `existsBlockingByMemberShopDate`)~~ — **(번복됨 — persistence domain 재허용)** write 경로는 이제 이 모듈의 `reservation/persistence/ReservationPersistenceAdapter`이 `ReservationStatus.blockingStatuses()`에서 직접 `name()` 목록을 만든다(조회 DAO는 여전히 파라미터로 받는다). "단일 원천은 도메인"이라는 취지는 그대로이며, **이 DAO에 상태 문자열 목록을 하드코딩하지 않는다.**
 - `findSlotOccupancies`는 **행이 존재하는 슬롯만** 돌려준다. 행이 없는 시간대는 예약 0건이므로 결과에 없고, **소비 측이 전체 슬롯 목록과 병합해 기본 정원으로 채운다.**
 - 가게·파일을 join으로 함께 투영해, 과거 예약을 도메인 모델로 읽은 뒤 가게를 건당 다시 조회하던 목록 크기만큼의 반복 조회를 없앴다.
 
-#### `EventQueryDao` — 삭제 필터는 이관 이전 동작을 보존한다
+#### `EventQueryAdapter` — 삭제 필터는 이관 이전 동작을 보존한다
 
-**대상**: `.../event/query/EventQueryDao.java`
+**대상**: `.../event/query/EventQueryAdapter.java`
 
 **삭제 필터링을 전 경로에 일괄 적용하지 않는다.** admin 관리 목록·상세와 당첨자 목록은 soft delete 분을 제외하고, **web 노출 목록·상세와 발표 목록은 원본 쿼리에 삭제 필터가 없었으므로 추가하지 않는다.** 일관성을 이유로 없던 필터를 넣으면 이관 전후 동작이 달라진다.
 
 세 애그리거트(이벤트·당첨자·발표)의 조회를 한 DAO에 두며, 썸네일·배너는 **각각 별도 alias로 left join**해 추가 조회 없이 함께 투영한다.
 
-#### `RankQueryDao` — 소프트 삭제 도메인
+#### `RankQueryAdapter` — 소프트 삭제 도메인
 
-**대상**: `.../rank/query/RankQueryDao.java`
+**대상**: `.../rank/query/RankQueryAdapter.java`
 
-소프트 삭제 도메인이므로 **모든 조회 경로에 `deleted.isFalse()` 필터를 유지한다**(`EventQueryDao`와 달리 예외가 없다). `findActiveDuration`은 시작일이 가장 늦은 1건이고, `findMemberRank`가 비어 있으면 소비 측이 **0위 응답으로 대체**한다.
+소프트 삭제 도메인이므로 **모든 조회 경로에 `deleted.isFalse()` 필터를 유지한다**(`EventQueryAdapter`와 달리 예외가 없다). `findActiveDuration`은 시작일이 가장 늦은 1건이고, `findMemberRank`가 비어 있으면 소비 측이 **0위 응답으로 대체**한다.
 
-#### `MemberQueryDao` — 탈퇴 회원의 번호는 재사용 가능하다
+#### `MemberQueryAdapter` — 탈퇴 회원의 번호는 재사용 가능하다
 
-**대상**: `.../member/query/MemberQueryDao.java`
+**대상**: `.../member/query/MemberQueryAdapter.java`
 
 - `existsByActivePhoneNumber`는 **탈퇴하지 않은 회원만** 본다. 탈퇴 회원의 번호는 재사용 가능하기 때문이다.
 - `findMemberWithProfileImagesByIds`는 목록 화면이 작성자 정보를 합성할 때의 N+1을 없앤다 — 과거 단건 조회를 회원 수만큼 반복하던 것을 `in` 절로 대체했다.
@@ -1297,17 +1297,17 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 - `gender`는 응답까지 그대로 전달되는 표현용이라 도메인 enum이 아니라 **이름 문자열로 투영한다**(`stringValue()`).
 - `existsByNickname` 같은 표현용 단건 판정은 write 포트가 아니라 이 어댑터가 답한다.
 
-### `ShopQueryDao` — 가게 설정·관리 화면 조회 전략
+### `ShopQueryAdapter` — 가게 설정·관리 화면 조회 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopQueryAdapter.java`
 
 #### 클래스 역할과 DAO 이분할
 
-→ `ShopQueryDao`(클래스 선언)
+→ `ShopQueryAdapter`(클래스 선언)
 
-`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopRepository`·`ShopDetailRepository` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의 `Shop*QueryService`가 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다. 구현하는 읽기 계약은 `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort` 4종이다.
+`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopPersistencePort`·`ShopDetailPersistencePort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의 `Shop*QueryService`가 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다. 구현하는 읽기 계약은 `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort` 4종이다.
 
-**shop은 대형 도메인이라 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다.** 이 클래스는 *가게별 설정·관리 화면 조회*(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 배정·배너·사진)를 담당하고, 목록·검색·베스트 등 **대형 조인은 `ShopSearchQueryDao`가 담당한다.**
+**shop은 대형 도메인이라 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다.** 이 클래스는 *가게별 설정·관리 화면 조회*(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 배정·배너·사진)를 담당하고, 목록·검색·베스트 등 **대형 조인은 `ShopSearchQueryAdapter`가 담당한다.**
 
 소비자별 메서드는 CLAUDE.md 규칙대로 admin 마커 없이 순수 동작명을 쓰고, 비-admin 형제와 충돌할 때만 시그니처·`ById` 한정어로 구별한다.
 
@@ -1335,7 +1335,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 → `findShopImageUrls(Long)` · `findVisibleDetailById(Long)` · `existsBookmark(Long, Long)`
 
 - `findShopImageUrls` — 도메인 모델(`Shop`)은 다른 필드를 위해 계속 로드하되 **이미지 URL만 이 조회로 대체해 파일 단건 재조회를 없앤다.**
-- `findVisibleDetailById` — 회원 노출용 가게 단건. 폐업·노출정지 가게는 투영되지 않으며, 가시성 조건(`permanentlyClosed=false`·`hidden=false`)은 write 포트 `ShopRepository#findVisibleById`와 **동일하게 유지한다.** 애그리거트를 로드해 표시 필드를 꺼내던 기존 형태를 한 번의 투영으로 대체한 것이다.
+- `findVisibleDetailById` — 회원 노출용 가게 단건. 폐업·노출정지 가게는 투영되지 않으며, 가시성 조건(`permanentlyClosed=false`·`hidden=false`)은 write 포트 `ShopPersistencePort#findVisibleById`와 **동일하게 유지한다.** 애그리거트를 로드해 표시 필드를 꺼내던 기존 형태를 한 번의 투영으로 대체한 것이다.
 - `existsBookmark` — 표현용 단건 판정이라 write 포트가 아니라 이 어댑터가 답한다.
 - `findManagementDetailById` — 관리 상세는 회원 노출용과 달리 **폐업·노출정지 가게도 조회된다.**
 
@@ -1390,15 +1390,15 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 ---
 
-### `ShopSearchQueryDao` — 목록·검색 조회 전략
+### `ShopSearchQueryAdapter` — 목록·검색 조회 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopSearchQueryAdapter.java`
 
 #### 클래스 역할과 목록 조회의 기본 형태
 
-→ `ShopSearchQueryDao`(클래스 선언) · `stationNamesByShopId` 이하 일괄 보강 조회
+→ `ShopSearchQueryAdapter`(클래스 선언) · `stationNamesByShopId` 이하 일괄 보강 조회
 
-가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopRepository`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryDao`가 담당한다.
+가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopPersistencePort`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryAdapter`가 담당한다.
 
 **목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채우는 방식을 유지한다** — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영으로는 카티전 곱이 생기기 때문이다.
 
@@ -1418,7 +1418,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 가게별 고객 노출 리뷰 수는 숨김(관리자 게시중단)과 사장님만보기를 **둘 다** 제외한다.
 
-**`ownerOnly`를 빼먹으면 목록 카드의 리뷰 수만 늘고 정작 가게 리뷰 목록에는 그 리뷰가 없어 건수 차이로 비공개 리뷰의 존재가 새어나간다**(이 조회는 비로그인도 호출 가능한 경로다). 같은 이유로 `ReviewStatisticsQueryDao#countVisibleByShopId`와 **조건이 일치해야 한다** — 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.
+**`ownerOnly`를 빼먹으면 목록 카드의 리뷰 수만 늘고 정작 가게 리뷰 목록에는 그 리뷰가 없어 건수 차이로 비공개 리뷰의 존재가 새어나간다**(이 조회는 비로그인도 호출 가능한 경로다). 같은 이유로 `ReviewStatisticsQueryAdapter#countVisibleByShopId`와 **조건이 일치해야 한다** — 한쪽만 고치면 같은 가게의 두 숫자가 어긋난다.
 
 #### 배달지역 필터는 노출과 주문 접수의 판정을 일치시킨다
 
@@ -1438,19 +1438,19 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 `intersect`는 두 필터 집합의 교집합을 내되, 한쪽이 없으면 다른 쪽을, 둘 다 없으면 `null`(필터 없음)을 돌려준다.
 
-`withTipRange`는 찜 목록(`findMyBookmarkedShops`) 행에 배달팁 하한/상한을 채워 재조립한다. 이미지 URL은 투영식의 `fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)`가 이미 채웠으므로 그대로 옮기기만 한다 — 02 롤아웃 전에는 URL 변환까지 함께 하던 `withResolvedImageUrlAndTipRange`였고, URL 부분만 투영식으로 옮기며 남은 역할에 맞게 개명했다. 배달팁 병합이 fetch 뒤에 남는 이유는 **배달팁 범위가 올림 계산이 섞여 SQL 집계로 표현되지 않고**(`ShopDeliveryTipQueryDao#findTipRanges` 참고) shopId 키 Map과의 병합이라 컬럼 표현식이 될 수 없기 때문이다. 배달팁 설정이 없는 가게는 하한·상한 모두 0이다.
+`withTipRange`는 찜 목록(`findMyBookmarkedShops`) 행에 배달팁 하한/상한을 채워 재조립한다. 이미지 URL은 투영식의 `fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)`가 이미 채웠으므로 그대로 옮기기만 한다 — 02 롤아웃 전에는 URL 변환까지 함께 하던 `withResolvedImageUrlAndTipRange`였고, URL 부분만 투영식으로 옮기며 남은 역할에 맞게 개명했다. 배달팁 병합이 fetch 뒤에 남는 이유는 **배달팁 범위가 올림 계산이 섞여 SQL 집계로 표현되지 않고**(`ShopDeliveryTipQueryAdapter#findTipRanges` 참고) shopId 키 Map과의 병합이라 컬럼 표현식이 될 수 없기 때문이다. 배달팁 설정이 없는 가게는 하한·상한 모두 0이다.
 
 ---
 
-### `ShopDeliveryTipQueryDao` — 배달팁 조회·표기 산출 전략
+### `ShopDeliveryTipQueryAdapter` — 배달팁 조회·표기 산출 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryTipQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopDeliveryTipQueryAdapter.java`
 
 #### 클래스 역할과 파트별 분리
 
-→ `ShopDeliveryTipQueryDao`(클래스 선언) · `findSetting` · `findTiers` · `findRegionTips` · `findScheduleTips` · `findHolidayTipAmount`
+→ `ShopDeliveryTipQueryAdapter`(클래스 선언) · `findSetting` · `findTiers` · `findRegionTips` · `findScheduleTips` · `findHolidayTipAmount`
 
-가게 배달팁 read 어댑터(CQRS query 측). 점주 설정 화면과 고객 배달팁 팝업이 쓰는 표현용 조회를 담당한다 — write 포트 `ShopDeliveryTipRepository`는 불변식 검증·주문 접수 산출에 필요한 조회만 갖고, **화면용 조인 투영(지역 이름 조립 등)은 여기가 소유한다(CQRS 교차 주입 금지).**
+가게 배달팁 read 어댑터(CQRS query 측). 점주 설정 화면과 고객 배달팁 팝업이 쓰는 표현용 조회를 담당한다 — write 포트 `ShopDeliveryTipPersistencePort`는 불변식 검증·주문 접수 산출에 필요한 조회만 갖고, **화면용 조인 투영(지역 이름 조립 등)은 여기가 소유한다(CQRS 교차 주입 금지).**
 
 **배달팁 5종을 한 번에 조회하는 단일 메서드를 두지 않고 파트별로 나눈 것은, 고객 팝업이 구간·설정만 필요로 하는 등 소비 지점마다 필요한 파트가 다르기 때문이다.** 소비 Service가 필요한 것만 조합한다.
 
@@ -1465,7 +1465,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 배달팁 **상한** 표기에서 가정하는 최대 배달 거리(5,000m). 기본배달거리 허용값의 최댓값(3km)의 곱절 남짓을 잡았다 — 기본배달거리를 3km로 잡은 가게도 상한이 0이 되지 않으면서, 100m당 300원짜리 최악 설정에서도 상한이 도메인 상한(`DeliveryTipPolicy#EXTRA_TIP_UPPER_BOUND`)에 닿아 그 이상 과장되지 않는다.
 
-**도메인 정책이 아니라 표기용 가정이라 DAO에 잔류한다**(`ShopSearchQueryDao#MAP_MARKER_RADIUS_METERS`와 같은 성격) — "가게가 어디까지 배달해야 하는가"를 정하는 값이 아니라 "주소가 확정되기 전 상한을 어느 거리로 근사해 보여줄 것인가"를 정한다. 가게별 배달 반경이 데이터로 생기면 사라진다.
+**도메인 정책이 아니라 표기용 가정이라 DAO에 잔류한다**(`ShopSearchQueryAdapter#MAP_MARKER_RADIUS_METERS`와 같은 성격) — "가게가 어디까지 배달해야 하는가"를 정하는 값이 아니라 "주소가 확정되기 전 상한을 어느 거리로 근사해 보여줄 것인가"를 정한다. 가게별 배달 반경이 데이터로 생기면 사라진다.
 
 #### 거리별 상한은 도메인 상한을 그대로 쓰면 안 된다
 
@@ -1491,17 +1491,17 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 → `regionName()`
 
-표시용 행정동 전체 이름(`"서울특별시 강남구 역삼1동"`)을 SQL에서 조립한다 — **`ShopDeliveryAreaQueryDao`와 같은 형태여야 두 화면의 지역 표기가 갈리지 않는다.**
+표시용 행정동 전체 이름(`"서울특별시 강남구 역삼1동"`)을 SQL에서 조립한다 — **`ShopDeliveryAreaQueryAdapter`와 같은 형태여야 두 화면의 지역 표기가 갈리지 않는다.**
 
-### `ReviewQueryDao` — 쿼리 전략
+### `ReviewQueryAdapter` — 쿼리 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewQueryAdapter.java`
 
-#### `ReviewQueryDao` 클래스 역할
+#### `ReviewQueryAdapter` 클래스 역할
 
-`review` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ReviewRepository`)와 역할이 겹치지 않는다. 소비 모듈(web-api)의 리뷰 조회 서비스가 이 DAO를 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
+`review` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ReviewPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web-api)의 리뷰 조회 서비스가 이 DAO를 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
 
-**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** admin(관리) 화면 전용 조회는 `ReviewManagementQueryDao`, 집계·통계 조회는 `ReviewStatisticsQueryDao`가 담당하고, 여기에는 web/공용 목록·상세 조회만 둔다.
+**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** admin(관리) 화면 전용 조회는 `ReviewManagementQueryAdapter`, 집계·통계 조회는 `ReviewStatisticsQueryAdapter`가 담당하고, 여기에는 web/공용 목록·상세 조회만 둔다.
 
 #### 별칭을 새로 만드는 이유 — 같은 테이블을 두 번 조인한다
 
@@ -1553,7 +1553,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 → `findComments(ReviewId)` · `findVisibleReplies(List<ReviewCommentId>)`
 
-댓글 목록은 **숨김을 포함**해 최신순으로 돌려준다 — 기존 web 동작을 보존하기 위함이며, **답글만 숨김을 제외한다.** 관리 화면용 `ReviewManagementQueryDao#findCommentsIncludingHidden`과 달리 작성자 프로필 이미지 경로까지 함께 투영한다(web 응답이 프로필 이미지 URL을 포함하기 때문).
+댓글 목록은 **숨김을 포함**해 최신순으로 돌려준다 — 기존 web 동작을 보존하기 위함이며, **답글만 숨김을 제외한다.** 관리 화면용 `ReviewManagementQueryAdapter#findCommentsIncludingHidden`과 달리 작성자 프로필 이미지 경로까지 함께 투영한다(web 응답이 프로필 이미지 URL을 포함하기 때문).
 
 답글 대상 회원(replyTo)은 없을 수 있어 **leftJoin**으로 붙인다.
 
@@ -1565,15 +1565,15 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 ---
 
-### `ReviewStatisticsQueryDao` — 집계 전략
+### `ReviewStatisticsQueryAdapter` — 집계 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryAdapter.java`
 
-#### `ReviewStatisticsQueryDao` 클래스 역할
+#### `ReviewStatisticsQueryAdapter` 클래스 역할
 
-리뷰 집계·통계 전용 read 어댑터(CQRS query 측). 가게/상품/회원 단위의 리뷰 수·평균 평점·평점 분포·월별 추이를 JPA 엔티티에서 직접 투영하며, 도메인 모델을 거치지 않으므로 write 포트(`ReviewRepository`)와 역할이 겹치지 않는다.
+리뷰 집계·통계 전용 read 어댑터(CQRS query 측). 가게/상품/회원 단위의 리뷰 수·평균 평점·평점 분포·월별 추이를 JPA 엔티티에서 직접 투영하며, 도메인 모델을 거치지 않으므로 write 포트(`ReviewPersistencePort`)와 역할이 겹치지 않는다.
 
-**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 목록·상세 조회는 `ReviewQueryDao`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryDao`가 담당하고, 여기에는 집계·통계만 둔다.
+**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 목록·상세 조회는 `ReviewQueryAdapter`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryAdapter`가 담당하고, 여기에는 집계·통계만 둔다.
 
 소비자: web-api `ReviewQueryService`(가게 리뷰 통계 조합, 회원 리뷰 수)·`ProductQueryService`(상품 상세의 매장 리뷰 통계), ceo-api `ShopReviewQueryService`(점주 통계 대시보드 — 기간 오버로드 사용).
 
@@ -1611,13 +1611,13 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 ---
 
-### `ShopReviewManagementQueryDao` — 점주 리뷰 관리 쿼리 전략
+### `ShopReviewManagementQueryAdapter` — 점주 리뷰 관리 쿼리 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ShopReviewManagementQueryAdapter.java`
 
-#### 클래스 역할 — `ReviewQueryDao`와 분리한 이유
+#### 클래스 역할 — `ReviewQueryAdapter`와 분리한 이유
 
-점주 리뷰 관리(ceo) 전용 read 어댑터(CQRS query 측). 기존 `ReviewQueryDao`(web 소비)와 조회 용도가 다르다. **가장 큰 차이는 `hidden` 필터를 끄지 않는다는 점이다** — 점주는 차단 탭에서 숨겨진 리뷰를 봐야 하므로 web 목록(`hidden = false` 고정)과 같은 쿼리를 쓸 수 없다.
+점주 리뷰 관리(ceo) 전용 read 어댑터(CQRS query 측). 기존 `ReviewQueryAdapter`(web 소비)와 조회 용도가 다르다. **가장 큰 차이는 `hidden` 필터를 끄지 않는다는 점이다** — 점주는 차단 탭에서 숨겨진 리뷰를 봐야 하므로 web 목록(`hidden = false` 고정)과 같은 쿼리를 쓸 수 없다.
 
 동적 조건은 `BooleanExpression` 헬퍼 + varargs `.where(...)`로 조립한다(`BooleanBuilder` 금지 — 프로젝트 공통 규약).
 
@@ -1653,7 +1653,7 @@ web/공용 조회는 `ReviewQueryDao`에 있고 여기에는 관리 화면 전�
 
 → `applySort(JPAQuery, ReviewSortType)`
 
-기존 `ReviewQueryDao#applySort`와 같은 정책이다(추천순은 좋아요 desc, 동수는 최신순). 추천순은 좋아요 수 집계가 필요해 `group by`가 붙는데, **투영에 든 모든 비집계 컬럼을 함께 묶어야 한다** — MySQL의 `ONLY_FULL_GROUP_BY`에서 하나라도 빠지면 쿼리가 거부된다.
+기존 `ReviewQueryAdapter#applySort`와 같은 정책이다(추천순은 좋아요 desc, 동수는 최신순). 추천순은 좋아요 수 집계가 필요해 `group by`가 붙는데, **투영에 든 모든 비집계 컬럼을 함께 묶어야 한다** — MySQL의 `ONLY_FULL_GROUP_BY`에서 하나라도 빠지면 쿼리가 거부된다.
 
 #### 날짜 필터는 반열림 구간이다 — 함수를 컬럼에 씌우지 않는다
 
@@ -1671,13 +1671,13 @@ join이 아니라 `EXISTS`로 판정해 **행이 불어나지 않게 한다.** `
 
 ---
 
-### `OrderQueryDao` — 쿼리 전략
+### `OrderQueryAdapter` — 쿼리 전략
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/order/query/OrderQueryAdapter.java`
 
-#### `OrderQueryDao` 클래스 역할
+#### `OrderQueryAdapter` 클래스 역할
 
-주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderRepository`/`OrderProductRepository`/`OrderProductOptionRepository`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 `OrderQueryService`가 이 DAO를 주입해 쓴다.
+주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderPersistencePort`/`OrderProductPersistencePort`/`OrderProductOptionPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 `OrderQueryService`가 이 DAO를 주입해 쓴다.
 
 **소비자별 메서드 분리(공통 지침 패턴 3)**: 회원 화면용 `findOrders(MemberId, PageQuery)`, 관리자 화면용 `findOrders(OrderSearchCondition, PageQuery)` — **이름은 admin 마커 없이 순수 동작명을 쓰고 시그니처(회원 스코프 `MemberId` 유무)로 구별한다.** 상세 조회는 두 화면이 같은 필드 셋을 쓰므로 `findOrderDetail(OrderId)` 하나를 공유한다.
 
@@ -1685,7 +1685,7 @@ join이 아니라 `EXISTS`로 판정해 **행이 불어나지 않게 한다.** `
 
 → `ORDER_PRODUCT_IMAGE_FILE` · `findOrders(MemberId, PageQuery)` · `findOrderProducts`
 
-가게 대표 이미지(주문 목록)와 주문 상품 이미지 모두 `UPLOADED_FILE`을 join해 얻은 저장 경로를 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. 두 이미지가 같은 테이블을 각각 join하므로 `ORDER_PRODUCT_IMAGE_FILE` 별칭을 따로 둔다 — **기본 별칭 하나로는 두 join이 충돌한다**(`EventQueryDao#findEventDetailById` 선례와 동일).
+가게 대표 이미지(주문 목록)와 주문 상품 이미지 모두 `UPLOADED_FILE`을 join해 얻은 저장 경로를 `FileUrlResolver`로 표시용 URL까지 변환해 Result에 담는다. 두 이미지가 같은 테이블을 각각 join하므로 `ORDER_PRODUCT_IMAGE_FILE` 별칭을 따로 둔다 — **기본 별칭 하나로는 두 join이 충돌한다**(`EventQueryAdapter#findEventDetailById` 선례와 동일).
 
 주문 상품은 **주문 시점의 `UPLOADED_FILE.id`를 스냅샷해 두므로**(=`ORDER_PRODUCT.image_file_id`), 이후 상품 대표 이미지가 교체돼도 과거 주문은 주문 당시 이미지를 그대로 보여준다.
 
@@ -1712,13 +1712,13 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 → `findPayment(OrderId)`
 
-`PAYMENT.order_id`는 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면(동일 주문에 결제 행 2건) 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — 기존 `PaymentRepository#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다. 결제가 아직 없으면 `null`이다.
+`PAYMENT.order_id`는 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면(동일 주문에 결제 행 2건) 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — 기존 `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다. 결제가 아직 없으면 `null`이다.
 
 #### `Amount` VO 언랩이 읽기 계약을 경계 타입으로 유지한다
 
 → `withUnwrappedAmount(PaymentProjection)`
 
-> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter`가 사라져 `PAYMENT.amount`가 `NumberPath<Integer>`가 됐고, `OrderQueryDao`는 `paymentJpaEntity.amount`를 직접 투영한다. `withUnwrappedAmount`·`PaymentProjection`은 더 이상 없다. 아래는 당시 근거다.
+> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter`가 사라져 `PAYMENT.amount`가 `NumberPath<Integer>`가 됐고, `OrderQueryAdapter`는 `paymentJpaEntity.amount`를 직접 투영한다. `withUnwrappedAmount`·`PaymentProjection`은 더 이상 없다. 아래는 당시 근거다.
 
 `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 `SimplePath<Amount>`를 생성하므로 **투영은 VO로 받을 수밖에 없고**, `Projections.constructor`는 생성자 직접 투영이라 변환을 투영식에 넣을 수 없다. 그래서 fetch 직후에 푼다. 파일 URL은 `urlOf`로 투영식 안에서 변환하지만, 이 언랩은 **URL 변환이 아니므로** 그 전환 대상이 아니다(02 롤아웃에서도 건드리지 않았다).
 
@@ -1735,44 +1735,44 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 <!-- 챕터 05 — `*/query/*` 기타 DAO 39개. 분류 B(아키텍처 서술) 이관분. -->
 <!-- 목적지: backend/infrastructure/persistence/AGENTS.md 의 "코드 주석에서 이관된 설계 근거" > "개별 DAO — 그 DAO에만 있는 판단" 아래에 이어 붙인다. -->
 
-#### `AdminDongQueryDao` — 3단 lazy 트리와 SQL 조립 이름
+#### `AdminDongQueryAdapter` — 3단 lazy 트리와 SQL 조립 이름
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/query/AdminDongQueryDao.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/query/AdminDongQueryAdapter.java`
 
-- `AdminDongRepository`는 존재검증·주소 매칭용 write 포트라 배달가능지역·지역별 배달팁 설정 화면이 쓰는 **표현 목적 검색**을 담지 않는다. 그 조회를 이 DAO가 담당한다.
+- `AdminDongPersistencePort`는 존재검증·주소 매칭용 write 포트라 배달가능지역·지역별 배달팁 설정 화면이 쓰는 **표현 목적 검색**을 담지 않는다. 그 조회를 이 DAO가 담당한다.
 - 시도 → 시군구 → 동을 **3단 lazy 조회로 나눈다.** 전국 행정동이 3,600건을 넘어 전 계층을 한 번에 내리면 응답이 비대해지고 대부분이 화면에 쓰이지 않는다. **식별자(`adminDongId`·`code`)는 동 레벨에서만 채워진다** — 상위 두 레벨은 그룹핑 이름일 뿐 마스터 테이블에 자기 행이 없다.
 - 목록 정렬은 주소 인덱스 `idx_admin_dong_name` 순서에 맞춰 **시/도 → 시군구 → 동** 순이다. 인덱스 순서와 어긋나게 바꾸지 않는다.
 - 키워드 검색은 세 컬럼을 각각 비교하지 않고 **조립된 전체 이름 하나**를 부분 일치시킨다 — `"강남구 역삼"`처럼 시군구와 동을 이어 입력해도 걸리게 하기 위함이다.
-- `regionName()`은 표시용 전체 이름(`"서울특별시 강남구 역삼1동"`)을 **SQL에서 조립**한다. 세 컬럼이 전부 NOT NULL이라 구분자 분기가 없어 단순 `concat` 체인으로 충분하며, 프론트가 세 조각을 받아 문자열을 조립하지 않게 한다. `ShopDeliveryAreaQueryDao`·`MemberDeliveryAddressQueryDao`가 같은 규칙을 쓴다.
+- `regionName()`은 표시용 전체 이름(`"서울특별시 강남구 역삼1동"`)을 **SQL에서 조립**한다. 세 컬럼이 전부 NOT NULL이라 구분자 분기가 없어 단순 `concat` 체인으로 충분하며, 프론트가 세 조각을 받아 문자열을 조립하지 않게 한다. `ShopDeliveryAreaQueryAdapter`·`MemberDeliveryAddressQueryAdapter`가 같은 규칙을 쓴다.
 - **경계를 보유하지 않은 동도 함께 내려보낸다.** 경계가 없다고 목록에서 빼면 화면이 "이 지역에 동이 없다"로 오해하게 되는데, 실제로는 좌표만 있고 경계 시드가 아직 안 들어온 정상 상태다.
 - 후보 조회(`findCandidatesWithinBoundingBox`)는 표시용 이름까지 조립해 내려보내므로 조회 측이 이름을 얻으려고 다시 조회하지 않는다.
 
-#### `ProductQueryDao`에서 갈라 나온 3개 DAO — 분리 사유
+#### `ProductQueryAdapter`에서 갈라 나온 3개 DAO — 분리 사유
 
-**대상**: `.../product/query/StorePriceVerificationQueryDao.java` · `.../product/query/ProductFeedbackQueryDao.java` · `.../product/query/ProductShopLinkQueryDao.java`
+**대상**: `.../product/query/StorePriceVerificationQueryAdapter.java` · `.../product/query/ProductFeedbackQueryAdapter.java` · `.../product/query/ProductShopLinkQueryAdapter.java`
 
-**`ProductQueryDao`에 메서드를 더하지 않고 DAO를 새로 둔다.** 그 클래스는 이미 2000줄이 넘고 메뉴·옵션·카테고리·승인요청 3종을 한 클래스가 떠맡고 있다. 아래 셋은 각각 **자체 테이블과 자체 조인 그래프**를 갖는 독립 조회 대상이라 별 파일로 두면 그 그래프가 한눈에 보인다. `ShopDeliveryAreaQueryDao`·`ShopDeliveryAreaAdjustmentQueryDao`가 shop 쪽에서 같은 이유로 분리돼 있다.
+**`ProductQueryAdapter`에 메서드를 더하지 않고 DAO를 새로 둔다.** 그 클래스는 이미 2000줄이 넘고 메뉴·옵션·카테고리·승인요청 3종을 한 클래스가 떠맡고 있다. 아래 셋은 각각 **자체 테이블과 자체 조인 그래프**를 갖는 독립 조회 대상이라 별 파일로 두면 그 그래프가 한눈에 보인다. `ShopDeliveryAreaQueryAdapter`·`ShopDeliveryAreaAdjustmentQueryAdapter`가 shop 쪽에서 같은 이유로 분리돼 있다.
 
 | DAO | 자체 조회 형태 |
 |---|---|
-| `StorePriceVerificationQueryDao` | `SHOP_STORE_PRICE_VERIFICATION` · `..._ITEM` 2테이블 |
-| `ProductFeedbackQueryDao` | 메뉴 × 유형 `group by` 집계 |
-| `ProductShopLinkQueryDao` | "점주 소유 가게 × 이 메뉴의 연결 여부" 조인 |
+| `StorePriceVerificationQueryAdapter` | `SHOP_STORE_PRICE_VERIFICATION` · `..._ITEM` 2테이블 |
+| `ProductFeedbackQueryAdapter` | 메뉴 × 유형 `group by` 집계 |
+| `ProductShopLinkQueryAdapter` | "점주 소유 가게 × 이 메뉴의 연결 여부" 조인 |
 
-#### `StorePriceVerificationQueryDao` — 카디널리티가 항목 조회를 갈랐다
+#### `StorePriceVerificationQueryAdapter` — 카디널리티가 항목 조회를 갈랐다
 
-**대상**: `.../product/query/StorePriceVerificationQueryDao.java`
+**대상**: `.../product/query/StorePriceVerificationQueryAdapter.java`
 
-- 쓰기 포트 `StorePriceVerificationRepository`는 **불변식 검증용 조회만** 갖고, 표현 목적 투영(가게명 조인·항목 수 집계·파일 URL 완성)은 전부 이 DAO가 담당한다.
+- 쓰기 포트 `StorePriceVerificationPersistencePort`는 **불변식 검증용 조회만** 갖고, 표현 목적 투영(가게명 조인·항목 수 집계·파일 URL 완성)은 전부 이 DAO가 담당한다.
 - **항목을 목록 조회에 합치지 않고 별 쿼리로 둔다.** 요청 1건에 메뉴가 N건 달리므로 목록에 조인하면 행이 부풀어 페이징이 깨진다 — 목록은 `itemCount` 집계만 담고 항목 자체는 상세에서 가져온다.
 - `itemCount`는 **스칼라 서브쿼리**로 센다. 항목 테이블을 조인해 `GROUP BY`로 세면 페이징 대상 행이 부풀고, **항목이 0건인 요청이 조인에서 탈락한다.**
 - 가격표 이미지는 컬럼이 `NOT NULL`이라 정상 데이터라면 항상 맞지만 **`left join`으로 둔다.** inner join이면 파일 행이 유실된 요청이 **검수 목록에서 조용히 사라져** 처리 불가 상태가 된다.
 - 목록·상세가 투영을 공유한다. 따로 두면 한쪽만 고쳐져 같은 요청이 화면마다 다른 필드를 갖는다.
 - `status`가 `null`이면 전체 조회다(상태 미지정 = "전체").
 
-#### `ProductFeedbackQueryDao` — 페이징 단위가 집계 줄이다
+#### `ProductFeedbackQueryAdapter` — 페이징 단위가 집계 줄이다
 
-**대상**: `.../product/query/ProductFeedbackQueryDao.java`
+**대상**: `.../product/query/ProductFeedbackQueryAdapter.java`
 
 - **페이징을 집계 단위(메뉴 × 유형)로 한다.** 그것이 화면의 한 줄이기 때문이다 — 제보 건 단위로 페이징하면 한 집계 줄이 페이지 경계에서 쪼개져 건수가 잘못 보인다. 총계도 전체 건수가 아니라 **"집계 줄 수"**를 세며, `group by` 결과의 행 수라 `count(*)`로는 얻을 수 없다.
 - 메뉴 조인은 **`leftJoin`이다.** 메뉴가 소프트 삭제돼도 제보는 남으므로 inner join으로 사라지게 하지 않는다 — 삭제된 메뉴에 대한 지적도 점주가 원인을 파악할 근거가 된다.
@@ -1781,38 +1781,38 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 - 서술(`contents`)은 **`ETC` 유형에만 존재한다** — 다른 유형은 유형 자체가 내용이라 실을 것이 없다.
 - `ETC` 서술은 집계 줄마다 따로 조회하지 않고 대상 메뉴를 모아 **한 번에 읽어 자바에서 나눈다**(N+1 회피).
 
-#### `ProductShopLinkQueryDao` — 소유 가게 전체를 담아야 토글이 성립한다
+#### `ProductShopLinkQueryAdapter` — 소유 가게 전체를 담아야 토글이 성립한다
 
-**대상**: `.../product/query/ProductShopLinkQueryDao.java`
+**대상**: `.../product/query/ProductShopLinkQueryAdapter.java`
 
 - **연결된 가게만 내려보내면 화면이 새 가게를 켤 수 없다.** 토글 목록의 원천이므로 소유 가게를 모두 담고 `linked`로 상태만 구분한다.
 - 연결 링크와 그 링크가 가리키는 메뉴그룹을 **`left join`으로 붙인다** — 연결되지 않은 가게는 링크가 없고, 연결됐더라도 메뉴그룹이 비어 있을 수 있어 어느 쪽도 행을 떨어뜨려서는 안 된다.
 - `findOwnedShopIds`는 연결 변경이 **본인 소유 가게에만** 허용되는지 판정하는 근거다. 도메인 서비스는 `ceoId`를 알지 못하므로(소유권은 ceo-api의 인가 관심사다) 호출부가 이 집합을 구해 넘긴다. **가게마다 `ShopOwnershipValidator`를 반복 호출하지 않는다** — 연결 목록이 여러 건이라 그만큼 가게 조회가 늘기 때문에 한 번에 읽어 집합으로 대조한다.
 
-#### `ShopChoiceQueryDao` — shop의 세 번째 용도별 DAO, 가게에 종속되지 않는 조회
+#### `ShopChoiceQueryAdapter` — shop의 세 번째 용도별 DAO, 가게에 종속되지 않는 조회
 
-**대상**: `.../shop/query/ShopChoiceQueryDao.java`
+**대상**: `.../shop/query/ShopChoiceQueryAdapter.java`
 
-- `ShopQueryDao`(가게별 설정·관리)·`ShopSearchQueryDao`(목록·검색)와 함께 shop 도메인의 **세 번째 용도별 DAO**다 — 가게에 종속되지 않는 **독립 조회**(에디터 추천 목록, 전역 태그·역 목록)를 담당한다.
+- `ShopQueryAdapter`(가게별 설정·관리)·`ShopSearchQueryAdapter`(목록·검색)와 함께 shop 도메인의 **세 번째 용도별 DAO**다 — 가게에 종속되지 않는 **독립 조회**(에디터 추천 목록, 전역 태그·역 목록)를 담당한다.
 - 에디터 추천 목록에서 **폐업·노출정지 가게의 추천은 제외한다.**
 - 대표 상품 그룹핑 키는 `PRODUCT.shop_id`가 아니라 **`PRODUCT_SHOP_LINK`의 `shop_id`**다. 메뉴-가게 N:M 도입으로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원이 링크 테이블로 옮겨갔으므로, 원본 컬럼으로 묶으면 **다른 가게에서 불러온 메뉴가 그 가게 목록에 나타나지 않는다.**
 - 상품 대표 이미지는 **노출 중 최소 `sort`** 이미지를 서브쿼리 별칭 `subProductImage`로 고른다.
 
-#### `ShopRiderGuideQueryDao` — 고객 비노출과 boolean 필터의 여집합
+#### `ShopRiderGuideQueryAdapter` — 고객 비노출과 boolean 필터의 여집합
 
-**대상**: `.../shop/query/ShopRiderGuideQueryDao.java`
+**대상**: `.../shop/query/ShopRiderGuideQueryAdapter.java`
 
 - **고객 비노출 보장**: 이 DAO는 ceo-api·admin-api의 query 서비스만 주입해 쓰며, web-api의 가게 상세·목록 조회는 `SHOP_RIDER_GUIDE`를 조인하지 않는다. 이 관계를 깨고 web 경로에서 조인하지 않는다.
-- write 포트 `ShopRiderGuideRepository`에는 **도메인 불변식 판정에 필요한 3개 메서드만** 남기고, 관리자 목록·이력 조회는 이 DAO가 소유한다.
+- write 포트 `ShopRiderGuidePersistencePort`에는 **도메인 불변식 판정에 필요한 3개 메서드만** 남기고, 관리자 목록·이력 조회는 이 DAO가 소유한다.
 - 단건 조회는 **라이더 안내 테이블을 `left join`한다** — 등록 이력이 없어도 가게가 존재하면 결과를 반환한다("미등록"은 오류가 아니라 정상 상태다).
 - 목록 정렬은 `updatedAt` 내림차순이다. 이 저장소의 기본 정렬은 대체로 `createdAt`인데 여기만 다른 것은 **최근 변경분부터 검수하는 실제 운영 순서**를 따르기 위함이다.
 - **픽업 위치 설정 여부를 SQL 술어로 select 절에 투영하지 않고 원본 컬럼을 읽어 Java에서 판정한다.** 판정 기준(도로명·위경도가 모두 채워졌는가)을 `ShopRiderGuide#hasPickupLocation`과 한 곳에서 일치시키기 위함이다.
 - `visitGuidePresenceEq`의 `false`를 "미지정과 동일"로 두지 않는다. 그러면 그 값이 응답을 전혀 바꾸지 않아 파라미터가 무의미해지고, **"문구 미등록 가게만" 조회할 방법이 사라진다.** 다른 boolean 필터와 동일하게 여집합으로 판정한다.
 - `HISTORY_LIMIT`(관리자 검수 화면의 이력 노출 상한)을 넘는 분은 별도 페이징 엔드포인트를 두지 않고 필요해지면 추가한다.
 
-#### `ShopDeliveryAreaQueryDao` — 소유권을 조회 조건으로 거는 IDOR 방어
+#### `ShopDeliveryAreaQueryAdapter` — 소유권을 조회 조건으로 거는 IDOR 방어
 
-**대상**: `.../shop/query/ShopDeliveryAreaQueryDao.java`
+**대상**: `.../shop/query/ShopDeliveryAreaQueryAdapter.java`
 
 - `findShopLocation`은 **소유권을 조회 조건(`ceo_id`)으로 함께 건다.** 조회 서비스는 write 포트를 주입할 수 없어(`queryServicesShouldNotDependOnWritePorts`) `ShopOwnershipValidator`를 쓸 수 없는데, 검증을 생략하면 **남의 가게 좌표를 읽는 IDOR**이 된다. 조건을 쿼리에 넣으면 소유하지 않은 가게는 결과가 비어 자연스럽게 차단된다. 이 조건을 빼지 않는다.
 - 소유 가게가 아니거나 좌표가 없으면 **예외를 던진다** — 좌표 없이는 7km 상한의 기준점이 없어 미리보기 자체가 성립하지 않는다.
@@ -1820,119 +1820,119 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 - 배달가능지역 목록은 **등록 순(`id` 오름차순)**이다.
 - 출처별 행정동 집합(`findAdminDongIdsBySource`)·지역별 배달팁 참조 집합(`findRegionTipAdminDongIds`)은 도형 미리보기가 각각 "닫히는 동"·"닫을 수 없는 동"을 미리 보여주는 입력이다.
 
-#### `ShopNoticeQueryDao` — 본문·이미지 2단 조회
+#### `ShopNoticeQueryAdapter` — 본문·이미지 2단 조회
 
-**대상**: `.../shop/query/ShopNoticeQueryDao.java` (중간 투영 `ShopNoticeRow` · `ShopNoticeManagementRow` · `ShopNoticeImageResult` 포함)
+**대상**: `.../shop/query/ShopNoticeQueryAdapter.java` (중간 투영 `ShopNoticeRow` · `ShopNoticeManagementRow` · `ShopNoticeImageResult` 포함)
 
-- 공지 본문과 첨부 이미지를 **두 쿼리로 나눠** 읽고 `shopNoticeId`로 묶는다 — 1:N 조인으로 한 번에 읽으면 공지 행이 이미지 수만큼 중복되어 **페이징 카운트가 어긋난다.** 이 2단 조립 형태가 고유하므로 `ShopQueryDao`에 섞지 않고 별도 DAO로 둔다.
+- 공지 본문과 첨부 이미지를 **두 쿼리로 나눠** 읽고 `shopNoticeId`로 묶는다 — 1:N 조인으로 한 번에 읽으면 공지 행이 이미지 수만큼 중복되어 **페이징 카운트가 어긋난다.** 이 2단 조립 형태가 고유하므로 `ShopQueryAdapter`에 섞지 않고 별도 DAO로 둔다.
 - 그래서 본문만 담는 중간 투영(`ShopNoticeRow`·`ShopNoticeManagementRow`)을 먼저 투영한 뒤 이미지 URL을 붙여 최종 Result로 재조립한다.
 - 점주 화면 목록은 **노출중 공지를 맨 위로, 그다음 최근 등록 순**이다. web 노출 조회는 `exposed = true AND hidden = false` 최대 1건이다.
 - 첨부 이미지는 `sortOrder` 오름차순으로 묶는다.
 
-#### `ShopOrderNoticeQueryDao` — 노출 조건 분기를 Service로 올리지 않는다
+#### `ShopOrderNoticeQueryAdapter` — 노출 조건 분기를 Service로 올리지 않는다
 
-**대상**: `.../shop/query/ShopOrderNoticeQueryDao.java`
+**대상**: `.../shop/query/ShopOrderNoticeQueryAdapter.java`
 
-- 주문안내는 가게당 1건 단독 행이고 조인 대상이 없어 `ShopQueryDao`의 대형 조립 메서드들과 성격이 다르므로 별도 DAO로 둔다.
+- 주문안내는 가게당 1건 단독 행이고 조인 대상이 없어 `ShopQueryAdapter`의 대형 조립 메서드들과 성격이 다르므로 별도 DAO로 둔다.
 - **메서드가 둘로 나뉜 이유는 노출 조건이 소비자에 따라 다르기 때문이다.** 점주는 자기 문구가 내려갔다는 사실과 그 사유를 봐야 하므로 게시중단 건도 받고, 손님은 게시중단 건을 아예 받지 않는다. **이 분기를 Service의 if 문으로 옮기지 않는다** — 손님 경로에서 필터를 빠뜨리면 게시중단된 문구가 그대로 노출되는 결함이 되고, 쿼리 자체가 걸러내면 그 실수가 물리적으로 불가능해진다.
 - 두 조회가 같은 컬럼 묶음을 읽으므로 투영을 한 곳에 둔다 — 복제하면 필드 추가 시 한쪽만 고쳐진다.
 
-#### `ShopChangeHistoryQueryDao` — 보관 하한을 DAO에도 남긴다
+#### `ShopChangeHistoryQueryAdapter` — 보관 하한을 DAO에도 남긴다
 
-**대상**: `.../shop/query/ShopChangeHistoryQueryDao.java`
+**대상**: `.../shop/query/ShopChangeHistoryQueryAdapter.java`
 
 - 날짜 필터는 **반열림 구간** `[changedDate 00:00, 다음날 00:00)`이다 — `DATE(created_at) = ?`처럼 컬럼에 함수를 씌우면 인덱스를 타지 못한다.
 - **보관 하한(6개월)을 서비스가 이미 400으로 거부한 뒤에도 항상 실어 보낸다.** 조회 대상 하루가 하한보다 뒤이므로 결과는 달라지지 않지만, **정책이 DAO에도 남아 다른 호출자가 생겨도 6개월 밖 데이터가 새지 않는다.** 중복이라고 걷어내지 않는다.
 
-#### `ShopCeoAssignmentHistoryQueryDao` · `CeoLoginHistoryQueryDao` — 이력 DAO 공통
+#### `ShopCeoAssignmentHistoryQueryAdapter` · `CeoLoginHistoryQueryAdapter` — 이력 DAO 공통
 
-**대상**: `.../shop/query/ShopCeoAssignmentHistoryQueryDao.java` · `.../ceo/query/CeoLoginHistoryQueryDao.java`
+**대상**: `.../shop/query/ShopCeoAssignmentHistoryQueryAdapter.java` · `.../ceo/query/CeoLoginHistoryQueryAdapter.java`
 
 - 날짜 필터는 **반열림 구간** `[startDate 00:00, endDate+1d 00:00)`이다 — `DATE(created_at) BETWEEN ...`처럼 컬럼에 함수를 씌우면 인덱스를 타지 못한다. **종료일은 그날 하루를 포함해야 하므로 다음날 00:00 미만**으로 건다.
 - 정렬은 `created_at DESC, id DESC`다.
-- `ShopCeoAssignmentHistoryQueryDao`는 `SHOP`을 **`leftJoin`으로** 이어 `shopName`까지 투영한다 — 이력 행은 append-only라 **가게가 나중에 폐업해도 남으므로** inner join이면 행이 사라진다.
+- `ShopCeoAssignmentHistoryQueryAdapter`는 `SHOP`을 **`leftJoin`으로** 이어 `shopName`까지 투영한다 — 이력 행은 append-only라 **가게가 나중에 폐업해도 남으므로** inner join이면 행이 사라진다.
 
-#### `PaymentQueryDao` — 호출부 없는 조회를 미리 만들지 않는다
+#### `PaymentQueryAdapter` — 호출부 없는 조회를 미리 만들지 않는다
 
-**대상**: `.../payment/query/PaymentQueryDao.java`
+**대상**: `.../payment/query/PaymentQueryAdapter.java`
 
 - 소비 모듈이 실제로 쓰는 조회 둘만 갖는다 — 주문별 결제 조회(회원의 결제 확인 화면)와 PK 조회(command 커밋 후 응답 조립용 재조회). **관리자 결제·환불 내역 조회는 admin-api에 결제 소비자가 생길 때 추가한다**(호출부 없는 조회를 미리 만들지 않는다).
 - 주문별 조회는 회원 스코프 검증에 쓸 주문의 `memberId`를 함께 투영한다. **주문이 없으면 결제도 조회되지 않으므로(inner join)** 소비 모듈은 "주문 없음"과 "결제 없음"을 결과 부재로 함께 처리한다.
-- `PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — `PaymentRepository#findByOrderId`와 동일한 fail-loud 시맨틱이다. `fetchFirst`로 바꾸지 않는다.
+- `PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱이다. `fetchFirst`로 바꾸지 않는다.
 - 환불 요청 단건 조회는 **소유권을 다시 대조하지 않는다.** 요청 시점에 이미 검증됐고 이 조회는 그 직후 재조회이기 때문이다.
 - 두 조회 경로가 같은 필드 셋을 쓰므로 투영을 공유한다.
 
-#### `MemberFollowQueryDao` — 뷰어 팔로우 여부의 비로그인 처리
+#### `MemberFollowQueryAdapter` — 뷰어 팔로우 여부의 비로그인 처리
 
-**대상**: `.../member/follow/query/MemberFollowQueryDao.java`
+**대상**: `.../member/follow/query/MemberFollowQueryAdapter.java`
 
 `viewerMemberId`가 주어지면 각 항목에 뷰어의 팔로우 여부를 함께 투영하고, **비로그인(`null`)이면 모두 `false`로 둔다.** 팔로잉·팔로워 목록이 같은 규칙을 쓴다. `existsFollow` 같은 표현용 단건 판정은 write 포트가 아니라 이 어댑터가 답한다.
 
-#### `MemberDeliveryAddressQueryDao` — 행정동 미매칭 주소를 떨어뜨리지 않는다
+#### `MemberDeliveryAddressQueryAdapter` — 행정동 미매칭 주소를 떨어뜨리지 않는다
 
-**대상**: `.../member/query/MemberDeliveryAddressQueryDao.java`
+**대상**: `.../member/query/MemberDeliveryAddressQueryAdapter.java`
 
 - 행정동은 **`left join`이다** — 주소 문자열 매칭에 실패해 `admin_dong_id`가 null인 주소도 목록에서 빠지면 안 된다. 그 경우 `regionName`은 null로 내려간다(concat 결과 전체가 null이 된다).
 - 목록 정렬은 **기본 배송지 먼저, 그다음 등록 순**이다.
 - `findDefaultAdminDongId`는 가게 목록·검색이 "이 회원에게 배달되는 가게만" 남기려고 쓰는 값이라 주소 전체가 필요 없다. **목록 조회 경로마다 도는 질의이므로 컬럼 하나만 투영한다.** 기본 배송지가 없거나 매칭 실패로 null이면 비어 있고, **호출부는 그 경우 필터를 걸지 않는다.**
 - `regionNameExpression()`은 도메인 모델 `AdminDong#fullName()`과 **같은 규칙(공백 하나 join)**이다. 두 곳이 어긋나면 화면 표기가 갈린다.
 
-#### `CouponQueryDao` — 원장 삭제와 보유 쿠폰의 필터가 다르다
+#### `CouponQueryAdapter` — 원장 삭제와 보유 쿠폰의 필터가 다르다
 
-**대상**: `.../coupon/query/CouponQueryDao.java`
+**대상**: `.../coupon/query/CouponQueryAdapter.java`
 
 **삭제된 쿠폰(soft delete)은 admin 목록·상세에서 제외한다. 반면 내 쿠폰 조회는 이관 이전 동작을 그대로 보존해 원본 쿠폰의 삭제 여부를 필터링하지 않는다**(이미 발급된 보유분은 계속 보인다). 일관성을 이유로 내 쿠폰 쪽에 없던 필터를 넣지 않는다 — 넣으면 회원 쿠폰함에서 쿠폰이 사라진다.
 
 admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`findAvailableMemberCoupons`)은 **메서드명이 아니라 시그니처로 구분한다.** 내 쿠폰 목록 두 메서드는 투영·조인을 공유하고 where 절만 각자 덧붙인다.
 
-#### `MenuReviewStatisticsQueryDao` — 필터 축이 매장 리뷰와 다르다
+#### `MenuReviewStatisticsQueryAdapter` — 필터 축이 매장 리뷰와 다르다
 
-**대상**: `.../menureview/query/MenuReviewStatisticsQueryDao.java`
+**대상**: `.../menureview/query/MenuReviewStatisticsQueryAdapter.java`
 
-- 소비자가 둘이다 — **상품 평점 재집계**(`ProductReviewStatisticsAdapter`가 도메인 포트 `ProductReviewStatisticsPort`를 구현하며 위임. `PRODUCT.rating`의 **유일한 근거**가 이 집계다)와 **랭킹·회원등급 기간 집계**(`MemberReviewCountQueryDao`가 REVIEW 집계와 합산).
-- **고객 노출 조건은 `hidden = false` 하나뿐이다.** MENU_REVIEW에는 사장님만보기(`ownerOnly`) 개념이 없다. 매장 리뷰 집계(`ReviewStatisticsQueryDao`)가 두 축을 함께 거는 것과 다르므로, **두 DAO를 비교하며 "필터가 누락됐다"고 오해해 `ownerOnly`를 추가하지 않는다.**
+- 소비자가 둘이다 — **상품 평점 재집계**(`ProductReviewStatisticsAdapter`가 도메인 포트 `ProductReviewStatisticsPort`를 구현하며 위임. `PRODUCT.rating`의 **유일한 근거**가 이 집계다)와 **랭킹·회원등급 기간 집계**(`MemberReviewCountQueryAdapter`가 REVIEW 집계와 합산).
+- **고객 노출 조건은 `hidden = false` 하나뿐이다.** MENU_REVIEW에는 사장님만보기(`ownerOnly`) 개념이 없다. 매장 리뷰 집계(`ReviewStatisticsQueryAdapter`)가 두 축을 함께 거는 것과 다르므로, **두 DAO를 비교하며 "필터가 누락됐다"고 오해해 `ownerOnly`를 추가하지 않는다.**
 - 평균 평점은 대상이 없으면 `null`이다 — **"평점 0점"과 구분해야 하므로 0.0이 아니다.**
 - 기간 집계는 반열림 구간 `[startDate, endDate)`이며 **정렬하지 않는다.** 소비 측이 REVIEW 집계와 병합한 **뒤에** 정렬해야 하므로 여기서 정렬해도 유지되지 않는다.
 
-#### `MenuReviewQueryDao` — 삭제된 메뉴도 평가할 수 있어야 한다
+#### `MenuReviewQueryAdapter` — 삭제된 메뉴도 평가할 수 있어야 한다
 
-**대상**: `.../menureview/query/MenuReviewQueryDao.java`
+**대상**: `.../menureview/query/MenuReviewQueryAdapter.java`
 
 - 상품 조인은 **반드시 `leftJoin`이다.** inner join이면 상품 행이 사라지는 순간(소프트 삭제 후 필터, 혹은 향후 하드 삭제) 그 메뉴를 주문했던 회원의 **리뷰 작성 항목이 통째로 소멸한다.** 여기에는 `deleted` 필터를 걸지 않는다 — 삭제된 메뉴라도 이미 주문한 회원은 평가할 수 있어야 한다.
 - 같은 이유로 평가 제외 판정에서 **`ratingExcluded`가 null인 경우를 명시적으로 통과시킨다.** 상품 행이 없으면(leftJoin 미스) null이라 `isFalse()`만으로는 걸러지며, 주문 스냅샷만으로 평가할 수 있어야 한다.
 - 상품 이미지는 **주문 시점 스냅샷(`ORDER_PRODUCT.image_file_id`)**을 쓴다 — 이후 상품 이미지가 바뀌어도 주문 당시 본 메뉴를 그대로 보여주기 위함이다.
-- 집계(상품 평점 재집계·기간 집계)는 용도가 달라 `MenuReviewStatisticsQueryDao`가 담당한다.
+- 집계(상품 평점 재집계·기간 집계)는 용도가 달라 `MenuReviewStatisticsQueryAdapter`가 담당한다.
 
-#### `FileUrlResolver` — 왜 `FileQueryDao`가 아닌가, 왜 캐싱하지 않는가
+#### `FileUrlResolver` — 왜 `FileQueryAdapter`가 아닌가, 왜 캐싱하지 않는가
 
 **대상**: `.../file/query/FileUrlResolver.java`
 
 - 저장 경로 → 표시용 URL 변환의 **단일 실행 지점(read 측 어셈블러)**이다. 과거에는 각 api 모듈 `FileService`의 `getUrlByPath`를 조회 Service마다 호출해 응답을 조립했고, 그 결과 같은 변환이 **60여 곳에 흩어져 모듈별 `FileService`가 서로 다르게 드리프트**했다. 변환을 read 어댑터 안으로 들여오면 Result가 이미 URL을 담은 채 나오므로 api 모듈에서 변환 호출 자체가 사라진다.
-- **`FileQueryDao`가 아니라 resolver인 이유**: 파일은 자체 조회 화면이 없어 `file` 도메인의 read model이 아니다. 각 도메인 query DAO가 `uploaded_file`을 join해 흡수하며, 여기 있는 것은 그 DAO들이 공유하는 변환기 하나뿐이다.
+- **`FileQueryAdapter`가 아니라 resolver인 이유**: 파일은 자체 조회 화면이 없어 `file` 도메인의 read model이 아니다. 각 도메인 query DAO가 `uploaded_file`을 join해 흡수하며, 여기 있는 것은 그 DAO들이 공유하는 변환기 하나뿐이다.
 - 변환 규칙 자체는 도메인 출력 포트 `FileStoragePort`가 소유한다(S3는 baseUrl 연결, Firebase는 경로 인코딩 + `?alt=media`). **스토리지 구현을 infra가 알지 않도록 포트만 주입받으며**, 이는 헥사고날에서 driven 어댑터가 도메인 포트를 사용하는 정상 형태다.
 - **캐싱하지 않는다.** `FileStoragePort#getFileUrl`은 네트워크·SDK·DB 접근이 없는 순수 문자열 변환이라 행 단위로 반복 호출해도 비용이 사실상 없다. 캐싱은 값비싼 연산에 쓰는 수단이며, 여기 도입하면 **baseUrl 설정 변경 시 무효화 책임만 새로 생긴다.**
 - 경로가 없으면(파일 미첨부, left join 미스) `null`을 돌려준다. 컬렉션 변환은 **변환할 수 없는 항목을 제외하므로 결과 크기가 입력보다 작을 수 있고**, 맵 변환은 입력 순서를 보존한다.
 
-#### `BannerQueryDao` — 이미지 필수 여부가 조인 종류를 정한다
+#### `BannerQueryAdapter` — 이미지 필수 여부가 조인 종류를 정한다
 
-**대상**: `.../banner/query/BannerQueryDao.java`
+**대상**: `.../banner/query/BannerQueryAdapter.java`
 
 회원 노출 목록은 **이미지가 필수라 파일을 `inner join`**하고, 관리 목록·상세는 **이미지가 없을 수 있어 `left join`**한다. 이 비대칭을 한쪽으로 통일하지 않는다 — inner로 통일하면 이미지 없는 배너가 관리 화면에서 사라지고, left로 통일하면 이미지 없는 배너가 회원에게 노출된다.
 
 노출 조회는 유형 일치 + `visible=true` + **현재 시각이 노출 기간 안**의 세 조건을 함께 건다. 관리 조회는 비노출·노출기간 만료 배너를 포함한다.
 
-#### `BugReportQueryDao` · `BugReportDetailProjection` — 2단 조립과 `@QueryProjection` 비채택
+#### `BugReportQueryAdapter` · `BugReportDetailProjection` — 2단 조립과 `@QueryProjection` 비채택
 
-**대상**: `.../bug/query/BugReportQueryDao.java` · `.../bug/query/BugReportDetailProjection.java`
+**대상**: `.../bug/query/BugReportQueryAdapter.java` · `.../bug/query/BugReportDetailProjection.java`
 
 - `BugReportDetailResult`는 별도 테이블에서 모으는 `imageFileIds` 목록을 포함하므로 **한 번의 투영으로 만들 수 없다.** `BugReportDetailProjection`이 `BUG_REPORT` 한 행의 스칼라 필드만 받고, DAO가 이미지 ID를 별도 조회로 합쳐 최종 결과를 조립한다.
 - **어댑터 내부 타입이지만 `@QueryProjection`을 쓰지 않는다.** 그 어노테이션이 리포에 하나라도 남으면 "읽기 투영은 `Projections.constructor`로 한다"는 규칙에 예외가 생기고 Q타입 생성물이 다시 늘어난다.
 - 조립 팩토리를 포트 DTO 쪽에 둘 수 없다 — 두면 **읽기 계약이 infra를 참조하게 된다.**
 - 목록은 첨부 이미지 개수를 **서브쿼리 count**로 함께 투영한다.
 
-#### `SearchQueryDao` — write 포트가 없는 읽기 전용 애그리거트
+#### `SearchQueryAdapter` — write 포트가 없는 읽기 전용 애그리거트
 
-**대상**: `.../search/query/SearchQueryDao.java`
+**대상**: `.../search/query/SearchQueryAdapter.java`
 
 추천 검색어는 **이 DAO의 조회가 유일한 접근 경로라(읽기 전용 애그리거트) write 포트 자체가 없다.** 인기/추천 두 애그리거트의 조회를 한 클래스에 두며, 검색 키워드 조회는 web 노출 전용이라 admin 소비자가 없어 메서드가 각각 하나씩만 있다.
 
@@ -1949,15 +1949,15 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 - 소비 모듈은 이 클래스가 아니라 계약인 `GeoRingsQueryPort`를 주입한다 — 읽기 경로 포트화로 api 모듈은 `com.tastyhouse.infrastructure..query..`에 의존하지 않는다.
 - **경계 미보유·도형 미설정은 정상 상태다** — 각각 빈 목록과 `null`을 돌려주며 예외로 다루지 않는다.
 
-#### `CeoQueryDao` — 인증·시드 조회는 write 포트에 잔류한다
+#### `CeoQueryAdapter` — 인증·시드 조회는 write 포트에 잔류한다
 
-**대상**: `.../ceo/query/CeoQueryDao.java`
+**대상**: `.../ceo/query/CeoQueryAdapter.java`
 
 인증·시드 멱등성에 쓰이는 단건 조회(`findByUsername`/`existsByUsername`)는 **불변식 검증 경로이므로 이 DAO가 아니라 write 포트에 잔류한다.** 표현 목적 조회가 아니므로 여기로 옮기지 않는다. 이 DAO가 갖는 것은 가게 배정용 Select 드롭다운을 채우는 전체 점주 목록뿐이다.
 
-#### `CeoReplyPhraseQueryDao` — 정렬 2차 키가 필요한 이유
+#### `CeoReplyPhraseQueryAdapter` — 정렬 2차 키가 필요한 이유
 
-**대상**: `.../ceo/query/CeoReplyPhraseQueryDao.java`
+**대상**: `.../ceo/query/CeoReplyPhraseQueryAdapter.java`
 
 - **페이징이 없다** — 점주당 5건 상한이라 한 번에 전부 내려주는 편이 단순하고, 페이지 파라미터를 두면 프론트가 쓰지 않을 분기를 떠안는다.
 - 정렬은 `sort ASC, id ASC`다. **`id`를 2차 키로 두는 이유는 삭제 후 `sort`를 재정렬하지 않아 순번이 같은 행이 생길 수 있기 때문이다** — 동률일 때 등록순으로 안정 정렬된다. 2차 키를 빼면 순서가 요청마다 달라진다.
@@ -1966,29 +1966,29 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 
 **대상**: `.../order/query/PaymentProjection.java`
 
-> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter` 삭제로 `PAYMENT.amount`가 `NumberPath<Integer>`가 되어 중간 투영이 필요 없어졌다(위 `OrderQueryDao#withUnwrappedAmount` 번복 표기와 같은 사유). 아래는 당시 기록이다.
+> **(번복됨 — 덩어리 03b) 삭제됨.** `AmountConverter` 삭제로 `PAYMENT.amount`가 `NumberPath<Integer>`가 되어 중간 투영이 필요 없어졌다(위 `OrderQueryAdapter#withUnwrappedAmount` 번복 표기와 같은 사유). 아래는 당시 기록이다.
 
-읽기 계약 `OrderPaymentResult`는 경계 타입 `Integer`를 싣지만, `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 생성하는 path는 `SimplePath<Amount>`다. 그래서 **투영 단계에서는 VO로 받고 `OrderQueryDao#withUnwrappedAmount`가 fetch 직후 언랩한다.**
+읽기 계약 `OrderPaymentResult`는 경계 타입 `Integer`를 싣지만, `PAYMENT.amount`가 `@Convert` 매핑이라 QueryDSL이 생성하는 path는 `SimplePath<Amount>`다. 그래서 **투영 단계에서는 VO로 받고 `OrderQueryAdapter#withUnwrappedAmount`가 fetch 직후 언랩한다.**
 
 #### 그 밖의 개별 판단
 
 | DAO | 판단 |
 |---|---|
-| `ShopDeliveryAreaAdjustmentQueryDao` | 가게별 신청 이력은 **가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.** 검수 화면 목록만 페이징한다. 동의서 파일은 `UPLOADED_FILE`을 `left join`해 URL까지 완성하므로 소비 Service가 fileId로 재조회하지 않으며 **응답에 `~FileId`가 노출되지 않는다.** `ShopQueryDao`에 합치지 않은 것은 그 DAO가 이미 가게 설정 전반과 이미지 변경요청까지 담아 비대하기 때문이며, `ShopDeliveryAreaQueryDao` 선례를 따른다. |
-| `MemberReferralQueryDao` | 내가 추천한 회원 목록은 **최근 등록순**이다. |
-| `FaqQueryDao` | **도메인당 DAO 1개 원칙에 따라 항목·카테고리 두 애그리거트를 한 클래스에 둔다.** 관리 조회(`findAllCategories`·`findAllFaqs`·상세)는 비노출분을 포함하고, 회원 조회(`findVisibleCategories`·`findVisibleFaqs`)는 노출분만 본다. `findVisibleFaqs`는 `categoryId`가 null이면 전체 카테고리 대상이다. |
-| `NoticeQueryDao` | 소비 모듈은 이 DAO가 아니라 계약 `NoticeQueryPort`를 주입하므로 **api 모듈은 QueryDSL도 이 어댑터의 존재도 알지 않는다.** 관리 조회는 비노출 공지를 포함한다. |
-| `PolicyQueryDao` | **정책 조회는 노출 제한이 없어**(활성/비활성 모두 공개 조회 가능) admin/web 구분이 필요하지 않으므로 메서드가 하나씩만 있다. `findByTypeAndVersion`은 **과거 버전 열람용이라 현행 여부를 따지지 않는다.** 상세 두 메서드가 투영을 공유한다. |
-| `PointQueryDao` | 포인트 계정이 없는 회원이면 잔액 조회가 비어 있고 **소비 측에서 0으로 대체한다.** 전체 이력(`findPointHistories`)과 페이징 검색(`findPointHistoryPage`)은 시그니처로 구분하며, web의 내 포인트 내역 화면이 **페이징 없이 전체를 소비한다.** |
-| `NotificationQueryDao` | 알림 목록은 최신순, 미읽음 개수는 헤더 배지용 집계다. |
-| `PartnershipQueryDao` | 제휴 신청 조회는 **관리자만 소비한다**(web-api는 신청 생성만 한다). 상세는 삭제되지 않은 신청만 투영한다. |
-| `BugReportQueryDao` | 버그 제보 조회도 **관리자만 소비한다**(web-api는 제보 등록만 한다). |
+| `ShopDeliveryAreaAdjustmentQueryAdapter` | 가게별 신청 이력은 **가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.** 검수 화면 목록만 페이징한다. 동의서 파일은 `UPLOADED_FILE`을 `left join`해 URL까지 완성하므로 소비 Service가 fileId로 재조회하지 않으며 **응답에 `~FileId`가 노출되지 않는다.** `ShopQueryAdapter`에 합치지 않은 것은 그 DAO가 이미 가게 설정 전반과 이미지 변경요청까지 담아 비대하기 때문이며, `ShopDeliveryAreaQueryAdapter` 선례를 따른다. |
+| `MemberReferralQueryAdapter` | 내가 추천한 회원 목록은 **최근 등록순**이다. |
+| `FaqQueryAdapter` | **도메인당 DAO 1개 원칙에 따라 항목·카테고리 두 애그리거트를 한 클래스에 둔다.** 관리 조회(`findAllCategories`·`findAllFaqs`·상세)는 비노출분을 포함하고, 회원 조회(`findVisibleCategories`·`findVisibleFaqs`)는 노출분만 본다. `findVisibleFaqs`는 `categoryId`가 null이면 전체 카테고리 대상이다. |
+| `NoticeQueryAdapter` | 소비 모듈은 이 DAO가 아니라 계약 `NoticeQueryPort`를 주입하므로 **api 모듈은 QueryDSL도 이 어댑터의 존재도 알지 않는다.** 관리 조회는 비노출 공지를 포함한다. |
+| `PolicyQueryAdapter` | **정책 조회는 노출 제한이 없어**(활성/비활성 모두 공개 조회 가능) admin/web 구분이 필요하지 않으므로 메서드가 하나씩만 있다. `findByTypeAndVersion`은 **과거 버전 열람용이라 현행 여부를 따지지 않는다.** 상세 두 메서드가 투영을 공유한다. |
+| `PointQueryAdapter` | 포인트 계정이 없는 회원이면 잔액 조회가 비어 있고 **소비 측에서 0으로 대체한다.** 전체 이력(`findPointHistories`)과 페이징 검색(`findPointHistoryPage`)은 시그니처로 구분하며, web의 내 포인트 내역 화면이 **페이징 없이 전체를 소비한다.** |
+| `NotificationQueryAdapter` | 알림 목록은 최신순, 미읽음 개수는 헤더 배지용 집계다. |
+| `PartnershipQueryAdapter` | 제휴 신청 조회는 **관리자만 소비한다**(web-api는 신청 생성만 한다). 상세는 삭제되지 않은 신청만 투영한다. |
+| `BugReportQueryAdapter` | 버그 제보 조회도 **관리자만 소비한다**(web-api는 제보 등록만 한다). |
 
 ### 영속 어댑터·엔티티·매퍼 — 공통 구현 전략
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/**/persistence/**`
 
-이 모듈의 `<ctx>/persistence/` 아래 500여 파일은 **엔티티 · 매퍼 · `*RepositoryImpl`(write 어댑터) · `*JpaRepository`** 네 종류로 이뤄지며, 대부분의 판단이 파일마다 반복된다. 아래는 그 반복되는 규칙을 한 벌로 모은 것이고, 특정 파일에만 해당하는 예외는 그 뒤 소절에 따로 적는다.
+이 모듈의 `<ctx>/persistence/` 아래 500여 파일은 **엔티티 · 매퍼 · `*PersistenceAdapter`(write 어댑터) · `*JpaRepository`** 네 종류로 이뤄지며, 대부분의 판단이 파일마다 반복된다. 아래는 그 반복되는 규칙을 한 벌로 모은 것이고, 특정 파일에만 해당하는 예외는 그 뒤 소절에 따로 적는다.
 
 #### 영속 모델을 도메인 모델과 분리하는 이유
 
@@ -2016,23 +2016,23 @@ JPA 엔티티(`XxxJpaEntity`)는 DB 매핑(테이블·컬럼·감사 필드)만 
 
 #### 저장은 detached merge가 아니라 load-copy-save다
 
-→ `*RepositoryImpl#save` — ~~**(03b)** `*StatePortImpl#save(XxxState)`(`state.id()`로 분기)~~ **(번복됨 — persistence domain 재허용)** 다시 `*RepositoryImpl#save(domain)`이며 load-copy-save가 이 메서드 안에 그대로 있다
+→ `*PersistenceAdapter#save` — ~~**(03b)** `*StatePortImpl#save(XxxState)`(`state.id()`로 분기)~~ **(번복됨 — persistence domain 재허용)** 다시 `*PersistenceAdapter#save(domain)`이며 load-copy-save가 이 메서드 안에 그대로 있다
 
 id가 없으면 insert, 있으면 **PK로 managed 엔티티를 조회(같은 트랜잭션이면 1차 캐시 히트)한 뒤 변경 필드만 복사해 dirty checking으로 flush**한다. detached 인스턴스를 그대로 `save`(merge)하면 `@CreatedDate(updatable = false)` 감사 필드가 파손되고, 경우에 따라 새 행이 중복 생성된다. **이 경로를 merge로 바꾸지 않는다.**
 
 - 갱신 경로가 없는 어댑터(append-only·불변 애그리거트)는 update 분기 자체를 두지 않는다.
 - 갱신 경로가 없는데도 id 분기가 남아 있는 곳(`ShopBookmark`·`ShopClosedDay`·`ShopAmenity`·`ShopFoodType`·`ShopOrderMethod`·`ShopBannerImage`·`Tag`)은 존재 시 재조회만 수행한다.
-- **PK 조회에 소프트 삭제 필터를 걸지 않는다** — 삭제 전이를 저장하는 경로가 바로 이 `save`이기 때문이다. 필터를 걸면 삭제가 영원히 실패한다(`PartnershipRepositoryImpl`·`ProductRepositoryImpl`·`RankPeriodRepositoryImpl#delete`·`RankPrizeRepositoryImpl#delete`).
+- **PK 조회에 소프트 삭제 필터를 걸지 않는다** — 삭제 전이를 저장하는 경로가 바로 이 `save`이기 때문이다. 필터를 걸면 삭제가 영원히 실패한다(`PartnershipPersistenceAdapter`·`ProductPersistenceAdapter`·`RankPeriodPersistenceAdapter#delete`·`RankPrizePersistenceAdapter#delete`).
 
 #### write 어댑터에는 표현 목적 조회를 두지 않는다
 
-→ `*RepositoryImpl`
+→ `*PersistenceAdapter`
 
-CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 목적 read는 전부 같은 모듈의 `<ctx>/query/*QueryDao`로 이관**됐고, write 어댑터에는 도메인 모델 단건 로드·중복 검증·저장·삭제만 남는다. 그 결과 대부분의 `*RepositoryImpl`은 QueryDSL이 필요 없어 `JPAQueryFactory`를 주입하지 않는다.
+CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 목적 read는 전부 같은 모듈의 `<ctx>/query/*QueryAdapter`로 이관**됐고, write 어댑터에는 도메인 모델 단건 로드·중복 검증·저장·삭제만 남는다. 그 결과 대부분의 `*PersistenceAdapter`은 QueryDSL이 필요 없어 `JPAQueryFactory`를 주입하지 않는다.
 
-**write 포트에 남은 조회는 "불변식 판정에 필요한 것"이라는 기준으로 남긴 것이다.** `FaqCategoryRepositoryImpl#existsActiveItemsByCategoryId`(삭제 불변식), `ShopDetailRepositoryImpl`의 영업시간·휴게시간·정기휴무 목록(휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정), `ProductPriceRepositoryImpl`의 가격 교체·인증 반영 판정, `ShopDeliveryTipRepositoryImpl#findRegionTipAdminDongIds`(일괄 삭제의 원자적 차단)가 그 예다. 표현용으로도 쓰인다는 이유만으로 DAO로 옮기지 않는다.
+**write 포트에 남은 조회는 "불변식 판정에 필요한 것"이라는 기준으로 남긴 것이다.** `FaqCategoryPersistenceAdapter#existsActiveItemsByCategoryId`(삭제 불변식), `ShopDetailPersistenceAdapter`의 영업시간·휴게시간·정기휴무 목록(휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정), `ProductPricePersistenceAdapter`의 가격 교체·인증 반영 판정, `ShopDeliveryTipPersistenceAdapter#findRegionTipAdminDongIds`(일괄 삭제의 원자적 차단)가 그 예다. 표현용으로도 쓰인다는 이유만으로 DAO로 옮기지 않는다.
 
-`FaqCategoryRepositoryImpl#existsActiveItemsByCategoryId`의 메서드명 "Active"는 **노출 여부가 아니라 미삭제**를 뜻한다 — 삭제되지 않은 항목이면 비노출이어도 존재로 본다(전환 이전 동작 보존).
+`FaqCategoryPersistenceAdapter#existsActiveItemsByCategoryId`의 메서드명 "Active"는 **노출 여부가 아니라 미삭제**를 뜻한다 — 삭제되지 않은 항목이면 비노출이어도 존재로 본다(전환 이전 동작 보존).
 
 #### 크로스 애그리거트 FK는 raw `Long`이고, VO 변환은 `IdMapping`이 전담한다
 
@@ -2089,33 +2089,33 @@ IDE가 "assigned but never accessed" / "never used" / "never assigned"로 경고
 
 derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므로 수백 건에서 쿼리가 그만큼 늘어난다 — 폴리곤 재저장은 매번 이 삭제로 시작한다.
 
-**`clearAutomatically`를 함께 붙이는 이유**: 벌크 연산은 1차 캐시를 우회하므로, 삭제된 행이 캐시에 남아 뒤이은 조회를 오염시키거나 재삽입이 이미 삭제된 엔티티를 보고 유니크 제약을 오판한다. 같은 이유로 `ShopNoticeImageRepositoryImpl#deleteByShopNoticeId`(QueryDSL bulk delete)와 `MemberReviewRankRepositoryImpl#deleteByRankTypeAndBaseDate`도 삭제 후 1차 캐시를 비운다 — 후자는 같은 트랜잭션에서 곧바로 같은 기준일 랭킹을 새로 적재하므로 캐시에 남은 행이 적재분과 충돌한다.
+**`clearAutomatically`를 함께 붙이는 이유**: 벌크 연산은 1차 캐시를 우회하므로, 삭제된 행이 캐시에 남아 뒤이은 조회를 오염시키거나 재삽입이 이미 삭제된 엔티티를 보고 유니크 제약을 오판한다. 같은 이유로 `ShopNoticeImagePersistenceAdapter#deleteByShopNoticeId`(QueryDSL bulk delete)와 `MemberReviewRankPersistenceAdapter#deleteByRankTypeAndBaseDate`도 삭제 후 1차 캐시를 비운다 — 후자는 같은 트랜잭션에서 곧바로 같은 기준일 랭킹을 새로 적재하므로 캐시에 남은 행이 적재분과 충돌한다.
 
 #### 소프트 삭제 필터는 조회 성격으로 갈린다
 
-→ `ProductJpaRepository#findByIdAndDeletedFalse` · `ProductRepositoryImpl#findById` · `ProductRepositoryImpl#findByIdIncludingDeleted`
+→ `ProductJpaRepository#findByIdAndDeletedFalse` · `ProductPersistenceAdapter#findById` · `ProductPersistenceAdapter#findByIdIncludingDeleted`
 
 `ProductJpaRepository`의 파생 쿼리 대부분에 `AndDeletedFalse`가 붙어 있다. **상속받은 `findById`에는 그 필터가 없으므로** 일반 로드에는 `findByIdAndDeletedFalse`를 쓰고, 삭제·저장 경로만 필터 없는 `findById`를 쓴다.
 
-일반 로드(`ProductRepositoryImpl#findById`)에 필터를 걸어 두면 **신규 주문·신규 메뉴평가 차단이 자동으로 성립**한다. 반면 삭제 자신은 필터 없는 순수 PK 조회(`findByIdIncludingDeleted`)로 대상을 읽어야 한다 — `findById`를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **멱등 처리와 상태 확인이 불가능**해지고 삭제가 영원히 실패한다(`RankPeriodRepositoryImpl#delete` 선례).
+일반 로드(`ProductPersistenceAdapter#findById`)에 필터를 걸어 두면 **신규 주문·신규 메뉴평가 차단이 자동으로 성립**한다. 반면 삭제 자신은 필터 없는 순수 PK 조회(`findByIdIncludingDeleted`)로 대상을 읽어야 한다 — `findById`를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **멱등 처리와 상태 확인이 불가능**해지고 삭제가 영원히 실패한다(`RankPeriodPersistenceAdapter#delete` 선례).
 
-`ProductCategoryRepositoryImpl#delete`만 **하드 삭제**다 — 메뉴그룹은 주문·리뷰가 참조하지 않고, 소속 메뉴가 남아 있으면 도메인 서비스가 `PRODUCT_CATEGORY_HAS_PRODUCTS`로 먼저 막으므로 고아 데이터가 생기지 않는다. `Product` 자신이 소프트 삭제인 이유는 스키마에 FK 제약이 0개이기 때문이다.
+`ProductCategoryPersistenceAdapter#delete`만 **하드 삭제**다 — 메뉴그룹은 주문·리뷰가 참조하지 않고, 소속 메뉴가 남아 있으면 도메인 서비스가 `PRODUCT_CATEGORY_HAS_PRODUCTS`로 먼저 막으므로 고아 데이터가 생기지 않는다. `Product` 자신이 소프트 삭제인 이유는 스키마에 FK 제약이 0개이기 때문이다.
 
 #### null 파라미터를 "조건 없음"으로 해석시키지 않는다
 
-→ `ProductJpaRepository#findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `ProductRepositoryImpl#findAllByShopIdAndCategoryId`
+→ `ProductJpaRepository#findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `ProductPersistenceAdapter#findAllByShopIdAndCategoryId`
 
 미분류 메뉴 조회를 `productCategoryId = null`로 합치지 않고 **별도 파생 메서드로 가른다.** 하나로 합치면 null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.
 
 #### 단건 시그니처는 DB가 1건을 보장할 때만 쓴다
 
-→ `ShopNoticeJpaRepository#findFirstByShopIdAndExposedIsTrueOrderByIdDesc` · `ShopOrderNoticeJpaRepository#findByShopId` · `ReviewBlindRequestRepositoryImpl#findApprovedByReviewId`
+→ `ShopNoticeJpaRepository#findFirstByShopIdAndExposedIsTrueOrderByIdDesc` · `ShopOrderNoticeJpaRepository#findByShopId` · `ReviewBlindRequestPersistenceAdapter#findApprovedByReviewId`
 
 **`findFirstBy~`를 `findBy~`로 바꾸지 않는다.** 노출 공지 1건 불변식은 도메인 서비스가 지키고 DB 제약이 없다(MySQL이 부분 유니크 인덱스를 지원하지 않는다). 따라서 `is_exposed = 1`이 2건 이상인 상태가 물리적으로 가능한데, 단건 시그니처는 그때 `IncorrectResultSizeDataAccessException`으로 **해당 가게의 공지 기능을 통째로 500으로 만든다.** 최신 1건을 결정적으로 고르면 다음 `expose` 호출이 나머지를 자연스럽게 정리한다.
 
 반대로 `ShopOrderNotice`는 `shop_id`에 조건 없는 컬럼 단위 유니크 제약이 있어 MySQL로 표현되므로 단건 시그니처가 안전하다. **그 유니크 제약이 동시 요청 두 건이 각각 "기존 행 없음"을 읽고 둘 다 insert하는 경합 창을 닫는다** — 도메인 서비스의 선행 조회는 "정상 수정 경로로 유도하는 편의"만 담당한다.
 
-`ReviewBlindRequestRepositoryImpl#findApprovedByReviewId`도 같은 형태다 — 1회 제한 덕분에 `APPROVED`는 리뷰당 최대 1건이지만 그 제한이 애플리케이션 검사라 동시 요청에는 이론상 뚫린다. 따라서 `fetchOne`(2건이면 예외) 대신 최신 1건을 취해 조회가 실패하지 않게 한다.
+`ReviewBlindRequestPersistenceAdapter#findApprovedByReviewId`도 같은 형태다 — 1회 제한 덕분에 `APPROVED`는 리뷰당 최대 1건이지만 그 제한이 애플리케이션 검사라 동시 요청에는 이론상 뚫린다. 따라서 `fetchOne`(2건이면 예외) 대신 최신 1건을 취해 조회가 실패하지 않게 한다.
 
 #### 위치 기반 전달이 많은 매퍼는 3중 대조가 규약이다
 
@@ -2143,20 +2143,20 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 `ProductFeedback.shop_id`는 제보 시점의 가게이며, 점주 목록 조회를 `PRODUCT` 조인 없이 처리하기 위한 비정규화다. `ProductRepresentativeRequest.shop_id`를 요청 행이 직접 들고 있는 것은 개수 제한이 가게 단위 불변식이라 메뉴를 거치지 않고 가게별 대기 건수를 세야 하기 때문이다.
 
-`ProductShopLink`(메뉴↔가게 N:M)는 **`PRODUCT.shop_id`를 대체하지 않는다** — 그 컬럼은 원본 소유 가게로 남고 이 테이블은 "어느 가게 메뉴판에 노출되는가"만 담는다. `UNIQUE(product_id, shop_id)`가 같은 메뉴를 같은 가게에 두 번 연결하는 것을 DB 차원에서 막는다. 메뉴판 노출 판정(`ProductJpaRepository#countVisibleByShopLink`·`ProductRepositoryImpl`·`ProductPriceJpaRepository`)은 전부 링크를 통해야 한다 — `PRODUCT.shop_id`로 세면 다른 가게에서 불러온 메뉴가 빠지고, 반대로 이 가게 메뉴판에 없는 원본 메뉴가 잘못 포함된다. `distinct`는 조인 형태가 바뀌어도 개수가 부풀지 않게 하는 방어다.
+`ProductShopLink`(메뉴↔가게 N:M)는 **`PRODUCT.shop_id`를 대체하지 않는다** — 그 컬럼은 원본 소유 가게로 남고 이 테이블은 "어느 가게 메뉴판에 노출되는가"만 담는다. `UNIQUE(product_id, shop_id)`가 같은 메뉴를 같은 가게에 두 번 연결하는 것을 DB 차원에서 막는다. 메뉴판 노출 판정(`ProductJpaRepository#countVisibleByShopLink`·`ProductPersistenceAdapter`·`ProductPriceJpaRepository`)은 전부 링크를 통해야 한다 — `PRODUCT.shop_id`로 세면 다른 가게에서 불러온 메뉴가 빠지고, 반대로 이 가게 메뉴판에 없는 원본 메뉴가 잘못 포함된다. `distinct`는 조인 형태가 바뀌어도 개수가 부풀지 않게 하는 방어다.
 
-`ProductPriceJpaRepository`의 가게별 가격 조회 조건은 **`ProductQueryDao#findShopProductPrices`와 반드시 같아야 한다** — 갈리면 매장가격 뱃지가 두 화면에서 달라진다.
+`ProductPriceJpaRepository`의 가게별 가격 조회 조건은 **`ProductQueryAdapter#findShopProductPrices`와 반드시 같아야 한다** — 갈리면 매장가격 뱃지가 두 화면에서 달라진다.
 
 #### 컨텍스트 경계를 건너는 것은 얇은 포트 어댑터가 흡수한다
 
 → `ReplyPhraseProhibitedWordValidatorAdapter` · `StorePriceVerificationAdapter` · `ShopRequestIndexSyncAdapter` · `MemberGradeReviewCountAdapter` · `MemberReviewCountAdapter` · `ProductReviewStatisticsAdapter` · `KeywordCountAdapter`
 
-domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 `ShopServiceConfig`가 등록한다** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **(03b) `StorePriceVerificationAdapter`도 떠났다** — `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`(마커 없는 POJO, `ShopServiceConfig`가 `@Bean` 등록). 실제로는 JPA가 아니라 `ShopRepository`(도메인 모델 `Shop` 로드·`verifyStorePrice()`·저장)와 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 쓰는 서비스 연결부라, domain을 모르는 이 모듈에 둘 수 없다. 이 모듈에 남은 것은 집계 조회 어댑터 4종뿐이며, 이들은 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채운다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
+domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로, 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 `ShopServiceConfig`가 등록한다** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **(03b) `StorePriceVerificationAdapter`도 떠났다** — `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`(마커 없는 POJO, `ShopServiceConfig`가 `@Bean` 등록). 실제로는 JPA가 아니라 `ShopPersistencePort`(도메인 모델 `Shop` 로드·`verifyStorePrice()`·저장)와 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 쓰는 서비스 연결부라, domain을 모르는 이 모듈에 둘 수 없다. 이 모듈에 남은 것은 집계 조회 어댑터 4종뿐이며, 이들은 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채운다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
 
 - `ReplyPhraseProhibitedWordValidatorAdapter` — 검수 규칙 자체는 shop 컨텍스트의 `ProhibitedWordValidator`에 그대로 위임한다. 주입받는 빈은 `ShopServiceConfig`(구 `ShopDomainConfig`)가 캐싱 데코레이터로 감싸 등록한 것이라 검증마다 금칙어 전량을 다시 읽지 않는다.
 - `StorePriceVerificationAdapter` — 인증 요청 애그리거트는 product 소유지만(승인의 본체가 `PRODUCT_PRICE`를 채우는 일이므로) 인증 ON/OFF는 가게 단위 상태라 `SHOP`에 있다. 이 플래그만 좁은 포트로 뽑는다. `@Repository`가 아니라 `@Component`인 이유는 도메인 write 포트 구현이 아니라 출력 포트 어댑터이기 때문이다.
 - `ShopRequestIndexSyncAdapter` — 통합 인덱스와 그 기록자는 shop 소유다. **상태 문자열을 여기서 enum으로 승격하며, 승격 실패는 프로그래밍 오류(양쪽 enum이 어긋난 상태)이므로 `from(String)`의 400 변환에 맡기지 않고 그대로 전파시킨다** — 조용히 넘기면 인덱스가 원본과 어긋난 채 남는다. 기록은 원본 상태 전이와 **같은 트랜잭션**에서 동기 수행된다(이벤트·`AFTER_COMMIT`을 쓰지 않는 이유는 기록 유실이 곧 "요청이 목록에서 사라짐"이기 때문이다).
-- 집계 조회 어댑터 4종(`MemberGradeReviewCountAdapter`·`MemberReviewCountAdapter`·`ProductReviewStatisticsAdapter`·`KeywordCountAdapter`)은 집계 조회 자체를 소유 도메인의 QueryDao에 두고, **그 결과를 소비 도메인이 이해하는 값 타입으로 옮겨 담는 변환만** 담당한다. 덕분에 소비 도메인 서비스는 read model이나 QueryDSL을 알지 않는다. member와 rank가 같은 DAO를 공유하면서도 포트·값 타입을 컨텍스트별로 나눈 것은 컨텍스트 순환을 피하기 위해서다.
+- 집계 조회 어댑터 4종(`MemberGradeReviewCountAdapter`·`MemberReviewCountAdapter`·`ProductReviewStatisticsAdapter`·`KeywordCountAdapter`)은 집계 조회 자체를 소유 도메인의 QueryAdapter에 두고, **그 결과를 소비 도메인이 이해하는 값 타입으로 옮겨 담는 변환만** 담당한다. 덕분에 소비 도메인 서비스는 read model이나 QueryDSL을 알지 않는다. member와 rank가 같은 DAO를 공유하면서도 포트·값 타입을 컨텍스트별로 나눈 것은 컨텍스트 순환을 피하기 위해서다.
 
 #### `GeoPolygonTextCodec` — 폴리곤을 `LONGTEXT`에 담는다
 
@@ -2177,18 +2177,18 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 도형 좌표를 도메인이 알지 않도록 **형식 지식을 이 코덱에 가두고**, `ShopDeliveryAreaPolygonMapper`·`AdminDongMapper`가 위임한다.
 
-#### `AdminDongRepositoryImpl` — 행정동 마스터 동기화
+#### `AdminDongPersistenceAdapter` — 행정동 마스터 동기화
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/persistence/AdminDongRepositoryImpl.java`(03b 동안 `AdminDongStatePortImpl` — 번복됨)
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/region/persistence/AdminDongPersistenceAdapter.java`(03b 동안 `AdminDongStatePortImpl` — 번복됨)
 → `synchronize(List<AdminDong>)` · `SAVE_BATCH_SIZE` · `deactivateMissing`
 
 > **(03b)** 아래 동기화 규칙 4개는 `AdminDongStatePortImpl`에 그대로 있다. **"`AdminDongJpaEntity`·`AdminDongMapper` 쪽 규칙" 중 둘은 application으로 옮겨 갔다** — ① 바운딩박스 파생(`GeoBoundingBox.enclosing`)과 경계 인코딩은 `application/region/store/AdminDongStateMapper#toBoundarySnapshot`이 하고, 결과를 `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 하나로 넘긴다. 경계와 박스가 한 record라 "두 값을 각각 받으면 어긋난다"는 위험이 구조적으로 막히며, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 Snapshot을 컬럼에 옮기기만 한다(같은 헬퍼를 쓴다는 규칙은 "Snapshot을 같은 방식으로 펼친다"로 승계 — 둘 다 Snapshot이 `null`이면 6개 컬럼을 `null`로 둔다). ② 대표점 `GeoPoint` 승격(위경도 둘 다 있을 때만)과 경계 디코딩(빈 값 → 빈 목록)은 `AdminDongStateMapper#toCenter`·`toDomain`이 한다. 좌표·경계 컬럼 nullable, `findAllWithinBoundingBox` 프리필터 규칙은 그대로다(메서드는 이제 원시 위경도 4개를 받는다).
 >
-> **(번복됨 — persistence domain 재허용)** 동기화 규칙 4개는 `AdminDongRepositoryImpl`에 있고, ①② 모두 **이 모듈의 `AdminDongMapper`로 돌아왔다** — 바운딩박스 파생은 `toEntity`·`applyChanges`가 같은 private 헬퍼 `enclosingBoundingBox`로(StateMapper의 min/max 계산을 그대로 옮김), 대표점 승격은 `toCenter`로, 경계 인코딩·디코딩은 domain `GeoPolygonTextCodec`으로 한다. `AdminDongBoundarySnapshot`·`AdminDongCenterSnapshot`은 삭제됐다. 아래 원래 서술("`toEntity`와 `applyChanges`가 같은 헬퍼를 쓴다")이 다시 현행이다.
+> **(번복됨 — persistence domain 재허용)** 동기화 규칙 4개는 `AdminDongPersistenceAdapter`에 있고, ①② 모두 **이 모듈의 `AdminDongMapper`로 돌아왔다** — 바운딩박스 파생은 `toEntity`·`applyChanges`가 같은 private 헬퍼 `enclosingBoundingBox`로(StateMapper의 min/max 계산을 그대로 옮김), 대표점 승격은 `toCenter`로, 경계 인코딩·디코딩은 domain `GeoPolygonTextCodec`으로 한다. `AdminDongBoundarySnapshot`·`AdminDongCenterSnapshot`은 삭제됐다. 아래 원래 서술("`toEntity`와 `applyChanges`가 같은 헬퍼를 쓴다")이 다시 현행이다.
 
 쓰기는 `synchronize`(동기화 배치 전용) 하나뿐이며 건별 저장 경로가 없다.
 
-- **모든 조회가 `is_active = 1`로 통일돼 있다.** 과거 이 어댑터의 `existsById`·`findByDongNameMatch`는 활성 여부를 거르지 않는 반면 `AdminDongQueryDao`는 걸러, 통폐합돼 폐지된 행정동이 **검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는** 비대칭이 있었다. 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.**
+- **모든 조회가 `is_active = 1`로 통일돼 있다.** 과거 이 어댑터의 `existsById`·`findByDongNameMatch`는 활성 여부를 거르지 않는 반면 `AdminDongQueryAdapter`는 걸러, 통폐합돼 폐지된 행정동이 **검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는** 비대칭이 있었다. 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.**
 - **전량 삭제·재삽입이 아니라 제자리 갱신(id 보존)** 인 이유도 다른 테이블이 `id`를 참조하기 때문이다. 원천에서 사라진 동은 삭제하지 않고 `deactivate()`로 폐지 처리한다.
 - **빈 목록 동기화는 `IllegalArgumentException`으로 막는다** — 원천을 못 읽었을 때 마스터를 비우면 전국 배달지역이 통째로 죽는다.
 - `SAVE_BATCH_SIZE = 500` — 3,500여 건을 한 영속성 컨텍스트에 쌓으면 경계 문자열(행당 평균 4KB, 최대 64KB)까지 함께 메모리에 머물러 힙이 불필요하게 커진다.
@@ -2203,7 +2203,7 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 #### 낙관적 락은 슬롯 예약에만 있고, 예외는 프레임워크-프리로 번역한다
 
-→ `ReservationSlotJpaEntity.version` · `ReservationSlotRepositoryImpl#save`(03b 동안 `ReservationSlotStatePortImpl#save` — 번복됨) · `ReservationSlotJpaRepository#findByShopIdAndSlotDateAndSlotTime`
+→ `ReservationSlotJpaEntity.version` · `ReservationSlotPersistenceAdapter#save`(03b 동안 `ReservationSlotStatePortImpl#save` — 번복됨) · `ReservationSlotJpaRepository#findByShopIdAndSlotDateAndSlotTime`
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** managed 엔티티의 `@Version`이 flush 시 검증·증가되므로 load-copy-save가 낙관적 락 동작을 그대로 보존한다. `save`의 dirty checking 변경은 명시적 `flush` 시점에 검증되므로 충돌도 거기서 나며, `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
 
@@ -2217,11 +2217,11 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 #### 배달팁 5종을 한 어댑터·한 매퍼가 담당하는 이유
 
-→ `ShopDeliveryTipRepositoryImpl` · `ShopDeliveryTipMapper`
+→ `ShopDeliveryTipPersistenceAdapter` · `ShopDeliveryTipMapper`
 
-write 포트 `ShopDeliveryTipRepository`가 5종을 한 인터페이스로 묶었으므로 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
+write 포트 `ShopDeliveryTipPersistencePort`가 5종을 한 인터페이스로 묶었으므로 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
 
-이 어댑터는 `ShopDeliveryTipRegionLookup`도 함께 구현한다 **(03b — 도메인 타입을 쓰는 `ShopDeliveryTipRegionLookup`은 `application/shop/store/`로 옮겨졌고 application Store가 구현한다. 이 모듈의 `ShopDeliveryTipStatePortImpl`은 원시 타입 `ShopDeliveryTipStatePort` 하나로 두 용도의 조회를 함께 제공하므로, "같은 테이블을 읽는 쿼리를 두 곳에 만들지 않는다"는 취지는 유지된다)** **(번복됨 — persistence domain 재허용)** 다시 이 모듈의 `ShopDeliveryTipRepositoryImpl`이 `ShopDeliveryTipRepository`·`ShopDeliveryTipRegionLookup`(둘 다 `application/shop/port/out/write/`) 둘을 구현한다 — 원래 서술이 현행이다 — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
+이 어댑터는 `ShopDeliveryTipRegionLookupPort`도 함께 구현한다 **(03b — 도메인 타입을 쓰는 `ShopDeliveryTipRegionLookupPort`은 `application/shop/store/`로 옮겨졌고 application Store가 구현한다. 이 모듈의 `ShopDeliveryTipStatePortImpl`은 원시 타입 `ShopDeliveryTipStatePort` 하나로 두 용도의 조회를 함께 제공하므로, "같은 테이블을 읽는 쿼리를 두 곳에 만들지 않는다"는 취지는 유지된다)** **(번복됨 — persistence domain 재허용)** 다시 이 모듈의 `ShopDeliveryTipPersistenceAdapter`이 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort`(둘 다 `application/shop/port/out/write/`) 둘을 구현한다 — 원래 서술이 현행이다 — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
 
 `ShopDeliveryTipSettingJpaEntity`가 거리별 설정(기본배달거리·할증 단위·할증액)을 별도 테이블로 쪼개지 않고 인라인한 이유는 `UNIQUE(shop_id)` 행 하나가 **거리별↔지역별 배타성의 물리적 단일 소유자**가 되게 하기 위해서다.
 
@@ -2262,17 +2262,17 @@ write 포트 `ShopDeliveryTipRepository`가 5종을 한 인터페이스로 묶�
 - **`ProductPriceJpaEntity.pickup_price_set_at`을 별도 컬럼으로 두는 이유** — '매장가격 픽업' 뱃지가 **픽업가 설정 익일(영업일)** 부터 노출되기 때문이다. 감사 필드 `updated_at`으로 대체할 수 없다(가격명·정렬만 바뀌어도 갱신되므로 뱃지 노출 시점이 뒤로 밀린다).
 - **`ProductOptionJpaEntity.cupCount`는 금액이 아니라 개수를 저장한다** — 요율(300원)이 바뀌어도 이 컬럼을 마이그레이션할 필요가 없다.
 - **`ShopDeliveryTipScheduleJpaEntity.day_type`은 `DayType`을 재사용하되 `HOLIDAY`는 저장되지 않는다** — 공휴일은 전용 애그리거트가 담당하며 그 금지는 도메인 모델 `ShopDeliveryTipSchedule#of`가 강제한다.
-- **`ProductImageRepositoryImpl#save`에 갱신 분기가 생긴 경위** — 과거에는 무조건 insert였다(기존 행을 갱신하는 경로가 없었다). 이미지 순서 변경이 생기면서 detached 인스턴스를 그대로 `save`하면 감사 필드가 파손되고 새 행이 중복 생성되므로 분기를 뒀다. `ProductImageJpaRepository#findAllByProductIdOrderBySortAsc`가 정렬을 보장하는 것도 순서 변경(replace-all)과 "맨 뒤 sort" 산출이 집합 전체를 보기 때문이다.
-- **`StorePriceVerificationRepositoryImpl`이 두 JPA 리포지토리를 감싸는 이유** — 요청 본체와 항목이 같은 애그리거트 경계에서 함께 저장·조회되므로 한 포트(한 구현)가 담당한다. 항목은 접수 시 한 번 저장되고 변경되지 않으므로 update 분기가 없고, 별도 조회 경로(`findAllItemsByVerificationId`)가 있어 저장 결과를 반환하지 않는다.
-- **`UploadedFileRepositoryImpl`은 순수 pass-through이며 update 경로가 없다** — 표현 목적 파일 조회(응답 URL)는 이 어댑터를 거치지 않고, 각 도메인 query DAO가 `uploaded_file`을 join하고 `FileUrlResolver`가 URL로 변환한다.
+- **`ProductImagePersistenceAdapter#save`에 갱신 분기가 생긴 경위** — 과거에는 무조건 insert였다(기존 행을 갱신하는 경로가 없었다). 이미지 순서 변경이 생기면서 detached 인스턴스를 그대로 `save`하면 감사 필드가 파손되고 새 행이 중복 생성되므로 분기를 뒀다. `ProductImageJpaRepository#findAllByProductIdOrderBySortAsc`가 정렬을 보장하는 것도 순서 변경(replace-all)과 "맨 뒤 sort" 산출이 집합 전체를 보기 때문이다.
+- **`StorePriceVerificationPersistenceAdapter`이 두 JPA 리포지토리를 감싸는 이유** — 요청 본체와 항목이 같은 애그리거트 경계에서 함께 저장·조회되므로 한 포트(한 구현)가 담당한다. 항목은 접수 시 한 번 저장되고 변경되지 않으므로 update 분기가 없고, 별도 조회 경로(`findAllItemsByVerificationId`)가 있어 저장 결과를 반환하지 않는다.
+- **`UploadedFilePersistenceAdapter`은 순수 pass-through이며 update 경로가 없다** — 표현 목적 파일 조회(응답 URL)는 이 어댑터를 거치지 않고, 각 도메인 query DAO가 `uploaded_file`을 join하고 `FileUrlResolver`가 URL로 변환한다.
 - **`ShopOwnerMessageHistoryJpaRepository#findFirstByShopIdOrderByIdDesc`** — append-only 이력이라 최신 행이 곧 현재 노출 문구다.
-- **`SearchKeywordLogJpaRepository`** — 키워드별 검색 수 집계는 타입 없는 `Object[]` 튜플을 돌려주던 네이티브 쿼리 대신 `SearchQueryDao`의 QueryDSL 투영이 담당한다.
+- **`SearchKeywordLogJpaRepository`** — 키워드별 검색 수 집계는 타입 없는 `Object[]` 튜플을 돌려주던 네이티브 쿼리 대신 `SearchQueryAdapter`의 QueryDSL 투영이 담당한다.
 - **`RecommendedKeywordJpaEntity`에 도메인 모델·write 포트·매퍼를 두지 않는다** — 조회 경로가 CQRS query 측으로 이관돼 이 엔티티에서 Result DTO로 직접 투영하므로 전부 미사용이 되어 제거됐다.
-- **`PublicHolidayRepositoryImpl`·`AdminDong` 캘린더는 read-only 마스터라 저장·삭제 경로가 없다** — 캘린더는 `insert.sql` 시드가 소유한다.
+- **`PublicHolidayPersistenceAdapter`·`AdminDong` 캘린더는 read-only 마스터라 저장·삭제 경로가 없다** — 캘린더는 `insert.sql` 시드가 소유한다.
 
 ### 투영 중간 record `ProductSummaryRow`·`ShopTipAggregateRow` — public 최상위로 둔다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductSummaryRow.java`(소비처 `ProductQueryDao#findActiveProductSummaries`·`findProductsBatch`), `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopTipAggregateRow.java`(소비처 `ShopDeliveryTipQueryDao#findTipRanges`·`collectAmounts`)
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/product/query/ProductSummaryRow.java`(소비처 `ProductQueryAdapter#findActiveProductSummaries`·`findProductsBatch`), `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/shop/query/ShopTipAggregateRow.java`(소비처 `ShopDeliveryTipQueryAdapter#findTipRanges`·`collectAmounts`)
 
 DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중첩 record로 두지 않는다.**
 
@@ -2280,11 +2280,11 @@ DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중�
 - **중첩 record 금지** — `QueryResultRecordVisibilityTest`가 `$`를 포함한 클래스명을 건너뛰어 가시성 가드의 사각지대에 들어간다.
 - 선례: `PaymentProjection`·`ShopNoticeRow`·`BugReportDetailProjection`.
 - **컴포넌트 타입은 엔티티 필드와 수동 대조해 정했다** — `ProjectionConstructorMatchingTest`는 인자 **개수**와, 인자가 dotted path일 때의 이름 순서만 본다. **타입은 검사하지 않는다.** `ProductSummaryRow`는 `ProductJpaEntity`의 `id: Long`·`name: String`·`originalPrice: Integer`와 `@Embedded ProductDiscountInfo`의 `discountPrice: Integer`·`discountRate: BigDecimal`을 그대로 따른다(스펙 초안의 `Integer discountRate`는 틀렸다 — `ProductBatchResult.discountRate`도 `BigDecimal`이다). `ShopTipAggregateRow`는 4개 `ShopDeliveryTip*JpaEntity`의 `shopId: Long`과, primitive `int tipAmount`의 `min()`/`max()`가 만드는 `NumberExpression<Integer>`에 맞춰 `Integer` 두 개다.
-- `ShopDeliveryTipQueryDao`의 schedule·holiday 집계는 `min` 자리에도 `max()`를 넣는다 — 두 파트는 최댓값만 쓰고 `collectAmounts`의 min 맵을 버리는 기존 계산을 그대로 옮긴 것이다(`findTipRanges` 하한 불변).
+- `ShopDeliveryTipQueryAdapter`의 schedule·holiday 집계는 `min` 자리에도 `max()`를 넣는다 — 두 파트는 최댓값만 쓰고 `collectAmounts`의 min 맵을 버리는 기존 계산을 그대로 옮긴 것이다(`findTipRanges` 하한 불변).
 
-### `ReviewStatisticsQueryDao#getCategoryAverages` — 위치 인덱스 접근을 없애고 Result에 직접 투영한다
+### `ReviewStatisticsQueryAdapter#getCategoryAverages` — 위치 인덱스 접근을 없애고 Result에 직접 투영한다
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryDao.java` → `getCategoryAverages`, 계약 `backend/application/src/main/java/com/tastyhouse/application/review/port/out/ShopReviewCategoryAverageResult.java`
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/review/query/ReviewStatisticsQueryAdapter.java` → `getCategoryAverages`, 계약 `backend/application/src/main/java/com/tastyhouse/application/review/port/out/ShopReviewCategoryAverageResult.java`
 
 평균 6개를 `row.get(0, Double.class)` … `row.get(5, Double.class)`로 읽던 것을 `Projections.constructor(ShopReviewCategoryAverageResult.class, ...)`로 바꿨다. **6개가 전부 `Double`이라 순서가 어긋나도 예외 없이 맛 평점이 위생 평점 자리로 들어가기** 때문이다.
 

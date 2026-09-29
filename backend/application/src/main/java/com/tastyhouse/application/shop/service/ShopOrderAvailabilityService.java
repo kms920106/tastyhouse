@@ -9,18 +9,18 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 public class ShopOrderAvailabilityService {
     private final ShopOperatingStatusService shopOperatingStatusService;
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
 
     public ShopOrderAvailabilityService(
         ShopOperatingStatusService shopOperatingStatusService,
-        ShopDetailRepository shopDetailRepository
+        ShopDetailPersistencePort shopDetailPersistencePort
     ) {
         this.shopOperatingStatusService = shopOperatingStatusService;
-        this.shopDetailRepository = shopDetailRepository;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
     }
 
     public void validateOrderable(Shop shop, OrderMethod orderMethod, LocalDateTime at) {
@@ -50,7 +50,7 @@ public class ShopOrderAvailabilityService {
     }
 
     private boolean isAssigned(Long shopId, OrderMethod orderMethod) {
-        return shopDetailRepository.findOrderMethodsByShopId(shopId).stream()
+        return shopDetailPersistencePort.findOrderMethodsByShopId(shopId).stream()
             .map(ShopOrderMethod::getOrderMethod)
             .anyMatch(assigned -> assigned == orderMethod);
     }

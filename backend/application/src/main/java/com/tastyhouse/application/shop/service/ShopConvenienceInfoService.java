@@ -18,29 +18,29 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopConvenienceInfoService {
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;
 
-    private final ShopConvenienceInfoRepository shopConvenienceInfoRepository;
-    private final ShopRepository shopRepository;
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopConvenienceInfoPersistencePort shopConvenienceInfoPersistencePort;
+    private final ShopPersistencePort shopPersistencePort;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopConvenienceInfoService(
-        ShopConvenienceInfoRepository shopConvenienceInfoRepository,
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
+        ShopConvenienceInfoPersistencePort shopConvenienceInfoPersistencePort,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopConvenienceInfoRepository = shopConvenienceInfoRepository;
-        this.shopRepository = shopRepository;
-        this.shopDetailRepository = shopDetailRepository;
+        this.shopConvenienceInfoPersistencePort = shopConvenienceInfoPersistencePort;
+        this.shopPersistencePort = shopPersistencePort;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -64,7 +64,7 @@ public class ShopConvenienceInfoService {
             validateDisplayLocation(shopId, displayLatitude, displayLongitude);
         }
 
-        ShopConvenienceInfo existing = shopConvenienceInfoRepository.findByShopId(shopId).orElse(null);
+        ShopConvenienceInfo existing = shopConvenienceInfoPersistencePort.findByShopId(shopId).orElse(null);
         String previousValue = describeConvenienceInfo(existing);
 
         ShopConvenienceInfo shopConvenienceInfo;
@@ -92,7 +92,7 @@ public class ShopConvenienceInfoService {
             shopConvenienceInfo = existing;
         }
 
-        shopConvenienceInfoRepository.save(shopConvenienceInfo);
+        shopConvenienceInfoPersistencePort.save(shopConvenienceInfo);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -105,10 +105,10 @@ public class ShopConvenienceInfoService {
     }
 
     public Long assignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        ShopAmenity amenity = shopDetailRepository.saveAmenity(
+        ShopAmenity amenity = shopDetailPersistencePort.saveAmenity(
             ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId))
         );
 
@@ -124,10 +124,10 @@ public class ShopConvenienceInfoService {
     }
 
     public void unassignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailRepository.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        shopDetailRepository.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
+        shopDetailPersistencePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -175,7 +175,7 @@ public class ShopConvenienceInfoService {
     }
 
     private void validateDisplayLocation(Long shopId, BigDecimal displayLatitude, BigDecimal displayLongitude) {
-        Shop shop = shopRepository.findById(ShopId.of(shopId))
+        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
 
         double distanceMeters = GeoDistance.distanceMeters(

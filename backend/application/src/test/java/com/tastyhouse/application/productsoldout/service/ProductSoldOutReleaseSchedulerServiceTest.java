@@ -17,9 +17,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -35,14 +35,14 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         Product failing = soldOutProduct(10L, "실패메뉴");
         Product healthy = soldOutProduct(11L, "정상메뉴");
 
-        ProductRepositoryStub productRepository =
-            new ProductRepositoryStub(List.of(failing, healthy), 10L);
-        Fixture fixture = new Fixture(productRepository,
-            new ProductOptionRepositoryStub(List.of()), new ProductCommonOptionRepositoryStub(List.of()));
+        ProductPersistencePortStub productPersistencePort =
+            new ProductPersistencePortStub(List.of(failing, healthy), 10L);
+        Fixture fixture = new Fixture(productPersistencePort,
+            new ProductOptionPersistencePortStub(List.of()), new ProductCommonOptionPersistencePortStub(List.of()));
 
         assertThatCode(fixture.service::releaseExpiredSoldOut).doesNotThrowAnyException();
 
-        assertThat(productRepository.saved).containsExactly(healthy);
+        assertThat(productPersistencePort.saved).containsExactly(healthy);
         assertThat(healthy.isSoldOut()).isFalse();
         assertThat(healthy.getSoldOutUntil()).isNull();
     }
@@ -55,9 +55,9 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         ProductCommonOption commonOption = soldOutCommonOption();
 
         Fixture fixture = new Fixture(
-            new ProductRepositoryStub(List.of(product), null),
-            new ProductOptionRepositoryStub(List.of(option)),
-            new ProductCommonOptionRepositoryStub(List.of(commonOption)));
+            new ProductPersistencePortStub(List.of(product), null),
+            new ProductOptionPersistencePortStub(List.of(option)),
+            new ProductCommonOptionPersistencePortStub(List.of(commonOption)));
 
         fixture.service.releaseExpiredSoldOut();
 
@@ -72,13 +72,13 @@ class ProductSoldOutReleaseSchedulerServiceTest {
     @Test
     @DisplayName("대상이 없으면 아무것도 저장하지 않는다")
     void releaseExpiredSoldOut_noTargets_savesNothing() {
-        ProductRepositoryStub productRepository = new ProductRepositoryStub(List.of(), null);
-        Fixture fixture = new Fixture(productRepository,
-            new ProductOptionRepositoryStub(List.of()), new ProductCommonOptionRepositoryStub(List.of()));
+        ProductPersistencePortStub productPersistencePort = new ProductPersistencePortStub(List.of(), null);
+        Fixture fixture = new Fixture(productPersistencePort,
+            new ProductOptionPersistencePortStub(List.of()), new ProductCommonOptionPersistencePortStub(List.of()));
 
         fixture.service.releaseExpiredSoldOut();
 
-        assertThat(productRepository.saved).isEmpty();
+        assertThat(productPersistencePort.saved).isEmpty();
     }
 
     private static Product soldOutProduct(Long id, String name) {
@@ -115,24 +115,24 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         private final ProductSoldOutReleaseSchedulerService service;
 
         private Fixture(
-            ProductRepository productRepository,
-            ProductOptionRepository productOptionRepository,
-            ProductCommonOptionRepository productCommonOptionRepository
+            ProductPersistencePort productPersistencePort,
+            ProductOptionPersistencePort productOptionPersistencePort,
+            ProductCommonOptionPersistencePort productCommonOptionPersistencePort
         ) {
             ProductSoldOutReleaseExecutor executor = new ProductSoldOutReleaseExecutor(
-                productRepository, productOptionRepository, productCommonOptionRepository);
+                productPersistencePort, productOptionPersistencePort, productCommonOptionPersistencePort);
             this.service = new ProductSoldOutReleaseSchedulerService(
-                productRepository, productOptionRepository, productCommonOptionRepository, executor);
+                productPersistencePort, productOptionPersistencePort, productCommonOptionPersistencePort, executor);
         }
     }
 
-    private static final class ProductRepositoryStub implements ProductRepository {
+    private static final class ProductPersistencePortStub implements ProductPersistencePort {
 
         private final List<Product> expired;
         private final Long failingId;
         private final List<Product> saved = new ArrayList<>();
 
-        private ProductRepositoryStub(List<Product> expired, Long failingId) {
+        private ProductPersistencePortStub(List<Product> expired, Long failingId) {
             this.expired = expired;
             this.failingId = failingId;
         }
@@ -203,7 +203,7 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         }
     }
 
-    private record ProductOptionRepositoryStub(List<ProductOption> expired) implements ProductOptionRepository {
+    private record ProductOptionPersistencePortStub(List<ProductOption> expired) implements ProductOptionPersistencePort {
 
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
@@ -231,9 +231,9 @@ class ProductSoldOutReleaseSchedulerServiceTest {
         }
     }
 
-    private record ProductCommonOptionRepositoryStub(
+    private record ProductCommonOptionPersistencePortStub(
         List<ProductCommonOption> expired
-    ) implements ProductCommonOptionRepository {
+    ) implements ProductCommonOptionPersistencePort {
 
         @Override
         public Optional<ProductCommonOption> findById(ProductCommonOptionId id) {

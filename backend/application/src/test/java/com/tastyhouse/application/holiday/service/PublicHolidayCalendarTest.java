@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
-import com.tastyhouse.application.holiday.port.out.write.PublicHolidayRepository;
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -97,14 +97,14 @@ class PublicHolidayCalendarTest {
     }
 
     private static PublicHolidayCalendar calendarWith(LocalDate... holidayDates) {
-        PublicHolidayRepositoryFake repository = new PublicHolidayRepositoryFake();
+        PublicHolidayPersistencePortFake repository = new PublicHolidayPersistencePortFake();
         for (LocalDate holidayDate : holidayDates) {
             repository.add(holidayDate);
         }
         return new PublicHolidayCalendar(repository);
     }
 
-    private static final class PublicHolidayRepositoryFake implements PublicHolidayRepository {
+    private static final class PublicHolidayPersistencePortFake implements PublicHolidayPersistencePort {
         private final Map<LocalDate, PublicHoliday> holidays = new LinkedHashMap<>();
         private long sequence = 0L;
 

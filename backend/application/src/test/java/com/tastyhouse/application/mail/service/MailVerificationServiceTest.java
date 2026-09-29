@@ -18,8 +18,8 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,9 +29,9 @@ class MailVerificationServiceTest {
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 메일을 발송한다")
     void issue_sendsMailWithGeneratedCode() {
         RecordingMailSender mailSender = new RecordingMailSender();
-        FakeMailVerificationRepository repository = new FakeMailVerificationRepository();
+        FakeMailVerificationPersistencePort repository = new FakeMailVerificationPersistencePort();
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), repository, mailSender, event -> {
+            new FakeMemberPersistencePort(false), repository, mailSender, event -> {
         });
 
         MailVerification issued = service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP);
@@ -48,7 +48,7 @@ class MailVerificationServiceTest {
     void issue_usesPurposeSpecificMessage() {
         RecordingMailSender mailSender = new RecordingMailSender();
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), new FakeMailVerificationRepository(), mailSender, event -> {
+            new FakeMemberPersistencePort(false), new FakeMailVerificationPersistencePort(), mailSender, event -> {
         });
 
         service.issue("user@tastyhouse.com", MailVerificationPurpose.PASSWORD_RESET);
@@ -60,9 +60,9 @@ class MailVerificationServiceTest {
     @Test
     @DisplayName("issue는 저장 전에 같은 이메일의 기존 미완료 인증을 먼저 만료시킨다")
     void issue_expiresPreviousPendingBeforeSaving() {
-        FakeMailVerificationRepository repository = new FakeMailVerificationRepository();
+        FakeMailVerificationPersistencePort repository = new FakeMailVerificationPersistencePort();
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), repository, new RecordingMailSender(), event -> {
+            new FakeMemberPersistencePort(false), repository, new RecordingMailSender(), event -> {
         });
 
         service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP);
@@ -77,7 +77,7 @@ class MailVerificationServiceTest {
             throw new IllegalStateException("메일 발송 실패");
         };
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), new FakeMailVerificationRepository(), failingSender, event -> {
+            new FakeMemberPersistencePort(false), new FakeMailVerificationPersistencePort(), failingSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP))
@@ -91,7 +91,7 @@ class MailVerificationServiceTest {
         IllegalStateException cause = new IllegalStateException("SMTP 연결 거부");
         MailSender failingSender = (to, subject, content) -> MailSendResult.failed(cause);
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), new FakeMailVerificationRepository(), failingSender, event -> {
+            new FakeMemberPersistencePort(false), new FakeMailVerificationPersistencePort(), failingSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP))
@@ -105,7 +105,7 @@ class MailVerificationServiceTest {
     void issueForSignUp_rejectsRegisteredEmail() {
         RecordingMailSender mailSender = new RecordingMailSender();
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(true), new FakeMailVerificationRepository(), mailSender, event -> {
+            new FakeMemberPersistencePort(true), new FakeMailVerificationPersistencePort(), mailSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issueForSignUp("user@tastyhouse.com"))
@@ -117,10 +117,10 @@ class MailVerificationServiceTest {
     @Test
     @DisplayName("confirmForSignUp은 검증 성공 시 상태 전이를 저장하고 이벤트를 발행한다")
     void confirmForSignUp_savesTransitionAndPublishesEvent() {
-        FakeMailVerificationRepository repository = new FakeMailVerificationRepository();
+        FakeMailVerificationPersistencePort repository = new FakeMailVerificationPersistencePort();
         List<Object> published = new ArrayList<>();
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), repository, new RecordingMailSender(), published::add);
+            new FakeMemberPersistencePort(false), repository, new RecordingMailSender(), published::add);
 
         MailVerification issued = service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP);
         repository.pending = issued;
@@ -134,7 +134,7 @@ class MailVerificationServiceTest {
     @DisplayName("confirm은 발급된 인증이 없으면 예외를 던진다")
     void confirm_withoutPendingVerification_throws() {
         MailVerificationService service = new MailVerificationService(
-            new FakeMemberRepository(false), new FakeMailVerificationRepository(), new RecordingMailSender(), event -> {
+            new FakeMemberPersistencePort(false), new FakeMailVerificationPersistencePort(), new RecordingMailSender(), event -> {
         });
 
         assertThatThrownBy(() -> service.confirm("user@tastyhouse.com", "123456"))
@@ -162,7 +162,7 @@ class MailVerificationServiceTest {
         }
     }
 
-    private static final class FakeMailVerificationRepository implements MailVerificationRepository {
+    private static final class FakeMailVerificationPersistencePort implements MailVerificationPersistencePort {
         private final List<MailVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();
         private MailVerification pending;
@@ -199,7 +199,7 @@ class MailVerificationServiceTest {
         }
     }
 
-    private record FakeMemberRepository(boolean usernameExists) implements MemberRepository {
+    private record FakeMemberPersistencePort(boolean usernameExists) implements MemberPersistencePort {
         @Override
         public boolean existsByUsername(String username) {
             return usernameExists;

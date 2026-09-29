@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -26,18 +26,18 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 public class ProductVegetarianCommandService implements ProductVegetarianCommandUseCase {
 
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
-    private final ProductRepository productRepository;
+    private final ProductPersistencePort productPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopFoodTypeCategoryReader shopFoodTypeCategoryReader;
 
     public ProductVegetarianCommandService(
         ProductVegetarianApprovalService productVegetarianApprovalService,
-        ProductRepository productRepository,
+        ProductPersistencePort productPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopFoodTypeCategoryReader shopFoodTypeCategoryReader
     ) {
         this.productVegetarianApprovalService = productVegetarianApprovalService;
-        this.productRepository = productRepository;
+        this.productPersistencePort = productPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopFoodTypeCategoryReader = shopFoodTypeCategoryReader;
     }
@@ -75,7 +75,7 @@ public class ProductVegetarianCommandService implements ProductVegetarianCommand
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);

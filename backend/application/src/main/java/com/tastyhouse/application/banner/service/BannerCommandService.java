@@ -13,7 +13,7 @@ import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;
 import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
-import com.tastyhouse.application.banner.port.out.write.BannerRepository;
+import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -21,10 +21,10 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class BannerCommandService implements BannerCommandUseCase {
 
-    private final BannerRepository bannerRepository;
+    private final BannerPersistencePort bannerPersistencePort;
 
-    public BannerCommandService(BannerRepository bannerRepository) {
-        this.bannerRepository = bannerRepository;
+    public BannerCommandService(BannerPersistencePort bannerPersistencePort) {
+        this.bannerPersistencePort = bannerPersistencePort;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class BannerCommandService implements BannerCommandUseCase {
             command.sort(),
             command.visible()
         );
-        Banner saved = bannerRepository.save(banner);
+        Banner saved = bannerPersistencePort.save(banner);
         return saved.getBannerId().value();
     }
 
@@ -58,7 +58,7 @@ public class BannerCommandService implements BannerCommandUseCase {
             command.sort(),
             command.visible()
         );
-        bannerRepository.save(banner);
+        bannerPersistencePort.save(banner);
     }
 
     @Override
@@ -67,11 +67,11 @@ public class BannerCommandService implements BannerCommandUseCase {
         Banner banner = findBannerOrThrow(bannerId);
 
         banner.delete();
-        bannerRepository.save(banner);
+        bannerPersistencePort.save(banner);
     }
 
     private Banner findBannerOrThrow(BannerId bannerId) {
-        return bannerRepository.findById(bannerId)
+        return bannerPersistencePort.findById(bannerId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));
     }
 }

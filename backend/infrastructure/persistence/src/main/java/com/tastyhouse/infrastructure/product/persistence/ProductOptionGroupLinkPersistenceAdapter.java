@@ -1,0 +1,82 @@
+package com.tastyhouse.infrastructure.product.persistence;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
+import com.tastyhouse.domain.product.vo.ProductId;
+import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
+
+@Repository
+public class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLinkPersistencePort {
+    private final ProductOptionGroupLinkJpaRepository productOptionGroupLinkJpaRepository;
+
+    public ProductOptionGroupLinkPersistenceAdapter(
+        ProductOptionGroupLinkJpaRepository productOptionGroupLinkJpaRepository
+    ) {
+        this.productOptionGroupLinkJpaRepository = productOptionGroupLinkJpaRepository;
+    }
+
+    @Override
+    public ProductOptionGroupLink save(ProductOptionGroupLink link) {
+        if (link.getId() == null) {
+            ProductOptionGroupLinkJpaEntity saved =
+                productOptionGroupLinkJpaRepository.save(ProductOptionGroupLinkMapper.toEntity(link));
+            return ProductOptionGroupLinkMapper.toDomain(saved);
+        }
+
+        ProductOptionGroupLinkJpaEntity entity = productOptionGroupLinkJpaRepository.findById(link.getId())
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 옵션그룹 연결입니다: " + link.getId()));
+        ProductOptionGroupLinkMapper.applyChanges(entity, link);
+        return ProductOptionGroupLinkMapper.toDomain(entity);
+    }
+
+    @Override
+    public Optional<ProductOptionGroupLink> findByProductIdAndOptionGroupId(
+        ProductId productId,
+        ProductOptionGroupId optionGroupId
+    ) {
+        return productOptionGroupLinkJpaRepository
+            .findByProductIdAndOptionGroupId(productId.value(), optionGroupId.value())
+            .map(ProductOptionGroupLinkMapper::toDomain);
+    }
+
+    @Override
+    public List<ProductOptionGroupLink> findAllByProductId(ProductId productId) {
+        return productOptionGroupLinkJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+            .map(ProductOptionGroupLinkMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public List<ProductOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
+        return productOptionGroupLinkJpaRepository.findAllByOptionGroupId(optionGroupId.value()).stream()
+            .map(ProductOptionGroupLinkMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
+        if (optionGroupIds.isEmpty()) {
+            return List.of();
+        }
+        return productOptionGroupLinkJpaRepository
+            .findAllByOptionGroupIdIn(optionGroupIds.stream().map(ProductOptionGroupId::value).toList())
+            .stream()
+            .map(ProductOptionGroupLinkMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
+        return productOptionGroupLinkJpaRepository.existsByProductIdAndOptionGroupId(productId.value(), optionGroupId.value());
+    }
+
+    @Override
+    public void delete(ProductOptionGroupLink link) {
+        productOptionGroupLinkJpaRepository.deleteById(link.getId());
+    }
+}

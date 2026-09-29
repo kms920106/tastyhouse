@@ -12,25 +12,25 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestRepository;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
 
 public class ProductRepresentativeApprovalService {
     private static final long MAX_REPRESENTATIVE_COUNT = 6L;
 
-    private final ProductRepresentativeRequestRepository requestRepository;
-    private final ProductRepository productRepository;
-    private final ProductImageRepository productImageRepository;
+    private final ProductRepresentativeRequestPersistencePort requestPersistencePort;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductImagePersistencePort productImagePersistencePort;
 
     public ProductRepresentativeApprovalService(
-        ProductRepresentativeRequestRepository requestRepository,
-        ProductRepository productRepository,
-        ProductImageRepository productImageRepository
+        ProductRepresentativeRequestPersistencePort requestPersistencePort,
+        ProductPersistencePort productPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort
     ) {
-        this.requestRepository = requestRepository;
-        this.productRepository = productRepository;
-        this.productImageRepository = productImageRepository;
+        this.requestPersistencePort = requestPersistencePort;
+        this.productPersistencePort = productPersistencePort;
+        this.productImagePersistencePort = productImagePersistencePort;
     }
 
     public List<Long> requestRepresentative(ShopId shopId, List<ProductId> productIds) {
@@ -45,7 +45,7 @@ public class ProductRepresentativeApprovalService {
             if (product.isRepresentative()) {
                 continue;
             }
-            if (requestRepository.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
+            if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
                 continue;
             }
             requireHasImage(productId);
@@ -56,7 +56,7 @@ public class ProductRepresentativeApprovalService {
 
         List<Long> requestIds = new ArrayList<>();
         for (Product target : targets) {
-            ProductRepresentativeRequest saved = requestRepository.save(
+            ProductRepresentativeRequest saved = requestPersistencePort.save(
                 ProductRepresentativeRequest.of(target.getProductId(), shopId));
             requestIds.add(saved.getId());
         }
@@ -73,22 +73,22 @@ public class ProductRepresentativeApprovalService {
         requireHasImage(request.getProductId());
 
         request.approve();
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
 
         product.changeRepresentative(true);
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     public void reject(ProductRepresentativeRequestId requestId, String rejectReason) {
         ProductRepresentativeRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
     }
 
     public void cancel(ProductRepresentativeRequestId requestId) {
         ProductRepresentativeRequest request = loadRequest(requestId);
         request.cancel();
-        requestRepository.save(request);
+        requestPersistencePort.save(request);
     }
 
     public void clearRepresentative(ShopId shopId, ProductId productId) {
@@ -97,49 +97,49 @@ public class ProductRepresentativeApprovalService {
             return;
         }
 
-        if (productRepository.countVisibleRepresentativeByShopId(shopId) <= 1L) {
+        if (productPersistencePort.countVisibleRepresentativeByShopId(shopId) <= 1L) {
             throw new BusinessException(ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
         }
 
         product.changeRepresentative(false);
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     private void validateLimit(ShopId shopId, int additional) {
         if (additional <= 0) {
             return;
         }
-        long current = productRepository.countRepresentativeByShopId(shopId);
-        long pending = requestRepository.countByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
+        long current = productPersistencePort.countRepresentativeByShopId(shopId);
+        long pending = requestPersistencePort.countByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
         if (current + pending + additional > MAX_REPRESENTATIVE_COUNT) {
             throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
         }
     }
 
     private void validateApprovableLimit(ShopId shopId) {
-        if (productRepository.countRepresentativeByShopId(shopId) + 1 > MAX_REPRESENTATIVE_COUNT) {
+        if (productPersistencePort.countRepresentativeByShopId(shopId) + 1 > MAX_REPRESENTATIVE_COUNT) {
             throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
         }
     }
 
     private void requireHasImage(ProductId productId) {
-        if (productImageRepository.findRepresentativeImageFileId(productId) == null) {
+        if (productImagePersistencePort.findRepresentativeImageFileId(productId) == null) {
             throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED);
         }
     }
 
     private ProductRepresentativeRequest loadRequest(ProductRepresentativeRequestId requestId) {
-        return requestRepository.findById(requestId)
+        return requestPersistencePort.findById(requestId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND));
     }
 
     private Product loadProduct(ProductId productId) {
-        return productRepository.findById(productId)
+        return productPersistencePort.findById(productId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
         }

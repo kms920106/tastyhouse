@@ -25,8 +25,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,12 +46,12 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("10건이 이미 있으면 한도 초과로 거부한다")
         void create_rejectsWhenLimitExceeded() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
             for (int i = 0; i < 10; i++) {
-                addressRepository.save(newAddress(MEMBER_ID, false));
+                addressPersistencePort.save(newAddress(MEMBER_ID, false));
             }
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             assertThatThrownBy(() -> create(service, false))
@@ -63,29 +63,29 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("9건까지는 등록되어 10건째가 마지막이다")
         void create_allowsUpToLimit() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
             for (int i = 0; i < 9; i++) {
-                addressRepository.save(newAddress(MEMBER_ID, false));
+                addressPersistencePort.save(newAddress(MEMBER_ID, false));
             }
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             Long createdId = create(service, false);
 
             assertThat(createdId).isNotNull();
-            assertThat(addressRepository.countByMemberId(MEMBER_ID)).isEqualTo(10L);
+            assertThat(addressPersistencePort.countByMemberId(MEMBER_ID)).isEqualTo(10L);
         }
 
         @Test
         @DisplayName("다른 회원의 주소는 한도 계산에 포함하지 않는다")
         void create_countsOnlyOwnAddresses() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
             for (int i = 0; i < 10; i++) {
-                addressRepository.save(newAddress(OTHER_MEMBER_ID, false));
+                addressPersistencePort.save(newAddress(OTHER_MEMBER_ID, false));
             }
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             assertThat(create(service, false)).isNotNull();
@@ -94,63 +94,63 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("기본 배송지로 등록하면 기존 기본 배송지가 해제되어 항상 1건만 남는다")
         void create_unmarksPreviousDefault() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress previousDefault = addressRepository.save(newAddress(MEMBER_ID, true));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress previousDefault = addressPersistencePort.save(newAddress(MEMBER_ID, true));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             create(service, true);
 
-            assertThat(addressRepository.findById(previousDefault.getId()).orElseThrow().isDefaultAddress()).isFalse();
-            assertThat(defaultAddressCount(addressRepository)).isEqualTo(1);
+            assertThat(addressPersistencePort.findById(previousDefault.getId()).orElseThrow().isDefaultAddress()).isFalse();
+            assertThat(defaultAddressCount(addressPersistencePort)).isEqualTo(1);
         }
 
         @Test
         @DisplayName("행정동 매칭에 성공하면 adminDongId를 채운다")
         void create_fillsAdminDongIdOnMatch() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            FakeAdminDongRepository adminDongRepository = new FakeAdminDongRepository();
-            adminDongRepository.registerInGangnam("테헤란로");
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            FakeAdminDongPersistencePort adminDongPersistencePort = new FakeAdminDongPersistencePort();
+            adminDongPersistencePort.registerInGangnam("테헤란로");
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, adminDongRepository
+                addressPersistencePort, adminDongPersistencePort
             );
 
             Long createdId = create(service, false);
 
-            assertThat(addressRepository.findById(createdId).orElseThrow().getAdminDongId())
+            assertThat(addressPersistencePort.findById(createdId).orElseThrow().getAdminDongId())
                 .isEqualTo(AdminDongId.of(GANGNAM_ADMIN_DONG_ID));
         }
 
         @Test
         @DisplayName("도로명 주소로 매칭에 실패하면 지번 주소로 재시도한다")
         void create_fallsBackToLotAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            FakeAdminDongRepository adminDongRepository = new FakeAdminDongRepository();
-            adminDongRepository.registerInGangnam("역삼1동");
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            FakeAdminDongPersistencePort adminDongPersistencePort = new FakeAdminDongPersistencePort();
+            adminDongPersistencePort.registerInGangnam("역삼1동");
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, adminDongRepository
+                addressPersistencePort, adminDongPersistencePort
             );
 
             Long createdId = service.create(
                 MEMBER_ID, "집", ROAD_ADDRESS, "서울특별시 강남구 역삼1동 678-9", "101동", LATITUDE, LONGITUDE, false
             );
 
-            assertThat(addressRepository.findById(createdId).orElseThrow().getAdminDongId())
+            assertThat(addressPersistencePort.findById(createdId).orElseThrow().getAdminDongId())
                 .isEqualTo(AdminDongId.of(GANGNAM_ADMIN_DONG_ID));
         }
 
         @Test
         @DisplayName("행정동 매칭에 실패해도 예외 없이 adminDongId를 null로 두고 등록한다")
         void create_allowsNullAdminDongIdOnMatchFailure() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             Long createdId = create(service, false);
 
-            assertThat(addressRepository.findById(createdId).orElseThrow().getAdminDongId()).isNull();
+            assertThat(addressPersistencePort.findById(createdId).orElseThrow().getAdminDongId()).isNull();
         }
     }
 
@@ -160,10 +160,10 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("타인의 주소를 수정하면 접근 거부한다")
         void update_rejectsOtherMembersAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress othersAddress = addressRepository.save(newAddress(OTHER_MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress othersAddress = addressPersistencePort.save(newAddress(OTHER_MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             assertThatThrownBy(() -> service.update(
@@ -178,7 +178,7 @@ class MemberDeliveryAddressServiceTest {
         @DisplayName("존재하지 않는 주소를 수정하면 404다")
         void update_rejectsMissingAddress() {
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                new FakeMemberDeliveryAddressRepository(), new FakeAdminDongRepository()
+                new FakeMemberDeliveryAddressPersistencePort(), new FakeAdminDongPersistencePort()
             );
 
             assertThatThrownBy(() -> service.update(
@@ -189,19 +189,19 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("본인 주소는 수정되고 명시적으로 저장된다")
         void update_savesOwnAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress address = addressRepository.save(newAddress(MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress address = addressPersistencePort.save(newAddress(MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
-            addressRepository.saveCount = 0;
+            addressPersistencePort.saveCount = 0;
 
             service.update(
                 MEMBER_ID, address.getId(), "회사", "서울특별시 강남구 테헤란로 500", null, "10층", LATITUDE, LONGITUDE
             );
 
-            assertThat(addressRepository.saveCount).isEqualTo(1);
-            MemberDeliveryAddress updated = addressRepository.findById(address.getId()).orElseThrow();
+            assertThat(addressPersistencePort.saveCount).isEqualTo(1);
+            MemberDeliveryAddress updated = addressPersistencePort.findById(address.getId()).orElseThrow();
             assertThat(updated.getAlias()).isEqualTo("회사");
             assertThat(updated.getRoadAddress()).isEqualTo("서울특별시 강남구 테헤란로 500");
         }
@@ -213,31 +213,31 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("타인의 주소를 삭제하면 접근 거부한다")
         void delete_rejectsOtherMembersAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress othersAddress = addressRepository.save(newAddress(OTHER_MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress othersAddress = addressPersistencePort.save(newAddress(OTHER_MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             assertThatThrownBy(() -> service.delete(MEMBER_ID, othersAddress.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
-            assertThat(addressRepository.findById(othersAddress.getId())).isPresent();
+            assertThat(addressPersistencePort.findById(othersAddress.getId())).isPresent();
         }
 
         @Test
         @DisplayName("본인 주소는 삭제된다")
         void delete_removesOwnAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress address = addressRepository.save(newAddress(MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress address = addressPersistencePort.save(newAddress(MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             service.delete(MEMBER_ID, address.getId());
 
-            assertThat(addressRepository.findById(address.getId())).isEmpty();
+            assertThat(addressPersistencePort.findById(address.getId())).isEmpty();
         }
     }
 
@@ -247,41 +247,41 @@ class MemberDeliveryAddressServiceTest {
         @Test
         @DisplayName("새 기본을 지정하면 기존 기본이 해제되어 회원당 1건만 남는다")
         void changeDefault_keepsSingleDefault() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress previousDefault = addressRepository.save(newAddress(MEMBER_ID, true));
-            MemberDeliveryAddress target = addressRepository.save(newAddress(MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress previousDefault = addressPersistencePort.save(newAddress(MEMBER_ID, true));
+            MemberDeliveryAddress target = addressPersistencePort.save(newAddress(MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             service.changeDefault(MEMBER_ID, target.getId());
 
-            assertThat(addressRepository.findById(previousDefault.getId()).orElseThrow().isDefaultAddress()).isFalse();
-            assertThat(addressRepository.findById(target.getId()).orElseThrow().isDefaultAddress()).isTrue();
-            assertThat(defaultAddressCount(addressRepository)).isEqualTo(1);
+            assertThat(addressPersistencePort.findById(previousDefault.getId()).orElseThrow().isDefaultAddress()).isFalse();
+            assertThat(addressPersistencePort.findById(target.getId()).orElseThrow().isDefaultAddress()).isTrue();
+            assertThat(defaultAddressCount(addressPersistencePort)).isEqualTo(1);
         }
 
         @Test
         @DisplayName("기존 기본이 없어도 새 기본을 지정할 수 있다")
         void changeDefault_worksWithoutExistingDefault() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress target = addressRepository.save(newAddress(MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress target = addressPersistencePort.save(newAddress(MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             service.changeDefault(MEMBER_ID, target.getId());
 
-            assertThat(addressRepository.findById(target.getId()).orElseThrow().isDefaultAddress()).isTrue();
+            assertThat(addressPersistencePort.findById(target.getId()).orElseThrow().isDefaultAddress()).isTrue();
         }
 
         @Test
         @DisplayName("타인의 주소를 기본으로 지정하면 접근 거부한다")
         void changeDefault_rejectsOtherMembersAddress() {
-            FakeMemberDeliveryAddressRepository addressRepository = new FakeMemberDeliveryAddressRepository();
-            MemberDeliveryAddress othersAddress = addressRepository.save(newAddress(OTHER_MEMBER_ID, false));
+            FakeMemberDeliveryAddressPersistencePort addressPersistencePort = new FakeMemberDeliveryAddressPersistencePort();
+            MemberDeliveryAddress othersAddress = addressPersistencePort.save(newAddress(OTHER_MEMBER_ID, false));
             MemberDeliveryAddressService service = new MemberDeliveryAddressService(
-                addressRepository, new FakeAdminDongRepository()
+                addressPersistencePort, new FakeAdminDongPersistencePort()
             );
 
             assertThatThrownBy(() -> service.changeDefault(MEMBER_ID, othersAddress.getId()))
@@ -301,11 +301,11 @@ class MemberDeliveryAddressServiceTest {
         );
     }
 
-    private static long defaultAddressCount(FakeMemberDeliveryAddressRepository repository) {
+    private static long defaultAddressCount(FakeMemberDeliveryAddressPersistencePort repository) {
         return repository.findByMemberId(MEMBER_ID).stream().filter(MemberDeliveryAddress::isDefaultAddress).count();
     }
 
-    private static final class FakeMemberDeliveryAddressRepository implements MemberDeliveryAddressRepository {
+    private static final class FakeMemberDeliveryAddressPersistencePort implements MemberDeliveryAddressPersistencePort {
         private final Map<Long, MemberDeliveryAddress> store = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong();
         private int saveCount;
@@ -369,7 +369,7 @@ class MemberDeliveryAddressServiceTest {
         }
     }
 
-    private static final class FakeAdminDongRepository implements AdminDongRepository {
+    private static final class FakeAdminDongPersistencePort implements AdminDongPersistencePort {
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");

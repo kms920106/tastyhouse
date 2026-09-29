@@ -18,27 +18,27 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPriceRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
 public class ProductPriceService {
-    private final ProductPriceRepository productPriceRepository;
-    private final ProductRepository productRepository;
+    private final ProductPricePersistencePort productPricePersistencePort;
+    private final ProductPersistencePort productPersistencePort;
     private final StorePriceVerificationPort storePriceVerificationPort;
 
     public ProductPriceService(
-        ProductPriceRepository productPriceRepository,
-        ProductRepository productRepository,
+        ProductPricePersistencePort productPricePersistencePort,
+        ProductPersistencePort productPersistencePort,
         StorePriceVerificationPort storePriceVerificationPort
     ) {
-        this.productPriceRepository = productPriceRepository;
-        this.productRepository = productRepository;
+        this.productPricePersistencePort = productPricePersistencePort;
+        this.productPersistencePort = productPersistencePort;
         this.storePriceVerificationPort = storePriceVerificationPort;
     }
 
     public List<ProductPrice> findPrices(ShopId shopId, ProductId productId) {
         loadOwnedProduct(shopId, productId);
-        return productPriceRepository.findAllByProductId(productId);
+        return productPricePersistencePort.findAllByProductId(productId);
     }
 
     public void replacePrices(
@@ -53,7 +53,7 @@ public class ProductPriceService {
         validateSpecs(specs);
         requireVerifiedIfStoreOrPickupPriceGiven(shopId, specs);
 
-        List<ProductPrice> existing = productPriceRepository.findAllByProductId(productId);
+        List<ProductPrice> existing = productPricePersistencePort.findAllByProductId(productId);
         List<ProductPrice> saved = applySpecs(productId, specs, existing, now);
 
         syncOriginalPrice(product, saved);
@@ -71,7 +71,7 @@ public class ProductPriceService {
 
         for (ProductPriceSpec spec : specs) {
             if (spec.id() == null) {
-                saved.add(productPriceRepository.save(ProductPrice.of(
+                saved.add(productPricePersistencePort.save(ProductPrice.of(
                     productId,
                     spec.priceName(),
                     spec.deliveryPrice(),
@@ -98,7 +98,7 @@ public class ProductPriceService {
                 spec.sort(),
                 now
             );
-            saved.add(productPriceRepository.save(target));
+            saved.add(productPricePersistencePort.save(target));
             keptIds.add(spec.id());
         }
 
@@ -107,7 +107,7 @@ public class ProductPriceService {
             .map(ProductPrice::getProductPriceId)
             .toList();
         if (!removed.isEmpty()) {
-            productPriceRepository.deleteAllByIdIn(removed);
+            productPricePersistencePort.deleteAllByIdIn(removed);
         }
 
         return saved.stream()
@@ -163,14 +163,14 @@ public class ProductPriceService {
             return;
         }
         product.syncOriginalPrice(basePrice);
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     private void refreshStorePriceVerification(ShopId shopId) {
         if (!storePriceVerificationPort.isStorePriceVerified(shopId.value())) {
             return;
         }
-        List<ProductPrice> violated = productPriceRepository.findAllByShopId(shopId).stream()
+        List<ProductPrice> violated = productPricePersistencePort.findAllByShopId(shopId).stream()
             .filter(ProductPrice::isDeliveryPriceHigherThanStorePrice)
             .toList();
         if (violated.isEmpty()) {
@@ -179,13 +179,13 @@ public class ProductPriceService {
 
         for (ProductPrice price : violated) {
             price.clearStoreAndPickupPrice();
-            productPriceRepository.save(price);
+            productPricePersistencePort.save(price);
         }
         storePriceVerificationPort.clearStorePriceVerification(shopId.value());
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productRepository.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
         }

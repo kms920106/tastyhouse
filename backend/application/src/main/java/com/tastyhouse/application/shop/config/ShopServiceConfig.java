@@ -15,36 +15,36 @@ import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
-import com.tastyhouse.application.ceo.port.out.write.CeoRepository;
-import com.tastyhouse.application.region.port.out.write.AdminDongRepository;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestRepository;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
 import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookup;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionRepository;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureRepository;
-import com.tastyhouse.application.shop.port.out.write.StationRepository;
-import com.tastyhouse.application.shop.service.CachingProhibitedWordRepository;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
+import com.tastyhouse.application.shop.service.CachingProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ReplyPhraseProhibitedWordValidatorAdapter;
 import com.tastyhouse.application.shop.service.ScheduledOrderSlotService;
@@ -80,18 +80,18 @@ import com.tastyhouse.application.shop.service.StorePriceVerificationAdapter;
 @SharedApp
 public class ShopServiceConfig {
     @Bean
-    public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordRepository prohibitedWordRepository) {
-        return new ProhibitedWordValidator(new CachingProhibitedWordRepository(prohibitedWordRepository));
+    public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordPersistencePort prohibitedWordPersistencePort) {
+        return new ProhibitedWordValidator(new CachingProhibitedWordPersistencePort(prohibitedWordPersistencePort));
     }
 
     @Bean
-    public ShopNoticeExposureService shopNoticeExposureService(ShopNoticeRepository shopNoticeRepository) {
-        return new ShopNoticeExposureService(shopNoticeRepository);
+    public ShopNoticeExposureService shopNoticeExposureService(ShopNoticePersistencePort shopNoticePersistencePort) {
+        return new ShopNoticeExposureService(shopNoticePersistencePort);
     }
 
     @Bean
-    public ShopOrderNoticeService shopOrderNoticeService(ShopOrderNoticeRepository shopOrderNoticeRepository) {
-        return new ShopOrderNoticeService(shopOrderNoticeRepository);
+    public ShopOrderNoticeService shopOrderNoticeService(ShopOrderNoticePersistencePort shopOrderNoticePersistencePort) {
+        return new ShopOrderNoticeService(shopOrderNoticePersistencePort);
     }
 
     @Bean
@@ -108,17 +108,17 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopOperatingStatusService shopOperatingStatusService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
-        ShopSuspensionRepository shopSuspensionRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
         return new ShopOperatingStatusService(
-            shopRepository,
-            shopDetailRepository,
-            shopTemporaryClosureRepository,
-            shopSuspensionRepository,
+            shopPersistencePort,
+            shopDetailPersistencePort,
+            shopTemporaryClosurePersistencePort,
+            shopSuspensionPersistencePort,
             shopOperatingStatusCalculator
         );
     }
@@ -126,11 +126,11 @@ public class ShopServiceConfig {
     @Bean
     public ShopOrderAvailabilityService shopOrderAvailabilityService(
         ShopOperatingStatusService shopOperatingStatusService,
-        ShopDetailRepository shopDetailRepository
+        ShopDetailPersistencePort shopDetailPersistencePort
     ) {
         return new ShopOrderAvailabilityService(
             shopOperatingStatusService,
-            shopDetailRepository
+            shopDetailPersistencePort
         );
     }
 
@@ -143,31 +143,31 @@ public class ShopServiceConfig {
 
     @Bean
     public ScheduledOrderSlotService scheduledOrderSlotService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopTemporaryClosureRepository shopTemporaryClosureRepository,
-        ShopSuspensionRepository shopSuspensionRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
         ScheduledOrderSlotCalculator scheduledOrderSlotCalculator
     ) {
         return new ScheduledOrderSlotService(
-            shopRepository,
-            shopDetailRepository,
-            shopTemporaryClosureRepository,
-            shopSuspensionRepository,
+            shopPersistencePort,
+            shopDetailPersistencePort,
+            shopTemporaryClosurePersistencePort,
+            shopSuspensionPersistencePort,
             scheduledOrderSlotCalculator
         );
     }
 
     @Bean
     public ShopImageApprovalService shopImageApprovalService(
-        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
-        ShopRepository shopRepository,
+        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopImageApprovalService(
-            shopImageChangeRequestRepository,
-            shopRepository,
+            shopImageChangeRequestPersistencePort,
+            shopPersistencePort,
             shopChangeHistoryRecorder,
             shopRequestIndexRecorder
         );
@@ -175,44 +175,44 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopMenuCollectionImageService shopMenuCollectionImageService(
-        ShopMenuCollectionImageRepository shopMenuCollectionImageRepository,
-        ShopRepository shopRepository
+        ShopMenuCollectionImagePersistencePort shopMenuCollectionImagePersistencePort,
+        ShopPersistencePort shopPersistencePort
     ) {
-        return new ShopMenuCollectionImageService(shopMenuCollectionImageRepository, shopRepository);
+        return new ShopMenuCollectionImageService(shopMenuCollectionImagePersistencePort, shopPersistencePort);
     }
 
     @Bean
     public ShopPhoneNumberRegistryService shopPhoneNumberRegistryService(
-        ShopPhoneNumberRepository shopPhoneNumberRepository,
-        ShopRepository shopRepository,
+        ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopPhoneNumberRegistryService(
-            shopPhoneNumberRepository,
-            shopRepository,
+            shopPhoneNumberPersistencePort,
+            shopPersistencePort,
             shopChangeHistoryRecorder
         );
     }
 
     @Bean
     public ShopBusinessHourService shopBusinessHourService(
-        ShopDetailRepository shopDetailRepository,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        return new ShopBusinessHourService(shopDetailRepository, shopChangeHistoryRecorder);
+        return new ShopBusinessHourService(shopDetailPersistencePort, shopChangeHistoryRecorder);
     }
 
     @Bean
     public ShopDeliveryTipService shopDeliveryTipService(
-        ShopDeliveryTipRepository shopDeliveryTipRepository,
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
+        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryTipService(
-            shopDeliveryTipRepository,
-            shopDeliveryAreaRepository,
-            adminDongRepository,
+            shopDeliveryTipPersistencePort,
+            shopDeliveryAreaPersistencePort,
+            adminDongPersistencePort,
             shopChangeHistoryRecorder
         );
     }
@@ -224,53 +224,53 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopDeliveryAreaService shopDeliveryAreaService(
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
+        ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaService(
-            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryTipRegionLookup, shopChangeHistoryRecorder
+            shopDeliveryAreaPersistencePort, adminDongPersistencePort, shopDeliveryTipRegionLookupPort, shopChangeHistoryRecorder
         );
     }
 
     @Bean
     public ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService(
-        ShopDeliveryAreaPolygonRepository shopDeliveryAreaPolygonRepository,
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
-        ShopDeliveryTipRegionLookup shopDeliveryTipRegionLookup,
+        ShopDeliveryAreaPolygonPersistencePort shopDeliveryAreaPolygonPersistencePort,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
+        ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaPolygonService(
-            shopDeliveryAreaPolygonRepository,
-            shopDeliveryAreaRepository,
-            adminDongRepository,
-            shopDeliveryTipRegionLookup,
+            shopDeliveryAreaPolygonPersistencePort,
+            shopDeliveryAreaPersistencePort,
+            adminDongPersistencePort,
+            shopDeliveryTipRegionLookupPort,
             shopChangeHistoryRecorder
         );
     }
 
     @Bean
     public ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService(
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        AdminDongRepository adminDongRepository,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        AdminDongPersistencePort adminDongPersistencePort,
         ShopDeliveryAreaService shopDeliveryAreaService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopDeliveryAreaRadiusService(
-            shopDeliveryAreaRepository, adminDongRepository, shopDeliveryAreaService, shopChangeHistoryRecorder
+            shopDeliveryAreaPersistencePort, adminDongPersistencePort, shopDeliveryAreaService, shopChangeHistoryRecorder
         );
     }
 
     @Bean
     public ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService(
-        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
+        ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopDeliveryAreaAdjustmentService(
-            shopDeliveryAreaAdjustmentRequestRepository,
+            shopDeliveryAreaAdjustmentRequestPersistencePort,
             shopChangeHistoryRecorder,
             shopRequestIndexRecorder
         );
@@ -278,20 +278,20 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopLifecycleService shopLifecycleService(
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
-        ShopBookmarkRepository shopBookmarkRepository,
-        StationRepository stationRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopBookmarkPersistencePort shopBookmarkPersistencePort,
+        StationPersistencePort stationPersistencePort,
         ShopImageApprovalService shopImageApprovalService,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
         return new ShopLifecycleService(
-            shopRepository,
-            shopDetailRepository,
-            shopBookmarkRepository,
-            stationRepository,
+            shopPersistencePort,
+            shopDetailPersistencePort,
+            shopBookmarkPersistencePort,
+            stationPersistencePort,
             shopImageApprovalService,
             prohibitedWordValidator,
             shopChangeHistoryRecorder,
@@ -301,29 +301,29 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopOriginInfoService shopOriginInfoService(
-        ShopOriginInfoRepository shopOriginInfoRepository,
-        ShopRepository shopRepository,
+        ShopOriginInfoPersistencePort shopOriginInfoPersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopOriginInfoService(
-            shopOriginInfoRepository,
-            shopRepository,
+            shopOriginInfoPersistencePort,
+            shopPersistencePort,
             shopChangeHistoryRecorder
         );
     }
 
     @Bean
     public ShopConvenienceInfoService shopConvenienceInfoService(
-        ShopConvenienceInfoRepository shopConvenienceInfoRepository,
-        ShopRepository shopRepository,
-        ShopDetailRepository shopDetailRepository,
+        ShopConvenienceInfoPersistencePort shopConvenienceInfoPersistencePort,
+        ShopPersistencePort shopPersistencePort,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopConvenienceInfoService(
-            shopConvenienceInfoRepository,
-            shopRepository,
-            shopDetailRepository,
+            shopConvenienceInfoPersistencePort,
+            shopPersistencePort,
+            shopDetailPersistencePort,
             prohibitedWordValidator,
             shopChangeHistoryRecorder
         );
@@ -336,14 +336,14 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopRiderGuideService shopRiderGuideService(
-        ShopRiderGuideRepository shopRiderGuideRepository,
-        ShopRepository shopRepository,
+        ShopRiderGuidePersistencePort shopRiderGuidePersistencePort,
+        ShopPersistencePort shopPersistencePort,
         ShopRiderGuideValidator shopRiderGuideValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         return new ShopRiderGuideService(
-            shopRiderGuideRepository,
-            shopRepository,
+            shopRiderGuidePersistencePort,
+            shopPersistencePort,
             shopRiderGuideValidator,
             shopChangeHistoryRecorder
         );
@@ -351,74 +351,74 @@ public class ShopServiceConfig {
 
     @Bean
     public ShopChangeHistoryRecorder shopChangeHistoryRecorder(
-        ShopChangeHistoryRepository shopChangeHistoryRepository
+        ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort
     ) {
-        return new ShopChangeHistoryRecorder(shopChangeHistoryRepository);
+        return new ShopChangeHistoryRecorder(shopChangeHistoryPersistencePort);
     }
 
     @Bean
     public ShopCeoAssignmentRecorder shopCeoAssignmentRecorder(
-        ShopCeoAssignmentHistoryRepository shopCeoAssignmentHistoryRepository
+        ShopCeoAssignmentHistoryPersistencePort shopCeoAssignmentHistoryPersistencePort
     ) {
-        return new ShopCeoAssignmentRecorder(shopCeoAssignmentHistoryRepository);
+        return new ShopCeoAssignmentRecorder(shopCeoAssignmentHistoryPersistencePort);
     }
 
     @Bean
     public ShopCeoAssignmentService shopCeoAssignmentService(
-        ShopRepository shopRepository,
-        CeoRepository ceoRepository,
+        ShopPersistencePort shopPersistencePort,
+        CeoPersistencePort ceoPersistencePort,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
         return new ShopCeoAssignmentService(
-            shopRepository,
-            ceoRepository,
+            shopPersistencePort,
+            ceoPersistencePort,
             shopCeoAssignmentRecorder
         );
     }
 
     @Bean
     public ShopRequestIndexRecorder shopRequestIndexRecorder(
-        ShopRequestIndexRepository shopRequestIndexRepository
+        ShopRequestIndexPersistencePort shopRequestIndexPersistencePort
     ) {
-        return new ShopRequestIndexRecorder(shopRequestIndexRepository);
+        return new ShopRequestIndexRecorder(shopRequestIndexPersistencePort);
     }
 
     @Bean
     public ShopRequestCancelService shopRequestCancelService(
-        ShopImageChangeRequestRepository shopImageChangeRequestRepository,
-        ShopDeliveryAreaAdjustmentRequestRepository shopDeliveryAreaAdjustmentRequestRepository,
-        ReviewBlindRequestRepository reviewBlindRequestRepository,
+        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
+        ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort,
+        ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
         return new ShopRequestCancelService(
-            shopImageChangeRequestRepository,
-            shopDeliveryAreaAdjustmentRequestRepository,
-            reviewBlindRequestRepository,
+            shopImageChangeRequestPersistencePort,
+            shopDeliveryAreaAdjustmentRequestPersistencePort,
+            reviewBlindRequestPersistencePort,
             shopRequestIndexRecorder
         );
     }
 
     @Bean
     public ShopRequestCommentService shopRequestCommentService(
-        ShopRequestCommentRepository shopRequestCommentRepository,
+        ShopRequestCommentPersistencePort shopRequestCommentPersistencePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        return new ShopRequestCommentService(shopRequestCommentRepository, shopRequestIndexRecorder);
+        return new ShopRequestCommentService(shopRequestCommentPersistencePort, shopRequestIndexRecorder);
     }
 
     @Bean
     public ShopOrderContextService shopOrderContextService(
-        ShopRepository shopRepository,
-        ShopDeliveryAreaRepository shopDeliveryAreaRepository,
-        ShopDeliveryTipRepository shopDeliveryTipRepository,
+        ShopPersistencePort shopPersistencePort,
+        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
         ShopOrderAvailabilityService shopOrderAvailabilityService,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         ScheduledOrderSlotService scheduledOrderSlotService
     ) {
         return new ShopOrderContextService(
-            shopRepository,
-            shopDeliveryAreaRepository,
-            shopDeliveryTipRepository,
+            shopPersistencePort,
+            shopDeliveryAreaPersistencePort,
+            shopDeliveryTipPersistencePort,
             shopOrderAvailabilityService,
             shopDeliveryTipCalculator,
             scheduledOrderSlotService
@@ -438,8 +438,8 @@ public class ShopServiceConfig {
     }
 
     @Bean
-    public StorePriceVerificationAdapter storePriceVerificationAdapter(ShopRepository shopRepository) {
-        return new StorePriceVerificationAdapter(shopRepository);
+    public StorePriceVerificationAdapter storePriceVerificationAdapter(ShopPersistencePort shopPersistencePort) {
+        return new StorePriceVerificationAdapter(shopPersistencePort);
     }
 
     @Bean

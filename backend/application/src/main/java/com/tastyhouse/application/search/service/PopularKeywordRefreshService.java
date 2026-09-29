@@ -9,37 +9,37 @@ import java.util.stream.Collectors;
 import com.tastyhouse.domain.search.model.PopularKeyword;
 import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
-import com.tastyhouse.application.search.port.out.write.PopularKeywordRepository;
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogRepository;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistencePort;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
 
 public class PopularKeywordRefreshService {
     private static final int AGGREGATION_WINDOW_DAYS = 7;
 
     private static final int LOG_RETENTION_DAYS = 30;
 
-    private final SearchKeywordLogRepository searchKeywordLogRepository;
+    private final SearchKeywordLogPersistencePort searchKeywordLogPersistencePort;
     private final KeywordCountPort keywordCountPort;
-    private final PopularKeywordRepository popularKeywordRepository;
+    private final PopularKeywordPersistencePort popularKeywordPersistencePort;
 
     public PopularKeywordRefreshService(
-        SearchKeywordLogRepository searchKeywordLogRepository,
+        SearchKeywordLogPersistencePort searchKeywordLogPersistencePort,
         KeywordCountPort keywordCountPort,
-        PopularKeywordRepository popularKeywordRepository
+        PopularKeywordPersistencePort popularKeywordPersistencePort
     ) {
-        this.searchKeywordLogRepository = searchKeywordLogRepository;
+        this.searchKeywordLogPersistencePort = searchKeywordLogPersistencePort;
         this.keywordCountPort = keywordCountPort;
-        this.popularKeywordRepository = popularKeywordRepository;
+        this.popularKeywordPersistencePort = popularKeywordPersistencePort;
     }
 
     public void refresh() {
         LocalDateTime since = LocalDateTime.now().minusDays(AGGREGATION_WINDOW_DAYS);
         List<KeywordCount> rows = keywordCountPort.findTopKeywordsSince(since);
 
-        Set<String> previousKeywords = popularKeywordRepository.findActiveOrderByRank().stream()
+        Set<String> previousKeywords = popularKeywordPersistencePort.findActiveOrderByRank().stream()
             .map(PopularKeyword::getKeyword)
             .collect(Collectors.toSet());
 
-        popularKeywordRepository.deleteAll();
+        popularKeywordPersistencePort.deleteAll();
 
         List<PopularKeyword> newRanks = new ArrayList<>();
         int rank = 1;
@@ -47,10 +47,10 @@ public class PopularKeywordRefreshService {
             String keyword = row.keyword();
             newRanks.add(PopularKeyword.of(keyword, rank++, !previousKeywords.contains(keyword)));
         }
-        popularKeywordRepository.saveAll(newRanks);
+        popularKeywordPersistencePort.saveAll(newRanks);
     }
 
     public void deleteOldSearchLogs() {
-        searchKeywordLogRepository.deleteOlderThan(LocalDateTime.now().minusDays(LOG_RETENTION_DAYS));
+        searchKeywordLogPersistencePort.deleteOlderThan(LocalDateTime.now().minusDays(LOG_RETENTION_DAYS));
     }
 }

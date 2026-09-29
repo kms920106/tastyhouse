@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.port.in.MemberActivateCommand;
 import com.tastyhouse.application.member.port.in.MemberManagementCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
 import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -20,11 +20,11 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class MemberManagementCommandService implements MemberManagementCommandUseCase {
 
-    private final MemberRepository memberRepository;
+    private final MemberPersistencePort memberPersistencePort;
     private final MemberWithdrawalService memberWithdrawalService;
 
-    public MemberManagementCommandService(MemberRepository memberRepository, MemberWithdrawalService memberWithdrawalService) {
-        this.memberRepository = memberRepository;
+    public MemberManagementCommandService(MemberPersistencePort memberPersistencePort, MemberWithdrawalService memberWithdrawalService) {
+        this.memberPersistencePort = memberPersistencePort;
         this.memberWithdrawalService = memberWithdrawalService;
     }
 
@@ -33,7 +33,7 @@ public class MemberManagementCommandService implements MemberManagementCommandUs
         MemberId memberId = MemberId.of(command.memberId());
         Member member = loadMember(memberId);
         member.suspend();
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class MemberManagementCommandService implements MemberManagementCommandUs
         MemberId memberId = MemberId.of(command.memberId());
         Member member = loadMember(memberId);
         member.activate();
-        memberRepository.save(member);
+        memberPersistencePort.save(member);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class MemberManagementCommandService implements MemberManagementCommandUs
     }
 
     private Member loadMember(MemberId memberId) {
-        return memberRepository.findById(memberId)
+        return memberPersistencePort.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

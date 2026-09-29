@@ -12,7 +12,7 @@ import com.tastyhouse.application.policy.port.in.PolicyActivateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyCommandUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyUpdateCommand;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentRepository;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
@@ -20,11 +20,11 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 @Transactional
 public class PolicyCommandService implements PolicyCommandUseCase {
 
-    private final PolicyDocumentRepository policyDocumentRepository;
+    private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
     private final PolicyActivationService policyActivationService;
 
-    public PolicyCommandService(PolicyDocumentRepository policyDocumentRepository, PolicyActivationService policyActivationService) {
-        this.policyDocumentRepository = policyDocumentRepository;
+    public PolicyCommandService(PolicyDocumentPersistencePort policyDocumentPersistencePort, PolicyActivationService policyActivationService) {
+        this.policyDocumentPersistencePort = policyDocumentPersistencePort;
         this.policyActivationService = policyActivationService;
     }
 
@@ -39,7 +39,7 @@ public class PolicyCommandService implements PolicyCommandUseCase {
             command.effectiveDate(),
             command.createdBy()
         );
-        PolicyDocument saved = policyDocumentRepository.save(policyDocument);
+        PolicyDocument saved = policyDocumentPersistencePort.save(policyDocument);
         return saved.getPolicyDocumentId().value();
     }
 
@@ -49,7 +49,7 @@ public class PolicyCommandService implements PolicyCommandUseCase {
         PolicyDocument policyDocument = findPolicyDocumentOrThrow(policyDocumentId);
 
         policyDocument.update(command.title(), command.content(), command.mandatory(), command.effectiveDate(), command.updatedBy());
-        policyDocumentRepository.save(policyDocument);
+        policyDocumentPersistencePort.save(policyDocument);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class PolicyCommandService implements PolicyCommandUseCase {
     }
 
     private PolicyDocument findPolicyDocumentOrThrow(PolicyDocumentId policyDocumentId) {
-        return policyDocumentRepository.findById(policyDocumentId)
+        return policyDocumentPersistencePort.findById(policyDocumentId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_NOT_FOUND));
     }
 }

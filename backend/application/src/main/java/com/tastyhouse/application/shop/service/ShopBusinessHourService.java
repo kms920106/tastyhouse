@@ -15,19 +15,19 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 public class ShopBusinessHourService {
     private static final int MAX_REGULAR_CLOSED_DAY_COUNT = 15;
 
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopBusinessHourService(
-        ShopDetailRepository shopDetailRepository,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDetailRepository = shopDetailRepository;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -43,7 +43,7 @@ public class ShopBusinessHourService {
         ShopBusinessHour businessHour = ShopBusinessHour.of(
             ShopId.of(shopId), dayType, openTime, closeTime, isClosed, is24Hours
         );
-        ShopBusinessHour saved = shopDetailRepository.saveBusinessHour(businessHour);
+        ShopBusinessHour saved = shopDetailPersistencePort.saveBusinessHour(businessHour);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -65,12 +65,12 @@ public class ShopBusinessHourService {
         Boolean is24Hours,
         ShopChangeActor actor
     ) {
-        ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(id)
+        ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHourById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         String previousValue = describeBusinessHour(businessHour);
 
         businessHour.update(dayType, openTime, closeTime, isClosed, is24Hours);
-        shopDetailRepository.saveBusinessHour(businessHour);
+        shopDetailPersistencePort.saveBusinessHour(businessHour);
 
         shopChangeHistoryRecorder.record(
             businessHour.getShopId(),
@@ -83,13 +83,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteBusinessHour(Long id, ShopChangeActor actor) {
-        ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(id).orElse(null);
+        ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHourById(id).orElse(null);
         if (businessHour == null) {
             return;
         }
         String previousValue = describeBusinessHour(businessHour);
 
-        shopDetailRepository.deleteBusinessHourById(id);
+        shopDetailPersistencePort.deleteBusinessHourById(id);
 
         shopChangeHistoryRecorder.record(
             businessHour.getShopId(),
@@ -110,7 +110,7 @@ public class ShopBusinessHourService {
     ) {
         validateBreakTimeWithinBusinessHours(shopId, dayType, startTime, endTime);
         ShopBreakTime breakTime = ShopBreakTime.of(ShopId.of(shopId), dayType, startTime, endTime);
-        ShopBreakTime saved = shopDetailRepository.saveBreakTime(breakTime);
+        ShopBreakTime saved = shopDetailPersistencePort.saveBreakTime(breakTime);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -130,13 +130,13 @@ public class ShopBusinessHourService {
         LocalTime endTime,
         ShopChangeActor actor
     ) {
-        ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(id)
+        ShopBreakTime breakTime = shopDetailPersistencePort.findBreakTimeById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         validateBreakTimeWithinBusinessHours(breakTime.getShopId().value(), dayType, startTime, endTime);
         String previousValue = describeBreakTime(breakTime);
 
         breakTime.update(dayType, startTime, endTime);
-        shopDetailRepository.saveBreakTime(breakTime);
+        shopDetailPersistencePort.saveBreakTime(breakTime);
 
         shopChangeHistoryRecorder.record(
             breakTime.getShopId(),
@@ -149,13 +149,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteBreakTime(Long id, ShopChangeActor actor) {
-        ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(id).orElse(null);
+        ShopBreakTime breakTime = shopDetailPersistencePort.findBreakTimeById(id).orElse(null);
         if (breakTime == null) {
             return;
         }
         String previousValue = describeBreakTime(breakTime);
 
-        shopDetailRepository.deleteBreakTimeById(id);
+        shopDetailPersistencePort.deleteBreakTimeById(id);
 
         shopChangeHistoryRecorder.record(
             breakTime.getShopId(),
@@ -168,11 +168,11 @@ public class ShopBusinessHourService {
     }
 
     public ShopClosedDay createClosedDay(Long shopId, ClosedDayType closedDayType, ShopChangeActor actor) {
-        if (shopDetailRepository.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
+        if (shopDetailPersistencePort.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
             throw new BusinessException(ErrorCode.SHOP_REGULAR_CLOSED_DAY_LIMIT_EXCEEDED);
         }
         ShopClosedDay closedDay = ShopClosedDay.of(ShopId.of(shopId), closedDayType);
-        ShopClosedDay saved = shopDetailRepository.saveClosedDay(closedDay);
+        ShopClosedDay saved = shopDetailPersistencePort.saveClosedDay(closedDay);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -186,13 +186,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteClosedDay(Long id, ShopChangeActor actor) {
-        ShopClosedDay closedDay = shopDetailRepository.findClosedDayById(id).orElse(null);
+        ShopClosedDay closedDay = shopDetailPersistencePort.findClosedDayById(id).orElse(null);
         if (closedDay == null) {
             return;
         }
         String previousValue = describeClosedDay(closedDay);
 
-        shopDetailRepository.deleteClosedDayById(id);
+        shopDetailPersistencePort.deleteClosedDayById(id);
 
         shopChangeHistoryRecorder.record(
             closedDay.getShopId(),
@@ -228,7 +228,7 @@ public class ShopBusinessHourService {
         if (breakStart == null || breakEnd == null) {
             throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
-        ShopBusinessHour businessHour = shopDetailRepository.findBusinessHoursByShopId(shopId).stream()
+        ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHoursByShopId(shopId).stream()
             .filter(bh -> bh.getDayType() == dayType)
             .findFirst()
             .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS));

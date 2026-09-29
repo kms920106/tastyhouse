@@ -11,38 +11,38 @@ import com.tastyhouse.domain.mail.model.MailVerificationStatus;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
-import com.tastyhouse.application.mail.port.out.write.MailVerificationRepository;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MailVerificationService {
-    private final MemberRepository memberRepository;
-    private final MailVerificationRepository mailVerificationRepository;
+    private final MemberPersistencePort memberPersistencePort;
+    private final MailVerificationPersistencePort mailVerificationPersistencePort;
     private final MailSender mailSender;
     private final DomainEventPublisher domainEventPublisher;
 
     public MailVerificationService(
-        MemberRepository memberRepository,
-        MailVerificationRepository mailVerificationRepository,
+        MemberPersistencePort memberPersistencePort,
+        MailVerificationPersistencePort mailVerificationPersistencePort,
         MailSender mailSender,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberRepository = memberRepository;
-        this.mailVerificationRepository = mailVerificationRepository;
+        this.memberPersistencePort = memberPersistencePort;
+        this.mailVerificationPersistencePort = mailVerificationPersistencePort;
         this.mailSender = mailSender;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public void issueForSignUp(String email) {
-        if (memberRepository.existsByUsername(email)) {
+        if (memberPersistencePort.existsByUsername(email)) {
             throw new BusinessException(ErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
         }
         issue(email, MailVerificationPurpose.SIGN_UP);
     }
 
     public MailVerification issue(String email, MailVerificationPurpose purpose) {
-        mailVerificationRepository.expireAllPendingByEmail(email);
-        MailVerification saved = mailVerificationRepository.save(MailVerification.create(email));
+        mailVerificationPersistencePort.expireAllPendingByEmail(email);
+        MailVerification saved = mailVerificationPersistencePort.save(MailVerification.create(email));
 
         MailSendResult result = mailSender.send(
             email,
@@ -67,11 +67,11 @@ public class MailVerificationService {
     }
 
     public MailVerification confirm(String email, String verificationCode) {
-        MailVerification verification = mailVerificationRepository
+        MailVerification verification = mailVerificationPersistencePort
             .findLatestPendingByEmail(email, MailVerificationStatus.PENDING)
             .orElseThrow(() -> new BusinessException(ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND));
 
         verification.verify(VerificationCode.of(verificationCode), LocalDateTime.now());
-        return mailVerificationRepository.save(verification);
+        return mailVerificationPersistencePort.save(verification);
     }
 }

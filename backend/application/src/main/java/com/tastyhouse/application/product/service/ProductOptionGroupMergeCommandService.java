@@ -21,8 +21,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -32,21 +32,21 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 public class ProductOptionGroupMergeCommandService implements ProductOptionGroupMergeCommandUseCase {
 
     private final ProductOptionGroupMergeService productOptionGroupMergeService;
-    private final ProductOptionGroupMergeExclusionRepository exclusionRepository;
-    private final ProductOptionRepository productOptionRepository;
+    private final ProductOptionGroupMergeExclusionPersistencePort exclusionPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupMergeCommandService(
         ProductOptionGroupMergeService productOptionGroupMergeService,
-        ProductOptionGroupMergeExclusionRepository exclusionRepository,
-        ProductOptionRepository productOptionRepository,
+        ProductOptionGroupMergeExclusionPersistencePort exclusionPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productOptionGroupMergeService = productOptionGroupMergeService;
-        this.exclusionRepository = exclusionRepository;
-        this.productOptionRepository = productOptionRepository;
+        this.exclusionPersistencePort = exclusionPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -87,9 +87,9 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
         }
         validateSignature(shopId, signature, targetIds);
 
-        return exclusionRepository.findByShopIdAndGroupSignature(ShopId.of(shopId), signature)
+        return exclusionPersistencePort.findByShopIdAndGroupSignature(ShopId.of(shopId), signature)
             .map(ProductOptionGroupMergeExclusion::getId)
-            .orElseGet(() -> exclusionRepository.save(ProductOptionGroupMergeExclusion.of(
+            .orElseGet(() -> exclusionPersistencePort.save(ProductOptionGroupMergeExclusion.of(
                 ShopId.of(shopId),
                 signature,
                 CeoId.of(ceoId)
@@ -101,7 +101,7 @@ public class ProductOptionGroupMergeCommandService implements ProductOptionGroup
             ProductOptionGroup group =
                 productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
             List<ProductOption> options =
-                productOptionRepository.findAllByOptionGroupId(group.getProductOptionGroupId());
+                productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
 
             if (!Objects.equals(signature, ProductOptionGroupSignature.of(group, options))) {
                 throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH);

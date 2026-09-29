@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.port.in.ShopBusinessHourCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 @Service
 @CeoApp
@@ -27,16 +27,16 @@ import com.tastyhouse.application.shop.port.out.write.ShopDetailRepository;
 public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUseCase {
 
     private final ShopBusinessHourService shopBusinessHourService;
-    private final ShopDetailRepository shopDetailRepository;
+    private final ShopDetailPersistencePort shopDetailPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopBusinessHourCommandService(
         ShopBusinessHourService shopBusinessHourService,
-        ShopDetailRepository shopDetailRepository,
+        ShopDetailPersistencePort shopDetailPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopBusinessHourService = shopBusinessHourService;
-        this.shopDetailRepository = shopDetailRepository;
+        this.shopDetailPersistencePort = shopDetailPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -125,13 +125,13 @@ public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUs
     }
 
     private void validateBusinessHourOwnership(Long ceoId, Long businessHourId) {
-        ShopBusinessHour businessHour = shopDetailRepository.findBusinessHourById(businessHourId)
+        ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHourById(businessHourId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, businessHour.getShopId().value());
     }
 
     private void validateBreakTimeOwnership(Long ceoId, Long breakTimeId) {
-        ShopBreakTime breakTime = shopDetailRepository.findBreakTimeById(breakTimeId)
+        ShopBreakTime breakTime = shopDetailPersistencePort.findBreakTimeById(breakTimeId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, breakTime.getShopId().value());
     }

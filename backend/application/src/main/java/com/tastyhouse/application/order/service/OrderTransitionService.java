@@ -7,17 +7,17 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.application.order.port.out.write.OrderRepository;
+import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
 
 public class OrderTransitionService {
-    private final OrderRepository orderRepository;
+    private final OrderPersistencePort orderPersistencePort;
 
-    public OrderTransitionService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public OrderTransitionService(OrderPersistencePort orderPersistencePort) {
+        this.orderPersistencePort = orderPersistencePort;
     }
 
     public Order load(OrderId orderId) {
-        return orderRepository.findById(orderId)
+        return orderPersistencePort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
     }
 
@@ -41,22 +41,22 @@ public class OrderTransitionService {
 
     public void changeStatus(Order order, OrderStatus status) {
         order.changeStatus(status);
-        orderRepository.save(order);
+        orderPersistencePort.save(order);
     }
 
     public void confirm(Order order) {
         order.confirm();
-        orderRepository.save(order);
+        orderPersistencePort.save(order);
     }
 
     public void cancel(Order order) {
         order.cancel();
-        orderRepository.save(order);
+        orderPersistencePort.save(order);
     }
 
     public void delete(OrderId orderId) {
         Order order = load(orderId);
         order.delete();
-        orderRepository.save(order);
+        orderPersistencePort.save(order);
     }
 }

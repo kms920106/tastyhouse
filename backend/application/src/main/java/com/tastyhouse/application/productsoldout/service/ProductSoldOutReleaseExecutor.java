@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductOption;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Component
@@ -19,25 +19,25 @@ public class ProductSoldOutReleaseExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSoldOutReleaseExecutor.class);
 
-    private final ProductRepository productRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductCommonOptionRepository productCommonOptionRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductCommonOptionPersistencePort productCommonOptionPersistencePort;
 
     public ProductSoldOutReleaseExecutor(
-        ProductRepository productRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductCommonOptionRepository productCommonOptionRepository
+        ProductPersistencePort productPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductCommonOptionPersistencePort productCommonOptionPersistencePort
     ) {
-        this.productRepository = productRepository;
-        this.productOptionRepository = productOptionRepository;
-        this.productCommonOptionRepository = productCommonOptionRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productCommonOptionPersistencePort = productCommonOptionPersistencePort;
     }
 
     @Transactional
     public boolean releaseProduct(Product product) {
         try {
             product.releaseSoldOut();
-            productRepository.save(product);
+            productPersistencePort.save(product);
             return true;
         } catch (Exception e) {
             log.error("메뉴 품절 자동해제 실패: productId={}, soldOutUntil={}",
@@ -50,7 +50,7 @@ public class ProductSoldOutReleaseExecutor {
     public boolean releaseOption(ProductOption option) {
         try {
             option.releaseSoldOut();
-            productOptionRepository.save(option);
+            productOptionPersistencePort.save(option);
             return true;
         } catch (Exception e) {
             log.error("옵션 품절 자동해제 실패: optionId={}, soldOutUntil={}",
@@ -63,7 +63,7 @@ public class ProductSoldOutReleaseExecutor {
     public boolean releaseCommonOption(ProductCommonOption option) {
         try {
             option.releaseSoldOut();
-            productCommonOptionRepository.save(option);
+            productCommonOptionPersistencePort.save(option);
             return true;
         } catch (Exception e) {
             log.error("공통 옵션 품절 자동해제 실패: commonOptionId={}, soldOutUntil={}",

@@ -8,22 +8,22 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.member.port.out.MyGradeResult;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankRepository;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp
 public class MemberGradeService {
 
-    private final MemberReviewRankRepository memberReviewRankRepository;
+    private final MemberReviewRankPersistencePort memberReviewRankPersistencePort;
 
-    public MemberGradeService(MemberReviewRankRepository memberReviewRankRepository) {
-        this.memberReviewRankRepository = memberReviewRankRepository;
+    public MemberGradeService(MemberReviewRankPersistencePort memberReviewRankPersistencePort) {
+        this.memberReviewRankPersistencePort = memberReviewRankPersistencePort;
     }
 
     @Transactional(readOnly = true)
     public MyGradeResult getMyGrade(Long memberId) {
-        int currentReviewCount = memberReviewRankRepository.findLatestByMemberIdAndRankType(MemberId.of(memberId), RankType.ALL)
+        int currentReviewCount = memberReviewRankPersistencePort.findLatestByMemberIdAndRankType(MemberId.of(memberId), RankType.ALL)
             .map(MemberReviewRank::getReviewCount)
             .orElse(0);
 

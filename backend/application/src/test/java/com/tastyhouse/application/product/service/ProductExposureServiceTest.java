@@ -18,8 +18,8 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -147,16 +147,16 @@ class ProductExposureServiceTest {
             false, null, false, null, true, 0,
             false, false, null, false, null, null, null, null, null, null
         );
-        private final FakeExposureHourRepository hours = new FakeExposureHourRepository();
+        private final FakeExposureHourPersistencePort hours = new FakeExposureHourPersistencePort();
         private final ProductExposureService service;
 
         private Fixture() {
             this.service = new ProductExposureService(
-                new StubProductRepository(product), hours, new ProductExposureCalculator());
+                new StubProductPersistencePort(product), hours, new ProductExposureCalculator());
         }
     }
 
-    private static final class FakeExposureHourRepository implements ProductExposureHourRepository {
+    private static final class FakeExposureHourPersistencePort implements ProductExposureHourPersistencePort {
         private final List<ProductExposureHour> rows = new ArrayList<>();
 
         @Override
@@ -176,7 +176,7 @@ class ProductExposureServiceTest {
         }
     }
 
-    private record StubProductRepository(Product product) implements ProductRepository {
+    private record StubProductPersistencePort(Product product) implements ProductPersistencePort {
         @Override
         public Optional<Product> findById(ProductId id) {
             return Optional.of(product);

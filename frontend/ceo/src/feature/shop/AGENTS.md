@@ -27,7 +27,7 @@ Shop (가게 관리) feature module for the **점주(shop owner)** scope. Provid
 - Surface outcomes with `SHOP_MESSAGE` / `*_COPY` constants; never hardcode user-facing copy in actions or components.
 - Enum labels: prefer the server-provided Korean label (`description` on business hours/break times/closed days, `displayName` on amenities) when rendering an existing item. `*_LABEL` maps are for rendering the dropdown option catalog only — the backend enums may drift from the 2026-07-19 snapshot.
 - Keep overnight/range math in `time.ts` as pure functions. Do not inline minute arithmetic into components.
-- **`geo.ts` 도 같은 규칙이다** — 좌표·거리·폴리곤 연산을 컴포넌트에 인라인하지 않는다. 특히 거리 계산은 반드시 `distanceMeters`(하버사인)를 쓰고, 백엔드 `ShopSearchQueryDao` 의 `METERS_PER_DEGREE = 111000` 사각 근사를 프론트로 옮겨오지 않는다 — 위경도에 같은 값을 써서 위도 37.5°에서 동서가 약 21% 좁고, 7km 로 확대하면 약 1.6km 가 어긋난다.
+- **`geo.ts` 도 같은 규칙이다** — 좌표·거리·폴리곤 연산을 컴포넌트에 인라인하지 않는다. 특히 거리 계산은 반드시 `distanceMeters`(하버사인)를 쓰고, 백엔드 가게 검색 쿼리의 `METERS_PER_DEGREE = 111000` 사각 근사를 프론트로 옮겨오지 않는다 — 위경도에 같은 값을 써서 위도 37.5°에서 동서가 약 21% 좁고, 7km 로 확대하면 약 1.6km 가 어긋난다.
 - 배달가능지역 행은 `source`(`MANUAL` | `POLYGON`)를 갖는다. 직접 고르거나 반경으로 넣은 행이 `MANUAL`, 지도 도형에서 서버가 환산한 행이 `POLYGON` 이다. **도형 저장은 `POLYGON` 행만 통째로 교체하므로 `MANUAL` 행은 보존된다.** 구버전 백엔드 응답에는 `source` 가 없으므로 `?? "MANUAL"` 로 보정한다.
 
 ### Common Patterns

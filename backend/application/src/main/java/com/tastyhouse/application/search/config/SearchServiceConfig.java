@@ -4,8 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
-import com.tastyhouse.application.search.port.out.write.PopularKeywordRepository;
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogRepository;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistencePort;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
 import com.tastyhouse.application.search.service.PopularKeywordRefreshService;
 import com.tastyhouse.application.shared.marker.SharedApp;
 
@@ -14,10 +14,10 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 public class SearchServiceConfig {
     @Bean
     public PopularKeywordRefreshService popularKeywordRefreshService(
-        SearchKeywordLogRepository searchKeywordLogRepository,
+        SearchKeywordLogPersistencePort searchKeywordLogPersistencePort,
         KeywordCountPort keywordCountPort,
-        PopularKeywordRepository popularKeywordRepository
+        PopularKeywordPersistencePort popularKeywordPersistencePort
     ) {
-        return new PopularKeywordRefreshService(searchKeywordLogRepository, keywordCountPort, popularKeywordRepository);
+        return new PopularKeywordRefreshService(searchKeywordLogPersistencePort, keywordCountPort, popularKeywordPersistencePort);
     }
 }

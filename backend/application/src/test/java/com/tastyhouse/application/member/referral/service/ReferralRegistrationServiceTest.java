@@ -21,10 +21,10 @@ class ReferralRegistrationServiceTest {
     private static final MemberId REFERRER_ID = MemberId.of(101L);
     private static final MemberId REFEREE_ID = MemberId.of(202L);
 
-    private final FakeMemberReferralRepository referralRepository = new FakeMemberReferralRepository();
+    private final FakeMemberReferralPersistencePort referralPersistencePort = new FakeMemberReferralPersistencePort();
     private final DomainEventPublisherStub eventPublisher = new DomainEventPublisherStub();
     private final ReferralRegistrationService service =
-        new ReferralRegistrationService(referralRepository, eventPublisher);
+        new ReferralRegistrationService(referralPersistencePort, eventPublisher);
 
     @Test
     @DisplayName("등록하면 추천 관계는 PENDING으로 저장되고 보상 완료 전이는 일어나지 않는다")
@@ -32,7 +32,7 @@ class ReferralRegistrationServiceTest {
         service.register(REFERRER_ID, REFEREE_ID);
 
         ReferralId referralId = publishedEvent().referralId();
-        MemberReferral saved = referralRepository.findById(referralId).orElseThrow();
+        MemberReferral saved = referralPersistencePort.findById(referralId).orElseThrow();
 
         assertThat(saved.getStatus())
             .as("보상 적립 전이므로 REWARDED가 아니어야 한다 — 적립 실패 건을 상태로 식별하기 위함")

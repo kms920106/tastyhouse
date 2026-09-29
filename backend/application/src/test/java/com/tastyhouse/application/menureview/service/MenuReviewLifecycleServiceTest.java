@@ -28,15 +28,15 @@ class MenuReviewLifecycleServiceTest {
     private static final OrderId ORDER_ID = OrderId.of(10L);
     private static final OrderProductId ORDER_PRODUCT_ID = OrderProductId.of(20L);
 
-    private FakeMenuReviewRepository menuReviewRepository;
+    private FakeMenuReviewPersistencePort menuReviewPersistencePort;
     private FakeDomainEventPublisher domainEventPublisher;
     private MenuReviewLifecycleService menuReviewLifecycleService;
 
     @BeforeEach
     void setUp() {
-        menuReviewRepository = new FakeMenuReviewRepository();
+        menuReviewPersistencePort = new FakeMenuReviewPersistencePort();
         domainEventPublisher = new FakeDomainEventPublisher();
-        menuReviewLifecycleService = new MenuReviewLifecycleService(menuReviewRepository, domainEventPublisher);
+        menuReviewLifecycleService = new MenuReviewLifecycleService(menuReviewPersistencePort, domainEventPublisher);
     }
 
     @Test
@@ -45,7 +45,7 @@ class MenuReviewLifecycleServiceTest {
         Long menuReviewId = register(ORDER_PRODUCT_ID, 5, "양념이 딱 좋았어요");
 
         assertThat(menuReviewId).isNotNull();
-        assertThat(menuReviewRepository.findById(MenuReviewId.of(menuReviewId))).isPresent();
+        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId))).isPresent();
     }
 
     @Test
@@ -100,7 +100,7 @@ class MenuReviewLifecycleServiceTest {
 
         menuReviewLifecycleService.modify(MenuReviewId.of(menuReviewId), MEMBER_ID, 2, "짰어요");
 
-        assertThat(menuReviewRepository.findById(MenuReviewId.of(menuReviewId)))
+        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId)))
             .get()
             .satisfies(menuReview -> {
                 assertThat(menuReview.getRating()).isEqualTo(2);
@@ -138,7 +138,7 @@ class MenuReviewLifecycleServiceTest {
 
         menuReviewLifecycleService.remove(MenuReviewId.of(menuReviewId), MEMBER_ID);
 
-        assertThat(menuReviewRepository.findById(MenuReviewId.of(menuReviewId))).isEmpty();
+        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId))).isEmpty();
         assertThat(domainEventPublisher.publishedEvents())
             .last()
             .isInstanceOfSatisfying(MenuReviewDeletedEvent.class,

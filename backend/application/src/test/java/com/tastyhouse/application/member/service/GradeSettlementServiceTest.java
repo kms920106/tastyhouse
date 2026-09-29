@@ -16,7 +16,7 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.port.out.write.MemberRepository;
+import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +37,7 @@ class GradeSettlementServiceTest {
             reviewCount(8L, 1000L),
             reviewCount(9L, 5000L)
         ));
-        MemberRepositoryFake repository = new MemberRepositoryFake();
+        MemberPersistencePortFake repository = new MemberPersistencePortFake();
         GradeSettlementService service = new GradeSettlementService(port, repository);
 
         service.settleAll(NOW);
@@ -57,7 +57,7 @@ class GradeSettlementServiceTest {
             reviewCount(22L, 100L),
             reviewCount(33L, 10L)
         ));
-        MemberRepositoryFake repository = new MemberRepositoryFake();
+        MemberPersistencePortFake repository = new MemberPersistencePortFake();
         GradeSettlementService service = new GradeSettlementService(port, repository);
 
         service.settleAll(NOW);
@@ -71,7 +71,7 @@ class GradeSettlementServiceTest {
     @DisplayName("전체 기간(2000-01-01 ~ 현재 시각)으로 리뷰 수를 조회한다")
     void settleAll_queriesAllTimePeriod() {
         MemberReviewCountPortFake port = new MemberReviewCountPortFake(List.of());
-        GradeSettlementService service = new GradeSettlementService(port, new MemberRepositoryFake());
+        GradeSettlementService service = new GradeSettlementService(port, new MemberPersistencePortFake());
 
         service.settleAll(NOW);
 
@@ -86,7 +86,7 @@ class GradeSettlementServiceTest {
             reviewCount(1L, 0L),
             reviewCount(2L, 1000L)
         ));
-        MemberRepositoryFake repository = new MemberRepositoryFake();
+        MemberPersistencePortFake repository = new MemberPersistencePortFake();
         GradeSettlementService service = new GradeSettlementService(port, repository);
 
         long updated = service.settleAll(NOW);
@@ -99,7 +99,7 @@ class GradeSettlementServiceTest {
     @Test
     @DisplayName("리뷰 작성 회원이 없으면 아무 등급도 갱신하지 않는다")
     void settleAll_doesNothingWhenNoReviewCounts() {
-        MemberRepositoryFake repository = new MemberRepositoryFake();
+        MemberPersistencePortFake repository = new MemberPersistencePortFake();
         GradeSettlementService service = new GradeSettlementService(
             new MemberReviewCountPortFake(List.of()), repository);
 
@@ -134,7 +134,7 @@ class GradeSettlementServiceTest {
         }
     }
 
-    private static class MemberRepositoryFake implements MemberRepository {
+    private static class MemberPersistencePortFake implements MemberPersistencePort {
         private final Map<MemberGrade, List<Long>> updatedIdsByGrade = new EnumMap<>(MemberGrade.class);
 
         @Override

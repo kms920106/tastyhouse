@@ -9,37 +9,37 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Component
 @CeoApp
 public class ProductOptionGroupOwnershipValidator {
 
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ProductOptionRepository productOptionRepository;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
     private final ProductOptionGroupLinkService productOptionGroupLinkService;
 
     public ProductOptionGroupOwnershipValidator(
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
         ProductOptionGroupLinkService productOptionGroupLinkService
     ) {
-        this.productOptionGroupRepository = productOptionGroupRepository;
-        this.productOptionRepository = productOptionRepository;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
         this.productOptionGroupLinkService = productOptionGroupLinkService;
     }
 
     public ProductOptionGroup loadOwnedOptionGroup(Long shopId, Long optionGroupId) {
-        ProductOptionGroup group = productOptionGroupRepository.findById(ProductOptionGroupId.of(optionGroupId))
+        ProductOptionGroup group = productOptionGroupPersistencePort.findById(ProductOptionGroupId.of(optionGroupId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         validateOptionGroupShop(shopId, optionGroupId);
         return group;
     }
 
     public ProductOption loadOwnedOption(Long shopId, Long optionId) {
-        ProductOption option = productOptionRepository.findById(ProductOptionId.of(optionId))
+        ProductOption option = productOptionPersistencePort.findById(ProductOptionId.of(optionId))
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_NOT_FOUND));
 
         if (doesNotOwnOptionGroup(shopId, option.getOptionGroupId().value())) {

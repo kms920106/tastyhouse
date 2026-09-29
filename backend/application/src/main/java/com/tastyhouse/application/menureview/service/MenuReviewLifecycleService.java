@@ -14,18 +14,18 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.menureview.port.out.write.MenuReviewRepository;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MenuReviewLifecycleService {
-    private final MenuReviewRepository menuReviewRepository;
+    private final MenuReviewPersistencePort menuReviewPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public MenuReviewLifecycleService(
-        MenuReviewRepository menuReviewRepository,
+        MenuReviewPersistencePort menuReviewPersistencePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.menuReviewRepository = menuReviewRepository;
+        this.menuReviewPersistencePort = menuReviewPersistencePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
@@ -38,11 +38,11 @@ public class MenuReviewLifecycleService {
         Integer rating,
         String comment
     ) {
-        if (menuReviewRepository.existsByOrderProductId(orderProductId)) {
+        if (menuReviewPersistencePort.existsByOrderProductId(orderProductId)) {
             throw new BusinessException(ErrorCode.MENU_REVIEW_ALREADY_EXISTS);
         }
 
-        MenuReview saved = menuReviewRepository.save(
+        MenuReview saved = menuReviewPersistencePort.save(
             MenuReview.of(memberId, shopId, productId, orderId, orderProductId, rating, comment)
         );
 
@@ -61,7 +61,7 @@ public class MenuReviewLifecycleService {
         MenuReview menuReview = loadOwnedBy(menuReviewId, memberId);
 
         menuReview.updateRating(rating, comment);
-        menuReviewRepository.save(menuReview);
+        menuReviewPersistencePort.save(menuReview);
 
         domainEventPublisher.publish(new MenuReviewRatingChangedEvent(
             menuReviewId,
@@ -75,7 +75,7 @@ public class MenuReviewLifecycleService {
     public void remove(MenuReviewId menuReviewId, MemberId memberId) {
         MenuReview menuReview = loadOwnedBy(menuReviewId, memberId);
 
-        menuReviewRepository.deleteById(menuReviewId);
+        menuReviewPersistencePort.deleteById(menuReviewId);
 
         domainEventPublisher.publish(new MenuReviewDeletedEvent(
             menuReviewId,
@@ -87,7 +87,7 @@ public class MenuReviewLifecycleService {
     }
 
     private MenuReview loadOwnedBy(MenuReviewId menuReviewId, MemberId memberId) {
-        return menuReviewRepository.findByIdAndMemberId(menuReviewId, memberId)
+        return menuReviewPersistencePort.findByIdAndMemberId(menuReviewId, memberId)
             .orElseThrow(() -> new BusinessException(ErrorCode.MENU_REVIEW_ACCESS_DENIED));
     }
 }

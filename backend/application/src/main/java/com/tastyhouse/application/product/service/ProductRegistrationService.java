@@ -20,43 +20,43 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductBbqRepository;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryRepository;
-import com.tastyhouse.application.product.port.out.write.ProductImageRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupRepository;
-import com.tastyhouse.application.product.port.out.write.ProductOptionRepository;
-import com.tastyhouse.application.product.port.out.write.ProductRepository;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkRepository;
+import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
 
 public class ProductRegistrationService {
-    private final ProductRepository productRepository;
-    private final ProductCategoryRepository productCategoryRepository;
-    private final ProductOptionGroupRepository productOptionGroupRepository;
-    private final ProductOptionRepository productOptionRepository;
-    private final ProductImageRepository productImageRepository;
-    private final ProductBbqRepository productBbqRepository;
-    private final ProductOptionGroupLinkRepository productOptionGroupLinkRepository;
-    private final ProductShopLinkRepository productShopLinkRepository;
+    private final ProductPersistencePort productPersistencePort;
+    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductImagePersistencePort productImagePersistencePort;
+    private final ProductBbqPersistencePort productBbqPersistencePort;
+    private final ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort;
+    private final ProductShopLinkPersistencePort productShopLinkPersistencePort;
 
     public ProductRegistrationService(
-        ProductRepository productRepository,
-        ProductCategoryRepository productCategoryRepository,
-        ProductOptionGroupRepository productOptionGroupRepository,
-        ProductOptionRepository productOptionRepository,
-        ProductImageRepository productImageRepository,
-        ProductBbqRepository productBbqRepository,
-        ProductOptionGroupLinkRepository productOptionGroupLinkRepository,
-        ProductShopLinkRepository productShopLinkRepository
+        ProductPersistencePort productPersistencePort,
+        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductImagePersistencePort productImagePersistencePort,
+        ProductBbqPersistencePort productBbqPersistencePort,
+        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
+        ProductShopLinkPersistencePort productShopLinkPersistencePort
     ) {
-        this.productRepository = productRepository;
-        this.productCategoryRepository = productCategoryRepository;
-        this.productOptionGroupRepository = productOptionGroupRepository;
-        this.productOptionRepository = productOptionRepository;
-        this.productImageRepository = productImageRepository;
-        this.productBbqRepository = productBbqRepository;
-        this.productOptionGroupLinkRepository = productOptionGroupLinkRepository;
-        this.productShopLinkRepository = productShopLinkRepository;
+        this.productPersistencePort = productPersistencePort;
+        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productImagePersistencePort = productImagePersistencePort;
+        this.productBbqPersistencePort = productBbqPersistencePort;
+        this.productOptionGroupLinkPersistencePort = productOptionGroupLinkPersistencePort;
+        this.productShopLinkPersistencePort = productShopLinkPersistencePort;
     }
 
     public Product createProduct(
@@ -98,9 +98,9 @@ public class ProductRegistrationService {
             composition,
             singleServing
         );
-        Product saved = productRepository.save(product);
+        Product saved = productPersistencePort.save(product);
 
-        productShopLinkRepository.save(
+        productShopLinkPersistencePort.save(
             ProductShopLink.of(saved.getProductId(), shopId, productCategoryId, sort)
         );
         return saved;
@@ -134,19 +134,19 @@ public class ProductRegistrationService {
             visible,
             sort
         );
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     public void markSoldOut(ProductId productId) {
         Product product = loadProduct(productId);
         product.markSoldOut();
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     public void deactivateProduct(ProductId productId) {
         Product product = loadProduct(productId);
         product.deactivate();
-        productRepository.save(product);
+        productPersistencePort.save(product);
     }
 
     public ProductCategory createProductCategory(
@@ -157,12 +157,12 @@ public class ProductRegistrationService {
         boolean visible
     ) {
         ProductCategory category = ProductCategory.of(shopId, name, description, sort, visible);
-        return productCategoryRepository.save(category);
+        return productCategoryPersistencePort.save(category);
     }
 
     public Long saveProductImage(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         ProductImage image = ProductImage.of(productId, imageFileId, sort, visible);
-        ProductImage saved = productImageRepository.save(image);
+        ProductImage saved = productImagePersistencePort.save(image);
         return saved.getId();
     }
 
@@ -180,7 +180,7 @@ public class ProductRegistrationService {
     ) {
         int resolvedSort = sort != null
             ? sort
-            : productOptionGroupLinkRepository.findAllByProductId(productId).size();
+            : productOptionGroupLinkPersistencePort.findAllByProductId(productId).size();
         ProductOptionGroup group = ProductOptionGroup.of(
             productId,
             name,
@@ -193,19 +193,19 @@ public class ProductRegistrationService {
             visible,
             groupType
         );
-        ProductOptionGroup saved = productOptionGroupRepository.save(group);
+        ProductOptionGroup saved = productOptionGroupPersistencePort.save(group);
         linkOptionGroup(productId, saved.getProductOptionGroupId(), resolvedSort);
         return saved;
     }
 
     public void linkOptionGroup(ProductId productId, ProductOptionGroupId optionGroupId, Integer sort) {
-        if (productOptionGroupLinkRepository.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
+        if (productOptionGroupLinkPersistencePort.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
             return;
         }
         int resolvedSort = sort != null
             ? sort
-            : productOptionGroupLinkRepository.findAllByProductId(productId).size();
-        productOptionGroupLinkRepository.save(
+            : productOptionGroupLinkPersistencePort.findAllByProductId(productId).size();
+        productOptionGroupLinkPersistencePort.save(
             ProductOptionGroupLink.of(productId, optionGroupId, resolvedSort));
     }
 
@@ -230,24 +230,24 @@ public class ProductRegistrationService {
             cupCount,
             personalCupDiscountAmount
         );
-        ProductOption saved = productOptionRepository.save(option);
+        ProductOption saved = productOptionPersistencePort.save(option);
         return saved.getId();
     }
 
     public void saveProductBbq(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         ProductBbq bbq = ProductBbq.of(productId, bbqMenuId, bbqCategoryId, optionsSynced);
-        productBbqRepository.save(bbq);
+        productBbqPersistencePort.save(bbq);
     }
 
     public void markBbqOptionsSynced(ProductId productId) {
-        ProductBbq bbq = productBbqRepository.findByProductId(productId)
+        ProductBbq bbq = productBbqPersistencePort.findByProductId(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
-        productBbqRepository.save(bbq);
+        productBbqPersistencePort.save(bbq);
     }
 
     private Product loadProduct(ProductId productId) {
-        return productRepository.findById(productId)
+        return productPersistencePort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 }
