@@ -35,11 +35,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourRespon
 @RestController
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
-    private final ShopBusinessHourQueryUseCase shopBusinessHourQueryService;
+    private final ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase;
     private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;
 
-    public ShopBusinessHourApiController(ShopBusinessHourQueryUseCase shopBusinessHourQueryService, ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase) {
-        this.shopBusinessHourQueryService = shopBusinessHourQueryService;
+    public ShopBusinessHourApiController(ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase, ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase) {
+        this.shopBusinessHourQueryUseCase = shopBusinessHourQueryUseCase;
         this.shopBusinessHourCommandUseCase = shopBusinessHourCommandUseCase;
     }
 
@@ -49,7 +49,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBusinessHourResponse> response = shopBusinessHourQueryService.getBusinessHours(userDetails.getCeoId(), id).stream()
+        List<ShopBusinessHourResponse> response = shopBusinessHourQueryUseCase.getBusinessHours(userDetails.getCeoId(), id).stream()
             .map(ShopBusinessHourResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -96,7 +96,7 @@ public class ShopBusinessHourApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBreakTimeResponse> response = shopBusinessHourQueryService.getBreakTimes(userDetails.getCeoId(), id).stream()
+        List<ShopBreakTimeResponse> response = shopBusinessHourQueryUseCase.getBreakTimes(userDetails.getCeoId(), id).stream()
             .map(ShopBreakTimeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

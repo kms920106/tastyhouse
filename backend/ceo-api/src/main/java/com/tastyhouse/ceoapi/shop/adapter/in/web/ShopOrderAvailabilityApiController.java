@@ -21,10 +21,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemRes
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderAvailabilityApiController {
-    private final ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService;
+    private final ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryUseCase;
 
-    public ShopOrderAvailabilityApiController(ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryService) {
-        this.shopOrderAvailabilityQueryService = shopOrderAvailabilityQueryService;
+    public ShopOrderAvailabilityApiController(ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryUseCase) {
+        this.shopOrderAvailabilityQueryUseCase = shopOrderAvailabilityQueryUseCase;
     }
 
     @Operation(
@@ -39,7 +39,7 @@ public class ShopOrderAvailabilityApiController {
         @PathVariable Long id
     ) {
         ShopOrderAvailabilityResponse response =
-            ShopOrderAvailabilityResponse.from(shopOrderAvailabilityQueryService.getOrderAvailability(userDetails.getCeoId(), id));
+            ShopOrderAvailabilityResponse.from(shopOrderAvailabilityQueryUseCase.getOrderAvailability(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -52,7 +52,7 @@ public class ShopOrderAvailabilityApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopOrderMethodItemResponse> response = shopOrderAvailabilityQueryService.getOrderMethods(userDetails.getCeoId(), id).stream()
+        List<ShopOrderMethodItemResponse> response = shopOrderAvailabilityQueryUseCase.getOrderMethods(userDetails.getCeoId(), id).stream()
             .map(ShopOrderMethodItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

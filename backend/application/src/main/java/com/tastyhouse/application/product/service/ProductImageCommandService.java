@@ -13,7 +13,7 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRequestCommand;
 import com.tastyhouse.application.product.port.in.ProductImageCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
@@ -33,7 +33,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
     private final ProductImagePersistencePort productImagePersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductImageSpecValidator productImageSpecValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
 
     public ProductImageCommandService(
         ProductImageApprovalService productImageApprovalService,
@@ -41,14 +41,14 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
         ProductImagePersistencePort productImagePersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductImageSpecValidator productImageSpecValidator,
-        FileUploadOwnerCommandService fileUploadCommandService
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase
     ) {
         this.productImageApprovalService = productImageApprovalService;
         this.productPersistencePort = productPersistencePort;
         this.productImagePersistencePort = productImagePersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productImageSpecValidator = productImageSpecValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ProductImageCommandService implements ProductImageCommandUseCase {
         requireOwnedProduct(ceoId, shopId, productId);
         productImageSpecValidator.validate(file);
 
-        Long imageFileId = fileUploadCommandService.upload(file);
+        Long imageFileId = fileUploadCommandUseCase.upload(file);
         return productImageApprovalService.requestImageChange(
             ProductId.of(productId), UploadedFileId.of(imageFileId)
         );

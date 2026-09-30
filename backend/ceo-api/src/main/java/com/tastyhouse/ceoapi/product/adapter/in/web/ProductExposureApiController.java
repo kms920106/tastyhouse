@@ -28,14 +28,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResp
 @RestController
 @RequestMapping("/api/products")
 public class ProductExposureApiController {
-    private final ProductExposureQueryUseCase productExposureQueryService;
+    private final ProductExposureQueryUseCase productExposureQueryUseCase;
     private final ProductExposureCommandUseCase productExposureCommandUseCase;
 
     public ProductExposureApiController(
-        ProductExposureQueryUseCase productExposureQueryService,
+        ProductExposureQueryUseCase productExposureQueryUseCase,
         ProductExposureCommandUseCase productExposureCommandUseCase
     ) {
-        this.productExposureQueryService = productExposureQueryService;
+        this.productExposureQueryUseCase = productExposureQueryUseCase;
         this.productExposureCommandUseCase = productExposureCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ProductExposureApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductExposureResponse response = ProductExposureResponse.from(productExposureQueryService.getExposure( userDetails.getCeoId(), request.shopId(), id ));
+        ProductExposureResponse response = ProductExposureResponse.from(productExposureQueryUseCase.getExposure( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -26,10 +26,10 @@ import com.tastyhouse.webapi.event.adapter.in.web.response.EventListItemResponse
 @RequestMapping("/api/event")
 @Tag(name = "Event", description = "이벤트 관리 API")
 public class EventApiController {
-    private final EventQueryUseCase eventQueryService;
+    private final EventQueryUseCase eventQueryUseCase;
 
-    public EventApiController(EventQueryUseCase eventQueryService) {
-        this.eventQueryService = eventQueryService;
+    public EventApiController(EventQueryUseCase eventQueryUseCase) {
+        this.eventQueryUseCase = eventQueryUseCase;
     }
 
     @Operation(summary = "이벤트 목록 조회", description = "상태별 이벤트 목록을 조회합니다. (진행중, 종료)")
@@ -39,7 +39,7 @@ public class EventApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var pageResult = PaginationResponse.from(
-            eventQueryService.getEventList(search.status(), pageRequest.page(), pageRequest.size())
+            eventQueryUseCase.getEventList(search.status(), pageRequest.page(), pageRequest.size())
                 .map(EventListItemResponse::from)
         );
         ApiResponse<List<EventListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
@@ -52,7 +52,7 @@ public class EventApiController {
         @Parameter(description = "이벤트 ID", example = "1")
         @PathVariable Long id
     ) {
-        EventDetailResponse event = EventDetailResponse.from(eventQueryService.getEventDetail(id));
+        EventDetailResponse event = EventDetailResponse.from(eventQueryUseCase.getEventDetail(id));
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 
@@ -62,7 +62,7 @@ public class EventApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var pageResult = PaginationResponse.from(
-            eventQueryService.getEventAnnouncementList(pageRequest.page(), pageRequest.size())
+            eventQueryUseCase.getEventAnnouncementList(pageRequest.page(), pageRequest.size())
                 .map(EventAnnouncementListItemResponse::from)
         );
         ApiResponse<List<EventAnnouncementListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());

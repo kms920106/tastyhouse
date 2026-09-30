@@ -11,23 +11,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.application.admin.service.AdminQueryService;
+import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 
 @Service
 @AdminApp
 public class AdminUserDetailsService implements UserDetailsService {
 
-    private final AdminQueryService adminQueryService;
+    private final AdminPersistencePort adminPersistencePort;
 
-    public AdminUserDetailsService(AdminQueryService adminQueryService) {
-        this.adminQueryService = adminQueryService;
+    public AdminUserDetailsService(AdminPersistencePort adminPersistencePort) {
+        this.adminPersistencePort = adminPersistencePort;
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Admin admin = adminQueryService.findByUsername(username)
+        Admin admin = adminPersistencePort.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("관리자를 찾을 수 없습니다: " + username));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + admin.getRole().name());

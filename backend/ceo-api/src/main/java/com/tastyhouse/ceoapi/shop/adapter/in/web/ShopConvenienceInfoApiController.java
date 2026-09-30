@@ -32,11 +32,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
 @RestController
 @RequestMapping("/api/shops")
 public class ShopConvenienceInfoApiController {
-    private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryService;
+    private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase;
     private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;
 
-    public ShopConvenienceInfoApiController(ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryService, ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase) {
-        this.shopConvenienceInfoQueryService = shopConvenienceInfoQueryService;
+    public ShopConvenienceInfoApiController(ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase, ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase) {
+        this.shopConvenienceInfoQueryUseCase = shopConvenienceInfoQueryUseCase;
         this.shopConvenienceInfoCommandUseCase = shopConvenienceInfoCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ShopConvenienceInfoApiController {
         @PathVariable Long id
     ) {
         ShopConvenienceInfoResponse response =
-            shopConvenienceInfoQueryService.getConvenienceInfo(userDetails.getCeoId(), id)
+            shopConvenienceInfoQueryUseCase.getConvenienceInfo(userDetails.getCeoId(), id)
                 .map(ShopConvenienceInfoResponse::from)
                 .orElseGet(() -> ShopConvenienceInfoResponse.empty(id));
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -71,7 +71,7 @@ public class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopAmenityResponse> response = shopConvenienceInfoQueryService.getAmenities(userDetails.getCeoId(), id).stream()
+        List<ShopAmenityResponse> response = shopConvenienceInfoQueryUseCase.getAmenities(userDetails.getCeoId(), id).stream()
             .map(ShopAmenityResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

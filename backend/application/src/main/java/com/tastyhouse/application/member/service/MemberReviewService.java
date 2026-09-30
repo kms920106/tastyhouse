@@ -3,8 +3,8 @@ package com.tastyhouse.application.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.review.port.out.MyReviewListItemResult;
-import com.tastyhouse.application.review.service.ReviewQueryService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -12,19 +12,19 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @WebApp
 public class MemberReviewService {
 
-    private final ReviewQueryService reviewQueryService;
+    private final ReviewQueryUseCase reviewQueryUseCase;
 
-    public MemberReviewService(ReviewQueryService reviewQueryService) {
-        this.reviewQueryService = reviewQueryService;
+    public MemberReviewService(ReviewQueryUseCase reviewQueryUseCase) {
+        this.reviewQueryUseCase = reviewQueryUseCase;
     }
 
     @Transactional(readOnly = true)
     public PageResult<MyReviewListItemResult> getMyReviews(Long memberId, int page, int size) {
-        return reviewQueryService.findMyReviews(memberId, page, size);
+        return reviewQueryUseCase.findMyReviews(memberId, page, size);
     }
 
     @Transactional(readOnly = true)
     public long getMyReviewCount(Long memberId) {
-        return reviewQueryService.countVisibleReviewsByMemberId(memberId);
+        return reviewQueryUseCase.countVisibleReviewsByMemberId(memberId);
     }
 }

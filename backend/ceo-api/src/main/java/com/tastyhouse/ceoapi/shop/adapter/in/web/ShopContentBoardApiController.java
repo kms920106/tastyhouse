@@ -32,11 +32,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardRespon
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
-    private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryService;
+    private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase;
 
-    public ShopContentBoardApiController(ShopContentBoardOwnerQueryUseCase shopContentBoardQueryService, ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase) {
-        this.shopContentBoardQueryService = shopContentBoardQueryService;
+    public ShopContentBoardApiController(ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase) {
+        this.shopContentBoardQueryUseCase = shopContentBoardQueryUseCase;
         this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
     }
 
@@ -46,7 +46,7 @@ public class ShopContentBoardApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopContentBoardResponse> response = shopContentBoardQueryService.getContentBoards(userDetails.getCeoId(), id).stream()
+        List<ShopContentBoardResponse> response = shopContentBoardQueryUseCase.getContentBoards(userDetails.getCeoId(), id).stream()
             .map(ShopContentBoardResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

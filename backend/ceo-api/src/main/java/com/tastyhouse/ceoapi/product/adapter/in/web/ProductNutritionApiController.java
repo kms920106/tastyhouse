@@ -31,11 +31,11 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionRes
 @RestController
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
-    private final ProductNutritionOwnerQueryUseCase productNutritionQueryService;
+    private final ProductNutritionOwnerQueryUseCase productNutritionQueryUseCase;
     private final ProductNutritionCommandUseCase productNutritionCommandUseCase;
 
-    public ProductNutritionApiController(ProductNutritionOwnerQueryUseCase productNutritionQueryService, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
-        this.productNutritionQueryService = productNutritionQueryService;
+    public ProductNutritionApiController(ProductNutritionOwnerQueryUseCase productNutritionQueryUseCase, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
+        this.productNutritionQueryUseCase = productNutritionQueryUseCase;
         this.productNutritionCommandUseCase = productNutritionCommandUseCase;
     }
 
@@ -44,7 +44,7 @@ public class ProductNutritionApiController {
             + "목록이 바뀌어도 화면 배포가 필요하지 않습니다.")
     @GetMapping("/v1/allergens")
     public ResponseEntity<ApiResponse<List<ProductAllergenTypeResponse>>> getAllergenTypes() {
-        List<ProductAllergenTypeResponse> response = productNutritionQueryService.getAllergenTypes().stream()
+        List<ProductAllergenTypeResponse> response = productNutritionQueryUseCase.getAllergenTypes().stream()
             .map(ProductAllergenTypeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -59,7 +59,7 @@ public class ProductNutritionApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductNutritionResponse response = ProductNutritionResponse.from(productNutritionQueryService.getNutrition( userDetails.getCeoId(), request.shopId(), id ));
+        ProductNutritionResponse response = ProductNutritionResponse.from(productNutritionQueryUseCase.getNutrition( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

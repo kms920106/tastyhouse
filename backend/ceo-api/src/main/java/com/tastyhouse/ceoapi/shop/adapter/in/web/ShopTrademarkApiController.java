@@ -26,11 +26,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopTrademarkApiController {
-    private final ShopTrademarkQueryUseCase shopTrademarkQueryService;
+    private final ShopTrademarkQueryUseCase shopTrademarkQueryUseCase;
     private final ShopTrademarkCommandUseCase shopTrademarkCommandUseCase;
 
-    public ShopTrademarkApiController(ShopTrademarkQueryUseCase shopTrademarkQueryService, ShopTrademarkCommandUseCase shopTrademarkCommandUseCase) {
-        this.shopTrademarkQueryService = shopTrademarkQueryService;
+    public ShopTrademarkApiController(ShopTrademarkQueryUseCase shopTrademarkQueryUseCase, ShopTrademarkCommandUseCase shopTrademarkCommandUseCase) {
+        this.shopTrademarkQueryUseCase = shopTrademarkQueryUseCase;
         this.shopTrademarkCommandUseCase = shopTrademarkCommandUseCase;
     }
 
@@ -41,7 +41,7 @@ public class ShopTrademarkApiController {
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
-            ShopImageStatusResponse.from(shopTrademarkQueryService.getTrademarkStatus(userDetails.getCeoId(), id));
+            ShopImageStatusResponse.from(shopTrademarkQueryUseCase.getTrademarkStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -65,7 +65,7 @@ public class ShopTrademarkApiController {
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
-            ShopImageStatusResponse.from(shopTrademarkQueryService.getThumbnailStatus(userDetails.getCeoId(), id));
+            ShopImageStatusResponse.from(shopTrademarkQueryUseCase.getThumbnailStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -17,16 +17,16 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
-    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService;
+    private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase;
 
-    public ShopOrderNoticeApiController(ShopOrderNoticeQueryUseCase shopOrderNoticeQueryService) {
-        this.shopOrderNoticeQueryService = shopOrderNoticeQueryService;
+    public ShopOrderNoticeApiController(ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase) {
+        this.shopOrderNoticeQueryUseCase = shopOrderNoticeQueryUseCase;
     }
 
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내를 조회합니다. 미설정이거나 관리자 게시중단 상태면 data가 null입니다.")
     @GetMapping("/v1/{id}/order-notice")
     public ResponseEntity<ApiResponse<ShopOrderNoticeResponse>> getOrderNotice(@PathVariable Long id) {
-        ShopOrderNoticeResult result = shopOrderNoticeQueryService.getOrderNotice(id);
+        ShopOrderNoticeResult result = shopOrderNoticeQueryUseCase.getOrderNotice(id);
         ShopOrderNoticeResponse response = result == null ? null : ShopOrderNoticeResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

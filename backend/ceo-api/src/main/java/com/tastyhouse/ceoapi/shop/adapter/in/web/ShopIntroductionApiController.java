@@ -27,11 +27,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
 @RestController
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
-    private final ShopIntroductionQueryUseCase shopIntroductionQueryService;
+    private final ShopIntroductionQueryUseCase shopIntroductionQueryUseCase;
     private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;
 
-    public ShopIntroductionApiController(ShopIntroductionQueryUseCase shopIntroductionQueryService, ShopIntroductionCommandUseCase shopIntroductionCommandUseCase) {
-        this.shopIntroductionQueryService = shopIntroductionQueryService;
+    public ShopIntroductionApiController(ShopIntroductionQueryUseCase shopIntroductionQueryUseCase, ShopIntroductionCommandUseCase shopIntroductionCommandUseCase) {
+        this.shopIntroductionQueryUseCase = shopIntroductionQueryUseCase;
         this.shopIntroductionCommandUseCase = shopIntroductionCommandUseCase;
     }
 
@@ -42,7 +42,7 @@ public class ShopIntroductionApiController {
         @PathVariable Long id
     ) {
         ShopIntroductionResponse response =
-            ShopIntroductionResponse.from(shopIntroductionQueryService.getIntroduction(userDetails.getCeoId(), id));
+            ShopIntroductionResponse.from(shopIntroductionQueryUseCase.getIntroduction(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -66,7 +66,7 @@ public class ShopIntroductionApiController {
         @Valid @RequestBody ShopIntroductionValidateRequest request
     ) {
         ShopIntroductionValidationResponse response =
-            ShopIntroductionValidationResponse.from(shopIntroductionQueryService.validateIntroduction(userDetails.getCeoId(), id, request.message()));
+            ShopIntroductionValidationResponse.from(shopIntroductionQueryUseCase.validateIntroduction(userDetails.getCeoId(), id, request.message()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

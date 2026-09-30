@@ -21,17 +21,17 @@ import com.tastyhouse.webapi.banner.adapter.in.web.response.BannerListItemRespon
 @RequestMapping("/api/banners")
 @Tag(name = "Banner", description = "배너 관리 API")
 public class BannerApiController {
-    private final BannerQueryUseCase bannerQueryService;
+    private final BannerQueryUseCase bannerQueryUseCase;
 
-    public BannerApiController(BannerQueryUseCase bannerQueryService) {
-        this.bannerQueryService = bannerQueryService;
+    public BannerApiController(BannerQueryUseCase bannerQueryUseCase) {
+        this.bannerQueryUseCase = bannerQueryUseCase;
     }
 
     @Operation(summary = "홈 배너 목록 조회")
     @GetMapping("/v1/home")
     public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(
-            bannerQueryService.getHomeBanners(pageRequest.page(), pageRequest.size())
+            bannerQueryUseCase.getHomeBanners(pageRequest.page(), pageRequest.size())
                 .map(BannerListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
@@ -41,7 +41,7 @@ public class BannerApiController {
     @GetMapping("/v1/sidebar")
     public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(
-            bannerQueryService.getSidebarBanners(pageRequest.page(), pageRequest.size())
+            bannerQueryUseCase.getSidebarBanners(pageRequest.page(), pageRequest.size())
                 .map(BannerListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));

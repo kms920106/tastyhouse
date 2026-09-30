@@ -29,14 +29,14 @@ import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationLi
 @RequestMapping("/api/notifications")
 @Tag(name = "Notification", description = "인앱 알림함 API")
 public class NotificationApiController {
-    private final NotificationQueryUseCase notificationQueryService;
+    private final NotificationQueryUseCase notificationQueryUseCase;
     private final NotificationCommandUseCase notificationCommandUseCase;
 
     public NotificationApiController(
-        NotificationQueryUseCase notificationQueryService,
+        NotificationQueryUseCase notificationQueryUseCase,
         NotificationCommandUseCase notificationCommandUseCase
     ) {
-        this.notificationQueryService = notificationQueryService;
+        this.notificationQueryUseCase = notificationQueryUseCase;
         this.notificationCommandUseCase = notificationCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class NotificationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         PaginationResponse<NotificationListItemResponse> pageResponse = PaginationResponse.from(
-            notificationQueryService.findNotifications(
+            notificationQueryUseCase.findNotifications(
                 userDetails.getMemberId(),
                 pageRequest.page(),
                 pageRequest.size()
@@ -65,7 +65,7 @@ public class NotificationApiController {
     @Operation(summary = "미읽음 알림 개수 조회", description = "헤더 배지에 표시할 미읽음 알림 개수를 조회합니다.")
     @GetMapping("/v1/unread-count")
     public ResponseEntity<ApiResponse<Long>> getUnreadCount(@CurrentUser MemberUserDetails userDetails) {
-        long unreadCount = notificationQueryService.countUnread(userDetails.getMemberId());
+        long unreadCount = notificationQueryUseCase.countUnread(userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success(unreadCount));
     }
 

@@ -3,30 +3,30 @@ package com.tastyhouse.application.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.application.follow.service.FollowQueryService;
+import com.tastyhouse.application.follow.port.in.FollowQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberStatsQueryUseCase;
 import com.tastyhouse.application.member.port.out.MemberStatsResult;
-import com.tastyhouse.application.review.service.ReviewQueryService;
+import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
 @WebApp
 public class MemberStatsQueryService implements MemberStatsQueryUseCase {
 
-    private final ReviewQueryService reviewQueryService;
-    private final FollowQueryService followQueryService;
+    private final ReviewQueryUseCase reviewQueryUseCase;
+    private final FollowQueryUseCase followQueryUseCase;
 
-    public MemberStatsQueryService(ReviewQueryService reviewQueryService, FollowQueryService followQueryService) {
-        this.reviewQueryService = reviewQueryService;
-        this.followQueryService = followQueryService;
+    public MemberStatsQueryService(ReviewQueryUseCase reviewQueryUseCase, FollowQueryUseCase followQueryUseCase) {
+        this.reviewQueryUseCase = reviewQueryUseCase;
+        this.followQueryUseCase = followQueryUseCase;
     }
 
     @Transactional(readOnly = true)
     @Override
     public MemberStatsResult getMemberStats(Long memberId) {
-        long reviewCount = reviewQueryService.countVisibleReviewsByMemberId(memberId);
-        long followingCount = followQueryService.countFollowing(memberId);
-        long followerCount = followQueryService.countFollower(memberId);
+        long reviewCount = reviewQueryUseCase.countVisibleReviewsByMemberId(memberId);
+        long followingCount = followQueryUseCase.countFollowing(memberId);
+        long followerCount = followQueryUseCase.countFollower(memberId);
 
         return new MemberStatsResult(
             reviewCount,

@@ -3,11 +3,15 @@ package com.tastyhouse.application.architecture;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -63,7 +67,8 @@ class LayerRulesTest {
             .that().haveSimpleNameEndingWith("CommandService")
             .should().dependOnClassesThat().haveSimpleNameEndingWith("QueryPort")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
-            .because("CommandService는 조회 어댑터도 읽기 포트도 주입하지 않는다(CQRS 교차 주입 금지)");
+            .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryUseCase")
+            .because("CommandService는 조회 어댑터도 읽기 포트도 조회 유스케이스도 주입하지 않는다(CQRS 교차 주입 금지)");
 
         rule.check(classes);
     }
@@ -310,6 +315,73 @@ class LayerRulesTest {
             .as("@SharedApp 설정 클래스는 마커 없는 POJO만 @Bean으로 등록한다 — 마커가 붙은 클래스를 "
                 + "생성하면 스캔과 @Bean이 겹치거나 앱 격리를 우회한다(인터페이스로 반환해도 생성 호출로 잡는다)")
             .isEmpty();
+    }
+
+    @Test
+    void servicesShouldDependOnUseCasesNotImplementations() {
+        Set<JavaClass> useCaseImplementations = classes.stream()
+            .filter(javaClass -> !javaClass.isInterface())
+            .filter(LayerRulesTest::implementsPortInInterface)
+            .collect(Collectors.toSet());
+
+        assertThat(useCaseImplementations)
+            .as("UseCase 구현 클래스 집합이 비면 이 규칙은 공허하게 통과한다")
+            .hasSizeGreaterThanOrEqualTo(200);
+
+        List<String> violations = new ArrayList<>();
+        for (JavaClass origin : classes) {
+            JavaClass originTop = topLevelOf(origin);
+            for (Dependency dependency : origin.getDirectDependenciesFromSelf()) {
+                JavaClass target = dependency.getTargetClass();
+                if (useCaseImplementations.contains(target) && !target.equals(originTop)) {
+                    violations.add(dependency.getDescription());
+                }
+            }
+        }
+
+        assertThat(violations)
+            .as("UseCase를 구현한 서비스는 구체 타입이 아니라 port.in 인터페이스로 주입한다 — "
+                + "도메인 타입 협력이 필요하면 write 포트나 마커 없는 도메인 서비스를 직접 주입한다")
+            .isEmpty();
+    }
+
+    @Test
+    void useCaseFieldsShouldBeNamedUseCase() {
+        List<JavaField> useCaseFields = classes.stream()
+            .flatMap(javaClass -> javaClass.getFields().stream())
+            .filter(field -> isPortInInterface(field.getRawType()))
+            .toList();
+
+        assertThat(useCaseFields)
+            .as("UseCase 타입 필드가 줄면 타입 해석이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .hasSizeGreaterThanOrEqualTo(15);
+
+        List<String> violations = useCaseFields.stream()
+            .filter(field -> !field.getName().endsWith("UseCase"))
+            .map(JavaField::getFullName)
+            .toList();
+
+        assertThat(violations)
+            .as("port.in 인터페이스 타입 필드는 이름이 UseCase로 끝난다(변수명은 타입을 따른다)")
+            .isEmpty();
+    }
+
+    private static boolean implementsPortInInterface(JavaClass javaClass) {
+        return javaClass.getAllRawInterfaces().stream().anyMatch(LayerRulesTest::isPortInInterface);
+    }
+
+    private static boolean isPortInInterface(JavaClass javaClass) {
+        String packageName = javaClass.getPackageName();
+        return javaClass.isInterface()
+            && (packageName.endsWith(".port.in") || packageName.contains(".port.in."));
+    }
+
+    private static JavaClass topLevelOf(JavaClass javaClass) {
+        JavaClass current = javaClass;
+        while (current.getEnclosingClass().isPresent()) {
+            current = current.getEnclosingClass().get();
+        }
+        return current;
     }
 
     private static boolean hasAppMarker(JavaClass javaClass) {

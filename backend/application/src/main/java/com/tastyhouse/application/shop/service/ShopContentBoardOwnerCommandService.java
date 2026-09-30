@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.model.ShopContentTopic;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
@@ -33,20 +33,20 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
     private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardOwnerCommandService(
         ShopContentBoardPersistencePort shopContentBoardPersistencePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
-        FileUploadOwnerCommandService fileUploadCommandService,
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -162,6 +162,6 @@ public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwne
             return null;
         }
         shopImageSpecValidator.validateContentImage(file, contentType == ShopContentType.GIF);
-        return UploadedFileId.of(fileUploadCommandService.upload(file));
+        return UploadedFileId.of(fileUploadCommandUseCase.upload(file));
     }
 }

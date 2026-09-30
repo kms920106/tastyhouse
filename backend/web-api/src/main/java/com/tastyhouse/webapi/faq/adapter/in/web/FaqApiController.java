@@ -21,16 +21,16 @@ import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqListItemResponse;
 @RequestMapping("/api/faqs")
 @Tag(name = "FAQ", description = "자주하는 질문 API")
 public class FaqApiController {
-    private final FaqQueryUseCase faqQueryService;
+    private final FaqQueryUseCase faqQueryUseCase;
 
-    public FaqApiController(FaqQueryUseCase faqQueryService) {
-        this.faqQueryService = faqQueryService;
+    public FaqApiController(FaqQueryUseCase faqQueryUseCase) {
+        this.faqQueryUseCase = faqQueryUseCase;
     }
 
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "활성화된 FAQ 카테고리 목록을 정렬 순서대로 조회합니다.")
     @GetMapping("/v1/categories")
     public ResponseEntity<ApiResponse<List<FaqCategoryListItemResponse>>> getFaqCategories() {
-        List<FaqCategoryListItemResponse> categories = faqQueryService.getFaqCategories().stream()
+        List<FaqCategoryListItemResponse> categories = faqQueryUseCase.getFaqCategories().stream()
             .map(FaqCategoryListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(categories));
@@ -39,7 +39,7 @@ public class FaqApiController {
     @Operation(summary = "FAQ 목록 조회", description = "카테고리 ID로 필터링하거나 전체 FAQ 목록을 조회합니다. categoryId 미입력 시 전체 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<FaqListItemResponse>>> getFaqList(@Valid @ModelAttribute FaqSearchRequest search) {
-        List<FaqListItemResponse> faqs = faqQueryService.getFaqList(search.categoryId()).stream()
+        List<FaqListItemResponse> faqs = faqQueryUseCase.getFaqList(search.categoryId()).stream()
             .map(FaqListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(faqs));

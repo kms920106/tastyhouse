@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCommandUseCase;
@@ -19,16 +19,16 @@ public class ShopDeliveryAreaAdjustmentOwnerCommandService implements ShopDelive
 
     private final ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService;
     private final ShopOwnershipValidator shopOwnershipValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
 
     public ShopDeliveryAreaAdjustmentOwnerCommandService(
         ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService,
         ShopOwnershipValidator shopOwnershipValidator,
-        FileUploadOwnerCommandService fileUploadCommandService
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase
     ) {
         this.shopDeliveryAreaAdjustmentService = shopDeliveryAreaAdjustmentService;
         this.shopOwnershipValidator = shopOwnershipValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class ShopDeliveryAreaAdjustmentOwnerCommandService implements ShopDelive
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        Long consentFileId = fileUploadCommandService.upload(file);
+        Long consentFileId = fileUploadCommandUseCase.upload(file);
 
         ShopId targetShopId = ShopId.of(shopId);
         UploadedFileId targetConsentFileId = UploadedFileId.of(consentFileId);

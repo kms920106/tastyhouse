@@ -29,7 +29,7 @@ import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
-import com.tastyhouse.application.member.service.MemberCommandService;
+import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.token.AppleTempTokenRepository;
 
@@ -38,7 +38,7 @@ import com.tastyhouse.security.token.AppleTempTokenRepository;
 public class AppleSocialLoginService {
 
     private final SocialOAuthClient appleOAuthClient;
-    private final MemberCommandService memberCommandService;
+    private final MemberRegistrationService memberRegistrationService;
     private final MemberPersistencePort memberPersistencePort;
     private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
     private final MemberTokenService tokenService;
@@ -47,7 +47,7 @@ public class AppleSocialLoginService {
 
     public AppleSocialLoginService(
         @Qualifier("appleOAuthClient") SocialOAuthClient appleOAuthClient,
-        MemberCommandService memberCommandService,
+        MemberRegistrationService memberRegistrationService,
         MemberPersistencePort memberPersistencePort,
         MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
         MemberTokenService tokenService,
@@ -55,7 +55,7 @@ public class AppleSocialLoginService {
         AppleTempTokenRepository appleTempTokenRepository
     ) {
         this.appleOAuthClient = appleOAuthClient;
-        this.memberCommandService = memberCommandService;
+        this.memberRegistrationService = memberRegistrationService;
         this.memberPersistencePort = memberPersistencePort;
         this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
         this.tokenService = tokenService;
@@ -80,7 +80,7 @@ public class AppleSocialLoginService {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
 
             socialAccount.updateProviderInfo(appleUser.email(), appleUser.nickname(), appleUser.profileImageUrl());
-            memberCommandService.saveSocialAccount(socialAccount);
+            memberSocialAccountPersistencePort.save(socialAccount);
 
             Member member = memberPersistencePort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -139,7 +139,7 @@ public class AppleSocialLoginService {
 
         Member member = findMember.get();
 
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(),
                 MemberSocialProvider.APPLE,
@@ -182,12 +182,12 @@ public class AppleSocialLoginService {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        Member savedMember = memberCommandService.signUpSocial(
+        Member savedMember = memberRegistrationService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
                 MemberSocialProvider.APPLE,

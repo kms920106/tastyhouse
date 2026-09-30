@@ -16,10 +16,10 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPriceBadgeApiController {
-    private final ShopPriceBadgeQueryUseCase shopPriceBadgeQueryService;
+    private final ShopPriceBadgeQueryUseCase shopPriceBadgeQueryUseCase;
 
-    public ShopPriceBadgeApiController(ShopPriceBadgeQueryUseCase shopPriceBadgeQueryService) {
-        this.shopPriceBadgeQueryService = shopPriceBadgeQueryService;
+    public ShopPriceBadgeApiController(ShopPriceBadgeQueryUseCase shopPriceBadgeQueryUseCase) {
+        this.shopPriceBadgeQueryUseCase = shopPriceBadgeQueryUseCase;
     }
 
     @Operation(summary = "매장가격 뱃지 조회",
@@ -30,7 +30,7 @@ public class ShopPriceBadgeApiController {
     @GetMapping("/v1/{id}/price-badges")
     public ResponseEntity<ApiResponse<ShopPriceBadgeResponse>> getPriceBadges(@PathVariable Long id) {
         ShopPriceBadgeResponse response =
-            ShopPriceBadgeResponse.from(shopPriceBadgeQueryService.getPriceBadges(id));
+            ShopPriceBadgeResponse.from(shopPriceBadgeQueryUseCase.getPriceBadges(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

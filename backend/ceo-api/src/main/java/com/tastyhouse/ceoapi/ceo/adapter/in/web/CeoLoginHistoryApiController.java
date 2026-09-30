@@ -26,10 +26,10 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItem
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoLoginHistoryApiController {
-    private final CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryService;
+    private final CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase;
 
-    public CeoLoginHistoryApiController(CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryService) {
-        this.ceoLoginHistoryQueryService = ceoLoginHistoryQueryService;
+    public CeoLoginHistoryApiController(CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase) {
+        this.ceoLoginHistoryQueryUseCase = ceoLoginHistoryQueryUseCase;
     }
 
     @Operation(
@@ -43,7 +43,7 @@ public class CeoLoginHistoryApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<CeoLoginHistoryResult> pageResult =
-            ceoLoginHistoryQueryService.getLoginHistories(
+            ceoLoginHistoryQueryUseCase.getLoginHistories(
                 userDetails.getCeoId(),
                 request.result(),
                 request.startDate(),

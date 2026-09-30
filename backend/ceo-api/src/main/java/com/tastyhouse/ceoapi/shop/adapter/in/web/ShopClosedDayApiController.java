@@ -32,11 +32,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopClosedDayApiController {
-    private final ShopClosedDayQueryUseCase shopClosedDayQueryService;
+    private final ShopClosedDayQueryUseCase shopClosedDayQueryUseCase;
     private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
 
-    public ShopClosedDayApiController(ShopClosedDayQueryUseCase shopClosedDayQueryService, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
-        this.shopClosedDayQueryService = shopClosedDayQueryService;
+    public ShopClosedDayApiController(ShopClosedDayQueryUseCase shopClosedDayQueryUseCase, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
+        this.shopClosedDayQueryUseCase = shopClosedDayQueryUseCase;
         this.shopClosedDayCommandUseCase = shopClosedDayCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ShopClosedDayApiController {
         @PathVariable Long id
     ) {
         ShopClosedDaysResponse response =
-            ShopClosedDaysResponse.from(shopClosedDayQueryService.getClosedDays(userDetails.getCeoId(), id));
+            ShopClosedDaysResponse.from(shopClosedDayQueryUseCase.getClosedDays(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -36,11 +36,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopNoticeApiController {
-    private final ShopNoticeOwnerQueryUseCase shopNoticeQueryService;
+    private final ShopNoticeOwnerQueryUseCase shopNoticeQueryUseCase;
     private final ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase;
 
-    public ShopNoticeApiController(ShopNoticeOwnerQueryUseCase shopNoticeQueryService, ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase) {
-        this.shopNoticeQueryService = shopNoticeQueryService;
+    public ShopNoticeApiController(ShopNoticeOwnerQueryUseCase shopNoticeQueryUseCase, ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase) {
+        this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
         this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
     }
 
@@ -50,7 +50,7 @@ public class ShopNoticeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopNoticeResponse> response = shopNoticeQueryService.getNotices(userDetails.getCeoId(), id).stream()
+        List<ShopNoticeResponse> response = shopNoticeQueryUseCase.getNotices(userDetails.getCeoId(), id).stream()
             .map(ShopNoticeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -113,7 +113,7 @@ public class ShopNoticeApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopNoticeValidateRequest request
     ) {
-        List<String> violations = shopNoticeQueryService.validateNotice(userDetails.getCeoId(), id, request.content());
+        List<String> violations = shopNoticeQueryUseCase.validateNotice(userDetails.getCeoId(), id, request.content());
         return ResponseEntity.ok(ApiResponse.success(violations));
     }
 }

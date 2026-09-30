@@ -24,11 +24,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopStatusApiController {
-    private final ShopStatusQueryUseCase shopStatusQueryService;
+    private final ShopStatusQueryUseCase shopStatusQueryUseCase;
     private final ShopStatusCommandUseCase shopStatusCommandUseCase;
 
-    public ShopStatusApiController(ShopStatusQueryUseCase shopStatusQueryService, ShopStatusCommandUseCase shopStatusCommandUseCase) {
-        this.shopStatusQueryService = shopStatusQueryService;
+    public ShopStatusApiController(ShopStatusQueryUseCase shopStatusQueryUseCase, ShopStatusCommandUseCase shopStatusCommandUseCase) {
+        this.shopStatusQueryUseCase = shopStatusQueryUseCase;
         this.shopStatusCommandUseCase = shopStatusCommandUseCase;
     }
 
@@ -39,7 +39,7 @@ public class ShopStatusApiController {
         @PathVariable Long id
     ) {
         ShopStatusResponse response =
-            ShopStatusResponse.from(shopStatusQueryService.getStatus(userDetails.getCeoId(), id));
+            ShopStatusResponse.from(shopStatusQueryUseCase.getStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

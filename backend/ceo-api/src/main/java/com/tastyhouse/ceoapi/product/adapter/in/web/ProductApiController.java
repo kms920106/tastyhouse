@@ -35,18 +35,18 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailRespon
 @RestController
 @RequestMapping("/api/products")
 public class ProductApiController {
-    private final ProductOwnerQueryUseCase productQueryService;
+    private final ProductOwnerQueryUseCase productQueryUseCase;
     private final ProductOwnerCreateUseCase productCreateUseCase;
     private final ProductOwnerUpdateUseCase productUpdateUseCase;
     private final ProductDeleteUseCase productDeleteUseCase;
 
     public ProductApiController(
-        ProductOwnerQueryUseCase productQueryService,
+        ProductOwnerQueryUseCase productQueryUseCase,
         ProductOwnerCreateUseCase productCreateUseCase,
         ProductOwnerUpdateUseCase productUpdateUseCase,
         ProductDeleteUseCase productDeleteUseCase
     ) {
-        this.productQueryService = productQueryService;
+        this.productQueryUseCase = productQueryUseCase;
         this.productCreateUseCase = productCreateUseCase;
         this.productUpdateUseCase = productUpdateUseCase;
         this.productDeleteUseCase = productDeleteUseCase;
@@ -61,7 +61,7 @@ public class ProductApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductDetailResponse response = ProductDetailResponse.from(productQueryService.getProduct(userDetails.getCeoId(), request.shopId(), id));
+        ProductDetailResponse response = ProductDetailResponse.from(productQueryUseCase.getProduct(userDetails.getCeoId(), request.shopId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

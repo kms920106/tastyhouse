@@ -30,11 +30,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
-    private final ShopSuspensionQueryUseCase shopSuspensionQueryService;
+    private final ShopSuspensionQueryUseCase shopSuspensionQueryUseCase;
     private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;
 
-    public ShopSuspensionApiController(ShopSuspensionQueryUseCase shopSuspensionQueryService, ShopSuspensionCommandUseCase shopSuspensionCommandUseCase) {
-        this.shopSuspensionQueryService = shopSuspensionQueryService;
+    public ShopSuspensionApiController(ShopSuspensionQueryUseCase shopSuspensionQueryUseCase, ShopSuspensionCommandUseCase shopSuspensionCommandUseCase) {
+        this.shopSuspensionQueryUseCase = shopSuspensionQueryUseCase;
         this.shopSuspensionCommandUseCase = shopSuspensionCommandUseCase;
     }
 
@@ -44,7 +44,7 @@ public class ShopSuspensionApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopSuspensionResponse> response = shopSuspensionQueryService.getSuspensions(userDetails.getCeoId(), id).stream()
+        List<ShopSuspensionResponse> response = shopSuspensionQueryUseCase.getSuspensions(userDetails.getCeoId(), id).stream()
             .map(ShopSuspensionResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

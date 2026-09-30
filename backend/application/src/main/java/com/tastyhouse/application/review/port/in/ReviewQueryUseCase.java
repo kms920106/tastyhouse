@@ -1,6 +1,8 @@
 package com.tastyhouse.application.review.port.in;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
@@ -10,6 +12,8 @@ import com.tastyhouse.application.review.port.out.ReviewDetailView;
 import com.tastyhouse.application.review.port.out.ReviewProductView;
 import com.tastyhouse.application.review.port.out.ReviewSubmitResultView;
 import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
+import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
+import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -35,4 +39,14 @@ public interface ReviewQueryUseCase {
     PageResult<MyReviewListItemResult> findMemberReviews(Long memberId, int page, int size);
 
     void requireVisibleReview(Long reviewId, Long viewerMemberId);
+
+    ReviewsByRatingResult findShopReviewsByRating(Long shopId, int page, int size, Boolean hasImage, String sortType);
+
+    ShopReviewStatisticsResult findShopReviewStatistics(Long shopId);
+
+    long countVisibleReviewsByMemberId(Long memberId);
+
+    Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds);
+
+    PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size);
 }

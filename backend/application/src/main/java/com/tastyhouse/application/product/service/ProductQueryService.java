@@ -215,15 +215,18 @@ public class ProductQueryService implements ProductQueryUseCase {
         );
     }
 
+    @Override
     public PageResult<SearchProductItemResult> searchByKeyword(String keyword, int page, int size) {
         PageQuery pageQuery = PageQuery.of(page, size);
         return productQueryPort.searchByKeyword(keyword, ProductExposureWindows.now(), pageQuery);
     }
 
+    @Override
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
         return productQueryPort.findShopProducts(shopId, ProductExposureWindows.now());
     }
 
+    @Override
     public List<PopularProductItemResult> findPopularProducts(Long shopId) {
         return productQueryPort.findPopularProducts(
             shopId,
@@ -232,6 +235,7 @@ public class ProductQueryService implements ProductQueryUseCase {
         );
     }
 
+    @Override
     public List<ProductCategoryResult> findShopProductCategories(Long shopId) {
         return productQueryPort.findProductCategories(shopId);
     }

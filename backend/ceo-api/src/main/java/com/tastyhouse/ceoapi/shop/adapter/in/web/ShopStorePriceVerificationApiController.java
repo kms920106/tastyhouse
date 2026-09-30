@@ -25,14 +25,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
 @RestController
 @RequestMapping("/api/shops")
 public class ShopStorePriceVerificationApiController {
-    private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryService;
+    private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase;
     private final ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase;
 
     public ShopStorePriceVerificationApiController(
-        ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryService,
+        ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase,
         ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase
     ) {
-        this.shopStorePriceVerificationQueryService = shopStorePriceVerificationQueryService;
+        this.shopStorePriceVerificationQueryUseCase = shopStorePriceVerificationQueryUseCase;
         this.shopStorePriceVerificationCommandUseCase = shopStorePriceVerificationCommandUseCase;
     }
 
@@ -72,7 +72,7 @@ public class ShopStorePriceVerificationApiController {
         @PathVariable Long id
     ) {
         ShopStorePriceVerificationResponse response =
-            ShopStorePriceVerificationResponse.from(shopStorePriceVerificationQueryService.getLatestVerification(userDetails.getCeoId(), id));
+            ShopStorePriceVerificationResponse.from(shopStorePriceVerificationQueryUseCase.getLatestVerification(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

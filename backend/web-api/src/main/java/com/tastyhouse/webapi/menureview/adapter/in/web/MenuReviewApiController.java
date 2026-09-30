@@ -37,14 +37,14 @@ import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritab
 @Tag(name = "MenuReview", description = "메뉴 평가 API")
 public class MenuReviewApiController {
     private final MenuReviewCommandUseCase menuReviewCommandUseCase;
-    private final MenuReviewQueryUseCase menuReviewQueryService;
+    private final MenuReviewQueryUseCase menuReviewQueryUseCase;
 
     public MenuReviewApiController(
         MenuReviewCommandUseCase menuReviewCommandUseCase,
-        MenuReviewQueryUseCase menuReviewQueryService
+        MenuReviewQueryUseCase menuReviewQueryUseCase
     ) {
         this.menuReviewCommandUseCase = menuReviewCommandUseCase;
-        this.menuReviewQueryService = menuReviewQueryService;
+        this.menuReviewQueryUseCase = menuReviewQueryUseCase;
     }
 
     @Operation(
@@ -58,7 +58,7 @@ public class MenuReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         List<MenuReviewWritableItemResponse> response =
-            menuReviewQueryService.findWritableItems(orderId, userDetails.getMemberId()).stream()
+            menuReviewQueryUseCase.findWritableItems(orderId, userDetails.getMemberId()).stream()
                 .map(MenuReviewWritableItemResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -109,7 +109,7 @@ public class MenuReviewApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<MenuReviewListItemResponse> pageResponse = PaginationResponse.from(
-            menuReviewQueryService.findByProductId(productId, pageRequest.page(), pageRequest.size())
+            menuReviewQueryUseCase.findByProductId(productId, pageRequest.page(), pageRequest.size())
                 .map(MenuReviewListItemResponse::from)
         );
         ApiResponse<List<MenuReviewListItemResponse>> response = ApiResponse.success(

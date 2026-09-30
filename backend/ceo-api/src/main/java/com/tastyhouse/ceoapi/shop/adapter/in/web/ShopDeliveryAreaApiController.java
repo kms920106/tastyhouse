@@ -47,21 +47,21 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaApiController {
-    private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryService;
+    private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryUseCase;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
-    private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryService;
-    private final ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryService;
+    private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase;
+    private final ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryUseCase;
 
     public ShopDeliveryAreaApiController(
-        ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryService,
+        ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryUseCase,
         ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase,
-        ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryService,
-        ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryService
+        ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase,
+        ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryUseCase
     ) {
-        this.shopDeliveryAreaQueryService = shopDeliveryAreaQueryService;
+        this.shopDeliveryAreaQueryUseCase = shopDeliveryAreaQueryUseCase;
         this.shopDeliveryAreaCommandUseCase = shopDeliveryAreaCommandUseCase;
-        this.shopDeliveryAreaRadiusQueryService = shopDeliveryAreaRadiusQueryService;
-        this.shopDeliveryAreaPolygonQueryService = shopDeliveryAreaPolygonQueryService;
+        this.shopDeliveryAreaRadiusQueryUseCase = shopDeliveryAreaRadiusQueryUseCase;
+        this.shopDeliveryAreaPolygonQueryUseCase = shopDeliveryAreaPolygonQueryUseCase;
     }
 
     @Operation(summary = "내 가게 배달가능지역 조회", description = "로그인한 점주가 소유한 가게의 배달가능지역(행정동) 목록을 조회합니다.")
@@ -70,7 +70,7 @@ public class ShopDeliveryAreaApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopDeliveryAreaItemResponse> response = shopDeliveryAreaQueryService.getDeliveryAreas(userDetails.getCeoId(), id).stream()
+        List<ShopDeliveryAreaItemResponse> response = shopDeliveryAreaQueryUseCase.getDeliveryAreas(userDetails.getCeoId(), id).stream()
             .map(ShopDeliveryAreaItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -143,7 +143,7 @@ public class ShopDeliveryAreaApiController {
         @Max(value = 7000, message = "반경은 7000m를 넘을 수 없습니다.") int radiusMeters
     ) {
         ShopDeliveryAreaRadiusPreviewResponse response =
-            ShopDeliveryAreaRadiusPreviewResponse.from(shopDeliveryAreaRadiusQueryService.previewRadius(userDetails.getCeoId(), id, radiusMeters));
+            ShopDeliveryAreaRadiusPreviewResponse.from(shopDeliveryAreaRadiusQueryUseCase.previewRadius(userDetails.getCeoId(), id, radiusMeters));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -173,7 +173,7 @@ public class ShopDeliveryAreaApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryAreaPolygonResponse response =
-            ShopDeliveryAreaPolygonResponse.from(shopDeliveryAreaPolygonQueryService.getPolygon(userDetails.getCeoId(), id));
+            ShopDeliveryAreaPolygonResponse.from(shopDeliveryAreaPolygonQueryUseCase.getPolygon(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -203,7 +203,7 @@ public class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
         ShopDeliveryAreaPolygonPreviewResponse response =
-            ShopDeliveryAreaPolygonPreviewResponse.from(shopDeliveryAreaPolygonQueryService.previewPolygon(userDetails.getCeoId(), id, request.toRingCommands()));
+            ShopDeliveryAreaPolygonPreviewResponse.from(shopDeliveryAreaPolygonQueryUseCase.previewPolygon(userDetails.getCeoId(), id, request.toRingCommands()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -18,12 +18,12 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @RestController
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
-    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryService
+        ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase
     ) {
-        this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;
+        this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
     }
 
     @Operation(summary = "메뉴모음컷 목록 조회",
@@ -33,7 +33,7 @@ public class ShopMenuCollectionImageApiController {
         @PathVariable Long id
     ) {
         List<ShopMenuCollectionImageResponse> response =
-            shopMenuCollectionImageQueryService.getMenuCollectionImages(id).stream()
+            shopMenuCollectionImageQueryUseCase.getMenuCollectionImages(id).stream()
                 .map(ShopMenuCollectionImageResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

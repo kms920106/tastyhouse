@@ -50,7 +50,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvaila
 @RestController
 @RequestMapping("/api/products")
 public class ProductAvailabilityApiController {
-    private final ProductAvailabilityQueryUseCase productAvailabilityQueryService;
+    private final ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase;
     private final ProductSoldOutOwnerUseCase productSoldOutUseCase;
     private final ProductHideUseCase productHideUseCase;
     private final ProductReleaseUseCase productReleaseUseCase;
@@ -61,7 +61,7 @@ public class ProductAvailabilityApiController {
     private final ProductOptionSoldOutUntilChangeUseCase productOptionSoldOutUntilChangeUseCase;
 
     public ProductAvailabilityApiController(
-        ProductAvailabilityQueryUseCase productAvailabilityQueryService,
+        ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase,
         ProductSoldOutOwnerUseCase productSoldOutUseCase,
         ProductHideUseCase productHideUseCase,
         ProductReleaseUseCase productReleaseUseCase,
@@ -71,7 +71,7 @@ public class ProductAvailabilityApiController {
         ProductOptionReleaseUseCase productOptionReleaseUseCase,
         ProductOptionSoldOutUntilChangeUseCase productOptionSoldOutUntilChangeUseCase
     ) {
-        this.productAvailabilityQueryService = productAvailabilityQueryService;
+        this.productAvailabilityQueryUseCase = productAvailabilityQueryUseCase;
         this.productSoldOutUseCase = productSoldOutUseCase;
         this.productHideUseCase = productHideUseCase;
         this.productReleaseUseCase = productReleaseUseCase;
@@ -90,7 +90,7 @@ public class ProductAvailabilityApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
-        List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
+        List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryUseCase.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
             .map(ProductAvailabilityGroupResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -104,7 +104,7 @@ public class ProductAvailabilityApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
-        List<ProductOptionAvailabilityGroupResponse> response = productAvailabilityQueryService.getProductOptionAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
+        List<ProductOptionAvailabilityGroupResponse> response = productAvailabilityQueryUseCase.getProductOptionAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
             .map(ProductOptionAvailabilityGroupResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

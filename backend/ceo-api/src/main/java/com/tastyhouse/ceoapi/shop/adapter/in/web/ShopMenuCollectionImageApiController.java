@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @RestController
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
-    private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryService;
+    private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryService,
+        ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase,
         ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase
     ) {
-        this.shopMenuCollectionImageQueryService = shopMenuCollectionImageQueryService;
+        this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
         this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;
     }
 
@@ -52,7 +52,7 @@ public class ShopMenuCollectionImageApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageQueryService.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
+        List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageQueryUseCase.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
             .map(ShopMenuCollectionImageResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

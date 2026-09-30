@@ -22,7 +22,7 @@ import com.tastyhouse.application.order.port.out.OrderPaymentSummaryResult;
 import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.application.order.port.out.OrderProductViewResult;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
-import com.tastyhouse.application.review.service.ReviewQueryService;
+import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -33,11 +33,11 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 public class OrderQueryService implements OrderQueryUseCase {
 
     private final OrderQueryPort orderQueryPort;
-    private final ReviewQueryService reviewQueryService;
+    private final ReviewQueryUseCase reviewQueryUseCase;
 
-    public OrderQueryService(OrderQueryPort orderQueryPort, ReviewQueryService reviewQueryService) {
+    public OrderQueryService(OrderQueryPort orderQueryPort, ReviewQueryUseCase reviewQueryUseCase) {
         this.orderQueryPort = orderQueryPort;
-        this.reviewQueryService = reviewQueryService;
+        this.reviewQueryUseCase = reviewQueryUseCase;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class OrderQueryService implements OrderQueryUseCase {
             .filter(Objects::nonNull)
             .distinct()
             .toList();
-        Set<Long> reviewedProductIds = reviewQueryService.findReviewedProductIds(result.id(), memberId, productIds);
+        Set<Long> reviewedProductIds = reviewQueryUseCase.findReviewedProductIds(result.id(), memberId, productIds);
 
         List<OrderProductViewResult> orderProducts = result.orderProducts().stream()
             .map(orderProduct -> toOrderProductViewResult(orderProduct, reviewedProductIds))

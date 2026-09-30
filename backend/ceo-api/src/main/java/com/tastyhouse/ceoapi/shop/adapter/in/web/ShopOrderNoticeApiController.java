@@ -24,14 +24,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
-    private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryService;
+    private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase;
     private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;
 
     public ShopOrderNoticeApiController(
-        ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryService,
+        ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase,
         ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase
     ) {
-        this.shopOrderNoticeQueryService = shopOrderNoticeQueryService;
+        this.shopOrderNoticeQueryUseCase = shopOrderNoticeQueryUseCase;
         this.shopOrderNoticeCommandUseCase = shopOrderNoticeCommandUseCase;
     }
 
@@ -41,7 +41,7 @@ public class ShopOrderNoticeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryService.getOrderNotice(userDetails.getCeoId(), id)
+        ShopOrderNoticeResponse response = shopOrderNoticeQueryUseCase.getOrderNotice(userDetails.getCeoId(), id)
             .map(ShopOrderNoticeResponse::from)
             .orElseGet(ShopOrderNoticeResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));

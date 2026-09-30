@@ -24,11 +24,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
-    private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryService;
+    private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
 
-    public ShopOriginInfoApiController(ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryService, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
-        this.shopOriginInfoQueryService = shopOriginInfoQueryService;
+    public ShopOriginInfoApiController(ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
+        this.shopOriginInfoQueryUseCase = shopOriginInfoQueryUseCase;
         this.shopOriginInfoCommandUseCase = shopOriginInfoCommandUseCase;
     }
 
@@ -41,7 +41,7 @@ public class ShopOriginInfoApiController {
         @PathVariable Long id
     ) {
         ShopOriginInfoResponse response =
-            shopOriginInfoQueryService.getOriginInfo(userDetails.getCeoId(), id)
+            shopOriginInfoQueryUseCase.getOriginInfo(userDetails.getCeoId(), id)
                 .map(ShopOriginInfoResponse::from)
                 .orElseGet(ShopOriginInfoResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));

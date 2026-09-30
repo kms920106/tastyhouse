@@ -9,8 +9,8 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
+import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 import com.tastyhouse.application.product.port.out.SearchProductItemResult;
-import com.tastyhouse.application.product.service.ProductQueryService;
 import com.tastyhouse.application.review.port.out.ReviewQueryPort;
 import com.tastyhouse.application.review.port.out.SearchReviewItemResult;
 import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
@@ -29,20 +29,20 @@ import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 public class SearchQueryService implements SearchQueryUseCase {
 
     private final SearchQueryPort searchQueryPort;
-    private final ProductQueryService productQueryService;
+    private final ProductQueryUseCase productQueryUseCase;
     private final ReviewQueryPort reviewQueryPort;
     private final ShopSearchQueryPort shopSearchQueryPort;
     private final MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort;
 
     public SearchQueryService(
         SearchQueryPort searchQueryPort,
-        ProductQueryService productQueryService,
+        ProductQueryUseCase productQueryUseCase,
         ReviewQueryPort reviewQueryPort,
         ShopSearchQueryPort shopSearchQueryPort,
         MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort
     ) {
         this.searchQueryPort = searchQueryPort;
-        this.productQueryService = productQueryService;
+        this.productQueryUseCase = productQueryUseCase;
         this.reviewQueryPort = reviewQueryPort;
         this.shopSearchQueryPort = shopSearchQueryPort;
         this.memberDeliveryAddressQueryPort = memberDeliveryAddressQueryPort;
@@ -61,7 +61,7 @@ public class SearchQueryService implements SearchQueryUseCase {
     @Override
     public PageResult<SearchProductItemResult> searchMenus(String query, int page, int size) {
         String keyword = validateKeyword(query);
-        return productQueryService.searchByKeyword(keyword, page, size);
+        return productQueryUseCase.searchByKeyword(keyword, page, size);
     }
 
     @Override

@@ -11,9 +11,9 @@ import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
+import com.tastyhouse.application.member.port.in.MemberCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.service.MemberCommandService;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
@@ -25,18 +25,18 @@ public class AuthPasswordResetService {
     private final MemberPersistencePort memberPersistencePort;
     private final MailVerificationService mailVerificationService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final MemberCommandService memberCommandService;
+    private final MemberCommandUseCase memberCommandUseCase;
 
     public AuthPasswordResetService(
         MemberPersistencePort memberPersistencePort,
         MailVerificationService mailVerificationService,
         MemberJwtTokenProvider jwtTokenProvider,
-        MemberCommandService memberCommandService
+        MemberCommandUseCase memberCommandUseCase
     ) {
         this.memberPersistencePort = memberPersistencePort;
         this.mailVerificationService = mailVerificationService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.memberCommandService = memberCommandService;
+        this.memberCommandUseCase = memberCommandUseCase;
     }
 
     @Transactional
@@ -68,6 +68,6 @@ public class AuthPasswordResetService {
 
         MemberPasswordUpdateCommand command =
             new MemberPasswordUpdateCommand(member.getId(), newPassword, newPasswordConfirm);
-        memberCommandService.updatePassword(command);
+        memberCommandUseCase.updatePassword(command);
     }
 }

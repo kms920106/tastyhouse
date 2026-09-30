@@ -31,11 +31,11 @@ import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 @Tag(name = "Order", description = "주문 API")
 public class OrderApiController {
     private final OrderCommandUseCase orderCommandUseCase;
-    private final OrderQueryUseCase orderQueryService;
+    private final OrderQueryUseCase orderQueryUseCase;
 
-    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryService) {
+    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryUseCase) {
         this.orderCommandUseCase = orderCommandUseCase;
-        this.orderQueryService = orderQueryService;
+        this.orderQueryUseCase = orderQueryUseCase;
     }
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다. 생성된 주문 ID를 반환합니다.")
@@ -57,7 +57,7 @@ public class OrderApiController {
     ) {
         Long memberId = userDetails.getMemberId();
         PaginationResponse<OrderListItemResponse> page = PaginationResponse.from(
-            orderQueryService.getOrderList(memberId, pageRequest.page(), pageRequest.size())
+            orderQueryUseCase.getOrderList(memberId, pageRequest.page(), pageRequest.size())
                 .map(OrderListItemResponse::from)
         );
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
@@ -76,7 +76,7 @@ public class OrderApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderDetailResponse response = OrderDetailResponse.from(orderQueryService.getOrderDetail(memberId, id));
+        OrderDetailResponse response = OrderDetailResponse.from(orderQueryUseCase.getOrderDetail(memberId, id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

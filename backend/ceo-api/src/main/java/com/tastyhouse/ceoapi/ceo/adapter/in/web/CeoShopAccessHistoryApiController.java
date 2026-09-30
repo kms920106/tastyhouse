@@ -26,12 +26,12 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryLis
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoShopAccessHistoryApiController {
-    private final CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryService;
+    private final CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryUseCase;
 
     public CeoShopAccessHistoryApiController(
-        CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryService
+        CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryUseCase
     ) {
-        this.ceoShopAccessHistoryQueryService = ceoShopAccessHistoryQueryService;
+        this.ceoShopAccessHistoryQueryUseCase = ceoShopAccessHistoryQueryUseCase;
     }
 
     @Operation(
@@ -45,7 +45,7 @@ public class CeoShopAccessHistoryApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<ShopCeoAssignmentHistoryResult> pageResult =
-            ceoShopAccessHistoryQueryService.getShopAccessHistories(
+            ceoShopAccessHistoryQueryUseCase.getShopAccessHistories(
                 userDetails.getCeoId(),
                 request.actionType(),
                 request.shopId(),

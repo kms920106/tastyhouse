@@ -45,10 +45,10 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItem
 @RequestMapping("/api/members")
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 public class MemberMeApiController {
-    private final MemberScreenUseCase memberService;
+    private final MemberScreenUseCase memberUseCase;
 
-    public MemberMeApiController(MemberScreenUseCase memberService) {
-        this.memberService = memberService;
+    public MemberMeApiController(MemberScreenUseCase memberUseCase) {
+        this.memberUseCase = memberUseCase;
     }
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(회원 ID, 닉네임, 등급, 상태메시지, 프로필 이미지)를 조회합니다.")
@@ -56,7 +56,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberService.getMyProfile(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberUseCase.getMyProfile(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
@@ -66,7 +66,7 @@ public class MemberMeApiController {
         @Valid @RequestBody UpdateProfileRequest request
     ) {
         MemberProfileUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberService.updateMyProfile(command);
+        memberUseCase.updateMyProfile(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -75,7 +75,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberService.getMemberStats(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberUseCase.getMemberStats(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
@@ -85,7 +85,7 @@ public class MemberMeApiController {
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
         MemberVerifyPasswordResponse response =
-            MemberVerifyPasswordResponse.from(memberService.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password()));
+            MemberVerifyPasswordResponse.from(memberUseCase.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -94,7 +94,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberService.getPersonalInfo(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberUseCase.getPersonalInfo(userDetails.getMemberId()))));
     }
 
     @Operation(
@@ -111,7 +111,7 @@ public class MemberMeApiController {
         @Valid @RequestBody UpdatePersonalInfoRequest request
     ) {
         MemberPersonalInfoUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberService.updatePersonalInfo(command, verifyToken, smsVerifyToken);
+        memberUseCase.updatePersonalInfo(command, verifyToken, smsVerifyToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -120,7 +120,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyGradeResponse>> getMyGrade(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberService.getMyGrade(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberUseCase.getMyGrade(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
@@ -129,7 +129,7 @@ public class MemberMeApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-            memberService.getMyCoupons(userDetails.getMemberId())
+            memberUseCase.getMyCoupons(userDetails.getMemberId())
                 .stream()
                 .map(MyCouponListItemResponse::from)
                 .toList()
@@ -142,7 +142,7 @@ public class MemberMeApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-            memberService.getMyAvailableCoupons(userDetails.getMemberId())
+            memberUseCase.getMyAvailableCoupons(userDetails.getMemberId())
                 .stream()
                 .map(MyCouponListItemResponse::from)
                 .toList()
@@ -154,7 +154,7 @@ public class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyReviewCountResponse>> getMyReviewCount(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberService.getMyReviewCount(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberUseCase.getMyReviewCount(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
@@ -164,7 +164,7 @@ public class MemberMeApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<MyReviewListItemResponse> pageResult = PaginationResponse.from(
-            memberService.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            memberUseCase.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(MyReviewListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -182,7 +182,7 @@ public class MemberMeApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ShopBookmarkListItemResponse> pageResult = PaginationResponse.from(
-            memberService.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            memberUseCase.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(ShopBookmarkListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -204,7 +204,7 @@ public class MemberMeApiController {
         @Valid @RequestBody UpdatePasswordRequest request
     ) {
         MemberPasswordUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberService.updatePassword(command, verifyToken);
+        memberUseCase.updatePassword(command, verifyToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -216,7 +216,7 @@ public class MemberMeApiController {
         @Valid @RequestBody WithdrawMemberRequest request
     ) {
         MemberWithdrawCommand command = request.toCommand(userDetails.getMemberId());
-        memberService.withdrawMember(command, bearerToken);
+        memberUseCase.withdrawMember(command, bearerToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -30,11 +30,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
-    private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryService;
+    private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase;
     private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;
 
-    public ShopPhoneNumberApiController(ShopPhoneNumberQueryUseCase shopPhoneNumberQueryService, ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase) {
-        this.shopPhoneNumberQueryService = shopPhoneNumberQueryService;
+    public ShopPhoneNumberApiController(ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase, ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase) {
+        this.shopPhoneNumberQueryUseCase = shopPhoneNumberQueryUseCase;
         this.shopPhoneNumberCommandUseCase = shopPhoneNumberCommandUseCase;
     }
 
@@ -44,7 +44,7 @@ public class ShopPhoneNumberApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryService.getPhoneNumbers(userDetails.getCeoId(), id).stream()
+        List<ShopPhoneNumberResponse> response = shopPhoneNumberQueryUseCase.getPhoneNumbers(userDetails.getCeoId(), id).stream()
             .map(ShopPhoneNumberResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

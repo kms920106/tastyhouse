@@ -10,7 +10,6 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
-import com.tastyhouse.domain.member.model.MemberSocialAccount;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.in.MemberCommandUseCase;
@@ -19,7 +18,6 @@ import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
 import com.tastyhouse.application.shared.marker.WebApp;
 
 @Service
@@ -28,77 +26,17 @@ import com.tastyhouse.application.shared.marker.WebApp;
 public class MemberCommandService implements MemberCommandUseCase {
 
     private final MemberPersistencePort memberPersistencePort;
-    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
-    private final MemberRegistrationService memberRegistrationService;
     private final MemberWithdrawalService memberWithdrawalService;
     private final PasswordEncoder passwordEncoder;
 
     public MemberCommandService(
         MemberPersistencePort memberPersistencePort,
-        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
-        MemberRegistrationService memberRegistrationService,
         MemberWithdrawalService memberWithdrawalService,
         PasswordEncoder passwordEncoder
     ) {
         this.memberPersistencePort = memberPersistencePort;
-        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
-        this.memberRegistrationService = memberRegistrationService;
         this.memberWithdrawalService = memberWithdrawalService;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    public Long signUp(
-        String username,
-        String rawPassword,
-        String nickname,
-        String fullName,
-        MemberGender gender,
-        Integer birthDate,
-        String phoneNumber,
-        boolean pushNotificationEnabled,
-        boolean marketingInfoEnabled,
-        boolean eventInfoEnabled,
-        String referrerNickname
-    ) {
-        return memberRegistrationService.signUp(
-            username,
-            passwordEncoder.encode(rawPassword),
-            nickname,
-            fullName,
-            gender,
-            birthDate,
-            phoneNumber,
-            pushNotificationEnabled,
-            marketingInfoEnabled,
-            eventInfoEnabled,
-            referrerNickname
-        );
-    }
-
-    public Member signUpSocial(
-        String username,
-        String nickname,
-        String fullName,
-        MemberGender gender,
-        Integer birthDate,
-        String phoneNumber,
-        boolean pushNotificationEnabled,
-        boolean marketingInfoEnabled,
-        boolean eventInfoEnabled,
-        String referrerNickname
-    ) {
-        return memberRegistrationService.signUpSocial(
-            username,
-            nickname,
-            fullName,
-            gender,
-            birthDate,
-            phoneNumber,
-            pushNotificationEnabled,
-            marketingInfoEnabled,
-            eventInfoEnabled,
-            referrerNickname
-        );
     }
 
     @Override
@@ -149,10 +87,6 @@ public class MemberCommandService implements MemberCommandUseCase {
             MemberWithdrawalReason.from(command.reason()),
             command.reasonDetail()
         );
-    }
-
-    public void saveSocialAccount(MemberSocialAccount socialAccount) {
-        memberSocialAccountPersistencePort.save(socialAccount);
     }
 
     private Member loadMember(Long memberId) {

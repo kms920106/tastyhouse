@@ -28,14 +28,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceRespons
 @RestController
 @RequestMapping("/api/products")
 public class ProductPriceApiController {
-    private final ProductPriceQueryUseCase productPriceQueryService;
+    private final ProductPriceQueryUseCase productPriceQueryUseCase;
     private final ProductPriceCommandUseCase productPriceCommandUseCase;
 
     public ProductPriceApiController(
-        ProductPriceQueryUseCase productPriceQueryService,
+        ProductPriceQueryUseCase productPriceQueryUseCase,
         ProductPriceCommandUseCase productPriceCommandUseCase
     ) {
-        this.productPriceQueryService = productPriceQueryService;
+        this.productPriceQueryUseCase = productPriceQueryUseCase;
         this.productPriceCommandUseCase = productPriceCommandUseCase;
     }
 
@@ -49,7 +49,7 @@ public class ProductPriceApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        List<ProductPriceResponse> response = productPriceQueryService.getPrices( userDetails.getCeoId(), request.shopId(), id ).stream()
+        List<ProductPriceResponse> response = productPriceQueryUseCase.getPrices( userDetails.getCeoId(), request.shopId(), id ).stream()
             .map(ProductPriceResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

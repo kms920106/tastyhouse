@@ -7,6 +7,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
 import com.tastyhouse.application.shared.marker.BatchApp;
 
 @Component
@@ -16,16 +17,16 @@ public class AdminDongSyncRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongSyncRunner.class);
 
-    private final AdminDongSchedulerService adminDongSchedulerService;
+    private final SynchronizeAdminDongsUseCase synchronizeAdminDongsUseCase;
 
-    public AdminDongSyncRunner(AdminDongSchedulerService adminDongSchedulerService) {
-        this.adminDongSchedulerService = adminDongSchedulerService;
+    public AdminDongSyncRunner(SynchronizeAdminDongsUseCase synchronizeAdminDongsUseCase) {
+        this.synchronizeAdminDongsUseCase = synchronizeAdminDongsUseCase;
     }
 
     @Override
     public void run(ApplicationArguments args) {
         log.info("=== 행정동 마스터 동기화 수동 실행 시작(sync-on-startup) ===");
-        adminDongSchedulerService.synchronizeAdminDongs();
+        synchronizeAdminDongsUseCase.synchronizeAdminDongs();
         log.info("=== 행정동 마스터 동기화 수동 실행 완료 ===");
     }
 }

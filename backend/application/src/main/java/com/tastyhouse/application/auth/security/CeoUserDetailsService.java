@@ -11,23 +11,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
-import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 
 @Service
 @CeoApp
 public class CeoUserDetailsService implements UserDetailsService {
 
-    private final CeoOwnerQueryService ceoQueryService;
+    private final CeoPersistencePort ceoPersistencePort;
 
-    public CeoUserDetailsService(CeoOwnerQueryService ceoQueryService) {
-        this.ceoQueryService = ceoQueryService;
+    public CeoUserDetailsService(CeoPersistencePort ceoPersistencePort) {
+        this.ceoPersistencePort = ceoPersistencePort;
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Ceo ceo = ceoQueryService.findByUsername(username)
+        Ceo ceo = ceoPersistencePort.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("점주를 찾을 수 없습니다: " + username));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_CEO");

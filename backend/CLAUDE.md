@@ -259,6 +259,7 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
   - `BannerPersistencePort bannerPersistencePort`로 씁니다.
   - 축약형은 접미어만 바꿉니다: `ProductOptionPersistencePort optionPersistencePort`.
   - 조회 어댑터를 직접 주입하는 드문 경우(어댑터끼리의 협력)에도 `ShopDeliveryTipQueryAdapter shopDeliveryTipQueryAdapter`처럼 씁니다.
+  - **인바운드 포트(UseCase)도 같습니다**: `MemberAuthCommandUseCase authCommandUseCase`처럼 필드명이 `UseCase`로 끝나야 합니다(`authCommandService` 금지). 5개 모듈(application·web·admin·ceo·batch)의 `LayerRulesTest#useCaseFieldsShouldBeNamedUseCase`가 필드명을 강제합니다. 생성자 파라미터명은 리네임할 때 함께 맞춥니다.
 - **포트를 감싸는 데코레이터**는 `CachingXxx implements Xxx` 패턴을 유지합니다: `CachingProhibitedWordPersistencePort implements ProhibitedWordPersistencePort`.
 - **테스트 더블**은 포트 이름에 역할 접두·접미를 붙입니다: `FakeReviewLikePersistencePort`, `StubProductPersistencePort`, `ProductPersistencePortStub`, `RecordingShopChangeHistoryPersistencePort`.
 - **`Repository`라는 단어가 남는 곳은 셋뿐입니다.**
@@ -1520,6 +1521,12 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   - `{도메인}CommandService` — `@Transactional`. 해당 **`{도메인}CommandUseCase`를 implements**한다. **Command를 수신**해 도메인 타입으로 승격(`XxxId.of`/`Enum.from`)하고, domain의 **write 포트**(`{도메인}PersistencePort`)와 **순수 POJO 도메인 서비스**(`<ctx>/service/`)를 주입한다. 도메인 변경 후 [명시적 save](#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)를 호출한다.
   - `{도메인}QueryService` — `@Transactional(readOnly = true)`. 해당 **`{도메인}QueryUseCase`를 implements**한다. infrastructure DAO가 아니라 **`{Ctx}QueryPort`를 주입**하며(위 [읽기 경로 포트화](#api-모듈-querydslinfra-전면-금지-규칙-archunit-강제--챕터-04로-완료) 참조), **`*Result`를 그대로 반환하고 Response 조립은 api 모듈의 Response record가 한다**(이 서비스에 매퍼가 없다 — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 동일).
 - **컨트롤러는 UseCase 인터페이스만 주입한다**: 컨트롤러 생성자에 `application/service/`의 구체 클래스가 등장하지 않는다. 이것이 인바운드 포트 도입의 실익인 컴파일 게이트가 실제로 작동하는 지점이다.
+- **서비스 간 협력도 UseCase 인터페이스로 주입한다 (신설 — 과거 "협력 서비스는 구체 클래스를 주입한다" 규칙의 번복)**: UseCase를 구현한 클래스는 application 안에서도 구체 타입으로 주입하지 않는다.
+  - 협력 메서드가 domain-free 타입(`port.out` `*Result`·원시값)만 주고받으면 UseCase 인터페이스에 선언한다.
+  - 도메인 타입을 주고받는 단순 위임이면 위임을 없애고, 그 타입을 소유한 write 포트나 마커 없는 도메인 서비스를 직접 주입한다.
+  - 위임을 걷어낼 때는 그 위임 대상이 제공하던 `@Transactional` 속성을 호출부로 옮긴다.
+  - `application` `LayerRulesTest#servicesShouldDependOnUseCasesNotImplementations`가 강제하고, `commandServicesShouldNotDependOnQueryPorts`의 금지 대상에 `*QueryUseCase`를 추가해 CQRS 우회를 막는다.
+  - 상세와 before/after는 `application/AGENTS.md`의 "QueryUseCase에는 컨트롤러 표면만 올린다" 절 번복 표기에 있다.
 - **`MultipartFile`은 서비스 파라미터로만 허용하고 Command 필드로는 금지한다**: 업로드 자체를 받는 경계 타입이라 서비스 시그니처에 남기는 것은 존치하되(파일 업로드 흐름을 재설계하지 않기 위함), **Command에는 업로드 결과 참조**(파일 식별자·URL)만 담는다. Command가 서블릿 업로드 타입을 보유하면 application 계층이 web 플럼빙에 결합되고, 직렬화·재실행이 불가능해진다.
   - **챕터 11 판정 — 포트 추상화(안 B)를 채택하지 않는다**: 이 예외 때문에 `application`이 `org.springframework:spring-web` 한 좌표를 직접 선언한다(api-common 절단으로 전이 경로가 사라졌기 때문). 프레임워크-프리 업로드 표현(`UploadPayload` record)을 두고 컨트롤러가 변환하면 application이 완전 프레임워크-프리가 되지만, **3앱 업로드 경로 전수 재설계와 스트리밍/임시파일 시맨틱 검증이 따라붙어** "빌드 그래프 절단"이라는 챕터 11의 검증 가능한 목표에 업로드 재설계 리스크가 엮인다. 절단의 목적(swagger·HTTP 표현 조립 제거)은 이 예외와 무관하게 달성됐고, starter-web 전체가 아니라 `spring-web` 한 좌표만 남아 오염 범위도 최소다. 안 B는 후속 판정 항목으로 `docs/tasks/README.md`에 기록만 남겼다.
 - **서로의 의존을 교차 주입하지 않는다**: **CommandService는 `..query..`를 주입하지 않고, QueryService는 write 포트를 주입하지 않는다.** 이 두 금지가 CQRS 분리를 실제로 지탱하는 지점이다 — 한쪽이라도 허용하면 클래스는 둘로 나뉘었지만 의존 그래프는 여전히 하나로 뭉쳐 있어, 조회 트랜잭션에서 쓰기가 일어나거나 명령 경로가 표현용 투영에 결합되는 것을 막을 수 없다. 명령 처리 후 응답이 필요하면 **명령은 식별자만 반환하고 컨트롤러가 QueryService로 재조회**한다.

@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupR
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupApiController {
-    private final ProductOptionGroupQueryUseCase productOptionGroupQueryService;
+    private final ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase;
     private final ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase;
 
     public ProductOptionGroupApiController(
-        ProductOptionGroupQueryUseCase productOptionGroupQueryService,
+        ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase,
         ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase
     ) {
-        this.productOptionGroupQueryService = productOptionGroupQueryService;
+        this.productOptionGroupQueryUseCase = productOptionGroupQueryUseCase;
         this.productOptionGroupCommandUseCase = productOptionGroupCommandUseCase;
     }
 
@@ -53,7 +53,7 @@ public class ProductOptionGroupApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupSearchRequest request
     ) {
-        List<ProductOptionGroupResponse> response = productOptionGroupQueryService.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
+        List<ProductOptionGroupResponse> response = productOptionGroupQueryUseCase.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
             .map(ProductOptionGroupResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

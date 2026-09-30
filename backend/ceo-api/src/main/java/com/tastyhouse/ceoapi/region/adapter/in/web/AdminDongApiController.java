@@ -28,10 +28,10 @@ import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongTreeRespons
 @RestController
 @RequestMapping("/api/admin-dongs")
 public class AdminDongApiController {
-    private final AdminDongQueryUseCase adminDongQueryService;
+    private final AdminDongQueryUseCase adminDongQueryUseCase;
 
-    public AdminDongApiController(AdminDongQueryUseCase adminDongQueryService) {
-        this.adminDongQueryService = adminDongQueryService;
+    public AdminDongApiController(AdminDongQueryUseCase adminDongQueryUseCase) {
+        this.adminDongQueryUseCase = adminDongQueryUseCase;
     }
 
     @Operation(summary = "행정동 검색", description = "배달가능지역으로 등록할 행정동을 검색합니다. 사용 중인 행정동만 조회합니다.")
@@ -40,7 +40,7 @@ public class AdminDongApiController {
         @Valid @ModelAttribute AdminDongSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<AdminDongItemResult> pageResult = adminDongQueryService.getAdminDongs(
+        PageResult<AdminDongItemResult> pageResult = adminDongQueryUseCase.getAdminDongs(
             search.keyword(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<AdminDongItemResponse> pageResponse =
@@ -59,7 +59,7 @@ public class AdminDongApiController {
         @Valid @ModelAttribute AdminDongTreeRequest search
     ) {
         AdminDongTreeResponse response = AdminDongTreeResponse.from(
-            adminDongQueryService.getAdminDongTree(search.sidoName(), search.sigunguName())
+            adminDongQueryUseCase.getAdminDongTree(search.sidoName(), search.sigunguName())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -73,7 +73,7 @@ public class AdminDongApiController {
         @Valid @ModelAttribute AdminDongBoundarySearchRequest search
     ) {
         AdminDongBoundaryResponse response = AdminDongBoundaryResponse.from(
-            adminDongQueryService.getAdminDongBoundaries(
+            adminDongQueryUseCase.getAdminDongBoundaries(
                 search.swLat(),
                 search.swLng(),
                 search.neLat(),

@@ -24,16 +24,16 @@ import com.tastyhouse.webapi.rank.adapter.in.web.response.RankPrizeListItemRespo
 @RequestMapping("/api/ranks")
 @Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
-    private final RankQueryUseCase rankQueryService;
+    private final RankQueryUseCase rankQueryUseCase;
 
-    public RankApiController(RankQueryUseCase rankQueryService) {
-        this.rankQueryService = rankQueryService;
+    public RankApiController(RankQueryUseCase rankQueryUseCase) {
+        this.rankQueryUseCase = rankQueryUseCase;
     }
 
     @Operation(summary = "랭킹 기간 조회", description = "현재 진행중인 랭킹의 시작일자와 종료일자를 조회합니다.")
     @GetMapping("/v1/duration")
     public ResponseEntity<ApiResponse<RankDurationResponse>> getDuration() {
-        return rankQueryService.getDuration()
+        return rankQueryUseCase.getDuration()
             .map(duration -> ResponseEntity.ok(ApiResponse.success(RankDurationResponse.from(duration))))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -41,7 +41,7 @@ public class RankApiController {
     @Operation(summary = "랭킹 경품 목록 조회", description = "현재 진행중인 랭킹의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes() {
-        List<RankPrizeListItemResponse> prizes = rankQueryService.getPrizes().stream()
+        List<RankPrizeListItemResponse> prizes = rankQueryUseCase.getPrizes().stream()
             .map(RankPrizeListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(prizes));
@@ -52,7 +52,7 @@ public class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankQueryService.getMemberRankList(search.type(), search.limit()).stream()
+        List<RankMemberListItemResponse> ranks = rankQueryUseCase.getMemberRankList(search.type(), search.limit()).stream()
             .map(RankMemberListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(ranks));
@@ -65,7 +65,7 @@ public class RankApiController {
         @Valid @ModelAttribute RankSearchRequest search
     ) {
         RankMemberListItemResponse myRank = RankMemberListItemResponse.from(
-            rankQueryService.getMyMemberRank(userDetails.getMemberId(), search.type())
+            rankQueryUseCase.getMyMemberRank(userDetails.getMemberId(), search.type())
         );
         return ResponseEntity.ok(ApiResponse.success(myRank));
     }

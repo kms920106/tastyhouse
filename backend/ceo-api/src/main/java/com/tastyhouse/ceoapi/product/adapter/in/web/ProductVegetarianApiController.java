@@ -28,14 +28,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianSt
 @RestController
 @RequestMapping("/api/products")
 public class ProductVegetarianApiController {
-    private final ProductVegetarianQueryUseCase productVegetarianQueryService;
+    private final ProductVegetarianQueryUseCase productVegetarianQueryUseCase;
     private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;
 
     public ProductVegetarianApiController(
-        ProductVegetarianQueryUseCase productVegetarianQueryService,
+        ProductVegetarianQueryUseCase productVegetarianQueryUseCase,
         ProductVegetarianCommandUseCase productVegetarianCommandUseCase
     ) {
-        this.productVegetarianQueryService = productVegetarianQueryService;
+        this.productVegetarianQueryUseCase = productVegetarianQueryUseCase;
         this.productVegetarianCommandUseCase = productVegetarianCommandUseCase;
     }
 
@@ -48,7 +48,7 @@ public class ProductVegetarianApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductVegetarianStatusResponse response = ProductVegetarianStatusResponse.from(productVegetarianQueryService.getVegetarianStatus( userDetails.getCeoId(), request.shopId(), id ));
+        ProductVegetarianStatusResponse response = ProductVegetarianStatusResponse.from(productVegetarianQueryUseCase.getVegetarianStatus( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

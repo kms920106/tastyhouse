@@ -37,14 +37,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalog
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRequestApiController {
-    private final ShopRequestQueryUseCase shopRequestQueryService;
+    private final ShopRequestQueryUseCase shopRequestQueryUseCase;
     private final ShopRequestCommandUseCase shopRequestCommandUseCase;
 
     public ShopRequestApiController(
-        ShopRequestQueryUseCase shopRequestQueryService,
+        ShopRequestQueryUseCase shopRequestQueryUseCase,
         ShopRequestCommandUseCase shopRequestCommandUseCase
     ) {
-        this.shopRequestQueryService = shopRequestQueryService;
+        this.shopRequestQueryUseCase = shopRequestQueryUseCase;
         this.shopRequestCommandUseCase = shopRequestCommandUseCase;
     }
 
@@ -59,7 +59,7 @@ public class ShopRequestApiController {
         @Valid @ModelAttribute ShopRequestSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopRequestListItemViewResult> pageResult = shopRequestQueryService.getRequests(
+        PageResult<ShopRequestListItemViewResult> pageResult = shopRequestQueryUseCase.getRequests(
             userDetails.getCeoId(),
             id,
             request.requestType(),
@@ -90,7 +90,7 @@ public class ShopRequestApiController {
         @PathVariable Long requestId
     ) {
         ShopRequestDetailResponse response =
-            ShopRequestDetailResponse.from(shopRequestQueryService.getRequestDetail(userDetails.getCeoId(), id, requestId));
+            ShopRequestDetailResponse.from(shopRequestQueryUseCase.getRequestDetail(userDetails.getCeoId(), id, requestId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -119,7 +119,7 @@ public class ShopRequestApiController {
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
-        List<ShopRequestCommentResponse> response = shopRequestQueryService.getComments(userDetails.getCeoId(), id, requestId).stream()
+        List<ShopRequestCommentResponse> response = shopRequestQueryUseCase.getComments(userDetails.getCeoId(), id, requestId).stream()
             .map(ShopRequestCommentResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -148,7 +148,7 @@ public class ShopRequestApiController {
     @GetMapping("/v1/request-types")
     public ResponseEntity<ApiResponse<ShopRequestTypeCatalogResponse>> getRequestTypes() {
         ShopRequestTypeCatalogResponse response =
-            ShopRequestTypeCatalogResponse.from(shopRequestQueryService.getRequestTypes());
+            ShopRequestTypeCatalogResponse.from(shopRequestQueryUseCase.getRequestTypes());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

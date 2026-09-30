@@ -273,6 +273,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         return reviewQueryPort.findReviewsByMemberId(memberId, PageQuery.of(page, size));
     }
 
+    @Override
     public ReviewsByRatingResult findShopReviewsByRating(
         Long shopId,
         int page,
@@ -307,6 +308,7 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         );
     }
 
+    @Override
     public ShopReviewStatisticsResult findShopReviewStatistics(Long shopId) {
         Long totalCount = reviewStatisticsQueryPort.countVisibleByShopId(shopId);
 
@@ -344,14 +346,17 @@ public class ReviewQueryService implements ReviewQueryUseCase {
         );
     }
 
+    @Override
     public long countVisibleReviewsByMemberId(Long memberId) {
         return reviewStatisticsQueryPort.countVisibleReviewsByMemberId(memberId);
     }
 
+    @Override
     public Set<Long> findReviewedProductIds(Long orderId, Long memberId, Collection<Long> productIds) {
         return reviewQueryPort.findReviewedProductIds(orderId, memberId, productIds);
     }
 
+    @Override
     public PageResult<MyReviewListItemResult> findMyReviews(Long memberId, int page, int size) {
         return reviewQueryPort.findMyReviews(memberId, PageQuery.of(page, size));
     }

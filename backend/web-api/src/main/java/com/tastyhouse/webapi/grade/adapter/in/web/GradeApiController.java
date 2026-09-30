@@ -17,16 +17,16 @@ import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResp
 @RestController
 @RequestMapping("/api/grades")
 public class GradeApiController {
-    private final GradeQueryUseCase gradeQueryService;
+    private final GradeQueryUseCase gradeQueryUseCase;
 
-    public GradeApiController(GradeQueryUseCase gradeQueryService) {
-        this.gradeQueryService = gradeQueryService;
+    public GradeApiController(GradeQueryUseCase gradeQueryUseCase) {
+        this.gradeQueryUseCase = gradeQueryUseCase;
     }
 
     @Operation(summary = "등급 세부 조건 목록 조회", description = "전체 등급의 이름과 달성 조건(최소/최대 리뷰 개수)을 조회합니다. 인증 불필요.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<GradeInfoListItemResponse>>> getGradeInfoList() {
-        List<GradeInfoListItemResponse> gradeInfoList = gradeQueryService.getGradeInfoList().stream()
+        List<GradeInfoListItemResponse> gradeInfoList = gradeQueryUseCase.getGradeInfoList().stream()
             .map(GradeInfoListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(gradeInfoList));

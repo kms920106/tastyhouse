@@ -39,12 +39,12 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
-import com.tastyhouse.application.product.service.ProductQueryService;
+import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
-import com.tastyhouse.application.review.service.ReviewQueryService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -119,8 +119,8 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
     private final ScheduledOrderSlotService scheduledOrderSlotService;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final PublicHolidayCalendar publicHolidayCalendar;
-    private final ProductQueryService productQueryService;
-    private final ReviewQueryService reviewQueryService;
+    private final ProductQueryUseCase productQueryUseCase;
+    private final ReviewQueryUseCase reviewQueryUseCase;
 
     public ShopQueryService(
         ShopPersistencePort shopPersistencePort,
@@ -137,8 +137,8 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         ScheduledOrderSlotService scheduledOrderSlotService,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         PublicHolidayCalendar publicHolidayCalendar,
-        ProductQueryService productQueryService,
-        ReviewQueryService reviewQueryService
+        ProductQueryUseCase productQueryUseCase,
+        ReviewQueryUseCase reviewQueryUseCase
     ) {
         this.shopPersistencePort = shopPersistencePort;
         this.memberDeliveryAddressPersistencePort = memberDeliveryAddressPersistencePort;
@@ -154,8 +154,8 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         this.scheduledOrderSlotService = scheduledOrderSlotService;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.publicHolidayCalendar = publicHolidayCalendar;
-        this.productQueryService = productQueryService;
-        this.reviewQueryService = reviewQueryService;
+        this.productQueryUseCase = productQueryUseCase;
+        this.reviewQueryUseCase = reviewQueryUseCase;
     }
 
     @Override
@@ -582,7 +582,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<ShopProductCategoryViewResult> getShopProducts(Long shopId) {
-        List<ShopProductItemResult> shopProducts = productQueryService.findShopProducts(shopId);
+        List<ShopProductItemResult> shopProducts = productQueryUseCase.findShopProducts(shopId);
 
         Map<Long, List<ShopProductItemResult>> productsByCategory = shopProducts.stream()
             .filter(product -> product.productCategoryId() != null)
@@ -592,7 +592,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
             .filter(product -> product.productCategoryId() == null)
             .toList();
 
-        List<ShopProductCategoryViewResult> categories = productQueryService.findShopProductCategories(shopId)
+        List<ShopProductCategoryViewResult> categories = productQueryUseCase.findShopProductCategories(shopId)
             .stream()
             .map(category -> new ShopProductCategoryViewResult(
                 category.name(),
@@ -642,12 +642,12 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
         Boolean hasImage,
         String sortType
     ) {
-        return reviewQueryService.findShopReviewsByRating(shopId, page, size, hasImage, sortType);
+        return reviewQueryUseCase.findShopReviewsByRating(shopId, page, size, hasImage, sortType);
     }
 
     @Override
     public ShopReviewStatisticsViewResult getShopReviewStatistics(Long shopId) {
-        ShopReviewStatisticsResult statistics = reviewQueryService.findShopReviewStatistics(shopId);
+        ShopReviewStatisticsResult statistics = reviewQueryUseCase.findShopReviewStatistics(shopId);
 
         ShopVisibleDetailResult shop = findVisibleShop(shopId);
 
@@ -668,7 +668,7 @@ public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQuery
 
     @Override
     public List<PopularProductItemResult> getPopularProducts(Long shopId) {
-        return productQueryService.findPopularProducts(shopId);
+        return productQueryUseCase.findPopularProducts(shopId);
     }
 
     @Override

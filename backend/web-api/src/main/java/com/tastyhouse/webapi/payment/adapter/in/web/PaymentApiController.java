@@ -36,11 +36,11 @@ import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
     private final PaymentCommandUseCase paymentCommandUseCase;
-    private final PaymentQueryUseCase paymentQueryService;
+    private final PaymentQueryUseCase paymentQueryUseCase;
 
-    public PaymentApiController(PaymentCommandUseCase paymentCommandUseCase, PaymentQueryUseCase paymentQueryService) {
+    public PaymentApiController(PaymentCommandUseCase paymentCommandUseCase, PaymentQueryUseCase paymentQueryUseCase) {
         this.paymentCommandUseCase = paymentCommandUseCase;
-        this.paymentQueryService = paymentQueryService;
+        this.paymentQueryUseCase = paymentQueryUseCase;
     }
 
     @Operation(summary = "결제 생성", description = "주문에 대한 결제를 생성합니다. 생성된 결제 ID를 반환합니다.")
@@ -61,7 +61,7 @@ public class PaymentApiController {
     ) {
         PaymentConfirmCommand command = request.toCommand();
         Long paymentId = paymentCommandUseCase.confirmPayment(command);
-        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(paymentId));
+        PaymentResponse response = PaymentResponse.from(paymentQueryUseCase.getPayment(paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -74,7 +74,7 @@ public class PaymentApiController {
         Long memberId = userDetails.getMemberId();
         PgPaymentConfirmCommand command = request.toCommand(memberId);
         Long paymentId = paymentCommandUseCase.confirmPgPayment(command);
-        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(memberId, paymentId));
+        PaymentResponse response = PaymentResponse.from(paymentQueryUseCase.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -84,7 +84,7 @@ public class PaymentApiController {
         @PathVariable Long orderId,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPaymentByOrderId(userDetails.getMemberId(), orderId));
+        PaymentResponse response = PaymentResponse.from(paymentQueryUseCase.getPaymentByOrderId(userDetails.getMemberId(), orderId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -109,7 +109,7 @@ public class PaymentApiController {
         Long memberId = userDetails.getMemberId();
         PaymentOnSiteCompleteCommand command = PaymentOnSiteCompleteCommand.of(memberId, id);
         Long paymentId = paymentCommandUseCase.completeOnSitePayment(command);
-        PaymentResponse response = PaymentResponse.from(paymentQueryService.getPayment(memberId, paymentId));
+        PaymentResponse response = PaymentResponse.from(paymentQueryUseCase.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -122,7 +122,7 @@ public class PaymentApiController {
     ) {
         PaymentRefundRequestCommand command = request.toCommand(userDetails.getMemberId(), id);
         Long refundId = paymentCommandUseCase.requestRefund(command);
-        PaymentRefundResponse response = PaymentRefundResponse.from(paymentQueryService.getRefund(refundId));
+        PaymentRefundResponse response = PaymentRefundResponse.from(paymentQueryUseCase.getRefund(refundId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

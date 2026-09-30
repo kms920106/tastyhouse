@@ -19,10 +19,10 @@ import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberList
 @RequestMapping("/api/referrals")
 @Tag(name = "Referral", description = "추천인 API")
 public class ReferralApiController {
-    private final ReferralQueryUseCase referralQueryService;
+    private final ReferralQueryUseCase referralQueryUseCase;
 
-    public ReferralApiController(ReferralQueryUseCase referralQueryService) {
-        this.referralQueryService = referralQueryService;
+    public ReferralApiController(ReferralQueryUseCase referralQueryUseCase) {
+        this.referralQueryUseCase = referralQueryUseCase;
     }
 
     @Operation(summary = "내 추천 이력 조회", description = "내가 추천한 회원 목록과 보상 상태를 조회합니다.")
@@ -30,7 +30,7 @@ public class ReferralApiController {
     public ResponseEntity<ApiResponse<List<ReferralMemberListItemResponse>>> getMyReferrals(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        List<ReferralMemberListItemResponse> referrals = referralQueryService.getMyReferrals(userDetails.getMemberId()).stream()
+        List<ReferralMemberListItemResponse> referrals = referralQueryUseCase.getMyReferrals(userDetails.getMemberId()).stream()
             .map(ReferralMemberListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(referrals));

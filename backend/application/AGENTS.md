@@ -514,6 +514,40 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 원문 주석은 챕터 04에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
+### UseCase 구현 구체 주입 금지 — `servicesShouldDependOnUseCasesNotImplementations`
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
+→ `servicesShouldDependOnUseCasesNotImplementations`
+
+- **검사 내용**: `port.in` 인터페이스를 구현한 클래스(구현 집합 `I`)에 다른 클래스가 구체 타입으로 의존하면 실패한다. `getDirectDependenciesFromSelf()`로 판정하므로 필드·생성자 파라미터·메서드 파라미터·호출이 모두 잡힌다.
+- **제외 대상**:
+  - 자기 자신과 자기 중첩 클래스. 최상위 클래스가 대상과 같으면 건너뛴다. non-static inner 클래스는 바깥 클래스를 암묵적으로 참조하기 때문에 이 제외가 없으면 오탐이 난다.
+  - 봉인 목록은 두지 않는다. 기대 위반은 0건이다.
+- **공허 통과 방지**: `I.size() >= 200`을 함께 단정한다(도입 시점 실측 202). 패키지 필터가 틀려 `I`가 비면 이 규칙은 아무것도 검사하지 않고 통과하기 때문이다.
+- **위반이 나면**: `@SuppressWarnings`나 예외 목록을 두지 않는다. 호출부가 UseCase 인터페이스를 주입하게 바꾼다. 필요한 메서드가 도메인 타입을 쓴다면 write 포트나 도메인 서비스를 직접 주입한다(아래 "QueryUseCase에는 컨트롤러 표면만 올린다" 절의 번복 표기).
+- **반증**: 구체 `MemberCommandService`를 주입하는 probe 클래스를 넣었을 때 실패하는 것을 확인했다.
+
+### UseCase 필드명 — `useCaseFieldsShouldBeNamedUseCase`
+
+**대상**: `useCaseFieldsShouldBeNamedUseCase`. 아래 모든 모듈의 `LayerRulesTest`에 있다.
+- `application/src/test/.../architecture/LayerRulesTest`
+- `{web,admin,ceo}-api/src/test/.../architecture/LayerRulesTest`
+- `batch-module/src/test/.../architecture/LayerRulesTest`
+
+- **검사 내용**: `port.in` 인터페이스 타입 필드는 이름이 `UseCase`로 끝나야 한다. 변수명이 타입을 따르게 하려는 것이다(backend/CLAUDE.md 포트·어댑터 네이밍 규칙).
+- **도입 배경**: 도입 전에는 컨트롤러 69곳이 `MemberAuthCommandUseCase authCommandService`처럼 UseCase를 주입하면서 필드 이름은 `*Service`였다. 코드만 보면 구체 서비스를 주입한 것으로 읽혔다.
+- **공허 통과 방지**: 모듈별로 대상 필드 수의 하한을 단정한다(도입 시점 실측의 약 80%: application 15 · web 40 · admin 80 · ceo 80 · batch 5). 필드 타입 해석이 일부만 깨져도 공허 통과하지 않게 하려는 것이다. 필드가 크게 줄어드는 리팩터링을 하면 하한을 함께 조정한다.
+- **판정식은 5개 파일이 같아야 한다**: `isPortInInterface`와 테스트 본문은 모듈별 테스트에 복제돼 있다(공유 testFixtures를 두지 않는 관행). 판정식을 바꿀 때는 5곳을 함께 고친다.
+- **검사 범위의 한계**: 필드만 검사하고 생성자 파라미터명은 검사하지 않는다. javac `-parameters` 설정 유무에 따라 파라미터명을 읽을 수 없기 때문이다. 파라미터명은 리네임할 때 필드와 함께 맞춘다.
+
+### CQRS 규칙의 `*QueryUseCase` 확장 — `commandServicesShouldNotDependOnQueryPorts`
+
+**대상**: `LayerRulesTest#commandServicesShouldNotDependOnQueryPorts`
+
+- **변경 내용**: 금지 대상에 이름 접미어 `QueryUseCase`를 추가했다. 기존 금지 대상은 `QueryPort`·`QueryService`였다.
+- **변경 이유**: 조회 협력 메서드가 `*QueryUseCase`에 올라가자, CommandService가 구체 `*QueryService` 대신 `*QueryUseCase`를 주입하면 이름 기준 규칙을 우회할 수 있게 됐다.
+- **위반 현황**: 도입 시점 위반은 0건이고, probe로 규칙이 실패하는 것을 확인했다. 이 확장을 되돌리지 않는다.
+
 ### `queryServicesShouldNotDependOnWritePorts` carve-out 3건 — 목록에 새 항목을 추가하지 않는다
 
 **대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
@@ -1339,6 +1373,27 @@ ceo 전용 Result에만 있는 것이 그 사례).
 관리 조회 쪽에는 CommandService를 두지 않는다. **빈 CommandService를 형식으로 만들지 않는다.**
 
 ### `QueryUseCase`에는 컨트롤러 표면만 올린다 — 협력용 public 메서드를 전사하지 않는다
+
+> **(번복됨 — 서비스 간 구체 주입 제거)** 이 절의 결론 "협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다"는 **폐기됐다.** 지금은 UseCase를 구현한 클래스를 누구도 구체 타입으로 주입하지 않는다. 아래 본문은 번복 전의 기록이다(제목은 앵커 보존을 위해 유지).
+>
+> | 항목 | before | after |
+> |---|---|---|
+> | 서비스 간 협력 주입 | 구체 `XxxService`를 주입한다(28건, 24개 파일) | `port.in` UseCase 인터페이스를 주입한다(0건) |
+> | 반환 타입이 domain-free인 협력 메서드(`ReviewQueryService`의 `findShopReviewsByRating`·`findShopReviewStatistics`·`countVisibleReviewsByMemberId`·`findReviewedProductIds`·`findMyReviews`, `ProductQueryService`의 `searchByKeyword`·`findShopProducts`·`findPopularProducts`·`findShopProductCategories`) | 구체 클래스에만 있다 | `ReviewQueryUseCase`·`ProductQueryUseCase`에 선언한다. 반환 타입이 전부 `port.out` `*Result`라 `commandRecordsShouldBeBoundaryTyped`를 통과한다 |
+> | 도메인 타입을 주고받는 단순 위임(`AdminQueryService`/`CeoOwnerQueryService#findByUsername`, `MemberCommandService#signUp`·`signUpSocial`·`saveSocialAccount`) | 구체 클래스에 두고 협력 서비스가 호출한다 | **삭제**했다. 호출부가 실제 협력자를 직접 주입한다 — `AdminPersistencePort`/`CeoPersistencePort`, 마커 없는 도메인 서비스 `MemberRegistrationService`, `PasswordEncoder`, `MemberSocialAccountPersistencePort`. UseCase에 올리지 않는 이유는 둘이다. 도메인 타입이라 `port.in` 규칙에 걸리고, 비밀번호 해시를 담은 `Admin`/`Ceo`를 컨트롤러가 닿는 인터페이스로 노출하게 되기 때문이다 |
+> | 트랜잭션 경계 | 위임 대상 서비스의 클래스 `@Transactional`이 제공했다 | 위임을 걷어낸 호출부에 **같은 속성을 옮겨 붙였다**. `CredentialLoginService#signUp`은 `@Transactional`(회원 저장과 추천 등록의 원자성), `AdminTokenService#refresh`·`CeoTokenService#refresh`는 `@Transactional(readOnly = true)`다. refresh의 범위가 조회 한 번에서 메서드 전체로 넓어지지만, 나머지 작업이 Redis 호출이라 동작은 같다 |
+>
+> **새 원칙**
+>
+> - UseCase를 구현한 클래스는 구체 타입으로 주입하지 않는다.
+> - 협력에 필요한 것이 domain-free 타입이면 UseCase에 선언한다. 도메인 타입이면 그 타입을 소유한 write 포트나 마커 없는 도메인 서비스를 직접 주입한다.
+> - UseCase에 올린 협력 메서드는 컨트롤러 표면이 아니다. 예를 들어 `ReviewQueryUseCase#findMyReviews`는 `MemberReviewService`가 쓰는 협력 메서드다. 컨트롤러가 이런 메서드를 새로 호출하려면 그 화면 계약이 맞는지 먼저 확인한다.
+> - **같은 시그니처 주의**: `ReviewQueryUseCase#findMemberReviews`와 `#findMyReviews`는 둘 다 `(Long, int, int) → PageResult<MyReviewListItemResult>`다. 차이는 다음과 같다.
+>   - `findMemberReviews`: `visibleToCustomer()` 조건이라 고객에게 보이는 리뷰만 나온다. `ownerOnly`는 항상 `false`다.
+>   - `findMyReviews`: `hidden = false` 조건만 걸려 점주에게만 공개한 리뷰도 포함한다. `ownerOnly`에 실제 값이 들어간다.
+>   - 둘 다 구현은 `infrastructure/persistence/.../review/query/ReviewQueryAdapter`에 있고, 각각 `findReviewsByMemberId`·`findMyReviews`다.
+> - **가드**: 위 [봉인·가드 목록](#봉인가드-목록)의 "UseCase 구현 구체 주입 금지"·"UseCase 필드명"·"CQRS 규칙의 `*QueryUseCase` 확장" 항목을 본다.
+> - **정정**: 아래 표의 "`findByUsername` 호출부: 시더"는 번복 전에도 틀린 서술이었다. `AdminSeeder`·`CeoSeeder`는 `existsByUsername`만 호출한다.
 
 **대상**: `application/src/main/java/com/tastyhouse/application/**/port/in/*QueryUseCase.java`
 와 그 짝인 `**/service/*QueryService.java`

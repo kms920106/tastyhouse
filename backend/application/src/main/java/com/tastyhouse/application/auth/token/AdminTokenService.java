@@ -2,12 +2,13 @@ package com.tastyhouse.application.auth.token;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.application.admin.service.AdminQueryService;
+import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 import com.tastyhouse.application.auth.port.out.AdminJwtResult;
 import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.security.jwt.TokenType;
@@ -21,18 +22,18 @@ public class AdminTokenService {
     private final AdminJwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
-    private final AdminQueryService adminQueryService;
+    private final AdminPersistencePort adminPersistencePort;
 
     public AdminTokenService(
         AdminJwtTokenProvider jwtTokenProvider,
         RefreshTokenRepository refreshTokenRepository,
         BlacklistRepository blacklistRepository,
-        AdminQueryService adminQueryService
+        AdminPersistencePort adminPersistencePort
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
-        this.adminQueryService = adminQueryService;
+        this.adminPersistencePort = adminPersistencePort;
     }
 
     public AdminJwtResult issue(Authentication authentication, boolean rememberMe) {
@@ -48,6 +49,7 @@ public class AdminTokenService {
         return AdminJwtResult.of(accessToken, refreshToken, "Bearer");
     }
 
+    @Transactional(readOnly = true)
     public AdminJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
@@ -60,7 +62,7 @@ public class AdminTokenService {
             throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
-        Admin admin = adminQueryService.findByUsername(username)
+        Admin admin = adminPersistencePort.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "존재하지 않는 관리자입니다."));
         if (!admin.isActive()) {
             refreshTokenRepository.delete(username);

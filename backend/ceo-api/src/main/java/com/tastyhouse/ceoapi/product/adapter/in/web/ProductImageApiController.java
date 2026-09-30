@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusR
 @RestController
 @RequestMapping("/api/products")
 public class ProductImageApiController {
-    private final ProductImageQueryUseCase productImageQueryService;
+    private final ProductImageQueryUseCase productImageQueryUseCase;
     private final ProductImageCommandUseCase productImageCommandUseCase;
 
     public ProductImageApiController(
-        ProductImageQueryUseCase productImageQueryService,
+        ProductImageQueryUseCase productImageQueryUseCase,
         ProductImageCommandUseCase productImageCommandUseCase
     ) {
-        this.productImageQueryService = productImageQueryService;
+        this.productImageQueryUseCase = productImageQueryUseCase;
         this.productImageCommandUseCase = productImageCommandUseCase;
     }
 
@@ -53,7 +53,7 @@ public class ProductImageApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductImageStatusResponse response = ProductImageStatusResponse.from(productImageQueryService.getImageStatus( userDetails.getCeoId(), request.shopId(), id ));
+        ProductImageStatusResponse response = ProductImageStatusResponse.from(productImageQueryUseCase.getImageStatus( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -36,14 +36,14 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatistics
 @RestController
 @RequestMapping("/api/shops")
 public class ShopReviewApiController {
-    private final ShopReviewQueryUseCase shopReviewQueryService;
+    private final ShopReviewQueryUseCase shopReviewQueryUseCase;
     private final ShopReviewCommandUseCase shopReviewCommandUseCase;
 
     public ShopReviewApiController(
-        ShopReviewQueryUseCase shopReviewQueryService,
+        ShopReviewQueryUseCase shopReviewQueryUseCase,
         ShopReviewCommandUseCase shopReviewCommandUseCase
     ) {
-        this.shopReviewQueryService = shopReviewQueryService;
+        this.shopReviewQueryUseCase = shopReviewQueryUseCase;
         this.shopReviewCommandUseCase = shopReviewCommandUseCase;
     }
 
@@ -59,7 +59,7 @@ public class ShopReviewApiController {
         @Valid @ModelAttribute ShopReviewSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopReviewListItemViewResult> pageResult = shopReviewQueryService.getReviews(
+        PageResult<ShopReviewListItemViewResult> pageResult = shopReviewQueryUseCase.getReviews(
             userDetails.getCeoId(),
             id,
             request.tab(),
@@ -93,7 +93,7 @@ public class ShopReviewApiController {
         @PathVariable Long id
     ) {
         ShopReviewStatisticsResponse response =
-            ShopReviewStatisticsResponse.from(shopReviewQueryService.getStatistics(userDetails.getCeoId(), id));
+            ShopReviewStatisticsResponse.from(shopReviewQueryUseCase.getStatistics(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -108,7 +108,7 @@ public class ShopReviewApiController {
         @PathVariable Long id
     ) {
         ShopReviewSortTypeResponse response =
-            ShopReviewSortTypeResponse.from(shopReviewQueryService.getSortType(userDetails.getCeoId(), id));
+            ShopReviewSortTypeResponse.from(shopReviewQueryUseCase.getSortType(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -139,7 +139,7 @@ public class ShopReviewApiController {
         @PathVariable Long reviewId
     ) {
         ShopReviewDetailResponse response =
-            ShopReviewDetailResponse.from(shopReviewQueryService.getReviewDetail(userDetails.getCeoId(), id, reviewId));
+            ShopReviewDetailResponse.from(shopReviewQueryUseCase.getReviewDetail(userDetails.getCeoId(), id, reviewId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -150,7 +150,7 @@ public class ShopReviewApiController {
     )
     @GetMapping("/v1/review-blind-reasons")
     public ResponseEntity<ApiResponse<List<ReviewBlindReasonCatalogResponse>>> getBlindReasons() {
-        List<ReviewBlindReasonCatalogResponse> response = shopReviewQueryService.getBlindReasons().stream()
+        List<ReviewBlindReasonCatalogResponse> response = shopReviewQueryUseCase.getBlindReasons().stream()
             .map(ReviewBlindReasonCatalogResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

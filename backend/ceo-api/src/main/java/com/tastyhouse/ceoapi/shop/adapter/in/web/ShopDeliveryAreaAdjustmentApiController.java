@@ -30,14 +30,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjust
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaAdjustmentApiController {
-    private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryService;
+    private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
     private final ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
 
     public ShopDeliveryAreaAdjustmentApiController(
-        ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryService,
+        ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase,
         ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
     ) {
-        this.shopDeliveryAreaAdjustmentQueryService = shopDeliveryAreaAdjustmentQueryService;
+        this.shopDeliveryAreaAdjustmentQueryUseCase = shopDeliveryAreaAdjustmentQueryUseCase;
         this.shopDeliveryAreaAdjustmentCommandUseCase = shopDeliveryAreaAdjustmentCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ShopDeliveryAreaAdjustmentApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentQueryService.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
+        List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
             .map(ShopDeliveryAreaAdjustmentItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

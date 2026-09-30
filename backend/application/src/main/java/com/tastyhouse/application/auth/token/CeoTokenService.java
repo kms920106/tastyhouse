@@ -2,13 +2,14 @@ package com.tastyhouse.application.auth.token;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.auth.port.out.CeoJwtResult;
-import com.tastyhouse.application.ceo.service.CeoOwnerQueryService;
+import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRepository;
@@ -21,18 +22,18 @@ public class CeoTokenService {
     private final CeoJwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
-    private final CeoOwnerQueryService ceoQueryService;
+    private final CeoPersistencePort ceoPersistencePort;
 
     public CeoTokenService(
         CeoJwtTokenProvider jwtTokenProvider,
         RefreshTokenRepository refreshTokenRepository,
         BlacklistRepository blacklistRepository,
-        CeoOwnerQueryService ceoQueryService
+        CeoPersistencePort ceoPersistencePort
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
-        this.ceoQueryService = ceoQueryService;
+        this.ceoPersistencePort = ceoPersistencePort;
     }
 
     public CeoJwtResult issue(Authentication authentication, boolean rememberMe) {
@@ -48,6 +49,7 @@ public class CeoTokenService {
         return CeoJwtResult.of(accessToken, refreshToken, "Bearer");
     }
 
+    @Transactional(readOnly = true)
     public CeoJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
@@ -60,7 +62,7 @@ public class CeoTokenService {
             throw new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
-        Ceo ceo = ceoQueryService.findByUsername(username)
+        Ceo ceo = ceoPersistencePort.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.CEO_AUTHENTICATION_FAILED, "존재하지 않는 점주입니다."));
         if (!ceo.isActive()) {
             refreshTokenRepository.delete(username);

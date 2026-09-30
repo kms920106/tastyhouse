@@ -17,7 +17,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
@@ -40,7 +40,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final ProhibitedWordValidator prohibitedWordValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeOwnerCommandService(
@@ -50,7 +50,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
         ProhibitedWordValidator prohibitedWordValidator,
-        FileUploadOwnerCommandService fileUploadCommandService,
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopNoticePersistencePort = shopNoticePersistencePort;
@@ -59,7 +59,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
         this.prohibitedWordValidator = prohibitedWordValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -203,7 +203,7 @@ public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseC
         List<ShopNoticeImage> noticeImages = new ArrayList<>(images.size());
         for (int sortOrder = 0; sortOrder < images.size(); sortOrder++) {
             MultipartFile file = images.get(sortOrder);
-            noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileUploadCommandService.upload(file)), sortOrder));
+            noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileUploadCommandUseCase.upload(file)), sortOrder));
         }
         shopNoticeImagePersistencePort.saveAll(noticeImages);
     }

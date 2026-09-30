@@ -17,10 +17,10 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
-    private final ShopOriginInfoQueryUseCase shopOriginInfoQueryService;
+    private final ShopOriginInfoQueryUseCase shopOriginInfoQueryUseCase;
 
-    public ShopOriginInfoApiController(ShopOriginInfoQueryUseCase shopOriginInfoQueryService) {
-        this.shopOriginInfoQueryService = shopOriginInfoQueryService;
+    public ShopOriginInfoApiController(ShopOriginInfoQueryUseCase shopOriginInfoQueryUseCase) {
+        this.shopOriginInfoQueryUseCase = shopOriginInfoQueryUseCase;
     }
 
     @Operation(summary = "원산지 조회",
@@ -28,7 +28,7 @@ public class ShopOriginInfoApiController {
             + "영역을 감춥니다.")
     @GetMapping("/v1/{id}/origin")
     public ResponseEntity<ApiResponse<ShopOriginInfoResponse>> getOriginInfo(@PathVariable Long id) {
-        ShopOriginInfoResult result = shopOriginInfoQueryService.getOriginInfo(id);
+        ShopOriginInfoResult result = shopOriginInfoQueryUseCase.getOriginInfo(id);
         ShopOriginInfoResponse response = result == null ? null : ShopOriginInfoResponse.from(result);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

@@ -4,13 +4,15 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.application.coupon.port.in.CouponQueryUseCase;
 import com.tastyhouse.application.coupon.port.out.MyCouponListItemResult;
-import com.tastyhouse.application.coupon.service.CouponQueryService;
 import com.tastyhouse.application.member.port.in.MemberCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.member.port.in.MemberStatsQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
 import com.tastyhouse.application.member.port.out.MemberPersonalInfoResult;
 import com.tastyhouse.application.member.port.out.MemberStatsResult;
@@ -25,32 +27,32 @@ import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 @WebApp
 public class MemberService implements MemberScreenUseCase {
 
-    private final MemberQueryService memberQueryService;
+    private final MemberQueryUseCase memberQueryUseCase;
     private final MemberCommandUseCase memberCommandUseCase;
     private final MemberAuthService memberAuthService;
-    private final MemberStatsQueryService memberStatsQueryService;
+    private final MemberStatsQueryUseCase memberStatsQueryUseCase;
     private final MemberShopService memberShopService;
     private final MemberReviewService memberReviewService;
-    private final CouponQueryService couponQueryService;
+    private final CouponQueryUseCase couponQueryUseCase;
     private final MemberGradeService memberGradeService;
 
     public MemberService(
-        MemberQueryService memberQueryService,
+        MemberQueryUseCase memberQueryUseCase,
         MemberCommandUseCase memberCommandUseCase,
         MemberAuthService memberAuthService,
-        MemberStatsQueryService memberStatsQueryService,
+        MemberStatsQueryUseCase memberStatsQueryUseCase,
         MemberShopService memberShopService,
         MemberReviewService memberReviewService,
-        CouponQueryService couponQueryService,
+        CouponQueryUseCase couponQueryUseCase,
         MemberGradeService memberGradeService
     ) {
-        this.memberQueryService = memberQueryService;
+        this.memberQueryUseCase = memberQueryUseCase;
         this.memberCommandUseCase = memberCommandUseCase;
         this.memberAuthService = memberAuthService;
-        this.memberStatsQueryService = memberStatsQueryService;
+        this.memberStatsQueryUseCase = memberStatsQueryUseCase;
         this.memberShopService = memberShopService;
         this.memberReviewService = memberReviewService;
-        this.couponQueryService = couponQueryService;
+        this.couponQueryUseCase = couponQueryUseCase;
         this.memberGradeService = memberGradeService;
     }
 
@@ -67,7 +69,7 @@ public class MemberService implements MemberScreenUseCase {
 
     @Override
     public MemberPersonalInfoResult getPersonalInfo(Long memberId) {
-        return memberQueryService.getPersonalInfo(memberId);
+        return memberQueryUseCase.getPersonalInfo(memberId);
     }
 
     @Override
@@ -95,12 +97,12 @@ public class MemberService implements MemberScreenUseCase {
 
     @Override
     public boolean checkNicknameAvailability(String nickname) {
-        return memberQueryService.checkNicknameAvailability(nickname);
+        return memberQueryUseCase.checkNicknameAvailability(nickname);
     }
 
     @Override
     public boolean checkPhoneAvailability(String phoneNumber) {
-        return memberQueryService.checkPhoneAvailability(phoneNumber);
+        return memberQueryUseCase.checkPhoneAvailability(phoneNumber);
     }
 
     @Override
@@ -110,12 +112,12 @@ public class MemberService implements MemberScreenUseCase {
 
     @Override
     public List<MyCouponListItemResult> getMyCoupons(Long memberId) {
-        return couponQueryService.getMyCoupons(memberId);
+        return couponQueryUseCase.getMyCoupons(memberId);
     }
 
     @Override
     public List<MyCouponListItemResult> getMyAvailableCoupons(Long memberId) {
-        return couponQueryService.getMyAvailableCoupons(memberId);
+        return couponQueryUseCase.getMyAvailableCoupons(memberId);
     }
 
     @Override
@@ -135,16 +137,16 @@ public class MemberService implements MemberScreenUseCase {
 
     @Override
     public MemberWithProfileImageResult getMemberBasicProfile(Long targetMemberId) {
-        return memberQueryService.getMemberProfile(targetMemberId);
+        return memberQueryUseCase.getMemberProfile(targetMemberId);
     }
 
     @Override
     public MemberWithProfileImageResult getMyProfile(Long memberId) {
-        return memberQueryService.getMyProfile(memberId);
+        return memberQueryUseCase.getMyProfile(memberId);
     }
 
     @Override
     public MemberStatsResult getMemberStats(Long memberId) {
-        return memberStatsQueryService.getMemberStats(memberId);
+        return memberStatsQueryUseCase.getMemberStats(memberId);
     }
 }

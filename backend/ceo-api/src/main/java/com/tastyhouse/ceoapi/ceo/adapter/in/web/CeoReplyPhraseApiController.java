@@ -31,14 +31,14 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 @RequestMapping("/api/ceos")
 public class CeoReplyPhraseApiController {
     private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
-    private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryService;
+    private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase;
 
     public CeoReplyPhraseApiController(
         CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase,
-        CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryService
+        CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase
     ) {
         this.ceoReplyPhraseCommandUseCase = ceoReplyPhraseCommandUseCase;
-        this.ceoReplyPhraseQueryService = ceoReplyPhraseQueryService;
+        this.ceoReplyPhraseQueryUseCase = ceoReplyPhraseQueryUseCase;
     }
 
     @Operation(
@@ -51,7 +51,7 @@ public class CeoReplyPhraseApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails
     ) {
         List<CeoReplyPhraseResponse> response =
-            ceoReplyPhraseQueryService.getReplyPhrases(userDetails.getCeoId()).stream()
+            ceoReplyPhraseQueryUseCase.getReplyPhrases(userDetails.getCeoId()).stream()
                 .map(CeoReplyPhraseResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

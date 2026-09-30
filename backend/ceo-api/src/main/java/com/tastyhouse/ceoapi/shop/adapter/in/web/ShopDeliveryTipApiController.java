@@ -35,11 +35,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipSetting
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryTipApiController {
-    private final ShopDeliveryTipQueryUseCase shopDeliveryTipQueryService;
+    private final ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase;
     private final ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase;
 
-    public ShopDeliveryTipApiController(ShopDeliveryTipQueryUseCase shopDeliveryTipQueryService, ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase) {
-        this.shopDeliveryTipQueryService = shopDeliveryTipQueryService;
+    public ShopDeliveryTipApiController(ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase, ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase) {
+        this.shopDeliveryTipQueryUseCase = shopDeliveryTipQueryUseCase;
         this.shopDeliveryTipCommandUseCase = shopDeliveryTipCommandUseCase;
     }
 
@@ -50,7 +50,7 @@ public class ShopDeliveryTipApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryTipSettingResponse response =
-            ShopDeliveryTipSettingResponse.from(shopDeliveryTipQueryService.getDeliveryTips(userDetails.getCeoId(), id));
+            ShopDeliveryTipSettingResponse.from(shopDeliveryTipQueryUseCase.getDeliveryTips(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

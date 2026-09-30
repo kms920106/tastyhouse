@@ -29,7 +29,7 @@ import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
-import com.tastyhouse.application.member.service.MemberCommandService;
+import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.token.FacebookTempTokenRepository;
 
@@ -38,7 +38,7 @@ import com.tastyhouse.security.token.FacebookTempTokenRepository;
 public class FacebookSocialLoginService {
 
     private final SocialOAuthClient facebookOAuthClient;
-    private final MemberCommandService memberCommandService;
+    private final MemberRegistrationService memberRegistrationService;
     private final MemberPersistencePort memberPersistencePort;
     private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
     private final MemberTokenService tokenService;
@@ -47,7 +47,7 @@ public class FacebookSocialLoginService {
 
     public FacebookSocialLoginService(
         @Qualifier("facebookOAuthClient") SocialOAuthClient facebookOAuthClient,
-        MemberCommandService memberCommandService,
+        MemberRegistrationService memberRegistrationService,
         MemberPersistencePort memberPersistencePort,
         MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
         MemberTokenService tokenService,
@@ -55,7 +55,7 @@ public class FacebookSocialLoginService {
         FacebookTempTokenRepository facebookTempTokenRepository
     ) {
         this.facebookOAuthClient = facebookOAuthClient;
-        this.memberCommandService = memberCommandService;
+        this.memberRegistrationService = memberRegistrationService;
         this.memberPersistencePort = memberPersistencePort;
         this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
         this.tokenService = tokenService;
@@ -78,7 +78,7 @@ public class FacebookSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl());
-            memberCommandService.saveSocialAccount(socialAccount);
+            memberSocialAccountPersistencePort.save(socialAccount);
 
             Member member = memberPersistencePort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -136,7 +136,7 @@ public class FacebookSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()
@@ -166,12 +166,12 @@ public class FacebookSocialLoginService {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        Member savedMember = memberCommandService.signUpSocial(
+        Member savedMember = memberRegistrationService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()

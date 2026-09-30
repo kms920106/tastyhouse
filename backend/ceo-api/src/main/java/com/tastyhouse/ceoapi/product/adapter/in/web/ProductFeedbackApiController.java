@@ -31,14 +31,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnre
 @RestController
 @RequestMapping("/api/products")
 public class ProductFeedbackApiController {
-    private final ProductFeedbackQueryUseCase productFeedbackQueryService;
+    private final ProductFeedbackQueryUseCase productFeedbackQueryUseCase;
     private final ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase;
 
     public ProductFeedbackApiController(
-        ProductFeedbackQueryUseCase productFeedbackQueryService,
+        ProductFeedbackQueryUseCase productFeedbackQueryUseCase,
         ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase
     ) {
-        this.productFeedbackQueryService = productFeedbackQueryService;
+        this.productFeedbackQueryUseCase = productFeedbackQueryUseCase;
         this.productFeedbackCommandUseCase = productFeedbackCommandUseCase;
     }
 
@@ -51,7 +51,7 @@ public class ProductFeedbackApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductFeedbackSearchRequest request
     ) {
-        PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackQueryService.getFeedbacks(
+        PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackQueryUseCase.getFeedbacks(
             userDetails.getCeoId(), request.shopId(), request.page(), request.size()
         );
         PaginationResponse<ProductFeedbackResponse> result =
@@ -71,7 +71,7 @@ public class ProductFeedbackApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackQueryService.getUnread( userDetails.getCeoId(), request.shopId() ));
+        ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackQueryUseCase.getUnread( userDetails.getCeoId(), request.shopId() ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

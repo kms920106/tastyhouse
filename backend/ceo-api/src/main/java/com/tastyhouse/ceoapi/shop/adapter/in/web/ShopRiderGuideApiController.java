@@ -31,11 +31,11 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRiderGuideApiController {
-    private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryService;
+    private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;
 
-    public ShopRiderGuideApiController(ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryService, ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase) {
-        this.shopRiderGuideQueryService = shopRiderGuideQueryService;
+    public ShopRiderGuideApiController(ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase) {
+        this.shopRiderGuideQueryUseCase = shopRiderGuideQueryUseCase;
         this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
     }
 
@@ -47,7 +47,7 @@ public class ShopRiderGuideApiController {
         @PathVariable Long id
     ) {
         ShopRiderGuideResponse response =
-            ShopRiderGuideResponse.from(shopRiderGuideQueryService.getRiderGuide(userDetails.getCeoId(), id));
+            ShopRiderGuideResponse.from(shopRiderGuideQueryUseCase.getRiderGuide(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -73,7 +73,7 @@ public class ShopRiderGuideApiController {
         @Valid @RequestBody ShopRiderVisitGuideValidateRequest request
     ) {
         ShopRiderVisitGuideValidationResponse response =
-            ShopRiderVisitGuideValidationResponse.from(shopRiderGuideQueryService.validateVisitGuide(userDetails.getCeoId(), id, request.visitGuide()));
+            ShopRiderVisitGuideValidationResponse.from(shopRiderGuideQueryUseCase.validateVisitGuide(userDetails.getCeoId(), id, request.visitGuide()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

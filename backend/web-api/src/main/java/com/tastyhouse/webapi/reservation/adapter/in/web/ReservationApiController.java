@@ -38,14 +38,14 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot
 @Tag(name = "Reservation", description = "예약 API")
 public class ReservationApiController {
     private final ReservationCommandUseCase reservationCommandUseCase;
-    private final ReservationQueryUseCase reservationQueryService;
+    private final ReservationQueryUseCase reservationQueryUseCase;
 
     public ReservationApiController(
         ReservationCommandUseCase reservationCommandUseCase,
-        ReservationQueryUseCase reservationQueryService
+        ReservationQueryUseCase reservationQueryUseCase
     ) {
         this.reservationCommandUseCase = reservationCommandUseCase;
-        this.reservationQueryService = reservationQueryService;
+        this.reservationQueryUseCase = reservationQueryUseCase;
     }
 
     @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
@@ -55,7 +55,7 @@ public class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationSlotAvailabilityResponse response = ReservationSlotAvailabilityResponse.from(
-            reservationQueryService.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
+            reservationQueryUseCase.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -77,7 +77,7 @@ public class ReservationApiController {
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        List<ReservationResponse> responses = reservationQueryService.getMyReservations(userDetails.getMemberId()).stream()
+        List<ReservationResponse> responses = reservationQueryUseCase.getMyReservations(userDetails.getMemberId()).stream()
             .map(ReservationResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));
@@ -90,7 +90,7 @@ public class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCompleteDetailResponse response = ReservationCompleteDetailResponse.from(
-            reservationQueryService.getCompleteDetail(userDetails.getMemberId(), id)
+            reservationQueryUseCase.getCompleteDetail(userDetails.getMemberId(), id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -102,7 +102,7 @@ public class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationDetailResponse response = ReservationDetailResponse.from(
-            reservationQueryService.getReservationDetail(userDetails.getMemberId(), id)
+            reservationQueryUseCase.getReservationDetail(userDetails.getMemberId(), id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -123,7 +123,7 @@ public class ReservationApiController {
     public ResponseEntity<ApiResponse<ReservationResponse>> confirm(@PathVariable Long id) {
         ReservationConfirmCommand command = ReservationConfirmCommand.of(id);
         reservationCommandUseCase.confirmReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
+        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -132,7 +132,7 @@ public class ReservationApiController {
     public ResponseEntity<ApiResponse<ReservationResponse>> reject(@PathVariable Long id) {
         ReservationRejectCommand command = ReservationRejectCommand.of(id);
         reservationCommandUseCase.rejectReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
+        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -141,14 +141,14 @@ public class ReservationApiController {
     public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable Long id) {
         ReservationCompleteCommand command = ReservationCompleteCommand.of(id);
         reservationCommandUseCase.completeReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryService.getReservation(id));
+        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "가게별 예약 목록 조회(점주)", description = "특정 가게의 예약 목록을 조회합니다.")
     @GetMapping("/v1/shops/{shopId}")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getShopReservations(@PathVariable Long shopId) {
-        List<ReservationResponse> responses = reservationQueryService.getShopReservations(shopId).stream()
+        List<ReservationResponse> responses = reservationQueryUseCase.getShopReservations(shopId).stream()
             .map(ReservationResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));

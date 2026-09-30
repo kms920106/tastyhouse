@@ -34,14 +34,14 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddres
 @Tag(name = "Member Delivery Address", description = "회원 배달 주소록 API")
 public class MemberDeliveryAddressApiController {
     private final MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase;
-    private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryService;
+    private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase;
 
     public MemberDeliveryAddressApiController(
         MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase,
-        MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryService
+        MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase
     ) {
         this.memberDeliveryAddressCommandUseCase = memberDeliveryAddressCommandUseCase;
-        this.memberDeliveryAddressQueryService = memberDeliveryAddressQueryService;
+        this.memberDeliveryAddressQueryUseCase = memberDeliveryAddressQueryUseCase;
     }
 
     @Operation(
@@ -53,7 +53,7 @@ public class MemberDeliveryAddressApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         List<MemberDeliveryAddressItemResponse> responses =
-            memberDeliveryAddressQueryService.getMyDeliveryAddresses(userDetails.getMemberId())
+            memberDeliveryAddressQueryUseCase.getMyDeliveryAddresses(userDetails.getMemberId())
                 .stream()
                 .map(MemberDeliveryAddressItemResponse::from)
                 .toList();

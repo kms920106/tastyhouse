@@ -30,17 +30,17 @@ import com.tastyhouse.webapi.search.adapter.in.web.response.SearchShopListItemRe
 @RequestMapping("/api/search")
 @Tag(name = "Search", description = "검색 API")
 public class SearchApiController {
-    private final SearchQueryUseCase searchQueryService;
+    private final SearchQueryUseCase searchQueryUseCase;
 
-    public SearchApiController(SearchQueryUseCase searchQueryService) {
-        this.searchQueryService = searchQueryService;
+    public SearchApiController(SearchQueryUseCase searchQueryUseCase) {
+        this.searchQueryUseCase = searchQueryUseCase;
     }
 
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")
     public ResponseEntity<ApiResponse<List<SearchPopularKeywordResponse>>> getPopularKeywords() {
         return ResponseEntity.ok(ApiResponse.success(
-            searchQueryService.getPopularKeywords().stream()
+            searchQueryUseCase.getPopularKeywords().stream()
                 .map(SearchPopularKeywordResponse::from)
                 .toList()
         ));
@@ -50,7 +50,7 @@ public class SearchApiController {
     @GetMapping("/v1/recommended-keywords")
     public ResponseEntity<ApiResponse<List<SearchRecommendedKeywordResponse>>> getRecommendedKeywords() {
         return ResponseEntity.ok(ApiResponse.success(
-            searchQueryService.getRecommendedKeywords().stream()
+            searchQueryUseCase.getRecommendedKeywords().stream()
                 .map(SearchRecommendedKeywordResponse::from)
                 .toList()
         ));
@@ -64,7 +64,7 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryService.searchMenus(search.query(), pageRequest.page(), pageRequest.size())
+            searchQueryUseCase.searchMenus(search.query(), pageRequest.page(), pageRequest.size())
                 .map(ProductSummaryResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -80,7 +80,7 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryService.searchReviews(search.query(), pageRequest.page(), pageRequest.size())
+            searchQueryUseCase.searchReviews(search.query(), pageRequest.page(), pageRequest.size())
                 .map(SearchReviewListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -97,7 +97,7 @@ public class SearchApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         var result = PaginationResponse.from(
-            searchQueryService.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            searchQueryUseCase.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(SearchShopListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -113,7 +113,7 @@ public class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryService.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size())
+            searchQueryUseCase.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size())
                 .map(SearchShopListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(

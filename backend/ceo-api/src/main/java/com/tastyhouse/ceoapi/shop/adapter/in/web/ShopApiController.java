@@ -28,10 +28,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopApiController {
-    private final ShopOwnerQueryUseCase shopQueryService;
+    private final ShopOwnerQueryUseCase shopQueryUseCase;
 
-    public ShopApiController(ShopOwnerQueryUseCase shopQueryService) {
-        this.shopQueryService = shopQueryService;
+    public ShopApiController(ShopOwnerQueryUseCase shopQueryUseCase) {
+        this.shopQueryUseCase = shopQueryUseCase;
     }
 
     @Operation(summary = "내 가게 목록 조회", description = "로그인한 점주가 소유한 가게 목록을 조회합니다.")
@@ -41,7 +41,7 @@ public class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopListItemResult> pageResult = shopQueryService.getMyShops(
+        PageResult<ShopListItemResult> pageResult = shopQueryUseCase.getMyShops(
             userDetails.getCeoId(),
             request.name(),
             request.stationId(),
@@ -65,7 +65,7 @@ public class ShopApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDetailResponse response = ShopDetailResponse.from(shopQueryService.getMyShop(userDetails.getCeoId(), id));
+        ShopDetailResponse response = ShopDetailResponse.from(shopQueryUseCase.getMyShop(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

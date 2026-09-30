@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageDeleteCommand;
@@ -24,18 +24,18 @@ public class ShopMenuCollectionImageOwnerCommandService implements ShopMenuColle
     private final ShopMenuCollectionImageService shopMenuCollectionImageService;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopMenuCollectionImageSpecValidator shopMenuCollectionImageSpecValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
 
     public ShopMenuCollectionImageOwnerCommandService(
         ShopMenuCollectionImageService shopMenuCollectionImageService,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopMenuCollectionImageSpecValidator shopMenuCollectionImageSpecValidator,
-        FileUploadOwnerCommandService fileUploadCommandService
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase
     ) {
         this.shopMenuCollectionImageService = shopMenuCollectionImageService;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopMenuCollectionImageSpecValidator = shopMenuCollectionImageSpecValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ShopMenuCollectionImageOwnerCommandService implements ShopMenuColle
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         shopMenuCollectionImageSpecValidator.validate(file);
 
-        Long imageFileId = fileUploadCommandService.upload(file);
+        Long imageFileId = fileUploadCommandUseCase.upload(file);
         ShopId id = ShopId.of(shopId);
         return shopMenuCollectionImageService.register(id, UploadedFileId.of(imageFileId));
     }

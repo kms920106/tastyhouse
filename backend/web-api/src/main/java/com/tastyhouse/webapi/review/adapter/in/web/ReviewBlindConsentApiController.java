@@ -24,14 +24,14 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeRes
 @Tag(name = "Review Blind Consent", description = "게시중단 리뷰 삭제 동의 API")
 public class ReviewBlindConsentApiController {
     private final ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase;
-    private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryService;
+    private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryUseCase;
 
     public ReviewBlindConsentApiController(
         ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase,
-        ReviewBlindConsentQueryUseCase reviewBlindConsentQueryService
+        ReviewBlindConsentQueryUseCase reviewBlindConsentQueryUseCase
     ) {
         this.reviewBlindConsentCommandUseCase = reviewBlindConsentCommandUseCase;
-        this.reviewBlindConsentQueryService = reviewBlindConsentQueryService;
+        this.reviewBlindConsentQueryUseCase = reviewBlindConsentQueryUseCase;
     }
 
     @Operation(
@@ -46,7 +46,7 @@ public class ReviewBlindConsentApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindNoticeResponse response = ReviewBlindNoticeResponse.from(
-            reviewBlindConsentQueryService.getBlindNotice(reviewId, userDetails.getMemberId())
+            reviewBlindConsentQueryUseCase.getBlindNotice(reviewId, userDetails.getMemberId())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

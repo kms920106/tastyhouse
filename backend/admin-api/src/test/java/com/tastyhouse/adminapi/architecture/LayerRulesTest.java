@@ -10,6 +10,7 @@ import java.util.Set;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
@@ -183,5 +184,32 @@ class LayerRulesTest {
         assertThat(violations)
             .as("인바운드 어댑터는 자기 앱(@AdminApp)의 application 슬라이스만 의존한다")
             .isEmpty();
+    }
+
+    @Test
+    void useCaseFieldsShouldBeNamedUseCase() {
+        List<JavaField> useCaseFields = classes.stream()
+            .flatMap(javaClass -> javaClass.getFields().stream())
+            .filter(field -> isPortInInterface(field.getRawType()))
+            .toList();
+
+        assertThat(useCaseFields)
+            .as("UseCase 타입 필드가 줄면 타입 해석이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .hasSizeGreaterThanOrEqualTo(80);
+
+        List<String> violations = useCaseFields.stream()
+            .filter(field -> !field.getName().endsWith("UseCase"))
+            .map(JavaField::getFullName)
+            .toList();
+
+        assertThat(violations)
+            .as("port.in 인터페이스 타입 필드는 이름이 UseCase로 끝난다(변수명은 타입을 따른다)")
+            .isEmpty();
+    }
+
+    private static boolean isPortInInterface(JavaClass javaClass) {
+        String packageName = javaClass.getPackageName();
+        return javaClass.isInterface()
+            && (packageName.endsWith(".port.in") || packageName.contains(".port.in."));
     }
 }

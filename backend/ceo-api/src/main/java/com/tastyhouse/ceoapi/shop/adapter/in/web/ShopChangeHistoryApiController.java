@@ -28,10 +28,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListI
 @RestController
 @RequestMapping("/api/shops")
 public class ShopChangeHistoryApiController {
-    private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryService;
+    private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase;
 
-    public ShopChangeHistoryApiController(ShopChangeHistoryQueryUseCase shopChangeHistoryQueryService) {
-        this.shopChangeHistoryQueryService = shopChangeHistoryQueryService;
+    public ShopChangeHistoryApiController(ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase) {
+        this.shopChangeHistoryQueryUseCase = shopChangeHistoryQueryUseCase;
     }
 
     @Operation(
@@ -45,7 +45,7 @@ public class ShopChangeHistoryApiController {
         @Valid @ModelAttribute ShopChangeHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopChangeHistoryResult> pageResult = shopChangeHistoryQueryService.getChangeHistories(
+        PageResult<ShopChangeHistoryResult> pageResult = shopChangeHistoryQueryUseCase.getChangeHistories(
                 userDetails.getCeoId(),
                 id,
                 request.category(),
@@ -70,7 +70,7 @@ public class ShopChangeHistoryApiController {
     )
     @GetMapping("/v1/change-history-types")
     public ResponseEntity<ApiResponse<List<ShopChangeCategoryResponse>>> getChangeHistoryTypes() {
-        List<ShopChangeCategoryResponse> response = shopChangeHistoryQueryService.getChangeHistoryTypes().stream()
+        List<ShopChangeCategoryResponse> response = shopChangeHistoryQueryUseCase.getChangeHistoryTypes().stream()
             .map(ShopChangeCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

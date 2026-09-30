@@ -35,17 +35,17 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscoun
 @RequestMapping("/api/products")
 @Tag(name = "Product", description = "상품 관리 API")
 public class ProductApiController {
-    private final ProductQueryUseCase productQueryService;
+    private final ProductQueryUseCase productQueryUseCase;
 
-    public ProductApiController(ProductQueryUseCase productQueryService) {
-        this.productQueryService = productQueryService;
+    public ProductApiController(ProductQueryUseCase productQueryUseCase) {
+        this.productQueryUseCase = productQueryUseCase;
     }
 
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<ApiResponse<List<ProductTodayDiscountListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<ProductTodayDiscountListItemResponse> pageResponse = PaginationResponse.from(
-            productQueryService.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size())
+            productQueryUseCase.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size())
                 .map(ProductTodayDiscountListItemResponse::from)
         );
         ApiResponse<List<ProductTodayDiscountListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
@@ -63,7 +63,7 @@ public class ProductApiController {
         @Valid @ModelAttribute ProductDetailSearchRequest search
     ) {
         ProductDetailResponse response = ProductDetailResponse.from(
-            productQueryService.findProductById(id, search.orderMethod())
+            productQueryUseCase.findProductById(id, search.orderMethod())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -72,7 +72,7 @@ public class ProductApiController {
     @PostMapping("/v1/batch")
     public ResponseEntity<ApiResponse<ProductBatchResponse>> getProductsBatch(@Valid @RequestBody ProductBatchRequest request) {
         ProductBatchResponse response = ProductBatchResponse.from(
-            productQueryService.findProductsBatch(request.toQuery())
+            productQueryUseCase.findProductsBatch(request.toQuery())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -80,7 +80,7 @@ public class ProductApiController {
     @Operation(summary = "상품 이미지 목록 조회", description = "상품의 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = ProductImagesResponse.from(productQueryService.findProductImages(id));
+        ProductImagesResponse response = ProductImagesResponse.from(productQueryUseCase.findProductImages(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -88,7 +88,7 @@ public class ProductApiController {
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
         ProductOptionGroupsResponse response = ProductOptionGroupsResponse.from(
-            productQueryService.findProductOptions(id)
+            productQueryUseCase.findProductOptions(id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -97,7 +97,7 @@ public class ProductApiController {
     @GetMapping("/v1/{id}/reviews/count")
     public ResponseEntity<ApiResponse<ProductReviewCountResponse>> getProductReviewCount(@PathVariable Long id) {
         ProductReviewCountResponse response = ProductReviewCountResponse.from(
-            productQueryService.findProductReviewCount(id)
+            productQueryUseCase.findProductReviewCount(id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -110,7 +110,7 @@ public class ProductApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         ProductReviewsByRatingPageResponse result = ProductReviewsByRatingPageResponse.from(
-            productQueryService.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage())
+            productQueryUseCase.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage())
         );
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
@@ -120,7 +120,7 @@ public class ProductApiController {
     @GetMapping("/v1/{id}/reviews/statistics")
     public ResponseEntity<ApiResponse<ProductReviewStatisticsResponse>> getProductReviewStatistics(@PathVariable Long id) {
         ProductReviewStatisticsResponse statistics = ProductReviewStatisticsResponse.from(
-            productQueryService.getProductReviewStatistics(id)
+            productQueryUseCase.getProductReviewStatistics(id)
         );
         ApiResponse<ProductReviewStatisticsResponse> response = ApiResponse.success(statistics);
         return ResponseEntity.ok(response);

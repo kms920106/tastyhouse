@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResp
 @RestController
 @RequestMapping("/api/products")
 public class ProductCategoryApiController {
-    private final ProductCategoryQueryUseCase productCategoryQueryService;
+    private final ProductCategoryQueryUseCase productCategoryQueryUseCase;
     private final ProductCategoryCommandUseCase productCategoryCommandUseCase;
 
     public ProductCategoryApiController(
-        ProductCategoryQueryUseCase productCategoryQueryService,
+        ProductCategoryQueryUseCase productCategoryQueryUseCase,
         ProductCategoryCommandUseCase productCategoryCommandUseCase
     ) {
-        this.productCategoryQueryService = productCategoryQueryService;
+        this.productCategoryQueryUseCase = productCategoryQueryUseCase;
         this.productCategoryCommandUseCase = productCategoryCommandUseCase;
     }
 
@@ -51,7 +51,7 @@ public class ProductCategoryApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductCategorySearchRequest request
     ) {
-        List<ProductCategoryResponse> response = productCategoryQueryService.getProductCategories( userDetails.getCeoId(), request.shopId() ).stream()
+        List<ProductCategoryResponse> response = productCategoryQueryUseCase.getProductCategories( userDetails.getCeoId(), request.shopId() ).stream()
             .map(ProductCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

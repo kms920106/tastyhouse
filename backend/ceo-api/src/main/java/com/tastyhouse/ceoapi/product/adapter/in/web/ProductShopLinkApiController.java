@@ -34,14 +34,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResp
 @RestController
 @RequestMapping("/api/products")
 public class ProductShopLinkApiController {
-    private final ProductShopLinkQueryUseCase productShopLinkQueryService;
+    private final ProductShopLinkQueryUseCase productShopLinkQueryUseCase;
     private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;
 
     public ProductShopLinkApiController(
-        ProductShopLinkQueryUseCase productShopLinkQueryService,
+        ProductShopLinkQueryUseCase productShopLinkQueryUseCase,
         ProductShopLinkCommandUseCase productShopLinkCommandUseCase
     ) {
-        this.productShopLinkQueryService = productShopLinkQueryService;
+        this.productShopLinkQueryUseCase = productShopLinkQueryUseCase;
         this.productShopLinkCommandUseCase = productShopLinkCommandUseCase;
     }
 
@@ -55,7 +55,7 @@ public class ProductShopLinkApiController {
         @Parameter(description = "메뉴 ID", example = "100") @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        List<ProductShopLinkResponse> response = productShopLinkQueryService.getShopLinks( userDetails.getCeoId(), request.shopId(), id ).stream()
+        List<ProductShopLinkResponse> response = productShopLinkQueryUseCase.getShopLinks( userDetails.getCeoId(), request.shopId(), id ).stream()
             .map(ProductShopLinkResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

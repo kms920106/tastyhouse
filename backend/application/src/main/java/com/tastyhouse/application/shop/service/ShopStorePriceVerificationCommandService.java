@@ -16,7 +16,7 @@ import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.service.StorePriceVerificationItemSpec;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.file.service.FileUploadOwnerCommandService;
+import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.product.service.StorePriceVerificationService;
 import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationCommandUseCase;
@@ -37,7 +37,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
     private final ObjectMapper objectMapper;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final StorePriceListImageSpecValidator storePriceListImageSpecValidator;
-    private final FileUploadOwnerCommandService fileUploadCommandService;
+    private final FileUploadOwnerCommandUseCase fileUploadCommandUseCase;
 
     public ShopStorePriceVerificationCommandService(
         ObjectMapper objectMapper,
@@ -45,14 +45,14 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
         ShopRequestIndexRecorder shopRequestIndexRecorder,
         ShopOwnershipValidator shopOwnershipValidator,
         StorePriceListImageSpecValidator storePriceListImageSpecValidator,
-        FileUploadOwnerCommandService fileUploadCommandService
+        FileUploadOwnerCommandUseCase fileUploadCommandUseCase
     ) {
         this.objectMapper = objectMapper;
         this.storePriceVerificationService = storePriceVerificationService;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.storePriceListImageSpecValidator = storePriceListImageSpecValidator;
-        this.fileUploadCommandService = fileUploadCommandService;
+        this.fileUploadCommandUseCase = fileUploadCommandUseCase;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ShopStorePriceVerificationCommandService implements ShopStorePriceV
         List<StorePriceVerificationItemSpec> specs = toItemSpecs(command.items());
         storePriceListImageSpecValidator.validate(file);
 
-        Long priceListFileId = fileUploadCommandService.upload(file);
+        Long priceListFileId = fileUploadCommandUseCase.upload(file);
 
         ShopId targetShopId = ShopId.of(shopId);
         UploadedFileId targetPriceListFileId = UploadedFileId.of(priceListFileId);

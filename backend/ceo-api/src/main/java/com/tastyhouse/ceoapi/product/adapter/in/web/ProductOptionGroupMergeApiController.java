@@ -32,14 +32,14 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupMergeApiController {
-    private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryService;
+    private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase;
     private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;
 
     public ProductOptionGroupMergeApiController(
-        ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryService,
+        ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase,
         ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase
     ) {
-        this.productOptionGroupMergeQueryService = productOptionGroupMergeQueryService;
+        this.productOptionGroupMergeQueryUseCase = productOptionGroupMergeQueryUseCase;
         this.productOptionGroupMergeCommandUseCase = productOptionGroupMergeCommandUseCase;
     }
 
@@ -52,7 +52,7 @@ public class ProductOptionGroupMergeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergeSuggestionSearchRequest request
     ) {
-        List<ProductOptionGroupMergeSuggestionResponse> response = productOptionGroupMergeQueryService.getMergeSuggestions(userDetails.getCeoId(), request.shopId()).stream()
+        List<ProductOptionGroupMergeSuggestionResponse> response = productOptionGroupMergeQueryUseCase.getMergeSuggestions(userDetails.getCeoId(), request.shopId()).stream()
             .map(ProductOptionGroupMergeSuggestionResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -82,7 +82,7 @@ public class ProductOptionGroupMergeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergePreviewSearchRequest request
     ) {
-        ProductOptionGroupMergePreviewResponse response = ProductOptionGroupMergePreviewResponse.from(productOptionGroupMergeQueryService.getMergePreview( userDetails.getCeoId(), request.shopId(), request.baseOptionGroupId(), request.optionGroupIds() ));
+        ProductOptionGroupMergePreviewResponse response = ProductOptionGroupMergePreviewResponse.from(productOptionGroupMergeQueryUseCase.getMergePreview( userDetails.getCeoId(), request.shopId(), request.baseOptionGroupId(), request.optionGroupIds() ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -29,7 +29,7 @@ import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
-import com.tastyhouse.application.member.service.MemberCommandService;
+import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.security.token.KakaoTempTokenRepository;
 
@@ -38,7 +38,7 @@ import com.tastyhouse.security.token.KakaoTempTokenRepository;
 public class KakaoSocialLoginService {
 
     private final SocialOAuthClient kakaoOAuthClient;
-    private final MemberCommandService memberCommandService;
+    private final MemberRegistrationService memberRegistrationService;
     private final MemberPersistencePort memberPersistencePort;
     private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
     private final MemberTokenService tokenService;
@@ -47,7 +47,7 @@ public class KakaoSocialLoginService {
 
     public KakaoSocialLoginService(
         @Qualifier("kakaoOAuthClient") SocialOAuthClient kakaoOAuthClient,
-        MemberCommandService memberCommandService,
+        MemberRegistrationService memberRegistrationService,
         MemberPersistencePort memberPersistencePort,
         MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
         MemberTokenService tokenService,
@@ -55,7 +55,7 @@ public class KakaoSocialLoginService {
         KakaoTempTokenRepository kakaoTempTokenRepository
     ) {
         this.kakaoOAuthClient = kakaoOAuthClient;
-        this.memberCommandService = memberCommandService;
+        this.memberRegistrationService = memberRegistrationService;
         this.memberPersistencePort = memberPersistencePort;
         this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
         this.tokenService = tokenService;
@@ -78,7 +78,7 @@ public class KakaoSocialLoginService {
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(kakaoUser.email(), kakaoUser.nickname(), kakaoUser.profileImageUrl());
-            memberCommandService.saveSocialAccount(socialAccount);
+            memberSocialAccountPersistencePort.save(socialAccount);
 
             Member member = memberPersistencePort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -136,7 +136,7 @@ public class KakaoSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.KAKAO, providerId,
                 kakaoUser.email(), kakaoUser.nickname(), kakaoUser.profileImageUrl()
@@ -175,12 +175,12 @@ public class KakaoSocialLoginService {
             throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
-        Member savedMember = memberCommandService.signUpSocial(
+        Member savedMember = memberRegistrationService.signUpSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberCommandService.saveSocialAccount(
+        memberSocialAccountPersistencePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
                 MemberSocialProvider.KAKAO,
