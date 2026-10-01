@@ -15,6 +15,7 @@ public record FaqCategoryListItemResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
+
     public static FaqCategoryListItemResponse from(FaqCategoryResult result) {
         return new FaqCategoryListItemResponse(
             result.id(),

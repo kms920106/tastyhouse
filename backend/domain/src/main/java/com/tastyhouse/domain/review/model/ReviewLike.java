@@ -4,6 +4,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public class ReviewLike {
+
     private final Long id;
     private final ReviewId reviewId;
     private final MemberId memberId;

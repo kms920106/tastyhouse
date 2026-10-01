@@ -6,6 +6,7 @@ public record StorePriceVerificationItemSpec(
     Integer storePrice,
     boolean applyPickupSamePrice
 ) {
+
     public static StorePriceVerificationItemSpec of(
         Long productId,
         Long priceId,

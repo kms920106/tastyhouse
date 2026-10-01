@@ -34,6 +34,7 @@ public record ProductPriceItemRequest(
     @Schema(description = "표시 순서(0부터). sort=0 행의 배달가가 메뉴 대표가로 동기화됩니다", example = "0", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer sort
 ) {
+
     public ProductPriceItemCommand toCommand() {
         return new ProductPriceItemCommand(
             this.id(),

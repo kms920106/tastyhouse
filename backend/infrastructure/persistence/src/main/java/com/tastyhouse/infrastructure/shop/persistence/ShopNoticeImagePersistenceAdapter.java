@@ -12,6 +12,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeImageJpa
 
 @Repository
 public class ShopNoticeImagePersistenceAdapter implements ShopNoticeImagePersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ShopNoticeImageJpaRepository shopNoticeImageJpaRepository;
 

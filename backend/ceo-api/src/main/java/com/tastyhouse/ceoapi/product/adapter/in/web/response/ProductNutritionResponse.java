@@ -57,6 +57,7 @@ public record ProductNutritionResponse(
     @Schema(description = "알레르기 유발성분 코드 배열", example = "[\"MILK\", \"PEANUT\"]")
     List<String> allergens
 ) {
+
     public static ProductNutritionResponse from(ProductNutritionViewResult view) {
         ProductNutritionResult result = view.nutrition();
         return new ProductNutritionResponse(

@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.partnership.persistence.QPartnership
 
 @Repository
 public class PartnershipPersistenceAdapter implements PartnershipPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final PartnershipRequestJpaRepository partnershipRequestJpaRepository;
 

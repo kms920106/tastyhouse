@@ -20,6 +20,7 @@ import com.tastyhouse.application.shop.service.ShopOrderContextService;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class OrderServiceConfig {
+
     @Bean
     public OrderPlacementService orderPlacementService(
         OrderPersistencePort orderPersistencePort,

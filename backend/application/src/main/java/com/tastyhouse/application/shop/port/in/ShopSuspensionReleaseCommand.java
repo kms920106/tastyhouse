@@ -8,6 +8,7 @@ public record ShopSuspensionReleaseCommand(
     Long shopId,
     Long suspensionId
 ) {
+
     public ShopSuspensionReleaseCommand {
         if (ceoId == null || shopId == null || suspensionId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

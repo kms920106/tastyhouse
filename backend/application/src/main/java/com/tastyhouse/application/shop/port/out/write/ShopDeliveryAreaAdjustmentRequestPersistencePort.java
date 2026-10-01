@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopDeliveryAreaAdjustmentRequestPersistencePort {
+
     Optional<ShopDeliveryAreaAdjustmentRequest> findById(Long id);
 
     boolean existsByShopIdAndStatusIn(ShopId shopId, List<DeliveryAreaAdjustmentStatus> statuses);

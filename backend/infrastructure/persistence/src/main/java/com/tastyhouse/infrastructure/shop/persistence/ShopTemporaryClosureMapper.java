@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopTemporaryClosureMapper {
+
     private ShopTemporaryClosureMapper() {
     }
 

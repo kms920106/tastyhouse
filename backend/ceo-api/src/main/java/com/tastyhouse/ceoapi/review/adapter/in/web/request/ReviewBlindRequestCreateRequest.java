@@ -27,6 +27,7 @@ public record ReviewBlindRequestCreateRequest(
     @Schema(description = "증빙 서류 파일 ID 목록(선택, 최대 3개). 신분증·위임장·사업자등록증 등을 첨부합니다.")
     List<Long> attachmentFileIds
 ) {
+
     public ReviewBlindRequestCreateCommand toCommand(Long ceoId, Long shopId, Long reviewId) {
         return new ReviewBlindRequestCreateCommand(ceoId, shopId, reviewId, reason, detailReason, attachmentFileIds);
     }

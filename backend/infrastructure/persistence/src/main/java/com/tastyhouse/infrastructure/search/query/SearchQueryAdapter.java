@@ -18,6 +18,7 @@ import static com.tastyhouse.infrastructure.search.persistence.QSearchKeywordLog
 
 @Repository
 public class SearchQueryAdapter implements SearchQueryPort {
+
     private static final long TOP_KEYWORD_LIMIT = 10L;
 
     private final JPAQueryFactory queryFactory;

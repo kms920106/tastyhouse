@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 
 public class AdminDong {
+
     private final Long id;
     private final String code;
     private final String sidoName;

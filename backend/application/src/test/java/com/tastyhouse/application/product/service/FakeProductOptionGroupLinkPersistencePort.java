@@ -12,6 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
 
 class FakeProductOptionGroupLinkPersistencePort implements ProductOptionGroupLinkPersistencePort {
+
     private final List<ProductOptionGroupLink> links = new ArrayList<>();
     private final AtomicLong sequence = new AtomicLong(1L);
 

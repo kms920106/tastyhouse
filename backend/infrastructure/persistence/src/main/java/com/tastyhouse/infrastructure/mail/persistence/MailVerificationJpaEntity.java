@@ -20,6 +20,7 @@ import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddab
     @Index(name = "idx_mail_verification_expires_at", columnList = "expires_at")
 })
 public class MailVerificationJpaEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

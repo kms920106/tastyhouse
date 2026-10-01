@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 final class ProductOptionGroupLinkMapper {
+
     private ProductOptionGroupLinkMapper() {
     }
 

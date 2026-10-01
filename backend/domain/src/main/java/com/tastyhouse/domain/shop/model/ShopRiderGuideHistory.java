@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopRiderGuideHistory {
+
     private final Long id;
     private final ShopId shopId;
     private final RiderGuideActorType actorType;

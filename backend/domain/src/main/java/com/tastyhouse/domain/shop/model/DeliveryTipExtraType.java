@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum DeliveryTipExtraType {
+
     NONE("미사용"),
 
     DISTANCE("거리별"),

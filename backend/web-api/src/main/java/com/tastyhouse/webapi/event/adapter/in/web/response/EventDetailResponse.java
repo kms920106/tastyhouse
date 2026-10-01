@@ -9,6 +9,7 @@ public record EventDetailResponse(
     @Schema(description = "배너 이미지 URL", example = "https://example.com/banner.jpg")
     String bannerImageUrl
 ) {
+
     public static EventDetailResponse from(EventDetailResult result) {
         return new EventDetailResponse(result.bannerUrl());
     }

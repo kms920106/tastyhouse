@@ -11,6 +11,7 @@ public record PartnershipStatusUpdateRequest(
     @Schema(description = "변경할 처리 상태", example = "IN_PROGRESS", allowableValues = {"PENDING", "IN_PROGRESS", "COMPLETED"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String status
 ) {
+
     public PartnershipStatusChangeCommand toCommand(Long partnershipRequestId) {
         return new PartnershipStatusChangeCommand(partnershipRequestId, status());
     }

@@ -8,6 +8,7 @@ import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public interface MemberCouponPersistencePort {
+
     Optional<MemberCoupon> findById(MemberCouponId id);
 
     boolean existsByMemberIdAndCouponId(MemberId memberId, CouponId couponId);

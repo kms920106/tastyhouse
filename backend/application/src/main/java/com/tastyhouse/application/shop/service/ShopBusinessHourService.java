@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 public class ShopBusinessHourService {
+
     private static final int MAX_REGULAR_CLOSED_DAY_COUNT = 15;
 
     private final ShopDetailPersistencePort shopDetailPersistencePort;

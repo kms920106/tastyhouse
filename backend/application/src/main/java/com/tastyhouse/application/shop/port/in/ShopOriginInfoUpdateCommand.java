@@ -10,6 +10,7 @@ public record ShopOriginInfoUpdateCommand(
     String content,
     String url
 ) {
+
     public ShopOriginInfoUpdateCommand {
         if (ceoId == null || shopId == null || sourceType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

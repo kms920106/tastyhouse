@@ -18,6 +18,7 @@ public record UpdateProfileRequest(
     @Schema(description = "프로필 이미지 파일 ID", example = "42")
     Long profileImageFileId
 ) {
+
     public MemberProfileUpdateCommand toCommand(Long memberId) {
         return new MemberProfileUpdateCommand(
             memberId,

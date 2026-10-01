@@ -27,6 +27,7 @@ public record ProductOptionGroupMergePreviewOptionResponse(
         allowableValues = {"SAME", "ONLY_IN_BASE", "ONLY_IN_CANDIDATE", "PRICE_DIFFERS"})
     String diffType
 ) {
+
     public static ProductOptionGroupMergePreviewOptionResponse from(
         ProductOptionGroupMergePreviewResult.Option option
     ) {

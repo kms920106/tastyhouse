@@ -19,6 +19,7 @@ public record ProductFeedbackCreateRequest(
     @Schema(description = "의견 내용. 유형이 ETC이면 필수입니다", example = "메뉴 사진이 실제와 많이 달라요.")
     String content
 ) {
+
     public ProductFeedbackCreateCommand toCommand(Long memberId, Long productId) {
         return new ProductFeedbackCreateCommand(
             memberId,

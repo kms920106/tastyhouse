@@ -74,6 +74,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopTemporaryClosu
 
 @Repository
 public class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort {
+
     private static final QUploadedFileJpaEntity activeFile = new QUploadedFileJpaEntity("activeFile");
     private static final QUploadedFileJpaEntity inactiveFile = new QUploadedFileJpaEntity("inactiveFile");
 

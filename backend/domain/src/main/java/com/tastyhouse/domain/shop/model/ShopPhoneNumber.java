@@ -8,6 +8,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopPhoneNumber {
+
     private static final List<String> VIRTUAL_NUMBER_PREFIXES = List.of(
         "02", "15", "16", "18",
         "051", "053", "032", "062", "042", "052", "033",

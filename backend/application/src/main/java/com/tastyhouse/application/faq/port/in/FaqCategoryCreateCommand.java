@@ -8,6 +8,7 @@ public record FaqCategoryCreateCommand(
     Integer sort,
     boolean visible
 ) {
+
     public FaqCategoryCreateCommand {
         if (name == null || sort == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

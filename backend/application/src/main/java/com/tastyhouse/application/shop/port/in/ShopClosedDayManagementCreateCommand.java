@@ -8,6 +8,7 @@ public record ShopClosedDayManagementCreateCommand(
     Long shopId,
     String closedDayType
 ) {
+
     public ShopClosedDayManagementCreateCommand {
         if (adminId == null || shopId == null || closedDayType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

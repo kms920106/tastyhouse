@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 public class ProductCommonOption {
+
     private final Long id;
     private final ProductOptionGroupId optionGroupId;
     private String name;

@@ -12,6 +12,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 @Entity
 @Table(name = "CEO_REPLY_PHRASE")
 public class CeoReplyPhraseJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

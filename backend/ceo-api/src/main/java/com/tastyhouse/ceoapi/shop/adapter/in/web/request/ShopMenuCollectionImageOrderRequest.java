@@ -14,6 +14,7 @@ public record ShopMenuCollectionImageOrderRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> imageIds
 ) {
+
     public ShopMenuCollectionImageReorderCommand toCommand(Long ceoId, Long shopId) {
         return new ShopMenuCollectionImageReorderCommand(ceoId, shopId, imageIds());
     }

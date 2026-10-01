@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopImageChangeRequestMapper {
+
     private ShopImageChangeRequestMapper() {
     }
 

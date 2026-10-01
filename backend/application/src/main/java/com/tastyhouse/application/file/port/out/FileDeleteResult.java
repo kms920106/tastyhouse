@@ -4,6 +4,7 @@ public record FileDeleteResult(
     boolean success,
     Throwable cause
 ) {
+
     public static FileDeleteResult deleted() {
         return new FileDeleteResult(true, null);
     }

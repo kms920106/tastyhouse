@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record TagDeleteCommand(
     Long tagId
 ) {
+
     public TagDeleteCommand {
         if (tagId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -10,6 +10,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopCeoAssignmentService {
+
     private final ShopPersistencePort shopPersistencePort;
     private final CeoPersistencePort ceoPersistencePort;
     private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;

@@ -21,6 +21,7 @@ import com.tastyhouse.application.product.port.out.write.ProductExposureHourPers
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductExposureService {
+
     private static final Set<DayType> GROUP_DAY_TYPES =
         Set.of(DayType.DAILY, DayType.WEEKDAY, DayType.WEEKEND, DayType.HOLIDAY);
 

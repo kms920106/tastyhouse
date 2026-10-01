@@ -19,6 +19,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ContextBoundaryTest {
+
     private static final String DOMAIN_ROOT = "com.tastyhouse.domain";
 
     private static final Set<String> NON_CONTEXT_PACKAGES = Set.of("shared", "exception");

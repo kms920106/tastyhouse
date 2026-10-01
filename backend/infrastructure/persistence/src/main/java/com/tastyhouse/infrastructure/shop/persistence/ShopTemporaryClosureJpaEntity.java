@@ -14,6 +14,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
 @Entity
 @Table(name = "SHOP_TEMPORARY_CLOSURE")
 public class ShopTemporaryClosureJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -8,6 +8,7 @@ public record ShopIntroductionUpdateCommand(
     Long shopId,
     String message
 ) {
+
     public ShopIntroductionUpdateCommand {
         if (ceoId == null || shopId == null || message == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

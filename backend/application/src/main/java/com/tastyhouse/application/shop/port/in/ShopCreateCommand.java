@@ -17,6 +17,7 @@ public record ShopCreateCommand(
     String phoneNumber,
     Long thumbnailImageFileId
 ) {
+
     public ShopCreateCommand {
         if (adminId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

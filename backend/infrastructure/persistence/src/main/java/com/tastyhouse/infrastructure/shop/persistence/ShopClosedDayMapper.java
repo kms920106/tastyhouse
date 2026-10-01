@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopClosedDayMapper {
+
     private ShopClosedDayMapper() {
     }
 

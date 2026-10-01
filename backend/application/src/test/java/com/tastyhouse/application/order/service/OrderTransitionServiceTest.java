@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OrderTransitionServiceTest {
+
     private static final Long ORDER_ID = 42L;
     private static final Long MEMBER_ID = 7L;
     private static final Long OTHER_MEMBER_ID = 8L;
@@ -167,6 +168,7 @@ class OrderTransitionServiceTest {
     }
 
     private static final class Fixture {
+
         private final StubOrderPersistencePort orderPersistencePort = new StubOrderPersistencePort();
         private final OrderTransitionService service = new OrderTransitionService(orderPersistencePort);
 
@@ -194,6 +196,7 @@ class OrderTransitionServiceTest {
     }
 
     private static final class StubOrderPersistencePort implements OrderPersistencePort {
+
         private Order stored;
         private final List<Order> saved = new ArrayList<>();
 

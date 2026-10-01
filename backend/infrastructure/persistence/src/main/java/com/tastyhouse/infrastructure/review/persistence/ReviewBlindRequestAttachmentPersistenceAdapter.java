@@ -9,6 +9,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttach
 
 @Repository
 public class ReviewBlindRequestAttachmentPersistenceAdapter implements ReviewBlindRequestAttachmentPersistencePort {
+
     private final ReviewBlindRequestAttachmentJpaRepository reviewBlindRequestAttachmentJpaRepository;
 
     public ReviewBlindRequestAttachmentPersistenceAdapter(

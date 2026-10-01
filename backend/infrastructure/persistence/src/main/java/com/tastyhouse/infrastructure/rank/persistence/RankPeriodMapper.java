@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.rank.persistence;
 import com.tastyhouse.domain.rank.model.RankPeriod;
 
 final class RankPeriodMapper {
+
     private RankPeriodMapper() {
     }
 

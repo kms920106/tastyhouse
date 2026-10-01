@@ -24,6 +24,7 @@ import com.tastyhouse.webapi.rank.adapter.in.web.response.RankPrizeListItemRespo
 @RequestMapping("/api/ranks")
 @Tag(name = "Rank", description = "랭킹 관리 API")
 public class RankApiController {
+
     private final RankQueryUseCase rankQueryUseCase;
 
     public RankApiController(RankQueryUseCase rankQueryUseCase) {

@@ -8,6 +8,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryAreaAdjustmentRequest {
+
     private final Long id;
     private final ShopId shopId;
     private final String counterpartShopName;

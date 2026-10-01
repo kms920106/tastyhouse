@@ -9,6 +9,7 @@ public record ProductOptionGroupLinkCommand(
     Long productId,
     Long optionGroupId
 ) {
+
     public ProductOptionGroupLinkCommand {
         if (ceoId == null
             || shopId == null

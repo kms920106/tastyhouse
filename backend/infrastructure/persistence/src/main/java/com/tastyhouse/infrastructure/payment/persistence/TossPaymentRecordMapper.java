@@ -4,6 +4,7 @@ import com.tastyhouse.domain.payment.model.TossPaymentRecord;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 final class TossPaymentRecordMapper {
+
     private TossPaymentRecordMapper() {
     }
 

@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GeoCircleTest {
+
     private static final GeoPoint SEOUL = GeoPoint.of(37.5, 127.0);
 
     @Test

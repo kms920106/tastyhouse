@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopDeliveryAreaPersistencePort {
+
     List<ShopDeliveryArea> findByShopId(ShopId shopId);
 
     Optional<ShopDeliveryArea> findById(Long deliveryAreaId);

@@ -9,6 +9,7 @@ public record ShopNoticeCreateCommand(
     String content,
     Boolean exposed
 ) {
+
     public ShopNoticeCreateCommand {
         if (ceoId == null || shopId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

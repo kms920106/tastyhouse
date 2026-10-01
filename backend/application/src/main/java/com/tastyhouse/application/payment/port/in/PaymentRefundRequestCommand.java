@@ -9,6 +9,7 @@ public record PaymentRefundRequestCommand(
     Integer refundAmount,
     String refundReason
 ) {
+
     public PaymentRefundRequestCommand {
         if (memberId == null || paymentId == null || refundAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

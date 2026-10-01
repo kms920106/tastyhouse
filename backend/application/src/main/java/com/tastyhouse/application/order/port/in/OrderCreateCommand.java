@@ -23,6 +23,7 @@ public record OrderCreateCommand(
     Integer finalAmount,
     LocalDateTime scheduledAt
 ) {
+
     public OrderCreateCommand {
         if (memberId == null || shopId == null || orderMethod == null || orderLines == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

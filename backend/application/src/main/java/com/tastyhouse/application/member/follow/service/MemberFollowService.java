@@ -9,6 +9,7 @@ import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersi
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 public class MemberFollowService {
+
     private final MemberFollowPersistencePort memberFollowPersistencePort;
     private final MemberPersistencePort memberPersistencePort;
 

@@ -24,6 +24,7 @@ public record AdminDongBoundaryItemResponse(
     @Schema(description = "경계 폴리곤(링 배열). 경계 미보유 시 null")
     List<List<AdminDongPointResponse>> rings
 ) {
+
     public static AdminDongBoundaryItemResponse from(AdminDongBoundaryViewResult result) {
         List<List<AdminDongBoundaryViewResult.Point>> rings = result.rings();
         return new AdminDongBoundaryItemResponse(

@@ -17,6 +17,7 @@ import com.tastyhouse.infrastructure.file.query.FileUrlResolver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class OrderProductResultTest {
+
     private static final String STORED_PATH = "2026/04/19/a3f511fd-a444-49a1-b5d9-3ed0c40bd965.png";
     private static final String BASE_URL = "https://firebasestorage.example/v0/b/bucket/o";
 
@@ -72,6 +73,7 @@ class OrderProductResultTest {
     }
 
     private static final class FakeFileStoragePort implements FileStoragePort {
+
         @Override
         public String store(byte[] content, String storedFilename, String datePath, String contentType) {
             throw new UnsupportedOperationException("조회 변환만 검증한다");

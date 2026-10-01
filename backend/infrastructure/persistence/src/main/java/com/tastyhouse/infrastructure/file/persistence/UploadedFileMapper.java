@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.file.persistence;
 import com.tastyhouse.domain.file.model.UploadedFile;
 
 final class UploadedFileMapper {
+
     private UploadedFileMapper() {
     }
 

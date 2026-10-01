@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 
 public final class CupDepositOptionRule {
+
     public static final int DEPOSIT_MIN_SELECT = 0;
     public static final int DEPOSIT_MAX_SELECT = 1;
 

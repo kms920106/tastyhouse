@@ -15,6 +15,7 @@ public record ProductOptionGroupOwnerCreateCommand(
     Integer maxSelect,
     String groupType
 ) {
+
     public ProductOptionGroupOwnerCreateCommand {
         if (ceoId == null
             || shopId == null

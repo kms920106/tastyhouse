@@ -15,6 +15,7 @@ public record ShopPriceBadgeResponse(
         example = "false")
     boolean storePricePickup
 ) {
+
     public static ShopPriceBadgeResponse from(ShopPriceBadgeViewResult result) {
         return new ShopPriceBadgeResponse(result.sameAsStorePrice(), result.storePricePickup());
     }

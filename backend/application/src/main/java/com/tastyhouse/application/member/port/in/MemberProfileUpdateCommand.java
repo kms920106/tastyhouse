@@ -9,6 +9,7 @@ public record MemberProfileUpdateCommand(
     String statusMessage,
     Long profileImageFileId
 ) {
+
     public MemberProfileUpdateCommand {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

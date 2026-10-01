@@ -12,6 +12,7 @@ public record EventWinnerCreateCommand(
     String phoneNumber,
     LocalDateTime announcedAt
 ) {
+
     public EventWinnerCreateCommand {
         if (eventId == null || rankNo == null || winnerName == null || phoneNumber == null || announcedAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

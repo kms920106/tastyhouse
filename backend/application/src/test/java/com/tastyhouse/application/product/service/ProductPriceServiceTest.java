@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductPriceServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final ProductId PRODUCT_ID = ProductId.of(10L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
@@ -38,6 +39,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("original_price 동기화")
     class OriginalPriceSync {
+
         @Test
         @DisplayName("sort=0 행의 배달가가 PRODUCT.original_price에 반영된다")
         void syncsBasePriceToProduct() {
@@ -65,6 +67,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("컬렉션 불변식")
     class CollectionInvariants {
+
         @Test
         @DisplayName("빈 목록은 PRODUCT_PRICE_EMPTY로 거절된다")
         void emptyList_isRejected() {
@@ -109,6 +112,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("인증 게이트")
     class VerificationGate {
+
         @Test
         @DisplayName("미인증 가게는 매장가를 설정할 수 없다")
         void unverifiedShop_cannotSetStorePrice() {
@@ -152,6 +156,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("할인 진행 중 차단")
     class DiscountGate {
+
         @Test
         @DisplayName("할인가가 설정된 메뉴는 가격을 바꿀 수 없다")
         void discountedProduct_cannotChangePrice() {
@@ -167,6 +172,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("재인증 필요 판정(인증 OFF)")
     class VerificationRefresh {
+
         @Test
         @DisplayName("배달가가 매장가를 넘으면 가게 인증이 즉시 내려간다")
         void deliveryAboveStore_clearsVerification() {
@@ -242,6 +248,7 @@ class ProductPriceServiceTest {
     @Nested
     @DisplayName("전체 교체 의미론")
     class ReplaceSemantics {
+
         @Test
         @DisplayName("요청에 담기지 않은 기존 행은 삭제된다")
         void omittedRowsAreDeleted() {
@@ -280,6 +287,7 @@ class ProductPriceServiceTest {
     }
 
     private static final class Fixture {
+
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final MapProductPricePersistencePort prices = new MapProductPricePersistencePort();
         private final RecordingVerificationPort verificationPort = new RecordingVerificationPort();
@@ -312,6 +320,7 @@ class ProductPriceServiceTest {
     }
 
     private static final class OwnedProductPersistencePort implements ProductPersistencePort {
+
         private final Map<Long, Product> products;
 
         private OwnedProductPersistencePort(Map<Long, Product> products) {
@@ -388,6 +397,7 @@ class ProductPriceServiceTest {
     }
 
     private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
+
         private final Map<Long, ProductPrice> rows = new LinkedHashMap<>();
         private final List<Long> deleted = new ArrayList<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
@@ -448,6 +458,7 @@ class ProductPriceServiceTest {
     }
 
     private static final class RecordingVerificationPort implements StorePriceVerificationPort {
+
         private boolean verified;
 
         @Override

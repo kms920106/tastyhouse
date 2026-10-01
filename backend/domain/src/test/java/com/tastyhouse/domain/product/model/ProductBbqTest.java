@@ -10,6 +10,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductBbqTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 옵션 미동기화 상태다")
     void of_createsTransientProductBbq() {

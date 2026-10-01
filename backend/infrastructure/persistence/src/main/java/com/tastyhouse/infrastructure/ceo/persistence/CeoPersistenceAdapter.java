@@ -10,6 +10,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 @Repository
 public class CeoPersistenceAdapter implements CeoPersistencePort {
+
     private final CeoJpaRepository ceoJpaRepository;
 
     public CeoPersistenceAdapter(CeoJpaRepository ceoJpaRepository) {

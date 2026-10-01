@@ -27,6 +27,7 @@ public record ShopAmenityCategoryResponse(
     @Schema(description = "사용 여부", example = "true")
     boolean visible
 ) {
+
     public static ShopAmenityCategoryResponse from(ShopAmenityCategoryResult result) {
         return new ShopAmenityCategoryResponse(
             result.id(),

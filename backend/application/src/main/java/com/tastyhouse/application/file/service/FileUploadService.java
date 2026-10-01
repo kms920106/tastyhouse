@@ -16,6 +16,7 @@ import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePor
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class FileUploadService {
+
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "pdf");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
         "image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"

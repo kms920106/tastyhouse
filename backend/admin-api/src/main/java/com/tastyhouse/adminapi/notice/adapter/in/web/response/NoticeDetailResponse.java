@@ -26,6 +26,7 @@ public record NoticeDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static NoticeDetailResponse from(NoticeDetailResult result) {
         return new NoticeDetailResponse(
             result.id(),

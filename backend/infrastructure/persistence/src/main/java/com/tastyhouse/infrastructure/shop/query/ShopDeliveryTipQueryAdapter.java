@@ -31,6 +31,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopDeliveryTipTie
 
 @Repository
 public class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
+
     private static final double MAX_DELIVERY_DISTANCE_METERS = 5000.0;
 
     private final JPAQueryFactory queryFactory;

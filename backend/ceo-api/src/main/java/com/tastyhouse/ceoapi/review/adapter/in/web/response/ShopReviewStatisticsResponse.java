@@ -51,6 +51,7 @@ public record ShopReviewStatisticsResponse(
     @Schema(description = "최근 6개월 월별 통계. 정확히 6개이며 오래된 달에서 최신 달 순입니다.")
     List<ShopReviewMonthlyStatResponse> monthlyStats
 ) {
+
     public static ShopReviewStatisticsResponse from(ShopReviewStatisticsOwnerResult result) {
         if (!result.hasData()) {
             return empty();

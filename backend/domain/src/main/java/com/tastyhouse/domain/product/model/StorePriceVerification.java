@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class StorePriceVerification {
+
     private final Long id;
     private final ShopId shopId;
     private final UploadedFileId priceListFileId;

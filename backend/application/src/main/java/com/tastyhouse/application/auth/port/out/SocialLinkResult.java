@@ -6,6 +6,7 @@ public record SocialLinkResult(
     MemberJwtResult jwt,
     SocialProfileResult socialProfile
 ) {
+
     public enum Status {LOGIN, NEEDS_SIGN_UP}
 
     public static SocialLinkResult ofLogin(MemberJwtResult jwt) {

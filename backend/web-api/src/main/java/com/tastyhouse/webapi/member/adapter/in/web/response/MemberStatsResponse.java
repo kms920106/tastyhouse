@@ -15,6 +15,7 @@ public record MemberStatsResponse(
     @Schema(description = "팔로워 수", example = "34")
     long followerCount
 ) {
+
     public static MemberStatsResponse from(MemberStatsResult result) {
         return new MemberStatsResponse(
             result.reviewCount(),

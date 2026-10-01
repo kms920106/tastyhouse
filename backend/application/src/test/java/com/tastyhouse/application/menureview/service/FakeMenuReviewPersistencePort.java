@@ -11,6 +11,7 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
 
 class FakeMenuReviewPersistencePort implements MenuReviewPersistencePort {
+
     private final Map<Long, MenuReview> menuReviews = new LinkedHashMap<>();
     private long sequence;
 

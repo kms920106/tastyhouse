@@ -9,6 +9,7 @@ import com.tastyhouse.domain.reservation.service.SlotPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ReservationSlot {
+
     private final Long id;
     private final ShopId shopId;
     private final LocalDate slotDate;

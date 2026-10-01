@@ -14,6 +14,7 @@ import com.tastyhouse.application.product.port.out.write.StorePriceVerificationP
 
 @Repository
 public class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationPersistencePort {
+
     private final StorePriceVerificationJpaRepository storePriceVerificationJpaRepository;
     private final StorePriceVerificationItemJpaRepository storePriceVerificationItemJpaRepository;
 

@@ -26,6 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopHygieneBadgeResp
 @RestController
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeAdminApiController {
+
     private final ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeQueryUseCase;
     private final ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase;
 

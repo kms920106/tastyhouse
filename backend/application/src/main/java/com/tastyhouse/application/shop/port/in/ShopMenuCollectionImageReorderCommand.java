@@ -10,6 +10,7 @@ public record ShopMenuCollectionImageReorderCommand(
     Long shopId,
     List<Long> imageIds
 ) {
+
     public ShopMenuCollectionImageReorderCommand {
         if (ceoId == null || shopId == null || imageIds == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

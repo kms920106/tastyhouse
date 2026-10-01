@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
 
 class RecordingShopChangeHistoryPersistencePort implements ShopChangeHistoryPersistencePort {
+
     private final List<ShopChangeHistory> saved = new ArrayList<>();
 
     @Override

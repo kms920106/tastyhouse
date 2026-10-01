@@ -23,6 +23,7 @@ public record GeoPointRequest(
     @Schema(description = "경도", example = "127.036000", requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
+
     public GeoPointCommand toCommand() {
         return new GeoPointCommand(latitude(), longitude());
     }

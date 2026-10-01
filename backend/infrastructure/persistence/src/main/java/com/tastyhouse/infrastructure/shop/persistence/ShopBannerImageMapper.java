@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopBannerImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBannerImageMapper {
+
     private ShopBannerImageMapper() {
     }
 

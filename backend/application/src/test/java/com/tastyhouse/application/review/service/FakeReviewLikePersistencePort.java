@@ -9,6 +9,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePort;
 
 public class FakeReviewLikePersistencePort implements ReviewLikePersistencePort {
+
     private final List<ReviewLike> likes = new ArrayList<>();
 
     @Override

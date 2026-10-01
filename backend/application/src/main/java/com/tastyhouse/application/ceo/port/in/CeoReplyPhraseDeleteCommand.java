@@ -7,6 +7,7 @@ public record CeoReplyPhraseDeleteCommand(
     Long ceoId,
     Long replyPhraseId
 ) {
+
     public CeoReplyPhraseDeleteCommand {
         if (ceoId == null || replyPhraseId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

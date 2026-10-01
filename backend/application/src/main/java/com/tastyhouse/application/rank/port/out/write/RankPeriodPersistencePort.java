@@ -6,6 +6,7 @@ import com.tastyhouse.domain.rank.model.RankPeriod;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 public interface RankPeriodPersistencePort {
+
     RankPeriod save(RankPeriod rankPeriod);
 
     Optional<RankPeriod> findById(RankPeriodId id);

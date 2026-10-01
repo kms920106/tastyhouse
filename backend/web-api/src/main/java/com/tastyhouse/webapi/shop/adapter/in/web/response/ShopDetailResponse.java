@@ -60,6 +60,7 @@ public record ShopDetailResponse(
     @Schema(description = "예약주문 운영 여부 (true: 수령시간을 예약할 수 있음)", example = "true")
     boolean scheduledOrderEnabled
 ) {
+
     public static ShopDetailResponse from(ShopDetailViewResult result) {
         return new ShopDetailResponse(
             result.id(),

@@ -18,6 +18,7 @@ import static com.tastyhouse.infrastructure.rank.persistence.QMemberReviewRankJp
 
 @Repository
 public class MemberReviewRankPersistenceAdapter implements MemberReviewRankPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
 

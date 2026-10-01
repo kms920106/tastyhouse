@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 
 public class ProductPrice {
+
     private static final int PRICE_NAME_MAX_LENGTH = 50;
 
     private final Long id;

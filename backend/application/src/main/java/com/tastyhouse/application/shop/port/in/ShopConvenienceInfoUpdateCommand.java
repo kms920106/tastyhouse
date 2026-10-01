@@ -16,6 +16,7 @@ public record ShopConvenienceInfoUpdateCommand(
     BigDecimal displayLatitude,
     BigDecimal displayLongitude
 ) {
+
     public ShopConvenienceInfoUpdateCommand {
         if (ceoId == null || shopId == null || parkingAvailable == null || parkingPaid == null
             || valetAvailable == null || valetPaid == null) {

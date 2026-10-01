@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopChoice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopChoiceMapper {
+
     private ShopChoiceMapper() {
     }
 

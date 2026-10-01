@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductExposureHourJpaRepository extends JpaRepository<ProductExposureHourJpaEntity, Long> {
+
     List<ProductExposureHourJpaEntity> findAllByProductId(Long productId);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)

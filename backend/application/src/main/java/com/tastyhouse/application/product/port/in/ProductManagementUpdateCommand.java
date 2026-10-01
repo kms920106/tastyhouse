@@ -19,6 +19,7 @@ public record ProductManagementUpdateCommand(
     Boolean visible,
     Integer sort
 ) {
+
     public ProductManagementUpdateCommand {
         if (productId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

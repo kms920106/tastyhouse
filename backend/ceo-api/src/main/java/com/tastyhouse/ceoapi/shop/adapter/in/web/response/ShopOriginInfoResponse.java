@@ -22,6 +22,7 @@ public record ShopOriginInfoResponse(
     @Schema(description = "최종 수정 일시. 미설정이면 null")
     LocalDateTime updatedAt
 ) {
+
     public static ShopOriginInfoResponse from(ShopOriginInfoResult result) {
         return new ShopOriginInfoResponse(
             result.sourceType(),

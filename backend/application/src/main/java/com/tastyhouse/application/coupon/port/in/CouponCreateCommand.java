@@ -19,6 +19,7 @@ public record CouponCreateCommand(
     LocalDateTime useEndAt,
     boolean visible
 ) {
+
     public CouponCreateCommand {
         if (name == null || discountType == null || discountAmount == null
             || issueStartAt == null || issueEndAt == null || useStartAt == null || useEndAt == null) {

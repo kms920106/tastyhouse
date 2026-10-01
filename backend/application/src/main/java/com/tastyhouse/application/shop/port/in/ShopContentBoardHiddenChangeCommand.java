@@ -7,6 +7,7 @@ public record ShopContentBoardHiddenChangeCommand(
     Long contentBoardId,
     Boolean hidden
 ) {
+
     public ShopContentBoardHiddenChangeCommand {
         if (contentBoardId == null || hidden == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

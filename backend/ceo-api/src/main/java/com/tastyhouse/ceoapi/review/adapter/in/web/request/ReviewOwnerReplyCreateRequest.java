@@ -18,6 +18,7 @@ public record ReviewOwnerReplyCreateRequest(
     )
     String content
 ) {
+
     public ReviewOwnerReplyCreateCommand toCommand(Long ceoId, Long shopId, Long reviewId) {
         return new ReviewOwnerReplyCreateCommand(ceoId, shopId, reviewId, content);
     }

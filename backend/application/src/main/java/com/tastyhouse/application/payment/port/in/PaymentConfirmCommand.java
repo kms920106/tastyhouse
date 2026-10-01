@@ -13,6 +13,7 @@ public record PaymentConfirmCommand(
     Integer installmentMonths,
     String receiptUrl
 ) {
+
     public PaymentConfirmCommand {
         if (paymentId == null || pgProvider == null || pgTid == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

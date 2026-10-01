@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 public interface ProductCommonOptionGroupPersistencePort {
+
     ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup);
 
     List<ProductCommonOptionGroup> findAllByIdIn(List<ProductOptionGroupId> ids);

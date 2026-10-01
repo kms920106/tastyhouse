@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shared.geo;
 import java.math.BigDecimal;
 
 public final class GeoDistance {
+
     public static final double EARTH_RADIUS_METERS = 6371000;
 
     private GeoDistance() {

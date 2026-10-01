@@ -7,6 +7,7 @@ public record ShopOrderMethodUnassignCommand(
     Long shopId,
     String orderMethod
 ) {
+
     public ShopOrderMethodUnassignCommand {
         if (shopId == null || orderMethod == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

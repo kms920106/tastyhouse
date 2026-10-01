@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberReviewRank {
+
     private final Long id;
     private final MemberId memberId;
     private final Integer reviewCount;

@@ -6,6 +6,7 @@ public record FileUploadCommand(
     Long fileSize,
     String contentType
 ) {
+
     public static FileUploadCommand of(
         String originalFilename,
         byte[] content,

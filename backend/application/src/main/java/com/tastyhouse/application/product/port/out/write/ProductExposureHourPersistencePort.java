@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public interface ProductExposureHourPersistencePort {
+
     List<ProductExposureHour> saveAll(List<ProductExposureHour> hours);
 
     List<ProductExposureHour> findAllByProductId(ProductId productId);

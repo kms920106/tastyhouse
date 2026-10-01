@@ -6,6 +6,7 @@ public record OrderSchedule(
     LocalDateTime scheduledAt,
     LocalDateTime scheduledSlotEndAt
 ) {
+
     public static OrderSchedule of(LocalDateTime scheduledAt, LocalDateTime scheduledSlotEndAt) {
         return new OrderSchedule(scheduledAt, scheduledSlotEndAt);
     }

@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductSortServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Test
@@ -206,6 +207,7 @@ class ProductSortServiceTest {
     }
 
     private static final class Fixture {
+
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductCategory> categories = new LinkedHashMap<>();
         private final ProductSortService service;
@@ -238,6 +240,7 @@ class ProductSortServiceTest {
     }
 
     private record StubProductPersistencePort(Map<Long, Product> products) implements ProductPersistencePort {
+
         @Override
         public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
             Long target = productCategoryId == null ? null : productCategoryId.value();
@@ -313,6 +316,7 @@ class ProductSortServiceTest {
 
     private record StubProductCategoryPersistencePort(Map<Long, ProductCategory> categories)
         implements ProductCategoryPersistencePort {
+
         @Override
         public List<ProductCategory> findAllByShopId(ShopId shopId) {
             return categories.values().stream()

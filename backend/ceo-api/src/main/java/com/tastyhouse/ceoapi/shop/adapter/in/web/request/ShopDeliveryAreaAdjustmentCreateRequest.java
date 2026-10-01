@@ -29,6 +29,7 @@ public record ShopDeliveryAreaAdjustmentCreateRequest(
     @Schema(description = "배달지역 중첩 사유", example = "역삼1동 전역이 중첩되어 주문이 분산됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
+
     public ShopDeliveryAreaAdjustmentCreateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaAdjustmentCreateCommand(
             ceoId,

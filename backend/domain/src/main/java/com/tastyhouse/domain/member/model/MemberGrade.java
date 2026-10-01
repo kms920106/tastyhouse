@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum MemberGrade {
+
     NEWCOMER(1, "신입멤버", 0),
     ACTIVE(2, "열심멤버", 100),
     INSIDER(3, "인싸멤버", 500),

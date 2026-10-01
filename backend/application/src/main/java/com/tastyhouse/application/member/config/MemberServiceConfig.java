@@ -24,6 +24,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class MemberServiceConfig {
+
     @Bean
     public MemberRegistrationService memberRegistrationService(
         MemberPersistencePort memberPersistencePort,

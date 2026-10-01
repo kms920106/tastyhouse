@@ -6,6 +6,7 @@ import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 final class PaymentRefundMapper {
+
     private PaymentRefundMapper() {
     }
 

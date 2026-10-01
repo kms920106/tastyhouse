@@ -35,6 +35,7 @@ public record ProductOptionAvailabilityGroupResponse(
     @Schema(description = "이 그룹에 속한 옵션 목록")
     List<ProductOptionAvailabilityItemResponse> options
 ) {
+
     public static ProductOptionAvailabilityGroupResponse from(ProductOptionAvailabilityGroupResult group) {
         return new ProductOptionAvailabilityGroupResponse(
             group.optionGroupId(),

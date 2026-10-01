@@ -14,6 +14,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 @Repository
 public class ProductPersistenceAdapter implements ProductPersistencePort {
+
     private final ProductJpaRepository productJpaRepository;
 
     public ProductPersistenceAdapter(ProductJpaRepository productJpaRepository) {

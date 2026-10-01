@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopCeoAssignmentHistoryMapper {
+
     private ShopCeoAssignmentHistoryMapper() {
     }
 

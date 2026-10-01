@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 @RestController
 @RequestMapping("/api/partnership-requests")
 public class PartnershipApiController {
+
     private final PartnershipManagementCommandUseCase partnershipCommandUseCase;
     private final PartnershipQueryUseCase partnershipQueryUseCase;
 

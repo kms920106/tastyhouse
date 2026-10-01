@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepresentativeRequestJpaRepository
     extends JpaRepository<ProductRepresentativeRequestJpaEntity, Long> {
+
     List<ProductRepresentativeRequestJpaEntity> findAllByProductId(Long productId);
 
     boolean existsByProductIdAndStatus(Long productId, String status);

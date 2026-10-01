@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class ShopAmenityCategory {
+
     private final Long id;
     private final Amenity amenity;
     private String displayName;

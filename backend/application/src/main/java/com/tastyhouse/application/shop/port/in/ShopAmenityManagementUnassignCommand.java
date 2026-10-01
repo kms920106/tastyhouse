@@ -8,6 +8,7 @@ public record ShopAmenityManagementUnassignCommand(
     Long shopId,
     Long amenityCategoryId
 ) {
+
     public ShopAmenityManagementUnassignCommand {
         if (adminId == null || shopId == null || amenityCategoryId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

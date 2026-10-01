@@ -10,6 +10,7 @@ public record ProductCategoryUpdateCommand(
     String name,
     String description
 ) {
+
     public ProductCategoryUpdateCommand {
         if (ceoId == null
             || productCategoryId == null

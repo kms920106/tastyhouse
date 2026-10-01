@@ -21,6 +21,7 @@ public record ShopPhotoCategoryImageItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
+
     public static ShopPhotoCategoryImageItemResponse from(ShopPhotoCategoryImageManagementResult result) {
         return new ShopPhotoCategoryImageItemResponse(
             result.id(),

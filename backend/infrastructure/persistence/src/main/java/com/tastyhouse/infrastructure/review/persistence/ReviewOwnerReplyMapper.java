@@ -6,6 +6,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReviewOwnerReplyMapper {
+
     private ReviewOwnerReplyMapper() {
     }
 

@@ -16,6 +16,7 @@ public record ProductApprovalRejectRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String rejectReason
 ) {
+
     public ProductImageChangeRejectCommand toImageChangeCommand(Long requestId) {
         return new ProductImageChangeRejectCommand(requestId, rejectReason);
     }

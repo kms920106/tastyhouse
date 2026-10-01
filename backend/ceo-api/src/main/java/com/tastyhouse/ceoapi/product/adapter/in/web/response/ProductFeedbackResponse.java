@@ -25,6 +25,7 @@ public record ProductFeedbackResponse(
     @Schema(description = "ETC 유형의 서술 내용(최대 10건). 그 외 유형이면 빈 배열입니다")
     List<String> contents
 ) {
+
     public static ProductFeedbackResponse from(ProductFeedbackSummaryResult result) {
         return new ProductFeedbackResponse(
             result.productId(),

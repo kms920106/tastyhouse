@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum PaymentMethod {
+
     CASH_ON_SITE,
     CARD_ON_SITE,
     CREDIT_CARD,

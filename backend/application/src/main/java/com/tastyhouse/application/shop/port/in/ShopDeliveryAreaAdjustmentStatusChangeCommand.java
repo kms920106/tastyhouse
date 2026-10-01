@@ -7,6 +7,7 @@ public record ShopDeliveryAreaAdjustmentStatusChangeCommand(
     Long requestId,
     String status
 ) {
+
     public ShopDeliveryAreaAdjustmentStatusChangeCommand {
         if (requestId == null || status == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

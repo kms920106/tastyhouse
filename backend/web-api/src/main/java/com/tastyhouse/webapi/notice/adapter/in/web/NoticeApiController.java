@@ -21,6 +21,7 @@ import com.tastyhouse.webapi.notice.adapter.in.web.response.NoticeListItemRespon
 @RequestMapping("/api/notices")
 @Tag(name = "Notice", description = "공지사항 관리 API")
 public class NoticeApiController {
+
     private final NoticeQueryUseCase noticeQueryUseCase;
 
     public NoticeApiController(NoticeQueryUseCase noticeQueryUseCase) {

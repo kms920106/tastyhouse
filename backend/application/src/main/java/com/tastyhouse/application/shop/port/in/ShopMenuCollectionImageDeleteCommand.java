@@ -8,6 +8,7 @@ public record ShopMenuCollectionImageDeleteCommand(
     Long shopId,
     Long imageId
 ) {
+
     public ShopMenuCollectionImageDeleteCommand {
         if (ceoId == null || shopId == null || imageId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -21,6 +21,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdat
 @RestController
 @RequestMapping("/api/shops")
 public class ShopScheduledOrderApiController {
+
     private final ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase;
 
     public ShopScheduledOrderApiController(ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase) {

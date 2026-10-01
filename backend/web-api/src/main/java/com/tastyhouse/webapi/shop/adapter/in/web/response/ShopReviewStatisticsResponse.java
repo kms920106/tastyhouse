@@ -41,6 +41,7 @@ public record ShopReviewStatisticsResponse(
     @Schema(description = "평점별 리뷰 수 (키: 평점(1-5), 값: 리뷰 수)", example = "{\"1\": 10, \"2\": 20, \"3\": 50, \"4\": 300, \"5\": 644}")
     Map<Integer, Long> ratingCounts
 ) {
+
     public static ShopReviewStatisticsResponse from(ShopReviewStatisticsViewResult result) {
         return new ShopReviewStatisticsResponse(
             result.totalRating(),

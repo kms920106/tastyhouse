@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.payment.persistence.QPaymentJpaEntit
 
 @Repository
 public class PaymentPersistenceAdapter implements PaymentPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final PaymentJpaRepository paymentJpaRepository;
 

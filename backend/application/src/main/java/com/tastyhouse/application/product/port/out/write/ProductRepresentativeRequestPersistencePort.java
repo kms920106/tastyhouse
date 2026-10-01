@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductRepresentativeRequestPersistencePort {
+
     ProductRepresentativeRequest save(ProductRepresentativeRequest request);
 
     Optional<ProductRepresentativeRequest> findById(ProductRepresentativeRequestId id);

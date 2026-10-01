@@ -6,6 +6,7 @@ import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class Event {
+
     private final Long id;
     private String name;
     private String description;

@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.notification.persistence.QNotificati
 
 @Repository
 public class NotificationPersistenceAdapter implements NotificationPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final NotificationJpaRepository notificationJpaRepository;
 

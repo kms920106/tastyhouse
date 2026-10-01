@@ -21,6 +21,7 @@ import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.po
 
 @Repository
 public class PointQueryAdapter implements PointQueryPort, PointManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public PointQueryAdapter(JPAQueryFactory queryFactory) {

@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRiderGuideServiceTest {
+
     private static final Long OPEN_SHOP_ID = 1L;
     private static final Long CLOSED_SHOP_ID = 2L;
     private static final Long MISSING_SHOP_ID = 99L;
@@ -43,6 +44,7 @@ class ShopRiderGuideServiceTest {
     private ShopRiderGuideService shopRiderGuideService;
 
     private static class FakeShopRiderGuidePersistencePort implements ShopRiderGuidePersistencePort {
+
         private final Map<Long, ShopRiderGuide> guides = new HashMap<>();
         private final List<ShopRiderGuideHistory> histories = new ArrayList<>();
         private long historySequence = 0L;
@@ -71,6 +73,7 @@ class ShopRiderGuideServiceTest {
     }
 
     private static class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopPersistencePort() {
@@ -105,6 +108,7 @@ class ShopRiderGuideServiceTest {
     }
 
     private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

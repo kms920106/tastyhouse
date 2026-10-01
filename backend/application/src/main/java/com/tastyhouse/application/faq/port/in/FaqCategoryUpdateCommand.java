@@ -9,6 +9,7 @@ public record FaqCategoryUpdateCommand(
     Integer sort,
     boolean visible
 ) {
+
     public FaqCategoryUpdateCommand {
         if (faqCategoryId == null || name == null || sort == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

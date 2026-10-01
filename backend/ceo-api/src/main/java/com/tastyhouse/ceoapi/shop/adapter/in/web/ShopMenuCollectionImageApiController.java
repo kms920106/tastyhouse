@@ -34,6 +34,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @RestController
 @RequestMapping("/api/shops")
 public class ShopMenuCollectionImageApiController {
+
     private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;
 

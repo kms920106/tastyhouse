@@ -8,6 +8,7 @@ public record ScheduledOrderSlot(
     LocalDateTime startAt,
     LocalDateTime endAt
 ) {
+
     public static ScheduledOrderSlot range(LocalDateTime startAt) {
         return new ScheduledOrderSlot(startAt, startAt.plusMinutes(ScheduledOrderPolicy.SLOT_UNIT_MINUTES));
     }

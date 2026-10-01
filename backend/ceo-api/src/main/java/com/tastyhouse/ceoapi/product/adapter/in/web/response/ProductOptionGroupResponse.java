@@ -48,6 +48,7 @@ public record ProductOptionGroupResponse(
     @Schema(description = "이 그룹에 속한 옵션 목록(순서 오름차순)")
     List<ProductOptionResponse> options
 ) {
+
     public static ProductOptionGroupResponse from(ProductOptionGroupViewResult result) {
         return new ProductOptionGroupResponse(
             result.id(),

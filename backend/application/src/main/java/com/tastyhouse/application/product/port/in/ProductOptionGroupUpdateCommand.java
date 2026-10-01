@@ -14,6 +14,7 @@ public record ProductOptionGroupUpdateCommand(
     Integer minSelect,
     Integer maxSelect
 ) {
+
     public ProductOptionGroupUpdateCommand {
         if (ceoId == null
             || optionGroupId == null

@@ -3,6 +3,7 @@ package com.tastyhouse.apicommon.common;
 import java.util.List;
 
 public class ApiResponse<T> {
+
     private final boolean success;
     private final String message;
     private final T data;
@@ -32,6 +33,7 @@ public class ApiResponse<T> {
     }
 
     public static class Pagination {
+
         private final int page;
         private final int size;
         private final long totalElements;

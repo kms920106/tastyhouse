@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryTipServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long DONG_A = 100L;
     private static final Long DONG_B = 200L;
@@ -65,6 +66,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("replaceTiers")
     class ReplaceTiers {
+
         @Test
         @DisplayName("구간이 0개면 SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED로 거부한다")
         void replaceTiers_rejectsEmpty() {
@@ -182,6 +184,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("거리별 ↔ 지역별 배타")
     class ExtraTypeExclusivity {
+
         @Test
         @DisplayName("지역별 팁이 있는 상태에서 거리별 설정은 SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT로 거부한다")
         void changeDistanceTip_rejectsWhenRegionTipExists() {
@@ -251,6 +254,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("replaceRegionTips")
     class ReplaceRegionTips {
+
         @Test
         @DisplayName("요청 내 같은 행정동이 두 번 오면 SHOP_DELIVERY_TIP_REGION_DUPLICATED로 거부한다")
         void replaceRegionTips_rejectsDuplicatedAdminDong() {
@@ -324,6 +328,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("replaceScheduleTips")
     class ReplaceScheduleTips {
+
         @Test
         @DisplayName("같은 요일 구분에서 시간대가 겹치면 SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP으로 거부한다")
         void replaceScheduleTips_rejectsOverlapInSameDayType() {
@@ -395,6 +400,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("changeHolidayTip")
     class ChangeHolidayTip {
+
         @Test
         @DisplayName("0원은 삭제로 해석해 null을 반환하고 저장된 공휴일 팁을 지운다")
         void changeHolidayTip_zeroDeletes() {
@@ -426,6 +432,7 @@ class ShopDeliveryTipServiceTest {
     @Nested
     @DisplayName("변경이력")
     class ChangeHistory {
+
         @Test
         @DisplayName("구간 replace-all은 행 수와 무관하게 이력 1행만 남기고 변경 전·후 전체를 담는다")
         void replaceTiers_recordsSingleSnapshotRow() {
@@ -524,6 +531,7 @@ class ShopDeliveryTipServiceTest {
     }
 
     private static final class ShopDeliveryTipPersistencePortFake implements ShopDeliveryTipPersistencePort {
+
         private final Map<Long, ShopDeliveryTipSetting> settings = new LinkedHashMap<>();
         private final List<ShopDeliveryTipTier> tiers = new ArrayList<>();
         private final List<ShopDeliveryTipRegion> regionTips = new ArrayList<>();
@@ -644,6 +652,7 @@ class ShopDeliveryTipServiceTest {
     }
 
     private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -709,6 +718,7 @@ class ShopDeliveryTipServiceTest {
     }
 
     private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");

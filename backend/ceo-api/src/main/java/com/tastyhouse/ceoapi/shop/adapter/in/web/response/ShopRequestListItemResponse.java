@@ -53,6 +53,7 @@ public record ShopRequestListItemResponse(
     @Schema(description = "최근 처리 일시. 접수 직후면 null", example = "2026-08-12T09:12:44")
     LocalDateTime processedAt
 ) {
+
     public static ShopRequestListItemResponse from(ShopRequestListItemViewResult result) {
         return new ShopRequestListItemResponse(
             result.requestId(),

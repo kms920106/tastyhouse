@@ -7,6 +7,7 @@ public record ShopDeliveryTipRegionsRemoveCommand(
     Long ceoId,
     Long shopId
 ) {
+
     public ShopDeliveryTipRegionsRemoveCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -8,6 +8,7 @@ public record PaymentCreateCommand(
     Long orderId,
     String paymentMethod
 ) {
+
     public PaymentCreateCommand {
         if (memberId == null || orderId == null || paymentMethod == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

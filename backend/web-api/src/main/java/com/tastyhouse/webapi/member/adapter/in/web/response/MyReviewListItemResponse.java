@@ -15,6 +15,7 @@ public record MyReviewListItemResponse(
     @Schema(description = "사장님만보기 여부. 마이페이지는 본인 한정 조회라 비공개 리뷰도 포함되므로, 뱃지 표시에 사용합니다.", example = "false")
     boolean ownerOnly
 ) {
+
     public static MyReviewListItemResponse from(MyReviewListItemResult result) {
         return new MyReviewListItemResponse(
             result.id(),

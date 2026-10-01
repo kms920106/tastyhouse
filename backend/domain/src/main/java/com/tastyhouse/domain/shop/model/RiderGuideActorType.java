@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum RiderGuideActorType {
+
     CEO("점주"),
     ADMIN("관리자");
 

@@ -7,6 +7,7 @@ public record ShopBookmarkToggleCommand(
     Long memberId,
     Long shopId
 ) {
+
     public ShopBookmarkToggleCommand {
         if (memberId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

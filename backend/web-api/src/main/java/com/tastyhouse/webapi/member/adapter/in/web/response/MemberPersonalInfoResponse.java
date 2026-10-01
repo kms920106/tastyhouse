@@ -30,6 +30,7 @@ public record MemberPersonalInfoResponse(
     @Schema(description = "이벤트 정보 수신 동의", example = "false")
     boolean eventInfoEnabled
 ) {
+
     public static MemberPersonalInfoResponse from(MemberPersonalInfoResult result) {
         return new MemberPersonalInfoResponse(
             result.username(),

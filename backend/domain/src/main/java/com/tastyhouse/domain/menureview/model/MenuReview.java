@@ -12,6 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class MenuReview {
+
     private static final int MIN_RATING = 1;
 
     private static final int MAX_RATING = 5;

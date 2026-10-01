@@ -8,6 +8,7 @@ public record MemberPasswordUpdateCommand(
     String newPassword,
     String newPasswordConfirm
 ) {
+
     public MemberPasswordUpdateCommand {
         if (memberId == null || newPassword == null || newPasswordConfirm == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

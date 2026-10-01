@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ShopDeliveryAreaJpaRepository extends JpaRepository<ShopDeliveryAreaJpaEntity, Long> {
+
     List<ShopDeliveryAreaJpaEntity> findByShopIdOrderByIdAsc(Long shopId);
 
     List<ShopDeliveryAreaJpaEntity> findByShopIdAndSource(Long shopId, String source);

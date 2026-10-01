@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopBookmark;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBookmarkMapper {
+
     private ShopBookmarkMapper() {
     }
 

@@ -27,6 +27,7 @@ public record StorePriceVerificationItemResponse(
     @Schema(description = "픽업가를 매장가와 동일하게 설정할지", example = "true")
     boolean applyPickupSamePrice
 ) {
+
     public static StorePriceVerificationItemResponse from(StorePriceVerificationItemResult result) {
         return new StorePriceVerificationItemResponse(
             result.productId(),

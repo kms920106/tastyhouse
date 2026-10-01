@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJp
 
 @Repository
 public class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final PolicyDocumentJpaRepository policyDocumentJpaRepository;
 

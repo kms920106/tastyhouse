@@ -4,6 +4,7 @@ import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 
 final class PartnershipRequestMapper {
+
     private PartnershipRequestMapper() {
     }
 

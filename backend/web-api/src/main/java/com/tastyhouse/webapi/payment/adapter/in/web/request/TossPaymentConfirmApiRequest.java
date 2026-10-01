@@ -22,6 +22,7 @@ public record TossPaymentConfirmApiRequest(
     @Positive(message = "결제 금액은 0보다 커야 합니다")
     Integer amount
 ) {
+
     private static final String PG_PROVIDER = "TOSS";
 
     public PgPaymentConfirmCommand toCommand(Long memberId) {

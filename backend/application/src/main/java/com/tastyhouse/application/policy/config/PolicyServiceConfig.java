@@ -11,6 +11,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class PolicyServiceConfig {
+
     @Bean
     public PolicyActivationService policyActivationService(
         PolicyDocumentPersistencePort policyDocumentPersistencePort,

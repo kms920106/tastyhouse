@@ -11,6 +11,7 @@ public record ShopHygieneBadgeCreateCommand(
     LocalDate certifiedDate,
     String lastInspectionMonth
 ) {
+
     public ShopHygieneBadgeCreateCommand {
         if (shopId == null || badgeType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

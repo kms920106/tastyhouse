@@ -44,6 +44,7 @@ import com.tastyhouse.application.product.service.OrderProductValidationService;
 import com.tastyhouse.application.shop.service.ShopOrderContextService;
 
 public class OrderPlacementService {
+
     private final OrderPersistencePort orderPersistencePort;
     private final OrderProductPersistencePort orderProductPersistencePort;
     private final OrderProductOptionPersistencePort orderProductOptionPersistencePort;

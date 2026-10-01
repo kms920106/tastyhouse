@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.holiday.persistence;
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
 
 final class PublicHolidayMapper {
+
     private PublicHolidayMapper() {
     }
 

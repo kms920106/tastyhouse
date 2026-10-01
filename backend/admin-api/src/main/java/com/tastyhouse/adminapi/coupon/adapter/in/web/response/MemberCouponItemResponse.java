@@ -26,6 +26,7 @@ public record MemberCouponItemResponse(
     @Schema(description = "발급 일시", example = "2026-01-01T00:00:00")
     LocalDateTime issuedAt
 ) {
+
     public static MemberCouponItemResponse from(MemberCouponItemResult result) {
         return new MemberCouponItemResponse(
             result.id(),

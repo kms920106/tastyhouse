@@ -16,6 +16,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 
 public class ShopDeliveryAreaAdjustmentService {
+
     private static final List<DeliveryAreaAdjustmentStatus> OPEN_STATUSES =
         List.of(DeliveryAreaAdjustmentStatus.PENDING, DeliveryAreaAdjustmentStatus.IN_PROGRESS);
 

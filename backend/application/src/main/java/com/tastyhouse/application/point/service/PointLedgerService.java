@@ -16,6 +16,7 @@ import com.tastyhouse.application.point.port.out.write.PointPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PointLedgerService {
+
     private static final String USE_ON_ORDER_REASON = "주문 결제 사용";
     private static final String REFUND_ON_CANCEL_REASON = "결제 취소 환불";
     private static final String RECLAIM_ON_CANCEL_REASON = "결제 취소 적립금 회수";

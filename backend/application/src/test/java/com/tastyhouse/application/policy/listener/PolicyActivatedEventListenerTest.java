@@ -15,6 +15,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PolicyActivatedEventListenerTest {
+
     private final PolicyActivatedEventListener listener = new PolicyActivatedEventListener();
 
     private ListenerLogCapture logCapture;

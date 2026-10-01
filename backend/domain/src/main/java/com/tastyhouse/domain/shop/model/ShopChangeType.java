@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ShopChangeType {
+
     BUSINESS_HOUR(ShopChangeCategory.OPERATION, "영업시간"),
     BREAK_TIME(ShopChangeCategory.OPERATION, "휴게시간"),
     HOLIDAY_CLOSURE(ShopChangeCategory.OPERATION, "공휴일 휴무 설정"),

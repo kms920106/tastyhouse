@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.model.ProductHiddenReason;
 
 public class ProductExposureCalculator {
+
     public ProductExposureResult calculate(ProductExposureContext context) {
         if (!context.visible()) {
             return ProductExposureResult.ofHidden(ProductHiddenReason.MANUALLY_HIDDEN);

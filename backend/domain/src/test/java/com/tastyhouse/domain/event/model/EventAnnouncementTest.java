@@ -10,6 +10,7 @@ import com.tastyhouse.domain.event.vo.EventId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EventAnnouncementTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)다")
     void of_createsTransientEventAnnouncement() {

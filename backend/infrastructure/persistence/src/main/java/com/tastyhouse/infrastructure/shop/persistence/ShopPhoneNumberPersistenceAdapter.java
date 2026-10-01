@@ -10,6 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistence
 
 @Repository
 public class ShopPhoneNumberPersistenceAdapter implements ShopPhoneNumberPersistencePort {
+
     private final ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository;
 
     public ShopPhoneNumberPersistenceAdapter(ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository) {

@@ -14,6 +14,7 @@ public record ProductAvailabilityChangeResponse(
     @Schema(description = "적용하지 못한 대상과 그 사유")
     List<ProductAvailabilityFailureResponse> failed
 ) {
+
     public static ProductAvailabilityChangeResponse from(ProductAvailabilityChangeView view) {
         return new ProductAvailabilityChangeResponse(
             view.succeeded(),

@@ -14,6 +14,7 @@ import com.tastyhouse.application.ceo.port.in.CeoOwnerQueryUseCase;
 
 @Configuration
 public class CeoSeeder {
+
     private static final Logger log = LoggerFactory.getLogger(CeoSeeder.class);
 
     @Bean

@@ -7,6 +7,7 @@ public record ShopPhoneNumberDeleteCommand(
     Long ceoId,
     Long phoneNumberId
 ) {
+
     public ShopPhoneNumberDeleteCommand {
         if (ceoId == null || phoneNumberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -17,6 +17,7 @@ import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResp
 @RestController
 @RequestMapping("/api/grades")
 public class GradeApiController {
+
     private final GradeQueryUseCase gradeQueryUseCase;
 
     public GradeApiController(GradeQueryUseCase gradeQueryUseCase) {

@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryAreaServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final AdminDongId ADMIN_DONG_ID = AdminDongId.of(100L);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -42,6 +43,7 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("addArea")
     class AddArea {
+
         @Test
         @DisplayName("행정동이 마스터에 없으면 ADMIN_DONG_NOT_FOUND로 거부한다")
         void addArea_rejectsUnknownAdminDong() {
@@ -84,6 +86,7 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("removeArea")
     class RemoveArea {
+
         @Test
         @DisplayName("존재하지 않는 배달가능지역은 SHOP_DELIVERY_AREA_NOT_FOUND로 거부한다")
         void removeArea_rejectsMissingArea() {
@@ -141,6 +144,7 @@ class ShopDeliveryAreaServiceTest {
     @Nested
     @DisplayName("변경이력")
     class ChangeHistory {
+
         @Test
         @DisplayName("단건 등록·삭제는 행정동 이름으로 CREATE·DELETE 한 행씩 남긴다")
         void addAndRemoveArea_recordRowLevelHistory() {
@@ -211,6 +215,7 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
@@ -269,6 +274,7 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -334,6 +340,7 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
+
         private final List<String> regionTipKeys = new ArrayList<>();
 
         void addRegionTipOnAdminDong(ShopId shopId) {

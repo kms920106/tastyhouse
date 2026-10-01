@@ -22,6 +22,7 @@ public record ShopRequestAdjustmentResponse(
     @Schema(description = "정보제공 동의서 URL", example = "https://storage.example.com/2026/08/consent.pdf")
     String consentFileUrl
 ) {
+
     public static ShopRequestAdjustmentResponse from(ShopRequestAdjustmentDetailResult result) {
         return new ShopRequestAdjustmentResponse(
             result.counterpartShopName(),

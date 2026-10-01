@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PointTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 사용 가능 포인트·이번달 소멸 포인트가 0이다")
     void of_createsTransientPoint() {

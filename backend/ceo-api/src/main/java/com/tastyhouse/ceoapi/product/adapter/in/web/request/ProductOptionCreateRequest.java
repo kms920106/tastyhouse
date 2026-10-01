@@ -36,6 +36,7 @@ public record ProductOptionCreateRequest(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionOwnerCreateCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionOwnerCreateCommand(
             ceoId,

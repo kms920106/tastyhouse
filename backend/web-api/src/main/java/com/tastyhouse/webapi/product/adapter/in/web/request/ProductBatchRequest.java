@@ -20,6 +20,7 @@ public record ProductBatchRequest(
         example = "TAKEOUT")
     String orderMethod
 ) {
+
     private static final String DEFAULT_ORDER_METHOD = "DELIVERY";
 
     public ProductBatchRequest {

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReservationSlotMapper {
+
     private ReservationSlotMapper() {
     }
 

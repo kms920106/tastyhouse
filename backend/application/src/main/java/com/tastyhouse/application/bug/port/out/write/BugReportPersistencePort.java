@@ -6,6 +6,7 @@ import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.vo.BugReportId;
 
 public interface BugReportPersistencePort {
+
     Optional<BugReport> findById(BugReportId bugReportId);
 
     BugReport save(BugReport bugReport);

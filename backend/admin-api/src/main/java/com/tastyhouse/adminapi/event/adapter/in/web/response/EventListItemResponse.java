@@ -27,6 +27,7 @@ public record EventListItemResponse(
     @Schema(description = "종료 일시", example = "2026-01-31T23:59:59")
     LocalDateTime endAt
 ) {
+
     public static EventListItemResponse from(EventManagementListItemResult result) {
         return new EventListItemResponse(
             result.id(),

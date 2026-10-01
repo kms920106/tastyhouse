@@ -10,6 +10,7 @@ import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistenc
 
 @Repository
 public class PublicHolidayPersistenceAdapter implements PublicHolidayPersistencePort {
+
     private final PublicHolidayJpaRepository publicHolidayJpaRepository;
 
     public PublicHolidayPersistenceAdapter(PublicHolidayJpaRepository publicHolidayJpaRepository) {

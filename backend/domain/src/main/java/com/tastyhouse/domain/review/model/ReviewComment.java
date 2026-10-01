@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public class ReviewComment {
+
     private final Long id;
     private final ReviewId reviewId;
     private final MemberId memberId;

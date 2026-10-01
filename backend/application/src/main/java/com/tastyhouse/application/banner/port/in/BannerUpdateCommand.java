@@ -16,6 +16,7 @@ public record BannerUpdateCommand(
     Integer sort,
     boolean visible
 ) {
+
     public BannerUpdateCommand {
         if (bannerId == null || type == null || imageFileId == null || sort == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

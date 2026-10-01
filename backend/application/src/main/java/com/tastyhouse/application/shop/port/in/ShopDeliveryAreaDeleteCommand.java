@@ -7,6 +7,7 @@ public record ShopDeliveryAreaDeleteCommand(
     Long ceoId,
     Long deliveryAreaId
 ) {
+
     public ShopDeliveryAreaDeleteCommand {
         if (ceoId == null || deliveryAreaId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

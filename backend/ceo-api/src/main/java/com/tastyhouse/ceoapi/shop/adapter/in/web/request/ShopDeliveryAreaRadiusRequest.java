@@ -16,6 +16,7 @@ public record ShopDeliveryAreaRadiusRequest(
     @Schema(description = "기존 직접 등록분을 교체할지 여부(기본 false = 더하기)", example = "false")
     boolean replace
 ) {
+
     public ShopDeliveryAreaRadiusApplyCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaRadiusApplyCommand(ceoId, shopId, radiusMeters(), replace());
     }

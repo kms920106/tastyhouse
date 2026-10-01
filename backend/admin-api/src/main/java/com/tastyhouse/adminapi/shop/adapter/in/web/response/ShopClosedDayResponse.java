@@ -15,6 +15,7 @@ public record ShopClosedDayResponse(
     @Schema(description = "정기 휴무 유형 설명", example = "매주 월요일")
     String description
 ) {
+
     public static ShopClosedDayResponse from(ShopClosedDayResult result) {
         return new ShopClosedDayResponse(
             result.id(),

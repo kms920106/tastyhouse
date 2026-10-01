@@ -6,6 +6,7 @@ import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public interface MemberFollowPersistencePort {
+
     Optional<MemberFollow> findByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId);
 
     boolean existsByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId);

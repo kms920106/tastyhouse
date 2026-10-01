@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import java.util.Set;
 
 public final class DeliveryTipPolicy {
+
     public static final int TIER_MAX_COUNT = 3;
 
     public static final int TIER_TIP_UPPER_BOUND_EXCLUSIVE = 5000;

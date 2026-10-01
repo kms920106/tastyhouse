@@ -18,6 +18,7 @@ import static com.tastyhouse.infrastructure.policy.persistence.QPolicyDocumentJp
 
 @Repository
 public class PolicyQueryAdapter implements PolicyQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public PolicyQueryAdapter(JPAQueryFactory queryFactory) {

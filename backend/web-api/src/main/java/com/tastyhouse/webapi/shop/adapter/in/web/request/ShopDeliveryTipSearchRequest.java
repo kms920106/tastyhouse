@@ -15,6 +15,7 @@ public record ShopDeliveryTipSearchRequest(
     @Schema(description = "주문 방법(TABLE, RESERVATION, DELIVERY, TAKEOUT). 미지정 시 DELIVERY입니다.", example = "DELIVERY")
     String orderMethod
 ) {
+
     private static final String DEFAULT_ORDER_METHOD = "DELIVERY";
 
     public ShopDeliveryTipSearchRequest {

@@ -5,6 +5,7 @@ import com.tastyhouse.domain.admin.model.AdminRole;
 import com.tastyhouse.domain.admin.model.AdminStatus;
 
 final class AdminMapper {
+
     private AdminMapper() {
     }
 

@@ -20,6 +20,7 @@ public record ShopMapMarkerResponse(
     @Schema(description = "상호명", example = "맛있는 집")
     String name
 ) {
+
     public static ShopMapMarkerResponse from(ShopMapMarkerResult result) {
         return new ShopMapMarkerResponse(
             result.id(),

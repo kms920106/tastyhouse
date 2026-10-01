@@ -14,6 +14,7 @@ public record ShopPhotoCategoryResponse(
     @Schema(description = "이미지 URL 목록")
     List<String> imageUrls
 ) {
+
     public static ShopPhotoCategoryResponse from(ShopPhotoCategoryViewResult result) {
         return new ShopPhotoCategoryResponse(
             result.name(),

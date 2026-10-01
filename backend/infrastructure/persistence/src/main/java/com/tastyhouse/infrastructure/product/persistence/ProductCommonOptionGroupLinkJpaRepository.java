@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductCommonOptionGroupLinkJpaRepository extends JpaRepository<ProductCommonOptionGroupLinkJpaEntity, Long> {
+
     Optional<ProductCommonOptionGroupLinkJpaEntity> findByProductIdAndOptionGroupId(Long productId, Long optionGroupId);
 
     List<ProductCommonOptionGroupLinkJpaEntity> findAllByProductIdOrderBySortAsc(Long productId);

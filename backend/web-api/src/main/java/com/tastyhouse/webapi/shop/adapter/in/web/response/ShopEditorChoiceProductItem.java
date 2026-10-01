@@ -29,6 +29,7 @@ public record ShopEditorChoiceProductItem(
     @Schema(description = "할인율(%)", example = "20")
     BigDecimal discountRate
 ) {
+
     public static ShopEditorChoiceProductItem from(ProductSimpleResult result) {
         return new ShopEditorChoiceProductItem(
             result.id(),

@@ -27,6 +27,7 @@ import com.tastyhouse.domain.shop.vo.StationId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopOperatingStatusCalculatorTest {
+
     private final ShopOperatingStatusCalculator calculator = new ShopOperatingStatusCalculator();
 
     private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 7, 27, 12, 0);

@@ -23,6 +23,7 @@ public record ShopOriginInfoUpdateRequest(
         example = "https://example.com/origin")
     String url
 ) {
+
     public ShopOriginInfoUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopOriginInfoUpdateCommand(ceoId, shopId, sourceType(), content(), url());
     }

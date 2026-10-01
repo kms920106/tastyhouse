@@ -5,6 +5,7 @@ import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 final class BugReportImageMapper {
+
     private BugReportImageMapper() {
     }
 

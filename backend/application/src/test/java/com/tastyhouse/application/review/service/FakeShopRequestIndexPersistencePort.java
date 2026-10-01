@@ -9,6 +9,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
 public class FakeShopRequestIndexPersistencePort implements ShopRequestIndexPersistencePort {
+
     private final Map<Long, ShopRequestIndex> indexes = new HashMap<>();
     private long sequence = 0L;
 

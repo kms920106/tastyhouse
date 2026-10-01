@@ -18,6 +18,7 @@ public record LoginRequest(
     @Schema(description = "로그인 상태 유지 여부 (true: 30일, false: 7일)", example = "false", defaultValue = "false")
     boolean rememberMe
 ) {
+
     public CeoAuthLoginCommand toCommand(String ipAddress, String userAgent) {
         return CeoAuthLoginCommand.of(username, password, rememberMe, ipAddress, userAgent);
     }

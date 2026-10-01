@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PointEventListenerTest {
+
     private final PointEventListener listener = new PointEventListener();
 
     private ListenerLogCapture logCapture;

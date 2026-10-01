@@ -19,6 +19,7 @@ public record ProductOwnerUpdateCommand(
     Boolean ratingExcluded,
     String weightText
 ) {
+
     public ProductOwnerUpdateCommand {
         if (ceoId == null
             || productId == null

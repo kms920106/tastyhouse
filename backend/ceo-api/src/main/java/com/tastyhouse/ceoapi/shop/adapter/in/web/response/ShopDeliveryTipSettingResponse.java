@@ -27,6 +27,7 @@ public record ShopDeliveryTipSettingResponse(
     @Schema(description = "공휴일 추가 배달팁(원). 0이면 미설정", example = "2000")
     int holidayTipAmount
 ) {
+
     private static final String EXTRA_TIP_TYPE_NONE = "NONE";
 
     public static ShopDeliveryTipSettingResponse from(ShopDeliveryTipOwnerViewResult result) {

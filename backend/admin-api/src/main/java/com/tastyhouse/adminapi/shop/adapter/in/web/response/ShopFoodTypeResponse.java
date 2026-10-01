@@ -21,6 +21,7 @@ public record ShopFoodTypeResponse(
     @Schema(description = "활성 상태 아이콘 파일 경로", example = "https://cdn.example.com/food-type/korean-active.png")
     String activeFilePath
 ) {
+
     public static ShopFoodTypeResponse from(ShopFoodTypeAssignmentResult result) {
         return new ShopFoodTypeResponse(
             result.id(),

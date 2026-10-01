@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopOrderNoticeId;
 
 public class ShopOrderNotice {
+
     private final ShopOrderNoticeId id;
     private final ShopId shopId;
     private String content;

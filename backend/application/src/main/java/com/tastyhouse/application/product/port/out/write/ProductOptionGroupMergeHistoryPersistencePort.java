@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductOptionGroupMergeHistoryPersistencePort {
+
     ProductOptionGroupMergeHistory save(ProductOptionGroupMergeHistory history);
 
     List<ProductOptionGroupMergeHistory> findAllByShopId(ShopId shopId);

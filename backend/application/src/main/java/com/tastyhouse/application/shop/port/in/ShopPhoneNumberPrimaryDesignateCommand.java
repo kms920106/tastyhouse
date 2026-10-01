@@ -7,6 +7,7 @@ public record ShopPhoneNumberPrimaryDesignateCommand(
     Long ceoId,
     Long phoneNumberId
 ) {
+
     public ShopPhoneNumberPrimaryDesignateCommand {
         if (ceoId == null || phoneNumberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

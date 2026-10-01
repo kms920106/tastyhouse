@@ -53,6 +53,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class ProductServiceConfig {
+
     @Bean
     public ProductRegistrationService productRegistrationService(
         ProductPersistencePort productPersistencePort,

@@ -9,6 +9,7 @@ public record PaymentCancellationTarget(
     PgProvider pgProvider,
     String pgTid
 ) {
+
     public static PaymentCancellationTarget rejected(PaymentCancelCode rejectCode) {
         return new PaymentCancellationTarget(
             rejectCode,

@@ -40,6 +40,7 @@ public record ShopLatestListItemResponse(
     @Schema(description = "배달팁 최대 금액(원). 고객 주소가 확정되기 전 상한", example = "4000")
     int maxDeliveryTip
 ) {
+
     public static ShopLatestListItemResponse from(ShopLatestListItemViewResult result) {
         return new ShopLatestListItemResponse(
             result.id(),

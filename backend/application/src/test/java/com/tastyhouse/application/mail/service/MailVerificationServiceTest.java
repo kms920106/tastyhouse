@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MailVerificationServiceTest {
+
     @Test
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 메일을 발송한다")
     void issue_sendsMailWithGeneratedCode() {
@@ -143,6 +144,7 @@ class MailVerificationServiceTest {
     }
 
     private static final class RecordingMailSender implements MailSender {
+
         private final List<String> sent = new ArrayList<>();
         private String lastTo;
         private String lastSubject;
@@ -163,6 +165,7 @@ class MailVerificationServiceTest {
     }
 
     private static final class FakeMailVerificationPersistencePort implements MailVerificationPersistencePort {
+
         private final List<MailVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();
         private MailVerification pending;
@@ -200,6 +203,7 @@ class MailVerificationServiceTest {
     }
 
     private record FakeMemberPersistencePort(boolean usernameExists) implements MemberPersistencePort {
+
         @Override
         public boolean existsByUsername(String username) {
             return usernameExists;

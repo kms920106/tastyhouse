@@ -14,6 +14,7 @@ public record ShopImageStatusResponse(
     @Schema(description = "변경 요청 목록")
     List<ShopImageChangeRequestItemResponse> requests
 ) {
+
     public static ShopImageStatusResponse from(ShopImageStatusResult result) {
         return new ShopImageStatusResponse(
             result.currentImageUrl(),

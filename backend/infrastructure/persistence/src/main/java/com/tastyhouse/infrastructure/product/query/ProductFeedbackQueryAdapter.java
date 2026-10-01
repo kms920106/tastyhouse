@@ -20,6 +20,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntit
 
 @Repository
 public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
+
     private static final int MAX_CONTENTS_PER_GROUP = 10;
 
     private final JPAQueryFactory queryFactory;

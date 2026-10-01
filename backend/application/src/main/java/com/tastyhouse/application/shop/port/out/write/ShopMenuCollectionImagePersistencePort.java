@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 
 public interface ShopMenuCollectionImagePersistencePort {
+
     ShopMenuCollectionImage save(ShopMenuCollectionImage image);
 
     Optional<ShopMenuCollectionImage> findById(ShopMenuCollectionImageId id);

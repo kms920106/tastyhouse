@@ -12,6 +12,7 @@ public record ProductSoldOutOwnerCommand(
     List<Long> productIds,
     LocalDateTime soldOutUntil
 ) {
+
     public ProductSoldOutOwnerCommand {
         if (ceoId == null
             || shopId == null

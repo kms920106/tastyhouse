@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReferralRegisteredEventListenerTest {
+
     private static final ReferralId REFERRAL_ID = new ReferralId(201L);
     private static final MemberId REFERRER_ID = MemberId.of(202L);
     private static final MemberId REFEREE_ID = MemberId.of(203L);
@@ -71,6 +72,7 @@ class ReferralRegisteredEventListenerTest {
     }
 
     private static final class RecordingLedger extends PointLedgerService {
+
         private final List<Earned> earned = new ArrayList<>();
         private boolean failOnNextEarn;
 
@@ -88,6 +90,7 @@ class ReferralRegisteredEventListenerTest {
     }
 
     private static final class RecordingCompletion extends ReferralRewardCompletionService {
+
         private final List<ReferralId> completed = new ArrayList<>();
 
         private RecordingCompletion() {

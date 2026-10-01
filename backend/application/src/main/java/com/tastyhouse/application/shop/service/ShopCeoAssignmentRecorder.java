@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
 
 public class ShopCeoAssignmentRecorder {
+
     private final ShopCeoAssignmentHistoryPersistencePort shopCeoAssignmentHistoryPersistencePort;
 
     public ShopCeoAssignmentRecorder(

@@ -11,6 +11,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistenceP
 
 @Repository
 public class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort {
+
     private final ShopRiderGuideJpaRepository shopRiderGuideJpaRepository;
     private final ShopRiderGuideHistoryJpaRepository shopRiderGuideHistoryJpaRepository;
 

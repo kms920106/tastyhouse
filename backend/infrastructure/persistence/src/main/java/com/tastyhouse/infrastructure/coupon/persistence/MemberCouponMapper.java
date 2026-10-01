@@ -5,6 +5,7 @@ import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberCouponMapper {
+
     private MemberCouponMapper() {
     }
 

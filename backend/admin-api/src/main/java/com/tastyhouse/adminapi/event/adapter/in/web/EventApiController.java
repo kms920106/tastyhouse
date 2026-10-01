@@ -45,6 +45,7 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse
 @RestController
 @RequestMapping("/api/events")
 public class EventApiController {
+
     private final EventCommandUseCase eventCommandUseCase;
     private final EventManagementQueryUseCase eventQueryUseCase;
 

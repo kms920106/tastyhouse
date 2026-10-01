@@ -15,6 +15,7 @@ public record BugReportCreateCommand(
     String osVersion,
     List<Long> uploadedFileIds
 ) {
+
     public BugReportCreateCommand {
         if (reporterId == null || device == null || title == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

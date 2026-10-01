@@ -11,6 +11,7 @@ public record ShopAmenityCategoryCreateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ShopAmenityCategoryCreateCommand {
         if (amenity == null || displayName == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

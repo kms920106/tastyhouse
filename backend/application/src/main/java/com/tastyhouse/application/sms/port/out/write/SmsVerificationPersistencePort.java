@@ -6,6 +6,7 @@ import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 
 public interface SmsVerificationPersistencePort {
+
     SmsVerification save(SmsVerification smsVerification);
 
     Optional<SmsVerification> findLatestPendingByPhoneNumber(String phoneNumber, SmsVerificationStatus status);

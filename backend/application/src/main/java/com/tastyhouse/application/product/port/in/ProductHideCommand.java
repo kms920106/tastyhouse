@@ -10,6 +10,7 @@ public record ProductHideCommand(
     Long shopId,
     List<Long> productIds
 ) {
+
     public ProductHideCommand {
         if (ceoId == null
             || shopId == null

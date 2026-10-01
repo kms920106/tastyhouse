@@ -5,6 +5,7 @@ public record SocialLoginResult(
     String tempToken,
     MemberJwtResult jwt
 ) {
+
     public enum Status {LOGIN, NEEDS_SIGN_UP, NEEDS_LINKING}
 
     public static SocialLoginResult ofLogin(MemberJwtResult jwt) {

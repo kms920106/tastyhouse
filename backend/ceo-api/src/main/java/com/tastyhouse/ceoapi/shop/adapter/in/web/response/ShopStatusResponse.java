@@ -12,6 +12,7 @@ public record ShopStatusResponse(
     @Schema(description = "폐업 여부", example = "false")
     boolean permanentlyClosed
 ) {
+
     public static ShopStatusResponse from(ShopStatusResult result) {
         return new ShopStatusResponse(result.hidden(), result.permanentlyClosed());
     }

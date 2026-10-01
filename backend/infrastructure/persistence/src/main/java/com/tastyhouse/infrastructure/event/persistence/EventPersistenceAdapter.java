@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.event.persistence.QEventJpaEntity.ev
 
 @Repository
 public class EventPersistenceAdapter implements EventPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final EventJpaRepository eventJpaRepository;
 

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ProductCategory {
+
     private final Long id;
     private final ShopId shopId;
     private String name;

@@ -21,6 +21,7 @@ public record MyProfileResponse(
     @Schema(description = "프로필 이미지 URL")
     String profileImageUrl
 ) {
+
     public static MyProfileResponse from(MemberWithProfileImageResult result) {
         return new MyProfileResponse(
             result.id(),

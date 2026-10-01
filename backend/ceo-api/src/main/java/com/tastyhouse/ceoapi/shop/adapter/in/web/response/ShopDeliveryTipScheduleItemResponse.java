@@ -24,6 +24,7 @@ public record ShopDeliveryTipScheduleItemResponse(
     @Schema(description = "이 시간대의 추가 배달팁(원)", example = "1000")
     int tipAmount
 ) {
+
     public static ShopDeliveryTipScheduleItemResponse from(ShopDeliveryTipScheduleResult result) {
         return new ShopDeliveryTipScheduleItemResponse(
             result.id(),

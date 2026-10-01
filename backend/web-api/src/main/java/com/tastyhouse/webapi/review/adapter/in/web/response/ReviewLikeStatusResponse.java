@@ -7,6 +7,7 @@ public record ReviewLikeStatusResponse(
     @Schema(description = "좋아요 여부", example = "true")
     boolean liked
 ) {
+
     public static ReviewLikeStatusResponse from(boolean liked) {
         return new ReviewLikeStatusResponse(liked);
     }

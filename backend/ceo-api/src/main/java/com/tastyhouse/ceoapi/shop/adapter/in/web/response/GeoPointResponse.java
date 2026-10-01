@@ -14,6 +14,7 @@ public record GeoPointResponse(
     @Schema(description = "경도", example = "127.036000")
     BigDecimal longitude
 ) {
+
     public static GeoPointResponse from(GeoPointView point) {
         return new GeoPointResponse(
             point.latitude(),

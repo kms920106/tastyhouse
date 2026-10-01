@@ -7,6 +7,7 @@ public record ShopImageChangeRejectCommand(
     Long requestId,
     String reason
 ) {
+
     public ShopImageChangeRejectCommand {
         if (requestId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

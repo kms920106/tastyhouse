@@ -12,6 +12,7 @@ public record ShopNoticeExposureRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean exposed
 ) {
+
     public ShopNoticeExposureChangeCommand toCommand(Long ceoId, Long shopId, Long noticeId) {
         return new ShopNoticeExposureChangeCommand(ceoId, shopId, noticeId, exposed());
     }

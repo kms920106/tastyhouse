@@ -65,6 +65,7 @@ public record ProductDetailResponse(
         " 초기 요약 표시에 쓰인다 — 정확한 노출기간 값은 별도 조회 API(§6)가 담당", example = "false")
     boolean exposureScheduled
 ) {
+
     public static ProductDetailResponse from(ProductManagementDetailResult result) {
         return new ProductDetailResponse(
             result.id(),

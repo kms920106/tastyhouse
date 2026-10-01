@@ -15,6 +15,7 @@ public record ShopFoodTypeListItemResponse(
     @Schema(description = "비활성 상태 아이콘 이미지 URL", example = "https://cdn.tastyhouse.com/food-type/korean-inactive.png")
     String inactiveImageUrl
 ) {
+
     public static ShopFoodTypeListItemResponse from(ShopFoodTypeCategoryResult result) {
         return new ShopFoodTypeListItemResponse(
             result.foodType(),

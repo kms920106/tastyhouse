@@ -50,6 +50,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvaila
 @RestController
 @RequestMapping("/api/products")
 public class ProductAvailabilityApiController {
+
     private final ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase;
     private final ProductSoldOutOwnerUseCase productSoldOutUseCase;
     private final ProductHideUseCase productHideUseCase;

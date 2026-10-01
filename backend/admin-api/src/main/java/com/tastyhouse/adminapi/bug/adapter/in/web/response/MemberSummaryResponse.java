@@ -12,6 +12,7 @@ public record MemberSummaryResponse(
     @Schema(description = "닉네임", example = "맛집헌터")
     String nickname
 ) {
+
     public static MemberSummaryResponse from(MemberWithProfileImageResult result) {
         if (result == null) {
             return null;

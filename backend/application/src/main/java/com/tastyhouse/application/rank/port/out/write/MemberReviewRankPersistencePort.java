@@ -9,6 +9,7 @@ import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 
 public interface MemberReviewRankPersistencePort {
+
     Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType);
 
     void saveAll(List<MemberReviewRank> ranks);

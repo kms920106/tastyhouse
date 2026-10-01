@@ -17,6 +17,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionRes
 @RestController
 @RequestMapping("/api/products")
 public class ProductNutritionApiController {
+
     private final ProductNutritionQueryUseCase productNutritionQueryUseCase;
 
     public ProductNutritionApiController(ProductNutritionQueryUseCase productNutritionQueryUseCase) {

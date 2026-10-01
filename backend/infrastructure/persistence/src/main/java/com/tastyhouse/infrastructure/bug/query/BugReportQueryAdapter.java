@@ -25,6 +25,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 
 @Repository
 public class BugReportQueryAdapter implements BugReportQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

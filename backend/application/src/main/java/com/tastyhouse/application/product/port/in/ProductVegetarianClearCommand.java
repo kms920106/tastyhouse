@@ -8,6 +8,7 @@ public record ProductVegetarianClearCommand(
     Long shopId,
     Long productId
 ) {
+
     public ProductVegetarianClearCommand {
         if (ceoId == null
             || shopId == null

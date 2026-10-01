@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AdminDongTest {
+
     @Nested
     @DisplayName("fullName")
     class FullName {
+
         @Test
         @DisplayName("시/도 · 시/군/구 · 행정동을 공백 하나로 이어 표시용 전체 이름을 만든다")
         void fullName_joinsWithSingleSpace() {
@@ -32,6 +34,7 @@ class AdminDongTest {
     @Nested
     @DisplayName("reconstitute")
     class Reconstitute {
+
         @Test
         @DisplayName("DB 상태로부터 식별자·코드·사용 여부를 포함해 재구성한다")
         void reconstitute_restoresPersistedState() {

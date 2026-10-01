@@ -15,6 +15,7 @@ public record ShopRequestTypeCatalogResponse(
     @Schema(description = "처리 상태 목록")
     List<ShopRequestStatusResponse> statuses
 ) {
+
     public static ShopRequestTypeCatalogResponse from(ShopRequestTypeCatalogResult result) {
         return new ShopRequestTypeCatalogResponse(
             result.requestTypes().stream()

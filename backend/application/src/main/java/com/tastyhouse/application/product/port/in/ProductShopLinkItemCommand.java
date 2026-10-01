@@ -7,6 +7,7 @@ public record ProductShopLinkItemCommand(
     Long shopId,
     Long productCategoryId
 ) {
+
     public ProductShopLinkItemCommand {
         if (shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

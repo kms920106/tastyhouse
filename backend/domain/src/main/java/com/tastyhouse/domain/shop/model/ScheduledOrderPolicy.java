@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 
 public final class ScheduledOrderPolicy {
+
     public static final int DELIVERY_LEAD_TIME_MINUTES = 120;
 
     public static final int TAKEOUT_LEAD_TIME_MINUTES = 60;

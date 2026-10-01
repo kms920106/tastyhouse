@@ -17,6 +17,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistenceP
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopOriginInfoService {
+
     private final ShopOriginInfoPersistencePort shopOriginInfoPersistencePort;
     private final ShopPersistencePort shopPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;

@@ -7,6 +7,7 @@ public record MemberReviewCount(
     Long reviewCount,
     LocalDateTime lastReviewAt
 ) {
+
     public static MemberReviewCount of(
         Long memberId,
         Long reviewCount,

@@ -7,6 +7,7 @@ import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePo
 
 @Repository
 public class PointHistoryPersistenceAdapter implements PointHistoryPersistencePort {
+
     private final PointHistoryJpaRepository pointHistoryJpaRepository;
 
     public PointHistoryPersistenceAdapter(PointHistoryJpaRepository pointHistoryJpaRepository) {

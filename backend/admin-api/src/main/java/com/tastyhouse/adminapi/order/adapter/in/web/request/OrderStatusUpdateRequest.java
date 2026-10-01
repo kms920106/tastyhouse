@@ -11,6 +11,7 @@ public record OrderStatusUpdateRequest(
     @Schema(description = "변경할 주문 상태", example = "CONFIRMED", allowableValues = {"PENDING", "CONFIRMED", "PREPARING", "COMPLETED", "CANCELLED"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String status
 ) {
+
     public OrderStatusChangeCommand toCommand(Long orderId) {
         return new OrderStatusChangeCommand(orderId, status());
     }

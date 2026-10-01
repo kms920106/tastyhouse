@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ReviewOwnerReplyEventListenerTest {
+
     private static final ReviewId REVIEW_ID = ReviewId.of(482L);
     private static final MemberId REVIEWER_MEMBER_ID = MemberId.of(42L);
     private static final ShopId SHOP_ID = ShopId.of(7L);
@@ -99,6 +100,7 @@ class ReviewOwnerReplyEventListenerTest {
     }
 
     private static final class RecordingNotificationService extends NotificationService {
+
         private final List<Notified> notified = new ArrayList<>();
         private long sequence = 0L;
 

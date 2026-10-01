@@ -6,6 +6,7 @@ public record GeoPoint(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+
     public static final BigDecimal MIN_LATITUDE = BigDecimal.valueOf(-90);
 
     public static final BigDecimal MAX_LATITUDE = BigDecimal.valueOf(90);

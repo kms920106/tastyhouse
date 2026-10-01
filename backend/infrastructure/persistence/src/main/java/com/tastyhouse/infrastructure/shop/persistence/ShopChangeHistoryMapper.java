@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopChangeHistoryMapper {
+
     private ShopChangeHistoryMapper() {
     }
 

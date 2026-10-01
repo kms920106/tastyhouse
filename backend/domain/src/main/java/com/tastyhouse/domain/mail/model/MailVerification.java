@@ -8,6 +8,7 @@ import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
 public class MailVerification {
+
     public static final int EXPIRATION_MINUTES = 5;
 
     private final Long id;

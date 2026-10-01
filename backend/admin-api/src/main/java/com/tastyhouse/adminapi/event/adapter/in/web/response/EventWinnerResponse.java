@@ -26,6 +26,7 @@ public record EventWinnerResponse(
     @Schema(description = "발표 일시", example = "2026-02-01T10:00:00")
     LocalDateTime announcedAt
 ) {
+
     public static EventWinnerResponse from(EventWinnerResult result) {
         return new EventWinnerResponse(
             result.id(),

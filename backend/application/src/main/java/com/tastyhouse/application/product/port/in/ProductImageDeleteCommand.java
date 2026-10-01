@@ -8,6 +8,7 @@ public record ProductImageDeleteCommand(
     Long shopId,
     Long imageId
 ) {
+
     public ProductImageDeleteCommand {
         if (ceoId == null
             || shopId == null

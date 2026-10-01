@@ -18,6 +18,7 @@ public record ShopAmenityListItemResponse(
     @Schema(description = "비활성 상태 아이콘 이미지 URL", example = "https://cdn.tastyhouse.com/amenity/parking-inactive.png")
     String inactiveImageUrl
 ) {
+
     public static ShopAmenityListItemResponse from(ShopAmenityCategoryResult result) {
         return new ShopAmenityListItemResponse(
             result.amenity(),

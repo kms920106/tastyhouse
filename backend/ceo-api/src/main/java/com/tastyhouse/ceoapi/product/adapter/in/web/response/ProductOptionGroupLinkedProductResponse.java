@@ -12,6 +12,7 @@ public record ProductOptionGroupLinkedProductResponse(
     @Schema(description = "메뉴명", example = "매운 등갈비")
     String name
 ) {
+
     public static ProductOptionGroupLinkedProductResponse from(ProductOptionGroupLinkedProductResult result) {
         return new ProductOptionGroupLinkedProductResponse(
             result.id(),

@@ -7,6 +7,7 @@ public record SmsVerificationConfirmCommand(
     String phoneNumber,
     String verificationCode
 ) {
+
     public SmsVerificationConfirmCommand {
         if (phoneNumber == null || verificationCode == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

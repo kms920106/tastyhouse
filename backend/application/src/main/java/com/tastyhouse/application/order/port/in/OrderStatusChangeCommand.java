@@ -7,6 +7,7 @@ public record OrderStatusChangeCommand(
     Long orderId,
     String status
 ) {
+
     public OrderStatusChangeCommand {
         if (orderId == null || status == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

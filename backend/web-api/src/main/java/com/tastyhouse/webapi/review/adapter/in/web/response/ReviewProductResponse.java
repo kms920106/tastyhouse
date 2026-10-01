@@ -69,6 +69,7 @@ public record ReviewProductResponse(
     @Schema(description = "태그 이름 목록", example = "[\"#샌드위치\", \"#아보카도\", \"#브런치\"]")
     List<String> tagNames
 ) {
+
     public static ReviewProductResponse from(ReviewProductView view) {
         return new ReviewProductResponse(
             view.productId(),

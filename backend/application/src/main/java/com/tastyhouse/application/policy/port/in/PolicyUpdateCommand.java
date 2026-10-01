@@ -13,6 +13,7 @@ public record PolicyUpdateCommand(
     LocalDateTime effectiveDate,
     String updatedBy
 ) {
+
     public PolicyUpdateCommand {
         if (policyDocumentId == null || title == null || content == null || effectiveDate == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

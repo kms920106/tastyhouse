@@ -33,6 +33,7 @@ public record UpdatePersonalInfoRequest(
     @Schema(description = "이벤트 정보 수신 동의", example = "true")
     boolean eventInfoEnabled
 ) {
+
     public MemberPersonalInfoUpdateCommand toCommand(Long memberId) {
         return new MemberPersonalInfoUpdateCommand(
             memberId,

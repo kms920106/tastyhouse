@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductAvailabilityServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 17, 12, 0);
 
@@ -356,6 +357,7 @@ class ProductAvailabilityServiceTest {
     }
 
     private static final class Fixture {
+
         private final ProductAvailabilityService service;
 
         private Fixture(
@@ -416,6 +418,7 @@ class ProductAvailabilityServiceTest {
         long visibleCount,
         long visibleRepresentativeCount
     ) implements ProductPersistencePort {
+
         @Override
         public Optional<Product> findById(ProductId id) {
             return products.stream().filter(product -> product.getId().equals(id.value())).findFirst();
@@ -481,6 +484,7 @@ class ProductAvailabilityServiceTest {
     }
 
     private record ProductOptionPersistencePortStub(List<ProductOption> options) implements ProductOptionPersistencePort {
+
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -513,6 +517,7 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionPersistencePortStub(
         List<ProductCommonOption> options
     ) implements ProductCommonOptionPersistencePort {
+
         @Override
         public Optional<ProductCommonOption> findById(ProductCommonOptionId id) {
             return options.stream().filter(option -> option.getId().equals(id.value())).findFirst();
@@ -545,6 +550,7 @@ class ProductAvailabilityServiceTest {
     private record ProductOptionGroupPersistencePortStub(
         List<ProductOptionGroup> groups
     ) implements ProductOptionGroupPersistencePort {
+
         @Override
         public Optional<ProductOptionGroup> findById(ProductOptionGroupId id) {
             return groups.stream().filter(group -> group.getId().equals(id.value())).findFirst();
@@ -565,6 +571,7 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionGroupPersistencePortStub(
         List<ProductCommonOptionGroup> groups
     ) implements ProductCommonOptionGroupPersistencePort {
+
         @Override
         public ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup) {
             return productCommonOptionGroup;
@@ -580,6 +587,7 @@ class ProductAvailabilityServiceTest {
     private record ProductOptionGroupLinkPersistencePortStub(
         List<ProductOptionGroupLink> links
     ) implements ProductOptionGroupLinkPersistencePort {
+
         @Override
         public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
             return links.stream()
@@ -631,6 +639,7 @@ class ProductAvailabilityServiceTest {
     private record ProductCommonOptionGroupLinkPersistencePortStub(
         List<ProductCommonOptionGroupLink> links
     ) implements ProductCommonOptionGroupLinkPersistencePort {
+
         @Override
         public List<ProductCommonOptionGroupLink> findAllByOptionGroupIdIn(
             List<ProductOptionGroupId> optionGroupIds

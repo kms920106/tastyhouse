@@ -32,6 +32,7 @@ public record ShopFoodTypeCategoryCreateRequest(
     @Schema(description = "사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
+
     public ShopFoodTypeCategoryCreateCommand toCommand() {
         return new ShopFoodTypeCategoryCreateCommand(
             foodType, displayName, activeImageFileId, inactiveImageFileId, sort, visible

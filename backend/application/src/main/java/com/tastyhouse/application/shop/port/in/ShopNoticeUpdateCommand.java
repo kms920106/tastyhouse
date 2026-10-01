@@ -10,6 +10,7 @@ public record ShopNoticeUpdateCommand(
     String content,
     Boolean keepExistingImages
 ) {
+
     public ShopNoticeUpdateCommand {
         if (ceoId == null || shopId == null || noticeId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

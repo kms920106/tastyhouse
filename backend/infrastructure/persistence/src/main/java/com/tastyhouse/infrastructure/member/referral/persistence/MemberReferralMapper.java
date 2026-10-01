@@ -5,6 +5,7 @@ import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberReferralMapper {
+
     private MemberReferralMapper() {
     }
 

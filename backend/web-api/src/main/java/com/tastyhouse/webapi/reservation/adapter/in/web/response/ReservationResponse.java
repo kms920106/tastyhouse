@@ -40,6 +40,7 @@ public record ReservationResponse(
     @Schema(description = "예약 생성 일시")
     LocalDateTime createdAt
 ) {
+
     public static ReservationResponse from(ReservationResult result) {
         return new ReservationResponse(
             result.id(),

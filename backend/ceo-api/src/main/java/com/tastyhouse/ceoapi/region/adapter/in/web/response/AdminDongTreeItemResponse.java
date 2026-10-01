@@ -18,6 +18,7 @@ public record AdminDongTreeItemResponse(
     @Schema(description = "하위 행정동 수(DONG 레벨에서는 1)", example = "22")
     long dongCount
 ) {
+
     public static AdminDongTreeItemResponse from(AdminDongTreeItemResult result) {
         return new AdminDongTreeItemResponse(
             result.name(),

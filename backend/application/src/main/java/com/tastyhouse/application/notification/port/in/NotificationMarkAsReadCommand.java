@@ -7,6 +7,7 @@ public record NotificationMarkAsReadCommand(
     Long notificationId,
     Long memberId
 ) {
+
     public NotificationMarkAsReadCommand {
         if (notificationId == null || memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

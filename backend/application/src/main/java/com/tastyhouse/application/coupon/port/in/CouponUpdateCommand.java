@@ -20,6 +20,7 @@ public record CouponUpdateCommand(
     LocalDateTime useEndAt,
     boolean visible
 ) {
+
     public CouponUpdateCommand {
         if (couponId == null || name == null || discountType == null || discountAmount == null
             || issueStartAt == null || issueEndAt == null || useStartAt == null || useEndAt == null) {

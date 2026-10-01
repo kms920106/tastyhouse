@@ -10,6 +10,7 @@ public record RankSearchRequest(
     @Schema(description = "조회할 랭킹 개수", example = "100")
     Integer limit
 ) {
+
     public RankSearchRequest {
         if (type == null) {
             type = "ALL";

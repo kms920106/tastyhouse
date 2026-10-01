@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductShopLinkJpaRepository extends JpaRepository<ProductShopLinkJpaEntity, Long> {
+
     Optional<ProductShopLinkJpaEntity> findByProductIdAndShopId(Long productId, Long shopId);
 
     List<ProductShopLinkJpaEntity> findAllByProductId(Long productId);

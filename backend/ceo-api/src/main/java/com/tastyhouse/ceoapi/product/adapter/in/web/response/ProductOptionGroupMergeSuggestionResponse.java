@@ -33,6 +33,7 @@ public record ProductOptionGroupMergeSuggestionResponse(
     @Schema(description = "이 묶음에 속한 옵션그룹들")
     List<ProductOptionGroupMergeSuggestionGroupResponse> groups
 ) {
+
     public static ProductOptionGroupMergeSuggestionResponse from(ProductOptionGroupMergeSuggestionResult result) {
         return new ProductOptionGroupMergeSuggestionResponse(
             result.signature(),

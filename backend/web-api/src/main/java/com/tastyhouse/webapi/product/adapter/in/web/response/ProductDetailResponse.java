@@ -42,6 +42,7 @@ public record ProductDetailResponse(
         + "originalPrice/discountPrice 기존 필드를 그대로 사용합니다.")
     List<ProductPriceResponse> prices
 ) {
+
     public static ProductDetailResponse from(ProductDetailView view) {
         return new ProductDetailResponse(
             view.id(),

@@ -7,6 +7,7 @@ public record ProductFeedbackReadCommand(
     Long ceoId,
     Long shopId
 ) {
+
     public ProductFeedbackReadCommand {
         if (ceoId == null
             || shopId == null) {

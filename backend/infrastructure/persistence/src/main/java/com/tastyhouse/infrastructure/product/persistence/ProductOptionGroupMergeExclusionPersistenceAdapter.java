@@ -12,6 +12,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMerge
 @Repository
 public class ProductOptionGroupMergeExclusionPersistenceAdapter
     implements ProductOptionGroupMergeExclusionPersistencePort {
+
     private final ProductOptionGroupMergeExclusionJpaRepository jpaRepository;
 
     public ProductOptionGroupMergeExclusionPersistenceAdapter(

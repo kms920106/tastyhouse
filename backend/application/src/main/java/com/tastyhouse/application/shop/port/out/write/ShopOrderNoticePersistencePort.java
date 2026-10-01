@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopOrderNoticePersistencePort {
+
     ShopOrderNotice save(ShopOrderNotice shopOrderNotice);
 
     Optional<ShopOrderNotice> findByShopId(ShopId shopId);

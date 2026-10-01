@@ -17,6 +17,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPers
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopImageApprovalService {
+
     private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
     private final ShopPersistencePort shopPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;

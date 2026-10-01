@@ -18,6 +18,7 @@ import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistenceP
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class CouponIssueService {
+
     private final CouponPersistencePort couponPersistencePort;
     private final MemberCouponPersistencePort memberCouponPersistencePort;
     private final DomainEventPublisher domainEventPublisher;

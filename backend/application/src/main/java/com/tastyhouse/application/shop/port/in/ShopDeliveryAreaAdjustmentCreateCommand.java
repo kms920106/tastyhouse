@@ -11,6 +11,7 @@ public record ShopDeliveryAreaAdjustmentCreateCommand(
     String franchiseName,
     String reason
 ) {
+
     public ShopDeliveryAreaAdjustmentCreateCommand {
         if (ceoId == null || shopId == null || counterpartShopName == null
             || counterpartBusinessNumber == null || franchiseName == null || reason == null) {

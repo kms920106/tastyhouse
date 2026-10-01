@@ -16,6 +16,7 @@ public record ShopUpdateCommand(
     String phoneNumber,
     Long thumbnailImageFileId
 ) {
+
     public ShopUpdateCommand {
         if (shopId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

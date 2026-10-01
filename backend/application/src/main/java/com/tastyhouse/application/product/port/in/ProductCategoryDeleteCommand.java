@@ -8,6 +8,7 @@ public record ProductCategoryDeleteCommand(
     Long productCategoryId,
     Long shopId
 ) {
+
     public ProductCategoryDeleteCommand {
         if (ceoId == null
             || productCategoryId == null

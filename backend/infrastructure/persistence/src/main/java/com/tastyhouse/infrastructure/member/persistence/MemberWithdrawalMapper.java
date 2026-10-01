@@ -5,6 +5,7 @@ import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberWithdrawalMapper {
+
     private MemberWithdrawalMapper() {
     }
 

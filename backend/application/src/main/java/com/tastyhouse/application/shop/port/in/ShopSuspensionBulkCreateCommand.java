@@ -14,6 +14,7 @@ public record ShopSuspensionBulkCreateCommand(
     LocalDateTime startAt,
     LocalDateTime endAt
 ) {
+
     public ShopSuspensionBulkCreateCommand {
         if (ceoId == null || shopIds == null || reason == null || startAt == null || endAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

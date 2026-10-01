@@ -15,6 +15,7 @@ public record MemberDeliveryAddressCreateCommand(
     BigDecimal longitude,
     Boolean isDefault
 ) {
+
     public MemberDeliveryAddressCreateCommand {
         if (memberId == null || roadAddress == null || latitude == null || longitude == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

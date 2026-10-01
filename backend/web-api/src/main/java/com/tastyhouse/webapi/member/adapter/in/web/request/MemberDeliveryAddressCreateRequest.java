@@ -39,6 +39,7 @@ public record MemberDeliveryAddressCreateRequest(
     @Schema(description = "기본 배송지 여부. true면 기존 기본 배송지는 자동으로 해제됩니다.", example = "true")
     Boolean isDefault
 ) {
+
     public MemberDeliveryAddressCreateCommand toCommand(Long memberId) {
         return new MemberDeliveryAddressCreateCommand(
             memberId,

@@ -19,6 +19,7 @@ public record ShopDeliveryAreaPolygonSaveRequest(
         @Size(min = 3, max = 5000, message = "각 링은 좌표가 3개 이상 5000개 이하여야 합니다.")
         List<@Valid GeoPointRequest>> rings
 ) {
+
     public ShopDeliveryAreaPolygonSaveCommand toCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaPolygonSaveCommand(ceoId, shopId, toRingCommands());
     }

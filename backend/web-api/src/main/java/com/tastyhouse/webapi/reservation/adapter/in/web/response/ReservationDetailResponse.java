@@ -53,6 +53,7 @@ public record ReservationDetailResponse(
     @Schema(description = "예약 생성 일시", example = "2026-06-03T10:30:00")
     LocalDateTime createdAt
 ) {
+
     public static ReservationDetailResponse from(ReservationDetailViewResult result) {
         return new ReservationDetailResponse(
             result.id(),

@@ -12,6 +12,7 @@ import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGrou
 
 @Repository
 public class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOptionGroupLinkPersistencePort {
+
     private final ProductCommonOptionGroupLinkJpaRepository productCommonOptionGroupLinkJpaRepository;
 
     public ProductCommonOptionGroupLinkPersistenceAdapter(

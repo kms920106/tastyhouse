@@ -8,6 +8,7 @@ public record ShopContentBoardOwnerDeleteCommand(
     Long shopId,
     Long contentBoardId
 ) {
+
     public ShopContentBoardOwnerDeleteCommand {
         if (ceoId == null || shopId == null || contentBoardId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -14,6 +14,7 @@ import com.tastyhouse.application.sms.port.out.SmsSender;
 import com.tastyhouse.application.sms.port.out.write.SmsVerificationPersistencePort;
 
 public class SmsVerificationService {
+
     private final SmsVerificationPersistencePort smsVerificationPersistencePort;
     private final SmsSender smsSender;
     private final DomainEventPublisher domainEventPublisher;

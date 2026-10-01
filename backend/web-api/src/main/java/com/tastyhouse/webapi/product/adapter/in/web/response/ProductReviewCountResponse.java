@@ -7,6 +7,7 @@ public record ProductReviewCountResponse(
     @Schema(description = "리뷰 수", example = "128")
     Integer reviewCount
 ) {
+
     public static ProductReviewCountResponse from(Integer reviewCount) {
         return new ProductReviewCountResponse(reviewCount);
     }

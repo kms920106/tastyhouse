@@ -14,6 +14,7 @@ public record ShopRiderGuidePickupPresenceResult(
     BigDecimal pickupLongitude,
     LocalDateTime updatedAt
 ) {
+
     public ShopRiderGuideListItemResult toListItem() {
         boolean hasPickupLocation = pickupRoadAddress != null && pickupLatitude != null && pickupLongitude != null;
 

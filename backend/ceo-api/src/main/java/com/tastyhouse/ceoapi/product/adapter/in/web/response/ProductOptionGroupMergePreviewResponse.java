@@ -21,6 +21,7 @@ public record ProductOptionGroupMergePreviewResponse(
         example = "PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED")
     String blockedReason
 ) {
+
     public static ProductOptionGroupMergePreviewResponse from(ProductOptionGroupMergePreviewResult result) {
         return new ProductOptionGroupMergePreviewResponse(
             ProductOptionGroupMergePreviewGroupResponse.from(result.base()),

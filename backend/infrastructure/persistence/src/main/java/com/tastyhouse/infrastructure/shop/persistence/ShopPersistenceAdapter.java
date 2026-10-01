@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 
 @Repository
 public class ShopPersistenceAdapter implements ShopPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ShopJpaRepository shopJpaRepository;
 

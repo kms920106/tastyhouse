@@ -21,6 +21,7 @@ import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GradeSettlementServiceTest {
+
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 15, 3, 30);
 
     @Test
@@ -114,6 +115,7 @@ class GradeSettlementServiceTest {
     }
 
     private static class MemberReviewCountPortFake implements MemberReviewCountPort {
+
         private final List<MemberReviewCount> reviewCounts;
 
         private LocalDateTime requestedStartDate;
@@ -135,6 +137,7 @@ class GradeSettlementServiceTest {
     }
 
     private static class MemberPersistencePortFake implements MemberPersistencePort {
+
         private final Map<MemberGrade, List<Long>> updatedIdsByGrade = new EnumMap<>(MemberGrade.class);
 
         @Override

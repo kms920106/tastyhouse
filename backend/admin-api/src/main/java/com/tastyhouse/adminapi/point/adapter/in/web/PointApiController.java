@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryRespons
 @RestController
 @RequestMapping("/api/points")
 public class PointApiController {
+
     private final PointCommandUseCase pointCommandUseCase;
     private final PointManagementQueryUseCase pointQueryUseCase;
 

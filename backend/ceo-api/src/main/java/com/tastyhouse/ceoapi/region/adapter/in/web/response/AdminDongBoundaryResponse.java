@@ -14,6 +14,7 @@ public record AdminDongBoundaryResponse(
     @Schema(description = "행정동 경계 목록")
     List<AdminDongBoundaryItemResponse> items
 ) {
+
     public static AdminDongBoundaryResponse from(AdminDongBoundariesResult result) {
         return new AdminDongBoundaryResponse(
             result.truncated(),

@@ -46,12 +46,14 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopIntroductionRecordingTest {
+
     private static final Long SHOP_ID = 1L;
 
     private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
     private ShopLifecycleService shopLifecycleService;
 
     private static final class FakeShopDetailPersistencePort implements ShopDetailPersistencePort {
+
         private final List<ShopOwnerMessageHistory> ownerMessages = new ArrayList<>();
         private long sequence = 0L;
 
@@ -230,6 +232,7 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopPersistencePort() {
@@ -259,6 +262,7 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopBookmarkPersistencePort implements ShopBookmarkPersistencePort {
+
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
             throw new UnsupportedOperationException("이 테스트는 이 경로를 쓰지 않는다");
@@ -276,6 +280,7 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
+
         @Override
         public ShopImageChangeRequest save(ShopImageChangeRequest shopImageChangeRequest) {
             throw new UnsupportedOperationException("이 테스트는 이 경로를 쓰지 않는다");
@@ -298,6 +303,7 @@ class ShopIntroductionRecordingTest {
     }
 
     private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

@@ -9,6 +9,7 @@ public record ReviewReplyCreateCommand(
     Long replyToMemberId,
     String content
 ) {
+
     public ReviewReplyCreateCommand {
         if (memberId == null || commentId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -14,6 +14,7 @@ public record ShopMenuCollectionImageRejectRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String rejectReason
 ) {
+
     public ShopMenuCollectionImageRejectCommand toCommand(Long imageId) {
         return new ShopMenuCollectionImageRejectCommand(imageId, rejectReason);
     }

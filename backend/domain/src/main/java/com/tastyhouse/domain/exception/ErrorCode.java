@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.exception;
 
 public enum ErrorCode implements ErrorCodeSpec {
+
     INVALID_INPUT(400, "INVALID_INPUT", "입력값이 올바르지 않습니다."),
 
     ENTITY_NOT_FOUND(404, "ENTITY_NOT_FOUND", "요청한 데이터를 찾을 수 없습니다."),

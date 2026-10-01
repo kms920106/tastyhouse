@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ProductRepresentativeRequest {
+
     private final Long id;
     private final ProductId productId;
     private final ShopId shopId;

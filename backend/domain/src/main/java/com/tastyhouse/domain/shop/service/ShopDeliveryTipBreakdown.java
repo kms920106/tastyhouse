@@ -8,6 +8,7 @@ public record ShopDeliveryTipBreakdown(
     int holidayTipAmount,
     int totalTipAmount
 ) {
+
     public static ShopDeliveryTipBreakdown none() {
         return new ShopDeliveryTipBreakdown(0, 0, 0, 0, 0, 0);
     }

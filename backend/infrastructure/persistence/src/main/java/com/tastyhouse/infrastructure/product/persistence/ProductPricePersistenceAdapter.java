@@ -13,6 +13,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPricePersistence
 
 @Repository
 public class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
+
     private final ProductPriceJpaRepository productPriceJpaRepository;
 
     public ProductPricePersistenceAdapter(ProductPriceJpaRepository productPriceJpaRepository) {

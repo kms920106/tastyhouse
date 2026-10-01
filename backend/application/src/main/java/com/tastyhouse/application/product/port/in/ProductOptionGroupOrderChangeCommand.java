@@ -11,6 +11,7 @@ public record ProductOptionGroupOrderChangeCommand(
     Long productId,
     List<Long> optionGroupIds
 ) {
+
     public ProductOptionGroupOrderChangeCommand {
         if (ceoId == null
             || shopId == null

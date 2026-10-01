@@ -10,6 +10,7 @@ public record ShopDeliveryAreaPolygonSaveCommand(
     Long shopId,
     List<List<GeoPointCommand>> rings
 ) {
+
     public ShopDeliveryAreaPolygonSaveCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

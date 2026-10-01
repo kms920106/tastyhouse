@@ -6,6 +6,7 @@ import com.tastyhouse.domain.review.model.ReviewComment;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 public interface ReviewCommentPersistencePort {
+
     Optional<ReviewComment> findById(ReviewCommentId commentId);
 
     ReviewComment save(ReviewComment comment);

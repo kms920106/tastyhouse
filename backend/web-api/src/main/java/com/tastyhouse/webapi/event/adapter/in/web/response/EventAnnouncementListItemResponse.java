@@ -22,6 +22,7 @@ public record EventAnnouncementListItemResponse(
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime announcedAt
 ) {
+
     public static EventAnnouncementListItemResponse from(EventAnnouncementResult result) {
         return new EventAnnouncementListItemResponse(
             result.id(),

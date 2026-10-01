@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PaymentCancellationServiceTest {
+
     private static final MemberId MEMBER_ID = MemberId.of(7L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(99L);
     private static final OrderId ORDER_ID = OrderId.of(100L);
@@ -206,6 +207,7 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class Fixture {
+
         private final PaymentCancellationService service;
         private final PaymentPersistencePortStub paymentPersistencePort;
         private final OrderPersistencePortStub orderPersistencePort;
@@ -253,6 +255,7 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class PaymentPersistencePortStub implements PaymentPersistencePort {
+
         private final Payment stored;
         private Payment lastSaved;
 
@@ -283,6 +286,7 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class OrderPersistencePortStub implements OrderPersistencePort {
+
         private final Order stored;
         private Order lastSaved;
 
@@ -303,6 +307,7 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class PaymentRefundPersistencePortStub implements PaymentRefundPersistencePort {
+
         private final List<PaymentRefund> saved = new ArrayList<>();
 
         @Override
@@ -322,6 +327,7 @@ class PaymentCancellationServiceTest {
     }
 
     private static final class DomainEventPublisherStub implements DomainEventPublisher {
+
         private final List<Object> published = new ArrayList<>();
 
         @Override

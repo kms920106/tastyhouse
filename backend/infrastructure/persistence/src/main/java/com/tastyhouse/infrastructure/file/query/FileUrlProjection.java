@@ -5,6 +5,7 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.MappingProjection;
 
 class FileUrlProjection extends MappingProjection<String> {
+
     private final Expression<String> filePath;
     private final transient FileUrlResolver resolver;
 

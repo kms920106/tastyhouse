@@ -18,6 +18,7 @@ public record RefundRequest(
     @Schema(description = "환불 사유", example = "상품 불량")
     String refundReason
 ) {
+
     public PaymentRefundRequestCommand toCommand(Long memberId, Long paymentId) {
         return new PaymentRefundRequestCommand(
             memberId,

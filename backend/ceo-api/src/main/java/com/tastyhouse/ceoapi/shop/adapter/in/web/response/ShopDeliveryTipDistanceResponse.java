@@ -15,6 +15,7 @@ public record ShopDeliveryTipDistanceResponse(
     @Schema(description = "단위당 할증액(원)", example = "500")
     int surchargeAmount
 ) {
+
     private static final String EXTRA_TIP_TYPE_DISTANCE = "DISTANCE";
 
     public static ShopDeliveryTipDistanceResponse from(ShopDeliveryTipSettingResult result) {

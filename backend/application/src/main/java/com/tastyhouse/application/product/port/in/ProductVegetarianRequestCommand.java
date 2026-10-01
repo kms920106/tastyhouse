@@ -11,6 +11,7 @@ public record ProductVegetarianRequestCommand(
     String ingredients,
     String description
 ) {
+
     public ProductVegetarianRequestCommand {
         if (ceoId == null
             || shopId == null

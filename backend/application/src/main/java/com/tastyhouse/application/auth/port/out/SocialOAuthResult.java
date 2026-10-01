@@ -6,6 +6,7 @@ public record SocialOAuthResult<T>(
     T value,
     SocialOAuthFailure failure
 ) {
+
     public SocialOAuthResult {
         if ((value == null) == (failure == null)) {
             throw new IllegalArgumentException("소셜 인증 결과는 값과 실패 사유 중 정확히 하나를 가져야 합니다.");

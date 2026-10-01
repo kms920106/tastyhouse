@@ -13,6 +13,7 @@ import com.tastyhouse.application.product.port.out.write.ProductVegetarianReques
 
 @Repository
 public class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianRequestPersistencePort {
+
     private final ProductVegetarianRequestJpaRepository productVegetarianRequestJpaRepository;
 
     public ProductVegetarianRequestPersistenceAdapter(

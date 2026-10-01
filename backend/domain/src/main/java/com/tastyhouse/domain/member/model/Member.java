@@ -9,6 +9,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 public class Member {
+
     private final Long id;
     private final String username;
     private String password;

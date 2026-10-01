@@ -15,6 +15,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class PaymentServiceConfig {
+
     @Bean
     public PaymentConfirmationService paymentConfirmationService(
         PaymentPersistencePort paymentPersistencePort,

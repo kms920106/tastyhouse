@@ -21,6 +21,7 @@ public record ShopAmenityResponse(
     @Schema(description = "활성 상태 아이콘 파일 경로", example = "https://cdn.example.com/amenity/parking-active.png")
     String activeFilePath
 ) {
+
     public static ShopAmenityResponse from(ShopAmenityAssignmentResult result) {
         return new ShopAmenityResponse(
             result.id(),

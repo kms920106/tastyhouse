@@ -10,6 +10,7 @@ public record ShopDeliveryAreaBulkDeleteCommand(
     Long shopId,
     List<Long> adminDongIds
 ) {
+
     public ShopDeliveryAreaBulkDeleteCommand {
         if (ceoId == null || shopId == null || adminDongIds == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

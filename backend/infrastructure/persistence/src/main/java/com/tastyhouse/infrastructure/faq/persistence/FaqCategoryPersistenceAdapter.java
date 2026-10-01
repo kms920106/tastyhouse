@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
 
 @Repository
 public class FaqCategoryPersistenceAdapter implements FaqCategoryPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final FaqCategoryJpaRepository faqCategoryJpaRepository;
 

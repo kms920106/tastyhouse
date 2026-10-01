@@ -18,6 +18,7 @@ public record ShopPhoneNumberResponse(
     @Schema(description = "가상번호 여부", example = "false")
     boolean virtual
 ) {
+
     public static ShopPhoneNumberResponse from(ShopPhoneNumberResult result) {
         return new ShopPhoneNumberResponse(
             result.id(),

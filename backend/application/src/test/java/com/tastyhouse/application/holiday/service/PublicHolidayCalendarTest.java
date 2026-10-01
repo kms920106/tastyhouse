@@ -17,6 +17,7 @@ import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistenc
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PublicHolidayCalendarTest {
+
     private static final LocalDate PLAIN_SUNDAY = LocalDate.of(2026, 8, 2);
 
     private static final LocalDate HOLIDAY_ON_SUNDAY = LocalDate.of(2026, 3, 1);
@@ -24,6 +25,7 @@ class PublicHolidayCalendarTest {
     @Nested
     @DisplayName("isPublicHoliday - 일요일 규칙")
     class SundayRule {
+
         @Test
         @DisplayName("캘린더가 일요일 자체를 담지 않는다는 데이터 규칙 덕에, 평범한 일요일은 공휴일이 아니다(공휴일 배달팁 미부과)")
         void isPublicHoliday_falseForPlainSunday() {
@@ -46,6 +48,7 @@ class PublicHolidayCalendarTest {
     @Nested
     @DisplayName("isPublicHoliday - 기타")
     class IsPublicHoliday {
+
         @Test
         @DisplayName("캘린더에 있는 평일 공휴일은 true다")
         void isPublicHoliday_trueForWeekdayHoliday() {
@@ -67,6 +70,7 @@ class PublicHolidayCalendarTest {
     @Nested
     @DisplayName("findBetween")
     class FindBetween {
+
         @Test
         @DisplayName("구간 안의 공휴일 날짜 집합을 돌려준다(양끝 포함)")
         void findBetween_returnsHolidaysInRange() {
@@ -105,6 +109,7 @@ class PublicHolidayCalendarTest {
     }
 
     private static final class PublicHolidayPersistencePortFake implements PublicHolidayPersistencePort {
+
         private final Map<LocalDate, PublicHoliday> holidays = new LinkedHashMap<>();
         private long sequence = 0L;
 

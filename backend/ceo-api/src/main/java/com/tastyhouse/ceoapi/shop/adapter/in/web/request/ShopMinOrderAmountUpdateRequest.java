@@ -17,6 +17,7 @@ public record ShopMinOrderAmountUpdateRequest(
     )
     Integer minOrderAmount
 ) {
+
     public ShopMinOrderAmountUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopMinOrderAmountUpdateCommand(ceoId, shopId, minOrderAmount());
     }

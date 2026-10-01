@@ -4,6 +4,7 @@ import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
 
 final class PolicyDocumentMapper {
+
     private PolicyDocumentMapper() {
     }
 

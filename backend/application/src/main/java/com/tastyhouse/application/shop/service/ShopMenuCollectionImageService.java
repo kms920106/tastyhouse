@@ -16,6 +16,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePer
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopMenuCollectionImageService {
+
     private static final int MAX_IMAGE_COUNT = 6;
 
     private final ShopMenuCollectionImagePersistencePort imagePersistencePort;

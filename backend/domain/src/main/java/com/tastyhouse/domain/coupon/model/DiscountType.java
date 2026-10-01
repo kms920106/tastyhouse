@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum DiscountType {
+
     AMOUNT("정액 할인"),
     RATE("정률 할인");
 

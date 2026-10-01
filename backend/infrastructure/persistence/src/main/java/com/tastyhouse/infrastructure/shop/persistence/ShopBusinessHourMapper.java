@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopBusinessHourMapper {
+
     private ShopBusinessHourMapper() {
     }
 

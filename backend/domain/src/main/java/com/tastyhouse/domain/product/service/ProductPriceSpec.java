@@ -8,6 +8,7 @@ public record ProductPriceSpec(
     Integer pickupPrice,
     Integer sort
 ) {
+
     public static ProductPriceSpec of(
         Long id,
         String priceName,

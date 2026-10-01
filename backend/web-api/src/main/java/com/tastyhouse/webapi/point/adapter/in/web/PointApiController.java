@@ -19,6 +19,7 @@ import com.tastyhouse.webapi.point.adapter.in.web.response.PointUsableResponse;
 @RequestMapping("/api/members")
 @Tag(name = "Point", description = "내 포인트 조회 API")
 public class PointApiController {
+
     private final PointQueryUseCase pointQueryUseCase;
 
     public PointApiController(PointQueryUseCase pointQueryUseCase) {

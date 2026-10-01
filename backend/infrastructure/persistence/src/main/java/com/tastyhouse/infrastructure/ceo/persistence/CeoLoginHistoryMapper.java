@@ -6,6 +6,7 @@ import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 
 final class CeoLoginHistoryMapper {
+
     private CeoLoginHistoryMapper() {
     }
 

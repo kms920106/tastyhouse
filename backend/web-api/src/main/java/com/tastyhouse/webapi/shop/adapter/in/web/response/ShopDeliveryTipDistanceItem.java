@@ -15,6 +15,7 @@ public record ShopDeliveryTipDistanceItem(
     @Schema(description = "단위 거리당 할증액(원)", example = "500")
     int surchargeAmount
 ) {
+
     public static ShopDeliveryTipDistanceItem from(ShopDeliveryTipSettingResult result) {
         return new ShopDeliveryTipDistanceItem(
             result.baseDistanceMeters(),

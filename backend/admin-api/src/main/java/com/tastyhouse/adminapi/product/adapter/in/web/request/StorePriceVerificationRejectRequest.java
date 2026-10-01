@@ -14,6 +14,7 @@ public record StorePriceVerificationRejectRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String rejectReason
 ) {
+
     public StorePriceVerificationRejectCommand toCommand(Long verificationId) {
         return new StorePriceVerificationRejectCommand(verificationId, rejectReason);
     }

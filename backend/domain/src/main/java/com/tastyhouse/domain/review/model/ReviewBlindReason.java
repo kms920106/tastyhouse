@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ReviewBlindReason {
+
     ADVERTISEMENT("광고·홍보"),
     PROFANITY("욕설·비방"),
     IRRELEVANT("주문과 무관"),

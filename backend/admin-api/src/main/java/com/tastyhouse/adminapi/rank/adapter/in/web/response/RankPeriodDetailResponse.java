@@ -26,6 +26,7 @@ public record RankPeriodDetailResponse(
     @Schema(description = "수정일시", example = "2026-07-01T10:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static RankPeriodDetailResponse from(RankPeriodResult result) {
         return new RankPeriodDetailResponse(
             result.id(),

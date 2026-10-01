@@ -14,11 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryTipTierTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Nested
     @DisplayName("tipAmount")
     class TipAmount {
+
         @ParameterizedTest(name = "배달팁 {0}원은 통과한다")
         @ValueSource(ints = {0, 1, 2500, 4999})
         @DisplayName("0원 이상 5,000원 미만 배달팁은 허용한다")
@@ -50,6 +52,7 @@ class ShopDeliveryTipTierTest {
     @Nested
     @DisplayName("minOrderAmount")
     class MinOrderAmount {
+
         @Test
         @DisplayName("구간 하한 주문금액 0원은 허용한다")
         void of_allowsZeroMinOrderAmount() {
@@ -71,6 +74,7 @@ class ShopDeliveryTipTierTest {
     @Nested
     @DisplayName("tierOrder")
     class TierOrder {
+
         @ParameterizedTest(name = "구간 순서 {0}은 통과한다")
         @ValueSource(ints = {0, 1, 2})
         @DisplayName("구간 순서 0~2(최대 3구간)는 허용한다")
@@ -94,6 +98,7 @@ class ShopDeliveryTipTierTest {
     @Nested
     @DisplayName("covers")
     class Covers {
+
         @Test
         @DisplayName("주문금액이 구간 하한 미만이면 적용되지 않는다")
         void covers_falseBelowMinOrderAmount() {
@@ -122,6 +127,7 @@ class ShopDeliveryTipTierTest {
     @Nested
     @DisplayName("reconstitute")
     class Reconstitute {
+
         @Test
         @DisplayName("검증하지 않는다 — 불변식을 위반한 기존 행도 로드할 수 있다")
         void reconstitute_bypassesValidation() {

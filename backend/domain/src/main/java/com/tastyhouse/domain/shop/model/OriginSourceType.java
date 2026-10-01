@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum OriginSourceType {
+
     DIRECT("직접 입력"),
 
     FRANCHISE_URL("본사 제공 URL");

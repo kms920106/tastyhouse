@@ -13,6 +13,7 @@ import com.tastyhouse.application.product.port.out.write.ProductImageChangeReque
 
 @Repository
 public class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestPersistencePort {
+
     private final ProductImageChangeRequestJpaRepository productImageChangeRequestJpaRepository;
 
     public ProductImageChangeRequestPersistenceAdapter(

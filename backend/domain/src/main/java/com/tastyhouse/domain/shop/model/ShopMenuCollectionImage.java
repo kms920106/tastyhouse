@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 
 public class ShopMenuCollectionImage {
+
     private final Long id;
     private final ShopId shopId;
     private final UploadedFileId imageFileId;

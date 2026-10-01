@@ -14,6 +14,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustment
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 
 public class ShopRequestCancelService {
+
     private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
     private final ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort;
     private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;

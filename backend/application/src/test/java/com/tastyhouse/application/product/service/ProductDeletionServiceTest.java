@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductDeletionServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Test
@@ -183,6 +184,7 @@ class ProductDeletionServiceTest {
     }
 
     private record Fixture(ProductDeletionService service) {
+
         private static Fixture of(List<Product> products, long visibleCount, long representativeCount) {
             return new Fixture(new ProductDeletionService(
                 new StubProductPersistencePort(products, visibleCount, representativeCount)));
@@ -190,6 +192,7 @@ class ProductDeletionServiceTest {
     }
 
     private static final class StubProductPersistencePort implements ProductPersistencePort {
+
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final long visibleCount;
         private final long representativeCount;

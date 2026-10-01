@@ -8,6 +8,7 @@ public record ProductImageChangeRequestCommand(
     Long shopId,
     Long productId
 ) {
+
     public ProductImageChangeRequestCommand {
         if (ceoId == null
             || shopId == null

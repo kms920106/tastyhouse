@@ -7,6 +7,7 @@ public record MemberVerifyPasswordResponse(
     @Schema(description = "개인정보 수정용 단기 인증 토큰 (5분 유효)", example = "eyJhbGciOiJIUzI1NiJ9...")
     String verifyToken
 ) {
+
     public static MemberVerifyPasswordResponse from(String verifyToken) {
         return new MemberVerifyPasswordResponse(verifyToken);
     }

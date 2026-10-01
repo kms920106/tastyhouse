@@ -28,6 +28,7 @@ public record ShopRiderGuideDetailResponse(
     @Schema(description = "변경 이력 (최신순, 최대 20건)")
     List<ShopRiderGuideHistoryResponse> histories
 ) {
+
     public static ShopRiderGuideDetailResponse from(
         ShopRiderGuideResult result,
         List<ShopRiderGuideHistoryResult> histories

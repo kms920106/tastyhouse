@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum BannerType {
+
     HOME, SIDEBAR;
 
     public static BannerType from(String code) {

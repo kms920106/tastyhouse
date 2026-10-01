@@ -30,6 +30,7 @@ public record ShopContentBoardResponse(
     @Schema(description = "숨김 여부", example = "false")
     boolean hidden
 ) {
+
     public static ShopContentBoardResponse from(ShopContentBoardResult result) {
         return new ShopContentBoardResponse(
             result.id(),

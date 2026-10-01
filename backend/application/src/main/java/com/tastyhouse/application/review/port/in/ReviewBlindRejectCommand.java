@@ -7,6 +7,7 @@ public record ReviewBlindRejectCommand(
     Long memberId,
     Long reviewId
 ) {
+
     public ReviewBlindRejectCommand {
         if (memberId == null || reviewId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

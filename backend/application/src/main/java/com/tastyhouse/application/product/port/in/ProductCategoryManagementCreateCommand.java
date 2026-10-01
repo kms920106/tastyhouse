@@ -9,6 +9,7 @@ public record ProductCategoryManagementCreateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ProductCategoryManagementCreateCommand {
         if (shopId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

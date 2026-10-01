@@ -8,6 +8,7 @@ public record PaymentCancelCommand(
     Long paymentId,
     String cancelReason
 ) {
+
     public PaymentCancelCommand {
         if (memberId == null || paymentId == null || cancelReason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

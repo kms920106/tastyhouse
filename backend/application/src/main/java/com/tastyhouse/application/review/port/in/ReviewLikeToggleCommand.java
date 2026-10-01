@@ -7,6 +7,7 @@ public record ReviewLikeToggleCommand(
     Long memberId,
     Long reviewId
 ) {
+
     public ReviewLikeToggleCommand {
         if (memberId == null || reviewId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

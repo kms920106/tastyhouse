@@ -10,6 +10,7 @@ public record ShopDeliveryTipRegionsUpdateCommand(
     Long shopId,
     List<ShopDeliveryTipRegionCommand> regions
 ) {
+
     public ShopDeliveryTipRegionsUpdateCommand {
         if (ceoId == null || shopId == null || regions == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

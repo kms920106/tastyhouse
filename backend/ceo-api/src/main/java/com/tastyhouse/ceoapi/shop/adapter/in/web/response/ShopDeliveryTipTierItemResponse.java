@@ -18,6 +18,7 @@ public record ShopDeliveryTipTierItemResponse(
     @Schema(description = "이 구간의 배달팁(원)", example = "2000")
     int tipAmount
 ) {
+
     public static ShopDeliveryTipTierItemResponse from(ShopDeliveryTipTierResult result) {
         return new ShopDeliveryTipTierItemResponse(
             result.id(),

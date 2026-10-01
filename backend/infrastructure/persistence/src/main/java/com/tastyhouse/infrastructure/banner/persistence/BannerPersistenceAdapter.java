@@ -10,6 +10,7 @@ import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
 
 @Repository
 public class BannerPersistenceAdapter implements BannerPersistencePort {
+
     private final BannerJpaRepository bannerJpaRepository;
 
     public BannerPersistenceAdapter(BannerJpaRepository bannerJpaRepository) {

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductNutritionMapper {
+
     private ProductNutritionMapper() {
     }
 

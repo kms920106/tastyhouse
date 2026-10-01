@@ -8,6 +8,7 @@ public record ProductShopLinkDeleteCommand(
     Long productId,
     Long targetShopId
 ) {
+
     public ProductShopLinkDeleteCommand {
         if (ceoId == null
             || productId == null

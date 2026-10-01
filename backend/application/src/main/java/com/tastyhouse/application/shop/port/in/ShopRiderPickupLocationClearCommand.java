@@ -7,6 +7,7 @@ public record ShopRiderPickupLocationClearCommand(
     Long ceoId,
     Long shopId
 ) {
+
     public ShopRiderPickupLocationClearCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

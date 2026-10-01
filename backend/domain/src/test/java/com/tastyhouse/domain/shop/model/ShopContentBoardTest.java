@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopContentBoardTest {
+
     @Test
     @DisplayName("of로 IMAGE 콘텐츠보드를 생성하면 미영속 상태(식별자·감사시각 없음)이고 숨김 처리되지 않은 상태다")
     void of_createsTransientContentBoard_withImage() {

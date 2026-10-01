@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class UploadedFile {
+
     private final Long id;
     private final String originalFilename;
     private final String storedFilename;

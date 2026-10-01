@@ -7,6 +7,7 @@ public record PointUsableResponse(
     @Schema(description = "사용 가능 포인트", example = "1000")
     Integer usablePoints
 ) {
+
     public static PointUsableResponse of(Integer usablePoints) {
         return new PointUsableResponse(usablePoints);
     }

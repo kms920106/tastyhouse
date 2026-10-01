@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopSuspension {
+
     private final Long id;
     private final ShopId shopId;
     private final SuspensionReason reason;

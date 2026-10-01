@@ -43,6 +43,7 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
 @RestController
 @RequestMapping("/api/faqs")
 public class FaqApiController {
+
     private final FaqCommandUseCase faqCommandUseCase;
     private final FaqCategoryCommandUseCase faqCategoryCommandUseCase;
     private final FaqManagementQueryUseCase faqQueryUseCase;

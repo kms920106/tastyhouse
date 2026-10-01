@@ -6,6 +6,7 @@ import java.util.List;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class FakeDomainEventPublisher implements DomainEventPublisher {
+
     private final List<Object> publishedEvents = new ArrayList<>();
 
     @Override

@@ -11,6 +11,7 @@ public record ProductOptionGroupMergeExclusionCreateCommand(
     String signature,
     List<Long> optionGroupIds
 ) {
+
     public ProductOptionGroupMergeExclusionCreateCommand {
         if (ceoId == null
             || shopId == null

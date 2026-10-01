@@ -143,6 +143,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
 @RestController
 @RequestMapping("/api/shops")
 public class ShopApiController {
+
     private final ShopCreateUseCase shopCreateUseCase;
     private final ShopCeoAssignUseCase shopCeoAssignUseCase;
     private final ShopCeoRevokeUseCase shopCeoRevokeUseCase;

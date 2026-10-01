@@ -53,6 +53,7 @@ public record MyCouponListItemResponse(
     @Schema(description = "만료 여부", example = "false")
     boolean expired
 ) {
+
     public static MyCouponListItemResponse from(MyCouponListItemResult result) {
         return new MyCouponListItemResponse(
             result.id(),

@@ -11,6 +11,7 @@ public record ShopOrderMethodAssignRequest(
     @Schema(description = "주문수단", example = "TABLE", allowableValues = {"TABLE", "RESERVATION", "DELIVERY", "TAKEOUT"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String orderMethod
 ) {
+
     public ShopOrderMethodAssignCommand toCommand(Long shopId) {
         return new ShopOrderMethodAssignCommand(shopId, orderMethod);
     }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 public class RankPeriod {
+
     private final Long id;
     private LocalDateTime startAt;
     private LocalDateTime endAt;

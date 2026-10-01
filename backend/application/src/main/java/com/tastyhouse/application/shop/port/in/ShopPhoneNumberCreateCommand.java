@@ -9,6 +9,7 @@ public record ShopPhoneNumberCreateCommand(
     String phoneNumber,
     Boolean virtual
 ) {
+
     public ShopPhoneNumberCreateCommand {
         if (ceoId == null || shopId == null || phoneNumber == null || virtual == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

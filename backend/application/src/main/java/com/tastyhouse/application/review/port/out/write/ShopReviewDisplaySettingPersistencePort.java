@@ -6,6 +6,7 @@ import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopReviewDisplaySettingPersistencePort {
+
     Optional<ShopReviewDisplaySetting> findByShopId(ShopId shopId);
 
     ShopReviewDisplaySetting save(ShopReviewDisplaySetting shopReviewDisplaySetting);

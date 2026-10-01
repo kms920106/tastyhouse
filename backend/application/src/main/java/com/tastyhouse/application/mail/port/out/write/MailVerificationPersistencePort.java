@@ -6,6 +6,7 @@ import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
 
 public interface MailVerificationPersistencePort {
+
     MailVerification save(MailVerification mailVerification);
 
     Optional<MailVerification> findLatestPendingByEmail(String email, MailVerificationStatus status);

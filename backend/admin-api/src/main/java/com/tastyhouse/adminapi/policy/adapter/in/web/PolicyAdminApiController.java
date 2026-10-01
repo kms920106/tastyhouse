@@ -24,6 +24,7 @@ import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyUpdateRequest
 @RestController
 @RequestMapping("/api/policies")
 public class PolicyAdminApiController {
+
     private final PolicyCommandUseCase policyCommandUseCase;
 
     public PolicyAdminApiController(PolicyCommandUseCase policyCommandUseCase) {

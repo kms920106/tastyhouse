@@ -7,6 +7,7 @@ public record ReviewDeleteCommand(
     Long memberId,
     Long reviewId
 ) {
+
     public ReviewDeleteCommand {
         if (memberId == null || reviewId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

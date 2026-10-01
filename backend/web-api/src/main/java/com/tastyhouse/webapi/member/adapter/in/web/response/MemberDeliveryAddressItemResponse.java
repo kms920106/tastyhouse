@@ -38,6 +38,7 @@ public record MemberDeliveryAddressItemResponse(
     @Schema(description = "기본 배송지 여부", example = "true")
     boolean defaultAddress
 ) {
+
     public static MemberDeliveryAddressItemResponse from(MemberDeliveryAddressItemResult result) {
         return new MemberDeliveryAddressItemResponse(
             result.id(),

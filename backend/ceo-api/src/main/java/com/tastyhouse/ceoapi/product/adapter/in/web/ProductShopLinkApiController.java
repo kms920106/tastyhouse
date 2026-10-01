@@ -34,6 +34,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResp
 @RestController
 @RequestMapping("/api/products")
 public class ProductShopLinkApiController {
+
     private final ProductShopLinkQueryUseCase productShopLinkQueryUseCase;
     private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;
 

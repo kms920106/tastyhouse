@@ -9,6 +9,7 @@ public record CeoLoginHistoryFailureCommand(
     String ipAddress,
     String userAgent
 ) {
+
     public CeoLoginHistoryFailureCommand {
         if (ceoId == null || failureReason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

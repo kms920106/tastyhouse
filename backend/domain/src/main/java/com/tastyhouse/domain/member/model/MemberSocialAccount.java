@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberSocialAccount {
+
     private final Long id;
     private final MemberId memberId;
     private final MemberSocialProvider provider;

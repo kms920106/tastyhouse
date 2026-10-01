@@ -9,6 +9,7 @@ import com.tastyhouse.domain.holiday.model.PublicHoliday;
 import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
 
 public class PublicHolidayCalendar {
+
     private final PublicHolidayPersistencePort publicHolidayPersistencePort;
 
     public PublicHolidayCalendar(PublicHolidayPersistencePort publicHolidayPersistencePort) {

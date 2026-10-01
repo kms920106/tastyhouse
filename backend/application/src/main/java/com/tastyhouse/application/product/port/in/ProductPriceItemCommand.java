@@ -11,6 +11,7 @@ public record ProductPriceItemCommand(
     Integer pickupPrice,
     Integer sort
 ) {
+
     public ProductPriceItemCommand {
         if (priceName == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

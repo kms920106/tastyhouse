@@ -8,6 +8,7 @@ import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistenc
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PolicyActivationService {
+
     private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 

@@ -6,6 +6,7 @@ import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
 
 public class FaqCategoryDeletionPolicy {
+
     private final FaqCategoryPersistencePort faqCategoryPersistencePort;
 
     public FaqCategoryDeletionPolicy(FaqCategoryPersistencePort faqCategoryPersistencePort) {

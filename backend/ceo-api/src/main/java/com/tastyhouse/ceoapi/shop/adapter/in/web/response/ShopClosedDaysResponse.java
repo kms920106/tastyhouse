@@ -17,6 +17,7 @@ public record ShopClosedDaysResponse(
     @Schema(description = "임시 휴무 목록")
     List<ShopTemporaryClosureResponse> temporaryClosures
 ) {
+
     public static ShopClosedDaysResponse from(ShopClosedDaysResult result) {
         return new ShopClosedDaysResponse(
             result.closedOnPublicHolidays(),

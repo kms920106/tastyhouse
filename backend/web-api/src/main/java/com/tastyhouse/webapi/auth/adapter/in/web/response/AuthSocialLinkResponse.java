@@ -21,6 +21,7 @@ public record AuthSocialLinkResponse(
     @Schema(description = "소셜 프로필 정보. status=NEEDS_SIGN_UP일 때 반환")
     AuthSocialProfileResponse socialProfile
 ) {
+
     public enum Status {LOGIN, NEEDS_SIGN_UP}
 
     public static AuthSocialLinkResponse from(SocialLinkResult result) {

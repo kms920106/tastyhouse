@@ -42,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopOrderAvailabilityServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 7, 27, 12, 0);
@@ -197,6 +198,7 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopPersistencePortFake implements ShopPersistencePort {
+
         private final Shop shop;
 
         private ShopPersistencePortFake(Shop shop) {
@@ -220,6 +222,7 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopSuspensionPersistencePortFake implements ShopSuspensionPersistencePort {
+
         private final List<ShopSuspension> suspensions;
 
         private ShopSuspensionPersistencePortFake(List<ShopSuspension> suspensions) {
@@ -243,6 +246,7 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopTemporaryClosurePersistencePortFake implements ShopTemporaryClosurePersistencePort {
+
         @Override
         public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {
             throw new UnsupportedOperationException("이 테스트는 저장 경로를 쓰지 않는다");
@@ -265,6 +269,7 @@ class ShopOrderAvailabilityServiceTest {
     }
 
     private static final class ShopDetailPersistencePortFake implements ShopDetailPersistencePort {
+
         private final List<OrderMethod> assignedOrderMethods;
 
         private ShopDetailPersistencePortFake(List<OrderMethod> assignedOrderMethods) {

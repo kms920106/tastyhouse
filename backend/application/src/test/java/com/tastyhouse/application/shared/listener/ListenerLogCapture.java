@@ -9,6 +9,7 @@ import ch.qos.logback.core.read.ListAppender;
 import org.slf4j.LoggerFactory;
 
 public final class ListenerLogCapture {
+
     private final Logger logger;
     private final ListAppender<ILoggingEvent> appender;
 

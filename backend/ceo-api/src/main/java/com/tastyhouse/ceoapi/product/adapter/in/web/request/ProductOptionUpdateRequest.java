@@ -36,6 +36,7 @@ public record ProductOptionUpdateRequest(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionUpdateCommand toCommand(Long ceoId, Long optionId) {
         return new ProductOptionUpdateCommand(
             ceoId,

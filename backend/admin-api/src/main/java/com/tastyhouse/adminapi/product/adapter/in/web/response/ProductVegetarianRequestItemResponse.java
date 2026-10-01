@@ -35,6 +35,7 @@ public record ProductVegetarianRequestItemResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "액젓이 포함되어 비건에 해당하지 않습니다.")
     String rejectReason
 ) {
+
     public static ProductVegetarianRequestItemResponse from(ProductVegetarianRequestResult result) {
         return new ProductVegetarianRequestItemResponse(
             result.id(),

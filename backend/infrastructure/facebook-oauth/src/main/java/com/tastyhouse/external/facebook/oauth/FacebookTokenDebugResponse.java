@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record FacebookTokenDebugResponse(
     @JsonProperty("data") TokenData data
 ) {
+
     public record TokenData(
         @JsonProperty("app_id") String appId,
         @JsonProperty("type") String type,

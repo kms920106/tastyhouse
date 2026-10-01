@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 
 public class CeoLoginHistory {
+
     private final Long id;
     private final CeoId ceoId;
     private final CeoLoginResult result;

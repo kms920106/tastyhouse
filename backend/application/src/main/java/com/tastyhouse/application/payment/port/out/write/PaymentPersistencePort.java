@@ -7,6 +7,7 @@ import com.tastyhouse.domain.payment.model.Payment;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 public interface PaymentPersistencePort {
+
     Optional<Payment> findById(PaymentId paymentId);
 
     Optional<Payment> findByPgOrderId(String pgOrderId);

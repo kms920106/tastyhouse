@@ -8,6 +8,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberFollowTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 팔로워·팔로잉 관계를 담는다")
     void of_createsTransientMemberFollow() {

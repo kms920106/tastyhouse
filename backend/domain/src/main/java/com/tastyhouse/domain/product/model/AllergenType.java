@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum AllergenType {
+
     MILK("우유"),
     EGG("난류"),
     BUCKWHEAT("메밀"),

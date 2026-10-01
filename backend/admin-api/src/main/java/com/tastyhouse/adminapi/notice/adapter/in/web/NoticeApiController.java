@@ -36,6 +36,7 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResp
 @RestController
 @RequestMapping("/api/notices")
 public class NoticeApiController {
+
     private final NoticeCommandUseCase noticeCommandUseCase;
     private final NoticeManagementQueryUseCase noticeQueryUseCase;
 

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 public class FaqCategory {
+
     private final Long id;
     private String name;
     private Integer sort;

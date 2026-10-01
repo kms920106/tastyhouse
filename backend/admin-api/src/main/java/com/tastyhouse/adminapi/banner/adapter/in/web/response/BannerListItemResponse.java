@@ -36,6 +36,7 @@ public record BannerListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
+
     public static BannerListItemResponse from(BannerManagementListItemResult result) {
         return new BannerListItemResponse(
             result.id(),

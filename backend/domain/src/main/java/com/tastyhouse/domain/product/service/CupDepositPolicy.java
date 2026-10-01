@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public class CupDepositPolicy {
+
     public static final int DEPOSIT_PER_CUP = 300;
 
     public static final int MAX_CUP_COUNT = 10;

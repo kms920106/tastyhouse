@@ -13,6 +13,7 @@ import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistenc
 import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
 
 public class PopularKeywordRefreshService {
+
     private static final int AGGREGATION_WINDOW_DAYS = 7;
 
     private static final int LOG_RETENTION_DAYS = 30;

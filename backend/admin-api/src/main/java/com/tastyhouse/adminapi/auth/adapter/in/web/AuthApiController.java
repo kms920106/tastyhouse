@@ -23,6 +23,7 @@ import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthApiController {
+
     private final AdminAuthCommandUseCase authCommandUseCase;
 
     public AuthApiController(AdminAuthCommandUseCase authCommandUseCase) {

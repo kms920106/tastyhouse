@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopCloseCommand(
     Long shopId
 ) {
+
     public ShopCloseCommand {
         if (shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

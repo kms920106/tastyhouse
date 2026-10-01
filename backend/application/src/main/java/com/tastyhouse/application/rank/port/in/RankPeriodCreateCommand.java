@@ -10,6 +10,7 @@ public record RankPeriodCreateCommand(
     LocalDateTime endAt,
     boolean visible
 ) {
+
     public RankPeriodCreateCommand {
         if (startAt == null || endAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

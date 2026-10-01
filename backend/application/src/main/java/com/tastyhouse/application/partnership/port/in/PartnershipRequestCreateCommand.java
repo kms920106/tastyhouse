@@ -13,6 +13,7 @@ public record PartnershipRequestCreateCommand(
     String contactPhone,
     LocalDateTime consultationRequestedAt
 ) {
+
     public PartnershipRequestCreateCommand {
         if (businessName == null || address == null || contactName == null
             || contactPhone == null || consultationRequestedAt == null) {

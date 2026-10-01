@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 public class ProhibitedWord {
+
     private final Long id;
     private final String word;
     private final String reason;

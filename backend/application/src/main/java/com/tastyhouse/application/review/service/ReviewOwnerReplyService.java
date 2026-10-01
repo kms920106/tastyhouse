@@ -19,6 +19,7 @@ import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 public class ReviewOwnerReplyService {
+
     private final ReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort;
     private final ReviewPersistencePort reviewPersistencePort;
     private final ProhibitedWordValidator prohibitedWordValidator;

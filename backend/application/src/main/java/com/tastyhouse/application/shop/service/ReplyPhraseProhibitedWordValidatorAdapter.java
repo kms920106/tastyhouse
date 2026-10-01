@@ -3,6 +3,7 @@ package com.tastyhouse.application.shop.service;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
 
 public class ReplyPhraseProhibitedWordValidatorAdapter implements ReplyPhraseTextValidator {
+
     private final ProhibitedWordValidator prohibitedWordValidator;
 
     public ReplyPhraseProhibitedWordValidatorAdapter(ProhibitedWordValidator prohibitedWordValidator) {

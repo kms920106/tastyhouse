@@ -13,6 +13,7 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 
 public class ScheduledOrderSlotCalculator {
+
     private static final boolean PUBLIC_HOLIDAY = false;
 
     private static final int MAX_SLOT_CANDIDATES = 200;

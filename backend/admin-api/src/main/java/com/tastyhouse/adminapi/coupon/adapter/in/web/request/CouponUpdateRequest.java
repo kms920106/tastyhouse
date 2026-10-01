@@ -60,6 +60,7 @@ public record CouponUpdateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean visible
 ) {
+
     public CouponUpdateCommand toCommand(Long couponId) {
         return new CouponUpdateCommand(
             couponId,

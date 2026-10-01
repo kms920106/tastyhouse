@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ReviewOwnerReply {
+
     public static final int REPLY_PERIOD_DAYS = 30;
 
     private final Long id;

@@ -31,6 +31,7 @@ public record OrderProductRequest(
     @Schema(description = "수량", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
     Integer quantity
 ) {
+
     public OrderLineCommand toCommand() {
         List<OrderLineOptionCommand> optionCommands = options == null ? null :
             options.stream()

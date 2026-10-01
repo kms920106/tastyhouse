@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopChoiceDeleteCommand(
     Long choiceId
 ) {
+
     public ShopChoiceDeleteCommand {
         if (choiceId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

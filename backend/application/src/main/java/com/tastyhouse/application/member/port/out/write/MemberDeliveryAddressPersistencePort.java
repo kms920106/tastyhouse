@@ -7,6 +7,7 @@ import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public interface MemberDeliveryAddressPersistencePort {
+
     Optional<MemberDeliveryAddress> findById(Long addressId);
 
     List<MemberDeliveryAddress> findByMemberId(MemberId memberId);

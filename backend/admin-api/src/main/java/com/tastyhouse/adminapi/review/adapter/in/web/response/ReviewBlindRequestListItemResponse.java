@@ -44,6 +44,7 @@ public record ReviewBlindRequestListItemResponse(
     @Schema(description = "요청 생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ReviewBlindRequestListItemResponse from(ReviewBlindRequestListItemResult result) {
         return new ReviewBlindRequestListItemResponse(
             result.id(),

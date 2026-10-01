@@ -9,6 +9,7 @@ public record AdminSeedProperties(
     @DefaultValue(AdminSeedProperties.UNSET_PASSWORD) String password,
     @DefaultValue("최고관리자") String name
 ) {
+
     public static final String UNSET_PASSWORD = "__UNSET__";
 
     public boolean isDefaultPassword() {

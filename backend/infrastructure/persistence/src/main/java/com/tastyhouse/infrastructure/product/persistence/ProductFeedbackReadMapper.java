@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductFeedbackReadMapper {
+
     private ProductFeedbackReadMapper() {
     }
 

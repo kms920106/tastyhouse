@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.member.follow.persistence.QMemberFol
 
 @Repository
 public class MemberFollowPersistenceAdapter implements MemberFollowPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final MemberFollowJpaRepository memberFollowJpaRepository;
 

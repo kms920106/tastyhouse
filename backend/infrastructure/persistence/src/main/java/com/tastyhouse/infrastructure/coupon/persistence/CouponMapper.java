@@ -4,6 +4,7 @@ import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
 
 final class CouponMapper {
+
     private CouponMapper() {
     }
 

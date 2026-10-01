@@ -5,6 +5,7 @@ import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 final class BannerMapper {
+
     private BannerMapper() {
     }
 

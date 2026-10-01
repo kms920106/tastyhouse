@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductOptionGroupLinkServiceTest {
+
     private static final ShopId MY_SHOP = ShopId.of(1L);
     private static final ShopId OTHER_SHOP = ShopId.of(2L);
 
@@ -175,6 +176,7 @@ class ProductOptionGroupLinkServiceTest {
     }
 
     private static final class Fixture {
+
         private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final ProductOptionGroupLinkService service;

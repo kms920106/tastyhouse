@@ -11,6 +11,7 @@ public record ShopContentBoardHideRequest(
     @Schema(description = "숨김 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean hidden
 ) {
+
     public ShopContentBoardHiddenChangeCommand toCommand(Long contentBoardId) {
         return new ShopContentBoardHiddenChangeCommand(contentBoardId, hidden);
     }

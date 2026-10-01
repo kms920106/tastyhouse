@@ -18,6 +18,7 @@ public record ShopRequestCommentCreateRequest(
     )
     String content
 ) {
+
     public ShopRequestCommentOwnerCreateCommand toCommand(Long ceoId, Long shopId, Long requestId) {
         return new ShopRequestCommentOwnerCreateCommand(ceoId, shopId, requestId, content());
     }

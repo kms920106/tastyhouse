@@ -6,6 +6,7 @@ import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.domain.faq.vo.FaqId;
 
 public class Faq {
+
     private final Long id;
     private FaqCategoryId faqCategoryId;
     private String question;

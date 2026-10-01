@@ -17,6 +17,7 @@ import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
 import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
 
 public class RankSettlementService {
+
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
 
     private static final int DEFAULT_LIMIT = 10;

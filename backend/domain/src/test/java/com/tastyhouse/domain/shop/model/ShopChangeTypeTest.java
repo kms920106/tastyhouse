@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopChangeTypeTest {
+
     @Test
     @DisplayName("모든 중분류는 대분류와 한글 라벨을 갖는다")
     void everyChangeTypeHasCategoryAndDescription() {

@@ -15,6 +15,7 @@ public record ShopProductCategoryResponse(
     @Schema(description = "상품 목록")
     List<ProductSummaryResponse> products
 ) {
+
     public static ShopProductCategoryResponse from(ShopProductCategoryViewResult result) {
         return new ShopProductCategoryResponse(
             result.categoryName(),

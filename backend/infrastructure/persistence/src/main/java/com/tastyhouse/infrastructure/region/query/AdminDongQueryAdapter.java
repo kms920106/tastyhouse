@@ -25,6 +25,7 @@ import static com.tastyhouse.infrastructure.region.persistence.QAdminDongJpaEnti
 
 @Repository
 public class AdminDongQueryAdapter implements AdminDongQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public AdminDongQueryAdapter(JPAQueryFactory queryFactory) {

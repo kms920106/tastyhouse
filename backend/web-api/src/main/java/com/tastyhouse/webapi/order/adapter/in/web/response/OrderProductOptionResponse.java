@@ -29,6 +29,7 @@ public record OrderProductOptionResponse(
         example = "300")
     Integer depositAmount
 ) {
+
     public static OrderProductOptionResponse from(OrderProductOptionResult result) {
         return new OrderProductOptionResponse(
             result.orderProductOptionId(),

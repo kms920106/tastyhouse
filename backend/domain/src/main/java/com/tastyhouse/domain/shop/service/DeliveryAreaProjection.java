@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 
 public final class DeliveryAreaProjection {
+
     private DeliveryAreaProjection() {
     }
 
@@ -82,6 +83,7 @@ public final class DeliveryAreaProjection {
         List<AdminDongId> adminDongIds,
         int unresolvedCount
     ) {
+
         public Result {
             adminDongIds = List.copyOf(adminDongIds);
         }

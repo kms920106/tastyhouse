@@ -19,6 +19,7 @@ public record BugReportClassifyRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String priority
 ) {
+
     public BugReportClassifyCommand toCommand(Long bugReportId) {
         return new BugReportClassifyCommand(bugReportId, category(), priority());
     }

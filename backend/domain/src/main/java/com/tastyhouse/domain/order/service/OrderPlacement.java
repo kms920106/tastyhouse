@@ -21,6 +21,7 @@ public record OrderPlacement(
     Integer finalAmount,
     LocalDateTime scheduledAt
 ) {
+
     public static OrderPlacement of(
         Long shopId,
         OrderMethod orderMethod,

@@ -32,6 +32,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopClosedDayApiController {
+
     private final ShopClosedDayQueryUseCase shopClosedDayQueryUseCase;
     private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
 

@@ -19,6 +19,7 @@ public record ProductOptionSortRequest(
         + "집합과 일치해야 한다.", example = "[5, 2, 9]", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> optionIds
 ) {
+
     public ProductOptionOrderChangeCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionOrderChangeCommand(ceoId, shopId, optionGroupId, optionIds);
     }

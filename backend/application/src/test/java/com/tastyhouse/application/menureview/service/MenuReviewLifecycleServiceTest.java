@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MenuReviewLifecycleServiceTest {
+
     private static final MemberId MEMBER_ID = MemberId.of(3L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(4L);
     private static final ShopId SHOP_ID = ShopId.of(1L);

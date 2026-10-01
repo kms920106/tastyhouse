@@ -10,11 +10,13 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PointInPolygonTest {
+
     private static final GeoPolygon SQUARE = polygon(ring(0, 0, 10, 0, 10, 10, 0, 10));
 
     @Nested
     @DisplayName("볼록 도형")
     class Convex {
+
         @Test
         @DisplayName("내부의 점은 포함이다")
         void contains_pointInside() {
@@ -32,6 +34,7 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("경계 위의 점")
     class OnBoundary {
+
         @Test
         @DisplayName("정점 위의 점은 포함으로 본다")
         void contains_pointOnVertex() {
@@ -57,6 +60,7 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("오목 도형")
     class Concave {
+
         private final GeoPolygon uShape = polygon(ring(
             0, 0, 10, 0, 10, 10, 7, 10, 7, 3, 3, 3, 3, 10, 0, 10
         ));
@@ -78,6 +82,7 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("여러 링")
     class MultipleRings {
+
         @Test
         @DisplayName("바깥 링 안의 두 번째 링은 구멍이 된다(even-odd)")
         void contains_innerRingBecomesHole() {
@@ -107,6 +112,7 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("입력 정규화")
     class Normalization {
+
         @Test
         @DisplayName("명시적으로 폐합된 입력도 같은 도형으로 취급한다")
         void contains_explicitlyClosedRing() {
@@ -128,6 +134,7 @@ class PointInPolygonTest {
     @Nested
     @DisplayName("소수 6자리 경계값")
     class Precision {
+
         @Test
         @DisplayName("저장 정밀도(1e-6도) 차이는 서로 다른 점으로 구분된다")
         void contains_distinguishesSixthDecimal() {

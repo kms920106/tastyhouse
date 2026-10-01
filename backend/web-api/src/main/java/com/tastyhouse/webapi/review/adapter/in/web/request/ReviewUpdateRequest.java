@@ -58,6 +58,7 @@ public record ReviewUpdateRequest(
     @Schema(description = "배달 평가 내용 (선택, 점주 전용 노출)", example = "빠르게 잘 받았어요")
     String deliveryComment
 ) {
+
     public ReviewUpdateCommand toCommand(Long memberId, Long reviewId) {
         return new ReviewUpdateCommand(
             memberId,

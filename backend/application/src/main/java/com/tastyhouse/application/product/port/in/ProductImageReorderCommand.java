@@ -11,6 +11,7 @@ public record ProductImageReorderCommand(
     Long productId,
     List<Long> imageIds
 ) {
+
     public ProductImageReorderCommand {
         if (ceoId == null
             || shopId == null

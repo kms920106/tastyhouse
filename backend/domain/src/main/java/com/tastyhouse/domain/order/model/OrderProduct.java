@@ -6,6 +6,7 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class OrderProduct {
+
     private final Long id;
     private final OrderId orderId;
     private final ProductId productId;

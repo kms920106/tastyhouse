@@ -9,6 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductNutrition {
+
     private final Long id;
     private final ProductId productId;
     private String servingSize;

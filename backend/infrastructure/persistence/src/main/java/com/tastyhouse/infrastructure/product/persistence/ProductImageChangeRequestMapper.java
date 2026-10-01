@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 final class ProductImageChangeRequestMapper {
+
     private ProductImageChangeRequestMapper() {
     }
 

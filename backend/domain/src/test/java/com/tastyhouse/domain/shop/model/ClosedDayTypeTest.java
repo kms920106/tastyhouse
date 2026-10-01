@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ClosedDayTypeTest {
+
     @Test
     @DisplayName("연중무휴는 어떤 날짜에도 휴무가 아니다")
     void noClosedDaysNeverMatches() {

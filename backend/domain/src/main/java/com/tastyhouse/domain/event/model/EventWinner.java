@@ -6,6 +6,7 @@ import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 public class EventWinner {
+
     private final Long id;
     private final EventId eventId;
     private final Integer rankNo;

@@ -46,6 +46,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
 
 @Repository
 public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQueryPort {
+
     private static final QReviewLikeJpaEntity sortReviewLike = new QReviewLikeJpaEntity("sortReviewLike");
 
     private static final QReviewImageJpaEntity subReviewImage = new QReviewImageJpaEntity("subReviewImage");

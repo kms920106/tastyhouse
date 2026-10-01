@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewTagJpaEnti
 
 @Repository
 public class ReviewTagPersistenceAdapter implements ReviewTagPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ReviewTagJpaRepository reviewTagJpaRepository;
 

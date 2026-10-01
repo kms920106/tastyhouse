@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ErrorCodeConventionTest {
+
     private static final Set<ErrorCode> NOT_FOUND_NAME_WITH_NON_404_STATUS = EnumSet.of(
         ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND,
         ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND,

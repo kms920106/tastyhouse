@@ -10,6 +10,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class HolidayServiceConfig {
+
     @Bean
     public PublicHolidayCalendar publicHolidayCalendar(PublicHolidayPersistencePort publicHolidayPersistencePort) {
         return new PublicHolidayCalendar(publicHolidayPersistencePort);

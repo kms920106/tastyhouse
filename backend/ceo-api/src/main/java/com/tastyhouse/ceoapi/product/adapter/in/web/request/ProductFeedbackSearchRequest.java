@@ -20,6 +20,7 @@ public record ProductFeedbackSearchRequest(
     @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
     Integer size
 ) {
+
     public ProductFeedbackSearchRequest {
         if (page == null) {
             page = 0;

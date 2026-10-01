@@ -9,6 +9,7 @@ public record CeoSeedProperties(
     @DefaultValue(CeoSeedProperties.UNSET_PASSWORD) String password,
     @DefaultValue("점주") String name
 ) {
+
     public static final String UNSET_PASSWORD = "__UNSET__";
 
     public boolean isDefaultPassword() {

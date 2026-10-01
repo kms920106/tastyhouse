@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MemberReferralTest {
+
     @Test
     @DisplayName("register로 생성하면 미영속 상태(식별자·감사시각 없음)이고 PENDING 상태다")
     void register_createsTransientPendingReferral() {

@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 
 public class ProductOption {
+
     private final Long id;
     private final ProductOptionGroupId optionGroupId;
     private String name;

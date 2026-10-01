@@ -8,6 +8,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 
 public interface CeoReplyPhrasePersistencePort {
+
     Optional<CeoReplyPhrase> findById(CeoReplyPhraseId ceoReplyPhraseId);
 
     List<CeoReplyPhrase> findAllByCeoId(CeoId ceoId);

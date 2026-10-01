@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CupDepositPolicyTest {
+
     private final CupDepositPolicy policy = new CupDepositPolicy();
 
     @Test

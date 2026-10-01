@@ -9,6 +9,7 @@ public record ProductCategoryOwnerCreateCommand(
     String name,
     String description
 ) {
+
     public ProductCategoryOwnerCreateCommand {
         if (ceoId == null
             || shopId == null

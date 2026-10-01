@@ -7,6 +7,7 @@ import java.util.List;
 public record GeoRing(
     List<GeoPoint> points
 ) {
+
     public static final int MIN_POINTS = 3;
 
     public GeoRing {

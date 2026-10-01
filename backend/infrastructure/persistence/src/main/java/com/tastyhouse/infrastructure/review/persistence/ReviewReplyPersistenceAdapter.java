@@ -10,6 +10,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePo
 
 @Repository
 public class ReviewReplyPersistenceAdapter implements ReviewReplyPersistencePort {
+
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
 
     public ReviewReplyPersistenceAdapter(ReviewReplyJpaRepository reviewReplyJpaRepository) {

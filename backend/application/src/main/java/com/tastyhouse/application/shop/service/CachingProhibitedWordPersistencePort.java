@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 
 public class CachingProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
     private static final Duration TTL = Duration.ofMinutes(10);
 
     private final ProhibitedWordPersistencePort delegate;

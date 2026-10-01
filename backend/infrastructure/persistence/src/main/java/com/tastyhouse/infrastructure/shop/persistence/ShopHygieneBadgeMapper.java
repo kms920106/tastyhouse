@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopHygieneBadgeMapper {
+
     private ShopHygieneBadgeMapper() {
     }
 

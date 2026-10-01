@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 public class TossPaymentRecord {
+
     private final Long id;
     private final PaymentId paymentId;
     private final String version;

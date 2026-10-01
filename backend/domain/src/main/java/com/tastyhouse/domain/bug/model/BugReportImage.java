@@ -4,6 +4,7 @@ import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class BugReportImage {
+
     private final Long id;
     private final BugReportId bugReportId;
     private final UploadedFileId imageFileId;

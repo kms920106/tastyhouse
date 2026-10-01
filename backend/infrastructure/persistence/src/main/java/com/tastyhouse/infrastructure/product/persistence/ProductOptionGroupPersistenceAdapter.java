@@ -11,6 +11,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 
 @Repository
 public class ProductOptionGroupPersistenceAdapter implements ProductOptionGroupPersistencePort {
+
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
 
     public ProductOptionGroupPersistenceAdapter(ProductOptionGroupJpaRepository productOptionGroupJpaRepository) {

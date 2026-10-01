@@ -12,6 +12,7 @@ public record ShopStatusUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String status
 ) {
+
     public ShopStatusUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopStatusUpdateCommand(ceoId, shopId, status());
     }

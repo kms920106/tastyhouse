@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopPhotoCategoryDeleteCommand(
     Long categoryId
 ) {
+
     public ShopPhotoCategoryDeleteCommand {
         if (categoryId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

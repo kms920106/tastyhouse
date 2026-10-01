@@ -8,6 +8,7 @@ import java.util.Objects;
 import com.tastyhouse.domain.product.model.ProductPrice;
 
 public class StorePriceBadgePolicy {
+
     private static final double PICKUP_BADGE_COVERAGE_THRESHOLD = 0.8d;
 
     public boolean shouldExposePickupBadge(

@@ -8,6 +8,7 @@ public record ShopRiderVisitGuideUpdateCommand(
     Long shopId,
     String visitGuide
 ) {
+
     public ShopRiderVisitGuideUpdateCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

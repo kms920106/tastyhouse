@@ -24,6 +24,7 @@ public record MyGradeResponse(
     @Schema(description = "다음 등급까지 필요한 리뷰 개수 (최고 등급이면 0)", example = "75")
     int reviewsNeededForNextGrade
 ) {
+
     public static MyGradeResponse from(MyGradeResult result) {
         return new MyGradeResponse(
             result.currentGrade(),

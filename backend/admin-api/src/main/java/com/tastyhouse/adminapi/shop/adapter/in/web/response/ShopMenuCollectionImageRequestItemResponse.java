@@ -29,6 +29,7 @@ public record ShopMenuCollectionImageRequestItemResponse(
     @Schema(description = "반려 사유. 반려가 아니면 null", example = "메뉴가 잘 보이지 않습니다.")
     String rejectReason
 ) {
+
     public static ShopMenuCollectionImageRequestItemResponse from(ShopMenuCollectionImageRequestResult result) {
         return new ShopMenuCollectionImageRequestItemResponse(
             result.id(),

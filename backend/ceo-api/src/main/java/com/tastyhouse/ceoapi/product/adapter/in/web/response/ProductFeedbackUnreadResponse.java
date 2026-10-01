@@ -8,6 +8,7 @@ public record ProductFeedbackUnreadResponse(
     @Schema(description = "확인하지 않은 의견이 있는지", example = "true")
     boolean hasUnread
 ) {
+
     public static ProductFeedbackUnreadResponse from(boolean hasUnread) {
         return new ProductFeedbackUnreadResponse(hasUnread);
     }

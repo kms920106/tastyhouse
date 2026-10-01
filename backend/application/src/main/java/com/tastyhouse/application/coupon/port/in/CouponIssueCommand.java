@@ -7,6 +7,7 @@ public record CouponIssueCommand(
     Long couponId,
     Long memberId
 ) {
+
     public CouponIssueCommand {
         if (couponId == null || memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

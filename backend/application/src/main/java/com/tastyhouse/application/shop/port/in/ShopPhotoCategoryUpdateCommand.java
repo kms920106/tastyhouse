@@ -7,6 +7,7 @@ public record ShopPhotoCategoryUpdateCommand(
     Long categoryId,
     String name
 ) {
+
     public ShopPhotoCategoryUpdateCommand {
         if (categoryId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

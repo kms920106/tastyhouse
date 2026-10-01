@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberEventListenerTest {
+
     private final MemberEventListener listener = new MemberEventListener();
 
     private ListenerLogCapture logCapture;

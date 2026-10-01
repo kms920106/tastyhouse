@@ -17,6 +17,7 @@ public record EventUpdateCommand(
     LocalDateTime startAt,
     LocalDateTime endAt
 ) {
+
     public EventUpdateCommand {
         if (eventId == null || name == null || status == null || startAt == null || endAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -53,6 +53,7 @@ public record ShopDeliveryAreaPolygonResponse(
     @Schema(description = "도형 최종 수정 일시. 미설정 시 null", example = "2026-08-09T12:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static ShopDeliveryAreaPolygonResponse from(ShopDeliveryAreaPolygonViewResult result) {
         List<List<GeoPointView>> rings = result.rings();
         return new ShopDeliveryAreaPolygonResponse(

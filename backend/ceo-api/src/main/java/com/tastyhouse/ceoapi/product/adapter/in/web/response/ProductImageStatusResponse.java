@@ -14,6 +14,7 @@ public record ProductImageStatusResponse(
     @Schema(description = "이미지 등록 요청 목록(최근 순)")
     List<ProductImageChangeRequestResponse> requests
 ) {
+
     public static ProductImageStatusResponse from(ProductImageStatusResult result) {
         return new ProductImageStatusResponse(
             result.images().stream().map(ProductImageResponse::from).toList(),

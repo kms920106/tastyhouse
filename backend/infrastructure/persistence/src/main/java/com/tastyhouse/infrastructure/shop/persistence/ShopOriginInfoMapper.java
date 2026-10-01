@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopOriginInfoMapper {
+
     private ShopOriginInfoMapper() {
     }
 

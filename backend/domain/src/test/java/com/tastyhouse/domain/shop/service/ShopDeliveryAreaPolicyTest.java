@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryAreaPolicyTest {
+
     private static final GeoPoint SHOP = GeoPoint.of(37.5, 127.0);
 
     @Test

@@ -17,6 +17,7 @@ public record PointHistoryResponse(
     @Schema(description = "포인트 내역 목록")
     List<PointHistoryItemResponse> histories
 ) {
+
     public static PointHistoryResponse from(PointHistoryViewResult result) {
         return new PointHistoryResponse(
             result.availablePoints(),

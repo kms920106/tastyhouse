@@ -19,6 +19,7 @@ public record ProductImageSortRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> imageIds
 ) {
+
     public ProductImageReorderCommand toCommand(Long ceoId, Long productId) {
         return new ProductImageReorderCommand(ceoId, shopId, productId, imageIds);
     }

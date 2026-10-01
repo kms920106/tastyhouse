@@ -32,6 +32,7 @@ import static com.tastyhouse.infrastructure.member.persistence.QMemberJpaEntity.
 
 @Repository
 public class MemberQueryAdapter implements MemberQueryPort, MemberManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

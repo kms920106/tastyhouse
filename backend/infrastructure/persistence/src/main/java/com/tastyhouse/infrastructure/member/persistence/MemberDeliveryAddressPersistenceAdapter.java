@@ -11,6 +11,7 @@ import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPer
 
 @Repository
 public class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPersistencePort {
+
     private final MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository;
 
     public MemberDeliveryAddressPersistenceAdapter(MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository) {

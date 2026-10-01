@@ -7,6 +7,7 @@ public record ShopDeliveryAreaAdjustmentRejectCommand(
     Long requestId,
     String reason
 ) {
+
     public ShopDeliveryAreaAdjustmentRejectCommand {
         if (requestId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

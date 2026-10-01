@@ -17,6 +17,7 @@ import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 
 public class ShopOperatingStatusCalculator {
+
     public ShopOperatingStatusResult calculate(ShopOperatingStatusContext context) {
         Shop shop = context.shop();
         LocalDateTime now = context.now();

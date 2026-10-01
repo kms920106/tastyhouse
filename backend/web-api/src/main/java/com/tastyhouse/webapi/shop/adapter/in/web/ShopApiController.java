@@ -55,6 +55,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
 @RequestMapping("/api/shops")
 @Tag(name = "Shop", description = "가게 관리 API")
 public class ShopApiController {
+
     private final ShopCommandUseCase shopCommandUseCase;
     private final ShopSearchQueryUseCase shopSearchQueryUseCase;
     private final ShopDetailQueryUseCase shopDetailQueryUseCase;

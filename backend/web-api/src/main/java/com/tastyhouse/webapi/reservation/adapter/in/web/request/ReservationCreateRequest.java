@@ -41,6 +41,7 @@ public record ReservationCreateRequest(
     @Schema(description = "필수 약관 동의 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     boolean agreedRequiredTerms
 ) {
+
     public ReservationCreateCommand toCommand(Long memberId) {
         return new ReservationCreateCommand(
             memberId,

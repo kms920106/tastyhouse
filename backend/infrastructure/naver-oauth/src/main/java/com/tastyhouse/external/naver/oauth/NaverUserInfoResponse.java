@@ -7,6 +7,7 @@ public record NaverUserInfoResponse(
     @JsonProperty("message") String message,
     @JsonProperty("response") NaverProfile response
 ) {
+
     public record NaverProfile(
     @JsonProperty("id") String id,
     @JsonProperty("email") String email,

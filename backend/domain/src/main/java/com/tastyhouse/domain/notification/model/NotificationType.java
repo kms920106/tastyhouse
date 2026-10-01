@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum NotificationType {
+
     REVIEW_OWNER_REPLY,
 
     REVIEW_BLIND_APPROVED;

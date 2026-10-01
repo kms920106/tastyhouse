@@ -11,6 +11,7 @@ public record RankPeriodUpdateCommand(
     LocalDateTime endAt,
     boolean visible
 ) {
+
     public RankPeriodUpdateCommand {
         if (rankPeriodId == null || startAt == null || endAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

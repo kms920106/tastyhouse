@@ -18,6 +18,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 @RestController
 @RequestMapping("/api/files")
 public class FileApiController {
+
     private final FileUploadManagementCommandUseCase fileUploadCommandUseCase;
 
     public FileApiController(FileUploadManagementCommandUseCase fileUploadCommandUseCase) {

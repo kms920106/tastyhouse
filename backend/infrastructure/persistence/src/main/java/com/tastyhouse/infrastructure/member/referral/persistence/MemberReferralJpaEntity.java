@@ -24,6 +24,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class MemberReferralJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

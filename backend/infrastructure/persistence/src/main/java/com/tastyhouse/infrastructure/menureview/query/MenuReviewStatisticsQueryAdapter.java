@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.menureview.persistence.QMenuReviewJp
 
 @Repository
 public class MenuReviewStatisticsQueryAdapter implements MenuReviewStatisticsQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public MenuReviewStatisticsQueryAdapter(JPAQueryFactory queryFactory) {

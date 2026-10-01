@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class StorePriceVerificationTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final UploadedFileId FILE_ID = UploadedFileId.of(7L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);

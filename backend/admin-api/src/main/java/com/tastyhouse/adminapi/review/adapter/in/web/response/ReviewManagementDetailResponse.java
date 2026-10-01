@@ -72,6 +72,7 @@ public record ReviewManagementDetailResponse(
     @Schema(description = "태그명 목록")
     List<String> tagNames
 ) {
+
     public static ReviewManagementDetailResponse from(ReviewManagementDetailResult result) {
         return new ReviewManagementDetailResponse(
             result.id(),

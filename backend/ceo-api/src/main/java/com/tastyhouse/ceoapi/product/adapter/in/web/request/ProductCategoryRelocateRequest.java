@@ -27,6 +27,7 @@ public record ProductCategoryRelocateRequest(
         + "빠짐없이 포함되어야 한다.", example = "[2, 5, 6, 9]", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> targetOrderedProductIds
 ) {
+
     public ProductRelocateCommand toCommand(Long ceoId) {
         return new ProductRelocateCommand(ceoId, shopId, targetProductCategoryId, productIds, targetOrderedProductIds);
     }

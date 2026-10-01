@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRequestCancelServiceTest {
+
     private static final Long SHOP_ID = 1L;
     private static final Long OTHER_SHOP_ID = 2L;
 
@@ -183,6 +184,7 @@ class ShopRequestCancelServiceTest {
     }
 
     private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
+
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
 
@@ -228,6 +230,7 @@ class ShopRequestCancelServiceTest {
     }
 
     private static final class FakeAdjustmentPersistencePort implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
+
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private long sequence = 0L;
 

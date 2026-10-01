@@ -15,6 +15,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistenceP
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CeoLoginHistoryRecorderTest {
+
     private static final int USER_AGENT_MAX_LENGTH = 500;
 
     @Test
@@ -77,6 +78,7 @@ class CeoLoginHistoryRecorderTest {
     }
 
     private static class FakeCeoLoginHistoryPersistencePort implements CeoLoginHistoryPersistencePort {
+
         private final List<CeoLoginHistory> saved = new ArrayList<>();
 
         @Override

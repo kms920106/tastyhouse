@@ -10,6 +10,7 @@ public record RankPrizeCreateCommand(
     String brand,
     Long imageFileId
 ) {
+
     public RankPrizeCreateCommand {
         if (rankPeriodId == null || prizeRank == null || name == null || brand == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

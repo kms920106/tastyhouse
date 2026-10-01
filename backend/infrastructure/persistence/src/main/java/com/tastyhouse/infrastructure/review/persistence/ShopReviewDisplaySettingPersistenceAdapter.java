@@ -10,6 +10,7 @@ import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySetting
 
 @Repository
 public class ShopReviewDisplaySettingPersistenceAdapter implements ShopReviewDisplaySettingPersistencePort {
+
     private final ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository;
 
     public ShopReviewDisplaySettingPersistenceAdapter(ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository) {

@@ -13,6 +13,7 @@ public record ReviewBlindRequestCreateCommand(
     String detailReason,
     List<Long> attachmentFileIds
 ) {
+
     public ReviewBlindRequestCreateCommand {
         if (ceoId == null || shopId == null || reviewId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

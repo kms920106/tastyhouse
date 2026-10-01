@@ -30,6 +30,7 @@ public record ProductOptionResponse(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public static ProductOptionResponse from(OptionResult result) {
         return new ProductOptionResponse(
             result.id(),

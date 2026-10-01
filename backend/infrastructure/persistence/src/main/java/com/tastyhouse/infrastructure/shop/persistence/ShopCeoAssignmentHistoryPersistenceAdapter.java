@@ -7,6 +7,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPe
 
 @Repository
 public class ShopCeoAssignmentHistoryPersistenceAdapter implements ShopCeoAssignmentHistoryPersistencePort {
+
     private final ShopCeoAssignmentHistoryJpaRepository shopCeoAssignmentHistoryJpaRepository;
 
     public ShopCeoAssignmentHistoryPersistenceAdapter(

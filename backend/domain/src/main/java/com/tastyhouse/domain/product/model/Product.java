@@ -12,6 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class Product {
+
     private static final int WEIGHT_TEXT_MAX_LENGTH = 50;
 
     private final Long id;

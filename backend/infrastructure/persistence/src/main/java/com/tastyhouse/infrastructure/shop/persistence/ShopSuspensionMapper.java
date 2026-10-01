@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopSuspensionMapper {
+
     private ShopSuspensionMapper() {
     }
 

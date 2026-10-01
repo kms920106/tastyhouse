@@ -11,6 +11,7 @@ import com.tastyhouse.application.bug.port.out.write.BugReportImagePersistencePo
 import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
 
 public class BugReportRegistrationService {
+
     private final BugReportPersistencePort bugReportPersistencePort;
     private final BugReportImagePersistencePort bugReportImagePersistencePort;
 

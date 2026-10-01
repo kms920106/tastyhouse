@@ -7,6 +7,7 @@ public record ReservationCancelCommand(
     Long memberId,
     Long reservationId
 ) {
+
     public ReservationCancelCommand {
         if (memberId == null || reservationId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

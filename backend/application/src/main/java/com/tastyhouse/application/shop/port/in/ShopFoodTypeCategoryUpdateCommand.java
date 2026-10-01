@@ -11,6 +11,7 @@ public record ShopFoodTypeCategoryUpdateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ShopFoodTypeCategoryUpdateCommand {
         if (categoryId == null || displayName == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

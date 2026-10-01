@@ -19,6 +19,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
 public class ShopRiderGuideService {
+
     private final ShopRiderGuidePersistencePort shopRiderGuidePersistencePort;
     private final ShopPersistencePort shopPersistencePort;
     private final ShopRiderGuideValidator shopRiderGuideValidator;

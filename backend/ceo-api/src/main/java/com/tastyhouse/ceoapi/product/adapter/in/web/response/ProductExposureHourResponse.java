@@ -19,6 +19,7 @@ public record ProductExposureHourResponse(
     @Schema(description = "노출 종료 시각. 시작보다 이르면 자정을 넘깁니다.", example = "14:00")
     LocalTime endTime
 ) {
+
     public static ProductExposureHourResponse from(ProductExposureViewResult.Hour hour) {
         return new ProductExposureHourResponse(
             hour.dayType(),

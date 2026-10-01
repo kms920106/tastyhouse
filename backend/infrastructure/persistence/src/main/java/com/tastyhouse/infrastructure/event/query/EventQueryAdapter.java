@@ -31,6 +31,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 
 @Repository
 public class EventQueryAdapter implements EventQueryPort, EventManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

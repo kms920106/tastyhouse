@@ -42,6 +42,7 @@ public record BannerDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static BannerDetailResponse from(BannerDetailResult result) {
         return new BannerDetailResponse(
             result.id(),

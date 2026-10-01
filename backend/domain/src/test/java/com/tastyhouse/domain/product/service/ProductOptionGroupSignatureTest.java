@@ -14,6 +14,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductOptionGroupSignatureTest {
+
     @Test
     @DisplayName("★ 옵션 정렬 순서(sort)가 달라도 같은 서명이 나온다 — 진열 순서는 동일성과 무관하다")
     void signature_ignoresOptionSort() {

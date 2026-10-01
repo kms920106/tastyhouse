@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 폐업하지 않은 상태다")
     void of_createsTransientShop() {
@@ -166,6 +167,7 @@ class ShopTest {
     @Nested
     @DisplayName("폐업 가드")
     class PermanentClosureGuard {
+
         private Shop openShop() {
             return Shop.of(
                 StationId.of(1L),
@@ -248,6 +250,7 @@ class ShopTest {
     @Nested
     @DisplayName("최소주문금액")
     class MinOrderAmount {
+
         private Shop shop() {
             return Shop.of(
                 StationId.of(1L),

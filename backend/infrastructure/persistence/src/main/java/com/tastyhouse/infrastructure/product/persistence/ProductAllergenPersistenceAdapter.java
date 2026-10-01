@@ -10,6 +10,7 @@ import com.tastyhouse.application.product.port.out.write.ProductAllergenPersiste
 
 @Repository
 public class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePort {
+
     private final ProductAllergenJpaRepository productAllergenJpaRepository;
 
     public ProductAllergenPersistenceAdapter(ProductAllergenJpaRepository productAllergenJpaRepository) {

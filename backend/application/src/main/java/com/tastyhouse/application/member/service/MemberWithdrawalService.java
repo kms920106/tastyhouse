@@ -14,6 +14,7 @@ import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersiste
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberWithdrawalService {
+
     private final MemberPersistencePort memberPersistencePort;
     private final MemberWithdrawalPersistencePort memberWithdrawalPersistencePort;
     private final DomainEventPublisher domainEventPublisher;

@@ -22,6 +22,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
 public class ProductPriceService {
+
     private final ProductPricePersistencePort productPricePersistencePort;
     private final ProductPersistencePort productPersistencePort;
     private final StorePriceVerificationPort storePriceVerificationPort;

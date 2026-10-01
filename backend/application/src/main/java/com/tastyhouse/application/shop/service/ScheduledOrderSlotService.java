@@ -24,6 +24,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistenceP
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 public class ScheduledOrderSlotService {
+
     private final ShopPersistencePort shopPersistencePort;
     private final ShopDetailPersistencePort shopDetailPersistencePort;
     private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;

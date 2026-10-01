@@ -5,6 +5,7 @@ import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberSocialAccountMapper {
+
     private MemberSocialAccountMapper() {
     }
 

@@ -11,6 +11,7 @@ public record ShopContentBoardUpdateCommand(
     String youtubeUrl,
     String description
 ) {
+
     public ShopContentBoardUpdateCommand {
         if (ceoId == null || shopId == null || contentBoardId == null || topic == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

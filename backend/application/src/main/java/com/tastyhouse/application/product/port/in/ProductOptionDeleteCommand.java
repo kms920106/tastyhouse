@@ -8,6 +8,7 @@ public record ProductOptionDeleteCommand(
     Long optionId,
     Long shopId
 ) {
+
     public ProductOptionDeleteCommand {
         if (ceoId == null
             || optionId == null

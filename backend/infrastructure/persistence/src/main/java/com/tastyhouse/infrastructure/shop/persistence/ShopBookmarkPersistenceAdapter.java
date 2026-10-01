@@ -11,6 +11,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopBookmarkJpaEnt
 
 @Repository
 public class ShopBookmarkPersistenceAdapter implements ShopBookmarkPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;
 

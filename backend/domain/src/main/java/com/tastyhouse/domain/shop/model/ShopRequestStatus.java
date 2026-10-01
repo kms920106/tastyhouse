@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ShopRequestStatus {
+
     PENDING("대기중"),
     IN_PROGRESS("진행"),
     REJECTED("반려"),

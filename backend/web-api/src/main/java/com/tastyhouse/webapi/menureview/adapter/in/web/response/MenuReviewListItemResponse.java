@@ -26,6 +26,7 @@ public record MenuReviewListItemResponse(
     @Schema(description = "작성일시", example = "2026-06-19T20:11:00")
     LocalDateTime createdAt
 ) {
+
     public static MenuReviewListItemResponse from(MenuReviewListItemResult result) {
         return new MenuReviewListItemResponse(
             result.id(),

@@ -28,6 +28,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResp
 @RestController
 @RequestMapping("/api/products")
 public class ProductExposureApiController {
+
     private final ProductExposureQueryUseCase productExposureQueryUseCase;
     private final ProductExposureCommandUseCase productExposureCommandUseCase;
 

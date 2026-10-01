@@ -14,6 +14,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
 public class ShopRequestIndexRecorder {
+
     private final ShopRequestIndexPersistencePort shopRequestIndexPersistencePort;
 
     public ShopRequestIndexRecorder(ShopRequestIndexPersistencePort shopRequestIndexPersistencePort) {

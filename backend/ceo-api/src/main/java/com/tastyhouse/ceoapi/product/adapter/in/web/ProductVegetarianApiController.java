@@ -28,6 +28,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianSt
 @RestController
 @RequestMapping("/api/products")
 public class ProductVegetarianApiController {
+
     private final ProductVegetarianQueryUseCase productVegetarianQueryUseCase;
     private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;
 

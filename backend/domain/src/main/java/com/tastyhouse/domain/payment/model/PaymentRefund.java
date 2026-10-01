@@ -7,6 +7,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 
 public class PaymentRefund {
+
     private final Long id;
     private final PaymentId paymentId;
     private final Amount refundAmount;

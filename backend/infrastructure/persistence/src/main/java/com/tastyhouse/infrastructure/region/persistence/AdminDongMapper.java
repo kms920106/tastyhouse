@@ -9,6 +9,7 @@ import com.tastyhouse.domain.shared.geo.GeoPolygonTextCodec;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 
 final class AdminDongMapper {
+
     private AdminDongMapper() {
     }
 

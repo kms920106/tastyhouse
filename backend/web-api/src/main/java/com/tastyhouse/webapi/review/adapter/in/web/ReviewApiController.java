@@ -50,6 +50,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoRespo
 @RequestMapping("/api/reviews")
 @Tag(name = "Review", description = "리뷰 관리 API")
 public class ReviewApiController {
+
     private final ReviewCommandUseCase reviewCommandUseCase;
     private final ReviewQueryUseCase reviewQueryUseCase;
 

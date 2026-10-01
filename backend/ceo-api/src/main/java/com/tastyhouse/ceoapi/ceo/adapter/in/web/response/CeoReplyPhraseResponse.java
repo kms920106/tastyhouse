@@ -30,6 +30,7 @@ public record CeoReplyPhraseResponse(
     @Schema(description = "생성 일시", example = "2026-08-14T09:12:41")
     LocalDateTime createdAt
 ) {
+
     private static final int DISPLAY_NAME_LENGTH = 20;
 
     private static final String ELLIPSIS = "…";

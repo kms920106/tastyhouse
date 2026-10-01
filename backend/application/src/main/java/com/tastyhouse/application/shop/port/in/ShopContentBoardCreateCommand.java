@@ -11,6 +11,7 @@ public record ShopContentBoardCreateCommand(
     String youtubeUrl,
     String description
 ) {
+
     public ShopContentBoardCreateCommand {
         if (ceoId == null || shopId == null || contentType == null || topic == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

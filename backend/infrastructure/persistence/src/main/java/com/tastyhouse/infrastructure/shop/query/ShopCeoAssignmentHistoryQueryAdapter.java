@@ -20,6 +20,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 
 @Repository
 public class ShopCeoAssignmentHistoryQueryAdapter implements ShopCeoAssignmentHistoryQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public ShopCeoAssignmentHistoryQueryAdapter(JPAQueryFactory queryFactory) {

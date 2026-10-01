@@ -34,6 +34,7 @@ public record ShopRiderGuideHistoryResponse(
     @Schema(description = "이력 생성 일시", example = "2026-08-08T21:10:00")
     LocalDateTime createdAt
 ) {
+
     public static ShopRiderGuideHistoryResponse from(ShopRiderGuideHistoryResult result) {
         return new ShopRiderGuideHistoryResponse(
             result.id(),

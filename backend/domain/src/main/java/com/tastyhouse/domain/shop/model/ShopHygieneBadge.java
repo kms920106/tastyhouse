@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopHygieneBadge {
+
     private final Long id;
     private final ShopId shopId;
     private final HygieneBadgeType badgeType;

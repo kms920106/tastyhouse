@@ -6,6 +6,7 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 
 final class NotificationMapper {
+
     private NotificationMapper() {
     }
 

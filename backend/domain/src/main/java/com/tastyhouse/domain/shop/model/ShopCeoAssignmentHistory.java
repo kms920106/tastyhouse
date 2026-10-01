@@ -6,6 +6,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopCeoAssignmentHistory {
+
     private final Long id;
     private final ShopId shopId;
     private final CeoId ceoId;

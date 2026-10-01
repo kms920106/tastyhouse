@@ -11,6 +11,7 @@ public record ShopOrderMethodResponse(
     @Schema(description = "주문 방식 목록")
     List<ShopOrderMethodItemResponse> orderMethods
 ) {
+
     public static ShopOrderMethodResponse from(List<ShopOrderMethodItemResult> orderMethods) {
         return new ShopOrderMethodResponse(
             orderMethods.stream().map(ShopOrderMethodItemResponse::from).toList()

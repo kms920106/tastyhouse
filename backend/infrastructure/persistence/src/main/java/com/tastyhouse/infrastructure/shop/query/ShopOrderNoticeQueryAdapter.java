@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderNoticeJpa
 
 @Repository
 public class ShopOrderNoticeQueryAdapter implements ShopOrderNoticeQueryPort, ShopOrderNoticeManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public ShopOrderNoticeQueryAdapter(JPAQueryFactory queryFactory) {

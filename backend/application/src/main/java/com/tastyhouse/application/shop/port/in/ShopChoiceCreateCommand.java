@@ -8,6 +8,7 @@ public record ShopChoiceCreateCommand(
     String title,
     String content
 ) {
+
     public ShopChoiceCreateCommand {
         if (shopId == null || title == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

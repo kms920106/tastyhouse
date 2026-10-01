@@ -25,6 +25,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreat
 @RestController
 @RequestMapping("/api/shops")
 public class ReviewOwnerReplyApiController {
+
     private final ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase;
 
     public ReviewOwnerReplyApiController(ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase) {

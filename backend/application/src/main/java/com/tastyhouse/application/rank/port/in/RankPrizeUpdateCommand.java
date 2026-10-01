@@ -10,6 +10,7 @@ public record RankPrizeUpdateCommand(
     String brand,
     Long imageFileId
 ) {
+
     public RankPrizeUpdateCommand {
         if (rankPrizeId == null || prizeRank == null || name == null || brand == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

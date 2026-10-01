@@ -7,6 +7,7 @@ public record ShopMenuCollectionImageCreateCommand(
     Long ceoId,
     Long shopId
 ) {
+
     public ShopMenuCollectionImageCreateCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

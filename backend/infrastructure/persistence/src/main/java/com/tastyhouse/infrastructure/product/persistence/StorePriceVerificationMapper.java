@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class StorePriceVerificationMapper {
+
     private StorePriceVerificationMapper() {
     }
 

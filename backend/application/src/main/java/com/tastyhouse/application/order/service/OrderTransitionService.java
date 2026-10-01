@@ -10,6 +10,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
 
 public class OrderTransitionService {
+
     private final OrderPersistencePort orderPersistencePort;
 
     public OrderTransitionService(OrderPersistencePort orderPersistencePort) {

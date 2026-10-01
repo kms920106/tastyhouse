@@ -19,6 +19,7 @@ import com.tastyhouse.application.product.port.out.write.ProductCategoryPersiste
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductSortService {
+
     private final ProductPersistencePort productPersistencePort;
     private final ProductCategoryPersistencePort productCategoryPersistencePort;
 

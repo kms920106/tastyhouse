@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
 public class FakeTagPersistencePort implements TagPersistencePort {
+
     private final Map<Long, Tag> tags = new HashMap<>();
     private long sequence = 0L;
 

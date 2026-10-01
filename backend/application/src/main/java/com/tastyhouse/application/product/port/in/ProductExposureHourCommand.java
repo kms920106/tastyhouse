@@ -10,6 +10,7 @@ public record ProductExposureHourCommand(
     LocalTime startTime,
     LocalTime endTime
 ) {
+
     public ProductExposureHourCommand {
         if (dayType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

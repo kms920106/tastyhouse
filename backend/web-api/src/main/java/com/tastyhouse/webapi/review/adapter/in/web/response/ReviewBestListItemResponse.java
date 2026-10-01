@@ -27,6 +27,7 @@ public record ReviewBestListItemResponse(
     @Schema(description = "리뷰 내용", example = "맛있게 잘 먹었습니다.")
     String content
 ) {
+
     public static ReviewBestListItemResponse from(BestReviewListItemResult result) {
         return new ReviewBestListItemResponse(
             result.id(),

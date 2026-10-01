@@ -7,6 +7,7 @@ public record MemberNicknameAvailabilityResponse(
     @Schema(description = "닉네임 사용 가능 여부", example = "true")
     boolean available
 ) {
+
     public static MemberNicknameAvailabilityResponse from(boolean available) {
         return new MemberNicknameAvailabilityResponse(available);
     }

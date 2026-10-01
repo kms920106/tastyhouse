@@ -15,6 +15,7 @@ public record ShopOrderMethodItemResponse(
     @Schema(description = "주문수단 표시명", example = "테이블 오더")
     String displayName
 ) {
+
     public static ShopOrderMethodItemResponse from(ShopOrderMethodResult result) {
         return new ShopOrderMethodItemResponse(
             result.id(),

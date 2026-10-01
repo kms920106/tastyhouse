@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentPersistencePort;
 
 public class FakeReviewBlindRequestAttachmentPersistencePort implements ReviewBlindRequestAttachmentPersistencePort {
+
     private final List<ReviewBlindRequestAttachment> attachments = new ArrayList<>();
     private long sequence = 0L;
 

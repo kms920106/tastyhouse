@@ -16,6 +16,7 @@ public record ScheduledOrderSlotSearchRequest(
     )
     String orderMethod
 ) {
+
     public ScheduledOrderSlotSearchRequest {
         orderMethod = orderMethod == null ? null : orderMethod.strip().toUpperCase(Locale.ROOT);
     }

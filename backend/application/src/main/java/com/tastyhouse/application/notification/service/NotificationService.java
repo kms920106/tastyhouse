@@ -15,6 +15,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
 
 public class NotificationService {
+
     private final NotificationPersistencePort notificationPersistencePort;
 
     public NotificationService(NotificationPersistencePort notificationPersistencePort) {

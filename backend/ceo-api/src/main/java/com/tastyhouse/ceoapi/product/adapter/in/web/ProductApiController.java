@@ -35,6 +35,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailRespon
 @RestController
 @RequestMapping("/api/products")
 public class ProductApiController {
+
     private final ProductOwnerQueryUseCase productQueryUseCase;
     private final ProductOwnerCreateUseCase productCreateUseCase;
     private final ProductOwnerUpdateUseCase productUpdateUseCase;

@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReservationSlotTest {
+
     private static final ShopId SHOP_ID = ShopId.of(10L);
     private static final LocalDate DATE = LocalDate.of(2026, 8, 1);
     private static final LocalTime TIME = LocalTime.of(11, 0);

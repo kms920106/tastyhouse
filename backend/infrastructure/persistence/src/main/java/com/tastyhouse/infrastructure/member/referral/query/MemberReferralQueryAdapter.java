@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.member.referral.persistence.QMemberR
 
 @Repository
 public class MemberReferralQueryAdapter implements MemberReferralQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public MemberReferralQueryAdapter(JPAQueryFactory queryFactory) {

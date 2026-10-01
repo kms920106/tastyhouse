@@ -34,6 +34,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QStationJpaEntity.s
 
 @Repository
 public class ReviewManagementQueryAdapter implements ReviewManagementQueryPort {
+
     private static final QMemberJpaEntity replyToMember = new QMemberJpaEntity("replyToMember");
 
     private final JPAQueryFactory queryFactory;

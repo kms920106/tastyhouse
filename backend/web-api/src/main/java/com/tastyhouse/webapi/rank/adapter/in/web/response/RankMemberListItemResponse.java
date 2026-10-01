@@ -24,6 +24,7 @@ public record RankMemberListItemResponse(
     @Schema(description = "회원 등급")
     String grade
 ) {
+
     public static RankMemberListItemResponse from(MemberRankResult result) {
         return new RankMemberListItemResponse(
             result.memberId(),

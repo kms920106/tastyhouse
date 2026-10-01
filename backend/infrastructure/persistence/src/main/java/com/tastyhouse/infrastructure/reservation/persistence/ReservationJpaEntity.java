@@ -22,6 +22,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class ReservationJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

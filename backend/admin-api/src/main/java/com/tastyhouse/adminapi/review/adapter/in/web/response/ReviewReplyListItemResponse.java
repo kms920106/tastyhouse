@@ -32,6 +32,7 @@ public record ReviewReplyListItemResponse(
     @Schema(description = "작성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ReviewReplyListItemResponse from(ReviewReplyListItemResult result) {
         return new ReviewReplyListItemResponse(
             result.id(),

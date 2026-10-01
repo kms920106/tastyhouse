@@ -10,6 +10,7 @@ public record ProductOptionHideCommand(
     Long shopId,
     List<ProductOptionTargetCommand> options
 ) {
+
     public ProductOptionHideCommand {
         if (ceoId == null
             || shopId == null

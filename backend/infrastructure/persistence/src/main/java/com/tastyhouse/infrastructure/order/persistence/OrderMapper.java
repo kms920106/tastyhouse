@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class OrderMapper {
+
     private OrderMapper() {
     }
 

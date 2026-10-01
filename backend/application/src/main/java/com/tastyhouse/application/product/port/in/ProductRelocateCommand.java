@@ -12,6 +12,7 @@ public record ProductRelocateCommand(
     List<Long> productIds,
     List<Long> targetOrderedProductIds
 ) {
+
     public ProductRelocateCommand {
         if (ceoId == null
             || shopId == null

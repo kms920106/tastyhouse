@@ -18,6 +18,7 @@ public record ShopDeliveryTipRegionItemResponse(
     @Schema(description = "이 행정동의 추가 배달팁(원)", example = "1000")
     int tipAmount
 ) {
+
     public static ShopDeliveryTipRegionItemResponse from(ShopDeliveryTipRegionResult result) {
         return new ShopDeliveryTipRegionItemResponse(
             result.id(),

@@ -14,6 +14,7 @@ public record PolicyCreateCommand(
     LocalDateTime effectiveDate,
     String createdBy
 ) {
+
     public PolicyCreateCommand {
         if (type == null || version == null || title == null || content == null || effectiveDate == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

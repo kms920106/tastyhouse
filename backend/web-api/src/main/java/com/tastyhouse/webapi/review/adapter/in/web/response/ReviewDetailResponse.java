@@ -95,6 +95,7 @@ public record ReviewDetailResponse(
     )
     String deliveryComment
 ) {
+
     public static ReviewDetailResponse from(ReviewDetailView view) {
         return new ReviewDetailResponse(
             view.id(),

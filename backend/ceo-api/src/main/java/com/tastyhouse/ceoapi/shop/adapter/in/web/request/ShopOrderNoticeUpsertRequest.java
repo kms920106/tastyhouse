@@ -14,6 +14,7 @@ public record ShopOrderNoticeUpsertRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String content
 ) {
+
     public ShopOrderNoticeUpsertCommand toCommand(Long ceoId, Long shopId) {
         return new ShopOrderNoticeUpsertCommand(ceoId, shopId, content());
     }

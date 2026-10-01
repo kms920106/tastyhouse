@@ -39,6 +39,7 @@ public record StorePriceVerificationListItemResponse(
         example = "2026-08-21T09:10:00")
     LocalDateTime processedAt
 ) {
+
     public static StorePriceVerificationListItemResponse from(StorePriceVerificationListItemResult result) {
         return new StorePriceVerificationListItemResponse(
             result.id(),

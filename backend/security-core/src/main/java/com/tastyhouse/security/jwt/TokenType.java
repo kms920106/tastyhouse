@@ -1,6 +1,7 @@
 package com.tastyhouse.security.jwt;
 
 public enum TokenType {
+
     ACCESS,
     REFRESH,
     PHONE_VERIFY,

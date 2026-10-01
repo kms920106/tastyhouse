@@ -21,6 +21,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class EventAnnouncementJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

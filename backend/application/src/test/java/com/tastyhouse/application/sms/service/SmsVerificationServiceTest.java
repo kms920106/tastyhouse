@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SmsVerificationServiceTest {
+
     @Test
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 SMS를 발송한다")
     void issue_sendsSmsWithGeneratedCode() {
@@ -130,6 +131,7 @@ class SmsVerificationServiceTest {
     }
 
     private static final class RecordingSmsSender implements SmsSender {
+
         private final List<String> sent = new ArrayList<>();
         private String lastTo;
         private String lastContent;
@@ -148,6 +150,7 @@ class SmsVerificationServiceTest {
     }
 
     private static final class FakeSmsVerificationPersistencePort implements SmsVerificationPersistencePort {
+
         private final List<SmsVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();
         private SmsVerification pending;

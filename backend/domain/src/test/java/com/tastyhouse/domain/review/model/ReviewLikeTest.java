@@ -9,6 +9,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ReviewLikeTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)다")
     void of_createsTransientLike() {

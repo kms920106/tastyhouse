@@ -14,6 +14,7 @@ public record ShopRiderVisitGuideValidationResponse(
     @Schema(description = "발견된 위반 사유 목록")
     List<String> violations
 ) {
+
     public static ShopRiderVisitGuideValidationResponse from(ShopVisitGuideValidationResult result) {
         return new ShopRiderVisitGuideValidationResponse(
             result.valid(),

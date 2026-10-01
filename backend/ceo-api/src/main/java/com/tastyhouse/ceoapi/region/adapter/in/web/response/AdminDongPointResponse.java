@@ -14,6 +14,7 @@ public record AdminDongPointResponse(
     @Schema(description = "경도", example = "127.036456")
     BigDecimal longitude
 ) {
+
     public static AdminDongPointResponse from(AdminDongBoundaryViewResult.Point point) {
         return new AdminDongPointResponse(
             point.latitude(),

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum StorePriceVerificationStatus {
+
     PENDING("대기"),
     IN_PROGRESS("검수 중"),
     APPROVED("승인"),

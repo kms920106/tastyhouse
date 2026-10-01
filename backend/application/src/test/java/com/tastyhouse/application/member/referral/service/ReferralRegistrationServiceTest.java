@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReferralRegistrationServiceTest {
+
     private static final MemberId REFERRER_ID = MemberId.of(101L);
     private static final MemberId REFEREE_ID = MemberId.of(202L);
 
@@ -85,6 +86,7 @@ class ReferralRegistrationServiceTest {
     }
 
     private static final class DomainEventPublisherStub implements DomainEventPublisher {
+
         private final List<Object> published = new ArrayList<>();
 
         @Override

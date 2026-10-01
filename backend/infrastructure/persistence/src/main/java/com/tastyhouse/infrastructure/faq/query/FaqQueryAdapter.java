@@ -25,6 +25,7 @@ import static com.tastyhouse.infrastructure.faq.persistence.QFaqJpaEntity.faqJpa
 
 @Repository
 public class FaqQueryAdapter implements FaqQueryPort, FaqManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public FaqQueryAdapter(JPAQueryFactory queryFactory) {

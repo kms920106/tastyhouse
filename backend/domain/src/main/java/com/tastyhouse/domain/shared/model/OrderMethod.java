@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum OrderMethod {
+
     TABLE("테이블 오더"),
     RESERVATION("예약"),
     DELIVERY("배달"),

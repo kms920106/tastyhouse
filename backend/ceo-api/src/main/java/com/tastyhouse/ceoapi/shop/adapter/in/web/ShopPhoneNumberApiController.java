@@ -30,6 +30,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPhoneNumberApiController {
+
     private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase;
     private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;
 

@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public class Coupon {
+
     private final Long id;
     private String name;
     private String description;

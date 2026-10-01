@@ -4,6 +4,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 
 public class ReviewBlindRequestAttachment {
+
     private final Long id;
     private final ReviewBlindRequestId blindRequestId;
     private final UploadedFileId attachmentFileId;

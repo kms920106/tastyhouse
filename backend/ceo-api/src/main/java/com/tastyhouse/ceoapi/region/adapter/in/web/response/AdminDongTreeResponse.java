@@ -14,6 +14,7 @@ public record AdminDongTreeResponse(
     @Schema(description = "해당 단계의 항목 목록")
     List<AdminDongTreeItemResponse> items
 ) {
+
     public static AdminDongTreeResponse from(AdminDongTreeResult result) {
         return new AdminDongTreeResponse(
             result.level(),

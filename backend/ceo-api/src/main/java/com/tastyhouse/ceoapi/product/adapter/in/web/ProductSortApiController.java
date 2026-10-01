@@ -24,6 +24,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOrderRequest;
 @RestController
 @RequestMapping("/api/products")
 public class ProductSortApiController {
+
     private final ProductSortCommandUseCase productSortCommandUseCase;
 
     public ProductSortApiController(ProductSortCommandUseCase productSortCommandUseCase) {

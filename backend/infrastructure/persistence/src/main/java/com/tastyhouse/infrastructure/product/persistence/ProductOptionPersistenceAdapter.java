@@ -13,6 +13,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionPersistenc
 
 @Repository
 public class ProductOptionPersistenceAdapter implements ProductOptionPersistencePort {
+
     private final ProductOptionJpaRepository productOptionJpaRepository;
 
     public ProductOptionPersistenceAdapter(ProductOptionJpaRepository productOptionJpaRepository) {

@@ -10,6 +10,7 @@ import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePo
 
 @Repository
 public class OrderProductPersistenceAdapter implements OrderProductPersistencePort {
+
     private final OrderProductJpaRepository orderProductJpaRepository;
 
     public OrderProductPersistenceAdapter(OrderProductJpaRepository orderProductJpaRepository) {

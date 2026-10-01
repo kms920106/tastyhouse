@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QShopReviewDispla
 
 @Repository
 public class ShopReviewDisplaySettingQueryAdapter implements ShopReviewDisplaySettingQueryPort, ShopReviewDisplaySettingOwnerQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public ShopReviewDisplaySettingQueryAdapter(JPAQueryFactory queryFactory) {

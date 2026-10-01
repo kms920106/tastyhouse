@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MemberDeliveryAddressServiceTest {
+
     private static final MemberId MEMBER_ID = MemberId.of(1L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(2L);
     private static final BigDecimal LATITUDE = new BigDecimal("37.501234");
@@ -43,6 +44,7 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("등록(create)")
     class Create {
+
         @Test
         @DisplayName("10건이 이미 있으면 한도 초과로 거부한다")
         void create_rejectsWhenLimitExceeded() {
@@ -157,6 +159,7 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("수정(update)")
     class Update {
+
         @Test
         @DisplayName("타인의 주소를 수정하면 접근 거부한다")
         void update_rejectsOtherMembersAddress() {
@@ -210,6 +213,7 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("삭제(delete)")
     class Delete {
+
         @Test
         @DisplayName("타인의 주소를 삭제하면 접근 거부한다")
         void delete_rejectsOtherMembersAddress() {
@@ -244,6 +248,7 @@ class MemberDeliveryAddressServiceTest {
     @Nested
     @DisplayName("기본 배송지 변경(changeDefault)")
     class ChangeDefault {
+
         @Test
         @DisplayName("새 기본을 지정하면 기존 기본이 해제되어 회원당 1건만 남는다")
         void changeDefault_keepsSingleDefault() {
@@ -306,6 +311,7 @@ class MemberDeliveryAddressServiceTest {
     }
 
     private static final class FakeMemberDeliveryAddressPersistencePort implements MemberDeliveryAddressPersistencePort {
+
         private final Map<Long, MemberDeliveryAddress> store = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong();
         private int saveCount;
@@ -370,6 +376,7 @@ class MemberDeliveryAddressServiceTest {
     }
 
     private static final class FakeAdminDongPersistencePort implements AdminDongPersistencePort {
+
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");

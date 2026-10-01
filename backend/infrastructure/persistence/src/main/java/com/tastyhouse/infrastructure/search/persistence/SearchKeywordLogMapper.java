@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.search.persistence;
 import com.tastyhouse.domain.search.model.SearchKeywordLog;
 
 final class SearchKeywordLogMapper {
+
     private SearchKeywordLogMapper() {
     }
 

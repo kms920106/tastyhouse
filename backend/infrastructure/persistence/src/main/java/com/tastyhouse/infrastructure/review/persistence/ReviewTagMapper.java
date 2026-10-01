@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.review.persistence;
 import com.tastyhouse.domain.review.model.ReviewTag;
 
 final class ReviewTagMapper {
+
     private ReviewTagMapper() {
     }
 

@@ -38,6 +38,7 @@ public record PartnershipRequestDetailResponse(
     @Schema(description = "수정 일시", example = "2026-02-21T09:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static PartnershipRequestDetailResponse from(PartnershipRequestDetailResult result) {
         return new PartnershipRequestDetailResponse(
             result.id(),

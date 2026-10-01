@@ -13,6 +13,7 @@ public record PaymentCancelRequest(
     @Schema(description = "취소 사유", example = "고객 단순 변심", requiredMode = Schema.RequiredMode.REQUIRED)
     String cancelReason
 ) {
+
     public PaymentCancelCommand toCommand(Long memberId, Long paymentId) {
         return new PaymentCancelCommand(
             memberId,

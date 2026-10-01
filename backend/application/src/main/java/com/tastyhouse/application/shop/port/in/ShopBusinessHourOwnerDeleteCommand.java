@@ -7,6 +7,7 @@ public record ShopBusinessHourOwnerDeleteCommand(
     Long ceoId,
     Long businessHourId
 ) {
+
     public ShopBusinessHourOwnerDeleteCommand {
         if (ceoId == null || businessHourId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

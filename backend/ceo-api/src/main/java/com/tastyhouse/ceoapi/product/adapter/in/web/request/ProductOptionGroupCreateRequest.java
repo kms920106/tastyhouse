@@ -52,6 +52,7 @@ public record ProductOptionGroupCreateRequest(
         example = "NORMAL", allowableValues = {"NORMAL", "CUP_DEPOSIT"})
     String groupType
 ) {
+
     public ProductOptionGroupOwnerCreateCommand toCommand(Long ceoId) {
         return new ProductOptionGroupOwnerCreateCommand(
             ceoId,

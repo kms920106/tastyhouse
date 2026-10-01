@@ -183,6 +183,20 @@ backend 전체 `*.java`를 **소스 파일로** 읽어(`build`·`bin`·`.gradle`
 - **`build.gradle`의 `importOrderSources` 입력 선언을 지우지 않는다.** import 순서만 바꾼 변경은 바이트코드가 같아서, 이 선언이 없으면 Gradle이 `:domain:test`를 UP-TO-DATE로 건너뛰어 위반이 통과한다(실측 확인).
 - **모듈 하나만 빌드하면(`./gradlew :ceo-api:build`) 이 테스트는 돌지 않는다.** 전체 `./gradlew build`나 `:domain:test`에서만 잡힌다. 모듈마다 복사하는 방식은 유지비가 커서 채택하지 않았다.
 
+### 타입 본문 첫 줄 빈 줄 가드 — `TypeBodyBlankLineConventionTest`
+
+**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/architecture/TypeBodyBlankLineConventionTest.java`
+→ `typeBodiesStartWithSingleBlankLine` · `violatingLines` · `typeBodyBraces` · `isViolation` · `MINIMUM_SCANNED_FILES`
+짝 설정: `backend/domain/build.gradle` → `tasks.named('test')`의 `importOrderSources` 입력 (이름은 import 가드 때 지었지만 `:domain:test` 태스크 전체의 입력이라 이 가드도 보호한다)
+
+backend 전체 `*.java`를 소스 파일로 읽어(`build`·`bin`·`.gradle` 제외) 타입 본문 여는 중괄호 다음 줄이 빈 줄 정확히 1개인지 검사한다. 규칙과 제외 대상은 `backend/CLAUDE.md` "타입 본문 첫 줄 빈 줄 규칙" 절이 정본이다.
+
+- **판정을 정규식 한 줄로 단순화하지 않는다.** 단순 매칭은 `public void record(...)` 메서드, `(record, markers) -> {` 람다, `for (JavaClass record : ...)` 반복문을 타입으로 오인해 메서드·람다 본문에 빈 줄을 요구한다(도입 당시 실측 오탐 5건 — `ShopRequestIndexRecorder`·`AppIsolationTest` 등). 그래서 스캐너는 ① 리터럴·텍스트 블록·주석을 건너뛰고 ② 키워드를 완전한 식별자로만 인정하며(직전 토큰 `.` 제외) ③ 바로 다음 토큰이 식별자(타입 이름)일 때만 선언으로 보고 ④ 괄호·제네릭 깊이가 음수가 되거나 `;`를 만나면 판정을 취소한다.
+- **반증 테스트 7개를 지우지 않는다.** 위 오탐 사례와 `@Target({...})`·`sealed … permits`·`>>>` 제네릭·텍스트 블록·`'{'` 문자 리터럴이 각각 단정돼 있다. 스캐너를 고치면 이 테스트가 먼저 깨져야 한다.
+- **`MINIMUM_SCANNED_FILES`(3000) 단정을 지우지 않는다.** backend 루트를 잘못 찾아 0개를 스캔하고 공허하게 통과하는 것을 막는다.
+- **실패 메시지는 원소를 최대 1,000개까지만 보여 준다**(AssertJ 기본 표시 한도). 위반이 그보다 많아도 목록이 잘린 것일 뿐이다.
+- **모듈 하나만 빌드하면 이 테스트는 돌지 않는다.** import 순서 가드와 같다.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거. 챕터 03(domain 모듈) 이관분 -->

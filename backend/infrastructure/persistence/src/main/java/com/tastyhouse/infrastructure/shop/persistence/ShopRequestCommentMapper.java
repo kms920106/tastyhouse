@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
 
 final class ShopRequestCommentMapper {
+
     private ShopRequestCommentMapper() {
     }
 

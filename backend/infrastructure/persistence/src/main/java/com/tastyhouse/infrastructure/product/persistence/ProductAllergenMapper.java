@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductAllergenMapper {
+
     private ProductAllergenMapper() {
     }
 

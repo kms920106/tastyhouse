@@ -11,6 +11,7 @@ public record EventAnnouncementUpdateCommand(
     String content,
     LocalDateTime announcedAt
 ) {
+
     public EventAnnouncementUpdateCommand {
         if (eventId == null || name == null || content == null || announcedAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

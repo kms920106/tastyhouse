@@ -9,6 +9,7 @@ public record ProductImageCreateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ProductImageCreateCommand {
         if (productId == null || imageFileId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

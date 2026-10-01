@@ -13,6 +13,7 @@ import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
 
 @Configuration
 public class AdminSeeder {
+
     private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
 
     @Bean

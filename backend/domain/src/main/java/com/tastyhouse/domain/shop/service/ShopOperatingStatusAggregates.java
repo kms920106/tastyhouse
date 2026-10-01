@@ -18,6 +18,7 @@ public record ShopOperatingStatusAggregates(
     List<ShopTemporaryClosure> temporaryClosures,
     List<ShopSuspension> suspensions
 ) {
+
     public static ShopOperatingStatusAggregates of(
         List<ShopBusinessHour> businessHours,
         List<ShopBreakTime> breakTimes,

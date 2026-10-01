@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 
 final class ShopFoodTypeCategoryMapper {
+
     private ShopFoodTypeCategoryMapper() {
     }
 

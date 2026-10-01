@@ -8,6 +8,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopConvenienceInfo {
+
     private static final int DIRECTIONS_GUIDE_MAX_LENGTH = 200;
 
     private final Long id;

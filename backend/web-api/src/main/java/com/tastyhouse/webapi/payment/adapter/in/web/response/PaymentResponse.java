@@ -56,6 +56,7 @@ public record PaymentResponse(
     @Schema(description = "결제 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
+
     public static PaymentResponse from(PaymentViewResult result) {
         return new PaymentResponse(
             result.id(),

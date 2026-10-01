@@ -21,6 +21,7 @@ public record ShopNoticeResponse(
     @Schema(description = "생성 일시", example = "2026-08-15T10:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ShopNoticeResponse from(ShopNoticeResult result) {
         return new ShopNoticeResponse(
             result.id(),

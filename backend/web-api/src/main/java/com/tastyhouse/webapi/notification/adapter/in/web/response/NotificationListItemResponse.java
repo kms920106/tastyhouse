@@ -40,6 +40,7 @@ public record NotificationListItemResponse(
     @Schema(description = "알림 생성 일시", example = "2026-06-20T14:03:00")
     LocalDateTime createdAt
 ) {
+
     public static NotificationListItemResponse from(NotificationListItemResult result) {
         return new NotificationListItemResponse(
             result.id(),

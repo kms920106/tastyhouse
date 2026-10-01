@@ -8,6 +8,7 @@ public record ReviewBlindRequestCancelCommand(
     Long shopId,
     Long blindRequestId
 ) {
+
     public ReviewBlindRequestCancelCommand {
         if (ceoId == null || shopId == null || blindRequestId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

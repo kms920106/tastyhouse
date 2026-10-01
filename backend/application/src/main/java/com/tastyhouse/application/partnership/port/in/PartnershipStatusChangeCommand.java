@@ -7,6 +7,7 @@ public record PartnershipStatusChangeCommand(
     Long partnershipRequestId,
     String status
 ) {
+
     public PartnershipStatusChangeCommand {
         if (partnershipRequestId == null || status == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

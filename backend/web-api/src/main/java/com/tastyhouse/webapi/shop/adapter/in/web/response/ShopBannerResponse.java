@@ -15,6 +15,7 @@ public record ShopBannerResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
+
     public static ShopBannerResponse from(ShopBannerImageResult result) {
         return new ShopBannerResponse(
             result.id(),

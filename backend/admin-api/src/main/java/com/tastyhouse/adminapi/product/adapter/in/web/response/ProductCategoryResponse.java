@@ -24,6 +24,7 @@ public record ProductCategoryResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
+
     public static ProductCategoryResponse from(ProductCategoryResult result) {
         return new ProductCategoryResponse(
             result.id(),

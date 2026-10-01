@@ -5,6 +5,7 @@ import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 final class EventMapper {
+
     private EventMapper() {
     }
 

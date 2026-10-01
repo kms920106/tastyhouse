@@ -35,6 +35,7 @@ public record PaymentConfirmRequest(
     @Schema(description = "영수증 URL", example = "https://receipt.example.com/abc123")
     String receiptUrl
 ) {
+
     public PaymentConfirmCommand toCommand() {
         return new PaymentConfirmCommand(
             paymentId,

@@ -13,6 +13,7 @@ public record ReviewBlindApprovedEvent(
     LocalDateTime blindUntil,
     LocalDateTime occurredAt
 ) {
+
     public static ReviewBlindApprovedEvent of(
         ReviewId reviewId,
         MemberId reviewerMemberId,

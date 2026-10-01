@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
 
 @Repository
 public class RankPrizePersistenceAdapter implements RankPrizePersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final RankPrizeJpaRepository rankPrizeJpaRepository;
 

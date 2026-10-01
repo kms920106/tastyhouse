@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 
 public class ProductExposureHour {
+
     private final Long id;
     private final ProductId productId;
     private final DayType dayType;

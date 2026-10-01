@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.sms.persistence.QSmsVerificationJpaE
 
 @Repository
 public class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePort {
+
     private final SmsVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
 

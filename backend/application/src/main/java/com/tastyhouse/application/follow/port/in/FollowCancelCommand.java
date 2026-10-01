@@ -7,6 +7,7 @@ public record FollowCancelCommand(
     Long followerId,
     Long followingId
 ) {
+
     public FollowCancelCommand {
         if (followerId == null || followingId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -10,6 +10,7 @@ public record FaqCreateCommand(
     Integer sort,
     boolean visible
 ) {
+
     public FaqCreateCommand {
         if (faqCategoryId == null || question == null || answer == null || sort == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

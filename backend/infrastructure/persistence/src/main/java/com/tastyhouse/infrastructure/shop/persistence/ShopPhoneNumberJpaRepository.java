@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopPhoneNumberJpaRepository extends JpaRepository<ShopPhoneNumberJpaEntity, Long> {
+
     List<ShopPhoneNumberJpaEntity> findByShopId(Long shopId);
 }

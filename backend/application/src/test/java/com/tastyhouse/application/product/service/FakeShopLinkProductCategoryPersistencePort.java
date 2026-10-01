@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 
 class FakeShopLinkProductCategoryPersistencePort implements ProductCategoryPersistencePort {
+
     private final Map<Long, ProductCategory> categories = new HashMap<>();
 
     void given(Long categoryId, ShopId shopId) {

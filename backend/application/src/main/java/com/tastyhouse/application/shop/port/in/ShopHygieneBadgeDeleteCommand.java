@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopHygieneBadgeDeleteCommand(
     Long hygieneBadgeId
 ) {
+
     public ShopHygieneBadgeDeleteCommand {
         if (hygieneBadgeId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -25,6 +25,7 @@ public record ProductBatchOptionResponse(
     @Schema(description = "개인컵 사용 할인 금액(원). 보증금이 아니라 상품 할인으로 반영된다.", example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public static ProductBatchOptionResponse from(BatchOptionResult result) {
         return new ProductBatchOptionResponse(
             result.id(),

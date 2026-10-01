@@ -26,6 +26,7 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItem
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoLoginHistoryApiController {
+
     private final CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase;
 
     public CeoLoginHistoryApiController(CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase) {

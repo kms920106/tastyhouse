@@ -10,6 +10,7 @@ import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePor
 
 @Repository
 public class UploadedFilePersistenceAdapter implements UploadedFilePersistencePort {
+
     private final UploadedFileJpaRepository uploadedFileJpaRepository;
 
     public UploadedFilePersistenceAdapter(UploadedFileJpaRepository uploadedFileJpaRepository) {

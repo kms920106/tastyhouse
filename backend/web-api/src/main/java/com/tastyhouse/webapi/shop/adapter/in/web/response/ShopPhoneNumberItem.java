@@ -15,6 +15,7 @@ public record ShopPhoneNumberItem(
     @Schema(description = "가상번호(안심번호) 여부", example = "false")
     boolean virtual
 ) {
+
     public static ShopPhoneNumberItem from(ShopPhoneNumberResult result) {
         return new ShopPhoneNumberItem(
             result.phoneNumber(),

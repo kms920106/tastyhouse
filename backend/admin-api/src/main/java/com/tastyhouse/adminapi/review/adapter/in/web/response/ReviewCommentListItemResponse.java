@@ -31,6 +31,7 @@ public record ReviewCommentListItemResponse(
     @Schema(description = "답글 목록")
     List<ReviewReplyListItemResponse> replies
 ) {
+
     public static ReviewCommentListItemResponse from(
         ReviewCommentListItemResult comment,
         List<ReviewReplyListItemResult> replies

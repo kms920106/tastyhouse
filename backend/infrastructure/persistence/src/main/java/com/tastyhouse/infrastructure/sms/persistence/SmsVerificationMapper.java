@@ -8,6 +8,7 @@ import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 final class SmsVerificationMapper {
+
     private SmsVerificationMapper() {
     }
 

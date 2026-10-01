@@ -12,6 +12,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
 
 @Repository
 public class TagPersistenceAdapter implements TagPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final TagJpaRepository tagJpaRepository;
 

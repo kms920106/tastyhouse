@@ -28,6 +28,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceRespons
 @RestController
 @RequestMapping("/api/products")
 public class ProductPriceApiController {
+
     private final ProductPriceQueryUseCase productPriceQueryUseCase;
     private final ProductPriceCommandUseCase productPriceCommandUseCase;
 

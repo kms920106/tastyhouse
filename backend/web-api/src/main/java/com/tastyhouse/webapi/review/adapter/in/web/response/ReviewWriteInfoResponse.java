@@ -32,6 +32,7 @@ public record ReviewWriteInfoResponse(
     )
     String orderMethod
 ) {
+
     public static ReviewWriteInfoResponse from(ReviewWriteInfoView view) {
         return new ReviewWriteInfoResponse(
             view.productId(),

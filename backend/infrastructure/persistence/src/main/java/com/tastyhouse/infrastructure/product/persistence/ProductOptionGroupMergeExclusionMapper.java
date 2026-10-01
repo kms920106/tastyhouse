@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductOptionGroupMergeExclusionMapper {
+
     private ProductOptionGroupMergeExclusionMapper() {
     }
 

@@ -12,6 +12,7 @@ public record TagResponse(
     @Schema(description = "태그명", example = "혼밥")
     String tagName
 ) {
+
     public static TagResponse from(TagResult result) {
         return new TagResponse(
             result.id(),

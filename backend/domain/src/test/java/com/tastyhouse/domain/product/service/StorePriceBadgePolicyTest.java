@@ -13,6 +13,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StorePriceBadgePolicyTest {
+
     private static final LocalDateTime SET_AT = LocalDateTime.of(2026, 3, 1, 15, 0);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 3, 10, 0);
     private static final Integer STORE_PRICE = 9000;

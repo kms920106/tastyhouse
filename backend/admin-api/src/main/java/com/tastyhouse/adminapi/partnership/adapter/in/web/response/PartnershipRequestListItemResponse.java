@@ -29,6 +29,7 @@ public record PartnershipRequestListItemResponse(
     @Schema(description = "접수 일시", example = "2026-02-20T10:15:00")
     LocalDateTime createdAt
 ) {
+
     public static PartnershipRequestListItemResponse from(PartnershipRequestListItemResult result) {
         return new PartnershipRequestListItemResponse(
             result.id(),

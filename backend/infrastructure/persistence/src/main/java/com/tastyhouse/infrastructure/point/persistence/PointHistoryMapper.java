@@ -5,6 +5,7 @@ import com.tastyhouse.domain.point.model.PointHistory;
 import com.tastyhouse.domain.point.model.PointType;
 
 final class PointHistoryMapper {
+
     private PointHistoryMapper() {
     }
 

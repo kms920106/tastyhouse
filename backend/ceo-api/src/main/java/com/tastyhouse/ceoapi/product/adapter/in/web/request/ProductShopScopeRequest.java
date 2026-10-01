@@ -16,6 +16,7 @@ public record ProductShopScopeRequest(
     @Schema(description = "대상 가게 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long shopId
 ) {
+
     public ProductFeedbackReadCommand toFeedbackReadCommand(Long ceoId) {
         return new ProductFeedbackReadCommand(ceoId, shopId);
     }

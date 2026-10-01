@@ -12,6 +12,7 @@ public record ShopDeliveryTipBreakdownItem(
     @Schema(description = "항목 금액(원)", example = "1000")
     int amount
 ) {
+
     public static ShopDeliveryTipBreakdownItem from(ShopDeliveryTipBreakdownItemResult result) {
         return new ShopDeliveryTipBreakdownItem(
             result.label(),

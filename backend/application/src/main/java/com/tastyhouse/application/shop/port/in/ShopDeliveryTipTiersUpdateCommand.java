@@ -10,6 +10,7 @@ public record ShopDeliveryTipTiersUpdateCommand(
     Long shopId,
     List<ShopDeliveryTipTierCommand> tiers
 ) {
+
     public ShopDeliveryTipTiersUpdateCommand {
         if (ceoId == null || shopId == null || tiers == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

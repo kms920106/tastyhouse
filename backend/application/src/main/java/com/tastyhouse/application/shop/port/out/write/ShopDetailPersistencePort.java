@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 
 public interface ShopDetailPersistencePort {
+
     Optional<ShopAmenityCategory> findAmenityCategoryById(Long id);
 
     ShopAmenityCategory saveAmenityCategory(ShopAmenityCategory amenityCategory);

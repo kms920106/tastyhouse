@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 public class Tag {
+
     private final Long id;
     private final String tagName;
 

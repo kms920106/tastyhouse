@@ -23,6 +23,7 @@ import com.tastyhouse.domain.shop.vo.StationId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopOperatingStatusCalculatorGoldenTest {
+
     private final ShopOperatingStatusCalculator calculator = new ShopOperatingStatusCalculator();
 
     private static final LocalDate MONDAY = LocalDate.of(2026, 7, 27);
@@ -69,6 +70,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
     @Nested
     @DisplayName("영업시간 행 판정")
     class BusinessHourJudgement {
+
         @Test
         @DisplayName("휴무(isClosed=true) 행이면 시각과 무관하게 준비중")
         void closedRow() {
@@ -211,6 +213,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
     @Nested
     @DisplayName("휴게시간 판정")
     class BreakTimeJudgement {
+
         private List<ShopBusinessHour> allDayHours() {
             return List.of(hour(DayType.DAILY, LocalTime.of(0, 0), LocalTime.of(23, 55), false, false));
         }
@@ -294,6 +297,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
     @Nested
     @DisplayName("정기휴무(ClosedDayType) 판정")
     class ClosedDayJudgement {
+
         private ShopOperatingStatus at(ClosedDayType type, LocalDate date) {
             List<ShopBusinessHour> hours = List.of(
                 hour(DayType.DAILY, LocalTime.of(0, 0), LocalTime.of(23, 55), false, false)
@@ -431,6 +435,7 @@ class ShopOperatingStatusCalculatorGoldenTest {
     @Nested
     @DisplayName("가게 상태·공휴일 우선순위")
     class ShopLevelJudgement {
+
         private List<ShopBusinessHour> allDayHours() {
             return List.of(hour(DayType.DAILY, null, null, false, true));
         }

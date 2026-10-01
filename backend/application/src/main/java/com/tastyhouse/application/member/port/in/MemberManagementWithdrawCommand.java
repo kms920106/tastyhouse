@@ -8,6 +8,7 @@ public record MemberManagementWithdrawCommand(
     String reason,
     String reasonDetail
 ) {
+
     public MemberManagementWithdrawCommand {
         if (memberId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

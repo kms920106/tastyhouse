@@ -28,6 +28,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListI
 @RestController
 @RequestMapping("/api/shops")
 public class ShopChangeHistoryApiController {
+
     private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase;
 
     public ShopChangeHistoryApiController(ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase) {

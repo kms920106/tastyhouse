@@ -8,6 +8,7 @@ public record OrderPlacementItem(
     Integer quantity,
     List<OrderPlacementItemOption> selectedOptions
 ) {
+
     public static OrderPlacementItem of(
         Long productId,
         Long priceId,

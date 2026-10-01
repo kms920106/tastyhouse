@@ -10,6 +10,7 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 
 public interface AdminDongPersistencePort {
+
     AdminDongSyncResult synchronize(List<AdminDong> adminDongs);
 
     Optional<AdminDong> findById(AdminDongId adminDongId);

@@ -28,6 +28,7 @@ import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongTreeRespons
 @RestController
 @RequestMapping("/api/admin-dongs")
 public class AdminDongApiController {
+
     private final AdminDongQueryUseCase adminDongQueryUseCase;
 
     public AdminDongApiController(AdminDongQueryUseCase adminDongQueryUseCase) {

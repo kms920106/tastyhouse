@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shared.geo;
 import java.util.List;
 
 public final class PointInPolygon {
+
     private PointInPolygon() {
     }
 

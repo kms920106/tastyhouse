@@ -41,6 +41,7 @@ public record ShopPopularProductResponse(
     @Schema(description = "최근 30일 완료 주문의 판매 수량 합. 추천으로 채워진 항목은 0일 수 있음", example = "42")
     long salesQuantity
 ) {
+
     public static ShopPopularProductResponse from(PopularProductItemResult result) {
         return new ShopPopularProductResponse(
             result.id(),

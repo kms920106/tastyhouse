@@ -11,6 +11,7 @@ public record ProductReorderCommand(
     Long productCategoryId,
     List<Long> productIds
 ) {
+
     public ProductReorderCommand {
         if (ceoId == null
             || shopId == null

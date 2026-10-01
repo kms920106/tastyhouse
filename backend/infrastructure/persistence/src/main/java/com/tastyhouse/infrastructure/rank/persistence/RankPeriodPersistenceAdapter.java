@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPeriodJpaEntit
 
 @Repository
 public class RankPeriodPersistenceAdapter implements RankPeriodPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final RankPeriodJpaRepository rankPeriodJpaRepository;
 

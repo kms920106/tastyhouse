@@ -29,6 +29,7 @@ public record ShopRequestReviewBlindResponse(
     @Schema(description = "대상 리뷰 종합 평점", example = "1.0")
     Double reviewTotalRating
 ) {
+
     public static ShopRequestReviewBlindResponse from(ShopRequestReviewBlindDetailResult result) {
         return new ShopRequestReviewBlindResponse(
             result.reviewId(),

@@ -7,6 +7,7 @@ public record ProductOptionTargetCommand(
     Long optionId,
     String optionType
 ) {
+
     public ProductOptionTargetCommand {
         if (optionId == null
             || optionType == null) {

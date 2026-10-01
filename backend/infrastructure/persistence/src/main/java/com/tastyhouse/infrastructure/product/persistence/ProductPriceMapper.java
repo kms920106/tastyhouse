@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductPriceMapper {
+
     private ProductPriceMapper() {
     }
 

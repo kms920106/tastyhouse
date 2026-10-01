@@ -10,6 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistenceP
 
 @Repository
 public class ShopSuspensionPersistenceAdapter implements ShopSuspensionPersistencePort {
+
     private final ShopSuspensionJpaRepository shopSuspensionJpaRepository;
 
     public ShopSuspensionPersistenceAdapter(ShopSuspensionJpaRepository shopSuspensionJpaRepository) {

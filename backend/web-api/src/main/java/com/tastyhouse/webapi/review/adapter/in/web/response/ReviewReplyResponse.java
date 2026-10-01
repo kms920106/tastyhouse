@@ -35,6 +35,7 @@ public record ReviewReplyResponse(
     @Schema(description = "작성일시")
     LocalDateTime createdAt
 ) {
+
     public static ReviewReplyResponse from(ReviewReplyItemResult result) {
         return new ReviewReplyResponse(
             result.id(),

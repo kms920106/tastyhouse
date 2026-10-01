@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopNotice {
+
     private final Long id;
     private final ShopId shopId;
     private String content;

@@ -24,6 +24,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOriginInfoApiController {
+
     private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
 

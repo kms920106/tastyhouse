@@ -82,6 +82,7 @@ public record OrderDetailResponse(
     @Schema(description = "수령 예약 슬롯 종료 시각. 포장은 scheduledAt과 동일하며, 즉시 주문은 null입니다.", example = "2026-08-08T18:30:00")
     LocalDateTime scheduledSlotEndAt
 ) {
+
     public static OrderDetailResponse from(OrderDetailViewResult result) {
         return new OrderDetailResponse(
             result.id(),

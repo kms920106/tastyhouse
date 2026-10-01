@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SearchKeywordLogTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 현재 시각으로 searchedAt이 설정된다")
     void of_createsTransientSearchKeywordLog() {

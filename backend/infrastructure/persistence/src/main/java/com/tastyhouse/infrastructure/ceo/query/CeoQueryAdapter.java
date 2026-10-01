@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoJpaEntity.ceoJpa
 
 @Repository
 public class CeoQueryAdapter implements CeoQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public CeoQueryAdapter(JPAQueryFactory queryFactory) {

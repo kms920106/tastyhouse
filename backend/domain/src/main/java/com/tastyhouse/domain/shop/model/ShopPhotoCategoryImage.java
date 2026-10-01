@@ -4,6 +4,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 
 public class ShopPhotoCategoryImage {
+
     private final Long id;
     private final ShopPhotoCategoryId shopPhotoCategoryId;
     private UploadedFileId imageFileId;

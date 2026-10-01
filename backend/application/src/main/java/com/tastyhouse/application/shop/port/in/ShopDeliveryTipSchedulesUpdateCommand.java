@@ -10,6 +10,7 @@ public record ShopDeliveryTipSchedulesUpdateCommand(
     Long shopId,
     List<ShopDeliveryTipScheduleCommand> schedules
 ) {
+
     public ShopDeliveryTipSchedulesUpdateCommand {
         if (ceoId == null || shopId == null || schedules == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

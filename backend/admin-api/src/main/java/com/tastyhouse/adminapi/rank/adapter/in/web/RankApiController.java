@@ -42,6 +42,7 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemRes
 @RestController
 @RequestMapping("/api/ranks")
 public class RankApiController {
+
     private final RankCommandUseCase rankCommandUseCase;
     private final RankManagementQueryUseCase rankQueryUseCase;
 

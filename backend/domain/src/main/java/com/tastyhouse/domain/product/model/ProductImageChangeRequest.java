@@ -10,6 +10,7 @@ import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 public class ProductImageChangeRequest {
+
     private final Long id;
     private final ProductId productId;
     private final UploadedFileId imageFileId;

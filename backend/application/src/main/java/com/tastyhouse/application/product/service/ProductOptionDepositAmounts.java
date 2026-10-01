@@ -10,6 +10,7 @@ import com.tastyhouse.application.product.port.out.ProductBatchResult;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
 
 final class ProductOptionDepositAmounts {
+
     private ProductOptionDepositAmounts() {
     }
 

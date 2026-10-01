@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public record PolicyActivateCommand(Long policyDocumentId) {
+
     public PolicyActivateCommand {
         if (policyDocumentId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

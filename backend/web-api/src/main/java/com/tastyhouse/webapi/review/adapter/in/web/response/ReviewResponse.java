@@ -39,6 +39,7 @@ public record ReviewResponse(
     @Schema(description = "작성일시")
     LocalDateTime createdAt
 ) {
+
     public static ReviewResponse from(ReviewSubmitResultView view) {
         return new ReviewResponse(
             view.reviewId(),

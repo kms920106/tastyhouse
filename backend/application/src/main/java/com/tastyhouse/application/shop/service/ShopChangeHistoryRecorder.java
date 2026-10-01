@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
 
 public class ShopChangeHistoryRecorder {
+
     private final ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
 
     public ShopChangeHistoryRecorder(ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort) {

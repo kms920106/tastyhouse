@@ -28,6 +28,7 @@ public record ShopAmenityCategoryUpdateRequest(
     @Schema(description = "사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
+
     public ShopAmenityCategoryUpdateCommand toCommand(Long categoryId) {
         return new ShopAmenityCategoryUpdateCommand(
             categoryId, displayName, activeImageFileId, inactiveImageFileId, sort, visible

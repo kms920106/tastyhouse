@@ -24,6 +24,7 @@ import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenR
 @RequestMapping("/api/mail-verifications")
 @Tag(name = "Mail Verification", description = "메일(이메일 주소) 인증 API")
 public class MailVerificationApiController {
+
     private final MailVerificationCommandUseCase mailVerificationCommandUseCase;
     private final MemberJwtTokenProvider jwtTokenProvider;
 

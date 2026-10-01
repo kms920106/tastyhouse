@@ -26,6 +26,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistenc
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
 public class ShopDeliveryAreaService {
+
     private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
     private final AdminDongPersistencePort adminDongPersistencePort;
     private final ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort;

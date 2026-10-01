@@ -3,6 +3,7 @@ package com.tastyhouse.domain.product.model;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductCommonOptionGroup {
+
     private final Long id;
     private final ProductId productId;
     private String name;

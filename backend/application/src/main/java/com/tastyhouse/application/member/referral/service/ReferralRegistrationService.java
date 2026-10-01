@@ -11,6 +11,7 @@ import com.tastyhouse.application.member.referral.port.out.write.MemberReferralP
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class ReferralRegistrationService {
+
     private final MemberReferralPersistencePort memberReferralPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 

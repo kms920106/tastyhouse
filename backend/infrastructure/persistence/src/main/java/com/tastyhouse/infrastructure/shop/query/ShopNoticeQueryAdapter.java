@@ -27,6 +27,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopNoticeJpaEntit
 
 @Repository
 public class ShopNoticeQueryAdapter implements ShopNoticeQueryPort, ShopNoticeOwnerQueryPort, ShopNoticeManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

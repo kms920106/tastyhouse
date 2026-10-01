@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum CeoLoginResult {
+
     SUCCESS("로그인 성공"),
     FAILURE("로그인 실패");
 

@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.faq.persistence;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 
 final class FaqCategoryMapper {
+
     private FaqCategoryMapper() {
     }
 

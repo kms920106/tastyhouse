@@ -16,6 +16,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopPriceBadgeApiController {
+
     private final ShopPriceBadgeQueryUseCase shopPriceBadgeQueryUseCase;
 
     public ShopPriceBadgeApiController(ShopPriceBadgeQueryUseCase shopPriceBadgeQueryUseCase) {

@@ -23,6 +23,7 @@ public record ProductShopLinkReplaceRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<ProductShopLinkItemRequest> links
 ) {
+
     public ProductShopLinkReplaceCommand toCommand(Long ceoId, Long productId) {
         return new ProductShopLinkReplaceCommand(
             ceoId,

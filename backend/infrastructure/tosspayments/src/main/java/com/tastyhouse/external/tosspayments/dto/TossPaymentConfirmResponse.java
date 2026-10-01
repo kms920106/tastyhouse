@@ -304,6 +304,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Card {
+
         private String issuerCode;
         private String acquirerCode;
         private String number;
@@ -417,6 +418,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class VirtualAccount {
+
         private String accountType;
         private String accountNumber;
         private String bankCode;
@@ -493,6 +495,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Transfer {
+
         private String bankCode;
         private String settlementStatus;
 
@@ -515,6 +518,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MobilePhone {
+
         private String customerMobilePhone;
         private String settlementStatus;
         private String receiptUrl;
@@ -546,6 +550,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EasyPay {
+
         private String provider;
         private Integer amount;
         private Integer discountAmount;
@@ -577,6 +582,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Failure {
+
         private String code;
         private String message;
 
@@ -599,6 +605,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Receipt {
+
         private String url;
 
         public String getUrl() {
@@ -612,6 +619,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Checkout {
+
         private String url;
 
         public String getUrl() {
@@ -625,6 +633,7 @@ public class TossPaymentConfirmResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Cancel {
+
         private String cancelReason;
         private String canceledAt;
         private Integer cancelAmount;

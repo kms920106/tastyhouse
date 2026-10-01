@@ -35,6 +35,7 @@ public record ShopRiderPickupLocationUpdateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
+
     public ShopRiderPickupLocationManagementUpdateCommand toCommand(Long shopId, Long adminId) {
         return new ShopRiderPickupLocationManagementUpdateCommand(
             shopId, adminId, roadAddress, lotAddress, detailAddress, latitude, longitude

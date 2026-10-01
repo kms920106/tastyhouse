@@ -7,6 +7,7 @@ public record ShopTemporaryClosureDeleteCommand(
     Long ceoId,
     Long temporaryClosureId
 ) {
+
     public ShopTemporaryClosureDeleteCommand {
         if (ceoId == null || temporaryClosureId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

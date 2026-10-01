@@ -39,6 +39,7 @@ public record ProductOptionGroupResponse(
     @Schema(description = "옵션 목록")
     List<ProductOptionResponse> options
 ) {
+
     public static ProductOptionGroupResponse from(OptionGroupResult result) {
         List<ProductOptionResponse> options = result.options().stream()
             .map(ProductOptionResponse::from)

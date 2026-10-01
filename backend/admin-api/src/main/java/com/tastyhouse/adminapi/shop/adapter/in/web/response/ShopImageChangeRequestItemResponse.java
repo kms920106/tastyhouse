@@ -24,6 +24,7 @@ public record ShopImageChangeRequestItemResponse(
     @Schema(description = "반려 사유", example = "이미지가 흐릿합니다.")
     String rejectReason
 ) {
+
     public static ShopImageChangeRequestItemResponse from(ShopImageChangeRequestResult result) {
         return new ShopImageChangeRequestItemResponse(
             result.id(),

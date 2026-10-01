@@ -149,6 +149,7 @@ public class BbqMenuResponse {
     }
 
     public static class Nutrient {
+
         @JsonProperty("calorie")
         private Integer calorie;
 
@@ -197,6 +198,7 @@ public class BbqMenuResponse {
     }
 
     public static class Origin {
+
         @JsonProperty("name")
         private String name;
 
@@ -221,6 +223,7 @@ public class BbqMenuResponse {
     }
 
     public static class Weight {
+
         @JsonProperty("subOptionId")
         private Long subOptionId;
 

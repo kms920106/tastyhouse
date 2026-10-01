@@ -34,6 +34,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusR
 @RestController
 @RequestMapping("/api/products")
 public class ProductImageApiController {
+
     private final ProductImageQueryUseCase productImageQueryUseCase;
     private final ProductImageCommandUseCase productImageCommandUseCase;
 

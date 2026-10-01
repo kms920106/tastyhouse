@@ -9,6 +9,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistenc
 
 @Repository
 public class ShopHygieneBadgePersistenceAdapter implements ShopHygieneBadgePersistencePort {
+
     private final ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository;
 
     public ShopHygieneBadgePersistenceAdapter(ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository) {

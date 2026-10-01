@@ -33,6 +33,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLooku
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopDeliveryAreaRadiusServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -86,6 +87,7 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+
         private final Map<Long, AdminDong> adminDongs = new LinkedHashMap<>();
 
         void add(long id, GeoPoint center) {
@@ -137,6 +139,7 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -201,6 +204,7 @@ class ShopDeliveryAreaRadiusServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
+
         @Override
         public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
             return false;

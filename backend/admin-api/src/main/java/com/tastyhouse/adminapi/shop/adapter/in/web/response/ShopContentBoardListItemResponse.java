@@ -35,6 +35,7 @@ public record ShopContentBoardListItemResponse(
     @Schema(description = "생성 일시", example = "2026-07-25T10:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ShopContentBoardListItemResponse from(ShopContentBoardResult result) {
         return new ShopContentBoardListItemResponse(
             result.id(),

@@ -3,6 +3,7 @@ package com.tastyhouse.domain.member.follow.model;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberFollow {
+
     private final Long id;
     private final MemberId followerId;
     private final MemberId followingId;

@@ -9,6 +9,7 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public interface MemberPersistencePort {
+
     Optional<Member> findById(MemberId memberId);
 
     Optional<Member> findByUsername(String username);

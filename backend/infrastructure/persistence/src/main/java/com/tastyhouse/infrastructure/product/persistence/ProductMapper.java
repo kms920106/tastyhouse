@@ -7,6 +7,7 @@ import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductMapper {
+
     private ProductMapper() {
     }
 

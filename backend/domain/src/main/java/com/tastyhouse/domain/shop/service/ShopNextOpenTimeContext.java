@@ -14,6 +14,7 @@ public record ShopNextOpenTimeContext(
     List<ShopClosedDay> closedDays,
     Set<LocalDate> publicHolidays
 ) {
+
     public ShopNextOpenTimeContext {
         businessHours = businessHours != null ? List.copyOf(businessHours) : List.of();
         closedDays = closedDays != null ? List.copyOf(closedDays) : List.of();

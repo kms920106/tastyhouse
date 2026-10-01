@@ -8,6 +8,7 @@ import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class StorePriceVerificationAdapter implements StorePriceVerificationPort {
+
     private final ShopPersistencePort shopPersistencePort;
 
     public StorePriceVerificationAdapter(ShopPersistencePort shopPersistencePort) {

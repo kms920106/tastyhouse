@@ -14,6 +14,7 @@ public record ShopRiderPickupLocationManagementUpdateCommand(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+
     public ShopRiderPickupLocationManagementUpdateCommand {
         if (shopId == null || adminId == null || roadAddress == null
             || latitude == null || longitude == null) {

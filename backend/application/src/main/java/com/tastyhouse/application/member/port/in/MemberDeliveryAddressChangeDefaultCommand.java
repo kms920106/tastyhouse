@@ -7,6 +7,7 @@ public record MemberDeliveryAddressChangeDefaultCommand(
     Long memberId,
     Long addressId
 ) {
+
     public MemberDeliveryAddressChangeDefaultCommand {
         if (memberId == null || addressId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

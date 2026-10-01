@@ -9,6 +9,7 @@ public record AdminCreateCommand(
     String name,
     String role
 ) {
+
     public AdminCreateCommand {
         if (username == null || password == null || name == null || role == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

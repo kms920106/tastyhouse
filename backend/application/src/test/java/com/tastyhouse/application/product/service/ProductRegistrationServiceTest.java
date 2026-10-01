@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductRegistrationServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long PRODUCT_ID = 7L;
     private static final Long OPTION_GROUP_ID = 11L;
@@ -154,6 +155,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class Fixture {
+
         private final ProductPersistencePortStub productPersistencePort;
         private final ProductCategoryPersistencePortStub categoryPersistencePort = new ProductCategoryPersistencePortStub();
         private final ProductOptionGroupPersistencePortStub optionGroupPersistencePort = new ProductOptionGroupPersistencePortStub();
@@ -180,6 +182,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductPersistencePortStub implements ProductPersistencePort {
+
         private final Product existing;
         private final List<Product> saved = new ArrayList<>();
 
@@ -281,6 +284,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductCategoryPersistencePortStub implements ProductCategoryPersistencePort {
+
         private final List<ProductCategory> saved = new ArrayList<>();
 
         @Override
@@ -311,6 +315,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionGroupPersistencePortStub implements ProductOptionGroupPersistencePort {
+
         private final List<ProductOptionGroup> saved = new ArrayList<>();
 
         @Override
@@ -346,6 +351,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionPersistencePortStub implements ProductOptionPersistencePort {
+
         private final List<ProductOption> saved = new ArrayList<>();
 
         @Override
@@ -376,6 +382,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductImagePersistencePortStub implements ProductImagePersistencePort {
+
         private final List<ProductImage> saved = new ArrayList<>();
 
         @Override
@@ -408,6 +415,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductBbqPersistencePortStub implements ProductBbqPersistencePort {
+
         private final List<ProductBbq> saved = new ArrayList<>();
         private ProductBbq stored;
 
@@ -424,6 +432,7 @@ class ProductRegistrationServiceTest {
     }
 
     private static final class ProductOptionGroupLinkPersistencePortStub implements ProductOptionGroupLinkPersistencePort {
+
         private final List<ProductOptionGroupLink> saved = new ArrayList<>();
 
         @Override

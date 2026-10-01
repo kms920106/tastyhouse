@@ -13,6 +13,7 @@ public record ShopChangeTypeResponse(
     @Schema(description = "중분류 한글 라벨", example = "영업시간")
     String name
 ) {
+
     public static ShopChangeTypeResponse from(CodeLabelResult result) {
         return new ShopChangeTypeResponse(
             result.code(),

@@ -11,6 +11,7 @@ public record ProductOptionReleaseCommand(
     List<ProductOptionTargetCommand> options,
     String target
 ) {
+
     public ProductOptionReleaseCommand {
         if (ceoId == null
             || shopId == null

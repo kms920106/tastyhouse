@@ -20,6 +20,7 @@ public record ProductOwnerCreateCommand(
     Boolean ratingExcluded,
     List<ProductShopLinkItemCommand> links
 ) {
+
     public ProductOwnerCreateCommand {
         if (ceoId == null
             || shopId == null

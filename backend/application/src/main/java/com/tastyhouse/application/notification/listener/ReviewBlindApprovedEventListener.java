@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class ReviewBlindApprovedEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindApprovedEventListener.class);
 
     private final NotificationService notificationService;

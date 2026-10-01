@@ -7,6 +7,7 @@ public record AuthPasswordResetTokenResponse(
     @Schema(description = "비밀번호 재설정 토큰 (15분 유효)", example = "eyJhbGciOiJIUzI1NiJ9...")
     String passwordResetToken
 ) {
+
     public static AuthPasswordResetTokenResponse from(String passwordResetToken) {
         return new AuthPasswordResetTokenResponse(passwordResetToken);
     }

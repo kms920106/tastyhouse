@@ -12,6 +12,7 @@ public record ShopBreakTimeOwnerCreateCommand(
     LocalTime startTime,
     LocalTime endTime
 ) {
+
     public ShopBreakTimeOwnerCreateCommand {
         if (ceoId == null || shopId == null || dayType == null || startTime == null || endTime == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

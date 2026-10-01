@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum RiderGuideActionType {
+
     UPDATE("등록·수정"),
     REVISION_REQUEST("수정 요청"),
     DELETION("삭제 조치");

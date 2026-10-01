@@ -56,6 +56,7 @@ public record ProductNutritionResponse(
     @Schema(description = "알레르기 유발성분 한글 라벨 배열", example = "[\"우유\", \"땅콩\"]")
     List<String> allergens
 ) {
+
     public static ProductNutritionResponse from(ProductNutritionView view) {
         return new ProductNutritionResponse(
             view.servingSize(),

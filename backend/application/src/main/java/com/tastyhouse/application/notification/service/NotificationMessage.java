@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 
 final class NotificationMessage {
+
     private static final String REVIEW_OWNER_REPLY_TITLE = "사장님 답변이 등록되었어요";
     private static final String REVIEW_OWNER_REPLY_BODY_FORMAT = "%s 사장님이 회원님의 리뷰에 답변을 남겼어요.";
 

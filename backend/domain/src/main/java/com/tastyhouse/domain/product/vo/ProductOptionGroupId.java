@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.product.vo;
 
 public record ProductOptionGroupId(Long value) {
+
     public ProductOptionGroupId {
         if (value == null || value <= 0) {
             throw new IllegalArgumentException("ProductOptionGroupId는 양수여야 합니다: " + value);

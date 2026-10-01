@@ -14,6 +14,7 @@ public record ShopRiderPickupLocationOwnerUpdateCommand(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+
     public ShopRiderPickupLocationOwnerUpdateCommand {
         if (ceoId == null || shopId == null || roadAddress == null || latitude == null || longitude == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

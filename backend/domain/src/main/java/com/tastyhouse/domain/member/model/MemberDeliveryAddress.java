@@ -7,6 +7,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 
 public class MemberDeliveryAddress {
+
     private final Long id;
     private final MemberId memberId;
     private String alias;

@@ -3,6 +3,7 @@ package com.tastyhouse.domain.search.model;
 import java.time.LocalDateTime;
 
 public class SearchKeywordLog {
+
     private final Long id;
     private final String keyword;
     private final LocalDateTime searchedAt;

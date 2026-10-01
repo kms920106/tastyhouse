@@ -18,6 +18,7 @@ public record ShopChoiceDetailResponse(
     @Schema(description = "내용", example = "상세 설명 내용...")
     String content
 ) {
+
     public static ShopChoiceDetailResponse from(ShopChoiceDetailResult result) {
         return new ShopChoiceDetailResponse(
             result.id(),

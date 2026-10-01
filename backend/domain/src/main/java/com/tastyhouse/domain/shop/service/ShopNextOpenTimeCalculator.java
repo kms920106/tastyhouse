@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 
 public class ShopNextOpenTimeCalculator {
+
     private static final int SEARCH_DAYS = 7;
 
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;

@@ -17,6 +17,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
 
 public class ProductRepresentativeApprovalService {
+
     private static final long MAX_REPRESENTATIVE_COUNT = 6L;
 
     private final ProductRepresentativeRequestPersistencePort requestPersistencePort;

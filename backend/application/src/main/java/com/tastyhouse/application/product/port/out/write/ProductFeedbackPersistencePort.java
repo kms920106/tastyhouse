@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductFeedbackPersistencePort {
+
     ProductFeedback save(ProductFeedback feedback);
 
     boolean existsRecentDuplicate(

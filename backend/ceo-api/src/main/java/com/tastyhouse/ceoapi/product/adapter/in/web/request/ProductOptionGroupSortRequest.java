@@ -20,6 +20,7 @@ public record ProductOptionGroupSortRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> optionGroupIds
 ) {
+
     public ProductOptionGroupOrderChangeCommand toCommand(Long ceoId, Long productId) {
         return new ProductOptionGroupOrderChangeCommand(ceoId, shopId, productId, optionGroupIds);
     }

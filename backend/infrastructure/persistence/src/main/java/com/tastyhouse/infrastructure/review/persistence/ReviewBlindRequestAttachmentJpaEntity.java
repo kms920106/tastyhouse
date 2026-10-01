@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
     }
 )
 public class ReviewBlindRequestAttachmentJpaEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

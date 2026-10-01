@@ -41,6 +41,7 @@ public record StorePriceVerificationDetailResponse(
     @Schema(description = "인증 대상 메뉴 항목 목록(앱 가격 대 신고 매장가 대조표)")
     List<StorePriceVerificationItemResponse> items
 ) {
+
     public static StorePriceVerificationDetailResponse from(
         StorePriceVerificationListItemResult result,
         List<StorePriceVerificationItemResult> itemResults

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.vo.EventId;
 
 final class EventAnnouncementMapper {
+
     private EventAnnouncementMapper() {
     }
 

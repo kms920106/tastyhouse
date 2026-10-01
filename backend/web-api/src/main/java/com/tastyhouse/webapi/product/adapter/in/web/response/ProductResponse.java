@@ -34,6 +34,7 @@ public record ProductResponse(
         + "가격 행이 없는 메뉴(이관 이전 데이터)와 available=false 면 빈 배열")
     List<ProductPriceResponse> prices
 ) {
+
     public static ProductResponse from(ProductBatchItemView view) {
         return new ProductResponse(
             view.id(),

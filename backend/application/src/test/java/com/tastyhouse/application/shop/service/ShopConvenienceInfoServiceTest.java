@@ -41,6 +41,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopConvenienceInfoServiceTest {
+
     private static final Long SHOP_ID = 1L;
     private static final Long PARKING_CATEGORY_ID = 11L;
 
@@ -48,6 +49,7 @@ class ShopConvenienceInfoServiceTest {
     private ShopConvenienceInfoService shopConvenienceInfoService;
 
     private static final class FakeShopConvenienceInfoPersistencePort implements ShopConvenienceInfoPersistencePort {
+
         private final Map<Long, ShopConvenienceInfo> infos = new HashMap<>();
 
         @Override
@@ -63,6 +65,7 @@ class ShopConvenienceInfoServiceTest {
     }
 
     private static final class FakeShopDetailPersistencePort implements ShopDetailPersistencePort {
+
         private final Map<Long, ShopAmenityCategory> categories = new HashMap<>();
         private long sequence = 0L;
 
@@ -244,6 +247,7 @@ class ShopConvenienceInfoServiceTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopPersistencePort() {
@@ -273,6 +277,7 @@ class ShopConvenienceInfoServiceTest {
     }
 
     private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

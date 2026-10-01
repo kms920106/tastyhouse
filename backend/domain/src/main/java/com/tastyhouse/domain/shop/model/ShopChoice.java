@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopChoice {
+
     private final Long id;
     private final ShopId shopId;
     private String title;

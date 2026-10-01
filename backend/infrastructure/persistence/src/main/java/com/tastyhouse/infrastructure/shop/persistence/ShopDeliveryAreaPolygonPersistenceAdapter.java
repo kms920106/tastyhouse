@@ -10,6 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPer
 
 @Repository
 public class ShopDeliveryAreaPolygonPersistenceAdapter implements ShopDeliveryAreaPolygonPersistencePort {
+
     private final ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository;
 
     public ShopDeliveryAreaPolygonPersistenceAdapter(ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository) {

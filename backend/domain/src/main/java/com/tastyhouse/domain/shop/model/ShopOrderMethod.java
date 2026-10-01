@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopOrderMethod {
+
     private final Long id;
     private final ShopId shopId;
     private final OrderMethod orderMethod;

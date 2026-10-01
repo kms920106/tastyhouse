@@ -18,6 +18,7 @@ public record ProductPriceResponse(
         + "그 외에는 배달가입니다.", example = "16650")
     Integer price
 ) {
+
     public static ProductPriceResponse from(ProductPriceView view) {
         return new ProductPriceResponse(view.priceId(), view.priceName(), view.price());
     }

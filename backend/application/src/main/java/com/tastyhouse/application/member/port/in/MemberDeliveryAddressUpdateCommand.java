@@ -15,6 +15,7 @@ public record MemberDeliveryAddressUpdateCommand(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+
     public MemberDeliveryAddressUpdateCommand {
         if (memberId == null || addressId == null || roadAddress == null
             || latitude == null || longitude == null) {

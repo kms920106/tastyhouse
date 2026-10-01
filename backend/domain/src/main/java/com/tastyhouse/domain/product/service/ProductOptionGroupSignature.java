@@ -11,6 +11,7 @@ import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 
 public final class ProductOptionGroupSignature {
+
     private static final String FIELD_SEPARATOR = "|";
     private static final String OPTION_SEPARATOR = ",";
     private static final String OPTION_FIELD_SEPARATOR = ":";

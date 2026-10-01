@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryAreaAdjustmentServiceTest {
+
     private FakePersistencePort repository;
     private RecordingShopChangeHistoryPersistencePort historyPersistencePort;
     private RecordingShopRequestIndexPersistencePort indexPersistencePort;
@@ -218,6 +219,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
     }
 
     private static final class FakePersistencePort implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
+
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private final List<ShopDeliveryAreaAdjustmentRequest> saved = new ArrayList<>();
         private long sequence = 0L;

@@ -10,6 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistence
 
 @Repository
 public class ShopOrderNoticePersistenceAdapter implements ShopOrderNoticePersistencePort {
+
     private final ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository;
 
     public ShopOrderNoticePersistenceAdapter(ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository) {

@@ -20,6 +20,7 @@ public record ProductAvailabilityGroupResponse(
     @Schema(description = "이 카테고리에 속한 메뉴 목록")
     List<ProductAvailabilityItemResponse> products
 ) {
+
     public static ProductAvailabilityGroupResponse from(ProductAvailabilityGroupResult group) {
         return new ProductAvailabilityGroupResponse(
             group.categoryId(),

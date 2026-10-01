@@ -12,6 +12,7 @@ public record ShopDeliveryAreaBulkDeleteResponse(
     @Schema(description = "반영 후 이 가게의 총 배달가능지역 개수", example = "30")
     int totalCount
 ) {
+
     public static ShopDeliveryAreaBulkDeleteResponse from(ShopDeliveryAreaBulkDeleteResult result) {
         return new ShopDeliveryAreaBulkDeleteResponse(
             result.removedCount(),

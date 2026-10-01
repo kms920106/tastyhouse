@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductOptionTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 추가금액 null은 0으로 보정된다")
     void of_createsTransientOption_withNullAdditionalPriceDefaultedToZero() {

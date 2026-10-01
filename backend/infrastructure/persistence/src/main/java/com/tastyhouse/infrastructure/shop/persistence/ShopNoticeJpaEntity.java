@@ -19,6 +19,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     }
 )
 public class ShopNoticeJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

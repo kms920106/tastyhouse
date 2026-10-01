@@ -21,6 +21,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLooku
 
 @Repository
 public class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePort, ShopDeliveryTipRegionLookupPort {
+
     private final ShopDeliveryTipSettingJpaRepository shopDeliveryTipSettingJpaRepository;
     private final ShopDeliveryTipTierJpaRepository shopDeliveryTipTierJpaRepository;
     private final ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository;

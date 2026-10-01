@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 public class ProductVegetarianRequest {
+
     private final Long id;
     private final ProductId productId;
     private final VegetarianType vegetarianType;

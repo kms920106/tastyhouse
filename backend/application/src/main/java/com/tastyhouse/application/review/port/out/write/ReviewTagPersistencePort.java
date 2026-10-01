@@ -6,6 +6,7 @@ import com.tastyhouse.domain.review.model.ReviewTag;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public interface ReviewTagPersistencePort {
+
     void saveAll(List<ReviewTag> tags);
 
     void deleteByReviewId(ReviewId reviewId);

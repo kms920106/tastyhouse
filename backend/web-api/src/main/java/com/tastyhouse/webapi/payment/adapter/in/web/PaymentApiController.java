@@ -35,6 +35,7 @@ import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
 @RequestMapping("/api/payments")
 @Tag(name = "Payment", description = "결제 API")
 public class PaymentApiController {
+
     private final PaymentCommandUseCase paymentCommandUseCase;
     private final PaymentQueryUseCase paymentQueryUseCase;
 

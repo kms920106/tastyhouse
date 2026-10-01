@@ -7,6 +7,7 @@ public record MemberDeliveryAddressDeleteCommand(
     Long memberId,
     Long addressId
 ) {
+
     public MemberDeliveryAddressDeleteCommand {
         if (memberId == null || addressId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

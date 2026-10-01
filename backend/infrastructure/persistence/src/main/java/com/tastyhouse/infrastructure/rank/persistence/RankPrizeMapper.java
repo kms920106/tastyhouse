@@ -5,6 +5,7 @@ import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 final class RankPrizeMapper {
+
     private RankPrizeMapper() {
     }
 

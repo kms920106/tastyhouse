@@ -16,6 +16,7 @@ public record EventCreateCommand(
     LocalDateTime startAt,
     LocalDateTime endAt
 ) {
+
     public EventCreateCommand {
         if (name == null || status == null || startAt == null || endAt == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 
 final class CeoReplyPhraseMapper {
+
     private CeoReplyPhraseMapper() {
     }
 

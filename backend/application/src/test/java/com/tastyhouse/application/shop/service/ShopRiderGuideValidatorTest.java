@@ -18,10 +18,12 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRiderGuideValidatorTest {
+
     private ShopRiderGuideValidator shopRiderGuideValidator;
     private Shop shop;
 
     private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopMenuCollectionImageServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final ShopId OTHER_SHOP_ID = ShopId.of(2L);
 
@@ -369,6 +370,7 @@ class ShopMenuCollectionImageServiceTest {
 
     private static final class FakeShopMenuCollectionImagePersistencePort
         implements ShopMenuCollectionImagePersistencePort {
+
         private final Map<Long, ShopMenuCollectionImage> images = new LinkedHashMap<>();
         private long sequence = 900L;
 
@@ -446,6 +448,7 @@ class ShopMenuCollectionImageServiceTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new LinkedHashMap<>();
 
         private FakeShopPersistencePort() {

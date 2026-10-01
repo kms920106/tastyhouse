@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductDeletionService {
+
     private final ProductPersistencePort productPersistencePort;
 
     public ProductDeletionService(ProductPersistencePort productPersistencePort) {

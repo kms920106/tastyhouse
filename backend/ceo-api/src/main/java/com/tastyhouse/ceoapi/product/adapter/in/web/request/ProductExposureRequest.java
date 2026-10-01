@@ -27,6 +27,7 @@ public record ProductExposureRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<ProductExposureHourRequest> hours
 ) {
+
     public ProductExposureReplaceCommand toCommand(Long ceoId, Long productId) {
         return new ProductExposureReplaceCommand(
             ceoId,

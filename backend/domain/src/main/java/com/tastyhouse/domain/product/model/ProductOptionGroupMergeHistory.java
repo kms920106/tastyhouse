@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ProductOptionGroupMergeHistory {
+
     private final Long id;
     private final ShopId shopId;
     private final ProductOptionGroupId baseOptionGroupId;

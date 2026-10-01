@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopOriginInfoJpaRepository extends JpaRepository<ShopOriginInfoJpaEntity, Long> {
+
     Optional<ShopOriginInfoJpaEntity> findByShopId(Long shopId);
 }

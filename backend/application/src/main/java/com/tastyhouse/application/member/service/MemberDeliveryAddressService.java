@@ -14,6 +14,7 @@ import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPer
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 
 public class MemberDeliveryAddressService {
+
     private static final int MAX_ADDRESS_COUNT = 10;
 
     private static final int ADDRESS_TOKEN_MIN_COUNT = 3;

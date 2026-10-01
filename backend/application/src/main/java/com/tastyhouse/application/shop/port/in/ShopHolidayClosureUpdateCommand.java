@@ -8,6 +8,7 @@ public record ShopHolidayClosureUpdateCommand(
     Long shopId,
     Boolean closedOnPublicHolidays
 ) {
+
     public ShopHolidayClosureUpdateCommand {
         if (ceoId == null || shopId == null || closedOnPublicHolidays == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

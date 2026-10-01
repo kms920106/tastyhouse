@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 
 public final class ProductOptionSelectionRule {
+
     private ProductOptionSelectionRule() {
     }
 

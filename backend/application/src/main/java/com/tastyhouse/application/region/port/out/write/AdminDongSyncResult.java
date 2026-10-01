@@ -5,6 +5,7 @@ public record AdminDongSyncResult(
     int updated,
     int deactivated
 ) {
+
     public static AdminDongSyncResult of(int inserted, int updated, int deactivated) {
         return new AdminDongSyncResult(inserted, updated, deactivated);
     }

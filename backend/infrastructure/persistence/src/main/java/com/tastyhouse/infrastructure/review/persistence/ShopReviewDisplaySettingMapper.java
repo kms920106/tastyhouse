@@ -5,6 +5,7 @@ import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopReviewDisplaySettingMapper {
+
     private ShopReviewDisplaySettingMapper() {
     }
 

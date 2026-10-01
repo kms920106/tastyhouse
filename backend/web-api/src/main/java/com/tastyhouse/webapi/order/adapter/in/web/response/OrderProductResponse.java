@@ -45,6 +45,7 @@ public record OrderProductResponse(
     @Schema(description = "리뷰 작성 여부", example = "false")
     boolean reviewed
 ) {
+
     public static OrderProductResponse from(OrderProductViewResult result) {
         return new OrderProductResponse(
             result.orderProductId(),

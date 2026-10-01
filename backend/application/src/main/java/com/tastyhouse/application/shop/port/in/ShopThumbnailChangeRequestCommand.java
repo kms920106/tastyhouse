@@ -7,6 +7,7 @@ public record ShopThumbnailChangeRequestCommand(
     Long ceoId,
     Long shopId
 ) {
+
     public ShopThumbnailChangeRequestCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

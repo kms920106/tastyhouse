@@ -9,6 +9,7 @@ public record BbqProductSubOptionResponse(
     Integer maxSelectCount,
     List<SubOptionItemDetailResponse> subOptionItemDetailResponseList
 ) {
+
     public static BbqProductSubOptionResponse from(
         Long id,
         String subOptionTitle,

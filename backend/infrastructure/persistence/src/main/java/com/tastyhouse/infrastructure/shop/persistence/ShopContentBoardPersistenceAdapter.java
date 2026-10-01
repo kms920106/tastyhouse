@@ -9,6 +9,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistenc
 
 @Repository
 public class ShopContentBoardPersistenceAdapter implements ShopContentBoardPersistencePort {
+
     private final ShopContentBoardJpaRepository shopContentBoardJpaRepository;
 
     public ShopContentBoardPersistenceAdapter(ShopContentBoardJpaRepository shopContentBoardJpaRepository) {

@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.search.model;
 
 public class PopularKeyword {
+
     private final Long id;
     private final String keyword;
     private final int rank;

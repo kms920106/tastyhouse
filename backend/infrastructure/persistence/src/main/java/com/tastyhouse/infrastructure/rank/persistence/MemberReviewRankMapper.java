@@ -5,6 +5,7 @@ import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 
 final class MemberReviewRankMapper {
+
     private MemberReviewRankMapper() {
     }
 

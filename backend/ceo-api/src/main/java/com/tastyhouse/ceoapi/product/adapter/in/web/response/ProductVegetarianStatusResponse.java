@@ -19,6 +19,7 @@ public record ProductVegetarianStatusResponse(
         example = "true")
     boolean changeable
 ) {
+
     public static ProductVegetarianStatusResponse from(ProductVegetarianStatusResult result) {
         return new ProductVegetarianStatusResponse(
             result.vegetarianType(),

@@ -25,6 +25,7 @@ public record RankPrizeDetailResponse(
     @Schema(description = "경품 이미지 파일 정보")
     FileResponse image
 ) {
+
     public static RankPrizeDetailResponse from(RankPrizeManagementResult result) {
         return new RankPrizeDetailResponse(
             result.id(),

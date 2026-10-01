@@ -11,6 +11,7 @@ public record CommentCreateRequest(
     @Schema(description = "댓글 내용", example = "맛있어 보이네요!")
     String content
 ) {
+
     public ReviewCommentCreateCommand toCommand(Long memberId, Long reviewId) {
         return new ReviewCommentCreateCommand(
             memberId,

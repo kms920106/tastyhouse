@@ -33,6 +33,7 @@ public record ProductOptionResponse(
     @Schema(description = "개인컵 사용 할인 금액(원). 개인컵 옵션이 아니면 null이다.", example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public static ProductOptionResponse from(ProductOptionGroupViewResult.Option option) {
         return new ProductOptionResponse(
             option.id(),

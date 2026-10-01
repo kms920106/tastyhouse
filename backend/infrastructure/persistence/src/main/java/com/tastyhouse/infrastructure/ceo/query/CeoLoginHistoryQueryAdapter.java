@@ -19,6 +19,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoLoginHistoryJpaE
 
 @Repository
 public class CeoLoginHistoryQueryAdapter implements CeoLoginHistoryQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public CeoLoginHistoryQueryAdapter(JPAQueryFactory queryFactory) {

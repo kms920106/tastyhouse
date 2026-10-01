@@ -7,6 +7,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersiste
 
 @Repository
 public class ShopRequestCommentPersistenceAdapter implements ShopRequestCommentPersistencePort {
+
     private final ShopRequestCommentJpaRepository shopRequestCommentJpaRepository;
 
     public ShopRequestCommentPersistenceAdapter(ShopRequestCommentJpaRepository shopRequestCommentJpaRepository) {

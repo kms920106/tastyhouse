@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class SlotPolicy {
+
     public static final int CAPACITY_PER_SLOT = 10;
     public static final LocalTime OPEN = LocalTime.of(10, 30);
     public static final LocalTime CLOSE = LocalTime.of(19, 30);

@@ -29,6 +29,7 @@ public record ProductVegetarianRequest(
     @Schema(description = "검수 참고용 메뉴 설명", example = "동물성 재료를 전혀 쓰지 않는 비건 비빔밥입니다.")
     String description
 ) {
+
     public ProductVegetarianRequestCommand toCommand(Long ceoId, Long productId) {
         return new ProductVegetarianRequestCommand(ceoId, shopId, productId, vegetarianType, ingredients, description);
     }

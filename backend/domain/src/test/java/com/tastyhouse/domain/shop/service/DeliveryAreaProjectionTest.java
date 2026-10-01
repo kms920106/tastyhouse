@@ -15,6 +15,7 @@ import com.tastyhouse.domain.shared.geo.GeoRing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DeliveryAreaProjectionTest {
+
     private static final GeoPolygon SQUARE = GeoPolygon.of(List.of(square()));
 
     private static final double OUTSIDE = 50;

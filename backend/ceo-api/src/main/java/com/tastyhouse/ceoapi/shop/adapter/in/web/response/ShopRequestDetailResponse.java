@@ -68,6 +68,7 @@ public record ShopRequestDetailResponse(
     @Schema(description = "리뷰 게시중단 요청 상세. 요청 유형이 리뷰 게시중단일 때만 채워진다")
     ShopRequestReviewBlindResponse reviewBlind
 ) {
+
     public static ShopRequestDetailResponse from(ShopRequestDetailViewResult result) {
         return new ShopRequestDetailResponse(
             result.requestId(),

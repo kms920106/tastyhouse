@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.search.persistence;
 import com.tastyhouse.domain.search.model.PopularKeyword;
 
 final class PopularKeywordMapper {
+
     private PopularKeywordMapper() {
     }
 

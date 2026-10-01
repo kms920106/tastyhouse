@@ -79,6 +79,7 @@ public record ProductNutritionUpdateRequest(
         example = "[\"MILK\", \"PEANUT\"]")
     List<String> allergens
 ) {
+
     public ProductNutritionUpdateCommand toCommand(Long ceoId, Long productId) {
         return new ProductNutritionUpdateCommand(
             ceoId,

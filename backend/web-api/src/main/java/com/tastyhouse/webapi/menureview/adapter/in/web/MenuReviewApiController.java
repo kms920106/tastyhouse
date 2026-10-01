@@ -36,6 +36,7 @@ import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritab
 @RequestMapping("/api/menu-reviews")
 @Tag(name = "MenuReview", description = "메뉴 평가 API")
 public class MenuReviewApiController {
+
     private final MenuReviewCommandUseCase menuReviewCommandUseCase;
     private final MenuReviewQueryUseCase menuReviewQueryUseCase;
 

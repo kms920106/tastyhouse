@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
 public enum ProductHiddenReason {
+
     MANUALLY_HIDDEN("점주가 숨김 처리한 메뉴입니다."),
 
     BEFORE_EXPOSURE_PERIOD("노출 시작일 이전입니다."),

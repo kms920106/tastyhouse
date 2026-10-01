@@ -39,6 +39,7 @@ public record ProductOptionGroupUpdateRequest(
     @Schema(description = "최대 선택 개수. null이면 미지정(무제한)", example = "3")
     Integer maxSelect
 ) {
+
     public ProductOptionGroupUpdateCommand toCommand(Long ceoId, Long optionGroupId) {
         return new ProductOptionGroupUpdateCommand(
             ceoId,

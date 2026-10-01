@@ -14,6 +14,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
 
 public class ProductVegetarianApprovalService {
+
     private static final Set<String> DISALLOWED_SHOP_CATEGORIES = Set.of(
         "돈까스/회/일식", "고기/구이", "찜/탕/찌개", "족발/보쌈", "피자", "치킨", "중식", "야식"
     );

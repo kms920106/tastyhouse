@@ -63,6 +63,7 @@ public record BugReportDetailResponse(
     @Schema(description = "수정 일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static BugReportDetailResponse from(BugReportDetailWithMemberResult result) {
         BugReportDetailResult bugReport = result.bugReport();
         return new BugReportDetailResponse(

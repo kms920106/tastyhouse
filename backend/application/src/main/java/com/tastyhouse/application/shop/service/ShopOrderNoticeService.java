@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
 public class ShopOrderNoticeService {
+
     private static final int MAX_CONTENT_LENGTH = 500;
 
     private final ShopOrderNoticePersistencePort shopOrderNoticePersistencePort;

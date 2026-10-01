@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.notice.vo.NoticeId;
 
 public class Notice {
+
     private final Long id;
     private String title;
     private String content;

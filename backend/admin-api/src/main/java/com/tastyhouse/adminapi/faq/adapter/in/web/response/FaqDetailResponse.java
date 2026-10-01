@@ -32,6 +32,7 @@ public record FaqDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static FaqDetailResponse from(FaqDetailResult result) {
         return new FaqDetailResponse(
             result.id(),

@@ -9,6 +9,7 @@ import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistenceP
 
 @Repository
 public class ProhibitedWordPersistenceAdapter implements ProhibitedWordPersistencePort {
+
     private final ProhibitedWordJpaRepository jpaRepository;
 
     public ProhibitedWordPersistenceAdapter(ProhibitedWordJpaRepository jpaRepository) {

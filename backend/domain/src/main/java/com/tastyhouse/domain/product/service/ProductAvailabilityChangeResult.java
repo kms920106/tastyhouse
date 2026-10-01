@@ -6,6 +6,7 @@ public record ProductAvailabilityChangeResult(
     List<Long> succeeded,
     List<ProductAvailabilityFailure> failed
 ) {
+
     public ProductAvailabilityChangeResult {
         succeeded = succeeded != null ? List.copyOf(succeeded) : List.of();
         failed = failed != null ? List.copyOf(failed) : List.of();

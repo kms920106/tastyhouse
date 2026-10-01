@@ -7,6 +7,7 @@ public record FollowCreateCommand(
     Long followerId,
     Long followingId
 ) {
+
     public FollowCreateCommand {
         if (followerId == null || followingId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

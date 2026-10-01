@@ -85,6 +85,7 @@ public record OrderCreateRequest(
     )
     LocalDateTime scheduledAt
 ) {
+
     public OrderCreateCommand toCommand(Long memberId) {
         List<OrderLineCommand> orderLineCommands = orderProducts == null ? null :
             orderProducts.stream()

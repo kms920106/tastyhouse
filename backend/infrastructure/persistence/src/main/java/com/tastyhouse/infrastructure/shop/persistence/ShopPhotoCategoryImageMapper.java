@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 
 final class ShopPhotoCategoryImageMapper {
+
     private ShopPhotoCategoryImageMapper() {
     }
 

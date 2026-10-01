@@ -19,6 +19,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopChangeHistoryJ
 
 @Repository
 public class ShopChangeHistoryQueryAdapter implements ShopChangeHistoryQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public ShopChangeHistoryQueryAdapter(JPAQueryFactory queryFactory) {

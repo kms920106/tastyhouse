@@ -15,6 +15,7 @@ public record ProductExposureContext(
     boolean publicHoliday,
     boolean previousDayPublicHoliday
 ) {
+
     public ProductExposureContext {
         hours = hours == null ? List.of() : List.copyOf(hours);
     }

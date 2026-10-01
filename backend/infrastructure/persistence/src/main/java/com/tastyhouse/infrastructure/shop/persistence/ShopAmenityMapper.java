@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopAmenityMapper {
+
     private ShopAmenityMapper() {
     }
 

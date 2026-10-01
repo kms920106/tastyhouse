@@ -7,6 +7,7 @@ public record SubOptionItemDetailResponse(
     boolean soldOut,
     boolean hidden
 ) {
+
     public static SubOptionItemDetailResponse from(
         Long id,
         String itemTitle,

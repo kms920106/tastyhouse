@@ -23,6 +23,7 @@ public record ShopRiderPickupLocationResponse(
     @Schema(description = "픽업 경도", example = "127.027621")
     BigDecimal longitude
 ) {
+
     public static ShopRiderPickupLocationResponse from(ShopRiderGuideResult result) {
         String roadAddress = result.pickupRoadAddress();
         BigDecimal latitude = result.pickupLatitude();

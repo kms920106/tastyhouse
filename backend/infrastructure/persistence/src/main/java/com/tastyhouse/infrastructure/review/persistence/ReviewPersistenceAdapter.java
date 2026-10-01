@@ -16,6 +16,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
 
 @Repository
 public class ReviewPersistenceAdapter implements ReviewPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ReviewJpaRepository reviewJpaRepository;
 

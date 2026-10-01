@@ -24,6 +24,7 @@ public record ShopStorePriceVerificationResponse(
     @Schema(description = "인증을 충족하지 못한 메뉴 목록(인증 OFF 사유 표시용)")
     List<ShopStorePriceUnverifiedItemResponse> unverifiedItems
 ) {
+
     public static ShopStorePriceVerificationResponse from(ShopStorePriceVerificationViewResult result) {
         return new ShopStorePriceVerificationResponse(
             result.id(),

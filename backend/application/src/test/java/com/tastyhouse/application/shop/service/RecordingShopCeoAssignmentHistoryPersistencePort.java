@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
 
 class RecordingShopCeoAssignmentHistoryPersistencePort implements ShopCeoAssignmentHistoryPersistencePort {
+
     private final List<ShopCeoAssignmentHistory> saved = new ArrayList<>();
 
     @Override

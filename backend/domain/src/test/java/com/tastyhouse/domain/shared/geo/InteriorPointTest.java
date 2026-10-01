@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("InteriorPoint")
 class InteriorPointTest {
+
     @Test
     @DisplayName("사각형의 대표점은 내부에 있다")
     void squareRepresentativePointIsInside() {

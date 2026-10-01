@@ -11,6 +11,7 @@ public record TagCreateRequest(
     @Schema(description = "태그명", example = "혼밥", requiredMode = Schema.RequiredMode.REQUIRED)
     String tagName
 ) {
+
     public TagCreateCommand toCommand() {
         return new TagCreateCommand(tagName);
     }

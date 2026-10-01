@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.shop.persistence;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 
 final class ProhibitedWordMapper {
+
     private ProhibitedWordMapper() {
     }
 

@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ProductShopLink {
+
     private final Long id;
     private final ProductId productId;
     private final ShopId shopId;

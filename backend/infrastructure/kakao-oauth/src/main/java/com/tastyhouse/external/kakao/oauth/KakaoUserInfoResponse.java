@@ -7,6 +7,7 @@ public record KakaoUserInfoResponse(
     @JsonProperty("connected_at") String connectedAt,
     @JsonProperty("kakao_account") KakaoAccount kakaoAccount
 ) {
+
     public record KakaoAccount(
     @JsonProperty("profile") Profile profile,
     @JsonProperty("email_needs_agreement") Boolean emailNeedsAgreement,

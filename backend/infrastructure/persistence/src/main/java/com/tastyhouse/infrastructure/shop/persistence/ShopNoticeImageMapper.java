@@ -4,6 +4,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
 
 final class ShopNoticeImageMapper {
+
     private ShopNoticeImageMapper() {
     }
 

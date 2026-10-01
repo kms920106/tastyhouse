@@ -17,6 +17,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewBlindReque
 
 @Repository
 public class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersistencePort {
+
     private static final List<String> TERMINATED_STATUSES = List.of(
         ReviewBlindStatus.APPROVED.name(),
         ReviewBlindStatus.REJECTED.name(),

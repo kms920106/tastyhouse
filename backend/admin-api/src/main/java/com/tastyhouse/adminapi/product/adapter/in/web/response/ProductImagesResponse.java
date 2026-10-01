@@ -9,6 +9,7 @@ public record ProductImagesResponse(
     @Schema(description = "이미지 접근 URL 목록")
     List<String> imageUrls
 ) {
+
     public static ProductImagesResponse from(List<String> imageUrls) {
         return new ProductImagesResponse(imageUrls);
     }

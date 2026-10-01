@@ -16,6 +16,7 @@ public record ShopRequestImageChangeResponse(
     @Schema(description = "요청한 이미지 URL", example = "https://storage.example.com/2026/08/trademark.png")
     String imageUrl
 ) {
+
     public static ShopRequestImageChangeResponse from(ShopRequestImageChangeDetailResult result) {
         return new ShopRequestImageChangeResponse(
             result.imageType(),

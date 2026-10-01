@@ -11,6 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 
 final class ShopCodeDescriptions {
+
     private ShopCodeDescriptions() {
     }
 

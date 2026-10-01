@@ -23,6 +23,7 @@ public record ScheduledOrderSlotsResponse(
     @Schema(description = "예약 가능 슬롯 목록. 시작 시각 오름차순이며, 예약할 수 없으면 빈 배열입니다.")
     List<ScheduledOrderSlotItemResponse> slots
 ) {
+
     public static ScheduledOrderSlotsResponse from(ScheduledOrderSlotsViewResult result) {
         return new ScheduledOrderSlotsResponse(
             result.available(),

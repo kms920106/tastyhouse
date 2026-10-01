@@ -22,6 +22,7 @@ public record ShopDeliveryAreaItemResponse(
     )
     String source
 ) {
+
     public static ShopDeliveryAreaItemResponse from(ShopDeliveryAreaItemResult result) {
         return new ShopDeliveryAreaItemResponse(
             result.id(),

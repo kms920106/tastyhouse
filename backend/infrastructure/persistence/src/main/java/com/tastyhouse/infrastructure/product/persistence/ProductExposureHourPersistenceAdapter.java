@@ -10,6 +10,7 @@ import com.tastyhouse.application.product.port.out.write.ProductExposureHourPers
 
 @Repository
 public class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersistencePort {
+
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;
 
     public ProductExposureHourPersistenceAdapter(ProductExposureHourJpaRepository productExposureHourJpaRepository) {

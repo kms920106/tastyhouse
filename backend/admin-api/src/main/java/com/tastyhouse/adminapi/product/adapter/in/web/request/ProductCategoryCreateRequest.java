@@ -24,6 +24,7 @@ public record ProductCategoryCreateRequest(
     @Schema(description = "노출 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
+
     public ProductCategoryManagementCreateCommand toCommand() {
         return new ProductCategoryManagementCreateCommand(shopId, name, sort, visible);
     }

@@ -31,6 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRiderGuideApiController {
+
     private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;
 

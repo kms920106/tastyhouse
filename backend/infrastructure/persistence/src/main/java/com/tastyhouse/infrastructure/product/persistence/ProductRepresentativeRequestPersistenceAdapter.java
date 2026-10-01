@@ -14,6 +14,7 @@ import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRe
 
 @Repository
 public class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestPersistencePort {
+
     private final ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository;
 
     public ProductRepresentativeRequestPersistenceAdapter(

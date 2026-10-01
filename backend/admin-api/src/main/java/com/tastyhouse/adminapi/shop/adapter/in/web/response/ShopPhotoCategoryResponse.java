@@ -12,6 +12,7 @@ public record ShopPhotoCategoryResponse(
     @Schema(description = "포토 카테고리명", example = "가게 외관")
     String name
 ) {
+
     public static ShopPhotoCategoryResponse from(ShopPhotoCategoryResult result) {
         return new ShopPhotoCategoryResponse(
             result.id(),

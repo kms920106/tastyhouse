@@ -27,6 +27,7 @@ public record ShopBookmarkListItemResponse(
     @Schema(description = "북마크(찜) 여부", example = "true")
     boolean bookmarked
 ) {
+
     public static ShopBookmarkListItemResponse from(ShopBookmarkedItemResult result) {
         return new ShopBookmarkListItemResponse(
             result.shopId(),

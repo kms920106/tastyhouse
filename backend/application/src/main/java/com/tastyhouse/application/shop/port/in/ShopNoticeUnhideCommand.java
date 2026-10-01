@@ -7,6 +7,7 @@ public record ShopNoticeUnhideCommand(
     Long adminId,
     Long noticeId
 ) {
+
     public ShopNoticeUnhideCommand {
         if (adminId == null || noticeId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

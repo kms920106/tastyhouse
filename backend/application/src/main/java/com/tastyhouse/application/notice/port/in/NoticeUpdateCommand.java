@@ -9,6 +9,7 @@ public record NoticeUpdateCommand(
     String content,
     boolean visible
 ) {
+
     public NoticeUpdateCommand {
         if (noticeId == null || title == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

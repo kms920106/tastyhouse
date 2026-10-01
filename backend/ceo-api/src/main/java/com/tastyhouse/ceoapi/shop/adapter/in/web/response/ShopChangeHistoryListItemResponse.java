@@ -39,6 +39,7 @@ public record ShopChangeHistoryListItemResponse(
     @Schema(description = "변경 일시", example = "2026-08-11T19:46:03")
     LocalDateTime changedAt
 ) {
+
     public static ShopChangeHistoryListItemResponse from(ShopChangeHistoryResult result) {
         return new ShopChangeHistoryListItemResponse(
             result.id(),

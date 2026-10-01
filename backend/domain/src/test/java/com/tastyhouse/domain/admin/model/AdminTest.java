@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AdminTest {
+
     @Test
     @DisplayName("create로 생성하면 미영속 상태(식별자 없음)이고 상태는 ACTIVE다")
     void create_createsTransientActiveAdmin() {

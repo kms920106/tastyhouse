@@ -26,6 +26,7 @@ public record CeoReplyPhraseCreateRequest(
     )
     String content
 ) {
+
     public CeoReplyPhraseCreateCommand toCommand(Long ceoId) {
         return new CeoReplyPhraseCreateCommand(ceoId, name, content);
     }

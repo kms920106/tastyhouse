@@ -12,6 +12,7 @@ public record StationResponse(
     @Schema(description = "지하철역 이름", example = "강남역")
     String stationName
 ) {
+
     public static StationResponse from(StationResult result) {
         return new StationResponse(
             result.id(),

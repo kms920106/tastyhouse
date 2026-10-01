@@ -23,6 +23,7 @@ public record NoticeListItemResponse(
     @Schema(description = "생성일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
+
     public static NoticeListItemResponse from(NoticeManagementListItemResult result) {
         return new NoticeListItemResponse(
             result.id(),

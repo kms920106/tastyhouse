@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PaymentTest {
+
     private static final OrderId ORDER_ID = OrderId.of(1L);
 
     private Payment newPayment() {

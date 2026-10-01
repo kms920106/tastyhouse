@@ -9,6 +9,7 @@ public record GeoPointCommand(
     BigDecimal latitude,
     BigDecimal longitude
 ) {
+
     public GeoPointCommand {
         if (latitude == null || longitude == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

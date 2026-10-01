@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class ShopNoticeImage {
+
     private final Long id;
     private final Long shopNoticeId;
     private final UploadedFileId imageFileId;

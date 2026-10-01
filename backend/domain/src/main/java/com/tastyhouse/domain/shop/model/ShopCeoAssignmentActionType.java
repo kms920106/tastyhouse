@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ShopCeoAssignmentActionType {
+
     GRANT("권한 부여"),
     REVOKE("권한 말소");
 

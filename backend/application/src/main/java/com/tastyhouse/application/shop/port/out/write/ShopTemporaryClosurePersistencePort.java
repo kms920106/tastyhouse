@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 
 public interface ShopTemporaryClosurePersistencePort {
+
     ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure);
 
     List<ShopTemporaryClosure> findByShopId(Long shopId);

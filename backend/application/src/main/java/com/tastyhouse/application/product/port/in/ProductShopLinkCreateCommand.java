@@ -9,6 +9,7 @@ public record ProductShopLinkCreateCommand(
     Long targetShopId,
     Long productCategoryId
 ) {
+
     public ProductShopLinkCreateCommand {
         if (ceoId == null
             || productId == null

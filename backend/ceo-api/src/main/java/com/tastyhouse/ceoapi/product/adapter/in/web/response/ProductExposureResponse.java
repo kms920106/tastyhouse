@@ -26,6 +26,7 @@ public record ProductExposureResponse(
             "AFTER_EXPOSURE_PERIOD", "OUT_OF_EXPOSURE_HOURS"})
     String hiddenReason
 ) {
+
     public static ProductExposureResponse from(ProductExposureViewResult result) {
         return new ProductExposureResponse(
             result.startDate(),

@@ -28,6 +28,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopOrderMethodJpa
 
 @Repository
 public class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ShopBusinessHourJpaRepository shopBusinessHourJpaRepository;
     private final ShopBreakTimeJpaRepository shopBreakTimeJpaRepository;

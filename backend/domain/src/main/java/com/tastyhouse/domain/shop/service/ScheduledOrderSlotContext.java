@@ -23,6 +23,7 @@ public record ScheduledOrderSlotContext(
     List<ShopSuspension> suspensions,
     List<ShopOrderMethod> shopOrderMethods
 ) {
+
     public ScheduledOrderSlotContext {
         businessHours = businessHours == null ? List.of() : List.copyOf(businessHours);
         breakTimes = breakTimes == null ? List.of() : List.copyOf(breakTimes);

@@ -26,6 +26,7 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QMemberCouponJpaE
 
 @Repository
 public class CouponQueryAdapter implements CouponQueryPort, CouponManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public CouponQueryAdapter(JPAQueryFactory queryFactory) {

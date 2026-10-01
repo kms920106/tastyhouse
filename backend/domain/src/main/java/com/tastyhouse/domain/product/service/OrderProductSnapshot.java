@@ -17,6 +17,7 @@ public record OrderProductSnapshot(
     Integer discountPrice,
     List<OrderProductOptionSnapshot> options
 ) {
+
     public OrderProductSnapshot {
         options = options == null ? List.of() : List.copyOf(options);
     }

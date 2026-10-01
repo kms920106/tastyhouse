@@ -17,6 +17,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 
 public class ShopDeliveryTipCalculator {
+
     public ShopDeliveryTipBreakdown calculate(ShopDeliveryTipContext context) {
         if (context == null || context.orderMethod() != OrderMethod.DELIVERY) {
             return ShopDeliveryTipBreakdown.none();

@@ -4,6 +4,7 @@ public record MailSendResult(
     boolean success,
     Throwable cause
 ) {
+
     public static MailSendResult sent() {
         return new MailSendResult(true, null);
     }

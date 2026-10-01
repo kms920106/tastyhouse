@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryTipSetting {
+
     private final Long id;
     private final ShopId shopId;
     private DeliveryTipExtraType extraTipType;

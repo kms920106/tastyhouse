@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReferralRewardCompletionServiceTest {
+
     private final FakeMemberReferralPersistencePort referralPersistencePort = new FakeMemberReferralPersistencePort();
     private final ReferralRewardCompletionService service =
         new ReferralRewardCompletionService(referralPersistencePort);

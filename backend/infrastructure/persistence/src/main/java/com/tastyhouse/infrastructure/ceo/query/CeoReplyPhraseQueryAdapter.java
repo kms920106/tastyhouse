@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoReplyPhraseJpaEn
 
 @Repository
 public class CeoReplyPhraseQueryAdapter implements CeoReplyPhraseQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public CeoReplyPhraseQueryAdapter(JPAQueryFactory queryFactory) {

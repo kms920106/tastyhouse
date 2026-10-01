@@ -37,6 +37,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QTagJpaEntity.tagJp
 
 @Repository
 public class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceManagementQueryPort {
+
     private static final QProductImageJpaEntity subProductImage = new QProductImageJpaEntity("subProductImage");
 
     private final JPAQueryFactory queryFactory;

@@ -9,6 +9,7 @@ public record ReviewOwnerReplyCreateCommand(
     Long reviewId,
     String content
 ) {
+
     public ReviewOwnerReplyCreateCommand {
         if (ceoId == null || shopId == null || reviewId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

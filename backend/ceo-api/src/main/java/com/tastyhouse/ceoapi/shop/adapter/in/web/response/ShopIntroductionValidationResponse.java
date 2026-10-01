@@ -14,6 +14,7 @@ public record ShopIntroductionValidationResponse(
     @Schema(description = "발견된 금칙어 목록")
     List<String> violations
 ) {
+
     public static ShopIntroductionValidationResponse from(ShopIntroductionValidationResult result) {
         return new ShopIntroductionValidationResponse(result.valid(), result.violations());
     }

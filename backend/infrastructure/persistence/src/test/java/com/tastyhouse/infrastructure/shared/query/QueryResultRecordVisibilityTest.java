@@ -16,6 +16,7 @@ import org.springframework.util.ClassUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueryResultRecordVisibilityTest {
+
     private static final List<String> QUERY_PACKAGE_PATTERNS = List.of(
         "classpath*:com/tastyhouse/infrastructure/**/query/*.class",
         "classpath*:com/tastyhouse/application/**/port/out/*.class");

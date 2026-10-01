@@ -8,6 +8,7 @@ public record ShopStorePriceVerificationRequestCommand(
     Long shopId,
     String items
 ) {
+
     public ShopStorePriceVerificationRequestCommand {
         if (ceoId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

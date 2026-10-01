@@ -79,6 +79,7 @@ import com.tastyhouse.application.shop.service.StorePriceVerificationAdapter;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class ShopServiceConfig {
+
     @Bean
     public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordPersistencePort prohibitedWordPersistencePort) {
         return new ProhibitedWordValidator(new CachingProhibitedWordPersistencePort(prohibitedWordPersistencePort));

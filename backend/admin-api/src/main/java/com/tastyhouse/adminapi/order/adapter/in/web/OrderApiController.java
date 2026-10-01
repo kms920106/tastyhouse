@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemRespon
 @RestController
 @RequestMapping("/api/orders")
 public class OrderApiController {
+
     private final OrderManagementCommandUseCase orderCommandUseCase;
     private final OrderManagementQueryUseCase orderQueryUseCase;
 

@@ -27,6 +27,7 @@ public record ShopBusinessHourItem(
     @Schema(description = "24시간 영업 여부", example = "false")
     boolean is24Hours
 ) {
+
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     public static ShopBusinessHourItem from(ShopBusinessHourResult result) {

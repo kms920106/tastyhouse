@@ -8,6 +8,7 @@ public record ShopOrderNoticeUpsertCommand(
     Long shopId,
     String content
 ) {
+
     public ShopOrderNoticeUpsertCommand {
         if (ceoId == null || shopId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

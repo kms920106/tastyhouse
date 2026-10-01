@@ -6,6 +6,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class OrderProductMapper {
+
     private OrderProductMapper() {
     }
 

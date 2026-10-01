@@ -6,6 +6,7 @@ import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.vo.BannerId;
 
 public interface BannerPersistencePort {
+
     Optional<Banner> findById(BannerId id);
 
     Banner save(Banner banner);

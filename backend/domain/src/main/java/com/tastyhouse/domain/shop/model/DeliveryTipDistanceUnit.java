@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum DeliveryTipDistanceUnit {
+
     PER_100M(100, 100, 300),
 
     PER_500M(500, 100, 1500);

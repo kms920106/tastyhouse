@@ -8,6 +8,7 @@ public record ShopMinOrderAmountUpdateCommand(
     Long shopId,
     Integer minOrderAmount
 ) {
+
     public ShopMinOrderAmountUpdateCommand {
         if (ceoId == null || shopId == null || minOrderAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

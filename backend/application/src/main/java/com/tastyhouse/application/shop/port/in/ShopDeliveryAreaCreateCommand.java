@@ -8,6 +8,7 @@ public record ShopDeliveryAreaCreateCommand(
     Long shopId,
     Long adminDongId
 ) {
+
     public ShopDeliveryAreaCreateCommand {
         if (ceoId == null || shopId == null || adminDongId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

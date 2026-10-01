@@ -11,6 +11,7 @@ public record PgConfirmation(
     Integer installmentMonths,
     String receiptUrl
 ) {
+
     public static PgConfirmation of(
         PgProvider pgProvider,
         String pgTid,

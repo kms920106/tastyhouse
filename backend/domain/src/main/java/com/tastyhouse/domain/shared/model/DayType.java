@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum DayType {
+
     DAILY("매일", null),
     WEEKDAY("평일", null),
     WEEKEND("주말", null),

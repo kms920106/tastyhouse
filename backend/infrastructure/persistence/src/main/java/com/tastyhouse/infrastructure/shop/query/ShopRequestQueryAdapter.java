@@ -36,6 +36,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopRequestIndexJp
 
 @Repository
 public class ShopRequestQueryAdapter implements ShopRequestQueryPort, ShopRequestManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

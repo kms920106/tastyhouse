@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopRequestIndexMapper {
+
     private ShopRequestIndexMapper() {
     }
 

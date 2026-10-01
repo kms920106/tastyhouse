@@ -18,6 +18,7 @@ public record ShopChangeCategoryResponse(
     @Schema(description = "이 대분류에 속한 중분류 목록")
     List<ShopChangeTypeResponse> changeTypes
 ) {
+
     public static ShopChangeCategoryResponse from(ShopChangeCategoryResult result) {
         return new ShopChangeCategoryResponse(
             result.category(),

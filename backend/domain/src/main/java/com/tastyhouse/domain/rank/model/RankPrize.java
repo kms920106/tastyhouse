@@ -7,6 +7,7 @@ import com.tastyhouse.domain.rank.vo.RankPeriodId;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
 
 public class RankPrize {
+
     private final Long id;
     private final RankPeriodId rankId;
     private Integer prizeRank;

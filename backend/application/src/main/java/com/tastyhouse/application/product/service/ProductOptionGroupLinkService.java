@@ -20,6 +20,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductOptionGroupLinkService {
+
     private final ProductOptionGroupLinkPersistencePort linkPersistencePort;
     private final ProductPersistencePort productPersistencePort;
 

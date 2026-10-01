@@ -22,6 +22,7 @@ public record ProductShopLinkResponse(
     @Schema(description = "이 메뉴가 해당 가게에 연결되어 있는지", example = "true")
     boolean linked
 ) {
+
     public static ProductShopLinkResponse from(ProductShopLinkResult result) {
         return new ProductShopLinkResponse(
             result.shopId(),

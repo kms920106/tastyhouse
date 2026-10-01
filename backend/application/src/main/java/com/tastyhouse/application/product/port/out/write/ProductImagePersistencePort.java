@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public interface ProductImagePersistencePort {
+
     UploadedFileId findRepresentativeImageFileId(ProductId productId);
 
     ProductImage save(ProductImage productImage);

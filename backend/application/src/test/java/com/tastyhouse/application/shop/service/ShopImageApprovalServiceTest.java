@@ -28,6 +28,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopImageApprovalServiceTest {
+
     private static final Long SHOP_ID = 1L;
 
     private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
@@ -35,6 +36,7 @@ class ShopImageApprovalServiceTest {
     private ShopImageApprovalService shopImageApprovalService;
 
     private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
+
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
 
@@ -76,6 +78,7 @@ class ShopImageApprovalServiceTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopPersistencePort() {

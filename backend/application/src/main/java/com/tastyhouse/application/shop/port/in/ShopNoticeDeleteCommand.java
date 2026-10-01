@@ -8,6 +8,7 @@ public record ShopNoticeDeleteCommand(
     Long shopId,
     Long noticeId
 ) {
+
     public ShopNoticeDeleteCommand {
         if (ceoId == null || shopId == null || noticeId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

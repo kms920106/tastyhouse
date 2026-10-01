@@ -12,6 +12,7 @@ import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 public class ShopOrderAvailabilityService {
+
     private final ShopOperatingStatusService shopOperatingStatusService;
     private final ShopDetailPersistencePort shopDetailPersistencePort;
 

@@ -10,6 +10,7 @@ import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersi
 
 @Repository
 public class MemberSocialAccountPersistenceAdapter implements MemberSocialAccountPersistencePort {
+
     private final MemberSocialAccountJpaRepository memberSocialAccountJpaRepository;
 
     public MemberSocialAccountPersistenceAdapter(MemberSocialAccountJpaRepository memberSocialAccountJpaRepository) {

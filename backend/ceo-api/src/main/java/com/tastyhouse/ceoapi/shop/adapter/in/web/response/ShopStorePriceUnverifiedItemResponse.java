@@ -16,6 +16,7 @@ public record ShopStorePriceUnverifiedItemResponse(
         allowableValues = {"DELIVERY_PRICE_HIGHER_THAN_STORE", "STORE_PRICE_NOT_REGISTERED"})
     String reason
 ) {
+
     public static ShopStorePriceUnverifiedItemResponse from(
         ShopStorePriceVerificationViewResult.UnverifiedItem item
     ) {

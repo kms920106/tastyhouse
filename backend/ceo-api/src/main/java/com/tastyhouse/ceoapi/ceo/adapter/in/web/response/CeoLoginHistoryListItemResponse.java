@@ -37,6 +37,7 @@ public record CeoLoginHistoryListItemResponse(
     @Schema(description = "로그인 시각", example = "2026-08-14T09:12:41")
     LocalDateTime loggedInAt
 ) {
+
     public static CeoLoginHistoryListItemResponse from(CeoLoginHistoryResult result) {
         return new CeoLoginHistoryListItemResponse(
             result.id(),

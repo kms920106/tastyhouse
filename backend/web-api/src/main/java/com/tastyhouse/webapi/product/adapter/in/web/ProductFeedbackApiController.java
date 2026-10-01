@@ -22,6 +22,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreat
 @RestController
 @RequestMapping("/api/products")
 public class ProductFeedbackApiController {
+
     private final ProductFeedbackCommandUseCase productFeedbackCommandUseCase;
 
     public ProductFeedbackApiController(ProductFeedbackCommandUseCase productFeedbackCommandUseCase) {

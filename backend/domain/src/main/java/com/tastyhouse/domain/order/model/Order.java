@@ -13,6 +13,7 @@ import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class Order {
+
     private final Long id;
     private final MemberId memberId;
     private final ShopId shopId;

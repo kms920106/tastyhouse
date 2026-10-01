@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopOrderNoticeUnhideCommand(
     Long shopId
 ) {
+
     public ShopOrderNoticeUnhideCommand {
         if (shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

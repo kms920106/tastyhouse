@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRiderGuideHistoryTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태이고 점주 변경 이력을 담는다")
     void of_createsTransientHistory() {

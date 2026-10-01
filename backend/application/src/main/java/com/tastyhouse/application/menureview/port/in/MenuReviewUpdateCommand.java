@@ -9,6 +9,7 @@ public record MenuReviewUpdateCommand(
     Integer rating,
     String comment
 ) {
+
     public MenuReviewUpdateCommand {
         if (memberId == null || menuReviewId == null || rating == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

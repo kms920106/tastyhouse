@@ -10,6 +10,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductFeedbackReadTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final LocalDateTime EARLIER = LocalDateTime.of(2026, 3, 1, 12, 0);
     private static final LocalDateTime LATER = LocalDateTime.of(2026, 3, 1, 13, 0);

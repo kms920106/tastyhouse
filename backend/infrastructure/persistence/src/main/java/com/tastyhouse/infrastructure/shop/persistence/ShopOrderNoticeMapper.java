@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopOrderNoticeId;
 
 final class ShopOrderNoticeMapper {
+
     private ShopOrderNoticeMapper() {
     }
 

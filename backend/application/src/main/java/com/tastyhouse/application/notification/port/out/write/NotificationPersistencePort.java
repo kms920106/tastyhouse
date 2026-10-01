@@ -8,6 +8,7 @@ import com.tastyhouse.domain.notification.model.Notification;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 
 public interface NotificationPersistencePort {
+
     Optional<Notification> findById(NotificationId notificationId);
 
     List<Notification> findUnreadByMemberId(MemberId memberId);

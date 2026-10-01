@@ -24,6 +24,7 @@ public record ShopHygieneBadgeResponse(
     @Schema(description = "세스코 최근 점검월 (\"2026-03\" 형태, nullable)", example = "2026-03")
     String lastInspectionMonth
 ) {
+
     public static ShopHygieneBadgeResponse from(ShopHygieneBadgeResult result) {
         return new ShopHygieneBadgeResponse(
             result.id(),

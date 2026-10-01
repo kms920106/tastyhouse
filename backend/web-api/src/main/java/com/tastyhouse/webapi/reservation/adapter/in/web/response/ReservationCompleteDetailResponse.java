@@ -23,6 +23,7 @@ public record ReservationCompleteDetailResponse(
     @Schema(description = "방문 인원수", example = "4")
     Integer partySize
 ) {
+
     public static ReservationCompleteDetailResponse from(ReservationCompleteDetailResult result) {
         return new ReservationCompleteDetailResponse(
             result.id(),

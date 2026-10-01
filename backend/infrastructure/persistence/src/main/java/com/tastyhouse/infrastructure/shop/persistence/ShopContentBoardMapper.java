@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopContentBoardMapper {
+
     private ShopContentBoardMapper() {
     }
 

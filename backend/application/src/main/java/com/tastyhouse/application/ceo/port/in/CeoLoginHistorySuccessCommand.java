@@ -8,6 +8,7 @@ public record CeoLoginHistorySuccessCommand(
     String ipAddress,
     String userAgent
 ) {
+
     public CeoLoginHistorySuccessCommand {
         if (ceoId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

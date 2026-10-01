@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 
 final class EventWinnerMapper {
+
     private EventWinnerMapper() {
     }
 

@@ -18,6 +18,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductReviewStatsServiceTest {
+
     private static final Long PRODUCT_ID = 7L;
 
     @Test
@@ -102,6 +103,7 @@ class ProductReviewStatsServiceTest {
     }
 
     private static final class ProductPersistencePortStub implements ProductPersistencePort {
+
         private final Product product;
         private final List<Product> saved = new ArrayList<>();
 
@@ -175,6 +177,7 @@ class ProductReviewStatsServiceTest {
         Long count,
         Double averageRating
     ) implements ProductReviewStatisticsPort {
+
         @Override
         public Long countVisibleMenuReviewsByProductId(Long productId) {
             return count;

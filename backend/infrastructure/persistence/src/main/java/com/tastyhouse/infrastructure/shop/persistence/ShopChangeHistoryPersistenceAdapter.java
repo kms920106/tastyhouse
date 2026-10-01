@@ -7,6 +7,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersisten
 
 @Repository
 public class ShopChangeHistoryPersistenceAdapter implements ShopChangeHistoryPersistencePort {
+
     private final ShopChangeHistoryJpaRepository shopChangeHistoryJpaRepository;
 
     public ShopChangeHistoryPersistenceAdapter(ShopChangeHistoryJpaRepository shopChangeHistoryJpaRepository) {

@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductRepresentativeApprovalServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Test
@@ -260,6 +261,7 @@ class ProductRepresentativeApprovalServiceTest {
         FakeProductPersistencePort productPersistencePort,
         FakeRepresentativeRequestPersistencePort requestPersistencePort
     ) {
+
         ProductRepresentativeRequest givenPendingRequest() {
             Long requestId = 1L;
             ProductRepresentativeRequest request = ProductRepresentativeRequest.reconstitute(
@@ -270,6 +272,7 @@ class ProductRepresentativeApprovalServiceTest {
     }
 
     private static final class FakeProductPersistencePort implements ProductPersistencePort {
+
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private long visibleRepresentativeCount;
         private Long totalRepresentativeCount;
@@ -348,6 +351,7 @@ class ProductRepresentativeApprovalServiceTest {
 
     private static final class FakeRepresentativeRequestPersistencePort
         implements ProductRepresentativeRequestPersistencePort {
+
         private final Map<Long, ProductRepresentativeRequest> byId = new LinkedHashMap<>();
         private final List<ProductRepresentativeRequest> saved = new ArrayList<>();
         private long pendingCount;
@@ -397,6 +401,7 @@ class ProductRepresentativeApprovalServiceTest {
     }
 
     private static final class FakeProductImagePersistencePort implements ProductImagePersistencePort {
+
         private final List<Long> productIdsWithImage;
 
         private FakeProductImagePersistencePort(List<Long> productIdsWithImage) {

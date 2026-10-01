@@ -21,6 +21,7 @@ public record ProductReviewStatisticsResponse(
     @Schema(description = "가격 평점", example = "3.9")
     Double averagePriceRating
 ) {
+
     public static ProductReviewStatisticsResponse from(ProductReviewStatisticsView view) {
         return new ProductReviewStatisticsResponse(
             view.totalRating(),

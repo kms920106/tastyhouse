@@ -15,6 +15,7 @@ public record ReservationCreateCommand(
     String request,
     Boolean agreedRequiredTerms
 ) {
+
     public ReservationCreateCommand {
         if (memberId == null || shopId == null || reservationDate == null
             || reservationTime == null || partySize == null || agreedRequiredTerms == null) {

@@ -20,6 +20,7 @@ public record PointHistoryItemResponse(
     @Schema(description = "포인트 유형 (EARNED: 적립, USE: 사용, REFUND: 환불)", example = "EARNED")
     String pointType
 ) {
+
     public static PointHistoryItemResponse from(PointHistoryItemViewResult result) {
         return new PointHistoryItemResponse(
             result.reason(),

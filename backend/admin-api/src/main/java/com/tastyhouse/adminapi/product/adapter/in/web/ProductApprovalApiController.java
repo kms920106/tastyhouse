@@ -39,6 +39,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarian
 @RestController
 @RequestMapping("/api/products")
 public class ProductApprovalApiController {
+
     private final ProductApprovalQueryUseCase productApprovalQueryUseCase;
     private final ProductApprovalCommandUseCase productApprovalCommandUseCase;
 

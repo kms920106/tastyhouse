@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRiderGuideTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태이고 문구·픽업 위치가 모두 비어 있다")
     void of_createsEmptyTransientRiderGuide() {

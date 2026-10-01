@@ -20,6 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopHygieneBadgeRespon
 @RestController
 @RequestMapping("/api/shops")
 public class ShopHygieneBadgeApiController {
+
     private final ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryUseCase;
 
     public ShopHygieneBadgeApiController(ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryUseCase) {

@@ -30,6 +30,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
 @RestController
 @RequestMapping("/api/shops")
 public class ShopSuspensionApiController {
+
     private final ShopSuspensionQueryUseCase shopSuspensionQueryUseCase;
     private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;
 

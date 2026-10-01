@@ -12,6 +12,7 @@ import com.tastyhouse.infrastructure.search.query.SearchQueryAdapter;
 
 @Component
 public class KeywordCountAdapter implements KeywordCountPort {
+
     private final SearchQueryAdapter searchQueryAdapter;
 
     public KeywordCountAdapter(SearchQueryAdapter searchQueryAdapter) {

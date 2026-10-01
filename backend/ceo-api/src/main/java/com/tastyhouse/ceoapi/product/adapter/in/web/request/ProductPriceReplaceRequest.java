@@ -20,6 +20,7 @@ public record ProductPriceReplaceRequest(
     @Schema(description = "가격 목록(전체 교체 — 담기지 않은 기존 행은 삭제됩니다)", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ProductPriceItemRequest> prices
 ) {
+
     public ProductPriceReplaceCommand toCommand(Long ceoId, Long productId) {
         return new ProductPriceReplaceCommand(
             ceoId,

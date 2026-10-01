@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public record RankPrizeDeleteCommand(Long rankPrizeId) {
+
     public RankPrizeDeleteCommand {
         if (rankPrizeId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

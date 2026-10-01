@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public record BannerDeleteCommand(Long bannerId) {
+
     public BannerDeleteCommand {
         if (bannerId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -16,6 +16,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     uniqueConstraints = @UniqueConstraint(name = "uk_shop_order_notice_shop_id", columnNames = "shop_id")
 )
 public class ShopOrderNoticeJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

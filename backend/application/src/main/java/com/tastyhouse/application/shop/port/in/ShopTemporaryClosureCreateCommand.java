@@ -11,6 +11,7 @@ public record ShopTemporaryClosureCreateCommand(
     LocalDate startDate,
     LocalDate endDate
 ) {
+
     public ShopTemporaryClosureCreateCommand {
         if (ceoId == null || shopId == null || startDate == null || endDate == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

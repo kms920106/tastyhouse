@@ -6,6 +6,7 @@ import com.tastyhouse.domain.banner.vo.BannerId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 public class Banner {
+
     private final Long id;
     private BannerType type;
     private String title;

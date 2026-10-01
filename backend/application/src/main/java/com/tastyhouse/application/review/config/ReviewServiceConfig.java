@@ -22,6 +22,7 @@ import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class ReviewServiceConfig {
+
     @Bean
     public ReviewLifecycleService reviewLifecycleService(
         ReviewPersistencePort reviewPersistencePort,

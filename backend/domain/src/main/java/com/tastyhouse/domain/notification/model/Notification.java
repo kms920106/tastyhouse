@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class Notification {
+
     private final Long id;
     private final MemberId memberId;
     private final NotificationType type;

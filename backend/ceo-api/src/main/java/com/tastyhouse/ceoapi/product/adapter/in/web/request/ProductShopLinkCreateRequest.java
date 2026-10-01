@@ -13,6 +13,7 @@ public record ProductShopLinkCreateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     Long productCategoryId
 ) {
+
     public ProductShopLinkCreateCommand toCommand(Long ceoId, Long productId, Long targetShopId) {
         return new ProductShopLinkCreateCommand(ceoId, productId, targetShopId, productCategoryId);
     }

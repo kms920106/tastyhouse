@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopDeliveryTipPersistencePort {
+
     Optional<ShopDeliveryTipSetting> findSettingByShopId(ShopId shopId);
 
     ShopDeliveryTipSetting saveSetting(ShopDeliveryTipSetting setting);

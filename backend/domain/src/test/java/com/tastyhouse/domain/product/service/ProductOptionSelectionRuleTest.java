@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductOptionSelectionRuleTest {
+
     @Test
     @DisplayName("★ 잔여 하한은 max(minSelect, maxSelect, 1)이다")
     void minRemaining_isMaxOfBounds() {

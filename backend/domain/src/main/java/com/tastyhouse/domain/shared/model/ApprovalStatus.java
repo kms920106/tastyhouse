@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shared.model;
 
 public enum ApprovalStatus {
+
     PENDING("대기"),
     APPROVED("승인"),
     REJECTED("반려"),

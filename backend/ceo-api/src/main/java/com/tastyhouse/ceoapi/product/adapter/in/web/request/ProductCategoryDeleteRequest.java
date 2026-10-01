@@ -11,6 +11,7 @@ public record ProductCategoryDeleteRequest(
     @Schema(description = "대상 가게 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long shopId
 ) {
+
     public ProductCategoryDeleteCommand toCommand(Long ceoId, Long productCategoryId) {
         return new ProductCategoryDeleteCommand(ceoId, productCategoryId, shopId);
     }

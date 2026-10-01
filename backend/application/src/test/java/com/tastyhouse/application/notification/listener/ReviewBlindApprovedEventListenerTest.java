@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ReviewBlindApprovedEventListenerTest {
+
     private static final ReviewId REVIEW_ID = ReviewId.of(482L);
     private static final MemberId REVIEWER_MEMBER_ID = MemberId.of(42L);
     private static final ReviewBlindRequestId BLIND_REQUEST_ID = ReviewBlindRequestId.of(93L);

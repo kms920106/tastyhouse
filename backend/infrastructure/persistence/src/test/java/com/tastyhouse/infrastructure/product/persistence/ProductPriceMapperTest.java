@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 class ProductPriceMapperTest {
+
     private static final LocalDateTime SET_AT = LocalDateTime.of(2026, 3, 1, 15, 0);
 
     @Test

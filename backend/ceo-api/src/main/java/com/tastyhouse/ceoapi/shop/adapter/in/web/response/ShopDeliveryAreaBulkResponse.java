@@ -18,6 +18,7 @@ public record ShopDeliveryAreaBulkResponse(
     @Schema(description = "반영 후 이 가게의 총 배달가능지역 개수", example = "42")
     int totalCount
 ) {
+
     public static ShopDeliveryAreaBulkResponse from(ShopDeliveryAreaBulkResult result) {
         return new ShopDeliveryAreaBulkResponse(
             result.requestedCount(),

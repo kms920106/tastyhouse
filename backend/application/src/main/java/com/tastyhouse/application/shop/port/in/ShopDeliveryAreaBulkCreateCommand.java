@@ -10,6 +10,7 @@ public record ShopDeliveryAreaBulkCreateCommand(
     Long shopId,
     List<Long> adminDongIds
 ) {
+
     public ShopDeliveryAreaBulkCreateCommand {
         if (ceoId == null || shopId == null || adminDongIds == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

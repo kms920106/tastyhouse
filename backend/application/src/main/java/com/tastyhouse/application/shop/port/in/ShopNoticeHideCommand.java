@@ -8,6 +8,7 @@ public record ShopNoticeHideCommand(
     Long noticeId,
     String reason
 ) {
+
     public ShopNoticeHideCommand {
         if (adminId == null || noticeId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -7,6 +7,7 @@ public record ShopDeliveryTipRegionCommand(
     Long adminDongId,
     Integer tipAmount
 ) {
+
     public ShopDeliveryTipRegionCommand {
         if (adminDongId == null || tipAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

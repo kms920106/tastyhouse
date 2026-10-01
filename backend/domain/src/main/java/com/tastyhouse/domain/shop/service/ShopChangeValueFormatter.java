@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public final class ShopChangeValueFormatter {
+
     private static final int MAX_SNAPSHOT_ITEMS = 20;
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");

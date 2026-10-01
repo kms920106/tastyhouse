@@ -35,6 +35,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionPersistenc
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductAvailabilityService {
+
     private static final long MIN_SOLD_OUT_MINUTES = 30L;
 
     private static final long MAX_SOLD_OUT_DAYS = 7L;

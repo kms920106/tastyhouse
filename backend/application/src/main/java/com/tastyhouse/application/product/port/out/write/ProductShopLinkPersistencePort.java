@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductShopLinkPersistencePort {
+
     ProductShopLink save(ProductShopLink link);
 
     Optional<ProductShopLink> findByProductIdAndShopId(ProductId productId, ShopId shopId);

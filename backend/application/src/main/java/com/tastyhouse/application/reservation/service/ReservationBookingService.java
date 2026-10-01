@@ -23,6 +23,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 
 public class ReservationBookingService {
+
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final ReservationPersistencePort reservationPersistencePort;

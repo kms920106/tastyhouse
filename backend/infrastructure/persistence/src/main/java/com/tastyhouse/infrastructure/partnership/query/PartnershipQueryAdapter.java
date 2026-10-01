@@ -21,6 +21,7 @@ import static com.tastyhouse.infrastructure.partnership.persistence.QPartnership
 
 @Repository
 public class PartnershipQueryAdapter implements PartnershipQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public PartnershipQueryAdapter(JPAQueryFactory queryFactory) {

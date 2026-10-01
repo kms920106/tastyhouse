@@ -32,6 +32,7 @@ public record ShopRiderGuideResponse(
         example = "2026-08-08T21:02:00")
     LocalDateTime updatedAt
 ) {
+
     public static ShopRiderGuideResponse from(ShopRiderGuideResult result) {
         return new ShopRiderGuideResponse(
             result.visitGuide(),

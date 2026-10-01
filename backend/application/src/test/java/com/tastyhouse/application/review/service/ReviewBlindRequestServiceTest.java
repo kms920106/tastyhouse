@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class ReviewBlindRequestServiceTest {
+
     private static final Long SHOP_ID = 1L;
     private static final Long CEO_ID = 7L;
     private static final Long REVIEWER_MEMBER_ID = 42L;
@@ -100,6 +101,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("1회 제한")
     class OnceOnly {
+
         @Test
         @DisplayName("종결된 요청이 있으면 재신청할 수 없다 — 승인 후")
         void cannotRequestAgainAfterApproved() {
@@ -151,6 +153,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("승인")
     class Approve {
+
         @Test
         @DisplayName("승인하면 재노출 기한이 승인 시각 + 30일로 설정되고 리뷰가 숨겨진다")
         void approveSetsBlindUntilAndHidesReview() {
@@ -187,6 +190,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("고객 삭제 동의")
     class ConsentToDelete {
+
         @Test
         @DisplayName("동의하면 요청이 삭제 처리로 종결되고 리뷰가 삭제된다")
         void consentDeletesReview() {
@@ -258,6 +262,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("만료 재노출")
     class Expire {
+
         @Test
         @DisplayName("만료하면 요청이 재노출 상태가 되고 리뷰 숨김이 풀린다")
         void expireUnhidesReview() {
@@ -303,6 +308,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("요청처리 현황 인덱스 동기화")
     class IndexSync {
+
         @Test
         @DisplayName("만료 재노출은 통합 현황에서 종결(승인)로 보인다")
         void expiredMapsToApproved() {
@@ -345,6 +351,7 @@ class ReviewBlindRequestServiceTest {
     @Nested
     @DisplayName("증빙 서류 첨부")
     class Attachments {
+
         @Test
         @DisplayName("첨부 파일에 1부터 순번이 부여된다")
         void attachmentsGetSequentialSort() {

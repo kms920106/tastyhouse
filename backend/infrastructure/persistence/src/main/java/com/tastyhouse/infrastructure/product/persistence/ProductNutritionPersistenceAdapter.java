@@ -10,6 +10,7 @@ import com.tastyhouse.application.product.port.out.write.ProductNutritionPersist
 
 @Repository
 public class ProductNutritionPersistenceAdapter implements ProductNutritionPersistencePort {
+
     private final ProductNutritionJpaRepository productNutritionJpaRepository;
 
     public ProductNutritionPersistenceAdapter(ProductNutritionJpaRepository productNutritionJpaRepository) {

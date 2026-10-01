@@ -27,6 +27,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequ
 @RestController
 @RequestMapping("/api/products")
 public class ProductRepresentativeApiController {
+
     private final ProductRepresentativeCommandUseCase productRepresentativeCommandUseCase;
 
     public ProductRepresentativeApiController(

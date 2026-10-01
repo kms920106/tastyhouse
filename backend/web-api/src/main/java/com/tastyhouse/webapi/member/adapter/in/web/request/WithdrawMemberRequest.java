@@ -16,6 +16,7 @@ public record WithdrawMemberRequest(
     @Schema(description = "탈퇴 상세 사유 (선택)", example = "서비스를 자주 이용하지 않게 되었습니다.")
     String reasonDetail
 ) {
+
     public MemberWithdrawCommand toCommand(Long memberId) {
         return new MemberWithdrawCommand(
             memberId,

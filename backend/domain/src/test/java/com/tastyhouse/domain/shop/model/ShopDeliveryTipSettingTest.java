@@ -14,11 +14,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryTipSettingTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     @Nested
     @DisplayName("changeToDistance - 기본배달거리")
     class BaseDistance {
+
         @ParameterizedTest(name = "기본배달거리 {0}m는 통과한다")
         @ValueSource(ints = {1000, 1500, 2000, 2500, 3000})
         @DisplayName("허용값(1/1.5/2/2.5/3km)은 통과한다")
@@ -47,6 +49,7 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("changeToDistance - 단위별 할증 범위")
     class SurchargeRange {
+
         @ParameterizedTest(name = "PER_100M {0}원은 통과한다")
         @ValueSource(ints = {100, 200, 300})
         @DisplayName("PER_100M은 100~300원을 허용한다")
@@ -97,6 +100,7 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("calculateDistanceSurcharge")
     class CalculateDistanceSurcharge {
+
         @Test
         @DisplayName("PDF 예시: 설정이 달라도 둘 다 3km 배달 시 기본팁 포함 4,000원이 된다")
         void calculateDistanceSurcharge_pdfGoldenCases() {
@@ -155,6 +159,7 @@ class ShopDeliveryTipSettingTest {
     @Nested
     @DisplayName("전환 메서드")
     class Transition {
+
         @Test
         @DisplayName("of는 추가 배달팁 미사용(NONE) 상태로 시작한다")
         void of_startsWithNoExtraTip() {

@@ -25,6 +25,7 @@ import static com.tastyhouse.infrastructure.file.persistence.QUploadedFileJpaEnt
 
 @Repository
 public class BannerQueryAdapter implements BannerQueryPort, BannerManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

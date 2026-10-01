@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ShopChangeCategory {
+
     OPERATION("운영 정보"),
     DELIVERY("배달 정보"),
     SHOP_INFO("가게 정보"),

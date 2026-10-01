@@ -18,6 +18,7 @@ public record GradeInfoListItemResponse(
     @Schema(description = "해당 등급 최대 리뷰 개수 (최고 등급은 null)", example = "699")
     Integer maxReviewCount
 ) {
+
     public static GradeInfoListItemResponse from(GradeInfoResult result) {
         return new GradeInfoListItemResponse(
             result.grade(),

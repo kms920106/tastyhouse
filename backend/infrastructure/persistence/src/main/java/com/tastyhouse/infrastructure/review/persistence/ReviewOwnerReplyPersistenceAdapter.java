@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewOwnerReply
 
 @Repository
 public class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository;
 

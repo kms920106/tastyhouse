@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.event.persistence.QEventAnnouncement
 
 @Repository
 public class EventAnnouncementPersistenceAdapter implements EventAnnouncementPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
 

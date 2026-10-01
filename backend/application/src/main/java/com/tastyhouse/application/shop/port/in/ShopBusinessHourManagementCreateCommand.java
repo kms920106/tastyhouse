@@ -14,6 +14,7 @@ public record ShopBusinessHourManagementCreateCommand(
     Boolean isClosed,
     Boolean is24Hours
 ) {
+
     public ShopBusinessHourManagementCreateCommand {
         if (adminId == null || shopId == null || dayType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

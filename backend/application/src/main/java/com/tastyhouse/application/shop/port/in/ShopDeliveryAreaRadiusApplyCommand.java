@@ -9,6 +9,7 @@ public record ShopDeliveryAreaRadiusApplyCommand(
     Integer radiusMeters,
     Boolean replace
 ) {
+
     public ShopDeliveryAreaRadiusApplyCommand {
         if (ceoId == null || shopId == null || radiusMeters == null || replace == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

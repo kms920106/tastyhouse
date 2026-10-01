@@ -15,6 +15,7 @@ public record ShopAmenityItem(
     @Schema(description = "편의시설 활성 이미지 URL", example = "https://example.com/parking-on.png")
     String activeImageUrl
 ) {
+
     public static ShopAmenityItem from(ShopAmenityWithCategoryResult result) {
         return new ShopAmenityItem(
             result.amenity(),

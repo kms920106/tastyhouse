@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductImageMapper {
+
     private ProductImageMapper() {
     }
 

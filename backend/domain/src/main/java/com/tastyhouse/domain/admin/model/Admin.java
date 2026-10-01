@@ -3,6 +3,7 @@ package com.tastyhouse.domain.admin.model;
 import com.tastyhouse.domain.admin.vo.AdminId;
 
 public class Admin {
+
     private final Long id;
     private final String username;
     private final String password;

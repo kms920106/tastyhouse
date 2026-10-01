@@ -5,6 +5,7 @@ import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductReviewStatsService {
+
     private final ProductPersistencePort productPersistencePort;
     private final ProductReviewStatisticsPort productReviewStatisticsPort;
 

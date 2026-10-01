@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopConvenienceInfoMapper {
+
     private ShopConvenienceInfoMapper() {
     }
 

@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopImageChangeApproveCommand(
     Long requestId
 ) {
+
     public ShopImageChangeApproveCommand {
         if (requestId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

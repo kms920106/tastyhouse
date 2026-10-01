@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PartnershipRequestTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 PENDING·미삭제 상태다")
     void of_createsTransientPartnershipRequest() {

@@ -16,6 +16,7 @@ public record ShopDeliveryTipSchedulesUpdateRequest(
     @Schema(description = "시간별 배달팁 목록. 빈 배열이면 전부 삭제됩니다", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ShopDeliveryTipScheduleItemRequest> schedules
 ) {
+
     public ShopDeliveryTipSchedulesUpdateCommand toCommand(Long ceoId, Long shopId) {
         List<ShopDeliveryTipScheduleCommand> scheduleCommands = schedules().stream()
             .map(ShopDeliveryTipScheduleItemRequest::toCommand)

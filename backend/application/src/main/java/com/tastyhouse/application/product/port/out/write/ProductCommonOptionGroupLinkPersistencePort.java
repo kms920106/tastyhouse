@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 public interface ProductCommonOptionGroupLinkPersistencePort {
+
     ProductCommonOptionGroupLink save(ProductCommonOptionGroupLink link);
 
     Optional<ProductCommonOptionGroupLink> findByProductIdAndOptionGroupId(

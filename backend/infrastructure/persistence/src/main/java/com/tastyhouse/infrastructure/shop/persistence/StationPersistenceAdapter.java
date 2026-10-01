@@ -6,6 +6,7 @@ import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
 
 @Repository
 public class StationPersistenceAdapter implements StationPersistencePort {
+
     private final StationJpaRepository stationJpaRepository;
 
     public StationPersistenceAdapter(StationJpaRepository stationJpaRepository) {

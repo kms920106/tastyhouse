@@ -12,6 +12,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class SmsVerificationEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(SmsVerificationEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

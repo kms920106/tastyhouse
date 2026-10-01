@@ -10,6 +10,7 @@ import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public interface ReviewBlindRequestPersistencePort {
+
     Optional<ReviewBlindRequest> findById(ReviewBlindRequestId reviewBlindRequestId);
 
     boolean existsByReviewIdAndStatus(ReviewId reviewId, ReviewBlindStatus status);

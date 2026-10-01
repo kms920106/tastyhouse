@@ -8,6 +8,7 @@ public record PointDeductCommand(
     Integer amount,
     String reason
 ) {
+
     public PointDeductCommand {
         if (memberId == null || amount == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

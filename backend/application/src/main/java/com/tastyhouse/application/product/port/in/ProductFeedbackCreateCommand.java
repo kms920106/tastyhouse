@@ -9,6 +9,7 @@ public record ProductFeedbackCreateCommand(
     String feedbackType,
     String content
 ) {
+
     public ProductFeedbackCreateCommand {
         if (memberId == null || productId == null || feedbackType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

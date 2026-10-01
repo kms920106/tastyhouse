@@ -15,6 +15,7 @@ public record ShopDeliveryAreaBlockedResponse(
     @Schema(description = "닫을 수 없는 사유", example = "REGION_TIP", allowableValues = {"REGION_TIP"})
     String reason
 ) {
+
     public static ShopDeliveryAreaBlockedResponse from(ShopDeliveryAreaBlockedView blocked) {
         return new ShopDeliveryAreaBlockedResponse(
             blocked.adminDongId(),

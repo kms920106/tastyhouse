@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.application.product.port.out.ProductExposureWindow;
 
 public final class ProductExposureWindows {
+
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 
     private ProductExposureWindows() {

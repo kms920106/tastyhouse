@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopPhoneNumberMapper {
+
     private ShopPhoneNumberMapper() {
     }
 

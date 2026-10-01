@@ -12,6 +12,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopDeliveryTipMapper {
+
     private ShopDeliveryTipMapper() {
     }
 

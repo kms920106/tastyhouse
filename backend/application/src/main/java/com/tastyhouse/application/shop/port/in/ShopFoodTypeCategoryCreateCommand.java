@@ -11,6 +11,7 @@ public record ShopFoodTypeCategoryCreateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ShopFoodTypeCategoryCreateCommand {
         if (foodType == null || displayName == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -25,6 +25,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
 @RestController
 @RequestMapping("/api/shops")
 public class ShopStorePriceVerificationApiController {
+
     private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase;
     private final ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase;
 

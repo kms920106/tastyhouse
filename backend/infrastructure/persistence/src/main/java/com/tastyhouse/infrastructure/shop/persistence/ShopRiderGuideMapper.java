@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopRiderGuideMapper {
+
     private ShopRiderGuideMapper() {
     }
 

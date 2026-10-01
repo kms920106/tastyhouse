@@ -8,6 +8,7 @@ public record ShopRiderVisitGuideDeleteCommand(
     Long adminId,
     String reason
 ) {
+
     public ShopRiderVisitGuideDeleteCommand {
         if (shopId == null || adminId == null || reason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

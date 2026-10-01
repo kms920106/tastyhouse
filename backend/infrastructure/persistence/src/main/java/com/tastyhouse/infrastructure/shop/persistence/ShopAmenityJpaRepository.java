@@ -5,5 +5,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ShopAmenityJpaRepository extends JpaRepository<ShopAmenityJpaEntity, Long> {
+
     void deleteByShopIdAndShopAmenityCategoryId(Long shopId, Long shopAmenityCategoryId);
 }

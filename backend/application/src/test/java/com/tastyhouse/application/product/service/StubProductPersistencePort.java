@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 final class StubProductPersistencePort implements ProductPersistencePort {
+
     private final Map<Long, Product> products;
 
     StubProductPersistencePort(Map<Long, Product> products) {

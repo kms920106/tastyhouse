@@ -32,6 +32,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardRespon
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardApiController {
+
     private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase;
 

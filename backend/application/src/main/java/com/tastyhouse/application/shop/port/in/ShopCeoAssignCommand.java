@@ -8,6 +8,7 @@ public record ShopCeoAssignCommand(
     Long shopId,
     Long ceoId
 ) {
+
     public ShopCeoAssignCommand {
         if (adminId == null || shopId == null || ceoId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

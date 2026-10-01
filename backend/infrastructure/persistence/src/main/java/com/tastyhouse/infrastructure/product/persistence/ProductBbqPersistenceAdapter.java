@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductBbqJpaEn
 
 @Repository
 public class ProductBbqPersistenceAdapter implements ProductBbqPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ProductBbqJpaRepository productBbqJpaRepository;
 

@@ -38,6 +38,7 @@ public record OrderProductResponse(
     @Schema(description = "선택 옵션 목록")
     List<OrderProductOptionResponse> selectedOptions
 ) {
+
     public static OrderProductResponse from(OrderProductResult result) {
         List<OrderProductOptionResponse> selectedOptions = result.options().stream()
             .map(OrderProductOptionResponse::from)

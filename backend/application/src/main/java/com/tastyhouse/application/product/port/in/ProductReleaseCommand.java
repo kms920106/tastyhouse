@@ -11,6 +11,7 @@ public record ProductReleaseCommand(
     List<Long> productIds,
     String target
 ) {
+
     public ProductReleaseCommand {
         if (ceoId == null
             || shopId == null

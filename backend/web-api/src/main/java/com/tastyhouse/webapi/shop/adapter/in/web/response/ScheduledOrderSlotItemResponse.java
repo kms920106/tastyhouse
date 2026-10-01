@@ -20,6 +20,7 @@ public record ScheduledOrderSlotItemResponse(
     @Schema(description = "날짜 구분 문구(오늘/내일). 자정 넘김 영업·24시간 가게에서 내일이 나올 수 있습니다.", example = "오늘")
     String dayLabel
 ) {
+
     public static ScheduledOrderSlotItemResponse from(ScheduledOrderSlotItemResult result) {
         return new ScheduledOrderSlotItemResponse(
             result.startAt(),

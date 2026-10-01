@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductRepresentativeRequestMapper {
+
     private ProductRepresentativeRequestMapper() {
     }
 

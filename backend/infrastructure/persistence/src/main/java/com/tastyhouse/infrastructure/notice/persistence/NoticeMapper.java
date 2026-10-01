@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.notice.persistence;
 import com.tastyhouse.domain.notice.model.Notice;
 
 final class NoticeMapper {
+
     private NoticeMapper() {
     }
 

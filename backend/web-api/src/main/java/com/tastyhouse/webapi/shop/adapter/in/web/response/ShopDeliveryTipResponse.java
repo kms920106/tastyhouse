@@ -38,6 +38,7 @@ public record ShopDeliveryTipResponse(
     @Schema(description = "공휴일 추가 배달팁(원). 0이면 미설정", example = "1000")
     int holidayTipAmount
 ) {
+
     public static ShopDeliveryTipResponse from(ShopDeliveryTipViewResult result) {
         return new ShopDeliveryTipResponse(
             result.deliveryTip(),

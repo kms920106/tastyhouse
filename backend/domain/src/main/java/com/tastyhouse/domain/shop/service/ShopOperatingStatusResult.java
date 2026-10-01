@@ -7,6 +7,7 @@ public record ShopOperatingStatusResult(
     ShopOperatingStatus status,
     OrderUnavailableReason unavailableReason
 ) {
+
     public static ShopOperatingStatusResult open() {
         return new ShopOperatingStatusResult(ShopOperatingStatus.OPEN, null);
     }

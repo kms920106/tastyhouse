@@ -1149,6 +1149,38 @@ import com.tastyhouse.application.shared.marker.AdminApp;
 - Spring Java Format checkstyle 설정: https://github.com/spring-io/spring-javaformat/blob/main/spring-javaformat/spring-javaformat-checkstyle/src/main/resources/io/spring/javaformat/checkstyle/spring-checkstyle.xml
 - Checkstyle `ImportOrder` 규칙 문서: https://checkstyle.sourceforge.io/checks/imports/importorder.html
 
+### 타입 본문 첫 줄 빈 줄 규칙 (여는 중괄호 다음 빈 줄 정확히 1개)
+
+**`class`·`interface`·`enum`·`record`·`@interface` 선언의 본문 여는 중괄호 다음 줄은 빈 줄 정확히 1개입니다.** top-level·중첩·로컬 타입 모두 대상이며, 여러 줄 헤더(`record X(\n ...\n) {`, `implements` 줄바꿈)도 마지막 `{` 기준으로 같습니다.
+
+과거에는 같은 모듈 안에서도 섞여 있었습니다. persistence·domain·3개 api 모듈은 대체로 빈 줄 없이 바로 멤버가 왔고, application은 파일 약 40%가 빈 줄 없이, 나머지는 빈 줄을 두었습니다. 같은 저장소 안에서 이런 차이가 있으면 읽는 사람이 "차이에 의미가 있나"를 판단해야 하므로, 헤더(어노테이션·선언)와 본문을 시각적으로 분리하는 쪽으로 통일했습니다. **Spring Java Format이 강제하는 규칙은 아닙니다**(그 포매터의 `blank_lines_before_first_class_body_declaration`는 `0`, 즉 최소 0줄). 이 프로젝트의 커스텀 규칙입니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 선언 다음 줄 | 파일마다 빈 줄 0개 또는 1개 | **빈 줄 정확히 1개** (0개·2개 이상 모두 위반) |
+| 강제 수단 | 없음 | `TypeBodyBlankLineConventionTest`(`domain` 테스트)가 backend 전체 소스를 검사 |
+| 동작 | — | 변경 없음 (공백 줄만 다름) |
+
+```java
+// before
+public class AdminPersistenceAdapter implements AdminPersistencePort {
+    private final AdminJpaRepository adminJpaRepository;
+
+// after
+public class AdminPersistenceAdapter implements AdminPersistencePort {
+
+    private final AdminJpaRepository adminJpaRepository;
+```
+
+- **제외 대상** — 아래는 빈 줄을 요구하지 않습니다.
+  - 빈 본문: `class A {}`, `record A(int x) {` 다음 줄이 `}`, 빈 줄만 있고 `}`로 끝나는 본문
+  - 한 줄 본문: `{` 뒤 같은 줄에 내용이 있는 경우(예: `public enum Status {LOGIN, NEEDS_SIGN_UP}`). enum에 한정되지 않고 `class A { int x;`처럼 같은 줄에 멤버가 오는 모든 타입이 해당합니다
+  - 익명 클래스(`new X() {`)와 enum 상수 본문(`X { ... }`) — 타입 선언 키워드가 없어 대상이 아닙니다
+- **판정 방식** — 가드는 문자열·문자 리터럴·텍스트 블록·주석을 건너뛰고, 키워드가 **완전한 식별자**이면서 바로 다음 토큰이 타입 이름일 때만 선언으로 봅니다. 그래서 `Foo.class`, `public void record(...)`, `(record, value) -> {`, `enumsAreStoredAsNames()` 같은 코드는 판정 대상이 아닙니다.
+- **적용 현황** — 2026-10-02에 기존 위반 2,353건(2,115개 파일)에 빈 줄만 삽입해 일괄 정리했습니다(`git diff -w --ignore-blank-lines` 무변경). 이후 위반이 하나라도 있으면 `./gradlew build`가 실패합니다.
+- **고치는 방법** — 일괄 정리에 쓴 스크립트는 커밋하지 않았습니다. IntelliJ에서 Settings → Editor → Code Style → Java → Blank Lines → **Minimum blank lines → After class header: 1**로 두고 reformat하거나, 가드 실패 메시지가 알려주는 `파일:줄`에 빈 줄을 직접 넣습니다. `.idea`는 gitignore 대상이라 이 설정은 각자 해야 합니다.
+- 가드의 세부(모듈 하나만 빌드하면 돌지 않는 점, Gradle 입력 선언)는 `backend/domain/AGENTS.md`의 "봉인·가드 목록" 절을 참고합니다.
+
 ### `@SuppressWarnings` 지양 규칙
 
 **IDE·컴파일러 경고는 `@SuppressWarnings`로 가리지 않고 원인을 고칩니다.** 억제 어노테이션은 경고가 가리키던 사실(미사용·미배선·타입 불안전)을 코드에서 지워 버려, 나중에 그 상태가 바뀌어도 아무도 알아채지 못하게 합니다. 새 코드에는 붙이지 않고, 기존 코드를 고칠 때도 되살리지 않습니다.

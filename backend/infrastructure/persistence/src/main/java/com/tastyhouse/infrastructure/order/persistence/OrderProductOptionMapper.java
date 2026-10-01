@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.order.persistence;
 import com.tastyhouse.domain.order.model.OrderProductOption;
 
 final class OrderProductOptionMapper {
+
     private OrderProductOptionMapper() {
     }
 

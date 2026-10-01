@@ -12,6 +12,7 @@ public record ShopDeliveryTipTierItem(
     @Schema(description = "이 구간의 배달팁(원)", example = "1000")
     int tipAmount
 ) {
+
     public static ShopDeliveryTipTierItem from(ShopDeliveryTipTierResult result) {
         return new ShopDeliveryTipTierItem(
             result.minOrderAmount(),

@@ -40,6 +40,7 @@ public record ProductOptionGroupResponse(
     @Schema(description = "옵션 목록")
     List<ProductOptionResponse> options
 ) {
+
     public static ProductOptionGroupResponse from(OptionGroupResult result) {
         return new ProductOptionGroupResponse(
             result.id(),

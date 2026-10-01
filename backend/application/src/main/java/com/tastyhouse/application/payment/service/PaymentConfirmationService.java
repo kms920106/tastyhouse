@@ -26,6 +26,7 @@ import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersis
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class PaymentConfirmationService {
+
     private static final int CASH_POINT_EARN_RATE = 10;
 
     private final PaymentPersistencePort paymentPersistencePort;

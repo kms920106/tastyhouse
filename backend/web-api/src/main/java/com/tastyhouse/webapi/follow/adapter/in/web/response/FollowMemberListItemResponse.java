@@ -21,6 +21,7 @@ public record FollowMemberListItemResponse(
     @Schema(description = "내가 팔로우 중인지 여부", example = "true")
     boolean following
 ) {
+
     public static FollowMemberListItemResponse from(FollowMemberResult result) {
         return new FollowMemberListItemResponse(
             result.memberId(),

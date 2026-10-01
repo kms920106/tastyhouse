@@ -10,6 +10,7 @@ public record ShopDeliveryTipDistanceUpdateCommand(
     String surchargeUnit,
     Integer surchargeAmount
 ) {
+
     public ShopDeliveryTipDistanceUpdateCommand {
         if (ceoId == null || shopId == null || surchargeUnit == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

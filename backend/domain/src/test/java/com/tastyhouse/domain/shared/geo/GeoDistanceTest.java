@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 class GeoDistanceTest {
+
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;
 
     private static final BigDecimal BASE_LATITUDE = new BigDecimal("37.5");
@@ -18,6 +19,7 @@ class GeoDistanceTest {
     @Nested
     @DisplayName("distanceMeters")
     class DistanceMeters {
+
         @Test
         @DisplayName("같은 좌표의 거리는 0m다")
         void distanceMeters_zeroForSameCoordinates() {
@@ -61,6 +63,7 @@ class GeoDistanceTest {
     @Nested
     @DisplayName("승격 후 1km 판정 무변경")
     class DisplayLocationRadius {
+
         @Test
         @DisplayName("1km 이내 좌표는 기존 ShopConvenienceInfoService 판정대로 통과한다")
         void distanceMeters_withinOneKilometerPasses() {

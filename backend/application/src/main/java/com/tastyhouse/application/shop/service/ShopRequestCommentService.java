@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
 
 public class ShopRequestCommentService {
+
     private final ShopRequestCommentPersistencePort shopRequestCommentPersistencePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 

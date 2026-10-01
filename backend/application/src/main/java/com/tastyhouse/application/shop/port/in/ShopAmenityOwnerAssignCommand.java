@@ -8,6 +8,7 @@ public record ShopAmenityOwnerAssignCommand(
     Long shopId,
     Long amenityCategoryId
 ) {
+
     public ShopAmenityOwnerAssignCommand {
         if (ceoId == null || shopId == null || amenityCategoryId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

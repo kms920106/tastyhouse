@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 
 public class ProhibitedWordValidator {
+
     private final ProhibitedWordPersistencePort prohibitedWordPersistencePort;
 
     public ProhibitedWordValidator(ProhibitedWordPersistencePort prohibitedWordPersistencePort) {

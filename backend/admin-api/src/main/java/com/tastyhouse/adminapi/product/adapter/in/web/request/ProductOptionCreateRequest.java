@@ -37,6 +37,7 @@ public record ProductOptionCreateRequest(
         example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionManagementCreateCommand toCommand(Long optionGroupId) {
         return new ProductOptionManagementCreateCommand(
             optionGroupId, name, additionalPrice, sort, soldOut,

@@ -39,6 +39,7 @@ public record AuthSocialProfileResponse(
     @Schema(description = "출생 일 (예: \"5\", \"31\"). 네이버에서 제공")
     String birthDay
 ) {
+
     public static AuthSocialProfileResponse from(SocialProfileResult result) {
         return new AuthSocialProfileResponse(
             result.providerId(),

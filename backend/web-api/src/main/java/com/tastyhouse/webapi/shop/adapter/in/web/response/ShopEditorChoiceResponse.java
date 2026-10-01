@@ -26,6 +26,7 @@ public record ShopEditorChoiceResponse(
     @Schema(description = "추천 상품 목록")
     List<ShopEditorChoiceProductItem> products
 ) {
+
     public static ShopEditorChoiceResponse from(EditorChoiceResult result) {
         return new ShopEditorChoiceResponse(
             result.id(),

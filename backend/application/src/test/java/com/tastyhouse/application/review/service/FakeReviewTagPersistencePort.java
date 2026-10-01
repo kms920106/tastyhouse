@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
 
 public class FakeReviewTagPersistencePort implements ReviewTagPersistencePort {
+
     @Override
     public void saveAll(List<ReviewTag> tags) {
     }

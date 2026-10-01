@@ -61,6 +61,7 @@ public record ShopDetailResponse(
         example = "false")
     boolean cupDepositEnabled
 ) {
+
     public static ShopDetailResponse from(ShopOwnerDetailViewResult result) {
         return new ShopDetailResponse(
             result.id(),

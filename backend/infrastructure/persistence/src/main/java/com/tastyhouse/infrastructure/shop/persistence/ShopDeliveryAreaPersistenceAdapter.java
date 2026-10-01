@@ -16,6 +16,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistenc
 
 @Repository
 public class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistencePort {
+
     private final ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository;
 
     public ShopDeliveryAreaPersistenceAdapter(ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository) {

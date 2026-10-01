@@ -27,6 +27,7 @@ public record ShopFoodTypeCategoryResponse(
     @Schema(description = "사용 여부", example = "true")
     boolean visible
 ) {
+
     public static ShopFoodTypeCategoryResponse from(ShopFoodTypeCategoryResult result) {
         return new ShopFoodTypeCategoryResponse(
             result.id(),

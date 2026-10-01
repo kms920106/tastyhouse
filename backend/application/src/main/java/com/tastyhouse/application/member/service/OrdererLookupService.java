@@ -8,6 +8,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 public class OrdererLookupService {
+
     private final MemberPersistencePort memberPersistencePort;
 
     public OrdererLookupService(MemberPersistencePort memberPersistencePort) {

@@ -8,6 +8,7 @@ public record BugReportStatusChangeCommand(
     String status,
     String answer
 ) {
+
     public BugReportStatusChangeCommand {
         if (bugReportId == null || status == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

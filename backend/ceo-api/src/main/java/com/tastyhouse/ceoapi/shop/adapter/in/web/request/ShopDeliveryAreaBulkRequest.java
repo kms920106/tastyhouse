@@ -17,6 +17,7 @@ public record ShopDeliveryAreaBulkRequest(
     @Schema(description = "행정동 ID 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     List<@Positive(message = "행정동 ID는 양수여야 합니다.") Long> adminDongIds
 ) {
+
     public ShopDeliveryAreaBulkCreateCommand toCreateCommand(Long ceoId, Long shopId) {
         return new ShopDeliveryAreaBulkCreateCommand(ceoId, shopId, adminDongIds());
     }

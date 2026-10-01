@@ -10,6 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersis
 
 @Repository
 public class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePersistencePort {
+
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;
 
     public ShopTemporaryClosurePersistenceAdapter(ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository) {

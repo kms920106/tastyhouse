@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 
 public interface ShopSuspensionPersistencePort {
+
     ShopSuspension save(ShopSuspension shopSuspension);
 
     List<ShopSuspension> findByShopId(Long shopId);

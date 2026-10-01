@@ -8,6 +8,7 @@ public record ShopStatusUpdateCommand(
     Long shopId,
     String status
 ) {
+
     public ShopStatusUpdateCommand {
         if (ceoId == null || shopId == null || status == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

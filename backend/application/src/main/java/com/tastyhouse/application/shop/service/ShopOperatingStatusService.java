@@ -24,6 +24,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistenceP
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 public class ShopOperatingStatusService {
+
     private static final boolean PUBLIC_HOLIDAY = false;
 
     private final ShopPersistencePort shopPersistencePort;

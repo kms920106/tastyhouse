@@ -17,6 +17,7 @@ public record ProductShopLinkItemRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     Long productCategoryId
 ) {
+
     public ProductShopLinkItemCommand toCommand() {
         return new ProductShopLinkItemCommand(shopId, productCategoryId);
     }

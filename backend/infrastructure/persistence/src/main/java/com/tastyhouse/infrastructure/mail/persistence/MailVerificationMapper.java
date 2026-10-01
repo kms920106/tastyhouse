@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddable;
 
 final class MailVerificationMapper {
+
     private MailVerificationMapper() {
     }
 

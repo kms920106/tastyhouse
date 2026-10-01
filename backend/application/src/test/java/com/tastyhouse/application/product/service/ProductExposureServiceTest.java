@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductExposureServiceTest {
+
     private static final ProductId PRODUCT_ID = ProductId.of(10L);
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
@@ -142,6 +143,7 @@ class ProductExposureServiceTest {
     }
 
     private static final class Fixture {
+
         private final Product product = Product.reconstitute(
             10L, SHOP_ID, ProductCategoryId.of(2L), "떡볶이", null, 8000, null, null, 0,
             false, null, false, null, true, 0,
@@ -157,6 +159,7 @@ class ProductExposureServiceTest {
     }
 
     private static final class FakeExposureHourPersistencePort implements ProductExposureHourPersistencePort {
+
         private final List<ProductExposureHour> rows = new ArrayList<>();
 
         @Override
@@ -177,6 +180,7 @@ class ProductExposureServiceTest {
     }
 
     private record StubProductPersistencePort(Product product) implements ProductPersistencePort {
+
         @Override
         public Optional<Product> findById(ProductId id) {
             return Optional.of(product);

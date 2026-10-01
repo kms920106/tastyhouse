@@ -14,6 +14,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class FileUploadedEventListenerTest {
+
     private final FileUploadedEventListener listener = new FileUploadedEventListener();
 
     private ListenerLogCapture logCapture;

@@ -13,6 +13,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 
 public class FakeReviewPersistencePort implements ReviewPersistencePort {
+
     private final Map<Long, Review> reviews = new HashMap<>();
     private long sequence = 0L;
 

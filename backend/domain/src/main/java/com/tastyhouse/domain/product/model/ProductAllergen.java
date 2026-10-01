@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductAllergen {
+
     private final Long id;
     private final ProductId productId;
     private final AllergenType allergenType;

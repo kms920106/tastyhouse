@@ -10,6 +10,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PgOrderId;
 
 public class Payment {
+
     private final Long id;
     private final OrderId orderId;
     private final PaymentMethod paymentMethod;

@@ -26,6 +26,7 @@ public record EventListItemResponse(
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     LocalDateTime endAt
 ) {
+
     public static EventListItemResponse from(EventListItemResult result) {
         return new EventListItemResponse(
             result.eventId(),

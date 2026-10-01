@@ -22,6 +22,7 @@ public record ShopOrderMethodItemResponse(
     @Schema(description = "불가 사유 한글 문구. 주문 가능하면 null", example = "영업 임시중지 중입니다")
     String unavailableReasonName
 ) {
+
     public static ShopOrderMethodItemResponse from(ShopOrderMethodItemResult result) {
         return new ShopOrderMethodItemResponse(
             result.code(),

@@ -17,6 +17,7 @@ public record UpdatePasswordRequest(
     @Schema(description = "새 비밀번호 확인", example = "newPassword123!", requiredMode = Schema.RequiredMode.REQUIRED)
     String newPasswordConfirm
 ) {
+
     public MemberPasswordUpdateCommand toCommand(Long memberId) {
         return new MemberPasswordUpdateCommand(
             memberId,

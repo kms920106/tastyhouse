@@ -18,6 +18,7 @@ public record CeoListItemResponse(
     @Schema(description = "계정 상태", example = "ACTIVE", allowableValues = {"ACTIVE", "INACTIVE"})
     String status
 ) {
+
     public static CeoListItemResponse from(CeoListItemResult result) {
         return new CeoListItemResponse(
             result.id(),

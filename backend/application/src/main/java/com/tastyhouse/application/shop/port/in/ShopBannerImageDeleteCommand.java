@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 public record ShopBannerImageDeleteCommand(
     Long bannerImageId
 ) {
+
     public ShopBannerImageDeleteCommand {
         if (bannerImageId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

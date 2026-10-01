@@ -15,6 +15,7 @@ public record OrderProductResult(
     Integer totalPrice,
     List<OrderProductOptionResult> options
 ) {
+
     public OrderProductResult(
         Long orderProductId,
         Long productId,

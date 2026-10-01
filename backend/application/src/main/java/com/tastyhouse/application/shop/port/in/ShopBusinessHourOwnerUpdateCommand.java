@@ -14,6 +14,7 @@ public record ShopBusinessHourOwnerUpdateCommand(
     Boolean isClosed,
     Boolean is24Hours
 ) {
+
     public ShopBusinessHourOwnerUpdateCommand {
         if (ceoId == null || businessHourId == null || dayType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

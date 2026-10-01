@@ -10,6 +10,7 @@ import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
 
 public class CeoReplyPhraseService {
+
     private static final int MAX_PHRASE_COUNT = 5;
 
     private final CeoReplyPhrasePersistencePort ceoReplyPhrasePersistencePort;

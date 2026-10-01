@@ -18,6 +18,7 @@ public record AuthSocialLoginResponse(
     @Schema(description = "앱 JWT 토큰 정보. status=LOGIN일 때만 반환")
     AuthJwtResponse jwt
 ) {
+
     public enum Status {LOGIN, NEEDS_SIGN_UP, NEEDS_LINKING}
 
     public static AuthSocialLoginResponse from(SocialLoginResult result) {

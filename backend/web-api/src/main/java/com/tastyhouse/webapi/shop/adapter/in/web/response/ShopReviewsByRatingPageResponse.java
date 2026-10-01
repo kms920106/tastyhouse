@@ -11,6 +11,7 @@ public record ShopReviewsByRatingPageResponse(
     @Schema(description = "전체 리뷰 개수", example = "42")
     long totalElements
 ) {
+
     public static ShopReviewsByRatingPageResponse from(ReviewsByRatingResult result) {
         return new ShopReviewsByRatingPageResponse(
             ShopReviewsByRatingResponse.from(result),

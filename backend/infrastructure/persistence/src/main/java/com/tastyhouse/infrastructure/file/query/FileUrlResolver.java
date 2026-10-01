@@ -13,6 +13,7 @@ import com.tastyhouse.application.file.port.out.FileStoragePort;
 
 @Component
 public class FileUrlResolver {
+
     private final FileStoragePort fileStoragePort;
 
     public FileUrlResolver(FileStoragePort fileStoragePort) {

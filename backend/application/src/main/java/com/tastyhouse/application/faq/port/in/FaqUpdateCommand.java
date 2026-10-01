@@ -11,6 +11,7 @@ public record FaqUpdateCommand(
     Integer sort,
     boolean visible
 ) {
+
     public FaqUpdateCommand {
         if (faqId == null || faqCategoryId == null || question == null || answer == null || sort == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

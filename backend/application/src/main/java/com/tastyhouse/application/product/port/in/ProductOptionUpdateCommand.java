@@ -12,6 +12,7 @@ public record ProductOptionUpdateCommand(
     Integer cupCount,
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionUpdateCommand {
         if (ceoId == null
             || optionId == null

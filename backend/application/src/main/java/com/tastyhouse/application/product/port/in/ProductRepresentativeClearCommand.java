@@ -8,6 +8,7 @@ public record ProductRepresentativeClearCommand(
     Long shopId,
     Long productId
 ) {
+
     public ProductRepresentativeClearCommand {
         if (ceoId == null
             || shopId == null

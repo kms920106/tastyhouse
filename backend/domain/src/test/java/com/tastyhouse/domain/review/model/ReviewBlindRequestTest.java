@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class ReviewBlindRequestTest {
+
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 8, 17, 10, 0);
 
     private ReviewBlindRequest pendingRequest() {
@@ -38,6 +39,7 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("승인")
     class Approve {
+
         @Test
         @DisplayName("승인하면 게시중단 상태가 되고 재노출 기한이 설정된다")
         void approveSetsBlindUntil() {
@@ -69,6 +71,7 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("만료 재노출")
     class Expire {
+
         @Test
         @DisplayName("게시중단 상태에서 만료하면 재노출 상태가 되고 기한이 비워진다")
         void expireClearsBlindUntil() {
@@ -104,6 +107,7 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("고객 동의 삭제")
     class DeleteByConsent {
+
         @Test
         @DisplayName("게시중단 상태에서 동의하면 삭제 상태가 되고 기한이 비워진다")
         void deleteByConsentClearsBlindUntil() {
@@ -141,6 +145,7 @@ class ReviewBlindRequestTest {
     @Nested
     @DisplayName("취소")
     class Cancel {
+
         @Test
         @DisplayName("승인된 요청은 취소할 수 없다")
         void cannotCancelWhenApproved() {

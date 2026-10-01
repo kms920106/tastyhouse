@@ -96,6 +96,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopJpaEntity.shop
 
 @Repository
 public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, ProductManagementQueryPort, ProductOwnerQueryPort {
+
     private static final com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity subProductImage =
         new com.tastyhouse.infrastructure.product.persistence.QProductImageJpaEntity("subProductImage");
 
@@ -2002,6 +2003,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
         Integer cupCount,
         Integer personalCupDiscountAmount
     ) {
+
         Long groupKey() {
             return groupKey(groupId, common);
         }

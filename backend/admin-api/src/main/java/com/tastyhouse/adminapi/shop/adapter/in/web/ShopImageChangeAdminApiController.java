@@ -31,6 +31,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeReque
 @RestController
 @RequestMapping("/api/shops")
 public class ShopImageChangeAdminApiController {
+
     private final ShopImageChangeQueryUseCase shopImageChangeQueryUseCase;
     private final ShopImageChangeCommandUseCase shopImageChangeCommandUseCase;
 

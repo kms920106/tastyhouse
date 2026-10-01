@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagement
 @RestController
 @RequestMapping("/api/shops")
 public class ShopNoticeAdminApiController {
+
     private final ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase;
     private final ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase;
 

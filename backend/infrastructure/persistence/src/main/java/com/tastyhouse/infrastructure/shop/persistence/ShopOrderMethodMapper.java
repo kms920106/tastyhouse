@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopOrderMethodMapper {
+
     private ShopOrderMethodMapper() {
     }
 

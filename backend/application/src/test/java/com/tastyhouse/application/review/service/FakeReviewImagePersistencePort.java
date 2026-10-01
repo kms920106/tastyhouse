@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.out.write.ReviewImagePersistencePort;
 
 public class FakeReviewImagePersistencePort implements ReviewImagePersistencePort {
+
     @Override
     public void saveAll(List<ReviewImage> images) {
     }

@@ -11,6 +11,7 @@ public record ShopDeliveryTipScheduleCommand(
     LocalTime endTime,
     Integer tipAmount
 ) {
+
     public ShopDeliveryTipScheduleCommand {
         if (dayType == null || startTime == null || endTime == null || tipAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

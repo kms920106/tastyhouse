@@ -13,6 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
 
 class FakeProductShopLinkPersistencePort implements ProductShopLinkPersistencePort {
+
     private final List<ProductShopLink> links = new ArrayList<>();
     private final AtomicLong sequence = new AtomicLong(1L);
 

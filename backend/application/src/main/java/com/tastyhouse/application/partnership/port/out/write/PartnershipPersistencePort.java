@@ -6,6 +6,7 @@ import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 
 public interface PartnershipPersistencePort {
+
     Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId);
 
     PartnershipRequest save(PartnershipRequest partnershipRequest);

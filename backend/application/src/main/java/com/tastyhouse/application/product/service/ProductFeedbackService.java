@@ -17,6 +17,7 @@ import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPers
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductFeedbackService {
+
     public static final int FEEDBACK_WINDOW_DAYS = 7;
 
     private final ProductPersistencePort productPersistencePort;

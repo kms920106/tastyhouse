@@ -20,6 +20,7 @@ import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistenc
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RankSettlementServiceTest {
+
     private static final LocalDate BASE_DATE = LocalDate.of(2026, 7, 30);
 
     @Test
@@ -149,6 +150,7 @@ class RankSettlementServiceTest {
     }
 
     private static final class MemberReviewCountPortStub implements MemberReviewCountPort {
+
         private final List<MemberReviewCount> counts;
         private LocalDateTime requestedStartAt;
         private LocalDateTime requestedEndAt;
@@ -166,6 +168,7 @@ class RankSettlementServiceTest {
     }
 
     private static final class MemberReviewRankPersistencePortStub implements MemberReviewRankPersistencePort {
+
         private final List<String> callOrder = new ArrayList<>();
         private final List<RankType> deletedRankTypes = new ArrayList<>();
         private List<MemberReviewRank> saved = List.of();

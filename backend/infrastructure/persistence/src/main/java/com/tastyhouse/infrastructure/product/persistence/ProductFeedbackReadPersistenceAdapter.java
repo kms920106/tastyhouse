@@ -10,6 +10,7 @@ import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPers
 
 @Repository
 public class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersistencePort {
+
     private final ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository;
 
     public ProductFeedbackReadPersistenceAdapter(

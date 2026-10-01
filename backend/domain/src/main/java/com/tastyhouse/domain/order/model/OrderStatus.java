@@ -6,6 +6,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum OrderStatus {
+
     PENDING,
     CONFIRMED,
     PREPARING,

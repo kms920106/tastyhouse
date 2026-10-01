@@ -4,6 +4,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public class ReviewImage {
+
     private final Long id;
     private final ReviewId reviewId;
     private final UploadedFileId imageFileId;

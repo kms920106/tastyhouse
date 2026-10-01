@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopNextOpenTimeCalculatorTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
 
     private static final LocalDateTime MONDAY_NOON = LocalDateTime.of(2026, 8, 17, 12, 0);

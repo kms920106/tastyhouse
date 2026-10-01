@@ -36,6 +36,7 @@ public record MemberDeliveryAddressUpdateRequest(
     @Schema(description = "경도. 주소 검색 API가 내려준 값을 그대로 보냅니다.", example = "127.039876", requiredMode = Schema.RequiredMode.REQUIRED)
     BigDecimal longitude
 ) {
+
     public MemberDeliveryAddressUpdateCommand toCommand(Long memberId, Long addressId) {
         return new MemberDeliveryAddressUpdateCommand(
             memberId,

@@ -9,6 +9,7 @@ public record ShopPhotoCategoryImageUpdateCommand(
     Integer sort,
     Boolean visible
 ) {
+
     public ShopPhotoCategoryImageUpdateCommand {
         if (imageId == null || imageFileId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

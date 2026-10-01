@@ -12,6 +12,7 @@ import com.tastyhouse.infrastructure.review.query.MemberReviewCountResult;
 
 @Component
 public class MemberReviewCountAdapter implements MemberReviewCountPort {
+
     private final MemberReviewCountQueryAdapter memberReviewCountQueryAdapter;
 
     public MemberReviewCountAdapter(MemberReviewCountQueryAdapter memberReviewCountQueryAdapter) {

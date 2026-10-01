@@ -14,6 +14,7 @@ public record ShopRiderVisitGuideUpdateRequest(
         example = "OO 약국 상가 왼쪽 문으로 들어오시면 됩니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     String visitGuide
 ) {
+
     public ShopRiderVisitGuideUpdateCommand toCommand(Long ceoId, Long shopId) {
         return new ShopRiderVisitGuideUpdateCommand(ceoId, shopId, visitGuide());
     }

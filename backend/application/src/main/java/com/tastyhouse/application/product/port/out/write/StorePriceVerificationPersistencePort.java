@@ -10,6 +10,7 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface StorePriceVerificationPersistencePort {
+
     StorePriceVerification save(StorePriceVerification verification);
 
     Optional<StorePriceVerification> findById(StorePriceVerificationId id);

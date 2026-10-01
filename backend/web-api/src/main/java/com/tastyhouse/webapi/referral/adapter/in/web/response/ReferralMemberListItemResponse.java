@@ -20,6 +20,7 @@ public record ReferralMemberListItemResponse(
     @Schema(description = "추천 생성 일시", example = "2026-01-01T00:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ReferralMemberListItemResponse from(MemberReferralResult result) {
         return new ReferralMemberListItemResponse(
             result.id(),

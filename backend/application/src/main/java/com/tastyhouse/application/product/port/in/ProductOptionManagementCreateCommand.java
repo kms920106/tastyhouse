@@ -13,6 +13,7 @@ public record ProductOptionManagementCreateCommand(
     Integer cupCount,
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionManagementCreateCommand {
         if (optionGroupId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

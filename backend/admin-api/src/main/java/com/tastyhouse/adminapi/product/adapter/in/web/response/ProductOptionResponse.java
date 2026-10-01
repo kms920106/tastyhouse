@@ -27,6 +27,7 @@ public record ProductOptionResponse(
     @Schema(description = "개인컵 사용 할인 금액(원)", example = "300")
     Integer personalCupDiscountAmount
 ) {
+
     public static ProductOptionResponse from(OptionResult result) {
         return new ProductOptionResponse(
             result.id(),

@@ -21,6 +21,7 @@ import com.tastyhouse.infrastructure.shared.persistence.BaseEntity;
     indexes = @Index(name = "idx_shop_delivery_area_shop_id", columnList = "shop_id")
 )
 public class ShopDeliveryAreaJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

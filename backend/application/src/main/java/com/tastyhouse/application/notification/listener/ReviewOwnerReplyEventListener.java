@@ -17,6 +17,7 @@ import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 @Component
 @SharedApp
 public class ReviewOwnerReplyEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(ReviewOwnerReplyEventListener.class);
 
     private final NotificationService notificationService;

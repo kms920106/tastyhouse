@@ -4,6 +4,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 
 public class Ceo {
+
     private final Long id;
     private final String username;
     private final String password;

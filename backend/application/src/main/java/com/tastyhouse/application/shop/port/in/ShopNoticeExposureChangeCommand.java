@@ -9,6 +9,7 @@ public record ShopNoticeExposureChangeCommand(
     Long noticeId,
     Boolean exposed
 ) {
+
     public ShopNoticeExposureChangeCommand {
         if (ceoId == null || shopId == null || noticeId == null || exposed == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

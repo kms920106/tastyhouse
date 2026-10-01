@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 public interface ProductVegetarianRequestPersistencePort {
+
     ProductVegetarianRequest save(ProductVegetarianRequest request);
 
     Optional<ProductVegetarianRequest> findById(ProductVegetarianRequestId id);

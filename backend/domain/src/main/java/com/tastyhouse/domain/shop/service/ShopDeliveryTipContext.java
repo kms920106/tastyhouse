@@ -24,6 +24,7 @@ public record ShopDeliveryTipContext(
     List<ShopDeliveryTipSchedule> scheduleTips,
     ShopDeliveryTipHoliday holidayTip
 ) {
+
     public ShopDeliveryTipContext {
         tiers = tiers == null ? List.of() : List.copyOf(tiers);
         regionTips = regionTips == null ? List.of() : List.copyOf(regionTips);

@@ -8,6 +8,7 @@ import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 
 public interface MenuReviewPersistencePort {
+
     Optional<MenuReview> findById(MenuReviewId menuReviewId);
 
     Optional<MenuReview> findByIdAndMemberId(MenuReviewId menuReviewId, MemberId memberId);

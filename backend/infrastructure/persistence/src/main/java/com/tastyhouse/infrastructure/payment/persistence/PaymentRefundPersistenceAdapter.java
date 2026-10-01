@@ -7,6 +7,7 @@ import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistenc
 
 @Repository
 public class PaymentRefundPersistenceAdapter implements PaymentRefundPersistencePort {
+
     private final PaymentRefundJpaRepository paymentRefundJpaRepository;
 
     public PaymentRefundPersistenceAdapter(PaymentRefundJpaRepository paymentRefundJpaRepository) {

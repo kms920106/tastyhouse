@@ -28,6 +28,7 @@ import static com.tastyhouse.infrastructure.rank.persistence.QRankPrizeJpaEntity
 
 @Repository
 public class RankQueryAdapter implements RankQueryPort, RankManagementQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

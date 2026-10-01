@@ -12,6 +12,7 @@ public record ProductOptionGroupLinkRequest(
     @Schema(description = "대상 가게 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     Long shopId
 ) {
+
     public ProductOptionGroupLinkCommand toCommand(Long ceoId, Long productId, Long optionGroupId) {
         return new ProductOptionGroupLinkCommand(ceoId, shopId, productId, optionGroupId);
     }

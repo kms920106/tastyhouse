@@ -34,6 +34,7 @@ import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResp
 @RestController
 @RequestMapping("/api/members")
 public class MemberApiController {
+
     private final MemberManagementQueryUseCase memberQueryUseCase;
     private final MemberManagementCommandUseCase memberCommandUseCase;
 

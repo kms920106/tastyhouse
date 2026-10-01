@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GeoPolygonTextCodec {
+
     private static final int COORDINATE_SCALE = 6;
 
     private static final String RING_DELIMITER = ";";

@@ -27,6 +27,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 
 public class ProductOptionGroupMergeService {
+
     private final ProductOptionGroupPersistencePort optionGroupPersistencePort;
     private final ProductOptionPersistencePort optionPersistencePort;
     private final ProductOptionGroupLinkPersistencePort linkPersistencePort;

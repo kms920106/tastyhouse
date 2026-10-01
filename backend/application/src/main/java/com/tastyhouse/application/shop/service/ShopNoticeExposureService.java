@@ -5,6 +5,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 public class ShopNoticeExposureService {
+
     private final ShopNoticePersistencePort shopNoticePersistencePort;
 
     public ShopNoticeExposureService(ShopNoticePersistencePort shopNoticePersistencePort) {

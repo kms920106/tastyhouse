@@ -5,6 +5,7 @@ import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 
 final class ReviewBlindRequestAttachmentMapper {
+
     private ReviewBlindRequestAttachmentMapper() {
     }
 

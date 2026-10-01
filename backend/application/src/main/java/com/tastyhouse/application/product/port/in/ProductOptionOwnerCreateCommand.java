@@ -12,6 +12,7 @@ public record ProductOptionOwnerCreateCommand(
     Integer cupCount,
     Integer personalCupDiscountAmount
 ) {
+
     public ProductOptionOwnerCreateCommand {
         if (ceoId == null
             || shopId == null

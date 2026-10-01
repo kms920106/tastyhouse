@@ -5,6 +5,7 @@ import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
 final class MailVerificationMessage {
+
     private static final String SIGN_UP_SUBJECT = "[TASTY HOUSE] 회원가입 인증번호 안내";
     private static final String SIGN_UP_BODY_TEMPLATE =
         "[TASTY HOUSE] 회원가입 인증번호 [%s]를 입력해주세요. (%d분 내 유효)";

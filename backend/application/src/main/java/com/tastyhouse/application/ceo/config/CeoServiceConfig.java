@@ -13,6 +13,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class CeoServiceConfig {
+
     @Bean
     public CeoLoginHistoryRecorder ceoLoginHistoryRecorder(
         CeoLoginHistoryPersistencePort ceoLoginHistoryPersistencePort

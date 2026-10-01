@@ -12,6 +12,7 @@ public record ReviewMemberListItemResponse(
     @Schema(description = "리뷰 이미지 URL", example = "https://cdn.tastyhouse.com/review/1/image.jpg")
     String imageUrl
 ) {
+
     public static ReviewMemberListItemResponse from(MyReviewListItemResult result) {
         return new ReviewMemberListItemResponse(
             result.id(),

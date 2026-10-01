@@ -7,6 +7,7 @@ public record BugReportAssignCommand(
     Long bugReportId,
     Long assigneeAdminId
 ) {
+
     public BugReportAssignCommand {
         if (bugReportId == null || assigneeAdminId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

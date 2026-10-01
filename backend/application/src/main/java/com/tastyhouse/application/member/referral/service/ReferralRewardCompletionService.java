@@ -7,6 +7,7 @@ import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
 
 public class ReferralRewardCompletionService {
+
     private final MemberReferralPersistencePort memberReferralPersistencePort;
 
     public ReferralRewardCompletionService(MemberReferralPersistencePort memberReferralPersistencePort) {

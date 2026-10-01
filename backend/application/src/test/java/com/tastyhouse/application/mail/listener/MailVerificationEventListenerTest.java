@@ -14,6 +14,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MailVerificationEventListenerTest {
+
     private final MailVerificationEventListener listener = new MailVerificationEventListener();
 
     private ListenerLogCapture logCapture;

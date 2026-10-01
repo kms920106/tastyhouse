@@ -7,6 +7,7 @@ import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public interface MemberReferralPersistencePort {
+
     boolean existsByRefereeId(MemberId refereeId);
 
     Optional<MemberReferral> findById(ReferralId id);

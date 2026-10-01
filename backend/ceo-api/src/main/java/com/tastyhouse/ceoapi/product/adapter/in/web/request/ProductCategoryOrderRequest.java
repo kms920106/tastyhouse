@@ -19,6 +19,7 @@ public record ProductCategoryOrderRequest(
         + "일치해야 한다.", example = "[3, 1, 7]", requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productCategoryIds
 ) {
+
     public ProductCategoryReorderCommand toCommand(Long ceoId) {
         return new ProductCategoryReorderCommand(ceoId, shopId, productCategoryIds);
     }

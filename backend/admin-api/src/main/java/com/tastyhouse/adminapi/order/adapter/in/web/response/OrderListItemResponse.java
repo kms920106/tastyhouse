@@ -41,6 +41,7 @@ public record OrderListItemResponse(
     @Schema(description = "수령 예약 시각(슬롯 시작). null이면 즉시 주문이며, 점주 화면에는 이 시작 시각만 표시합니다.", example = "2026-08-08T18:00:00")
     LocalDateTime scheduledAt
 ) {
+
     public static OrderListItemResponse from(OrderManagementListItemResult result) {
         return new OrderListItemResponse(
             result.id(),

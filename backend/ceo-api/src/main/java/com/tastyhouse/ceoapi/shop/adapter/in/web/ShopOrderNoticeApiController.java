@@ -24,6 +24,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @RestController
 @RequestMapping("/api/shops")
 public class ShopOrderNoticeApiController {
+
     private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase;
     private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;
 

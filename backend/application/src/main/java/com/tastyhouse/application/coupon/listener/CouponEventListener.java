@@ -13,6 +13,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class CouponEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(CouponEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

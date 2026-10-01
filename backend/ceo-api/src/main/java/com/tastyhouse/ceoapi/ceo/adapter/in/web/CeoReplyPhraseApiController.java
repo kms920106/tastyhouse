@@ -30,6 +30,7 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoReplyPhraseApiController {
+
     private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
     private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase;
 

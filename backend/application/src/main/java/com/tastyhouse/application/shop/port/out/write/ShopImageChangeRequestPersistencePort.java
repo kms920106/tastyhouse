@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 
 public interface ShopImageChangeRequestPersistencePort {
+
     ShopImageChangeRequest save(ShopImageChangeRequest shopImageChangeRequest);
 
     Optional<ShopImageChangeRequest> findById(Long id);

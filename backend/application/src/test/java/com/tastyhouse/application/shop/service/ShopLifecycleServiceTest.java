@@ -28,6 +28,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopLifecycleServiceTest {
+
     private static final Long ADMIN_ID = 99L;
     private static final Long CEO_ID = 7L;
     private static final Long STATION_ID = 3L;
@@ -94,6 +95,7 @@ class ShopLifecycleServiceTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
         private final AtomicLong sequence = new AtomicLong();
 
@@ -139,6 +141,7 @@ class ShopLifecycleServiceTest {
     }
 
     private static final class FakeShopBookmarkPersistencePort implements ShopBookmarkPersistencePort {
+
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
             return false;
@@ -156,6 +159,7 @@ class ShopLifecycleServiceTest {
 
     private static final class FakeShopImageChangeRequestPersistencePort
         implements ShopImageChangeRequestPersistencePort {
+
         @Override
         public Optional<ShopImageChangeRequest> findById(Long id) {
             return Optional.empty();
@@ -182,6 +186,7 @@ class ShopLifecycleServiceTest {
     }
 
     private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public java.util.List<ProhibitedWord> findAll() {
             return java.util.List.of();

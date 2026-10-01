@@ -11,6 +11,7 @@ public record OrderDeliveryDestination(
     String lotAddress,
     String roadAddress
 ) {
+
     public static OrderDeliveryDestination of(
         Long adminDongId,
         String detailAddress,

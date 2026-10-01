@@ -17,6 +17,7 @@ public record ProductOptionTargetRequest(
         allowableValues = {"NORMAL", "COMMON"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String optionType
 ) {
+
     public ProductOptionTargetCommand toCommand() {
         return new ProductOptionTargetCommand(optionId, optionType);
     }

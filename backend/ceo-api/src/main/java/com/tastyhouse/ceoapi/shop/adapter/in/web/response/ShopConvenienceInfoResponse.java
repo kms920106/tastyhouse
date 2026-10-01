@@ -35,6 +35,7 @@ public record ShopConvenienceInfoResponse(
     @Schema(description = "노출 위치 경도", example = "127.027621")
     BigDecimal displayLongitude
 ) {
+
     public static ShopConvenienceInfoResponse from(ShopConvenienceInfoResult result) {
         return new ShopConvenienceInfoResponse(
             result.id(),

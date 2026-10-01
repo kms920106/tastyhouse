@@ -33,6 +33,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerific
 @RestController
 @RequestMapping("/api/shops")
 public class StorePriceVerificationAdminApiController {
+
     private final StorePriceVerificationQueryUseCase storePriceVerificationQueryUseCase;
     private final StorePriceVerificationCommandUseCase storePriceVerificationCommandUseCase;
 

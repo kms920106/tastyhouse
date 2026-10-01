@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ClosedDayType {
+
     NO_CLOSED_DAYS("연중무휴", null, null),
 
     EVERY_WEEK_MONDAY("매주 월요일", DayOfWeek.MONDAY, WeekOrdinal.EVERY),
@@ -98,6 +99,7 @@ public enum ClosedDayType {
     }
 
     public enum WeekOrdinal {
+
         EVERY {
             @Override
             boolean matches(LocalDate date) {

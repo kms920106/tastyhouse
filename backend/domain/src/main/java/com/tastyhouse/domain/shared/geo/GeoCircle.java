@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GeoCircle {
+
     private static final int COORDINATE_SCALE = 6;
 
     private GeoCircle() {

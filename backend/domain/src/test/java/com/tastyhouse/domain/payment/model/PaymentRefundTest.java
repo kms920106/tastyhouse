@@ -11,6 +11,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PaymentRefundTest {
+
     private static final PaymentId PAYMENT_ID = PaymentId.of(1L);
 
     @Test

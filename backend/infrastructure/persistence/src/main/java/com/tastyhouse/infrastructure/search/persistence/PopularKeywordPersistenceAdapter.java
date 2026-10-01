@@ -14,6 +14,7 @@ import static com.tastyhouse.infrastructure.search.persistence.QPopularKeywordJp
 
 @Repository
 public class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;
 

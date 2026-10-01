@@ -11,6 +11,7 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class Reservation {
+
     private final Long id;
     private final MemberId memberId;
     private final ShopId shopId;

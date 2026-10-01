@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 
 public class PartnershipRequest {
+
     private final Long id;
     private final String businessName;
     private final String address;

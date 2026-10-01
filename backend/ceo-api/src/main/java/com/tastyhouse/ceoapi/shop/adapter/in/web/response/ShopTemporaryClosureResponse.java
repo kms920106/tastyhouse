@@ -17,6 +17,7 @@ public record ShopTemporaryClosureResponse(
     @Schema(description = "임시 휴무 종료일", example = "2026-08-03")
     LocalDate endDate
 ) {
+
     public static ShopTemporaryClosureResponse from(ShopTemporaryClosureResult result) {
         return new ShopTemporaryClosureResponse(
             result.id(),

@@ -6,6 +6,7 @@ import java.util.List;
 public record GeoPolygon(
     List<GeoRing> rings
 ) {
+
     public GeoPolygon {
         if (rings == null || rings.isEmpty()) {
             throw new IllegalArgumentException("도형에는 링이 하나 이상 필요합니다.");

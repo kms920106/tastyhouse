@@ -44,6 +44,7 @@ public record ProductOptionGroupMergePreviewGroupResponse(
     @Schema(description = "옵션 목록")
     List<ProductOptionGroupMergePreviewOptionResponse> options
 ) {
+
     public static ProductOptionGroupMergePreviewGroupResponse from(
         ProductOptionGroupMergePreviewResult.Group group
     ) {

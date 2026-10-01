@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 
 public interface ProductImageChangeRequestPersistencePort {
+
     ProductImageChangeRequest save(ProductImageChangeRequest request);
 
     Optional<ProductImageChangeRequest> findById(ProductImageChangeRequestId id);

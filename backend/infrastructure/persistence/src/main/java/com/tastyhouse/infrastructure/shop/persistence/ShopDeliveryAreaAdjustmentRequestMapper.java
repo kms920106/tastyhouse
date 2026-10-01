@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopDeliveryAreaAdjustmentRequestMapper {
+
     private ShopDeliveryAreaAdjustmentRequestMapper() {
     }
 

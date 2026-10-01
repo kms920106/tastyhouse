@@ -39,6 +39,7 @@ public record ProductSummaryResponse(
     @Schema(description = "매운맛 정도 (0-5 또는 0-10)", example = "3")
     Integer spiciness
 ) {
+
     public static ProductSummaryResponse from(SearchProductItemResult result) {
         return new ProductSummaryResponse(
             result.id(),

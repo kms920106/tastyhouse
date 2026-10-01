@@ -24,6 +24,7 @@ public record ProductPriceResponse(
     @Schema(description = "표시 순서(0부터)", example = "0")
     Integer sort
 ) {
+
     public static ProductPriceResponse from(ProductOwnerPriceView view) {
         return new ProductPriceResponse(
             view.id(),

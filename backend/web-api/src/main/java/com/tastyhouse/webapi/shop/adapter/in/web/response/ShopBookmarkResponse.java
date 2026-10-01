@@ -7,6 +7,7 @@ public record ShopBookmarkResponse(
     @Schema(description = "북마크 여부", example = "true")
     boolean bookmarked
 ) {
+
     public static ShopBookmarkResponse from(boolean bookmarked) {
         return new ShopBookmarkResponse(bookmarked);
     }

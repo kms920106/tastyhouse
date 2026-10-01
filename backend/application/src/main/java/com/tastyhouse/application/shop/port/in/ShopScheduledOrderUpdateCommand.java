@@ -8,6 +8,7 @@ public record ShopScheduledOrderUpdateCommand(
     Long shopId,
     Boolean enabled
 ) {
+
     public ShopScheduledOrderUpdateCommand {
         if (ceoId == null || shopId == null || enabled == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

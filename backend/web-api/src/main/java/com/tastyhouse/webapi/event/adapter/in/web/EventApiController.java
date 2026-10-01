@@ -26,6 +26,7 @@ import com.tastyhouse.webapi.event.adapter.in.web.response.EventListItemResponse
 @RequestMapping("/api/event")
 @Tag(name = "Event", description = "이벤트 관리 API")
 public class EventApiController {
+
     private final EventQueryUseCase eventQueryUseCase;
 
     public EventApiController(EventQueryUseCase eventQueryUseCase) {

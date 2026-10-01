@@ -29,6 +29,7 @@ public record ShopDeliveryAreaAdjustmentListItemResponse(
     @Schema(description = "접수 일시", example = "2026-08-09T10:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ShopDeliveryAreaAdjustmentListItemResponse from(ShopDeliveryAreaAdjustmentListItemResult result) {
         return new ShopDeliveryAreaAdjustmentListItemResponse(
             result.id(),

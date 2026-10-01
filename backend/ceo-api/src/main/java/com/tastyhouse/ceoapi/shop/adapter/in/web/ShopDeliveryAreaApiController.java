@@ -47,6 +47,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
 @RestController
 @RequestMapping("/api/shops")
 public class ShopDeliveryAreaApiController {
+
     private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryUseCase;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
     private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase;

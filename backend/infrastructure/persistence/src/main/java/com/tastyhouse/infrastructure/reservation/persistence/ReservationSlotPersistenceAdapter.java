@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.port.out.OptimisticLockConflictExceptio
 
 @Repository
 public class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePort {
+
     private final ReservationSlotJpaRepository slotJpaRepository;
 
     @PersistenceContext

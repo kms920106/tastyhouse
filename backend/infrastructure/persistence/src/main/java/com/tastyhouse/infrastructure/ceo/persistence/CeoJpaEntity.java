@@ -15,6 +15,7 @@ import com.tastyhouse.infrastructure.shared.persistence.PhoneNumberEmbeddable;
 @Entity
 @Table(name = "CEO")
 public class CeoJpaEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.vo.BbqMenuId;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductBbq {
+
     private final Long id;
     private final ProductId productId;
     private final BbqMenuId bbqMenuId;

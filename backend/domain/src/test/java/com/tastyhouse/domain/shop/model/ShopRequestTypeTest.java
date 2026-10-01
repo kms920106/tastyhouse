@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopRequestTypeTest {
+
     @Test
     @DisplayName("알 수 없는 코드는 SHOP_REQUEST_TYPE_UNKNOWN(400)으로 변환된다")
     void from_withUnknownCode_throwsBusinessException() {

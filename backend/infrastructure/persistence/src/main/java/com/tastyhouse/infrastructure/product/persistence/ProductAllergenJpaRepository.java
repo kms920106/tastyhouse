@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductAllergenJpaRepository extends JpaRepository<ProductAllergenJpaEntity, Long> {
+
     List<ProductAllergenJpaEntity> findAllByProductId(Long productId);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)

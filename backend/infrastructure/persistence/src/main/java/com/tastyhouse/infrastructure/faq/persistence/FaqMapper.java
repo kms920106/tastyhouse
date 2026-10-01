@@ -4,6 +4,7 @@ import com.tastyhouse.domain.faq.model.Faq;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 final class FaqMapper {
+
     private FaqMapper() {
     }
 

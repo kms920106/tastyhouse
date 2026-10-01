@@ -7,6 +7,7 @@ public record MenuReviewDeleteCommand(
     Long memberId,
     Long menuReviewId
 ) {
+
     public MenuReviewDeleteCommand {
         if (memberId == null || menuReviewId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

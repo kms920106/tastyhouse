@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductFeedbackTest {
+
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final ShopId SHOP_ID = ShopId.of(2L);
     private static final MemberId MEMBER_ID = MemberId.of(3L);
@@ -26,6 +27,7 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("내용 불변식")
     class ContentInvariant {
+
         @Test
         @DisplayName("ETC는 내용이 없으면 거절한다")
         void etc_withoutContent_rejected() {
@@ -78,6 +80,7 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("유형 승격")
     class TypeConversion {
+
         @Test
         @DisplayName("알 수 없는 문자열은 400으로 거절한다 — 500으로 새어 나가면 입력 오류임을 구분할 수 없다")
         void unknownType_rejected() {
@@ -115,6 +118,7 @@ class ProductFeedbackTest {
     @Nested
     @DisplayName("재구성")
     class Reconstitute {
+
         @Test
         @DisplayName("불변식을 위반한 기존 행도 로드는 가능하다 — 검증 도입 이전 데이터를 막지 않는다")
         void reconstitute_skipsValidation() {

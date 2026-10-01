@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class PaymentEventListenerTest {
+
     private final PointLedgerService pointLedgerService = mock(PointLedgerService.class);
     private final PaymentConfirmationService paymentConfirmationService = mock(PaymentConfirmationService.class);
 
@@ -37,6 +38,7 @@ class PaymentEventListenerTest {
     @Nested
     @DisplayName("결제 완료")
     class PaymentCompleted {
+
         @Test
         @DisplayName("현장 결제면 계산된 적립액과 적립률 문구로 포인트를 적립한다")
         void earnsPointsForOnSitePayment() {
@@ -77,6 +79,7 @@ class PaymentEventListenerTest {
     @Nested
     @DisplayName("결제 취소")
     class PaymentCancelled {
+
         @Test
         @DisplayName("사용 포인트는 환급하고 적립 포인트는 회수한다")
         void refundsUsedAndReclaimsEarned() {
@@ -120,6 +123,7 @@ class PaymentEventListenerTest {
     @Nested
     @DisplayName("환불 요청 접수")
     class RefundRequested {
+
         @Test
         @DisplayName("접수 사실만 남기고 포인트는 건드리지 않는다 — 정산은 취소 확정 시점의 몫이다")
         void doesNotTouchPoints() {

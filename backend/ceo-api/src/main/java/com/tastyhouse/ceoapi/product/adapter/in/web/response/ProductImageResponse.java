@@ -18,6 +18,7 @@ public record ProductImageResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
+
     public static ProductImageResponse from(ProductImageManagementResult result) {
         return new ProductImageResponse(
             result.id(),

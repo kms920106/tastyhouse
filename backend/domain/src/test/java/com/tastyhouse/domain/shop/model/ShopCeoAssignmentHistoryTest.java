@@ -11,6 +11,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopCeoAssignmentHistoryTest {
+
     @Test
     @DisplayName("of는 식별자·생성시각 없이 신규 이력을 만든다")
     void of_createsNewHistoryWithoutIdAndCreatedAt() {

@@ -53,6 +53,7 @@ public record CouponDetailResponse(
     @Schema(description = "수정일시", example = "2026-01-01T00:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static CouponDetailResponse from(CouponDetailResult result) {
         return new CouponDetailResponse(
             result.id(),

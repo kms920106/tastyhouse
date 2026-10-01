@@ -24,6 +24,7 @@ public record ShopRequestCommentResponse(
     @Schema(description = "작성 일시", example = "2026-08-12T09:20:11")
     LocalDateTime createdAt
 ) {
+
     public static ShopRequestCommentResponse from(ShopRequestCommentResult result) {
         return new ShopRequestCommentResponse(
             result.commentId(),

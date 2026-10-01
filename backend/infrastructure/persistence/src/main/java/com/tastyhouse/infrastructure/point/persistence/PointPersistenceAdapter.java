@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.point.persistence.QPointJpaEntity.po
 
 @Repository
 public class PointPersistenceAdapter implements PointPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final PointJpaRepository pointJpaRepository;
 

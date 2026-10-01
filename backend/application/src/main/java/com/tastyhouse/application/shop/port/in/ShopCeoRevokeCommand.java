@@ -7,6 +7,7 @@ public record ShopCeoRevokeCommand(
     Long adminId,
     Long shopId
 ) {
+
     public ShopCeoRevokeCommand {
         if (adminId == null || shopId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

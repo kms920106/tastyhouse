@@ -4,6 +4,7 @@ public record MemberReviewCount(
     Long memberId,
     Long reviewCount
 ) {
+
     public static MemberReviewCount of(
         Long memberId,
         Long reviewCount

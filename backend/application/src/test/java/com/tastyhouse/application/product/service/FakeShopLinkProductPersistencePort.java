@@ -13,6 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 class FakeShopLinkProductPersistencePort implements ProductPersistencePort {
+
     private final Map<Long, Product> products = new HashMap<>();
     private final Map<Long, Long> visibleCountByShopId = new HashMap<>();
 

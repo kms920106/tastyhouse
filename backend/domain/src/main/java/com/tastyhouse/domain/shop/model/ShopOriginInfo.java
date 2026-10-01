@@ -7,6 +7,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopOriginInfo {
+
     private static final int CONTENT_MAX_LENGTH = 2000;
     private static final int URL_MAX_LENGTH = 500;
     private static final String HTTP_SCHEME = "http://";

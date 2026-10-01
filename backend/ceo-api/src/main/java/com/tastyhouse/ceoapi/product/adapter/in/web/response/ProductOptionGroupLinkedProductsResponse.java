@@ -14,6 +14,7 @@ public record ProductOptionGroupLinkedProductsResponse(
     @Schema(description = "이 그룹을 사용하는 메뉴 목록")
     List<ProductOptionGroupLinkedProductResponse> products
 ) {
+
     public static ProductOptionGroupLinkedProductsResponse from(ProductOptionGroupLinkedProductsResult result) {
         return new ProductOptionGroupLinkedProductsResponse(
             result.optionGroupId(),

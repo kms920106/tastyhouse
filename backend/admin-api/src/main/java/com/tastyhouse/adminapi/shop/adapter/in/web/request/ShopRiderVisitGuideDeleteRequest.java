@@ -14,6 +14,7 @@ public record ShopRiderVisitGuideDeleteRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
+
     public ShopRiderVisitGuideDeleteCommand toCommand(Long shopId, Long adminId) {
         return new ShopRiderVisitGuideDeleteCommand(shopId, adminId, reason);
     }

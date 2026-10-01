@@ -15,6 +15,7 @@ public record ShopOrderNoticeResponse(
     @Schema(description = "게시중단 사유 (게시중이면 null)", example = "외부 결제 유도 문구가 포함되어 있습니다.")
     String hiddenReason
 ) {
+
     public static ShopOrderNoticeResponse from(ShopOrderNoticeResult result) {
         return new ShopOrderNoticeResponse(result.content(), result.hidden(), result.hiddenReason());
     }

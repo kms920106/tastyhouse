@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 public enum OrderUnavailableReason {
+
     PERMANENTLY_CLOSED("폐업한 가게입니다"),
     HIDDEN("노출정지 상태입니다"),
     SUSPENDED("영업 임시중지 중입니다"),

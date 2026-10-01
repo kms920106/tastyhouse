@@ -25,6 +25,7 @@ public record ProductCategoryResponse(
         example = "5")
     Long productCount
 ) {
+
     public static ProductCategoryResponse from(ProductCategoryManagementResult result) {
         return new ProductCategoryResponse(
             result.id(),

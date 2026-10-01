@@ -6,6 +6,7 @@ import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReservationMapper {
+
     private ReservationMapper() {
     }
 

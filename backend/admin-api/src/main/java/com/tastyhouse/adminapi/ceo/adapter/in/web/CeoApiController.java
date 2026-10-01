@@ -17,6 +17,7 @@ import com.tastyhouse.adminapi.ceo.adapter.in.web.response.CeoListItemResponse;
 @RestController
 @RequestMapping("/api/ceos")
 public class CeoApiController {
+
     private final CeoManagementQueryUseCase ceoQueryUseCase;
 
     public CeoApiController(CeoManagementQueryUseCase ceoQueryUseCase) {

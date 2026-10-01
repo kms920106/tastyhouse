@@ -8,6 +8,7 @@ public record ProductExposureClearCommand(
     Long shopId,
     Long productId
 ) {
+
     public ProductExposureClearCommand {
         if (ceoId == null
             || shopId == null

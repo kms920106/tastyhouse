@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AdminDongJpaRepository extends JpaRepository<AdminDongJpaEntity, Long> {
+
     Optional<AdminDongJpaEntity> findBySidoNameAndSigunguNameAndDongNameAndActiveIsTrue(
         String sidoName,
         String sigunguName,

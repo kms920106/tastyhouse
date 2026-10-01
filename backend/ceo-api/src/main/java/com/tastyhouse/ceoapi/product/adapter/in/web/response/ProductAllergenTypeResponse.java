@@ -12,6 +12,7 @@ public record ProductAllergenTypeResponse(
     @Schema(description = "성분 한글 라벨", example = "우유")
     String label
 ) {
+
     public static ProductAllergenTypeResponse from(ProductAllergenTypeView view) {
         return new ProductAllergenTypeResponse(
             view.code(),

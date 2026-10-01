@@ -29,6 +29,7 @@ public record ShopDeliveryAreaPolygonPreviewResponse(
     @Schema(description = "좌표·경계 미보유로 판정하지 못한 행정동 수", example = "0")
     int unresolvedCount
 ) {
+
     public static ShopDeliveryAreaPolygonPreviewResponse from(ShopDeliveryAreaPolygonPreviewResult result) {
         return new ShopDeliveryAreaPolygonPreviewResponse(
             result.maxRadiusMeters(),

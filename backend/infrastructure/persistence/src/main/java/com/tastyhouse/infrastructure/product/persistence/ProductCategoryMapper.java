@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductCategoryMapper {
+
     private ProductCategoryMapper() {
     }
 

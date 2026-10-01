@@ -24,6 +24,7 @@ public record ShopListItemResponse(
     @Schema(description = "폐업 여부", example = "false")
     boolean permanentlyClosed
 ) {
+
     public static ShopListItemResponse from(ShopListItemResult result) {
         return new ShopListItemResponse(
             result.id(),

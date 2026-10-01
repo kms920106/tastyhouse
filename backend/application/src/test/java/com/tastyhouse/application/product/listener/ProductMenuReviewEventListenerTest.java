@@ -20,6 +20,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class ProductMenuReviewEventListenerTest {
+
     private final ProductReviewStatsService productReviewStatsService = mock(ProductReviewStatsService.class);
 
     private final ProductMenuReviewEventListener listener =

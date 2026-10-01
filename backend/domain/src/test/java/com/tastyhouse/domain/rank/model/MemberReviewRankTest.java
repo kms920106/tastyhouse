@@ -11,6 +11,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberReviewRankTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 전달된 필드가 그대로 세팅된다")
     void of_createsTransientMemberReviewRank() {

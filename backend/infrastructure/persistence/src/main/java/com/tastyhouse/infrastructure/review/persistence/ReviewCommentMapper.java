@@ -5,6 +5,7 @@ import com.tastyhouse.domain.review.model.ReviewComment;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 final class ReviewCommentMapper {
+
     private ReviewCommentMapper() {
     }
 

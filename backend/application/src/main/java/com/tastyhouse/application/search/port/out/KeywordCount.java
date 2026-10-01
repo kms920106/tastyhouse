@@ -4,6 +4,7 @@ public record KeywordCount(
     String keyword,
     long count
 ) {
+
     public static KeywordCount of(
         String keyword,
         long count

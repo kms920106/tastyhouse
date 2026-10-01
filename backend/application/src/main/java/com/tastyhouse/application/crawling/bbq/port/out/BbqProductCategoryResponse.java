@@ -7,6 +7,7 @@ public record BbqProductCategoryResponse(
     Integer sort,
     boolean visible
 ) {
+
     public static BbqProductCategoryResponse from(
         Long id,
         Long shopId,

@@ -23,6 +23,7 @@ public record ShopBreakTimeResponse(
     @Schema(description = "종료 시각", example = "17:00:00")
     LocalTime endTime
 ) {
+
     public static ShopBreakTimeResponse from(ShopBreakTimeResult result) {
         return new ShopBreakTimeResponse(
             result.id(),

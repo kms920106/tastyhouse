@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ReviewOwnerReplyServiceTest {
+
     private static final Long SHOP_ID = 1L;
     private static final Long CEO_ID = 7L;
     private static final Long REVIEWER_MEMBER_ID = 42L;
@@ -156,6 +157,7 @@ class ReviewOwnerReplyServiceTest {
     }
 
     private static class FakeReviewOwnerReplyPersistencePort implements ReviewOwnerReplyPersistencePort {
+
         private final Map<Long, ReviewOwnerReply> replies = new HashMap<>();
         private long sequence = 0L;
 
@@ -203,6 +205,7 @@ class ReviewOwnerReplyServiceTest {
     }
 
     private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+
         @Override
         public List<ProhibitedWord> findAll() {
             return List.of(ProhibitedWord.reconstitute(1L, "전화주문", "전화 주문 유도"));

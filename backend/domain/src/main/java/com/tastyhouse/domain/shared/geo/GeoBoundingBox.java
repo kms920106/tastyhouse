@@ -9,6 +9,7 @@ public record GeoBoundingBox(
     BigDecimal minLatitude,
     BigDecimal minLongitude
 ) {
+
     public GeoBoundingBox {
         if (maxLatitude == null || maxLongitude == null || minLatitude == null || minLongitude == null) {
             throw new IllegalArgumentException("바운딩 박스의 네 경계값은 모두 필수입니다.");

@@ -6,6 +6,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 
 public class ReviewReply {
+
     private final Long id;
     private final ReviewCommentId commentId;
     private final MemberId memberId;

@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MailVerificationTest {
+
     @Test
     @DisplayName("create로 생성하면 미영속 상태(식별자 없음)이고 PENDING 상태의 6자리 인증코드를 갖는다")
     void create_createsTransientMailVerification() {

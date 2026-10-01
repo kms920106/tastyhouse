@@ -8,6 +8,7 @@ public record ProductNutritionDeleteCommand(
     Long shopId,
     Long productId
 ) {
+
     public ProductNutritionDeleteCommand {
         if (ceoId == null
             || shopId == null

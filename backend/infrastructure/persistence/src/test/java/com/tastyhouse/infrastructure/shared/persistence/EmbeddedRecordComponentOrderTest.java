@@ -19,6 +19,7 @@ import org.springframework.util.ClassUtils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class EmbeddedRecordComponentOrderTest {
+
     private static final String ENTITY_BASE_PACKAGE = "com.tastyhouse.infrastructure";
 
     @Test

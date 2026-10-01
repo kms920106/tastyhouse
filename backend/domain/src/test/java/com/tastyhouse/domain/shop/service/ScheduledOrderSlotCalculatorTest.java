@@ -27,6 +27,7 @@ import com.tastyhouse.domain.shop.vo.StationId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ScheduledOrderSlotCalculatorTest {
+
     private final ScheduledOrderSlotCalculator calculator =
         new ScheduledOrderSlotCalculator(new ShopOperatingStatusCalculator());
 

@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자 없음)이고 판매중·비품절 상태다")
     void of_createsTransientProduct() {

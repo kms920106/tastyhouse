@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class ProductMenuReviewEventListener {
+
     private final ProductReviewStatsService productReviewStatsService;
 
     public ProductMenuReviewEventListener(ProductReviewStatsService productReviewStatsService) {

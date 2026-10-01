@@ -28,6 +28,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPricePersistence
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
 
 public class StorePriceVerificationService {
+
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =
         List.of(StorePriceVerificationStatus.PENDING, StorePriceVerificationStatus.IN_PROGRESS);
 

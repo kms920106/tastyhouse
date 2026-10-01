@@ -9,6 +9,7 @@ public record ProductOptionGroupUnlinkCommand(
     Long productId,
     Long optionGroupId
 ) {
+
     public ProductOptionGroupUnlinkCommand {
         if (ceoId == null
             || shopId == null

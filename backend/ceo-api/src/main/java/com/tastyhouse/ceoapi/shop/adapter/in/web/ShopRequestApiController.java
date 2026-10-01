@@ -37,6 +37,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalog
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRequestApiController {
+
     private final ShopRequestQueryUseCase shopRequestQueryUseCase;
     private final ShopRequestCommandUseCase shopRequestCommandUseCase;
 

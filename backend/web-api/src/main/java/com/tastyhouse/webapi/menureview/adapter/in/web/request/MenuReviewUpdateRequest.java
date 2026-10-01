@@ -21,6 +21,7 @@ public record MenuReviewUpdateRequest(
     @Schema(description = "짧은 코멘트 (선택)", example = "조금 짰어요")
     String comment
 ) {
+
     public MenuReviewUpdateCommand toCommand(Long memberId, Long menuReviewId) {
         return new MenuReviewUpdateCommand(
             memberId,

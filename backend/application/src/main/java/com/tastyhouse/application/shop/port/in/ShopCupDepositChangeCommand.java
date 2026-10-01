@@ -7,6 +7,7 @@ public record ShopCupDepositChangeCommand(
     Long shopId,
     Boolean enabled
 ) {
+
     public ShopCupDepositChangeCommand {
         if (shopId == null || enabled == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -7,6 +7,7 @@ public record MailVerificationConfirmCommand(
     String email,
     String verificationCode
 ) {
+
     public MailVerificationConfirmCommand {
         if (email == null || verificationCode == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

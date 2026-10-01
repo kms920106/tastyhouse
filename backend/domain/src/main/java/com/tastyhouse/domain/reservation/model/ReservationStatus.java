@@ -3,6 +3,7 @@ package com.tastyhouse.domain.reservation.model;
 import java.util.Set;
 
 public enum ReservationStatus {
+
     PENDING,
     CONFIRMED,
     REJECTED,

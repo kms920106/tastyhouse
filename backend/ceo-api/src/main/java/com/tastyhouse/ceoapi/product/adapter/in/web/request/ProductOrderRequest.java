@@ -22,6 +22,7 @@ public record ProductOrderRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
+
     public ProductReorderCommand toCommand(Long ceoId) {
         return new ProductReorderCommand(ceoId, shopId, productCategoryId, productIds);
     }

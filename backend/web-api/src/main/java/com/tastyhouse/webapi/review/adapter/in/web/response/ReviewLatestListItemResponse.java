@@ -42,6 +42,7 @@ public record ReviewLatestListItemResponse(
     @Schema(description = "댓글 수", example = "3")
     Long commentCount
 ) {
+
     public static ReviewLatestListItemResponse from(LatestReviewListItemResult result) {
         return new ReviewLatestListItemResponse(
             result.id(),

@@ -10,6 +10,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
 
 public class FakeMemberReferralPersistencePort implements MemberReferralPersistencePort {
+
     private final Map<Long, MemberReferral> referrals = new HashMap<>();
     private long sequence = 0L;
 

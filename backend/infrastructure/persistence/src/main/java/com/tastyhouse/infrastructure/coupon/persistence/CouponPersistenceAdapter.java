@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.coupon.persistence.QCouponJpaEntity.
 
 @Repository
 public class CouponPersistenceAdapter implements CouponPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final CouponJpaRepository couponJpaRepository;
 

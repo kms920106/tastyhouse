@@ -18,6 +18,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersisten
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ShopChangeHistoryRecorderTest {
+
     @Test
     @DisplayName("record는 전달받은 값으로 이력 1행을 저장한다")
     void record_savesSingleHistoryRow() {
@@ -80,6 +81,7 @@ class ShopChangeHistoryRecorderTest {
     }
 
     private static class FakeShopChangeHistoryPersistencePort implements ShopChangeHistoryPersistencePort {
+
         private final List<ShopChangeHistory> saved = new ArrayList<>();
 
         @Override

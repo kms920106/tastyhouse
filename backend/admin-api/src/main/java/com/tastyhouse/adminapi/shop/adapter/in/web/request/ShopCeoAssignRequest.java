@@ -12,6 +12,7 @@ public record ShopCeoAssignRequest(
     @Schema(description = "배정할 점주 ID", example = "7", requiredMode = Schema.RequiredMode.REQUIRED)
     Long ceoId
 ) {
+
     public ShopCeoAssignCommand toCommand(Long adminId, Long shopId) {
         return new ShopCeoAssignCommand(adminId, shopId, ceoId);
     }

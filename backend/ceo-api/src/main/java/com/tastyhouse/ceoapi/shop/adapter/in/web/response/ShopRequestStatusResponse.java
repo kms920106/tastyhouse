@@ -13,6 +13,7 @@ public record ShopRequestStatusResponse(
     @Schema(description = "상태 한글 라벨", example = "대기중")
     String description
 ) {
+
     public static ShopRequestStatusResponse from(CodeLabelResult result) {
         return new ShopRequestStatusResponse(
             result.code(),

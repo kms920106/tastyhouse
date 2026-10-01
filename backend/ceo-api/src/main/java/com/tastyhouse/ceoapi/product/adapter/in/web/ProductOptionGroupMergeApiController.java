@@ -32,6 +32,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupMergeApiController {
+
     private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase;
     private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;
 

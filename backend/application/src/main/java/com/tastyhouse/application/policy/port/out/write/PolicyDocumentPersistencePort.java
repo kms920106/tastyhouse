@@ -7,6 +7,7 @@ import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
 
 public interface PolicyDocumentPersistencePort {
+
     Optional<PolicyDocument> findById(PolicyDocumentId id);
 
     Optional<PolicyDocument> findCurrentEntityByType(PolicyType type);

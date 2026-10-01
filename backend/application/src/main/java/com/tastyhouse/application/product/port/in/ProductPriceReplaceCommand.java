@@ -11,6 +11,7 @@ public record ProductPriceReplaceCommand(
     Long productId,
     List<ProductPriceItemCommand> prices
 ) {
+
     public ProductPriceReplaceCommand {
         if (ceoId == null
             || shopId == null

@@ -33,6 +33,7 @@ public record ReviewCommentResponse(
     @Schema(description = "답글 목록")
     List<ReviewReplyResponse> replies
 ) {
+
     public static ReviewCommentResponse from(ReviewCommentListView.CommentWithReplies item) {
         return new ReviewCommentResponse(
             item.comment().id(),

@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ShopRiderGuidePersistencePort {
+
     Optional<ShopRiderGuide> findByShopId(ShopId shopId);
 
     ShopRiderGuide save(ShopRiderGuide riderGuide);

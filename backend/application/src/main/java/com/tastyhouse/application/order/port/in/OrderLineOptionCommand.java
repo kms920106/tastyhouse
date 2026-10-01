@@ -7,6 +7,7 @@ public record OrderLineOptionCommand(
     Long groupId,
     Long optionId
 ) {
+
     public OrderLineOptionCommand {
         if (groupId == null || optionId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

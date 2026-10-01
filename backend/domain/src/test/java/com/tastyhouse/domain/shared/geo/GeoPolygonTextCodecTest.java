@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GeoPolygonTextCodecTest {
+
     @Test
     @DisplayName("인코딩 후 디코딩하면 원본과 같은 좌표가 나온다(왕복 동일성)")
     void encodeDecode_roundTrips() {

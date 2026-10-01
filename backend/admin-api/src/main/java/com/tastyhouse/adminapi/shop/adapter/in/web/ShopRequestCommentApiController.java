@@ -26,6 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentRe
 @RestController
 @RequestMapping("/api/shops")
 public class ShopRequestCommentApiController {
+
     private final ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase;
     private final ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase;
 

@@ -20,6 +20,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
 
 public class ProductShopLinkService {
+
     private final ProductPersistencePort productPersistencePort;
     private final ProductShopLinkPersistencePort productShopLinkPersistencePort;
     private final ProductCategoryPersistencePort productCategoryPersistencePort;

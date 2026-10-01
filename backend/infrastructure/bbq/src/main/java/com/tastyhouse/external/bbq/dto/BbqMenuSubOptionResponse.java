@@ -59,6 +59,7 @@ public class BbqMenuSubOptionResponse {
     }
 
     public static class SubOptionItemDetailResponse {
+
         @JsonProperty("id")
         private Long id;
 

@@ -32,6 +32,7 @@ public record PaymentSummaryResponse(
     @Schema(description = "결제 영수증 URL", example = "https://cdn.tastyhouse.com/receipt/1.jpg")
     String receiptUrl
 ) {
+
     public static PaymentSummaryResponse from(OrderPaymentResult result) {
         return new PaymentSummaryResponse(
             result.id(),

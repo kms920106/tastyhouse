@@ -31,6 +31,7 @@ public record ShopSuspensionResponse(
     @Schema(description = "해제 시각 (해제 전이면 null)", example = "2026-07-25T15:00:00")
     LocalDateTime releasedAt
 ) {
+
     public static ShopSuspensionResponse from(ShopSuspensionResult result) {
         return new ShopSuspensionResponse(
             result.id(),

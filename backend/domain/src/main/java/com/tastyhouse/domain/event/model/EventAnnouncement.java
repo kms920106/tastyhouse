@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.event.vo.EventId;
 
 public class EventAnnouncement {
+
     private final Long id;
     private final EventId eventId;
     private String name;

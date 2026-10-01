@@ -45,6 +45,7 @@ public record EventDetailResponse(
     @Schema(description = "수정일시", example = "2025-12-25T14:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static EventDetailResponse from(EventManagementDetailResult result) {
         return new EventDetailResponse(
             result.id(),

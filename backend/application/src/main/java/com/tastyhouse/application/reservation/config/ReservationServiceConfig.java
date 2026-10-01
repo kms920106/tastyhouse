@@ -14,6 +14,7 @@ import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class ReservationServiceConfig {
+
     @Bean
     public ReservationBookingService reservationBookingService(
         ReservationPersistencePort reservationPersistencePort,

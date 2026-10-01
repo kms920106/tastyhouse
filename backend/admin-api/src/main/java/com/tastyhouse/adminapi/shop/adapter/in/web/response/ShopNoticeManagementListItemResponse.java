@@ -33,6 +33,7 @@ public record ShopNoticeManagementListItemResponse(
     @Schema(description = "생성 일시", example = "2026-08-15T10:00:00")
     LocalDateTime createdAt
 ) {
+
     public static ShopNoticeManagementListItemResponse from(ShopNoticeManagementListItemResult result) {
         return new ShopNoticeManagementListItemResponse(
             result.id(),

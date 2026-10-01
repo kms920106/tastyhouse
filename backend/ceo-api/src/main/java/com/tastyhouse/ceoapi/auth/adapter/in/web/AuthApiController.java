@@ -25,6 +25,7 @@ import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthApiController {
+
     private final CeoAuthCommandUseCase authCommandUseCase;
 
     public AuthApiController(CeoAuthCommandUseCase authCommandUseCase) {

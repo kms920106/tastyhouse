@@ -24,6 +24,7 @@ public class SolapiMessageResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FailedMessage {
+
         private String to;
         private String from;
         private String type;
@@ -53,6 +54,7 @@ public class SolapiMessageResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GroupInfo {
+
         private Count count;
         private String status;
         private String groupId;
@@ -71,6 +73,7 @@ public class SolapiMessageResponse {
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Count {
+
             private int total;
             private int sentSuccess;
             private int sentFailed;

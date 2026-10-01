@@ -7,6 +7,7 @@ public record ShopFoodTypeUnassignCommand(
     Long shopId,
     Long foodTypeCategoryId
 ) {
+
     public ShopFoodTypeUnassignCommand {
         if (shopId == null || foodTypeCategoryId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

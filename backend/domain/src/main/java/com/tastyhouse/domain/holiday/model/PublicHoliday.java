@@ -3,6 +3,7 @@ package com.tastyhouse.domain.holiday.model;
 import java.time.LocalDate;
 
 public class PublicHoliday {
+
     private final Long id;
     private final LocalDate holidayDate;
     private final String name;

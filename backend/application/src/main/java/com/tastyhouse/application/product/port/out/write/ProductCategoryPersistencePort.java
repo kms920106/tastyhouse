@@ -8,6 +8,7 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductCategoryPersistencePort {
+
     Optional<ProductCategory> findById(ProductCategoryId id);
 
     List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId);

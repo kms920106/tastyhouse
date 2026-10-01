@@ -7,6 +7,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductFeedbackMapper {
+
     private ProductFeedbackMapper() {
     }
 

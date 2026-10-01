@@ -14,6 +14,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class PointEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(PointEventListener.class);
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

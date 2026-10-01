@@ -23,6 +23,7 @@ public record ShopDeliveryAreaCandidateResponse(
     @Schema(description = "이미 배달가능지역으로 등록돼 있는지", example = "false")
     boolean alreadyRegistered
 ) {
+
     public static ShopDeliveryAreaCandidateResponse from(ShopDeliveryAreaCandidateView candidate) {
         return new ShopDeliveryAreaCandidateResponse(
             candidate.adminDongId(),

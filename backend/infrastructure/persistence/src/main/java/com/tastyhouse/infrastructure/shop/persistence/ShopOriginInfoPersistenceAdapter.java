@@ -9,6 +9,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistenceP
 
 @Repository
 public class ShopOriginInfoPersistenceAdapter implements ShopOriginInfoPersistencePort {
+
     private final ShopOriginInfoJpaRepository shopOriginInfoJpaRepository;
 
     public ShopOriginInfoPersistenceAdapter(ShopOriginInfoJpaRepository shopOriginInfoJpaRepository) {

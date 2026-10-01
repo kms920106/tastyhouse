@@ -8,6 +8,7 @@ public record ShopBannerImageCreateCommand(
     Long imageFileId,
     Integer sort
 ) {
+
     public ShopBannerImageCreateCommand {
         if (shopId == null || imageFileId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

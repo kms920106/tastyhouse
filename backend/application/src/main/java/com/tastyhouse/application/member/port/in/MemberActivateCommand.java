@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public record MemberActivateCommand(Long memberId) {
+
     public MemberActivateCommand {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

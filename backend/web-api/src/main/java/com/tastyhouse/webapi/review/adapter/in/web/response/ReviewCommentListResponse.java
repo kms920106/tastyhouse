@@ -14,6 +14,7 @@ public record ReviewCommentListResponse(
     @Schema(description = "총 댓글 수 (답글 포함)", example = "15")
     int totalCount
 ) {
+
     public static ReviewCommentListResponse from(ReviewCommentListView view) {
         return new ReviewCommentListResponse(
             view.comments().stream().map(ReviewCommentResponse::from).toList(),

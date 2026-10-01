@@ -8,6 +8,7 @@ public record ReviewOwnerReplyDeleteCommand(
     Long shopId,
     Long reviewId
 ) {
+
     public ReviewOwnerReplyDeleteCommand {
         if (ceoId == null || shopId == null || reviewId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

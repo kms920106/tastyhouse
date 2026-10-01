@@ -8,6 +8,7 @@ public record CeoCreateCommand(
     String encodedPassword,
     String name
 ) {
+
     public CeoCreateCommand {
         if (username == null || encodedPassword == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

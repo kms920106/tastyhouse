@@ -20,6 +20,7 @@ import com.tastyhouse.adminapi.admin.adapter.in.web.request.AdminCreateRequest;
 @RestController
 @RequestMapping("/api/admins")
 public class AdminApiController {
+
     private final AdminCommandUseCase adminCommandUseCase;
 
     public AdminApiController(AdminCommandUseCase adminCommandUseCase) {

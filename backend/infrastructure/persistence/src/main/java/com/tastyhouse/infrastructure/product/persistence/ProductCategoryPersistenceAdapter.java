@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductCategory
 
 @Repository
 public class ProductCategoryPersistenceAdapter implements ProductCategoryPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;
 

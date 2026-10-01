@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 class ShopCeoAssignmentServiceTest {
+
     private static final Long SHOP_ID = 12L;
     private static final Long CEO_A = 7L;
     private static final Long CEO_B = 8L;
@@ -142,6 +143,7 @@ class ShopCeoAssignmentServiceTest {
     }
 
     private static final class FakeShopPersistencePort implements ShopPersistencePort {
+
         private final Map<Long, Shop> shops = new HashMap<>();
 
         FakeShopPersistencePort() {
@@ -179,6 +181,7 @@ class ShopCeoAssignmentServiceTest {
     }
 
     private static final class FakeCeoPersistencePort implements CeoPersistencePort {
+
         private final Map<Long, Ceo> ceos = new HashMap<>();
 
         FakeCeoPersistencePort() {

@@ -21,6 +21,7 @@ import static com.tastyhouse.infrastructure.product.persistence.QProductJpaEntit
 
 @Repository
 public class MenuReviewQueryAdapter implements MenuReviewQueryPort {
+
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
 

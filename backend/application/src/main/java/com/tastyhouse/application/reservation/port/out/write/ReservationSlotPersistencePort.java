@@ -8,6 +8,7 @@ import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ReservationSlotPersistencePort {
+
     Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time);
 
     ReservationSlot save(ReservationSlot slot);

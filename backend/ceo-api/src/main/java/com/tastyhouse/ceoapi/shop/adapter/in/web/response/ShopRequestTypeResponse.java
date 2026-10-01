@@ -16,6 +16,7 @@ public record ShopRequestTypeResponse(
     @Schema(description = "승인 시 전자계약서가 수정되는 요청인지", example = "false")
     boolean contractAmending
 ) {
+
     public static ShopRequestTypeResponse from(ShopRequestTypeView view) {
         return new ShopRequestTypeResponse(
             view.requestType(),

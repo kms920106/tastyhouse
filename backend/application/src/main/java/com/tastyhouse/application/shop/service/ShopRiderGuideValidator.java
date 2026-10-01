@@ -9,6 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.Shop;
 
 public class ShopRiderGuideValidator {
+
     private static final int VISIT_GUIDE_MAX_LENGTH = 200;
 
     private static final int ADDRESS_MATCH_TOKEN_THRESHOLD = 2;

@@ -14,6 +14,7 @@ public record ProductExposureReplaceCommand(
     LocalDate endDate,
     List<ProductExposureHourCommand> hours
 ) {
+
     public ProductExposureReplaceCommand {
         if (ceoId == null
             || shopId == null

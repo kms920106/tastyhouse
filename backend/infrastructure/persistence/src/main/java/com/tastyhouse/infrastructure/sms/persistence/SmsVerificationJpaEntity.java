@@ -21,6 +21,7 @@ import com.tastyhouse.infrastructure.shared.persistence.VerificationCodeEmbeddab
     @Index(name = "idx_sms_verification_expires_at", columnList = "expires_at")
 })
 public class SmsVerificationJpaEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -21,6 +21,7 @@ public record ProductManagementCreateCommand(
     Boolean visible,
     Integer sort
 ) {
+
     public ProductManagementCreateCommand {
         if (shopId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductOptionGroupMergeExclusionJpaRepository
     extends JpaRepository<ProductOptionGroupMergeExclusionJpaEntity, Long> {
+
     Optional<ProductOptionGroupMergeExclusionJpaEntity> findByShopIdAndGroupSignature(
         Long shopId,
         String groupSignature

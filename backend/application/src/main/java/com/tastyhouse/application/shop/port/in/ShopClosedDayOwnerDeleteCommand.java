@@ -7,6 +7,7 @@ public record ShopClosedDayOwnerDeleteCommand(
     Long ceoId,
     Long closedDayId
 ) {
+
     public ShopClosedDayOwnerDeleteCommand {
         if (ceoId == null || closedDayId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

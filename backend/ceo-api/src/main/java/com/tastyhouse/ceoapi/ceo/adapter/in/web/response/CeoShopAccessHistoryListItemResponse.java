@@ -27,6 +27,7 @@ public record CeoShopAccessHistoryListItemResponse(
     @Schema(description = "조치 시각", example = "2026-08-14T09:12:41")
     LocalDateTime occurredAt
 ) {
+
     public static CeoShopAccessHistoryListItemResponse from(ShopCeoAssignmentHistoryResult result) {
         return new CeoShopAccessHistoryListItemResponse(
             result.id(),

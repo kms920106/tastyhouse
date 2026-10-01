@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shop.model;
 import java.time.LocalDateTime;
 
 public class ShopRequestComment {
+
     private final Long id;
     private final Long shopRequestIndexId;
     private final ShopRequestCommentAuthorType authorType;

@@ -14,6 +14,7 @@ public record ShopRiderVisitGuideRevisionRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
+
     public ShopRiderVisitGuideRevisionCommand toCommand(Long shopId, Long adminId) {
         return new ShopRiderVisitGuideRevisionCommand(shopId, adminId, reason);
     }

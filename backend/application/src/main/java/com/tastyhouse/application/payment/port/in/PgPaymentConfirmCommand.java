@@ -10,6 +10,7 @@ public record PgPaymentConfirmCommand(
     String pgOrderId,
     Integer amount
 ) {
+
     public PgPaymentConfirmCommand {
         if (memberId == null || pgProvider == null || paymentKey == null || pgOrderId == null || amount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -12,6 +12,7 @@ public record ProductOptionGroupMergeCommand(
     List<Long> optionGroupIds,
     String entryType
 ) {
+
     public ProductOptionGroupMergeCommand {
         if (ceoId == null
             || shopId == null

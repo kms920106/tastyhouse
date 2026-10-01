@@ -1,6 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
 public record ShopChangeActor(ShopChangeActorType actorType, Long actorId) {
+
     public static ShopChangeActor ceo(Long ceoId) {
         return new ShopChangeActor(ShopChangeActorType.CEO, ceoId);
     }

@@ -4,6 +4,7 @@ import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 final class ProductCommonOptionMapper {
+
     private ProductCommonOptionMapper() {
     }
 

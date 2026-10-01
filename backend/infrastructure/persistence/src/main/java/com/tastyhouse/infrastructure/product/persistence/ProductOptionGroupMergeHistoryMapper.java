@@ -7,6 +7,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ProductOptionGroupMergeHistoryMapper {
+
     private ProductOptionGroupMergeHistoryMapper() {
     }
 

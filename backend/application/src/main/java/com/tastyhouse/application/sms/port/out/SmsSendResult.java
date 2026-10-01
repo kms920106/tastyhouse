@@ -4,6 +4,7 @@ public record SmsSendResult(
     SmsSendFailure failure,
     Throwable cause
 ) {
+
     public static SmsSendResult sent() {
         return new SmsSendResult(null, null);
     }

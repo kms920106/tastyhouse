@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 
 final class ProductExposureHourMapper {
+
     private ProductExposureHourMapper() {
     }
 

@@ -8,6 +8,7 @@ public record ShopRequestCommentManagementCreateCommand(
     Long adminId,
     String content
 ) {
+
     public ShopRequestCommentManagementCreateCommand {
         if (requestId == null || adminId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

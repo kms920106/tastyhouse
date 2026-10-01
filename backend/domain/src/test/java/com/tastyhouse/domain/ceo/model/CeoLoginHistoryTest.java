@@ -10,6 +10,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CeoLoginHistoryTest {
+
     @Test
     @DisplayName("of는 식별자·생성시각 없이 신규 이력을 만든다")
     void of_createsNewHistoryWithoutIdAndCreatedAt() {

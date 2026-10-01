@@ -12,6 +12,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
 
 public class Shop {
+
     public static final int MIN_ORDER_AMOUNT_UNSET = 0;
 
     public static final int MIN_ORDER_AMOUNT_LOWER_BOUND = 5000;

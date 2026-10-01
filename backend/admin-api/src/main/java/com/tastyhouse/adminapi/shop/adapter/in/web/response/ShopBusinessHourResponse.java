@@ -29,6 +29,7 @@ public record ShopBusinessHourResponse(
     @Schema(description = "24시간 영업 여부", example = "false")
     Boolean is24Hours
 ) {
+
     public static ShopBusinessHourResponse from(ShopBusinessHourResult result) {
         return new ShopBusinessHourResponse(
             result.id(),

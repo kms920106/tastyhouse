@@ -9,6 +9,7 @@ import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.domain.sms.vo.SmsVerificationId;
 
 public class SmsVerification {
+
     public static final int EXPIRATION_MINUTES = 5;
 
     private final Long id;

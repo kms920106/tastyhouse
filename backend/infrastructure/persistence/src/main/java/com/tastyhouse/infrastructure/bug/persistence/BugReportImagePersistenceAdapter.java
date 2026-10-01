@@ -7,6 +7,7 @@ import com.tastyhouse.application.bug.port.out.write.BugReportImagePersistencePo
 
 @Repository
 public class BugReportImagePersistenceAdapter implements BugReportImagePersistencePort {
+
     private final BugReportImageJpaRepository bugReportImageJpaRepository;
 
     public BugReportImagePersistenceAdapter(BugReportImageJpaRepository bugReportImageJpaRepository) {

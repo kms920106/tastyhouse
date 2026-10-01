@@ -6,6 +6,7 @@ import com.tastyhouse.domain.product.vo.BbqMenuId;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductBbqMapper {
+
     private ProductBbqMapper() {
     }
 

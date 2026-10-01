@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductPriceTest {
+
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
 
@@ -27,6 +28,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("주문유형별 가격 해석")
     class ResolvePrice {
+
         @Test
         @DisplayName("배달·테이블·예약은 배달가를 쓴다")
         void deliveryTableReservation_useDeliveryPrice() {
@@ -63,6 +65,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("가격 불변식")
     class Validation {
+
         @Test
         @DisplayName("음수 가격은 PRODUCT_PRICE_NEGATIVE로 거절된다")
         void negativePrice_isRejected() {
@@ -113,6 +116,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("인증 사유 판정")
     class UnverifiedReason {
+
         @Test
         @DisplayName("매장가가 없으면 미등록 사유가 우선한다")
         void noStorePrice_reportsNotRegistered() {
@@ -138,6 +142,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("픽업가 설정 시각")
     class PickupPriceSetAt {
+
         @Test
         @DisplayName("픽업가가 같은 값으로 재전송되면 설정 시각이 밀리지 않는다")
         void unchangedPickupPrice_keepsSetAt() {
@@ -177,6 +182,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("승인된 매장가 반영")
     class ApplyVerifiedStorePrice {
+
         @Test
         @DisplayName("픽업가 동일 설정이 켜지면 픽업가도 매장가와 같아진다")
         void applyPickupSamePrice_setsPickupPriceToStorePrice() {
@@ -205,6 +211,7 @@ class ProductPriceTest {
     @Nested
     @DisplayName("뱃지 조건 술어")
     class BadgePredicates {
+
         @Test
         @DisplayName("매장가·픽업가가 모두 있어야 커버리지에 든다")
         void hasStoreAndPickupPrice() {

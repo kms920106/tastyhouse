@@ -7,6 +7,7 @@ import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 
 public final class ShopDeliveryAreaPolicy {
+
     public static final int MAX_DELIVERY_RADIUS_METERS = 7000;
 
     public static final int MIN_DELIVERY_RADIUS_METERS = 500;

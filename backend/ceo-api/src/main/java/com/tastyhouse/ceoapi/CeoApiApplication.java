@@ -12,6 +12,7 @@ import com.tastyhouse.ceoapi.config.CeoSeedProperties;
 @Import(CeoApplicationConfig.class)
 @EnableConfigurationProperties(CeoSeedProperties.class)
 public class CeoApiApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(CeoApiApplication.class, args);
     }

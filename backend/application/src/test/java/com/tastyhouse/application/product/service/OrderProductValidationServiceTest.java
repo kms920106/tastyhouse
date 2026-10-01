@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OrderProductValidationServiceTest {
+
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 3, 1, 12, 0);
     private static final long PRODUCT_ID = 10L;
     private static final long REQUIRED_GROUP = 100L;
@@ -291,6 +292,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class Fixture {
+
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
@@ -376,6 +378,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class MapOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
+
         private final Map<Long, ProductOptionGroup> groups;
 
         private MapOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
@@ -403,6 +406,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class MapOptionPersistencePort implements ProductOptionPersistencePort {
+
         private final Map<Long, ProductOption> options;
 
         private MapOptionPersistencePort(Map<Long, ProductOption> options) {
@@ -442,6 +446,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class NoImagePersistencePort implements ProductImagePersistencePort {
+
         @Override
         public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
             return null;
@@ -469,6 +474,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class NoExposureHourPersistencePort implements ProductExposureHourPersistencePort {
+
         @Override
         public List<ProductExposureHour> saveAll(List<ProductExposureHour> hours) {
             throw new UnsupportedOperationException();
@@ -486,6 +492,7 @@ class OrderProductValidationServiceTest {
     }
 
     private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
+
         private final Map<Long, ProductPrice> prices = new LinkedHashMap<>();
 
         private void seed(ProductPrice price) {

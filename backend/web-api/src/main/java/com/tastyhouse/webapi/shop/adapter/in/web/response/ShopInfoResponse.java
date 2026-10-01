@@ -49,6 +49,7 @@ public record ShopInfoResponse(
     @Schema(description = "지도 노출 경도(설정 시 마커·상세 좌표로 우선 사용 가능)", example = "127.0396")
     BigDecimal displayLongitude
 ) {
+
     public static ShopInfoResponse from(ShopInfoViewResult result) {
         return new ShopInfoResponse(
             result.closedDays().stream().map(ShopClosedDayItem::from).toList(),

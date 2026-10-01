@@ -7,6 +7,7 @@ public record ShopBusinessHourManagementDeleteCommand(
     Long adminId,
     Long businessHourId
 ) {
+
     public ShopBusinessHourManagementDeleteCommand {
         if (adminId == null || businessHourId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -13,6 +13,7 @@ public record MemberPersonalInfoUpdateCommand(
     Boolean marketingInfoEnabled,
     Boolean eventInfoEnabled
 ) {
+
     public MemberPersonalInfoUpdateCommand {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

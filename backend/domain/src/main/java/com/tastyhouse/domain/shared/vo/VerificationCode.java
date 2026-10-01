@@ -3,6 +3,7 @@ package com.tastyhouse.domain.shared.vo;
 import java.security.SecureRandom;
 
 public record VerificationCode(String value) {
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     public VerificationCode {

@@ -18,6 +18,7 @@ public record ShopChoiceListItemResponse(
     @Schema(description = "제목", example = "이번 주 추천 맛집")
     String title
 ) {
+
     public static ShopChoiceListItemResponse from(EditorChoiceResult result) {
         return new ShopChoiceListItemResponse(
             result.id(),

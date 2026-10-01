@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record SolapiMessageRequest(
     List<SolapiMessage> messages
 ) {
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record SolapiMessage(
         String to,

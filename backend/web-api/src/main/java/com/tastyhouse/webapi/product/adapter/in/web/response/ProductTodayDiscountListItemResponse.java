@@ -23,6 +23,7 @@ public record ProductTodayDiscountListItemResponse(
     @Schema(description = "할인율", example = "20.00")
     BigDecimal discountRate
 ) {
+
     public static ProductTodayDiscountListItemResponse from(TodayDiscountProductResult result) {
         return new ProductTodayDiscountListItemResponse(
             result.id(),

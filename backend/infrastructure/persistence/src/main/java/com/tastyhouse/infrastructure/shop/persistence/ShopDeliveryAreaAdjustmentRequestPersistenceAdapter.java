@@ -12,6 +12,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustment
 
 @Repository
 public class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
+
     private final ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository;
 
     public ShopDeliveryAreaAdjustmentRequestPersistenceAdapter(ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository) {

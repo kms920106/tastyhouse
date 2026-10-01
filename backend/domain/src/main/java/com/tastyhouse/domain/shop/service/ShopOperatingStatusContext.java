@@ -22,6 +22,7 @@ public record ShopOperatingStatusContext(
     boolean publicHoliday,
     LocalDateTime now
 ) {
+
     public ShopOperatingStatusContext {
         businessHours = businessHours == null ? List.of() : List.copyOf(businessHours);
         breakTimes = breakTimes == null ? List.of() : List.copyOf(breakTimes);

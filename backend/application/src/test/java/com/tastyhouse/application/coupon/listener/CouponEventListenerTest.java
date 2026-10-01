@@ -17,6 +17,7 @@ import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CouponEventListenerTest {
+
     private final CouponEventListener listener = new CouponEventListener();
 
     private ListenerLogCapture logCapture;

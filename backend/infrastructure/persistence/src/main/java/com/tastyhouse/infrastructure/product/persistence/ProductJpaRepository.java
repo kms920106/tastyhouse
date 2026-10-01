@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Long> {
+
     Optional<ProductJpaEntity> findByIdAndDeletedFalse(Long id);
 
     List<ProductJpaEntity> findAllByShopIdAndIdInAndDeletedFalse(Long shopId, List<Long> ids);

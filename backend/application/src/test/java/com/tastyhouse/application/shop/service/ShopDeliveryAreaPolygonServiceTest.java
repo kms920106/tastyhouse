@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopDeliveryAreaPolygonServiceTest {
+
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final GeoPoint SHOP_LOCATION = GeoPoint.of(37.5, 127.0);
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -217,6 +218,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class Fixture {
+
         private final AdminDongPersistencePortFake adminDongPersistencePort = new AdminDongPersistencePortFake();
         private final ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
         private final ShopDeliveryAreaPolygonPersistencePortFake polygonPersistencePort = new ShopDeliveryAreaPolygonPersistencePortFake();
@@ -241,6 +243,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
             throw new UnsupportedOperationException("동기화는 이 테스트의 대상이 아닙니다.");
@@ -292,6 +295,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
 
@@ -356,6 +360,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryAreaPolygonPersistencePortFake implements ShopDeliveryAreaPolygonPersistencePort {
+
         private ShopDeliveryAreaPolygon stored;
 
         @Override
@@ -376,6 +381,7 @@ class ShopDeliveryAreaPolygonServiceTest {
     }
 
     private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
+
         private final Set<AdminDongId> referenced = new LinkedHashSet<>();
 
         void addRegionTip(AdminDongId adminDongId) {

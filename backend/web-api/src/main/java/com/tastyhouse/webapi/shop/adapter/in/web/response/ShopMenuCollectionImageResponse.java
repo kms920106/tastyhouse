@@ -16,6 +16,7 @@ public record ShopMenuCollectionImageResponse(
     @Schema(description = "표시 순서(0부터 시작)", example = "0")
     Integer sort
 ) {
+
     public static ShopMenuCollectionImageResponse from(ShopMenuCollectionImageExposureResult result) {
         return new ShopMenuCollectionImageResponse(result.id(), result.imageUrl(), result.sort());
     }

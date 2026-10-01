@@ -7,6 +7,7 @@ public record ShopDeliveryTipTierCommand(
     Integer minOrderAmount,
     Integer tipAmount
 ) {
+
     public ShopDeliveryTipTierCommand {
         if (minOrderAmount == null || tipAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -12,6 +12,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class SearchServiceConfig {
+
     @Bean
     public PopularKeywordRefreshService popularKeywordRefreshService(
         SearchKeywordLogPersistencePort searchKeywordLogPersistencePort,

@@ -21,6 +21,7 @@ import static com.tastyhouse.infrastructure.review.persistence.QReviewJpaEntity.
 
 @Repository
 public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, ShopReviewStatisticsQueryPort {
+
     private final JPAQueryFactory queryFactory;
 
     public ReviewStatisticsQueryAdapter(JPAQueryFactory queryFactory) {

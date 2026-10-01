@@ -28,6 +28,7 @@ public record ShopFoodTypeCategoryUpdateRequest(
     @Schema(description = "사용 여부", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     Boolean visible
 ) {
+
     public ShopFoodTypeCategoryUpdateCommand toCommand(Long categoryId) {
         return new ShopFoodTypeCategoryUpdateCommand(
             categoryId, displayName, activeImageFileId, inactiveImageFileId, sort, visible

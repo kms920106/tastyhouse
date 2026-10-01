@@ -13,6 +13,7 @@ import static com.tastyhouse.infrastructure.mail.persistence.QMailVerificationJp
 
 @Repository
 public class MailVerificationPersistenceAdapter implements MailVerificationPersistencePort {
+
     private final MailVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;
 

@@ -23,6 +23,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
 
 public class ShopLifecycleService {
+
     private static final int SHOP_INTRODUCTION_MAX_LENGTH = 500;
 
     private final ShopPersistencePort shopPersistencePort;

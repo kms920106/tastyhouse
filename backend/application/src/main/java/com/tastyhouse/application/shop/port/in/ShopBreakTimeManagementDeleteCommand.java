@@ -7,6 +7,7 @@ public record ShopBreakTimeManagementDeleteCommand(
     Long adminId,
     Long breakTimeId
 ) {
+
     public ShopBreakTimeManagementDeleteCommand {
         if (adminId == null || breakTimeId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

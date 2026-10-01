@@ -9,6 +9,7 @@ public record ShopStorePriceVerificationItemCommand(
     Integer storePrice,
     Boolean applyPickupSamePrice
 ) {
+
     public ShopStorePriceVerificationItemCommand {
         if (productId == null || storePrice == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -7,6 +7,7 @@ public record PaymentOnSiteCompleteCommand(
     Long memberId,
     Long paymentId
 ) {
+
     public PaymentOnSiteCompleteCommand {
         if (memberId == null || paymentId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

@@ -12,6 +12,7 @@ public record ShopBreakTimeManagementCreateCommand(
     LocalTime startTime,
     LocalTime endTime
 ) {
+
     public ShopBreakTimeManagementCreateCommand {
         if (adminId == null || shopId == null || dayType == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

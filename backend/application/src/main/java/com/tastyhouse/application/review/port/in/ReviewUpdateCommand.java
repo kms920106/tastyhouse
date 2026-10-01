@@ -17,6 +17,7 @@ public record ReviewUpdateCommand(
     Integer deliveryRating,
     String deliveryComment
 ) {
+
     public ReviewUpdateCommand {
         if (memberId == null || reviewId == null || tasteRating == null
             || amountRating == null || priceRating == null || content == null) {

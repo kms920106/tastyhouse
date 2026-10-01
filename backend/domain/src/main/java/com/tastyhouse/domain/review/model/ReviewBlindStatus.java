@@ -4,6 +4,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 
 public enum ReviewBlindStatus {
+
     PENDING("대기"),
     APPROVED("게시중단"),
     REJECTED("반려"),

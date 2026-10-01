@@ -9,6 +9,7 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.vo.ReviewId;
 
 public interface ReviewPersistencePort {
+
     Optional<Review> findById(ReviewId reviewId);
 
     Optional<Review> findByIdAndMemberId(ReviewId reviewId, MemberId memberId);

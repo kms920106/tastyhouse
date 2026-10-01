@@ -32,6 +32,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
 @RestController
 @RequestMapping("/api/shops")
 public class ShopConvenienceInfoApiController {
+
     private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase;
     private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;
 

@@ -35,6 +35,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourRespon
 @RestController
 @RequestMapping("/api/shops")
 public class ShopBusinessHourApiController {
+
     private final ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase;
     private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;
 

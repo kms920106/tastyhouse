@@ -12,6 +12,7 @@ public record ProductOptionSoldOutUntilChangeCommand(
     List<ProductOptionTargetCommand> options,
     LocalDateTime soldOutUntil
 ) {
+
     public ProductOptionSoldOutUntilChangeCommand {
         if (ceoId == null
             || shopId == null

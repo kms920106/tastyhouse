@@ -6,6 +6,7 @@ import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 
 public interface CeoPersistencePort {
+
     Optional<Ceo> findById(CeoId id);
 
     Optional<Ceo> findByUsername(String username);

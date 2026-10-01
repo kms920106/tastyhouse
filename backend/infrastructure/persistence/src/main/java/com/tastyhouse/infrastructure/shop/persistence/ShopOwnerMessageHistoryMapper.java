@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopOwnerMessageHistoryMapper {
+
     private ShopOwnerMessageHistoryMapper() {
     }
 

@@ -7,6 +7,7 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ReviewMapper {
+
     private ReviewMapper() {
     }
 

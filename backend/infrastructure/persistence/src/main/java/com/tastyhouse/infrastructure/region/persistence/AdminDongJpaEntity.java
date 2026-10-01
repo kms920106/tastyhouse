@@ -22,6 +22,7 @@ import jakarta.persistence.UniqueConstraint;
     }
 )
 public class AdminDongJpaEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

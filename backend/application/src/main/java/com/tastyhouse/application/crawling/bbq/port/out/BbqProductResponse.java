@@ -12,6 +12,7 @@ public record BbqProductResponse(
     boolean canDeliver,
     boolean canTakeout
 ) {
+
     public static BbqProductResponse from(
         Long id,
         String name,

@@ -16,6 +16,7 @@ public record ShopOriginInfoResponse(
     @Schema(description = "본사 제공 URL. sourceType=DIRECT이면 null", example = "https://example.com/origin")
     String url
 ) {
+
     public static ShopOriginInfoResponse from(ShopOriginInfoResult result) {
         return new ShopOriginInfoResponse(
             result.sourceType(),

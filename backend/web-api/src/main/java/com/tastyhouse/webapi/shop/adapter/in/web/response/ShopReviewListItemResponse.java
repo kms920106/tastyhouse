@@ -45,6 +45,7 @@ public record ShopReviewListItemResponse(
     @Schema(description = "사장님 답변 작성일시. 미답변이면 null입니다.", example = "2026-06-20T14:03:00")
     LocalDateTime ownerReplyCreatedAt
 ) {
+
     public static ShopReviewListItemResponse from(LatestReviewListItemResult result) {
         return new ShopReviewListItemResponse(
             result.id(),

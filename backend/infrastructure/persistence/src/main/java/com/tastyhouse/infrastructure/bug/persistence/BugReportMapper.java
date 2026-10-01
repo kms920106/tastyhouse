@@ -9,6 +9,7 @@ import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class BugReportMapper {
+
     private BugReportMapper() {
     }
 

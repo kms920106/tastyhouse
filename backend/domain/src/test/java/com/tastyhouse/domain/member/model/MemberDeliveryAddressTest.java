@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MemberDeliveryAddressTest {
+
     private static final MemberId MEMBER_ID = MemberId.of(1L);
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(2L);
     private static final BigDecimal LATITUDE = new BigDecimal("37.501234");
@@ -21,6 +22,7 @@ class MemberDeliveryAddressTest {
     @Nested
     @DisplayName("생성(of)")
     class Creation {
+
         @Test
         @DisplayName("도로명 주소와 좌표가 모두 있으면 생성된다")
         void of_createsAddress() {
@@ -82,6 +84,7 @@ class MemberDeliveryAddressTest {
     @Nested
     @DisplayName("변경(update)")
     class Update {
+
         @Test
         @DisplayName("생성과 같은 좌표 필수 검증을 강제한다 — 변경을 열어두면 뒷문이 된다")
         void update_rejectsNullCoordinates() {
@@ -134,6 +137,7 @@ class MemberDeliveryAddressTest {
     @Nested
     @DisplayName("기본 배송지 표시")
     class DefaultFlag {
+
         @Test
         @DisplayName("markAsDefault와 unmarkDefault가 표시를 전환한다")
         void markAndUnmark() {
@@ -150,6 +154,7 @@ class MemberDeliveryAddressTest {
     @Nested
     @DisplayName("소유권 판정(isOwnedBy)")
     class Ownership {
+
         @Test
         @DisplayName("같은 회원이면 true를 반환한다")
         void isOwnedBy_returnsTrueForOwner() {
@@ -170,6 +175,7 @@ class MemberDeliveryAddressTest {
     @Nested
     @DisplayName("재구성(reconstitute)")
     class Reconstitute {
+
         @Test
         @DisplayName("좌표가 없는 기존 행도 로드할 수 있다 — 불변식 도입 이전 데이터 보호")
         void reconstitute_skipsValidation() {

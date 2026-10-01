@@ -44,6 +44,7 @@ public record CouponListItemResponse(
     @Schema(description = "노출 여부", example = "true")
     boolean visible
 ) {
+
     public static CouponListItemResponse from(CouponListItemResult result) {
         return new CouponListItemResponse(
             result.id(),

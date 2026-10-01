@@ -28,6 +28,7 @@ import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 
 public class ReviewBlindRequestService {
+
     private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
     private final ReviewBlindRequestAttachmentPersistencePort reviewBlindRequestAttachmentPersistencePort;
     private final ReviewPersistencePort reviewPersistencePort;

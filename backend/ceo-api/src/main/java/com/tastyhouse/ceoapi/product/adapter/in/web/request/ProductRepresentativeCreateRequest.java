@@ -19,6 +19,7 @@ public record ProductRepresentativeCreateRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     List<Long> productIds
 ) {
+
     public ProductRepresentativeRequestCommand toCommand(Long ceoId) {
         return new ProductRepresentativeRequestCommand(ceoId, shopId, productIds);
     }

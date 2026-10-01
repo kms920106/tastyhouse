@@ -36,6 +36,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatistics
 @RestController
 @RequestMapping("/api/shops")
 public class ShopReviewApiController {
+
     private final ShopReviewQueryUseCase shopReviewQueryUseCase;
     private final ShopReviewCommandUseCase shopReviewCommandUseCase;
 

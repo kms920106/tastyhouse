@@ -11,6 +11,7 @@ public record ProductShopLinkReplaceCommand(
     Long productId,
     List<ProductShopLinkItemCommand> links
 ) {
+
     public ProductShopLinkReplaceCommand {
         if (ceoId == null
             || shopId == null

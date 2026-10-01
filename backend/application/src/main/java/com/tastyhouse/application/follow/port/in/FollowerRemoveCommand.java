@@ -7,6 +7,7 @@ public record FollowerRemoveCommand(
     Long memberId,
     Long followerId
 ) {
+
     public FollowerRemoveCommand {
         if (memberId == null || followerId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

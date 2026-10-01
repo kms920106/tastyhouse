@@ -8,6 +8,7 @@ public record OrderLineSelection(
     int quantity,
     List<OrderLineOptionSelection> selectedOptions
 ) {
+
     public OrderLineSelection {
         selectedOptions = selectedOptions == null ? List.of() : List.copyOf(selectedOptions);
     }

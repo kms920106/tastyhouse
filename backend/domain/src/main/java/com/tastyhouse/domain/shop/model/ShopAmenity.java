@@ -4,6 +4,7 @@ import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopAmenity {
+
     private final Long id;
     private final ShopId shopId;
     private final ShopAmenityCategoryId shopAmenityCategoryId;

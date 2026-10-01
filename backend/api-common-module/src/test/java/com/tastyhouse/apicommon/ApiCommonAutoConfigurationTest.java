@@ -111,6 +111,7 @@ class ApiCommonAutoConfigurationTest {
 
     @Configuration(proxyBeanMethods = false)
     static class OwnAdviceConfig {
+
         @Bean
         OwnGlobalExceptionHandler ownGlobalExceptionHandler() {
             return new OwnGlobalExceptionHandler();
@@ -119,6 +120,7 @@ class ApiCommonAutoConfigurationTest {
 
     @RestControllerAdvice
     static class OwnGlobalExceptionHandler {
+
         @ExceptionHandler(RuntimeException.class)
         ProblemDetail handle() {
             return ProblemDetail.forStatus(500);
@@ -127,6 +129,7 @@ class ApiCommonAutoConfigurationTest {
 
     @Configuration(proxyBeanMethods = false)
     static class CounterConfig {
+
         @Bean
         RateLimitCounterPort rateLimitCounterPort() {
             return (key, limit, window) -> false;

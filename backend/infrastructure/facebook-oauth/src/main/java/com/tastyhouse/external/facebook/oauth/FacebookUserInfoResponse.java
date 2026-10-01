@@ -8,6 +8,7 @@ public record FacebookUserInfoResponse(
     @JsonProperty("email") String email,
     @JsonProperty("picture") Picture picture
 ) {
+
     public record Picture(
     @JsonProperty("data") PictureData data
     ) {}

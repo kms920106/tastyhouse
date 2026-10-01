@@ -8,6 +8,7 @@ import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.domain.payment.vo.Amount;
 
 final class PaymentMapper {
+
     private PaymentMapper() {
     }
 

@@ -33,6 +33,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupL
 @RestController
 @RequestMapping("/api/products")
 public class ProductOptionGroupLinkApiController {
+
     private final ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase;
     private final ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase;
 

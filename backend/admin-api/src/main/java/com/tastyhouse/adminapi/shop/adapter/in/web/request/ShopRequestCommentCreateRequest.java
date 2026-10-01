@@ -18,6 +18,7 @@ public record ShopRequestCommentCreateRequest(
     )
     String content
 ) {
+
     public ShopRequestCommentManagementCreateCommand toCommand(Long requestId, Long adminId) {
         return new ShopRequestCommentManagementCreateCommand(requestId, adminId, content);
     }

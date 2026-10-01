@@ -16,6 +16,7 @@ public record ShopDeliveryAreaAdjustmentStatusChangeRequest(
     )
     String status
 ) {
+
     public ShopDeliveryAreaAdjustmentStatusChangeCommand toCommand(Long requestId) {
         return new ShopDeliveryAreaAdjustmentStatusChangeCommand(requestId, status);
     }

@@ -6,6 +6,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopRequestIndex {
+
     private final Long id;
     private final ShopId shopId;
     private final ShopRequestType requestType;

@@ -18,6 +18,7 @@ import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistenc
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MenuReviewLifecycleService {
+
     private final MenuReviewPersistencePort menuReviewPersistencePort;
     private final DomainEventPublisher domainEventPublisher;
 

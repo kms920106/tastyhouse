@@ -11,6 +11,7 @@ import com.tastyhouse.application.menureview.port.out.MenuReviewMemberCountResul
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberReviewCountQueryAdapterTest {
+
     @Test
     @DisplayName("매장 리뷰만 있는 회원의 집계는 그대로 유지된다")
     void mergeAndSort_keepsReviewOnlyMember() {

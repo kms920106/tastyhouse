@@ -15,6 +15,7 @@ public record PointBalanceResponse(
     @Schema(description = "이번 달 소멸 예정 포인트", example = "200")
     Integer expiredThisMonth
 ) {
+
     public static PointBalanceResponse from(Long memberId, PointBalanceResult result) {
         return new PointBalanceResponse(
             memberId,

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImportOrderConventionTest {
+
     private static final String TASTYHOUSE_PREFIX = "com.tastyhouse.";
 
     private static final Map<String, Integer> TOP_SEGMENT_RANK = Map.ofEntries(

@@ -1,6 +1,7 @@
 package com.tastyhouse.application.payment.port.out;
 
 public interface PgProviderGateway {
+
     PgProviderCode provider();
 
     PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount);

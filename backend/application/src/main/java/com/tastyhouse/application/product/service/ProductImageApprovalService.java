@@ -18,6 +18,7 @@ import com.tastyhouse.application.product.port.out.write.ProductImagePersistence
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 public class ProductImageApprovalService {
+
     private final ProductImageChangeRequestPersistencePort requestPersistencePort;
     private final ProductImagePersistencePort productImagePersistencePort;
     private final ProductPersistencePort productPersistencePort;

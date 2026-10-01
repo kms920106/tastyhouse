@@ -16,6 +16,7 @@ public record ShopReviewSortTypeUpdateRequest(
     )
     String sortType
 ) {
+
     public ShopReviewSortTypeChangeCommand toCommand(Long ceoId, Long shopId) {
         return new ShopReviewSortTypeChangeCommand(ceoId, shopId, sortType);
     }

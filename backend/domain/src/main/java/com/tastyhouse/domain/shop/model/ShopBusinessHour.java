@@ -8,6 +8,7 @@ import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopBusinessHour {
+
     private static final long MIN_DURATION_MINUTES = 60;
 
     private static final long MAX_DURATION_MINUTES = 23 * 60 + 55;

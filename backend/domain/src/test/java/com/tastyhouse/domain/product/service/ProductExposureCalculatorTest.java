@@ -16,6 +16,7 @@ import com.tastyhouse.domain.shared.model.DayType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ProductExposureCalculatorTest {
+
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final LocalDate MONDAY = LocalDate.of(2026, 8, 17);
 

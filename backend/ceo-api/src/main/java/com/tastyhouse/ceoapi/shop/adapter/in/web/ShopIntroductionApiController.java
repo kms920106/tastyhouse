@@ -27,6 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
 @RestController
 @RequestMapping("/api/shops")
 public class ShopIntroductionApiController {
+
     private final ShopIntroductionQueryUseCase shopIntroductionQueryUseCase;
     private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;
 

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
 
 public class PolicyDocument {
+
     private final Long id;
     private final PolicyType type;
     private final String version;

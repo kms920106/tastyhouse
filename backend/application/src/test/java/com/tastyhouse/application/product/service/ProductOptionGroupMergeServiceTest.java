@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductOptionGroupMergeServiceTest {
+
     private static final ShopId MY_SHOP = ShopId.of(1L);
     private static final ShopId OTHER_SHOP = ShopId.of(2L);
     private static final CeoId ACTOR = CeoId.of(7L);
@@ -281,6 +282,7 @@ class ProductOptionGroupMergeServiceTest {
     }
 
     private static final class Fixture {
+
         private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
@@ -347,6 +349,7 @@ class ProductOptionGroupMergeServiceTest {
     }
 
     private static final class FakeProductOptionPersistencePort implements ProductOptionPersistencePort {
+
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
 
@@ -397,6 +400,7 @@ class ProductOptionGroupMergeServiceTest {
     }
 
     private static final class StubOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
+
         private final Map<Long, ProductOptionGroup> groups;
 
         private StubOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
@@ -425,6 +429,7 @@ class ProductOptionGroupMergeServiceTest {
 
     private static final class RecordingMergeHistoryPersistencePort
         implements ProductOptionGroupMergeHistoryPersistencePort {
+
         private final List<ProductOptionGroupMergeHistory> histories;
 
         private RecordingMergeHistoryPersistencePort(List<ProductOptionGroupMergeHistory> histories) {

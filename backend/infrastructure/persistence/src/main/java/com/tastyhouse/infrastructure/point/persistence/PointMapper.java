@@ -4,6 +4,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.Point;
 
 final class PointMapper {
+
     private PointMapper() {
     }
 

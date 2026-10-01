@@ -9,6 +9,7 @@ public record CeoReplyPhraseUpdateCommand(
     String name,
     String content
 ) {
+
     public CeoReplyPhraseUpdateCommand {
         if (ceoId == null || replyPhraseId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

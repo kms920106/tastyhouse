@@ -9,6 +9,7 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ReservationPersistencePort {
+
     Optional<Reservation> findById(ReservationId id);
 
     boolean existsBlockingByMemberShopDate(MemberId memberId, ShopId shopId, LocalDate date);

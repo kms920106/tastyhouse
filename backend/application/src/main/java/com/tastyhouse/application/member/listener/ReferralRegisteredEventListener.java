@@ -16,6 +16,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class ReferralRegisteredEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(ReferralRegisteredEventListener.class);
 
     private static final int REFERRER_REWARD_POINT = 1000;

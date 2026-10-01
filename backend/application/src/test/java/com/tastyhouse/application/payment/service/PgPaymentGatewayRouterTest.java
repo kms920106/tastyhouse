@@ -84,6 +84,7 @@ class PgPaymentGatewayRouterTest {
     }
 
     private static final class GatewayStub implements PgProviderGateway {
+
         private final PgProviderCode provider;
         private final List<String> confirmCalls = new ArrayList<>();
         private final List<String> cancelCalls = new ArrayList<>();

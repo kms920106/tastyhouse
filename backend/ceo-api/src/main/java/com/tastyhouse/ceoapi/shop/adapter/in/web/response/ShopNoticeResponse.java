@@ -30,6 +30,7 @@ public record ShopNoticeResponse(
     @Schema(description = "수정 일시", example = "2026-08-15T10:00:00")
     LocalDateTime updatedAt
 ) {
+
     public static ShopNoticeResponse from(ShopNoticeResult result) {
         return new ShopNoticeResponse(
             result.id(),

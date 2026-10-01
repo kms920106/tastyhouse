@@ -16,6 +16,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
 
 public class ShopPhoneNumberRegistryService {
+
     private static final int MAX_PHONE_NUMBER_COUNT = 10;
 
     private final ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort;

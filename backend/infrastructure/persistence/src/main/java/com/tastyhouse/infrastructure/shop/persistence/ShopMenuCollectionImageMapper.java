@@ -6,6 +6,7 @@ import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 final class ShopMenuCollectionImageMapper {
+
     private ShopMenuCollectionImageMapper() {
     }
 

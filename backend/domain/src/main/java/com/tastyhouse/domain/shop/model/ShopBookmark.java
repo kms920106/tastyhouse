@@ -4,6 +4,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopBookmark {
+
     private final Long id;
     private final ShopId shopId;
     private final MemberId memberId;

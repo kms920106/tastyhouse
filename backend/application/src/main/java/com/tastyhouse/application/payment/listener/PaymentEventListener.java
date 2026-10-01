@@ -18,6 +18,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Component
 @SharedApp
 public class PaymentEventListener {
+
     private static final Logger log = LoggerFactory.getLogger(PaymentEventListener.class);
 
     private final PointLedgerService pointLedgerService;

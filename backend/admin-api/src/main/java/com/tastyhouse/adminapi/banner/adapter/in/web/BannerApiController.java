@@ -36,6 +36,7 @@ import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResp
 @RestController
 @RequestMapping("/api/banners")
 public class BannerApiController {
+
     private final BannerCommandUseCase bannerCommandUseCase;
     private final BannerManagementQueryUseCase bannerQueryUseCase;
 

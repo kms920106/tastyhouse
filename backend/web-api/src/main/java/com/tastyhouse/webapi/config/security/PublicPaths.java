@@ -1,6 +1,7 @@
 package com.tastyhouse.webapi.config.security;
 
 public final class PublicPaths {
+
     private PublicPaths() {}
 
     public static final String[] PATTERNS = {

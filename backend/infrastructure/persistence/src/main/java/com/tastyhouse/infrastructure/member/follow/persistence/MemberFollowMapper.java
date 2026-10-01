@@ -4,6 +4,7 @@ import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 final class MemberFollowMapper {
+
     private MemberFollowMapper() {
     }
 

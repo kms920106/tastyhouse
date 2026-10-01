@@ -11,6 +11,7 @@ public record ProductBatchResponse(
     @Schema(description = "상품 목록 (요청한 모든 상품을 요청 순서대로 포함. 판매 종료/미존재 상품은 available=false)")
     List<ProductResponse> products
 ) {
+
     public static ProductBatchResponse from(List<ProductBatchItemView> views) {
         return new ProductBatchResponse(
             views.stream().map(ProductResponse::from).toList()

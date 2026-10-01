@@ -8,6 +8,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopRiderGuide {
+
     private static final int VISIT_GUIDE_MAX_LENGTH = 200;
     private static final int PICKUP_DETAIL_ADDRESS_MAX_LENGTH = 100;
     private static final BigDecimal LATITUDE_MIN = BigDecimal.valueOf(-90);

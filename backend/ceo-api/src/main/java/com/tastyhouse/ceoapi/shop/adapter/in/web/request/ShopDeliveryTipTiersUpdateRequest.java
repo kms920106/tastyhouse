@@ -16,6 +16,7 @@ public record ShopDeliveryTipTiersUpdateRequest(
     @Schema(description = "구간 목록(1~3개, 주문금액 오름차순·배달팁 내림차순)", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ShopDeliveryTipTierItemRequest> tiers
 ) {
+
     public ShopDeliveryTipTiersUpdateCommand toCommand(Long ceoId, Long shopId) {
         List<ShopDeliveryTipTierCommand> tierCommands = tiers().stream()
             .map(ShopDeliveryTipTierItemRequest::toCommand)

@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 
 public interface ProductOptionPersistencePort {
+
     Optional<ProductOption> findById(ProductOptionId id);
 
     ProductOption save(ProductOption productOption);

@@ -8,6 +8,7 @@ public record ReviewCommentCreateCommand(
     Long reviewId,
     String content
 ) {
+
     public ReviewCommentCreateCommand {
         if (memberId == null || reviewId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

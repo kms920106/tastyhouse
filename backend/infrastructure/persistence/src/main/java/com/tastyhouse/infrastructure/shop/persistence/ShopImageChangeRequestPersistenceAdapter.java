@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.shop.persistence.QShopImageChangeReq
 
 @Repository
 public class ShopImageChangeRequestPersistenceAdapter implements ShopImageChangeRequestPersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final ShopImageChangeRequestJpaRepository shopImageChangeRequestJpaRepository;
 

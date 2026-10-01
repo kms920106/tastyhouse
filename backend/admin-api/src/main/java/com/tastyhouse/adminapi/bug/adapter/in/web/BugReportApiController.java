@@ -35,6 +35,7 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResp
 @RestController
 @RequestMapping("/api/bug-reports")
 public class BugReportApiController {
+
     private final BugReportManagementCommandUseCase bugReportCommandUseCase;
     private final BugReportQueryUseCase bugReportQueryUseCase;
 

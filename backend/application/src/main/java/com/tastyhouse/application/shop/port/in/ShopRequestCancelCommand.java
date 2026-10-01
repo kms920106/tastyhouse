@@ -8,6 +8,7 @@ public record ShopRequestCancelCommand(
     Long shopId,
     Long requestId
 ) {
+
     public ShopRequestCancelCommand {
         if (ceoId == null || shopId == null || requestId == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

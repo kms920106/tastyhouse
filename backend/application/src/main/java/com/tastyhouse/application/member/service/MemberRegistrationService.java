@@ -13,6 +13,7 @@ import com.tastyhouse.application.member.referral.service.ReferralRegistrationSe
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 public class MemberRegistrationService {
+
     private final MemberPersistencePort memberPersistencePort;
     private final ReferralRegistrationService referralRegistrationService;
     private final DomainEventPublisher domainEventPublisher;

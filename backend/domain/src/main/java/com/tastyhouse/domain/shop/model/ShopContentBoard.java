@@ -9,6 +9,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopContentBoard {
+
     private static final int MAX_DESCRIPTION_LENGTH = 50;
     private static final Pattern YOUTUBE_URL_PATTERN =
         Pattern.compile("^https?://(www\\.)?(youtube\\.com/watch|youtu\\.be/).+$");

@@ -32,6 +32,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardList
 @RestController
 @RequestMapping("/api/shops")
 public class ShopContentBoardAdminApiController {
+
     private final ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase;
 

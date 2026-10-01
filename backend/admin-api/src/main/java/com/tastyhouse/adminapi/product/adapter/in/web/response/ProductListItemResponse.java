@@ -38,6 +38,7 @@ public record ProductListItemResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
+
     public static ProductListItemResponse from(ProductListItemResult result) {
         return new ProductListItemResponse(
             result.id(),

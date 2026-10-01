@@ -5,6 +5,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 final class ProductOptionGroupMapper {
+
     private ProductOptionGroupMapper() {
     }
 

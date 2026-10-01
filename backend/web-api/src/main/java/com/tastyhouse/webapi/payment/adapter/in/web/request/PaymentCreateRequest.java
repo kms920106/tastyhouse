@@ -16,6 +16,7 @@ public record PaymentCreateRequest(
     @Schema(description = "결제 방법", example = "CREDIT_CARD", allowableValues = {"CASH_ON_SITE", "CARD_ON_SITE", "CREDIT_CARD", "MOBILE", "KAKAO_PAY", "ZERO_PAY"}, requiredMode = Schema.RequiredMode.REQUIRED)
     String paymentMethod
 ) {
+
     public PaymentCreateCommand toCommand(Long memberId) {
         return new PaymentCreateCommand(
             memberId,

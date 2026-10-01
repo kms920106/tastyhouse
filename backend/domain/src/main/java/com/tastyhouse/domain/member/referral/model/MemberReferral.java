@@ -8,6 +8,7 @@ import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberReferral {
+
     private final Long id;
     private final MemberId referrerId;
     private final MemberId refereeId;

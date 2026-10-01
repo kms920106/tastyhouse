@@ -4,6 +4,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.TagId;
 
 public class ReviewTag {
+
     private final Long id;
     private final ReviewId reviewId;
     private final TagId tagId;

@@ -11,6 +11,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 @Configuration(proxyBeanMethods = false)
 @SharedApp
 public class BugServiceConfig {
+
     @Bean
     public BugReportRegistrationService bugReportRegistrationService(
         BugReportPersistencePort bugReportPersistencePort,

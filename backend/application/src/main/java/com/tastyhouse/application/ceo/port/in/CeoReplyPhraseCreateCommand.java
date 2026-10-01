@@ -8,6 +8,7 @@ public record CeoReplyPhraseCreateCommand(
     String name,
     String content
 ) {
+
     public CeoReplyPhraseCreateCommand {
         if (ceoId == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

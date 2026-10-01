@@ -9,6 +9,7 @@ import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryTipSchedule {
+
     private final Long id;
     private final ShopId shopId;
     private DayType dayType;

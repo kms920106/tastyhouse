@@ -15,6 +15,7 @@ public record ProductOptionGroupManagementCreateCommand(
     Boolean visible,
     String groupType
 ) {
+
     public ProductOptionGroupManagementCreateCommand {
         if (productId == null || name == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

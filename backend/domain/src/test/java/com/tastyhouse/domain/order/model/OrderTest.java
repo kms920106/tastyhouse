@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OrderTest {
+
     private static final MemberId MEMBER_ID = MemberId.of(1L);
     private static final ShopId SHOP_ID = ShopId.of(10L);
 
@@ -487,6 +488,7 @@ class OrderTest {
     @Nested
     @DisplayName("배달팁 금액 정합")
     class DeliveryTipAmount {
+
         @Test
         @DisplayName("최종 금액이 상품금액 − 할인 + 배달팁이면 통과한다")
         void of_finalAmountIncludingDeliveryTip_passes() {
@@ -610,6 +612,7 @@ class OrderTest {
     @Nested
     @DisplayName("일회용컵 보증금 금액 정합")
     class CupDepositAmountConsistency {
+
         @Test
         @DisplayName("★ finalAmount는 상품 − 할인 + 배달팁 + 보증금이다")
         void updateAmounts_includesCupDepositInFinalAmount() {

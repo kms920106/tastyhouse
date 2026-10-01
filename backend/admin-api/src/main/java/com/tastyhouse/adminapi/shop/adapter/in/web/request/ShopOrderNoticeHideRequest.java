@@ -14,6 +14,7 @@ public record ShopOrderNoticeHideRequest(
         requiredMode = Schema.RequiredMode.REQUIRED)
     String reason
 ) {
+
     public ShopOrderNoticeHideCommand toCommand(Long shopId) {
         return new ShopOrderNoticeHideCommand(shopId, reason);
     }

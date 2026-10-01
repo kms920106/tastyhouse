@@ -15,6 +15,7 @@ import static com.tastyhouse.infrastructure.ceo.persistence.QCeoReplyPhraseJpaEn
 
 @Repository
 public class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhrasePersistencePort {
+
     private final JPAQueryFactory queryFactory;
     private final CeoReplyPhraseJpaRepository ceoReplyPhraseJpaRepository;
 

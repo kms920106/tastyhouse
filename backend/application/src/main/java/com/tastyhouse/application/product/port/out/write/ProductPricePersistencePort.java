@@ -9,6 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductPricePersistencePort {
+
     ProductPrice save(ProductPrice productPrice);
 
     Optional<ProductPrice> findById(ProductPriceId id);

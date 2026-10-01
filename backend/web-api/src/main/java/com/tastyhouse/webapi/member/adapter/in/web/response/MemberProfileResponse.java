@@ -18,6 +18,7 @@ public record MemberProfileResponse(
     @Schema(description = "프로필 이미지 URL")
     String profileImageUrl
 ) {
+
     public static MemberProfileResponse from(MemberWithProfileImageResult result) {
         return new MemberProfileResponse(
             result.nickname(),

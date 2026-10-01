@@ -11,6 +11,7 @@ public record OrderLineCommand(
     List<OrderLineOptionCommand> options,
     Integer quantity
 ) {
+
     public OrderLineCommand {
         if (productId == null || quantity == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

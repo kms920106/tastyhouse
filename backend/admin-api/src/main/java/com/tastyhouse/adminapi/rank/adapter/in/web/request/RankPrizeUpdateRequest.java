@@ -23,6 +23,7 @@ public record RankPrizeUpdateRequest(
     @Schema(description = "업로드된 이미지 파일 ID", example = "56")
     Long imageFileId
 ) {
+
     public RankPrizeUpdateCommand toCommand(Long rankPrizeId) {
         return new RankPrizeUpdateCommand(rankPrizeId, prizeRank(), name(), brand(), imageFileId());
     }

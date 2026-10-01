@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductShopLinkServiceTest {
+
     private static final ProductId PRODUCT_ID = ProductId.of(1L);
     private static final ShopId OWNER_SHOP = ShopId.of(10L);
     private static final ShopId OTHER_OWNED_SHOP = ShopId.of(20L);
@@ -68,6 +69,7 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("연결 전체 교체")
     class ReplaceLinks {
+
         @Test
         @DisplayName("빈 목록은 거절한다 — 링크가 0개면 어느 메뉴판에도 없는 유령 메뉴가 된다")
         void emptyLinks_rejected() {
@@ -166,6 +168,7 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("가게 기준 불러오기·제외")
     class LinkAndUnlink {
+
         @Test
         @DisplayName("이미 연결된 가게는 거절한다 — 조용히 통과시키면 메뉴그룹이 이전 값 그대로여서 결과가 어긋난다")
         void alreadyLinked_rejected() {
@@ -225,6 +228,7 @@ class ProductShopLinkServiceTest {
     @Nested
     @DisplayName("메뉴 등록 시 추가 연결")
     class CreateInitialLinks {
+
         @BeforeEach
         void givenOwnerLinkCreatedAtRegistration() {
             linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);

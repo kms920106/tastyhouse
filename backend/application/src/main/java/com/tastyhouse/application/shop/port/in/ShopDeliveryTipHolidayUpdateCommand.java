@@ -8,6 +8,7 @@ public record ShopDeliveryTipHolidayUpdateCommand(
     Long shopId,
     Integer tipAmount
 ) {
+
     public ShopDeliveryTipHolidayUpdateCommand {
         if (ceoId == null || shopId == null || tipAmount == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

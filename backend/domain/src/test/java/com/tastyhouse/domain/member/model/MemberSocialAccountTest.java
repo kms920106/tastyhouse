@@ -10,6 +10,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class MemberSocialAccountTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사시각 없음)이고 lastLoginAt이 채워진다")
     void of_createsTransientSocialAccount() {

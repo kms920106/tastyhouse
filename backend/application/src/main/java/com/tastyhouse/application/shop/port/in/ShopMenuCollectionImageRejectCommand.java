@@ -7,6 +7,7 @@ public record ShopMenuCollectionImageRejectCommand(
     Long imageId,
     String rejectReason
 ) {
+
     public ShopMenuCollectionImageRejectCommand {
         if (imageId == null || rejectReason == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

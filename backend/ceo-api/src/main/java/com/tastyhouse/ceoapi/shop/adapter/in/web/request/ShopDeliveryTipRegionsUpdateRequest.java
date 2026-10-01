@@ -16,6 +16,7 @@ public record ShopDeliveryTipRegionsUpdateRequest(
     @Schema(description = "지역별 배달팁 목록. 빈 배열이면 전부 삭제됩니다", requiredMode = Schema.RequiredMode.REQUIRED)
     List<ShopDeliveryTipRegionItemRequest> regions
 ) {
+
     public ShopDeliveryTipRegionsUpdateCommand toCommand(Long ceoId, Long shopId) {
         List<ShopDeliveryTipRegionCommand> regionCommands = regions().stream()
             .map(ShopDeliveryTipRegionItemRequest::toCommand)

@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ShopTemporaryClosureTest {
+
     @Test
     @DisplayName("of로 생성하면 미영속 상태(식별자·감사 시각 없음)이고 기간을 담는다")
     void of_createsTransientShopTemporaryClosure() {

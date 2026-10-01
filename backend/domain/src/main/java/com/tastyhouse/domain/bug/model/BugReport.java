@@ -9,6 +9,7 @@ import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class BugReport {
+
     private final Long id;
     private final MemberId memberId;
     private final String device;

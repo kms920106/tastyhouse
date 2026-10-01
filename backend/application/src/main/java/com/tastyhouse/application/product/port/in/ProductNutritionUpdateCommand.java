@@ -26,6 +26,7 @@ public record ProductNutritionUpdateCommand(
     Boolean setMenu,
     List<String> allergens
 ) {
+
     public ProductNutritionUpdateCommand {
         if (ceoId == null
             || shopId == null

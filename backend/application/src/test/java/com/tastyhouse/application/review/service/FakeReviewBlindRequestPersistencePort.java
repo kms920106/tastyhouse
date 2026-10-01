@@ -14,6 +14,7 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
 
 public class FakeReviewBlindRequestPersistencePort implements ReviewBlindRequestPersistencePort {
+
     private static final List<ReviewBlindStatus> TERMINATED_STATUSES = List.of(
         ReviewBlindStatus.APPROVED,
         ReviewBlindStatus.REJECTED,

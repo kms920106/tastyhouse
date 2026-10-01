@@ -8,6 +8,7 @@ public record NoticeCreateCommand(
     String content,
     boolean visible
 ) {
+
     public NoticeCreateCommand {
         if (title == null || content == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT);

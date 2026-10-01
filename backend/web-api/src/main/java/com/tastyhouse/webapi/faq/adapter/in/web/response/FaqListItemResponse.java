@@ -21,6 +21,7 @@ public record FaqListItemResponse(
     @Schema(description = "정렬 순서", example = "1")
     Integer sort
 ) {
+
     public static FaqListItemResponse from(FaqResult result) {
         return new FaqListItemResponse(
             result.id(),

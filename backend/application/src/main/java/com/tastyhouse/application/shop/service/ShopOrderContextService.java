@@ -22,6 +22,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistence
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 public class ShopOrderContextService {
+
     private final ShopPersistencePort shopPersistencePort;
     private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
     private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;
@@ -121,6 +122,7 @@ public class ShopOrderContextService {
     }
 
     public static final class OrderableShop {
+
         private final Shop shop;
 
         private OrderableShop(Shop shop) {
@@ -137,6 +139,7 @@ public class ShopOrderContextService {
         BigDecimal latitude,
         BigDecimal longitude
     ) {
+
         public static DeliveryDestinationSpec of(
             AdminDongId adminDongId,
             BigDecimal latitude,
