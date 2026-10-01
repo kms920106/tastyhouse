@@ -18,10 +18,12 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@SharedApp
 public class ShopConvenienceInfoService {
 
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;

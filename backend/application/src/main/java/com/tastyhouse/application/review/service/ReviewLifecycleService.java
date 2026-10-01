@@ -27,8 +27,10 @@ import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePor
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
+@SharedApp
 public class ReviewLifecycleService {
 
     private final ReviewPersistencePort reviewPersistencePort;

@@ -3,7 +3,9 @@ package com.tastyhouse.application.shop.service;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class ShopRequestIndexSyncAdapter implements ShopRequestIndexSyncPort {
 
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;

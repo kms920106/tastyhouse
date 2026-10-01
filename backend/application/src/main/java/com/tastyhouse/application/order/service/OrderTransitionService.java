@@ -8,7 +8,9 @@ import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class OrderTransitionService {
 
     private final OrderPersistencePort orderPersistencePort;

@@ -11,8 +11,10 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
+@SharedApp
 public class ShopRequestIndexRecorder {
 
     private final ShopRequestIndexPersistencePort shopRequestIndexPersistencePort;

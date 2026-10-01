@@ -16,8 +16,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
+@CeoApp
 public class ReviewOwnerReplyService {
 
     private final ReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort;

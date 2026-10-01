@@ -24,7 +24,9 @@ import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class PaymentConfirmationService {
 
     private static final int CASH_POINT_EARN_RATE = 10;

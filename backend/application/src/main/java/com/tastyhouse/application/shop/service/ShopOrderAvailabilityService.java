@@ -9,8 +9,10 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
+@WebApp
 public class ShopOrderAvailabilityService {
 
     private final ShopOperatingStatusService shopOperatingStatusService;

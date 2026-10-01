@@ -28,7 +28,9 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class ProductRegistrationService {
 
     private final ProductPersistencePort productPersistencePort;

@@ -41,8 +41,10 @@ import com.tastyhouse.application.order.port.out.write.OrderProductOptionPersist
 import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
 import com.tastyhouse.application.point.service.PointLedgerService;
 import com.tastyhouse.application.product.service.OrderProductValidationService;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shop.service.ShopOrderContextService;
 
+@WebApp
 public class OrderPlacementService {
 
     private final OrderPersistencePort orderPersistencePort;

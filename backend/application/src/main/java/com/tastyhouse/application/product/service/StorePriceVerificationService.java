@@ -26,7 +26,9 @@ import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class StorePriceVerificationService {
 
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =

@@ -16,14 +16,14 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `shared/vo/PhoneNumber.java` | 공유 커널 Value Object. `record`(compact constructor 검증) — `@Embeddable` 어노테이션 없음, 컬럼 매핑은 각 JpaEntity의 `@AttributeOverride`가 소유 |
 | `shared/model/ApprovalStatus.java` | 승인 워크플로 공용 enum(PENDING/APPROVED/REJECTED). 상표·대표이미지 변경요청 등에서 재사용 |
 | ~~`shared/page/PageQuery.java` / `PageResult.java`~~ | **이동됨 (덩어리 01)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/page/`로 `git mv`. domain 안에 사용처가 0건이었고, 소비자(persistence DAO 32곳·표현 계층)가 전부 application 쪽이라 domain이 소유할 이유가 없었다. 표현 계층이 domain을 끊는 데 필요한 이동이기도 하다 |
-| ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 `shared/config/SharedEventConfig`(`@SharedApp`)가 등록한다 |
+| ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 ~~`shared/config/SharedEventConfig`~~ `shared/config/SharedBeanConfig`(`@SharedApp`, application `*ServiceConfig` 삭제 때 `SharedEventConfig`에서 리네임)가 등록한다 |
 | ~~`shared/exception/OptimisticLockConflictException.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/`로 `git mv`. 던지는 쪽(persistence `ReservationSlotPersistenceAdapter`)이 03b에서 domain 없이 참조할 수 있도록 `port/out` 아래에 둔다 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
 | `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). 지금 구현체는 `ErrorCode` 하나뿐이다 — 과거 `infrastructure:http-client`(구 `infrastructure:external`)가 소유하던 `ExternalApiErrorCode`는 완전히 삭제됐고, 외부 연동 실패 코드(SMS 발송·메일 발송·행정동 경계 조회 실패 등)도 지금은 이 `ErrorCode` 카탈로그의 상수다. 인터페이스 자체는 "카탈로그는 하나로 유지하되 필요하면 domain이 모듈별 에러 카탈로그를 다시 호스트할 수 있는 확장점"으로 남긴다. `BusinessException`이 이 타입을 보유해 전역 핸들러가 그대로 처리한다 |
 
-> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지 소관이 아닙니다 — ~~infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`~~ **(번복됨 — 03a)** `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp`)가 이 패키지에 남은 순수 서비스까지 함께 등록합니다.
+> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지 소관이 아닙니다 — ~~infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`~~ **(번복됨 — 03a)** ~~`application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp`)가 이 패키지에 남은 순수 서비스까지 함께 등록합니다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 이 패키지에 남은 순수 서비스는 `application`의 `shared/config/SharedBeanConfig`(`@SharedApp`)가 `@Bean`으로 등록하고, application으로 옮겨 간 포트 주입 서비스는 클래스에 앱 마커만 달아 스캔으로 등록됩니다.
 
 ## Bounded Contexts
 
@@ -72,7 +72,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · {도메인}CommandService(@Transactional) / {도메인}QueryService(@Transactional(readOnly))
         ↓                                              ↓
    application — <ctx>/port/out/write (write 포트) · <ctx>/port/out (출력 포트)
-               · <ctx>/service (포트 주입 도메인 서비스, 마커 없는 POJO) · <ctx>/config/<Ctx>ServiceConfig
+               · <ctx>/service (포트 주입 도메인 서비스, 앱 마커만 — @Service 없음) · shared/config/SharedBeanConfig(domain 계산기 등록)
         ↓                                              ↑ 구현
    domain (이 패키지)                       infrastructure-module
    · model/vo/event                            · <ctx>/persistence (write 어댑터)
@@ -95,7 +95,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **도메인 서비스 규칙 (`<ctx>/service/`)**:
 - **(번복됨 — 03a) 이 패키지의 `<ctx>/service/`에는 포트를 주입받지 않는 순수 계산기·정책·검증기와 그 입출력 record만 남는다.** 포트(write 포트·출력 포트·`DomainEventPublisher`)를 주입받는 오케스트레이션 서비스는 `application/<ctx>/service/`로 옮겨졌다(domain은 `application`의 포트를 볼 수 없다). 아래 두 항목은 과거 서술이며, 거기 나오는 reference 서비스는 지금 전부 `application`에 있다.
-- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 ~~infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`~~ `application`의 `<ctx>/config/<Ctx>ServiceConfig`가 `@Bean` 팩토리로 수행하고(없으면 신설), 트랜잭션 경계는 이를 호출하는 `{도메인}CommandService`가 소유한다.
+- `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 ~~infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`~~ ~~`application`의 `<ctx>/config/<Ctx>ServiceConfig`~~ **(번복됨 — application `*ServiceConfig` 삭제)** `application`의 `shared/config/SharedBeanConfig`가 `@Bean` 팩토리로 수행하고, 트랜잭션 경계는 이를 호출하는 `{도메인}CommandService`가 소유한다.
 - 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/service/PointLedgerService`, `reservation/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`).
 - 소비 모듈로 복제하지 않는다 — 특정 api 모듈에 두면 다른 모듈이 같은 유스케이스를 실행할 때 불변식이 우회된다.
 
@@ -186,7 +186,7 @@ public interface DomainEventPublisher {
     void publish(Object event);
 }
 
-// application: shared/event/SpringDomainEventPublisher — ApplicationEventPublisher 위임 (03a로 persistence에서 이동, SharedEventConfig가 @Bean 등록)
+// application: shared/event/SpringDomainEventPublisher — ApplicationEventPublisher 위임 (03a로 persistence에서 이동, SharedBeanConfig(구 SharedEventConfig)가 @Bean 등록)
 // application: <ctx>/listener/XxxListener — @Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT)
 ```
 리스너를 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 4앱 전부가 스캔하는 `application`에 `@SharedApp`으로 둔다(과거 infrastructure-module 배치는 번복됨).
@@ -197,7 +197,7 @@ public interface DomainEventPublisher {
 // application/mail/port/out/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
 // application/sms/port/out/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // application/file/port/out/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — application의 라우터 PgPaymentGatewayRouter(POJO)가 구현, application의 payment/config/PgRouterConfig(@WebApp)가 @Bean 등록(infrastructure:pg는 코드 없는 채널 스타터)
+// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — application의 라우터 PgPaymentGatewayRouter(@WebApp 마커만, 스캔 등록 — PgRouterConfig는 삭제됨)가 구현(infrastructure:pg는 코드 없는 채널 스타터)
 // application/payment/port/out/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
 ```
 

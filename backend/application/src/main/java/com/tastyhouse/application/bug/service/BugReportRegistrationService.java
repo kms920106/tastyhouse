@@ -9,7 +9,9 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.bug.port.out.write.BugReportImagePersistencePort;
 import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class BugReportRegistrationService {
 
     private final BugReportPersistencePort bugReportPersistencePort;

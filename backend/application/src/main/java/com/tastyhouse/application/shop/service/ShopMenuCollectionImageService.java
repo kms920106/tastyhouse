@@ -12,9 +12,11 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@SharedApp
 public class ShopMenuCollectionImageService {
 
     private static final int MAX_IMAGE_COUNT = 6;

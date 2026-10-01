@@ -7,8 +7,10 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shared.marker.AdminApp;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@AdminApp
 public class ShopCeoAssignmentService {
 
     private final ShopPersistencePort shopPersistencePort;

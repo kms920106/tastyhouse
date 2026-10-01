@@ -7,7 +7,9 @@ import java.util.stream.Collectors;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
 import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class PublicHolidayCalendar {
 
     private final PublicHolidayPersistencePort publicHolidayPersistencePort;

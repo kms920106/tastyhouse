@@ -12,7 +12,9 @@ import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class MemberDeliveryAddressService {
 
     private static final int MAX_ADDRESS_COUNT = 10;

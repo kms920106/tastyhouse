@@ -10,9 +10,11 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 
+@CeoApp
 public class ShopRequestCancelService {
 
     private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;

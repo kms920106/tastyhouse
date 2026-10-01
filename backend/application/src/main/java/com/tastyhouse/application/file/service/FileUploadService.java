@@ -14,7 +14,9 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
 import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class FileUploadService {
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "pdf");

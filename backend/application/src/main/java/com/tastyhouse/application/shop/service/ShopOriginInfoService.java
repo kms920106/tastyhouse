@@ -13,9 +13,11 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@CeoApp
 public class ShopOriginInfoService {
 
     private final ShopOriginInfoPersistencePort shopOriginInfoPersistencePort;

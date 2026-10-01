@@ -271,14 +271,43 @@ class LayerRulesTest {
             .and(DECLARE_TRANSACTIONAL_EVENT_LISTENER);
         DescribedPredicate<JavaClass> sharedConfiguration = resideInAPackage("..config..")
             .and(annotatedWith(CONFIGURATION));
+        DescribedPredicate<JavaClass> sharedDomainService = new DescribedPredicate<>("마커만 단 도메인 서비스") {
+            @Override
+            public boolean test(JavaClass javaClass) {
+                return isMarkerOnlyClass(javaClass) && isDomainServiceLocation(javaClass);
+            }
+        };
 
         ArchRule rule = classes()
             .that().areAnnotatedWith(SharedApp.class)
-            .should(ArchCondition.from(sharedListener.or(sharedConfiguration)
-                .as("..listener..의 @TransactionalEventListener 클래스이거나 ..config..의 @Configuration 클래스")))
-            .because("@SharedApp은 리스너와 설정 클래스 전용이다 — 일반 빈에 붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
+            .should(ArchCondition.from(sharedListener.or(sharedConfiguration).or(sharedDomainService)
+                .as("..listener..의 @TransactionalEventListener 클래스이거나 ..config..의 @Configuration 클래스이거나 "
+                    + "..service..의 스테레오타입 없는 도메인 서비스(*CommandService/*QueryService·UseCase 구현 제외)")))
+            .because("@SharedApp은 리스너·설정 클래스·여러 앱이 공유하는 도메인 서비스 전용이다 — 앱 오케스트레이터(@Service)에 "
+                + "붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
 
         rule.check(classes);
+    }
+
+    @Test
+    void markerOnlyClassesShouldBeDomainServices() {
+        List<JavaClass> markerOnlyClasses = classes.stream()
+            .filter(LayerRulesTest::isMarkerOnlyClass)
+            .toList();
+
+        assertThat(markerOnlyClasses)
+            .as("스테레오타입 없이 앱 마커만 단 클래스가 0개면 이 규칙이 공허하게 통과한다")
+            .hasSizeGreaterThanOrEqualTo(78);
+
+        List<String> violations = markerOnlyClasses.stream()
+            .filter(javaClass -> !isDomainServiceLocation(javaClass))
+            .map(JavaClass::getName)
+            .toList();
+
+        assertThat(violations)
+            .as("스테레오타입 없이 앱 마커만 다는 형태는 ..service..의 도메인 서비스 전용이다(*CommandService/*QueryService와 "
+                + "UseCase 구현은 @Service를 단다) — 리스너는 @Component, 설정은 @Configuration을 함께 단다")
+            .isEmpty();
     }
 
     @Test
@@ -382,6 +411,24 @@ class LayerRulesTest {
             current = current.getEnclosingClass().get();
         }
         return current;
+    }
+
+    private static boolean isMarkerOnlyClass(JavaClass javaClass) {
+        return !javaClass.isInterface()
+            && !javaClass.isAnnotation()
+            && !javaClass.isAnnotatedWith(SERVICE)
+            && !javaClass.isAnnotatedWith(COMPONENT)
+            && !javaClass.isAnnotatedWith(CONFIGURATION)
+            && hasAppMarker(javaClass);
+    }
+
+    private static boolean isDomainServiceLocation(JavaClass javaClass) {
+        String packageName = javaClass.getPackageName();
+        String simpleName = javaClass.getSimpleName();
+        return (packageName.endsWith(".service") || packageName.contains(".service."))
+            && !simpleName.endsWith("CommandService")
+            && !simpleName.endsWith("QueryService")
+            && !implementsPortInInterface(javaClass);
     }
 
     private static boolean hasAppMarker(JavaClass javaClass) {

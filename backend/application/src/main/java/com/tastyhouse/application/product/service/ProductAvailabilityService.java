@@ -33,7 +33,9 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductAvailabilityService {
 
     private static final long MIN_SOLD_OUT_MINUTES = 30L;

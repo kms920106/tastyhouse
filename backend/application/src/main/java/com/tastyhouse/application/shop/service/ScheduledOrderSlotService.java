@@ -18,11 +18,13 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotCalculator;
 import com.tastyhouse.domain.shop.service.ScheduledOrderSlotContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
+@WebApp
 public class ScheduledOrderSlotService {
 
     private final ShopPersistencePort shopPersistencePort;

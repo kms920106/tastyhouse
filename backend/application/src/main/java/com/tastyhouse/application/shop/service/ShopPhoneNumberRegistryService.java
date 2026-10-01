@@ -12,9 +12,11 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
 
+@CeoApp
 public class ShopPhoneNumberRegistryService {
 
     private static final int MAX_PHONE_NUMBER_COUNT = 10;

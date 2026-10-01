@@ -14,7 +14,9 @@ import com.tastyhouse.application.mail.port.out.MailSender;
 import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class MailVerificationService {
 
     private final MemberPersistencePort memberPersistencePort;

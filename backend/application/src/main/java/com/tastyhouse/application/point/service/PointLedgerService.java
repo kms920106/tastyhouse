@@ -14,7 +14,9 @@ import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePort;
 import com.tastyhouse.application.point.port.out.write.PointPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class PointLedgerService {
 
     private static final String USE_ON_ORDER_REASON = "주문 결제 사용";

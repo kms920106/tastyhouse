@@ -17,10 +17,12 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@WebApp
 public class ShopOrderContextService {
 
     private final ShopPersistencePort shopPersistencePort;

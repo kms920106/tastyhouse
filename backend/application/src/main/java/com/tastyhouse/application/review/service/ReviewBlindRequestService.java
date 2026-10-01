@@ -25,8 +25,10 @@ import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttach
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 
+@SharedApp
 public class ReviewBlindRequestService {
 
     private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;

@@ -5,8 +5,10 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@SharedApp
 public class StorePriceVerificationAdapter implements StorePriceVerificationPort {
 
     private final ShopPersistencePort shopPersistencePort;

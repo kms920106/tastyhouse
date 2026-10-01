@@ -2,8 +2,10 @@ package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
+@CeoApp
 public class ShopNoticeExposureService {
 
     private final ShopNoticePersistencePort shopNoticePersistencePort;

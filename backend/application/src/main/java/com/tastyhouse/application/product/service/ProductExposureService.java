@@ -19,7 +19,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductExposureService {
 
     private static final Set<DayType> GROUP_DAY_TYPES =

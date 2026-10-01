@@ -20,7 +20,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductPriceService {
 
     private final ProductPricePersistencePort productPricePersistencePort;

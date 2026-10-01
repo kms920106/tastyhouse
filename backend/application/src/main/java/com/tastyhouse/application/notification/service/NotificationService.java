@@ -13,7 +13,9 @@ import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class NotificationService {
 
     private final NotificationPersistencePort notificationPersistencePort;

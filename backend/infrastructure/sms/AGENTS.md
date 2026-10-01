@@ -27,7 +27,7 @@ backend/infrastructure/sms/
 | `config/SmsDomainConfig.java` | `SmsVerificationService` `@Bean` 등록 | **삭제** — 등록 책임이 `application`으로 이동 |
 | `META-INF/spring/...AutoConfiguration.imports` | 자기 등록 | **삭제** |
 | `build.gradle` | `implementation project(':domain')` + `runtimeOnly solapi` | `runtimeOnly project(':infrastructure:solapi')` **한 줄만** |
-| `SmsVerificationService`(도메인 서비스) | `SmsDomainConfig`가 `@Bean`으로 등록, `com.tastyhouse.external.sms.config` 소속 | **annotation-free POJO**로 `application/sms/service/`로 이동, 등록은 `application`의 `SmsServiceConfig`(`@WebApp`) 담당 |
+| `SmsVerificationService`(도메인 서비스) | `SmsDomainConfig`가 `@Bean`으로 등록, `com.tastyhouse.external.sms.config` 소속 | **annotation-free POJO**로 `application/sms/service/`로 이동, 등록은 `application`의 `SmsServiceConfig`(`@WebApp`) 담당. **(번복됨 — application `*ServiceConfig` 삭제)** 지금은 `SmsServiceConfig`도 삭제됐고 `SmsVerificationService` 클래스에 `@WebApp` 마커만 붙어 스캔 등록된다 |
 
 **"채널 모듈이 벤더를 조립하는 쪽이라 DomainConfig를 갖는다"던 과거 규칙(`../mail/AGENTS.md`의 §역사 참고)은 이 모듈에서도 번복됐다** — 도메인 서비스 등록이 애초에 이 모듈의 자리가 아니게 재설계됐기 때문이다. `find backend/infrastructure/sms -name "*.java" -not -path "*/build/*"`는 아무것도 반환하지 않는다(자바 코드 0개, 확인됨).
 
@@ -36,9 +36,11 @@ backend/infrastructure/sms/
 - **조립**: `build.gradle`의 `runtimeOnly project(':infrastructure:solapi')` 한 줄이 기본 벤더를 web-api의 runtimeClasspath에 싣는다.
 - **설정**: `application-sms.yml`이 `sms.provider`·`sms.sender-number`를 소유하고 벤더 yml을 중첩 import한다(아래 §yml).
 
-빈 등록은 이제 조립 대상(solapi/aws-sns)의 auto-configuration이 `SmsSender` 구현체를, `application`의 `SmsServiceConfig`(`@WebApp`)가 `SmsVerificationService`를 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
+빈 등록은 이제 조립 대상(solapi/aws-sns)의 auto-configuration이 `SmsSender` 구현체를, `application`의 `SmsVerificationService` 클래스가 자기 `@WebApp` 마커로 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
 
-## 도메인 서비스 등록은 이제 어디인가 — `application`의 `SmsServiceConfig`
+## 도메인 서비스 등록은 이제 어디인가 — `application`의 `SmsVerificationService` 클래스 마커
+
+**(번복됨 — application `*ServiceConfig` 삭제)** 아래 문단의 `SmsServiceConfig`는 삭제됐다. 지금은 `application/sms/service/SmsVerificationService` 클래스에 `@WebApp` 마커만(`@Service` 없이) 붙고, web-api의 마커 기반 컴포넌트 스캔이 생성자 주입으로 등록한다. 빈 이름(`smsVerificationService`)과 등록 앱(web)은 바뀌지 않았다. `SmsSender`를 생성자로 받는 마커 클래스가 `@WebApp`이 아니면 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`이 빌드에서 실패시킨다. 아래는 ServiceConfig 삭제 전의 기록이다.
 
 `SmsVerificationService`(생성자로 `SmsSender`·`SmsVerificationPersistencePort`·`DomainEventPublisher`를 요구)는 `application/sms/service/`의 annotation-free POJO이고, `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다.
 
@@ -54,7 +56,7 @@ backend/infrastructure/sms/
 
 그 밖에 `.env`에 `AWS_SNS_ACCESS_KEY`·`AWS_SNS_SECRET_KEY`가 있어야 한다(이미 있다). 벤더 쪽에서 본 같은 절차는 `../aws-sns/AGENTS.md`의 "SNS로 전환하는 절차 (채널 모듈 2파일)"에 있다.
 
-**벤더 모듈 없이 provider만 바꾸면 기동 시 실패한다** — `SolapiSmsClient`는 조건으로 빠지고 SNS 구현이 없어 `application`의 `SmsServiceConfig`가 `SmsSender` 빈을 찾지 못한다. 전환 검증은 반증 방향으로 한다.
+**벤더 모듈 없이 provider만 바꾸면 기동 시 실패한다** — `SolapiSmsClient`는 조건으로 빠지고 SNS 구현이 없어 `application`의 `SmsVerificationService`(구 `SmsServiceConfig` 등록)가 `SmsSender` 빈을 찾지 못한다. 전환 검증은 반증 방향으로 한다.
 
 ## yml — `application-sms.yml`
 
@@ -81,7 +83,7 @@ backend/infrastructure/sms/
 
 **대상**: `backend/infrastructure/sms/` 전체(`src/main/java` 부재가 정상)
 
-이 모듈은 원래 `SmsDomainConfig`를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 도메인 서비스 등록이 `application`의 `SmsServiceConfig`로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`SmsModuleAutoConfiguration`·`SmsDomainConfig`를 되살리지 않는다** — 도메인 서비스 등록은 `application`의 일이다.
+이 모듈은 원래 `SmsDomainConfig`를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 도메인 서비스 등록이 `application`(당시 `SmsServiceConfig`, 지금은 `SmsVerificationService` 클래스의 `@WebApp` 마커)으로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`SmsModuleAutoConfiguration`·`SmsDomainConfig`를 되살리지 않는다** — 도메인 서비스 등록은 `application`의 일이다.
 
 ### 발신 번호는 클래스가 아니라 프로퍼티 키로 공유한다
 
@@ -98,4 +100,4 @@ backend/infrastructure/sms/
 
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/sms/service/SmsVerificationService.java`
 
-`SmsVerificationService`는 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식을 갖고, 발송 누락을 막으려 `SmsSender`를 직접 주입받는다. 등록 위치는 chunk 02-vendor-ports로 `infrastructure:sms`의 `SmsDomainConfig`에서 `application`의 `SmsServiceConfig`로 옮겨갔으나, 이 설계 근거 자체는 바뀌지 않았다.
+`SmsVerificationService`는 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식을 갖고, 발송 누락을 막으려 `SmsSender`를 직접 주입받는다. 등록 위치는 chunk 02-vendor-ports로 `infrastructure:sms`의 `SmsDomainConfig`에서 `application`의 `SmsServiceConfig`로 옮겨갔고 이후 application `*ServiceConfig` 삭제로 `SmsVerificationService` 클래스의 `@WebApp` 마커가 등록을 대신하게 됐으나, 이 설계 근거 자체는 바뀌지 않았다.

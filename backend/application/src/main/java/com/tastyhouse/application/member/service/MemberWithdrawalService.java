@@ -12,7 +12,9 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class MemberWithdrawalService {
 
     private final MemberPersistencePort memberPersistencePort;

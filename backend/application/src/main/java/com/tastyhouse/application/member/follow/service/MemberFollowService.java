@@ -7,7 +7,9 @@ import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class MemberFollowService {
 
     private final MemberFollowPersistencePort memberFollowPersistencePort;

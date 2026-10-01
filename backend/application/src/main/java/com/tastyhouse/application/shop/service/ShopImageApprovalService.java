@@ -13,9 +13,11 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
+@SharedApp
 public class ShopImageApprovalService {
 
     private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;

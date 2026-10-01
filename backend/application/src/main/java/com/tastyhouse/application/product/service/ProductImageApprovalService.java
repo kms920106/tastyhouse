@@ -16,7 +16,9 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class ProductImageApprovalService {
 
     private final ProductImageChangeRequestPersistencePort requestPersistencePort;

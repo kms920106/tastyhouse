@@ -16,7 +16,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class MenuReviewLifecycleService {
 
     private final MenuReviewPersistencePort menuReviewPersistencePort;

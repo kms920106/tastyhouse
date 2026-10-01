@@ -25,7 +25,9 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductOptionGroupMergeService {
 
     private final ProductOptionGroupPersistencePort optionGroupPersistencePort;

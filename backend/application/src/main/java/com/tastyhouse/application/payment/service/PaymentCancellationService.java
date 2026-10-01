@@ -22,7 +22,9 @@ import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class PaymentCancellationService {
 
     private final PaymentPersistencePort paymentPersistencePort;

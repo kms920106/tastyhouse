@@ -12,7 +12,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductNutritionService {
 
     private final ProductNutritionPersistencePort productNutritionPersistencePort;

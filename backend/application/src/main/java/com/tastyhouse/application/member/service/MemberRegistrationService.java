@@ -11,7 +11,9 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class MemberRegistrationService {
 
     private final MemberPersistencePort memberPersistencePort;

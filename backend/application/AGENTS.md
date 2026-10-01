@@ -20,7 +20,7 @@
 
 - **왜 평탄화했나**: 챕터 01의 판단 근거 중 하나였던 "중복이 컸고 이득이 없었다"가 패키지 수준에서도 반복되고 있었다 — 앱별 패키지가 남아 있는 한 `ArchUnit` 슬라이스 규칙·import 정렬 규칙 모두 "접두어가 겹치는 4개 패키지"를 특별 취급해야 했고, 그 특별 취급 자체가 문서·규칙의 복잡도였다. 패키지를 하나로 합치면 그 특별 취급이 사라진다.
 - **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
-- **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다. **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
+- **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다(ServiceConfig 삭제 후에는 `@Service` 없이 마커만 단 도메인 서비스 78개도 더해진다 — 아래 "application `*ServiceConfig` 전면 삭제" 절). **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
 - **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
 - **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4개 `*ApplicationConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다. ~~**리스너 외에는 붙이지 않는다**~~ **(번복됨 — 덩어리 01: 리스너 + `..config..`의 `@Configuration`까지 허용, 아래 [ArchUnit](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절)** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다(이것은 여전히 금지). 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
 - **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
@@ -51,8 +51,8 @@
 
 **왜 서비스까지 옮겼나 — 포트만으로는 끝나지 않는다.** 이 네 서비스는 순수 POJO라는 점에서 기존 도메인 서비스와 다르지 않지만, 이관된 포트를 생성자로 주입받는다. 포트가 `application`으로 옮겨간 채 서비스만 `domain`에 남으면 `domain`이 `application`의 포트 인터페이스를 참조해야 해 **의존 방향이 뒤집힌다**(안쪽이 바깥쪽을 아는 상태). 그래서 포트를 쓰는 서비스 자체도 함께 옮겼다 — "이 서비스가 도메인 불변식을 오케스트레이션하는가"라는 기존 배치 기준(`domain/AGENTS.md`의 "도메인 서비스(`<ctx>/service/`)는 순수 POJO다" 절)은 여전히 참이지만, **아웃바운드 포트가 domain 밖에 있으면 그 포트를 쓰는 오케스트레이션도 domain 밖에 있어야 한다**는 조건이 우선한다.
 
-- **`file`·`payment`는 `@SharedApp`로, `mail`·`sms`는 `@WebApp`으로 등록한다** — 발송 포트 구현이 web에만 있는 기존 배치 기준(`persistence/AGENTS.md`의 "구현이 일부 앱에만 있는가" 판정)을 그대로 승계했다. `file`은 4앱 전부가 `FileStoragePort` 구현(firebase/aws-s3)을 가지므로 공유, `payment`(`PaymentConfirmationService`)는 PG 결제 승인이 web에서만 일어나지만 **읽기 계약과 도메인 이벤트 리스너처럼 "언젠가 다른 앱이 같은 유스케이스를 트리거해도 안전해야 한다"는 4개 리스너 배치 원칙과 같은 이유로 `@SharedApp`을 유지한다** — `PgPaymentGatewayRouter`만 web 전용 채널(`infrastructure:pg`가 web-api에만 조립)이라 별도로 `@WebApp`인 `PgRouterConfig`가 등록한다.
-- **등록 클래스 5종은 모두 `@Configuration` + 마커, `@Bean` 팩토리 하나(또는 관련 빈 여러 개)**: `file/config/FileServiceConfig`(`@SharedApp`, `fileUploadService`) · `mail/config/MailServiceConfig`(`@WebApp`, `mailVerificationService`) · `sms/config/SmsServiceConfig`(`@WebApp`, `smsVerificationService`) · `payment/config/PaymentServiceConfig`(`@SharedApp`, `paymentConfirmationService`) · `payment/config/PgRouterConfig`(`@WebApp`, `pgPaymentGatewayRouter` — `List<PgProviderGateway>`를 주입받아 라우터를 조립). 이 다섯이 위 "(번복) `@SharedApp` 허용 대상 확대" 절이 예고한 **"리스너 외 첫 사용처"**다 — `LayerRulesTest#sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 처음으로 실제 대상(`file/payment`의 두 `@SharedApp` 설정)을 갖게 됐다.
+- **`file`·`payment`는 `@SharedApp`로, `mail`·`sms`는 `@WebApp`으로 등록한다** — 발송 포트 구현이 web에만 있는 기존 배치 기준(`persistence/AGENTS.md`의 "구현이 일부 앱에만 있는가" 판정)을 그대로 승계했다. `file`은 4앱 전부가 `FileStoragePort` 구현(firebase/aws-s3)을 가지므로 공유, `payment`(`PaymentConfirmationService`)는 PG 결제 승인이 web에서만 일어나지만 ~~**읽기 계약과 도메인 이벤트 리스너처럼 "언젠가 다른 앱이 같은 유스케이스를 트리거해도 안전해야 한다"는 4개 리스너 배치 원칙과 같은 이유로 `@SharedApp`을 유지한다** — `PgPaymentGatewayRouter`만 web 전용 채널(`infrastructure:pg`가 web-api에만 조립)이라 별도로 `@WebApp`인 `PgRouterConfig`가 등록한다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** "다른 앱이 트리거해도 안전하도록 미리 `@SharedApp`"이라는 판단은 버렸다. 지금 마커는 **현재 소비 앱 집합**으로 정한다 — `PaymentConfirmationService`는 `@SharedApp` 리스너 `PaymentEventListener`가 쓰므로 `@SharedApp`으로 남았지만, `PaymentCancellationService`는 소비자가 web(`PaymentCommandService`·`PaymentCancellationExecutor`)뿐이라 `@WebApp`으로 좁혀졌다. 다른 앱이 필요해지면 그때 마커를 `@SharedApp`으로 올리면 되고, 올리지 않고 주입하면 `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp`이 빌드에서 잡는다(미리 넓혀 두는 것은 쓰지 않는 앱에 빈을 띄우는 비용만 있다). `PgPaymentGatewayRouter`도 config 없이 클래스의 `@WebApp` 마커로 등록된다.
+- **등록 클래스 5종은 모두 `@Configuration` + 마커, `@Bean` 팩토리 하나(또는 관련 빈 여러 개)**: `file/config/FileServiceConfig`(`@SharedApp`, `fileUploadService`) · `mail/config/MailServiceConfig`(`@WebApp`, `mailVerificationService`) · `sms/config/SmsServiceConfig`(`@WebApp`, `smsVerificationService`) · `payment/config/PaymentServiceConfig`(`@SharedApp`, `paymentConfirmationService`) · `payment/config/PgRouterConfig`(`@WebApp`, `pgPaymentGatewayRouter` — `List<PgProviderGateway>`를 주입받아 라우터를 조립). 이 다섯이 위 "(번복) `@SharedApp` 허용 대상 확대" 절이 예고한 **"리스너 외 첫 사용처"**다 — `LayerRulesTest#sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 처음으로 실제 대상(`file/payment`의 두 `@SharedApp` 설정)을 갖게 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 이 다섯 설정은 전부 삭제됐고, 각 서비스 클래스에 마커만 붙는다(`FileUploadService`·`PaymentConfirmationService` `@SharedApp`, `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService` `@WebApp`).
 - **`FileDomainConfig`·`PaymentDomainConfig`의 관련 빈은 `infrastructure:persistence`에서 삭제됐다.** ~~`PaymentDomainConfig`는 `paymentCancellationService`(도메인에 남은 `PaymentCancellationService`용) 하나만 남았다.~~ **(03a로 소멸)** 남은 `paymentCancellationService`도 서비스와 함께 이 모듈로 와 `PaymentServiceConfig`에 합쳐졌고, persistence의 `*DomainConfig`는 0개가 됐다(아래 "덩어리 03a" 절). `MailDomainConfig`/`SmsDomainConfig`가 이미 채널 모듈(`infrastructure:mail`/`infrastructure:sms`)로 옮겨가 있던 선례와 마찬가지로, 판정 기준은 "외부 연동 포트인가"가 아니라 "이 서비스가 지금 어디 있는가"다.
 - **`PgProviderGateway.provider()`는 domain `PgProvider`가 아니라 이 모듈 신설 enum `PgProviderCode`를 반환한다.** `PgPaymentGateway`(라우터가 구현하는, 소비 측이 호출하는 계약)는 여전히 domain `PgProvider`를 쓴다 — 라우터(`PgPaymentGatewayRouter`)가 `PgProviderCode.name()` → `PgProvider.valueOf(...)`로 두 enum을 **상수명으로만** 연결한다. 벤더(`infrastructure:tosspayments`)가 `PgProviderGateway`를 구현하며 domain을 몰라도 되게 하려는 것이 이 우회의 목적이다 — `PgProviderCode`가 `domain`을 참조하지 않으므로 벤더 모듈도 `domain` 의존 없이 채널 어댑터를 만들 수 있다. **두 enum은 상수명·순서가 항상 같아야 하며**, `application/src/test/.../architecture/EnumCodeConstantsTest#pgProviderCodeMatchesPgProvider`가 `Enum::name` 배열을 대조해 어긋남을 잡는다. 한쪽에만 상수를 추가하면 이 테스트가 즉시 실패한다(라우터의 `PgProvider.valueOf(code.name())`이 매핑되지 않는 상수에서 `IllegalArgumentException`을 내는 런타임 위험의 컴파일 타임 방어선).
 - **`SocialOAuthClient` SPI가 예외 없는 `Optional`형 결과로 바뀌었다** — `exchange`/`fetchProfile`이 이제 예외를 던지지 않고 `SocialOAuthResult<T>`(`value` XOR `failure`인 record, compact constructor가 강제)를 반환한다. 실패는 enum `SocialOAuthFailure{APPLE_ID_TOKEN_INVALID,ACCESS_TOKEN_REJECTED}`로 표현하고, 4개 `*SocialLoginService`는 `.orElseThrow(SocialOAuthFailures::toException)`로 소비한다. 신설 `auth/service/SocialOAuthFailures`(정적 유틸)가 `APPLE_ID_TOKEN_INVALID → ErrorCode.APPLE_ID_TOKEN_INVALID`·`ACCESS_TOKEN_REJECTED → ErrorCode.SOCIAL_OAUTH_FAILED`로 매핑한다 — 카카오·네이버는 항상 `success(...)`로 감싸 던지던 예외를 값으로 옮겼을 뿐이고, 응답 계약(`ErrorCode` 문자열·HTTP 상태)은 이전과 동일하다.
@@ -63,7 +63,7 @@
 
 ## 덩어리 03a — 나머지 포트·도메인 서비스·이벤트 발행기를 `domain`에서 이관
 
-**02가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`" 등록 방식을 나머지 전부에 반복했다.** 그 결과 `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남고, 포트와 포트를 주입받는 서비스는 전부 이 모듈에 있다. **클래스 위치와 빈 등록 위치만 바꿨고 로직은 한 줄도 바꾸지 않았다**(HTTP·DB 계약 불변). 이 덩어리가 끝나도 persistence는 아직 `:domain`을 의존한다 — write 포트 시그니처가 여전히 domain 모델(`Optional<Notice> findById(NoticeId)`)이기 때문이며, 시그니처를 State record로 바꾸는 것은 03b다. **(03b로 해소 — 아래 "덩어리 03b" 절)** **(다시 번복됨 — persistence domain 재허용)** 지금 persistence는 다시 `:domain`을 `implementation`으로 의존하고, write 포트 시그니처는 03a 그대로 domain 모델이다.
+**02가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`" 등록 방식을 나머지 전부에 반복했다.** **(번복됨 — application `*ServiceConfig` 삭제)** 이 등록 방식은 이후 걷어냈다 — 아래 표의 "빈 등록 18개"·"서비스 연결 어댑터"·"구현 `SpringDomainEventPublisher`" 행은 03a 시점 기록이고, 현행은 위 "application `*ServiceConfig` 전면 삭제" 절이다. 그 결과 `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남고, 포트와 포트를 주입받는 서비스는 전부 이 모듈에 있다. **클래스 위치와 빈 등록 위치만 바꿨고 로직은 한 줄도 바꾸지 않았다**(HTTP·DB 계약 불변). 이 덩어리가 끝나도 persistence는 아직 `:domain`을 의존한다 — write 포트 시그니처가 여전히 domain 모델(`Optional<Notice> findById(NoticeId)`)이기 때문이며, 시그니처를 State record로 바꾸는 것은 03b다. **(03b로 해소 — 아래 "덩어리 03b" 절)** **(다시 번복됨 — persistence domain 재허용)** 지금 persistence는 다시 `:domain`을 `implementation`으로 의존하고, write 포트 시그니처는 03a 그대로 domain 모델이다.
 
 | 항목 | before | after |
 |---|---|---|
@@ -94,7 +94,7 @@
 
 domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경계를, 서비스가 옮겨온 이 모듈에서 **같은 구조(봉인 목록 + 짝 테스트)**로 이어서 강제한다. 옮기기만 하고 규칙을 따라 옮기지 않으면 경계가 조용히 사라진다.
 
-- **검사 대상**: `com.tastyhouse.application.<ctx>..service..`에 있는 최상위 클래스 중 **`@Service`/`@Component`/`@Configuration`이 없고 이름이 `*CommandService`/`*QueryService`로 끝나지 않는 것** — 즉 마커 없는 POJO 도메인 서비스와 그 협력 record·유틸. 유스케이스 서비스(`*CommandService`·`*QueryService`, 마커 부착)는 원래 컨텍스트를 가로질러 조립하는 계층이라 대상이 아니다. 하한 `domainServicesShouldExist` ≥ 71.
+- **검사 대상**: `com.tastyhouse.application.<ctx>..service..`에 있는 최상위 클래스 중 **`@Service`/`@Component`/`@Configuration`이 없고 이름이 `*CommandService`/`*QueryService`로 끝나지 않는 것** — 즉 ~~마커 없는 POJO~~ 스테레오타입 없는 도메인 서비스(ServiceConfig 삭제 후에는 앱 마커만 단다 — 마커는 스테레오타입이 아니라 이 판정에 영향이 없다)와 그 협력 record·유틸. 유스케이스 서비스(`*CommandService`·`*QueryService`, 마커 부착)는 원래 컨텍스트를 가로질러 조립하는 계층이라 대상이 아니다. 하한 `domainServicesShouldExist` ≥ 71.
 - **컨텍스트 판정**: 패키지 두 번째 세그먼트(`com.tastyhouse.{domain|application}.<ctx>.`). `shared`·`exception`·`architecture`는 컨텍스트가 아니다. `application.member.follow`처럼 03a가 domain 경로를 그대로 옮긴 곳은 `member` 컨텍스트이고, 원래부터 이 모듈에 있던 `application.follow`는 별개 컨텍스트다.
 - **금지**: 타 컨텍스트의 domain `model`·`service`, application의 `port.out` 밖 전부(`port.out.write`(구 `repository`)·`service`·`port.in`·`listener`·`config` 등). **허용**: domain `vo`·`event`, application `port.out`(write 제외). 대상 서비스의 **중첩 클래스도 검사**하며 위반은 최상위 클래스 이름으로 모아 봉인 목록과 대조한다(domain `ContextBoundaryTest`의 `topLevelNameOf` 선례). 의존 대상도 최상위 클래스로 접어서 센다. 한계: 컴파일 타임 상수(`static final` 원시값·문자열)는 javac가 인라인해 바이트코드 의존이 남지 않으므로 잡히지 않는다(`NotificationMessage` → `ReviewBlindRequest.BLIND_PERIOD_DAYS`) — domain 테스트와 같은 한계다.
 - **봉인 위반 15개** — domain에서 옮겨 온 위반만 담는다: 03a 직전 domain 봉인 14개에서 domain에 남은 `DeliveryAreaProjection`을 뺀 13개 + 덩어리 02가 옮기며 domain 봉인에서만 빠지고 새 규칙이 없던 `MailVerificationService`·`PaymentConfirmationService`. **목록은 줄어들기만 한다 — 항목을 추가하지 않는다.** 짝 테스트 `sealedViolationsShouldNotBeStale`(해소된 항목 검출)·`sealedViolationListShouldNotBeEmpty`(다 비면 봉인 장치 제거 지시).
@@ -135,7 +135,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 - **write 포트는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..port.out..`만 의존한다** — `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut`. 서비스·UseCase·설정을 참조하면 persistence가 그 타입까지 봐야 해 `shouldNotDependOnApiModules`에 걸린다.
 - **변환은 persistence `XxxMapper`가 한다** — `toDomain(entity)`(`reconstitute` 호출)·`toEntity(domain)`·`applyChanges(entity, domain)`. enum은 `valueOf`/`name()`, ID·단일값 VO는 `Xxx.of(...)`/`.value()`, 복합 VO는 persistence 소유 `*Embeddable` 또는 평탄 컬럼으로 바꾼다. nullable enum·VO·FK는 `x == null ? null : ...` 삼항 가드를 **모든 FK에 예외 없이** 둔다(`backend/CLAUDE.md` "ID VO 경계 규칙").
 - **Store에 있던 로직은 PersistenceAdapter로 옮겼다** — 빈 컬렉션 조기 반환, `LinkedHashSet` 수집, 도메인 정책 상수 호출(예: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/reservation/persistence/ReservationPersistenceAdapter.java`가 `ReservationStatus.blockingStatuses()`를 `name()` 목록으로 풀어 쿼리에 넘긴다). 인터페이스 둘을 구현하던 Store(`ShopDeliveryTipStore`)는 PersistenceAdapter도 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort` 둘을 구현한다.
-- **Store 빈 등록 설정은 없다** — `<Ctx>ServiceConfig`에는 Store가 아닌 빈(도메인 서비스·어댑터·정책 record)만 남는다. Store 빈만 갖던 `Admin`·`Banner`·`Event`·`Notice`·`Partnership`·`Region`의 `*ServiceConfig`는 파일째 삭제됐다. `@WebApp`이던 `MailServiceConfig`·`SmsServiceConfig`의 `MailVerificationPersistencePort`·`SmsVerificationPersistencePort` 구현은 이제 `@Repository` 스캔으로 전 앱에 뜬다 — 03b 이전과 같은 상태이고 admin·ceo·batch에는 주입처가 없다.
+- **Store 빈 등록 설정은 없다** — ~~`<Ctx>ServiceConfig`에는 Store가 아닌 빈(도메인 서비스·어댑터·정책 record)만 남는다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 남아 있던 `<Ctx>ServiceConfig`도 전부 삭제됐다. Store 빈만 갖던 `Admin`·`Banner`·`Event`·`Notice`·`Partnership`·`Region`의 `*ServiceConfig`는 파일째 삭제됐다. `@WebApp`이던 `MailServiceConfig`·`SmsServiceConfig`의 `MailVerificationPersistencePort`·`SmsVerificationPersistencePort` 구현은 이제 `@Repository` 스캔으로 전 앱에 뜬다 — 03b 이전과 같은 상태이고 admin·ceo·batch에는 주입처가 없다.
 - **서비스 테스트의 Repository fake는 import만 바뀌었다** — 도메인 타입 시그니처가 불변이므로 `FakeMailVerificationPersistencePort` 등은 그대로다.
 
 ### 매퍼 테스트는 두 방향으로 나눠 검증한다
@@ -159,6 +159,78 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 | `RuleAnchorTest#writePortsExist` | `port.out.write` + `store`의 `*Repository` 합계 ≥ 106 | `port.out.write`의 `*Repository` ≥ 106 |
 | `StateRecordArityTest` | State record 컴포넌트 수 검사 | **파일 삭제** |
 | 컨텍스트별 `store/*StateMapperTest` 81개 | application | **persistence `XxxMapperTest`로 이관**(위 두 방향 검증) |
+
+## application `*ServiceConfig` 전면 삭제 — 도메인 서비스는 클래스에 앱 마커만 (02/03a 등록 방식 번복)
+
+**02/03a가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`의 `@Bean`" 등록 방식을 걷어냈다.** `<ctx>/config/*ServiceConfig` 22개와 `payment/config/PgRouterConfig`를 전부 삭제했고, 그 설정들이 `new`로 만들던 도메인 서비스 78개는 이제 **클래스에 앱 마커 하나만**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`, `@Service`는 달지 않는다) 달고 마커 기반 컴포넌트 스캔(아래 "빈 배선" 절)으로 등록된다. HTTP·DB 계약과 빈 이름은 바뀌지 않았다.
+
+**용어 풀이**
+
+- **도메인 서비스**: `<ctx>/service/`에 있으면서 `*CommandService`/`*QueryService`가 아닌 서비스. 트랜잭션을 열지 않고(`@Transactional` 없음) 여러 애그리거트·포트를 묶어 도메인 불변식을 지킨다. 03a로 domain에서 옮겨 온 것들이다.
+- **앱 오케스트레이터**: `*CommandService`/`*QueryService`(batch는 `*SchedulerService`). `@Service` + 앱 마커를 달고 UseCase를 구현하며 트랜잭션 경계를 갖는다.
+- **마커-only 클래스**: 스테레오타입(`@Service`/`@Component`/`@Configuration`) 없이 앱 마커만 단 클래스. 스캔 필터가 `useDefaultFilters = false` + 마커 `ANNOTATION`이라 마커 하나만으로 빈이 된다.
+- **소비 앱 집합**: 생성자 주입을 따라 올라가 "최종적으로 이 빈을 쓰는 앱"의 집합. 마커를 정하는 기준이다.
+
+**왜 바꿨나**
+
+- 서비스 하나를 추가할 때 파일 두 곳(클래스 + config의 `@Bean`)을 고쳐야 했다.
+- `@SharedApp` config가 등록하던 탓에 **한 앱만 쓰는 빈도 4앱 전부에 떴다**(web·admin·ceo·batch 어디에도 주입처가 없는 빈이 컨텍스트에 상주).
+- config를 못 없앤 원인은 규칙 3개였다 — `sharedAppOnlyOnListeners`(`@SharedApp`은 리스너·config 전용), `appsShouldNotDependOnEachOther`(앱 → `@SharedApp` 의존 금지), `ServiceContextBoundaryTest`(스테레오타입이 붙으면 검사 대상에서 조용히 빠짐). 앞의 둘을 "앱 → 공유 도메인 서비스 단방향 허용(공유 커널)"으로 개정하고, 셋째는 `@Service`를 달지 않는 것으로 피했다.
+
+**등록 방식 before / after**
+
+```java
+// before — application/bug/config/BugServiceConfig.java (삭제됨)
+@Configuration(proxyBeanMethods = false)
+@SharedApp
+public class BugServiceConfig {
+    @Bean
+    public BugReportRegistrationService bugReportRegistrationService(
+        BugReportPersistencePort bugReportPersistencePort,
+        BugReportImagePersistencePort bugReportImagePersistencePort
+    ) {
+        return new BugReportRegistrationService(bugReportPersistencePort, bugReportImagePersistencePort);
+    }
+}
+// application/bug/service/BugReportRegistrationService.java
+public class BugReportRegistrationService { ... }
+```
+
+```java
+// after — config 없음
+// application/bug/service/BugReportRegistrationService.java
+@WebApp
+public class BugReportRegistrationService { ... }
+```
+
+| 항목 | before | after |
+|---|---|---|
+| 등록 config | `*ServiceConfig` 22개 + `PgRouterConfig` + `SharedEventConfig`(`@Bean` 88개) | `shared/config/SharedBeanConfig` 1개(`@Bean` 10개, `SharedEventConfig`에서 `git mv` 리네임) |
+| 도메인 서비스 78개 | 마커 없는 POJO, config가 `new` | 클래스에 앱 마커만, 스캔 등록. 빈 이름 = 클래스명 첫 글자 소문자 = 옛 `@Bean` 메서드명(실측 전부 일치) |
+| 마커 분포 | `@SharedApp` config 20개(+`SharedEventConfig`) + `@WebApp` config 3개(Mail·Sms·PgRouter) | `@WebApp` 17 · `@AdminApp` 3 · `@CeoApp` 21 · `@BatchApp` 2 · `@SharedApp` 35 = 78 |
+| 잔류 `@Bean` | — | `domainEventPublisher`(인터페이스 타입으로 등록) · domain 계산기·정책 7개(`productExposureCalculator`·`cupDepositPolicy`·`storePriceBadgePolicy`·`shopOperatingStatusCalculator`·`shopDeliveryTipCalculator`·`shopNextOpenTimeCalculator`·`scheduledOrderSlotCalculator` — domain이 spring-free라 애노테이션 불가) · `shopDeliveryTipRangePolicy`(상수·람다로 조립하는 record) · `prohibitedWordValidator`(`CachingProhibitedWordPersistencePort`로 감싸 조립) |
+| 한 앱 전용 빈 | 4앱 전부에 뜸 | **소비 앱에서만 뜸** — 동작 변경이지만 주입처가 없는 앱에서 사라질 뿐이라 기능 차이는 없다 |
+
+**마커 배정 규칙(고정점)**: 소비 앱 집합이 한 앱이면 그 앱 마커, 두 앱 이상이거나 `@SharedApp` 리스너·빈이 쓰면 `@SharedApp`. `@SharedApp` 빈이 의존하는 빈은 전부 `@SharedApp`이거나 `SharedBeanConfig`의 마커 없는 빈이어야 하므로, 이 제약을 반복 적용해 고정점까지 올린다(예: `ReviewBlindRequestService`(Shared) → `ReviewLifecycleService`도 Shared, `ShopLifecycleService`(Shared) → `ShopImageApprovalService`·`ShopCeoAssignmentRecorder`도 Shared). 배정 근거는 아래 "코드 주석에서 이관된 설계 근거"의 "도메인 서비스 마커는 소비 앱 집합으로 정한다" 절.
+
+**ArchUnit 규칙 before / after**
+
+| 규칙 | before | after |
+|---|---|---|
+| `LayerRulesTest#sharedAppOnlyOnListeners` | 리스너 ∨ `..config..`의 `@Configuration` | 위 두 경우 ∨ **마커-only 도메인 서비스**(`..service..`, 이름이 `*CommandService`/`*QueryService`가 아님, `port.in` UseCase 구현체가 아님). 규칙명 유지 |
+| `LayerRulesTest#markerOnlyClassesShouldBeDomainServices` | 없음 | **신설** — 마커-only 클래스는 위 도메인 서비스 위치에만 있어야 한다(하한 78개). 리스너는 `@Component`, 설정은 `@Configuration`을 함께 단다 |
+| `AppIsolationTest#appsShouldNotDependOnEachOther` | 마커 5×4=20조합 전부 금지 | 앱 마커 → `@SharedApp`이면서 대상이 `..service..`인 경우만 허용. 앱 ↔ 앱, `@SharedApp` → 앱, 앱 → `@SharedApp` 리스너·설정은 계속 금지 |
+| `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp` | 없음 | **신설** — 마커 M 클래스(스테레오타입 유무 무관)의 생성자 파라미터 타입 T(제네릭 인자 포함)가 `com.tastyhouse.{application,domain}..`이면: (i) M/`@SharedApp` `@Configuration`의 `@Bean` 반환 타입이거나, (ii) 구체 클래스로서 M/`@SharedApp` 마커를 갖거나, (iii) 인터페이스로서 application 안 구현체 중 하나가 M/`@SharedApp`이거나, (iv) application 안에 구현체가 없어야(persistence·벤더 구현) 한다. 검사 의존 수 하한 700. **마커 누락과 오배정을 둘 다 잡는다** 후속 보강: 마커 `@Configuration`의 `@Bean` 메서드 파라미터도 그 설정의 마커 기준으로 같은 판정을 받고(하한 ≥ 3), 컬렉션이 아닌 인터페이스 의존의 주입 후보가 2개 이상이면 모호로 실패하며, 구현체 집계에서 데코레이터(그 인터페이스를 생성자로 받는 클래스)·abstract를 뺀다. 공유 도메인 서비스 판정에서는 `port.in` UseCase 구현 클래스를 제외한다(`appsShouldNotDependOnEachOther` 완화·`sharedAppOnlyOnListeners`·`markerOnlyClassesShouldBeDomainServices` 공통). |
+| `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp` | 없음 | **신설** — 앱 마커가 붙은 클래스가 앱 전용 채널 포트를 생성자로 받으면(제네릭 인자 포함) 그 앱 마커여야 한다. web 전용: `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient` → `@WebApp`. batch 전용: `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort` → `@BatchApp`. 포트 구현이 그 앱에만 조립되기 때문이다 |
+| `AppIsolationTest#sharedBeansShouldNotDependOnWebOnlyServices` | 이름 목록 4개 | 유지(중복 방어) |
+| `AppIsolationTest#beansShouldHaveExactlyOneAppMarker` | `@Service`/`@Component`만 | 마커-only 도메인 서비스 포함(마커 2개 부착을 잡는다) |
+| `AppIsolationTest#markerBeanCounts` | `@WebApp` ≥60 · `@AdminApp` ≥55 · `@CeoApp` ≥95 · `@BatchApp` ≥12 · `@SharedApp` ≥12 | 마커-only 서비스 포함, `@WebApp` ≥83 · `@AdminApp` ≥65 · `@CeoApp` ≥122 · `@BatchApp` ≥15 · `@SharedApp` ≥47 |
+| `ServiceContextBoundaryTest` | 스테레오타입 없는 `..service..` POJO | **변경 없음** — 마커-only 서비스는 스테레오타입이 없으므로 계속 검사된다(`domainServicesShouldExist` ≥71, 봉인 15, 순환 봉인 1 불변) |
+| `LayerRulesTest#sharedConfigsShouldOnlyDeclareUnmarkedBeans` | `@SharedApp` config 21개(`*ServiceConfig` 20 + `SharedEventConfig`) 대상 | `SharedBeanConfig` 1개 대상으로 계속 통과(반환 타입이 전부 마커 없는 클래스) |
+
+**검증**: `backend`에서 `./gradlew build` 통과. 반증 probe 7종을 임시 클래스로 만들어 각각 실패하는 것을 확인하고 지웠다 — (a) `@SharedApp` 서비스가 `@WebApp` 서비스 주입, (b) 마커-only 클래스를 `..service..` 밖에 둠, (c) `@WebApp` 클래스가 구현체가 `@CeoApp`뿐인 인터페이스 주입, (d) 마커 2개 부착, (e) 마커 없는 `..service..` POJO를 `@WebApp` 서비스에 주입(마커 누락), (f) `MailSender`를 받는 클래스에 `@SharedApp`, (g) `List<PgProviderGateway>`를 받는 클래스에 `@SharedApp`. `grep -rl '@Bean' application/src/main/java`는 `SharedBeanConfig` 1개만 반환한다.
+
+**남은 것 / 사각지대**: 4앱 `java -jar` 기동(`Started *ApiApplication` 마커) 확인은 별도 검증 세션 몫이다 — `contextLoads`는 빈 껍데기라 대신할 수 없다. `List<I>` 주입(`PgPaymentGatewayRouter`)은 구현체가 0개여도 기동되므로 규칙이 잡지 못한다(벤더가 application 밖이라 이번 변경과 무관).
 
 ## (번복됨 — persistence domain 재허용) 덩어리 03b — persistence가 도메인 모델을 모르게 (`store/`·`XxxState`·`XxxStatePort`)
 
@@ -217,7 +289,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 |---|---|---|
 | `String`/`Collection<String>` 포트 인자 | 비교·필터 값 | `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, excludedStatus)` ← `MemberQueryService`가 `MemberStatus.DELETED.name()`. ~~`ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)` ← `ReviewBlindRequestStore`의 종결 상태 상수~~ (번복됨 — 이 판단은 이제 persistence `ReviewBlindRequestPersistenceAdapter` 안에 있다) |
 | 스펙 record 포트 인자 | DAO가 값에 따라 **쿼리 모양을 바꾸는** 곳 | `review/port/out/ReviewSortSpec(byLikeCount, createdAtAscending)` ← `review/service/ReviewSortSpecs.of(ReviewSortType)`, `review/port/out/ShopReviewTabFilter` ← `ShopReviewTabFilters.of(ReviewListTab)`, `product/port/out/ProductExposureWindow(now, todayDayTypes, previousDayDayTypes)` ← `product/service/ProductExposureWindows.now()`/`at(LocalDateTime)`(`DayType#appliesTo(dow, false)` — 공휴일 미판정은 과거 DAO 동작 그대로) |
-| 기존 정책 record 컴포넌트 | 요청마다 달라지지 않는 고정값 | `shop/port/out/ShopDeliveryTipRangePolicy`의 `distanceExtraTipType`·`regionExtraTipType` ← `shop/config/ShopServiceConfig#shopDeliveryTipRangePolicy`(`DeliveryTipExtraType.DISTANCE/REGION.name()`) |
+| 기존 정책 record 컴포넌트 | 요청마다 달라지지 않는 고정값 | `shop/port/out/ShopDeliveryTipRangePolicy`의 `distanceExtraTipType`·`regionExtraTipType` ← `shared/config/SharedBeanConfig#shopDeliveryTipRangePolicy`(구 `ShopServiceConfig`, `DeliveryTipExtraType.DISTANCE/REGION.name()`) |
 
 - **스펙 record를 만드는 유틸은 `<ctx>/service/`의 final class이며, 도메인 enum → 스펙 매핑은 exhaustive switch로 쓴다.** 도메인 상수가 추가되면 컴파일 에러로 드러난다.
 - **그 유틸은 자기 컨텍스트(또는 `domain.shared`) 타입만 import한다.** `ServiceContextBoundaryTest`는 `..service..`의 비-`*QueryService`/`*CommandService` 클래스를 도메인 서비스로 보고 타 컨텍스트 `model` 참조를 막는다. 그래서 인기상품 판매 집계의 `OrderStatus.COMPLETED.name()`은 `ProductExposureWindows`가 아니라 `ProductQueryService#findPopularProducts`에서 만든다.
@@ -236,13 +308,13 @@ persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 
 |---|---|---|
 | 컵 보증금 금액 `CupDepositPolicy#depositAmountOf(cupCount)` | `product/query/ProductQueryAdapter`가 주입받아 투영 중 계산 | DAO는 `cupCount`만 싣고, `product/service/ProductOptionDepositAmounts`(package-private 유틸)가 `ProductQueryService`·`ProductManagementQueryService`에서 채운다 |
 | 에디터 추천 가게당 상품 수 `EditorChoicePolicy.PRODUCT_LIMIT` | `shop/query/ShopChoiceQueryAdapter`가 상수 직접 참조 | `ShopChoiceQueryPort#findEditorChoices(PageQuery, int productLimit)` 파라미터 — `ShopQueryService`·`ShopManagementQueryService`가 상수를 넘긴다 |
-| 배달팁 표기 상한·거리 단위 `DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND`·`DeliveryTipDistanceUnit#getUnitMeters` | `shop/query/ShopDeliveryTipQueryAdapter`가 domain 상수·enum 직접 참조 | **값 record `shop/port/out/ShopDeliveryTipRangePolicy`**(상한 + 단위명→미터 맵)를 `ShopServiceConfig#shopDeliveryTipRangePolicy`가 domain 값으로 만들어 `@Bean` 등록하고, DAO가 그 빈을 주입받는다 — DAO가 domain 없이 같은 값을 쓰는 형태 |
+| 배달팁 표기 상한·거리 단위 `DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND`·`DeliveryTipDistanceUnit#getUnitMeters` | `shop/query/ShopDeliveryTipQueryAdapter`가 domain 상수·enum 직접 참조 | **값 record `shop/port/out/ShopDeliveryTipRangePolicy`**(상한 + 단위명→미터 맵)를 `SharedBeanConfig#shopDeliveryTipRangePolicy`(구 `ShopServiceConfig`)가 domain 값으로 만들어 `@Bean` 등록하고, DAO가 그 빈을 주입받는다 — DAO가 domain 없이 같은 값을 쓰는 형태 |
 | 예약 차단 상태 `ReservationStatus.blockingStatuses()` | `reservation/query/ReservationQueryAdapter`가 직접 참조 | `ReservationQueryService`·~~`ReservationStore`~~가 `name()` 목록으로 만들어 파라미터로 넘긴다(write 쪽은 지금 persistence `ReservationPersistenceAdapter`이 직접 만든다) |
 | 가게 위치 조회 실패 `SHOP_ACCESS_DENIED`·좌표 미등록 `SHOP_DELIVERY_AREA_RADIUS_EXCEEDED` | `shop/query/ShopDeliveryAreaQueryAdapter#findShopLocation`이 `BusinessException` | DAO는 `Optional<ShopLocationResult>`를 돌려주고, 위치 없음(`SHOP_ACCESS_DENIED`)은 호출하는 `ShopDeliveryAreaPolygonQueryService`·`ShopDeliveryAreaRadiusQueryService`가 `orElseThrow`로, 좌표 미등록은 `shop/service/ShopDeliveryAreaGeoMapper#requireCoordinates`가 같은 코드·문구로 던진다(응답 불변) |
 | 폴리곤·행정동 경계 디코딩 | persistence `shared/query/GeoRingsResolver`(`GeoRingsQueryPort` 구현) | QueryService가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출(`region/service/AdminDongQueryService`·`shop/service/ShopDeliveryAreaPolygonQueryService`). `GeoRingsQueryPort`·`GeoRingsResolver`는 삭제 |
-| 가게 매장가 인증 플래그 어댑터 `StorePriceVerificationAdapter` | persistence `@Component` | **`shop/service/StorePriceVerificationAdapter`**(POJO, `ShopServiceConfig`가 `@Bean`) — `ShopPersistencePort`(도메인 `Shop`)와 `ResourceNotFoundException`을 쓰므로 |
+| 가게 매장가 인증 플래그 어댑터 `StorePriceVerificationAdapter` | persistence `@Component` | **`shop/service/StorePriceVerificationAdapter`**(POJO, ~~`ShopServiceConfig`가 `@Bean`~~ 지금은 클래스에 `@SharedApp` 마커만) — `ShopPersistencePort`(도메인 `Shop`)와 `ResourceNotFoundException`을 쓰므로 |
 
-**DAO에 도메인 상수가 필요해 보이면** ① 호출부가 파라미터로 넘기거나(`productLimit`·`blockingStatuses`), ② 값 record를 `port/out`에 두고 `<Ctx>ServiceConfig`가 domain 값으로 `@Bean` 등록한다(`ShopDeliveryTipRangePolicy`). 조회 DAO에 domain을 들이지 않는다(persistence 모듈 자체는 domain을 다시 의존하지만 `..query..`는 `queryShouldNotDependOnDomain`이 막는다).
+**DAO에 도메인 상수가 필요해 보이면** ① 호출부가 파라미터로 넘기거나(`productLimit`·`blockingStatuses`), ② 값 record를 `port/out`에 두고 `shared/config/SharedBeanConfig`(구 `<Ctx>ServiceConfig`)가 domain 값으로 `@Bean` 등록한다(`ShopDeliveryTipRangePolicy`). 조회 DAO에 domain을 들이지 않는다(persistence 모듈 자체는 domain을 다시 의존하지만 `..query..`는 `queryShouldNotDependOnDomain`이 막는다).
 
 ### ArchUnit·테스트 변경 (03b 시점 — 현행은 위 "persistence domain 재허용" 절의 표)
 
@@ -273,11 +345,11 @@ com.tastyhouse.application/
   ├── shared/port/out/page/{PageQuery,PageResult}.java   (덩어리 01 이동 — 과거 domain의 shared/page/)
   ├── shared/port/out/OptimisticLockConflictException.java   (덩어리 03a 이동 — 과거 domain의 shared/exception/)
   ├── shared/event/{DomainEventPublisher,SpringDomainEventPublisher}.java   (덩어리 03a — 포트는 domain, 구현은 persistence에서)
-  ├── shared/config/SharedEventConfig.java   (덩어리 03a 신설, @SharedApp) — domainEventPublisher 빈 등록
+  ├── shared/config/SharedBeanConfig.java    (구 SharedEventConfig, @SharedApp) — domainEventPublisher + domain 계산기 7 + shopDeliveryTipRangePolicy + prohibitedWordValidator. 이 모듈의 유일한 @Bean 보유 클래스
   └── <ctx>/
       ├── port/in/                UseCase 인터페이스(마커 부착) + Command record(마커 없음 — AppOwnership 유도)
       ├── service/                *CommandService/*QueryService(batch는 *SchedulerService), 마커 부착, implements {Ctx}UseCase
-      │                           + (덩어리 02/03a) 마커 없는 POJO 도메인 서비스 — 과거 domain의 포트 주입 서비스
+      │                           + 도메인 서비스(과거 domain의 포트 주입 서비스) — @Service 없이 앱 마커만 (ServiceConfig 삭제 후)
       ├── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
       │                           읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
       │                           아웃바운드 SPI(SocialOAuthClient 등) + Command 경로 반환 Result/View(마커 없음)
@@ -287,7 +359,7 @@ com.tastyhouse.application/
       │                           ※ (번복됨 — persistence domain 재허용) 03b 동안은 XxxPersistencePort가 store/에 있었고
       │                             여기엔 XxxState · XxxSnapshot · XxxStatePort만 있었다 — 전부 삭제
   │                           — Result의 도메인 enum 필드는 덩어리 01로 String(+ {field}Description/DisplayName)
-      ├── config/                 (덩어리 02/03a) <Ctx>ServiceConfig — @Configuration + 마커(대부분 @SharedApp), 마커 없는 POJO를 @Bean 등록
+      ├── ~~config/~~             (번복됨 — ServiceConfig 삭제) <Ctx>ServiceConfig는 전부 삭제됐다. 컨텍스트 아래 config/ 폴더는 없다
       └── listener/               도메인 이벤트 리스너(@Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT))
                                   — persistence에서 이동, 10개 컨텍스트에 12종
 ```
@@ -390,12 +462,12 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 | 클래스 | importer | 내용 |
 |---|---|---|
-| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종**(+ persistence domain 재허용으로 신설된 `writePortsShouldOnlyDependOnDomainAndPortOut` — write 포트는 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 의존. `readContractsShouldBeFrameworkFree`는 대상에서 `port.out.write`를 뺐다). CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **공유 마커 규칙 3** (덩어리 01로 리스너 마커 양방향 2 + 공유 설정 1) — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(~~`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용~~ **번복됨(덩어리 01)**: 이제 허용 대상은 (`..listener..` + `@TransactionalEventListener` 보유) **또는** (`..config..` + `@Configuration`) — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것은 여전히 막는다) · **`sharedConfigsShouldOnlyDeclareUnmarkedBeans`**(덩어리 01 신설 — `@SharedApp` 설정은 `@Component`/`@Service`를 겸하지 않고, `@Bean` 반환 타입과 그 설정이 생성자를 호출하는 클래스 전부가 앱 마커를 갖지 않아야 한다. 생성자 호출 검사는 구체 빈을 인터페이스 타입으로 반환해 반환 타입 검사를 피하는 경우까지 잡는다. **`should()`가 아니라 위반을 손으로 모으는 테스트**다 — 현재 `@SharedApp` 설정이 0개라 `should()`로 쓰면 ArchUnit failOnEmptyShould에 걸리고, `allowEmptyShould(true)`는 쓰지 않는 방침이기 때문이다. ~~첫 사용처는 덩어리 02/03a이며 그때까지 `RuleAnchorTest`에 anchor가 없다~~ **(실현됨 — 덩어리 02/03a)**: `file/config/FileServiceConfig`·`payment/config/PaymentServiceConfig` 2개가 이제 실제 대상이다. 두 규칙 모두 임시 probe 클래스로 반증했다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
-| `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 5종 5×4=20조합 개별 검사 — 슬라이스가 아니다. `@SharedApp`이 `AppOwnership.MARKERS`에 들어가 "공유 리스너는 앱 전용 빈에 의존할 수 없고, 앱 전용 빈도 공유 리스너에 의존할 수 없다"까지 강제한다. `because`는 "공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐") · `beansShouldHaveExactlyOneAppMarker`(리스너는 `@SharedApp` 하나로 통과) · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계, `@SharedApp` 빈 ≥ 12 포함) · **`sharedBeansShouldNotDependOnWebOnlyServices`**(덩어리 02/03a 신설 — `@SharedApp` 빈은 `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PgPaymentGateway`를 의존하지 않는다. 이 넷은 `@WebApp` 설정만 등록하는 web 전용 서비스이므로, 공유 빈이 이들을 주입받으면 admin·ceo·batch에서 그 빈을 찾지 못해 기동이 실패한다) |
+| `LayerRulesTest` | `com.tastyhouse.application`(단일) | **공통 18종**(+ persistence domain 재허용으로 신설된 `writePortsShouldOnlyDependOnDomainAndPortOut` — write 포트는 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 의존. `readContractsShouldBeFrameworkFree`는 대상에서 `port.out.write`를 뺐다). CQRS 교차 주입 2(이름 기준 — 아래 참고) · UseCase 구현 강제 2 · Command 경계 타입 2 · portIn/request 2 · QueryDSL·infra 차단 2 · servlet-free · adapter 역참조 금지 · 읽기 계약 프레임워크-프리 · swagger·api-common 차단 2 · **공유 마커 규칙 3** (덩어리 01로 리스너 마커 양방향 2 + 공유 설정 1) — `listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp`이 붙고 `..listener..` 패키지에 있어야 한다 — 마커 누락 시 리스너가 어느 앱에도 뜨지 않아 이벤트가 조용히 유실된다) · `sharedAppOnlyOnListeners`(~~`@SharedApp`은 `..listener..` 패키지에 있고 `@TransactionalEventListener` 메서드를 실제로 가진 클래스에만 허용~~ **번복됨(덩어리 01)**: 이제 허용 대상은 (`..listener..` + `@TransactionalEventListener` 보유) **또는** (`..config..` + `@Configuration`) — `..listener..`에 일반 빈을 두고 마커를 붙여 앱 격리를 우회하는 것은 여전히 막는다) · **`sharedConfigsShouldOnlyDeclareUnmarkedBeans`**(덩어리 01 신설 — `@SharedApp` 설정은 `@Component`/`@Service`를 겸하지 않고, `@Bean` 반환 타입과 그 설정이 생성자를 호출하는 클래스 전부가 앱 마커를 갖지 않아야 한다. 생성자 호출 검사는 구체 빈을 인터페이스 타입으로 반환해 반환 타입 검사를 피하는 경우까지 잡는다. **`should()`가 아니라 위반을 손으로 모으는 테스트**다 — 현재 `@SharedApp` 설정이 0개라 `should()`로 쓰면 ArchUnit failOnEmptyShould에 걸리고, `allowEmptyShould(true)`는 쓰지 않는 방침이기 때문이다. ~~첫 사용처는 덩어리 02/03a이며 그때까지 `RuleAnchorTest`에 anchor가 없다~~ **(실현됨 — 덩어리 02/03a)**: `file/config/FileServiceConfig`·`payment/config/PaymentServiceConfig` 2개가 이제 실제 대상이다. **(번복됨 — application `*ServiceConfig` 삭제)** 지금 대상은 `shared/config/SharedBeanConfig` 1개다. `sharedAppOnlyOnListeners`의 허용 대상에는 마커-only 도메인 서비스가 추가됐고, `markerOnlyClassesShouldBeDomainServices`가 신설됐다(위 "application `*ServiceConfig` 전면 삭제" 절의 표). 두 규칙 모두 임시 probe 클래스로 반증했다). **귀결: 앱 전용 `@TransactionalEventListener`는 둘 수 없다** — 의도된 제약이며, 필요해지면 이 두 규칙부터 개정한다. `@EventListener`(비트랜잭션)는 현재 0건이라 판정 대상에 넣지 않았다 |
+| `AppIsolationTest` | `com.tastyhouse.application`(단일, 마커로 앱 구분) | **챕터 03 전면 재작성.** `appsShouldNotDependOnEachOther`(마커 5종 5×4=20조합 개별 검사 — 슬라이스가 아니다. `@SharedApp`이 `AppOwnership.MARKERS`에 들어가 "공유 리스너는 앱 전용 빈에 의존할 수 없고, 앱 전용 빈도 공유 리스너에 의존할 수 없다"까지 강제한다. `because`는 "공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐") · `beansShouldHaveExactlyOneAppMarker`(리스너는 `@SharedApp` 하나로 통과) · `useCasesShouldHaveExactlyOneAppMarker` · `commandRecordsShouldBelongToExactlyOneApp`(`AppOwnership` 유도) · `markerBeanCounts`·`markerUseCaseCounts`(마커별 하한 — 앱별 anchor 승계, ~~`@SharedApp` 빈 ≥ 12 포함~~ 마커-only 서비스 포함 `@SharedApp` ≥ 47) · **(번복됨 — application `*ServiceConfig` 삭제)** `appsShouldNotDependOnEachOther`는 앱 → `..service..`의 `@SharedApp` 도메인 서비스를 허용하고, `constructorDependenciesShouldBeVisibleToApp`·`appRestrictedPortDependentsShouldBelongToThatApp`이 신설됐다 · **`sharedBeansShouldNotDependOnWebOnlyServices`**(덩어리 02/03a 신설 — `@SharedApp` 빈은 `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PgPaymentGateway`를 의존하지 않는다. 이 넷은 `@WebApp` 설정만 등록하는 web 전용 서비스이므로, 공유 빈이 이들을 주입받으면 admin·ceo·batch에서 그 빈을 찾지 못해 기동이 실패한다) |
 | `EnumCodeConstantsTest` | `com.tastyhouse.application.payment.port.out`·`com.tastyhouse.domain.payment.model`(단일 케이스) | **덩어리 02/03a 신설.** `pgProviderCodeMatchesPgProvider` — `PgProviderCode.values()`와 domain `PgProvider.values()`의 상수명·순서가 같은지 `Enum::name` 배열로 대조한다. 라우터(`PgPaymentGatewayRouter`)가 `PgProvider.valueOf(code.name())`으로 변환하므로, 두 enum이 어긋나면 이 테스트가 아니라 런타임 `IllegalArgumentException`으로 드러났을 결함을 컴파일 타임 대신 빌드 타임에 잡는다. ~~**(03b 확장 — 스캔 기반)** `codesMatchDomainEnums`가 `port.out`의 `*Codes`를 같은 이름 도메인 enum과 대조했다.~~ **(번복됨)** 복제본을 전부 지웠으므로 대체 규칙 **`portOutShouldNotMirrorDomainEnums`**가 `port.out`의 모든 enum(현재 6개, 중첩 `SocialLoginResult.Status`·`SocialLinkResult.Status` 포함)을 도메인 enum과 상수 집합으로 대조해 복제본이 다시 생기는 것을 막는다(`isNotEmpty()`로 공허 통과 방지, 허용 목록 `PgProviderCode`). **알려진 취약점**: `SocialProvider`는 도메인 `MemberSocialProvider`와 `GOOGLE` 하나만 다르다 — 둘이 같아져 이 테스트가 실패하면 `SocialProvider`를 허용 목록에 추가하는 것이 올바른 조치다(벤더 계약 enum이지 복제본이 아니다) |
 | `BatchSchedulerRulesTest` | `com.tastyhouse.application`(단일, `.areNotAnnotatedWith(BatchApp.class)` 등 마커 술어로 batch만 선별) | batch 고유 4종 + exact anchor 3종(`*SchedulerService` 7 · `..port.in..` 7 · response record 4) |
 | `RuleAnchorTest` | `com.tastyhouse.application`(단일) + 계약 | 공허 통과 자동 검출. 마커별 하한은 `AppIsolationTest`가 승계했으므로 이 클래스는 계약(읽기 계약) 하한과 **write 포트 하한(`writePortsExist` ≥ 107 — `port.out.write`의 `*Port` 인터페이스, `ShopDeliveryTipRegionLookupPort` 포함. ~~덩어리 03a 시점은 `*Repository` ≥ 106~~ (번복됨 — 아웃바운드 포트·어댑터 네이밍 전환))**을 담당. ~~03b로 `port.out.write` + `store` 합계, Store 하한 `storesExist` ≥ 105~~ **(번복됨 — persistence domain 재허용: `store` 조건 제거, `storesExist` 삭제)** |
-| `ServiceContextBoundaryTest` | `com.tastyhouse.application` + `com.tastyhouse.domain` | **덩어리 03a 신설.** 마커 없는 POJO 도메인 서비스 사이의 컨텍스트 경계(봉인 위반 15 · 봉인 순환 1 + 짝 테스트) — 위 "덩어리 03a" 절 |
+| `ServiceContextBoundaryTest` | `com.tastyhouse.application` + `com.tastyhouse.domain` | **덩어리 03a 신설.** 스테레오타입 없는(ServiceConfig 삭제 후 앱 마커만 단) 도메인 서비스 사이의 컨텍스트 경계(봉인 위반 15 · 봉인 순환 1 + 짝 테스트) — 위 "덩어리 03a" 절 |
 | ~~`StateRecordArityTest`~~ | — | **(번복됨 — persistence domain 재허용: 파일 삭제)** 아래는 03b 시점 기록. **덩어리 03b 신설.** 각 `XxxState`의 최상위 컴포넌트 수 = 같은 이름 도메인 클래스의 static `reconstitute` 파라미터 수(동명 클래스가 여럿이면 컨텍스트로 좁힘). 예외 목록 `NON_AGGREGATE_STATES`(현재 0) + 짝 테스트 `nonAggregateStatesShouldNotBeStale` — 위 "덩어리 03b" 절 |
 
 **챕터 01 시점에 통합으로 의미가 달라져 손본 곳 두 군데는(carve-out FQN화, `applicationMustNotDependOnAdapters` 4패키지 확대) 챕터 03 이후에도 그대로 유효하다** — carve-out 대상 클래스와 api 패키지 이름 자체는 이번 평탄화로 바뀌지 않았다.
@@ -412,7 +484,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ### anchor 하한
 
-**마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12, 그리고 리스너 12종인 `@SharedApp` ≥12 — 리스너 하나가 마커를 잃으면 어느 앱에도 뜨지 않으므로 하한이 곧 리스너 수다)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
+**마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(~~실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12, 그리고 리스너 12종인 `@SharedApp` ≥12 — 리스너 하나가 마커를 잃으면 어느 앱에도 뜨지 않으므로 하한이 곧 리스너 수다~~ **(번복됨 — application `*ServiceConfig` 삭제)** 마커-only 도메인 서비스 78개를 포함해 `@WebApp` ≥83·`@AdminApp` ≥65·`@CeoApp` ≥122·`@BatchApp` ≥15·`@SharedApp` ≥47 — 이관이 되돌려져 서비스가 다시 마커를 잃으면 하한이 깨진다. `@SharedApp`은 리스너 12종 + 공유 도메인 서비스 35개 기준이다)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
 
 write 포트는 **≥ 107**(`RuleAnchorTest#writePortsExist` — `port.out.write`의 `*Port` 인터페이스: `*PersistencePort` 106 + `ShopDeliveryTipRegionLookupPort` 1. 보조 record `AdminDongSyncResult`는 인터페이스가 아니라 세지 않는다). ~~덩어리 03a 시점은 `*Repository` 인터페이스 ≥ 106~~ **(번복됨 — 아웃바운드 포트·어댑터 네이밍 전환)**. ~~03b부터 `port.out.write`와 `store` 두 패키지의 합계. Store는 ≥ 105(`RuleAnchorTest#storesExist`)~~ **(번복됨 — persistence domain 재허용)** `store` 패키지가 사라져 `storesExist`는 삭제됐고, `queryServicesShouldNotDependOnWritePorts`의 대상도 `port.out.write` 하나로 돌아왔다. 읽기 계약은 ~~합계 **≥ 282**(통합 전 4개 앱 합 227 + 챕터 04로 돌아온 공유 계약 55, `RuleAnchorTest` 소유)~~ **(번복됨 — persistence domain 재허용)** `port.out.write`를 뺀 `port.out` 클래스 **≥ 441**(`RuleAnchorTest#readContractsExist`)이다 — `readContractsShouldBeFrameworkFree`가 write 포트를 대상에서 뺐으므로 anchor 집계 범위도 맞췄다. 모듈 전체 하한(`RuleAnchorTest#moduleIsNotEmpty`)은 State 계열 약 460개 삭제 후 실측(중첩 클래스 포함 1,531)에 맞춰 **≥ 1,500**으로 올렸다. 소유 모듈을 가리던 소스-URI 필터는 챕터 04에서 제거했다 — 테스트 클래스패스에 남의 모듈 계약이 더는 없다.
 
@@ -456,7 +528,7 @@ application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **�
 public class WebApplicationConfig { }
 ```
 
-4개 설정 전부가 자기 앱 마커와 함께 **`SharedApp.class`를 포함**한다(`classes = {XxxApp.class, SharedApp.class}`). 그래서 `@SharedApp` 빈(도메인 이벤트 리스너 12종)은 4앱 전부에 뜬다. 패키지 기반 include(`..listener..`를 통째로 포함)는 스캔 규칙이 "마커"와 "패키지" 두 가지로 갈리므로 채택하지 않았다.
+4개 설정 전부가 자기 앱 마커와 함께 **`SharedApp.class`를 포함**한다(`classes = {XxxApp.class, SharedApp.class}`). 그래서 `@SharedApp` 빈(도메인 이벤트 리스너 12종, `SharedBeanConfig`, ServiceConfig 삭제 후에는 공유 도메인 서비스 35개까지)은 4앱 전부에 뜬다. 스캔 필터가 마커 `ANNOTATION`이므로 **`@Service` 없이 마커만 단 클래스도 빈이 된다** — 도메인 서비스가 이 형태다. 패키지 기반 include(`..listener..`를 통째로 포함)는 스캔 규칙이 "마커"와 "패키지" 두 가지로 갈리므로 채택하지 않았다.
 
 `useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 `WebApplicationConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
 
@@ -464,7 +536,7 @@ public class WebApplicationConfig { }
 
 ## `<ctx>/listener/` — 도메인 이벤트 리스너
 
-domain이 `shared/event/DomainEventPublisher` 포트로 발행한 도메인 이벤트를 구독하는 크로스커팅 리스너를 둔다. 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`이며, 발행 구현 `shared/event/SpringDomainEventPublisher`가 `ApplicationEventPublisher`로 위임한다(**덩어리 03a로 포트와 구현 모두 이 모듈로 이동** — 과거 포트는 domain, 구현은 `infrastructure:persistence`에 있었다. 등록은 `shared/config/SharedEventConfig`).
+domain이 `shared/event/DomainEventPublisher` 포트로 발행한 도메인 이벤트를 구독하는 크로스커팅 리스너를 둔다. 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`이며, 발행 구현 `shared/event/SpringDomainEventPublisher`가 `ApplicationEventPublisher`로 위임한다(**덩어리 03a로 포트와 구현 모두 이 모듈로 이동** — 과거 포트는 domain, 구현은 `infrastructure:persistence`에 있었다. 등록은 `shared/config/SharedBeanConfig`(구 `SharedEventConfig`)).
 
 **위치는 `com.tastyhouse.application.<ctx>.listener`이고, 리스너는 전부 `@Component` + `@SharedApp`이다.** 현재 12종 — `coupon`·`file`·`mail`·`member`(`MemberEventListener`·`ReferralRegisteredEventListener`)·`notification`(`ReviewOwnerReplyEventListener`·`ReviewBlindApprovedEventListener`)·`payment`·`point`·`policy`·`product`·`sms`. 과거에는 `infrastructure:persistence`의 `com.tastyhouse.infrastructure.<ctx>.listener`에 있었다(번복됨 — 이벤트를 받아 도메인 서비스를 오케스트레이션하는 것은 유스케이스 계층의 일이다). `@SharedApp` 마커를 빠뜨리면 리스너가 어느 앱에도 뜨지 않아 이벤트가 **예외도 로그도 없이** 유실되므로, `LayerRulesTest#listenersShouldBeShared`가 빌드 시점에 막는다(아래 [빈 배선](#빈-배선-챕터-03-개정--패키지-스캔에서-마커-스캔으로) 참고). 리스너가 infra DAO를 직접 주입하지 않는다 — 이 모듈은 infra를 컴파일 클래스패스에 두지 않으므로 필요한 조회는 `port/out` 읽기 포트로 받는다(`ReviewOwnerReplyEventListener` → `ShopBasicInfoQueryPort#findShopName`).
 
@@ -513,6 +585,23 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
 원문 주석은 챕터 04에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
+
+### 도메인 서비스는 클래스에 앱 마커만 단다 — `@Service`도 `@Bean`도 되살리지 않는다
+
+**대상**:
+- `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `markerOnlyClassesShouldBeDomainServices` · `sharedAppOnlyOnListeners` · `sharedConfigsShouldOnlyDeclareUnmarkedBeans`
+- `backend/application/src/test/java/com/tastyhouse/application/architecture/AppIsolationTest.java` → `constructorDependenciesShouldBeVisibleToApp` · `appRestrictedPortDependentsShouldBelongToThatApp` · `appsShouldNotDependOnEachOther` · `beansShouldHaveExactlyOneAppMarker` · `markerBeanCounts`
+- `backend/application/src/main/java/com/tastyhouse/application/shared/config/SharedBeanConfig.java` → 클래스 전체(`@Bean` 10개)
+- `backend/application/src/main/java/com/tastyhouse/application/*/service/` 의 마커-only 도메인 서비스 78개(예: `bug/service/BugReportRegistrationService` → 클래스 애노테이션 `@WebApp`)
+
+원문 취지:
+- **도메인 서비스에 `@Service`를 달지 않는다.** `ServiceContextBoundaryTest`는 `@Service`/`@Component`가 붙은 클래스를 검사 대상에서 조용히 뺀다 — 달면 컨텍스트 경계 검사가 빌드 실패 없이 사라진다. 반대로 필터를 넓혀 `@Service`까지 검사하면 기존 오케스트레이터 37개 중 13개 이상이 봉인 목록에 없는 위반이라 실패한다(그래서 "마커만 = 도메인 서비스, `@Service` + 마커 = 앱 오케스트레이터"로 갈랐다).
+- **새 도메인 서비스를 `@Bean`으로 등록하지 않는다.** 클래스에 소비 앱 마커만 단다. `*ServiceConfig`를 되살리지 않는다.
+- **`SharedBeanConfig`에는 애노테이션을 달 수 없는 빈만 둔다** — domain 모듈 클래스(spring-free), 인터페이스 타입으로 등록해야 하는 `domainEventPublisher`, 상수·람다·데코레이터로 조립해야 하는 `shopDeliveryTipRangePolicy`·`prohibitedWordValidator`. 마커가 붙은 클래스를 여기 `@Bean`으로 추가하면 스캔 빈과 이름이 겹쳐 기동이 실패한다(`sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 `@SharedApp` 설정에 한해 잡는다). **`@WebApp` 등 앱 마커 설정을 새로 만들어 같은 일을 하면 이 겹침을 어떤 테스트도 잡지 못한다** — 앱 전용 config를 만들지 않는다.
+- **마커는 소비 앱 집합으로 정한다** — 한 앱이면 그 앱 마커, 두 앱 이상이거나 `@SharedApp` 빈·리스너가 쓰면 `@SharedApp`. `@SharedApp` → 앱 마커 의존은 금지다(`appsShouldNotDependOnEachOther`). 오배정·누락은 `constructorDependenciesShouldBeVisibleToApp`이 잡는다.
+- **앱 전용 채널 포트를 받는 클래스는 그 앱 마커여야 한다** — web 전용 `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient`는 `@WebApp`, batch 전용 `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`는 `@BatchApp`. 포트 구현이 그 앱에만 조립돼 있어 다른 앱(특히 `@SharedApp`)에 걸면 그 앱이 기동하지 못한다.
+- **`markerBeanCounts` 하한을 낮추지 않는다**(`@WebApp` ≥83 · `@AdminApp` ≥65 · `@CeoApp` ≥122 · `@BatchApp` ≥15 · `@SharedApp` ≥47). 이관이 되돌려져 서비스가 마커를 잃으면 이 하한이 깨지는 것이 의도다. `markerOnlyClassesShouldBeDomainServices`의 하한 78도 같은 이유다.
+- 규칙 통과는 빈 누락이 없다는 증거가 아니다 — 배정을 바꿨으면 4앱을 `java -jar`로 띄워 `Started *ApiApplication`을 확인한다(`contextLoads`는 빈 껍데기). `List<I>` 주입은 구현체 0개여도 기동되므로 규칙이 잡지 못한다.
 
 ### UseCase 구현 구체 주입 금지 — `servicesShouldDependOnUseCasesNotImplementations`
 
@@ -867,7 +956,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 메뉴 가격 저장은 product 컨텍스트의 규칙이지만, "매장가·픽업가를 설정할 수 있는가"와 "배달가가 매장가를 넘어 인증을 내려야 하는가"는 **가게 단위 상태**다. 컨텍스트 경계 규칙(`ServiceContextBoundaryTest`)이 타 컨텍스트의 `model`·write 포트(`port.out.write`, 03a 이전 `repository`, 03b 동안 `store` — **persistence domain 재허용으로 다시 `port.out.write`**)·`service` 직접 참조를 금지하므로, product는 이 포트로만 그 상태를 다룬다 — **`ShopPersistencePort`를 직접 주입하면 신규 위반이 되고 봉인 목록은 늘릴 수 없다.**
 
-구현은 `StorePriceVerificationAdapter`가 `ShopPersistencePort`에 위임한다. **(03b — 위치 이동)** 이 어댑터는 `infrastructure:persistence`의 `@Component`였으나 지금은 **`backend/application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`**(마커 없는 POJO)이고 `shop/config/ShopServiceConfig#storePriceVerificationAdapter`가 `@Bean`으로 등록한다. 도메인 모델 `Shop`을 로드해 `verifyStorePrice()`/`clearStorePriceVerification()`을 호출하고 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 던지므로 domain을 모르는 persistence에 둘 수 없었다. **shop에 둔 이유는 03a의 `ShopRequestIndexSyncAdapter`와 같다** — product 쪽에 두면 어댑터가 shop의 `store/ShopPersistencePort`를 참조해 `ServiceContextBoundaryTest` 위반이 되고, shop에 두면 "shop이 product의 포트(`port.out`)를 구현"하는 허용된 방향만 남는다.
+구현은 `StorePriceVerificationAdapter`가 `ShopPersistencePort`에 위임한다. **(03b — 위치 이동)** 이 어댑터는 `infrastructure:persistence`의 `@Component`였으나 지금은 **`backend/application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`**(~~마커 없는 POJO)이고 `shop/config/ShopServiceConfig#storePriceVerificationAdapter`가 `@Bean`으로 등록한다~~ **(번복됨 — application `*ServiceConfig` 삭제)** 지금은 클래스에 `@SharedApp` 마커만 단 도메인 서비스로 스캔 등록된다). 도메인 모델 `Shop`을 로드해 `verifyStorePrice()`/`clearStorePriceVerification()`을 호출하고 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 던지므로 domain을 모르는 persistence에 둘 수 없었다. **shop에 둔 이유는 03a의 `ShopRequestIndexSyncAdapter`와 같다** — product 쪽에 두면 어댑터가 shop의 `store/ShopPersistencePort`를 참조해 `ServiceContextBoundaryTest` 위반이 되고, shop에 두면 "shop이 product의 포트(`port.out`)를 구현"하는 허용된 방향만 남는다.
 
 #### `StorePriceVerificationService` — 애그리거트를 product가 소유하는 배치 (위 포트와 짝)
 
@@ -969,6 +1058,18 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 챕터 04에서 이 모듈의 java 주석 11,312줄을 전부 제거하며, 코드만 읽어서는 도달할 수 없는
 설계 근거를 여기로 옮겼다. 각 절은 **어느 코드 요소에 붙어 있던 서술인지**를 앵커로 밝힌다.
+
+### 도메인 서비스 마커는 소비 앱 집합으로 정한다 — 공유 커널 단방향
+
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/*/service/` 의 마커-only 도메인 서비스(예: `payment/service/PaymentCancellationService` → `@WebApp`, `payment/service/PaymentConfirmationService` → `@SharedApp`, `shop/service/ShopLifecycleService` → `@SharedApp`) · `backend/application/src/test/java/com/tastyhouse/application/architecture/AppIsolationTest.java` → `appsShouldNotDependOnEachOther`·`constructorDependenciesShouldBeVisibleToApp`
+
+원문 취지(ServiceConfig 삭제 때 정한 근거):
+
+- **왜 4앱 공통 등록을 버렸나.** `*ServiceConfig`는 03a에서 persistence `*DomainConfig`의 등록 범위(4앱 전부)를 지키려고 만든 것이었다. 범위를 지킨 대가로 한 앱 전용 빈 44개가 쓰지 않는 앱에도 떴고, 서비스 추가마다 config를 함께 고쳐야 했다. 앱 마커는 이미 "어느 앱에 뜨는가"를 표현하는 이 모듈의 유일한 수단이므로, 서비스 자신이 마커를 갖는 것이 정보가 한 곳에 사는 형태다.
+- **왜 "현재 소비자" 기준인가 (번복 — 과거 "언젠가 다른 앱이 트리거해도 안전하도록 `@SharedApp`").** 과거 `PaymentServiceConfig`는 결제 승인·취소가 web에서만 일어나도 리스너 배치 원칙을 빌려 `@SharedApp`으로 두었다. 지금은 그 판단을 버렸다 — 미리 넓혀 두면 쓰지 않는 앱에 빈을 띄우는 비용만 있고, 좁혀 둔 마커가 틀리면 `constructorDependenciesShouldBeVisibleToApp`이 **빌드에서** 잡으므로 "나중에 필요할 때 `@SharedApp`으로 올린다"가 안전하다. 그래서 `PaymentCancellationService`(소비자 `PaymentCommandService`·`PaymentCancellationExecutor`, 모두 web)는 `@WebApp`, `PaymentConfirmationService`(`@SharedApp` 리스너 `PaymentEventListener`가 소비)는 `@SharedApp`이다. 리스너 자체가 4앱 공통인 이유(이벤트는 어느 앱이 발행하든 처리돼야 한다)는 리스너에만 적용된다.
+- **왜 앱 → 공유만 허용하고 공유 → 앱은 막나.** `@SharedApp` 빈은 4앱 전부에 뜨는데, 그것이 앱 전용 빈을 주입하면 나머지 세 앱에서 그 빈을 찾지 못해 기동이 실패한다. 반대 방향(앱 → 공유)은 공유 빈이 어느 앱에나 있으므로 항상 안전하다 — 이것이 "공유 커널" 단방향이다. 허용 대상은 `..service..`의 공유 도메인 서비스로 한정한다. 앱 → `@SharedApp` 리스너·설정 클래스 직접 의존은 여전히 금지다(허용 범위를 공유 도메인 서비스로만 열었다).
+- **고정점 계산이 필요한 이유.** 공유 빈이 의존하는 빈도 공유여야 하므로, 한 서비스를 `@SharedApp`으로 올리면 그 의존 서비스도 따라 올라간다(`ReviewBlindRequestService` → `ReviewLifecycleService`, `ShopLifecycleService` → `ShopImageApprovalService`·`ShopCeoAssignmentRecorder`). 새 서비스를 추가하거나 소비자가 바뀌면 이 전파를 다시 따라간다 — 누락하면 `constructorDependenciesShouldBeVisibleToApp`이 위반 경로를 이름으로 보여준다.
+- **왜 domain 계산기 7개는 마커를 못 다나.** domain 모듈은 production 의존이 0개(spring-free)이고 마커 애노테이션은 application 소유라 domain이 볼 수 없다. 그래서 `SharedBeanConfig`의 `@Bean`이 남는다. `cupDepositPolicy`가 단일 빈이어야 하는 근거(점주 설정·손님 메뉴판·주문 금액 확정이 같은 인스턴스를 주입)는 등록 위치가 `SharedBeanConfig`로 바뀌어도 그대로다.
 
 ### 트랜잭션 경계를 파사드가 아니라 하위 서비스가 갖는 이유 — read-then-write 판정
 
@@ -1349,7 +1450,8 @@ ceo 전용 Result에만 있는 것이 그 사례).
 통과하므로 실패는 기동 시점 `NoSuchBeanDefinitionException`으로만 드러난다.**
 
 - Command record에는 붙이지 않는다(소속은 `AppOwnership`이 유도한다).
-- ~~`@SharedApp`은 **리스너 전용**이다~~ **(번복됨 — 덩어리 01)** `@SharedApp`("앱 소속 없음 = 4앱 전부")은 **리스너와 공유 `@Configuration`**에만 붙는다 — 그 밖(`..listener..`/`..config..` 밖, 또는 일반 `@Service`)에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다. 공유 설정이 등록하는 빈은 **마커 없는 POJO**여야 하며 `sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 강제한다(클래스에 마커를 달면 앱 격리에 걸리고, 스캔과 `@Bean`이 겹치면 기동이 실패한다).
+- ~~`@SharedApp`은 **리스너 전용**이다~~ **(번복됨 — 덩어리 01)** `@SharedApp`("앱 소속 없음 = 4앱 전부")은 **리스너와 공유 `@Configuration`**에만 붙는다 — 그 밖(`..listener..`/`..config..` 밖, 또는 일반 `@Service`)에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다. 공유 설정이 등록하는 빈은 **마커 없는 POJO**여야 하며 `sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 강제한다(클래스에 마커를 달면 앱 격리에 걸리고, 스캔과 `@Bean`이 겹치면 기동이 실패한다). **(번복됨 — application `*ServiceConfig` 삭제)** 허용 대상에 **`..service..`의 마커-only 도메인 서비스**가 추가됐다(`port.in` UseCase 구현체·`*CommandService`/`*QueryService` 제외). 공유 설정은 `SharedBeanConfig` 하나뿐이고 "마커 없는 POJO만 `@Bean`" 규칙은 그 설정에 그대로 적용된다 — 마커를 단 서비스를 거기 `@Bean`으로 추가하면 스캔 빈과 이름이 겹쳐 기동이 실패한다.
+- **마커만 = 도메인 서비스, `@Service` + 마커 = 앱 오케스트레이터.** 새 도메인 서비스는 `@Bean`이 아니라 클래스에 소비 앱 마커만 단다(`markerOnlyClassesShouldBeDomainServices`가 위치를 강제한다).
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
 - 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
@@ -1477,7 +1579,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 ### 03a로 domain에서 옮겨 온 설계 근거 (도메인 서비스)
 
-아래 항목은 원래 `domain/AGENTS.md`의 "코드 주석에서 이관된 설계 근거" 절에 있었다. 대상 서비스가 03a로 이 모듈의 `<ctx>/service/`로 옮겨와 함께 옮겼다. **상대 경로(`shop/service/...`·`order/service/...`)는 `backend/application/src/main/java/com/tastyhouse/application/` 기준**이고, 본문에 등장하는 `<ctx>/model/`·`<ctx>/vo/`·순수 계산기(`*Calculator`·`*Policy`)는 여전히 domain(`backend/domain/src/main/java/com/tastyhouse/domain/`)에 있다. 본문은 그대로이며 "도메인 서비스"라는 말은 "마커 없는 POJO로 이 모듈에 사는, 도메인 불변식을 오케스트레이션하는 서비스"를 뜻한다.
+아래 항목은 원래 `domain/AGENTS.md`의 "코드 주석에서 이관된 설계 근거" 절에 있었다. 대상 서비스가 03a로 이 모듈의 `<ctx>/service/`로 옮겨와 함께 옮겼다. **상대 경로(`shop/service/...`·`order/service/...`)는 `backend/application/src/main/java/com/tastyhouse/application/` 기준**이고, 본문에 등장하는 `<ctx>/model/`·`<ctx>/vo/`·순수 계산기(`*Calculator`·`*Policy`)는 여전히 domain(`backend/domain/src/main/java/com/tastyhouse/domain/`)에 있다. 본문은 그대로이며 "도메인 서비스"라는 말은 "(ServiceConfig 삭제 후에는 `@Service` 없이 앱 마커만 단) 마커 없는 POJO로 이 모듈에 사는, 도메인 불변식을 오케스트레이션하는 서비스"를 뜻한다.
 
 #### 도메인 서비스에 남는 것과 애그리거트에 남는 것의 경계
 
@@ -1578,7 +1680,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 #### 결제 승인 — PG HTTP 왕복은 트랜잭션 밖
 
-**대상 (이동됨 — 덩어리 02/03a)**: `PaymentConfirmationService`(+`PgConfirmation`·`PgConfirmationTarget`)는 `domain`을 떠나 `backend/application/src/main/java/com/tastyhouse/application/payment/service/PaymentConfirmationService.java`로 이동했다(POJO+마커 등록 패턴, `application/payment/config/PaymentServiceConfig`가 `@SharedApp`로 등록). `PgPaymentGateway`/`PgProviderGateway`도 같은 이동으로 `application`의 `payment/port/out`에 있다. **아래 설계 근거는 이동 후에도 그대로 유효**하므로 삭제하지 않고 남기며, 대상 파일 경로만 정정한다 — 서비스 자체는 02에서 domain `ContextBoundaryTest`의 봉인 목록을 떠났고, 03a에서 이 모듈의 `ServiceContextBoundaryTest` 봉인 목록으로 다시 들어왔다.
+**대상 (이동됨 — 덩어리 02/03a)**: `PaymentConfirmationService`(+`PgConfirmation`·`PgConfirmationTarget`)는 `domain`을 떠나 `backend/application/src/main/java/com/tastyhouse/application/payment/service/PaymentConfirmationService.java`로 이동했다(POJO+마커 등록 패턴, ~~`application/payment/config/PaymentServiceConfig`가 `@SharedApp`로 등록~~ 지금은 클래스에 `@SharedApp` 마커만 — `PaymentServiceConfig`는 삭제됨). `PgPaymentGateway`/`PgProviderGateway`도 같은 이동으로 `application`의 `payment/port/out`에 있다. **아래 설계 근거는 이동 후에도 그대로 유효**하므로 삭제하지 않고 남기며, 대상 파일 경로만 정정한다 — 서비스 자체는 02에서 domain `ContextBoundaryTest`의 봉인 목록을 떠났고, 03a에서 이 모듈의 `ServiceContextBoundaryTest` 봉인 목록으로 다시 들어왔다.
 
 결제 승인은 결제 애그리거트의 상태 전이와 주문 애그리거트의 확정 전이를 한 트랜잭션에서 반드시 함께 수행해야 하는 원자 연산이다. 한쪽만 반영되면 **"결제는 됐지만 주문은 대기"** 이거나 **"주문은 확정인데 결제는 미승인"** 인 정합성 붕괴가 남는다. 승인 경로는 세 가지(PG 콜백 · PG 승인 · 현장결제 완료)인데 규칙은 하나여야 하므로 유스케이스 계층에 둔다.
 
@@ -1612,11 +1714,11 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 #### 03a로 `infrastructure:persistence`에서 옮겨 온 설계 근거
 
-아래 항목은 `infrastructure/persistence/AGENTS.md`에 있던 것이다. 대상(`<Ctx>DomainConfig` 18개 → `<Ctx>ServiceConfig`, `CachingProhibitedWordPersistencePort`, `SpringDomainEventPublisher`)이 03a로 이 모듈로 옮겨와 함께 옮겼다. 본문의 "`<Ctx>DomainConfig`"는 지금의 `<Ctx>ServiceConfig`로 읽는다(빈 구성·메서드 이름은 그대로 옮겼다).
+아래 항목은 `infrastructure/persistence/AGENTS.md`에 있던 것이다. 대상(`<Ctx>DomainConfig` 18개 → `<Ctx>ServiceConfig`, `CachingProhibitedWordPersistencePort`, `SpringDomainEventPublisher`)이 03a로 이 모듈로 옮겨와 함께 옮겼다. 본문의 "`<Ctx>DomainConfig`"는 ~~지금의 `<Ctx>ServiceConfig`로 읽는다~~ **(번복됨 — application `*ServiceConfig` 삭제)** **같은 이름의 서비스 클래스**(`@Bean` 메서드명 = 클래스명 첫 글자 소문자 = 지금의 빈 이름)로 읽는다. `<Ctx>ServiceConfig`는 전부 삭제됐고, domain 계산기·`prohibitedWordValidator`·`shopDeliveryTipRangePolicy`만 `shared/config/SharedBeanConfig`의 `@Bean`으로 남았다.
 
 ##### `<Ctx>ServiceConfig`(구 `<Ctx>DomainConfig`) — 도메인 서비스 빈 등록 근거
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/*/config/*ServiceConfig.java` (03a 이전 `backend/infrastructure/persistence/.../*/config/*DomainConfig.java` 18개)
+**대상**: ~~`backend/application/src/main/java/com/tastyhouse/application/*/config/*ServiceConfig.java`~~ (번복됨 — 삭제) → 지금은 `backend/application/src/main/java/com/tastyhouse/application/*/service/` 의 마커-only 도메인 서비스 클래스들 + `backend/application/src/main/java/com/tastyhouse/application/shared/config/SharedBeanConfig.java` (03a 이전 `backend/infrastructure/persistence/.../*/config/*DomainConfig.java` 18개)
 
 등록 위치 규칙 자체는 이 문서의 "덩어리 03a" 절에 있다. 여기에는 **각 `@Bean`이 왜 도메인 서비스인가**(= 왜 애그리거트나 api 모듈이 아닌가)라는 판단 근거를 모은다. 전 config에 공통으로, 클래스 Javadoc은 "도메인 서비스는 `@Service` 없는 순수 POJO라 Spring이 스캔할 수 없으므로 새 POJO 도메인 서비스를 추가하면 여기에 `@Bean`을 추가한다"는 같은 문장이었다 — 규칙 절과 중복이라 옮기지 않는다.
 
@@ -1635,7 +1737,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 ##### `ShopDomainConfig` — 개별 판단
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/shop/config/ShopServiceConfig.java (구 `ShopDomainConfig`)`
+**대상**: ~~`backend/application/src/main/java/com/tastyhouse/application/shop/config/ShopServiceConfig.java (구 `ShopDomainConfig`)`~~ (번복됨 — 삭제) → 각 항목의 빈 이름과 같은 이름의 클래스 `backend/application/src/main/java/com/tastyhouse/application/shop/service/{ShopOrderAvailabilityService,ShopDeliveryAreaPolygonService,...}.java`. `prohibitedWordValidator`·`shopNextOpenTimeCalculator`는 `backend/application/src/main/java/com/tastyhouse/application/shared/config/SharedBeanConfig.java`의 `@Bean`
 
 - `prohibitedWordValidator` — **캐싱 데코레이터로 감싼 포트를 주입한다.** 검증기가 텍스트 검증마다 `findAll()`을 호출하므로 전량 로드가 매번 DB로 나가지 않게 한다. 금칙어는 SQL 시드 read-only 데이터라 정합성 리스크가 낮고, **캐싱을 어댑터 쪽에 두어 domain의 순수 POJO 검증기는 그대로 둔다.**
 - `shopNextOpenTimeCalculator` — **product가 아니라 shop에 둔다.** 영업시간·휴무일 해석은 shop의 관심사이고, product 도메인 서비스가 `ShopBusinessHour`를 직접 참조하면 **컨텍스트 경계 위반**이다. 두 서비스의 조립은 ceo-api의 command service가 담당한다.
@@ -1649,7 +1751,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 ##### `ProductDomainConfig` — 개별 판단
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/product/config/ProductServiceConfig.java (구 `ProductDomainConfig`)`
+**대상**: ~~`backend/application/src/main/java/com/tastyhouse/application/product/config/ProductServiceConfig.java (구 `ProductDomainConfig`)`~~ (번복됨 — 삭제) → 각 항목의 빈 이름과 같은 이름의 클래스 `backend/application/src/main/java/com/tastyhouse/application/product/service/{ProductDeletionService,ProductSortService,...}.java`. `cupDepositPolicy`는 `backend/application/src/main/java/com/tastyhouse/application/shared/config/SharedBeanConfig.java`의 `@Bean`(여전히 단일 빈이라 "같은 인스턴스" 근거는 유효하다)
 
 - `cupDepositPolicy` — 순수 계산기인데도 **빈으로 두는 이유는 요율을 단 한 곳에 두기 위함**이다. 점주 설정(ceo)·손님 메뉴판(web)·주문 금액 확정(order) 세 경로가 **같은 인스턴스를 주입받아야** "화면 금액과 결제 금액이 다른" 사고가 구조적으로 불가능해진다.
 - `productDeletionService` — 삭제에도 숨김과 **같은 불변식**(노출 메뉴 ≥1 등)을 적용한다. **숨김만 막고 삭제를 열어두면 점주가 삭제로 우회해 빈 메뉴판을 만들 수 있다.**
@@ -1674,7 +1776,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/shop/service/CachingProhibitedWordPersistencePort.java`
 → `TTL` · `Snapshot`
 
-`ProhibitedWordValidator`는 텍스트 검증 때마다 `ProhibitedWordPersistencePort#findAll()`을 호출하는데, 점주 입력(가게소개·찾아오는길 등) 저장 경로마다 금칙어 테이블을 통째로 다시 읽는 것이 낭비다. **검증기는 마커 없는 순수 POJO(03a 이전에는 domain 소속)라 스프링 `@Cacheable`을 붙일 수 없으므로**, 캐싱을 write 포트를 감싸는 데코레이터로 구현하고 빈 등록 지점(`ShopServiceConfig#prohibitedWordValidator`, 구 `ShopDomainConfig`)에서 감싼다 — 검증기·도메인 서비스 코드는 그대로다. 03a 이전에는 이 데코레이터가 persistence(`infrastructure/shop/persistence/`)에 있었으나, 감싸는 쪽(설정)이 이 모듈로 오면서 함께 옮겼다 — 순수 자바라 기술 의존이 없다.
+`ProhibitedWordValidator`는 텍스트 검증 때마다 `ProhibitedWordPersistencePort#findAll()`을 호출하는데, 점주 입력(가게소개·찾아오는길 등) 저장 경로마다 금칙어 테이블을 통째로 다시 읽는 것이 낭비다. **검증기는 마커 없는 순수 POJO(03a 이전에는 domain 소속)라 스프링 `@Cacheable`을 붙일 수 없으므로**, 캐싱을 write 포트를 감싸는 데코레이터로 구현하고 빈 등록 지점(`SharedBeanConfig#prohibitedWordValidator`, 구 `ShopServiceConfig` ← `ShopDomainConfig`)에서 감싼다 — 검증기·도메인 서비스 코드는 그대로다. 03a 이전에는 이 데코레이터가 persistence(`infrastructure/shop/persistence/`)에 있었으나, 감싸는 쪽(설정)이 이 모듈로 오면서 함께 옮겼다 — 순수 자바라 기술 의존이 없다.
 
 금칙어는 SQL 시드로 관리되는 read-only 데이터(Java 계층에 생성·수정 경로가 없다)라 정합성 리스크가 낮다. 그래도 **무기한 캐싱은 시드 갱신이 재기동 전까지 반영되지 않으므로 TTL(10분)을 둬서 자연히 만료시킨다.**
 
@@ -1685,4 +1787,4 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/shared/event/SpringDomainEventPublisher.java`
 
-`DomainEventPublisher` 포트(03a로 domain에서 이동, 같은 패키지)를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다. **03a 이전에는 persistence의 마커 없는 `@Component`였고**, 지금은 `@Component`를 떼고 `shared/config/SharedEventConfig`(`@SharedApp`)가 `@Bean domainEventPublisher`로 등록한다 — 포트가 `port.out` 밖(`shared/event`)에 있어 persistence가 볼 수 없게 됐기 때문이다. 리스너도 같은 모듈의 `<ctx>/listener/`에 있다.
+`DomainEventPublisher` 포트(03a로 domain에서 이동, 같은 패키지)를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다. **03a 이전에는 persistence의 마커 없는 `@Component`였고**, 지금은 `@Component`를 떼고 `shared/config/SharedBeanConfig`(`@SharedApp`, 구 `SharedEventConfig`)가 `@Bean domainEventPublisher`로 등록한다 — 포트가 `port.out` 밖(`shared/event`)에 있어 persistence가 볼 수 없게 됐기 때문이다. 리스너도 같은 모듈의 `<ctx>/listener/`에 있다.

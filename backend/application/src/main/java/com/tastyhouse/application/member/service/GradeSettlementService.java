@@ -11,7 +11,9 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
+@BatchApp
 public class GradeSettlementService {
 
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);

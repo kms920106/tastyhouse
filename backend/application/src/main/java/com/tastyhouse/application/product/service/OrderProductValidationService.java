@@ -33,7 +33,9 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class OrderProductValidationService {
 
     private final ProductPersistencePort productPersistencePort;

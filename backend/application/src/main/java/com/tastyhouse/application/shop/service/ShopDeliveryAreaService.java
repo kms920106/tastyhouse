@@ -22,9 +22,11 @@ import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
+@CeoApp
 public class ShopDeliveryAreaService {
 
     private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;

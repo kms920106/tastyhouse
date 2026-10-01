@@ -7,7 +7,9 @@ import java.util.List;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class ShopRiderGuideValidator {
 
     private static final int VISIT_GUIDE_MAX_LENGTH = 200;

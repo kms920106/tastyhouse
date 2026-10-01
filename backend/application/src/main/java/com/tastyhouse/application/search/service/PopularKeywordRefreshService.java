@@ -11,7 +11,9 @@ import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
 import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistencePort;
 import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
+import com.tastyhouse.application.shared.marker.BatchApp;
 
+@BatchApp
 public class PopularKeywordRefreshService {
 
     private static final int AGGREGATION_WINDOW_DAYS = 7;

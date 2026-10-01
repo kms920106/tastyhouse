@@ -18,7 +18,9 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ProductOptionGroupLinkService {
 
     private final ProductOptionGroupLinkPersistencePort linkPersistencePort;

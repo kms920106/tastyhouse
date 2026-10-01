@@ -31,9 +31,11 @@ import com.tastyhouse.domain.shop.service.ShopDeliveryTipScheduleSpec;
 import com.tastyhouse.domain.shop.service.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.marker.CeoApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 
+@CeoApp
 public class ShopDeliveryTipService {
 
     private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;

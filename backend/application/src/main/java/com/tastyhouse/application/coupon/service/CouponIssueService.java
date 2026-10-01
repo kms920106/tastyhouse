@@ -16,7 +16,9 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
 import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class CouponIssueService {
 
     private final CouponPersistencePort couponPersistencePort;

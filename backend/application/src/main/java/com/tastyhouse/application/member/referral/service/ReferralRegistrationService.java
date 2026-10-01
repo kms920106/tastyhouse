@@ -9,7 +9,9 @@ import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class ReferralRegistrationService {
 
     private final MemberReferralPersistencePort memberReferralPersistencePort;

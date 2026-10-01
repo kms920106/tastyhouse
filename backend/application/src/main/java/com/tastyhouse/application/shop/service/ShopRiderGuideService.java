@@ -15,9 +15,11 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
+@SharedApp
 public class ShopRiderGuideService {
 
     private final ShopRiderGuidePersistencePort shopRiderGuidePersistencePort;

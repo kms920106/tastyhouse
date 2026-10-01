@@ -2,8 +2,10 @@ package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
+import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
 
+@SharedApp
 public class ShopRequestCommentService {
 
     private final ShopRequestCommentPersistencePort shopRequestCommentPersistencePort;

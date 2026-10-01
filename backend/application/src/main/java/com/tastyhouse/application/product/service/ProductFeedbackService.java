@@ -15,7 +15,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.marker.SharedApp;
 
+@SharedApp
 public class ProductFeedbackService {
 
     public static final int FEEDBACK_WINDOW_DAYS = 7;

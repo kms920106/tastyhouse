@@ -1,7 +1,9 @@
 package com.tastyhouse.application.shop.service;
 
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
+import com.tastyhouse.application.shared.marker.CeoApp;
 
+@CeoApp
 public class ReplyPhraseProhibitedWordValidatorAdapter implements ReplyPhraseTextValidator {
 
     private final ProhibitedWordValidator prohibitedWordValidator;

@@ -6,7 +6,9 @@ import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
+@AdminApp
 public class PolicyActivationService {
 
     private final PolicyDocumentPersistencePort policyDocumentPersistencePort;

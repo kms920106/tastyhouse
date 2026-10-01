@@ -12,7 +12,9 @@ import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class PgPaymentGatewayRouter implements PgPaymentGateway {
 
     private final Map<String, PgProviderGateway> gateways;

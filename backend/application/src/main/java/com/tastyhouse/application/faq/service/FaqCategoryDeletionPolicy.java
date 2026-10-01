@@ -4,7 +4,9 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.shared.marker.AdminApp;
 
+@AdminApp
 public class FaqCategoryDeletionPolicy {
 
     private final FaqCategoryPersistencePort faqCategoryPersistencePort;

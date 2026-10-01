@@ -6,7 +6,9 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.service.OrdererSnapshot;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.marker.WebApp;
 
+@WebApp
 public class OrdererLookupService {
 
     private final MemberPersistencePort memberPersistencePort;
