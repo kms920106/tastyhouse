@@ -16,8 +16,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.architecture.AppOwnership;
 import com.tastyhouse.application.shared.marker.BatchApp;
+import com.tastyhouse.architecture.AppOwnership;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;

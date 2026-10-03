@@ -22,7 +22,7 @@
 
 **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다).
 
-**부트스트랩에 `scanBasePackages`가 없다 (챕터 02)**: `CeoApiApplication`은 `@SpringBootApplication` + `@Import(CeoApplicationConfig.class)` + `@EnableConfigurationProperties(CeoSeedProperties.class)` 셋만 갖는다 — 과거의 `scanBasePackages`/`@ComponentScan basePackages` 나열(`com.tastyhouse.ceoapi`·`infrastructure`·`external`·`security`·`logging`)도, 그 `excludeFilters`도 **전부 사라졌다**. 라이브러리 모듈이 각자의 `{Xxx}ModuleAutoConfiguration`으로 자기 자신을 등록하고, 이 앱에 실리지 않는 모듈은 애초에 클래스패스에 없어(예: `infrastructure:oauth`는 web 전용) 제외 필터가 필요 없기 때문이다. `application`은 여전히 `CeoApplicationConfig`를 `@Import`해 배선하며, `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
+**부트스트랩에 `scanBasePackages`가 없다 (챕터 02)**: `CeoApiApplication`은 `@SpringBootApplication` + `@EnableConfigurationProperties(CeoSeedProperties.class)`와 static 중첩 `ApplicationLayerScanConfig`(마커 스캔 — 개정 전에는 `@Import(CeoApplicationConfig.class)`)만 갖는다 — 과거의 `scanBasePackages`/`@ComponentScan basePackages` 나열(`com.tastyhouse.ceoapi`·`infrastructure`·`external`·`security`·`logging`)도, 그 `excludeFilters`도 **전부 사라졌다**. 라이브러리 모듈이 각자의 `{Xxx}ModuleAutoConfiguration`으로 자기 자신을 등록하고, 이 앱에 실리지 않는 모듈은 애초에 클래스패스에 없어(예: `infrastructure:oauth`는 web 전용) 제외 필터가 필요 없기 때문이다. `application`은 부트스트랩 중첩 `ApplicationLayerScanConfig`(`{CeoApp, SharedApp}` 마커 스캔)가 배선한다 — 직접 `@ComponentScan`을 달면 Spring 6.1에서 앱 기본 스캔이 사라지므로 중첩 클래스여야 한다. (번복됨 — application `*ApplicationConfig` 삭제: 과거에는 `CeoApplicationConfig`를 `@Import`했다.) `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
 
 ## Key Files
 | File | Description |
@@ -76,7 +76,7 @@
 ## Dependencies
 
 ### Internal
-- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `CeoApplicationConfig`
+- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + 마커 애노테이션 `CeoApp`·`SharedApp`(부트스트랩 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `CeoApplicationConfig`를 `@Import`)
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
 - `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 파일 업로드)를 묶어 전이로 공급하므로 **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClient.Builder` customizer만 — 예외·에러코드는 도메인 `ErrorCode` 소유)는 파일 저장 SPI가 삭제된 뒤 스타터의 조립 대상에서 빠져 **이 앱의 `runtimeClasspath`에 없다**(webflux는 리포 전체에서 제거됐다). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
 - `logging-module`, `security-module`
@@ -112,6 +112,32 @@
 **대상**: `backend/ceo-api/src/test/java/com/tastyhouse/ceoapi/architecture/LayerRulesTest.java`
 
 이 파일의 규칙 대부분은 web-api·다른 앱과 동일하며, 그 공통분은 [backend/AGENTS.md](../AGENTS.md)의 "계층 규칙 봉인 — api 앱 3종 공통"에 있다. **아래는 이 앱 고유의 차이다.**
+
+
+### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
+
+**대상**: `backend/ceo-api/src/test/java/com/tastyhouse/ceoapi/ApplicationLayerScanConfigTest.java`
+→ `CeoApiApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/CeoApiApplication.java`)의 `@ComponentScan`
+
+**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(CeoApiApplication.class, CeoApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(CeoApiApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
+
+| 항목 | before | after |
+|---|---|---|
+| 단정 본문 위치 | 4개 앱 테스트에 같은 내용 복사(각 40여 줄) | `ApplicationLayerScanAssertions` 1곳, 앱 테스트는 호출 2줄 |
+| 중첩 클래스 참조 | `CeoApiApplication.ApplicationLayerScanConfig.class` 직접 참조 | 부트스트랩의 중첩 클래스 중 단순명 `ApplicationLayerScanConfig`를 찾는다 — 이름을 바꾸거나 지우면 "must declare nested ApplicationLayerScanConfig"로 실패 |
+| 추가 단정 | 없음 | 넘긴 마커가 `AppOwnership.MARKERS`에 있고 `SharedApp`이 아닐 것 · 부트스트랩의 중첩 클래스 중 `@ComponentScan`/`@ComponentScans`를 가진 것은 `ApplicationLayerScanConfig` 하나뿐일 것(잘못된 마커를 단 두 번째 스캔 클래스 차단) |
+| 동작 | — | 기존 단정 동일 + 위 추가 단정으로 강화(앱 런타임 동작 변경 없음. 반증 실측: web 테스트에 `AdminApp`을 넘기면 실패) |
+
+단정 내용(순수 자바 리플렉션 `getDeclaredAnnotation` — Spring `MergedAnnotations`는 `@SpringBootApplication` → `@EnableAutoConfiguration` → `@Import`를 따라가 "`@Import` 없음" 단정이 항상 실패하므로 쓰지 않는다):
+
+- `basePackages == {"com.tastyhouse.application"}`, `value`·`basePackageClasses`는 비어 있다.
+- `useDefaultFilters == false`, `excludeFilters`는 비어 있다.
+- include 필터가 정확히 1개이고 타입이 `FilterType.ANNOTATION`이며 `classes == {CeoApp, SharedApp}`.
+- 부트스트랩 클래스 자체에는 직접 선언된 `@ComponentScan`·`@ComponentScans`·`@Import`가 없다.
+
+**왜 막는가**: 마커 하나 오기입(예: 다른 앱의 마커)은 다른 앱의 빈과 권한 경계를 이 앱에 싣는데, 컴파일도 ArchUnit도 못 잡는 보안 회귀다. 과거에는 4개 설정이 마커 옆 `application` 모듈에 모여 리뷰로 볼 수 있었지만 지금은 4개 앱 모듈로 흩어져 앱마다 자기 것을 지킨다.
+
+**왜 중첩 클래스인가**: Spring Framework 6.1.5 `ConfigurationClassParser`는 직접 붙은 `@ComponentScan`을 먼저 모으고 하나라도 있으면 메타 애노테이션(`@SpringBootApplication` 안의 스캔)을 무시한다. `@SpringBootApplication` 클래스에 직접 달면 앱 자기 패키지 스캔과 Boot의 `TypeExcludeFilter`·`AutoConfigurationExcludeFilter`가 조용히 사라지므로 금지다(위 마지막 단정이 이를 막는다). 중첩 `@Configuration`은 별도 설정 클래스로 처리돼 안전하며, 부작용으로 application 클래스패스 스캔이 기동 시 2회 돌지만 빈 집합은 같다.
 
 ### `seedersShouldDependOnUseCasesOnly` — 이 앱에만 있는 규칙
 

@@ -1,4 +1,4 @@
-package com.tastyhouse.application.architecture;
+package com.tastyhouse.architecture;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;

@@ -21,11 +21,11 @@
 - **왜 평탄화했나**: 챕터 01의 판단 근거 중 하나였던 "중복이 컸고 이득이 없었다"가 패키지 수준에서도 반복되고 있었다 — 앱별 패키지가 남아 있는 한 `ArchUnit` 슬라이스 규칙·import 정렬 규칙 모두 "접두어가 겹치는 4개 패키지"를 특별 취급해야 했고, 그 특별 취급 자체가 문서·규칙의 복잡도였다. 패키지를 하나로 합치면 그 특별 취급이 사라진다.
 - **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
 - **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다(ServiceConfig 삭제 후에는 `@Service` 없이 마커만 단 도메인 서비스 78개도 더해진다 — 아래 "application `*ServiceConfig` 전면 삭제" 절). **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
-- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
-- **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4개 `*ApplicationConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다. ~~**리스너 외에는 붙이지 않는다**~~ **(번복됨 — 덩어리 01: 리스너 + `..config..`의 `@Configuration`까지 허용, 아래 [ArchUnit](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절)** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다(이것은 여전히 금지). 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
+- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 마커 스캔이 `com.tastyhouse.application` 루트를 대상으로 하며 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. jar 이름·경로는 불변이다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이 `@ComponentScan`은 과거 이 모듈의 `{Web,Admin,Ceo,Batch}ApplicationConfig`에 있었고 api 4모듈이 `@Import`했으나, 지금은 이 모듈에 스캔 선언이 없고 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [빈 배선](#빈-배선-챕터-03-개정--패키지-스캔에서-마커-스캔으로) 절 참고).
+- **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4앱 부트스트랩 중첩 `ApplicationLayerScanConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다(당시에는 4개 `*ApplicationConfig`의 필터였다). ~~**리스너 외에는 붙이지 않는다**~~ **(번복됨 — 덩어리 01: 리스너 + `..config..`의 `@Configuration`까지 허용, 아래 [ArchUnit](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절)** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다(이것은 여전히 금지). 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
 - **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
 - **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
-- **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
+- **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
 - **`AppOwnership`은 `testFixtures`에 있고 api 4모듈이 재사용한다**(`java-test-fixtures` 플러그인, `testImplementation(testFixtures(project(':application')))`) — api 모듈의 `adaptersShouldOnlyUseOwnAppUseCases`도 같은 유도가 필요하기 때문이다.
 - **ArchUnit 규칙 전환**: `commandServicesShouldNotDependOnQueryPorts`가 패키지 술어 → **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바뀌었다 — `port.out`에 Command 반환 record가 함께 살게 되어, 패키지 술어를 두면 그 record를 import하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡히기 때문이다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryPorts`도 이름 기준이다. `AppIsolationTest`는 슬라이스/패키지 술어에서 **마커 술어**로 전면 재작성됐다(아래 [ArchUnit — 4클래스](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절 반영). 상세 규칙 목록·근거는 루트 `backend/CLAUDE.md`의 "앱 마커 규칙" 절 참고.
 
@@ -333,7 +333,7 @@ persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 
 
 ```
 com.tastyhouse.application/
-  ├── {App}ApplicationConfig.java   @ComponentScan 진입점(마커 기반 필터) — 쓰는 앱이 @Import 한다. 4개(Web/Admin/Ceo/Batch)
+  │   (루트에는 클래스가 없다 — 과거 {App}ApplicationConfig.java 4개는 삭제됐다. 마커 스캔은 각 앱 부트스트랩의 중첩 ApplicationLayerScanConfig가 소유한다)
   ├── shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java   순수 마커 애노테이션 4종 — 앱 소속의 유일한 단서
   ├── shared/marker/SharedApp.java   5번째 마커 — 리스너 + 공유 @Configuration(덩어리 01로 확대), "앱 소속 없음 = 4앱 전부"
   ├── shared/exception/BatchJobException.java   (챕터 03 이동 — 과거 batchapplication/exception/)
@@ -493,7 +493,7 @@ write 포트는 **≥ 107**(`RuleAnchorTest#writePortsExist` — `port.out.write
 ## Dependencies
 
 ### 빌드 스크립트 형태
-- `java-test-fixtures` 플러그인 — `AppOwnership`을 api 4모듈 테스트가 재사용하기 위한 것이다. **같은 파일을 각 모듈에 복제하면 두 벌이 갈라지므로** test fixture로 공유한다(위 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). `testFixturesApi`로 `archunit-junit5`를 노출하는 이유는 `AppOwnership`이 마커 애노테이션(main)과 ArchUnit을 함께 보기 때문이다.
+- `java-test-fixtures` 플러그인 — `AppOwnership`과 `ApplicationLayerScanAssertions`(앱 부트스트랩 마커 스캔 단정, 각 앱의 `ApplicationLayerScanConfigTest`가 호출)를 api 4모듈 테스트가 재사용하기 위한 것이다. `testFixturesImplementation`으로 `spring-boot-autoconfigure`(`@SpringBootApplication`·`@ComponentScan` 애노테이션 읽기)와 `assertj-core`를 선언한 것은 `ApplicationLayerScanAssertions` 때문이다. **같은 파일을 각 모듈에 복제하면 두 벌이 갈라지므로** test fixture로 공유한다(위 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). `testFixturesApi`로 `archunit-junit5`를 노출하는 이유는 `AppOwnership`이 마커 애노테이션(main)과 ArchUnit을 함께 보기 때문이다.
 - **실행 모듈이 아니므로 `bootJar { enabled = false }` + `jar { enabled = true; archiveClassifier = '' }`** — plain jar만 만든다(`security-module` 선례). 아래 [주의](#주의) 참고.
 
 ### Internal
@@ -518,21 +518,31 @@ application 계층이 infra를 모른다는 규칙을 ArchUnit이 아니라 **�
 
 ## 빈 배선 (챕터 03 개정 — 패키지 스캔에서 마커 스캔으로)
 
-**챕터 01 직후에는 앱마다 `{App}ApplicationConfig`가 자기 패키지만 스캔했다**(`@ComponentScan(basePackages = "com.tastyhouse.{app}application")`). 챕터 03의 평탄화로 그 앱별 패키지 자체가 사라졌으므로, 지금은 4개 `*ApplicationConfig` 전부가 **같은 루트 패키지(`com.tastyhouse.application`)를 스캔하되 마커로 걸러낸다**:
+**챕터 01 직후에는 앱마다 `{App}ApplicationConfig`가 자기 패키지만 스캔했다**(`@ComponentScan(basePackages = "com.tastyhouse.{app}application")`). 챕터 03의 평탄화로 그 앱별 패키지 자체가 사라졌으므로 4앱이 **같은 루트 패키지(`com.tastyhouse.application`)를 스캔하되 마커로 걸러낸다.** **(번복됨 — application `*ApplicationConfig` 삭제)** 그 스캔 선언은 과거 이 모듈의 `*ApplicationConfig` 4개에 있었으나 삭제됐고, 지금은 각 앱 부트스트랩의 static 중첩 클래스 `ApplicationLayerScanConfig`가 소유한다(`WebApiApplication` 예시):
 
 ```java
+@Configuration(proxyBeanMethods = false)
 @ComponentScan(
     basePackages = "com.tastyhouse.application",
     useDefaultFilters = false,
     includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebApp.class, SharedApp.class}))
-public class WebApplicationConfig { }
+static class ApplicationLayerScanConfig {
+}
 ```
 
+| 항목 | before | after |
+|---|---|---|
+| 스캔 선언 위치 | 이 모듈의 `WebApplicationConfig`(루트 패키지, `public class`) | `WebApiApplication` 안의 `static class ApplicationLayerScanConfig` |
+| 앱의 `@Import` | `@Import(WebApplicationConfig.class)` | 없음 |
+| 이 모듈이 아는 것 | 앱별 마커 조합(조립 지식) | 없음 — 마커 애노테이션만 제공 |
+| 동작 | — | 변경 없음 |
+
+**왜 중첩 클래스인가**: Spring Framework 6.1.5 `ConfigurationClassParser`는 설정 클래스에 직접 붙은 `@ComponentScan`을 먼저 모으고, 하나라도 있으면 메타 애노테이션(`@SpringBootApplication` 안의 `@ComponentScan`)을 무시한다. `@SpringBootApplication` 클래스에 직접 달면 앱 자기 패키지 스캔과 Boot의 `TypeExcludeFilter`·`AutoConfigurationExcludeFilter`가 조용히 사라지므로 금지다. 중첩 `@Configuration`은 별도 설정 클래스로 처리돼 안전하다. 부작용으로 `com.tastyhouse.application` 클래스패스 스캔이 기동 시 2회 돌지만(두 번째는 `ClassPathBeanDefinitionScanner.isCompatible`로 건너뜀) 빈 집합은 같다. 이 모듈은 이제 어느 앱이 어떤 마커를 싣는지 모른다.
 4개 설정 전부가 자기 앱 마커와 함께 **`SharedApp.class`를 포함**한다(`classes = {XxxApp.class, SharedApp.class}`). 그래서 `@SharedApp` 빈(도메인 이벤트 리스너 12종, `SharedBeanConfig`, ServiceConfig 삭제 후에는 공유 도메인 서비스 35개까지)은 4앱 전부에 뜬다. 스캔 필터가 마커 `ANNOTATION`이므로 **`@Service` 없이 마커만 단 클래스도 빈이 된다** — 도메인 서비스가 이 형태다. 패키지 기반 include(`..listener..`를 통째로 포함)는 스캔 규칙이 "마커"와 "패키지" 두 가지로 갈리므로 채택하지 않았다.
 
-`useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 `WebApplicationConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
+`useDefaultFilters = false`이므로 **마커가 곧 스캔의 유일한 포함 기준**이다 — `@WebApp` 없는 `@Service`는 컴파일은 통과하지만 웹 앱의 `ApplicationLayerScanConfig`가 스캔해도 빈으로 뜨지 않는다. 이 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러나므로, 새 빈·UseCase를 추가할 때 마커를 빠뜨리지 않는 것이 이 모듈에서 가장 흔한 실수 지점이다(ArchUnit `beansShouldHaveExactlyOneAppMarker`·`useCasesShouldHaveExactlyOneAppMarker`가 이를 빌드 시점에 잡는다).
 
-각 부트스트랩의 `@Import` 대상 클래스는 챕터 01 이후 그대로다 — 그래서 이 챕터의 부트스트랩(api 모듈) 소스 변경은 **0건**이다. `scanBasePackages` 문자열 나열이 아니라 타입 세이프 조합을 쓰는 것이 이 저장소의 표준 구성이었고(`InfrastructurePersistenceConfig`·`BatchApplicationConfig` 선례), **auto-configuration 전환(챕터 02) 이후로는 `scanBasePackages` 나열 자체가 4개 앱에서 사라져 `@Import({App}ApplicationConfig)` 한 줄만 남았다.**
+챕터 03 시점에는 각 부트스트랩의 `@Import` 대상 클래스가 챕터 01 이후 그대로여서 부트스트랩(api 모듈) 소스 변경이 **0건**이었고, auto-configuration 전환(챕터 02) 이후로는 `scanBasePackages` 나열이 사라져 `@Import({App}ApplicationConfig)` 한 줄만 남았다. **(번복됨 — application `*ApplicationConfig` 삭제)** 그 한 줄도 사라졌다 — 앱의 `@Import`는 0줄이고 스캔은 부트스트랩 중첩 `ApplicationLayerScanConfig`가 맡는다.
 
 ## `<ctx>/listener/` — 도메인 이벤트 리스너
 
@@ -578,7 +588,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar(`security-module` 선례). 앱을 띄우는 것은 각 api 모듈의 fat jar 4개이며, 그 **이름·경로·포트는 통합 후에도 불변**이다. jar 내용만 application jar 4개 → `application-0.0.1-SNAPSHOT.jar` 1개로 바뀐다.
-- **빈 배선 실수는 빌드로 드러나지 않는다** — `contextLoads` 테스트가 `@SpringBootTest` 없이 빈 껍데기라 `@Import` 누락 시 빌드는 green이고 jar만 조용히 깨진다. 배선을 건드렸으면 실제로 띄워 `Started {Xxx}Application` 마커를 확인한다.
+- **빈 배선 실수는 빌드로 드러나지 않는다** — `contextLoads` 테스트가 `@SpringBootTest` 없이 빈 껍데기라 마커 스캔 설정(부트스트랩 중첩 `ApplicationLayerScanConfig`)이 누락·오기입돼도 빌드는 green이고 jar만 조용히 깨진다(오기입은 각 앱의 `ApplicationLayerScanConfigTest`가 잡는다). 배선을 건드렸으면 실제로 띄워 `Started {Xxx}Application` 마커를 확인한다.
 
 ## 봉인·가드 목록
 
@@ -602,6 +612,19 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **앱 전용 채널 포트를 받는 클래스는 그 앱 마커여야 한다** — web 전용 `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient`는 `@WebApp`, batch 전용 `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`는 `@BatchApp`. 포트 구현이 그 앱에만 조립돼 있어 다른 앱(특히 `@SharedApp`)에 걸면 그 앱이 기동하지 못한다.
 - **`markerBeanCounts` 하한을 낮추지 않는다**(`@WebApp` ≥83 · `@AdminApp` ≥65 · `@CeoApp` ≥122 · `@BatchApp` ≥15 · `@SharedApp` ≥47). 이관이 되돌려져 서비스가 마커를 잃으면 이 하한이 깨지는 것이 의도다. `markerOnlyClassesShouldBeDomainServices`의 하한 78도 같은 이유다.
 - 규칙 통과는 빈 누락이 없다는 증거가 아니다 — 배정을 바꿨으면 4앱을 `java -jar`로 띄워 `Started *ApiApplication`을 확인한다(`contextLoads`는 빈 껍데기). `List<I>` 주입은 구현체 0개여도 기동되므로 규칙이 잡지 못한다.
+
+### testFixtures 클래스는 `com.tastyhouse.application` 밖에 둔다 — `com.tastyhouse.architecture`
+
+**대상**:
+- `backend/application/src/testFixtures/java/com/tastyhouse/architecture/` → `AppOwnership` · `ApplicationLayerScanAssertions`
+- `backend/application/src/test/java/com/tastyhouse/application/architecture/RuleAnchorTest.java` → `testFixturesShouldNotResideInApplicationPackage`
+- `backend/domain/src/test/java/com/tastyhouse/domain/architecture/ImportOrderConventionTest.java` → `TOP_SEGMENT_RANK`의 `architecture`(4순위)
+
+원문 취지:
+- **testFixtures에 `com.tastyhouse.application..` 패키지를 만들지 않는다.** `ImportOption.Predefined.DO_NOT_INCLUDE_TESTS`는 `build/classes/*/test/` 경로만 걸러 낸다. 그래서 `-test-fixtures.jar`와 `build/classes/java/testFixtures/`는 통과한다. fixture가 `com.tastyhouse.application` 아래 있으면 `importPackages("com.tastyhouse.application")`를 쓰는 모든 규칙(이 모듈의 `LayerRulesTest`·`AppIsolationTest`·`RuleAnchorTest` 등, api 4모듈의 `adaptersShouldOnlyUseOwnAppUseCases`)이 fixture를 **프로덕션 클래스로 보고 검사한다**.
+- 그 상태로는 "application의 모든 클래스는 마커를 가진다"처럼 모듈 전역을 대상으로 하는 규칙을 새로 만들 때, 마커가 없는 fixture부터 위반으로 걸린다. `moduleIsNotEmpty` 같은 개수 anchor도 fixture 수만큼 부풀어 실제 개수보다 크게 나온다.
+- `com.tastyhouse.architecture`는 어떤 ArchUnit importer의 대상 패키지도 아니다(리포 전체에 `importPackages("com.tastyhouse")`가 없다). 새 fixture도 이 패키지에 둔다. 이 규칙을 지키는 장치가 `testFixturesShouldNotResideInApplicationPackage`다. 소스 URI가 `test-fixtures`/`/testFixtures/`인 클래스가 application 대상 import에 섞이면 실패한다. 2026-10-03에 패키지 이동 전 상태로 두 클래스를 잡아 실패하는 것을 확인했다.
+- 새 최상위 세그먼트라 import 순위가 필요하다. 테스트 공용 지원 코드라서 공유 횡단 모듈과 같은 4순위로 정했다.
 
 ### UseCase 구현 구체 주입 금지 — `servicesShouldDependOnUseCasesNotImplementations`
 
@@ -692,7 +715,7 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 
 ### `DESERIALIZED_COMMANDS` — 고아 Command record 봉인, 새 항목을 추가하지 않는다
 
-**대상**: `backend/application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`
+**대상**: `backend/application/src/testFixtures/java/com/tastyhouse/architecture/AppOwnership.java`
 → `DESERIALIZED_COMMANDS`
 
 봉인 구성원 1개 — `com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationItemCommand` (`CeoApp`).
@@ -1443,7 +1466,7 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 ### 앱 마커가 곧 스캔 포함 기준이다
 
-**대상**: `shared/marker/{WebApp,AdminApp,CeoApp,BatchApp,SharedApp}.java` · `{App}ApplicationConfig.java`
+**대상**: `shared/marker/{WebApp,AdminApp,CeoApp,BatchApp,SharedApp}.java` · 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`(과거 `{App}ApplicationConfig.java`)
 
 `useDefaultFilters = false` 스캔의 **유일한 포함 기준**이자 ArchUnit 앱 격리 규칙의 술어다. 새 빈과
 새 UseCase 인터페이스는 **반드시 마커 하나를 단다** — 마커가 없으면 어느 앱에도 뜨지 않고, **컴파일은
@@ -1453,9 +1476,17 @@ ceo 전용 Result에만 있는 것이 그 사례).
 - ~~`@SharedApp`은 **리스너 전용**이다~~ **(번복됨 — 덩어리 01)** `@SharedApp`("앱 소속 없음 = 4앱 전부")은 **리스너와 공유 `@Configuration`**에만 붙는다 — 그 밖(`..listener..`/`..config..` 밖, 또는 일반 `@Service`)에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다. 공유 설정이 등록하는 빈은 **마커 없는 POJO**여야 하며 `sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 강제한다(클래스에 마커를 달면 앱 격리에 걸리고, 스캔과 `@Bean`이 겹치면 기동이 실패한다). **(번복됨 — application `*ServiceConfig` 삭제)** 허용 대상에 **`..service..`의 마커-only 도메인 서비스**가 추가됐다(`port.in` UseCase 구현체·`*CommandService`/`*QueryService` 제외). 공유 설정은 `SharedBeanConfig` 하나뿐이고 "마커 없는 POJO만 `@Bean`" 규칙은 그 설정에 그대로 적용된다 — 마커를 단 서비스를 거기 `@Bean`으로 추가하면 스캔 빈과 이름이 겹쳐 기동이 실패한다.
 - **마커만 = 도메인 서비스, `@Service` + 마커 = 앱 오케스트레이터.** 새 도메인 서비스는 `@Bean`이 아니라 클래스에 소비 앱 마커만 단다(`markerOnlyClassesShouldBeDomainServices`가 위치를 강제한다).
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
-- 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **이 설정만은 앱이 `@Import` 한다** —
+- 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **application은 자기 등록하지 않는다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
-  (4개 앱의 빈이 같은 jar에 있고 마커로만 갈린다).
+  (4개 앱의 빈이 같은 jar에 있고 마커로만 갈린다). 그 선택은 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 한다.
+  **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 "이 설정만은 앱이 `@Import` 한다"였고 그 설정이 이 모듈의 `{App}ApplicationConfig`였다.
+
+### `applicationShouldNotDeclareComponentScan` — application에 `@ComponentScan`을 되살리지 않는다
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
+→ `applicationShouldNotDeclareComponentScan` (`noClasses().should().beMetaAnnotatedWith(ComponentScan.class).orShould().beAnnotatedWith(ComponentScans.class)`)
+
+application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나 `@ComponentScans`를 선언할 수 없다. "어느 앱이 어떤 마커를 싣는가"는 앱 조립 지식이라 컴포지션 루트(각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`)의 것이고, 이 모듈에 스캔 선언이 돌아오면 과거의 `{App}ApplicationConfig` 구조가 되살아난다. 앱 쪽 오기입은 각 앱 모듈의 `ApplicationLayerScanConfigTest`가 막는다(`backend/{web-api,admin-api,ceo-api,batch-module}/AGENTS.md`의 봉인·가드 목록). `allowEmptyShould`는 쓰지 않는다 — 대상이 모듈 전체라 비지 않는다.
 
 ### 앱마다 얇은 래퍼를 두는 이유 — 트랜잭션 경계는 앱의 관심사다
 
@@ -1539,7 +1570,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 리스너 작성 규칙 일반은 이 문서의 [`<ctx>/listener/`](#ctxlistener--도메인-이벤트-리스너) 절에 있다. 여기에는 **"왜 특정 앱 마커(`@WebApp` 등) 하나가 아니라 `@SharedApp`으로 4앱 전부가 스캔하는 application에 두는가"의 리스너별 근거**만 적는다 — 공통 답은 "특정 앱에만 뜨게 두면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 누락된다"이고, 각 리스너의 발행 경로가 그 근거다.
 
-과거에는 같은 근거("모든 실행 모듈이 스캔하는 곳")로 `infrastructure:persistence`에 두었다. application도 4앱 전부가 `{App}ApplicationConfig`로 스캔하지만 `useDefaultFilters = false` + 앱 마커 필터라, 4앱 모두에 뜨게 하는 마커 `@SharedApp`을 신설해 그 근거를 application에서도 성립시켰다(번복됨).
+과거에는 같은 근거("모든 실행 모듈이 스캔하는 곳")로 `infrastructure:persistence`에 두었다. application도 4앱 전부가 부트스트랩 중첩 `ApplicationLayerScanConfig`(과거 `{App}ApplicationConfig`)로 스캔하지만 `useDefaultFilters = false` + 앱 마커 필터라, 4앱 모두에 뜨게 하는 마커 `@SharedApp`을 신설해 그 근거를 application에서도 성립시켰다(번복됨).
 
 | 리스너 | 발행 경로가 여럿인 근거 |
 |---|---|
@@ -1573,7 +1604,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 표현 계층(web-api·api-common-module의 `GlobalExceptionHandler`, security-module의 필터 단계 핸들러)이 `com.tastyhouse.domain.exception`을 보지 않고도 에러 응답을 만들게 하는 번역점이다(덩어리 01). 규칙 본문은 `backend/CLAUDE.md` "예외·에러코드 소유 규칙".
 
 - **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
-- **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱의 `*ApplicationConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`처럼 `*ApplicationConfig` 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
+- **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
 - **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(`reservation/service/ReservationCommandService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
 - **`ErrorContracts`는 `ErrorCode` 3종의 미러다.** 표현 계층이 특정 코드를 직접 내야 하는 자리(rate limit 429·권한 403·인증 401)는 `resolve`로 판정할 예외가 없으므로 상수가 필요한데, `ErrorCode`를 import할 수 없어 값을 복제했다. 복제는 갈라질 수 있으므로 `ErrorContractsConsistencyTest`가 각 미러의 상태·code·메시지를 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`와 대조하고, `resolve`의 의미(최상위만·cause 무시·하위 타입 포함)도 함께 단정한다. **새 미러를 추가하면 이 테스트에 대조 케이스도 추가한다.**
 

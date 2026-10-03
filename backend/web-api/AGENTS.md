@@ -53,7 +53,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 
 ### Common Patterns
 - **JWT 인증 메커니즘(access/refresh 발급·검증·필터·EntryPoint·AccessDeniedHandler)은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. `application`의 `MemberJwtTokenProvider`(`@Component @WebApp`)가 그 공용 provider를 상속해 `memberId` 클레임·`MemberUserDetails` 재구성을 주입하고, **web 전용 검증 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드만 추가**한다. **공용 필터 빈은 `SecurityModuleAutoConfiguration`이 등록**하므로(챕터 02) 이 앱에 조립 코드가 없다 — `config/jwt/JwtConfig`는 삭제됐다.
-- **부트스트랩은 `@Import(WebApplicationConfig.class)` 하나뿐이다 (챕터 02)**: `WebApiApplication`은 `@SpringBootApplication` + `@Import` 두 애노테이션만 갖는다 — `scanBasePackages`도 `@ComponentScan`도 없다. 라이브러리 모듈(`infrastructure:*`·`security-module`·`logging-module`·`api-common-module`)은 각자의 `{Xxx}ModuleAutoConfiguration`으로 **자기 자신을 등록**하므로 앱이 스캔 대상을 나열할 필요가 없다. `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 애초에 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
+- **부트스트랩은 `@Import`가 없고 마커 스캔 중첩 클래스 하나만 갖는다 (챕터 02 → application `*ApplicationConfig` 삭제로 개정)**: `WebApiApplication`은 클래스 애노테이션으로 `@SpringBootApplication`만 갖고, static 중첩 `ApplicationLayerScanConfig`(`@ComponentScan` — `com.tastyhouse.application`을 `{WebApp, SharedApp}` 마커로 거른다)를 품는다. 클래스에 `@ComponentScan`을 직접 달지 않는 것은 Spring 6.1에서 직접 선언이 `@SpringBootApplication`의 기본 스캔을 지우기 때문이다. 과거(before)에는 `@SpringBootApplication` + `@Import(WebApplicationConfig.class)`였고 그 클래스가 `application` 모듈에 있었다(동작 변경 없음). 가드는 아래 `ApplicationLayerScanConfigTest`. 라이브러리 모듈(`infrastructure:*`·`security-module`·`logging-module`·`api-common-module`)은 각자의 `{Xxx}ModuleAutoConfiguration`으로 **자기 자신을 등록**하므로 앱이 스캔 대상을 나열할 필요가 없다. `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 애초에 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
 - **정책은 web-api에 잔류**: `config/security/`의 `SecurityConfig`(공개 경로·CORS 헤더 `X-Verify-Token` 등)·`PublicPaths`. (`config/jwt/` 디렉터리는 챕터 01~02로 소멸 — `RedisRepositoryConfig`·`JwtConfig` 모두 삭제.)
 - **`jwt.secret`은 admin-api와 반드시 달라야 한다**(web=`JWT_SECRET_WEB`). 동일 시크릿이면 회원 토큰이 admin 인증을 통과한다 — 상세는 `security-module/AGENTS.md`.
 - 소셜 로그인은 `auth/{kakao,naver,apple,facebook}` — 실제 외부 호출은 벤더 모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`에 위임한다(앱은 스타터 `infrastructure:oauth`만 선언한다).
@@ -75,7 +75,7 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 ## Dependencies
 
 ### Internal
-- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + `WebApplicationConfig`
+- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + 마커 애노테이션 `WebApp`·`SharedApp`(부트스트랩 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `WebApplicationConfig`를 `@Import`)
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
 - `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현, 기본 provider)를 묶어 전이로 공급한다. **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClientConfig`만 — 예외·에러코드 없음)는 스타터가 아니라 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를 통해 전이로 실린다
 - `infrastructure:oauth` — 소셜 로그인 채널 스타터(코드 없음). 벤더 4종 `infrastructure:{kakao,naver,apple,facebook}-oauth`(`com.tastyhouse.application.auth.port.out`의 `SocialOAuthClient` 구현)를 `runtimeOnly`로 묶어 전이로 공급한다
@@ -117,6 +117,32 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 **대상**: `backend/web-api/src/test/java/com/tastyhouse/webapi/architecture/LayerRulesTest.java`
 
 이 파일의 규칙 대부분은 admin-api·ceo-api와 동일하며, 그 공통분은 [backend/AGENTS.md](../AGENTS.md)의 "계층 규칙 봉인 — api 앱 3종 공통"에 있다. **아래는 web-api에만 있는 것이다.**
+
+
+### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
+
+**대상**: `backend/web-api/src/test/java/com/tastyhouse/webapi/ApplicationLayerScanConfigTest.java`
+→ `WebApiApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/web-api/src/main/java/com/tastyhouse/webapi/WebApiApplication.java`)의 `@ComponentScan`
+
+**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(WebApiApplication.class, WebApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(WebApiApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
+
+| 항목 | before | after |
+|---|---|---|
+| 단정 본문 위치 | 4개 앱 테스트에 같은 내용 복사(각 40여 줄) | `ApplicationLayerScanAssertions` 1곳, 앱 테스트는 호출 2줄 |
+| 중첩 클래스 참조 | `WebApiApplication.ApplicationLayerScanConfig.class` 직접 참조 | 부트스트랩의 중첩 클래스 중 단순명 `ApplicationLayerScanConfig`를 찾는다 — 이름을 바꾸거나 지우면 "must declare nested ApplicationLayerScanConfig"로 실패 |
+| 추가 단정 | 없음 | 넘긴 마커가 `AppOwnership.MARKERS`에 있고 `SharedApp`이 아닐 것 · 부트스트랩의 중첩 클래스 중 `@ComponentScan`/`@ComponentScans`를 가진 것은 `ApplicationLayerScanConfig` 하나뿐일 것(잘못된 마커를 단 두 번째 스캔 클래스 차단) |
+| 동작 | — | 기존 단정 동일 + 위 추가 단정으로 강화(앱 런타임 동작 변경 없음. 반증 실측: web 테스트에 `AdminApp`을 넘기면 실패) |
+
+단정 내용(순수 자바 리플렉션 `getDeclaredAnnotation` — Spring `MergedAnnotations`는 `@SpringBootApplication` → `@EnableAutoConfiguration` → `@Import`를 따라가 "`@Import` 없음" 단정이 항상 실패하므로 쓰지 않는다):
+
+- `basePackages == {"com.tastyhouse.application"}`, `value`·`basePackageClasses`는 비어 있다.
+- `useDefaultFilters == false`, `excludeFilters`는 비어 있다.
+- include 필터가 정확히 1개이고 타입이 `FilterType.ANNOTATION`이며 `classes == {WebApp, SharedApp}`.
+- 부트스트랩 클래스 자체에는 직접 선언된 `@ComponentScan`·`@ComponentScans`·`@Import`가 없다.
+
+**왜 막는가**: 마커 하나 오기입(예: 다른 앱의 마커)은 다른 앱의 빈과 권한 경계를 이 앱에 싣는데, 컴파일도 ArchUnit도 못 잡는 보안 회귀다. 과거에는 4개 설정이 마커 옆 `application` 모듈에 모여 리뷰로 볼 수 있었지만 지금은 4개 앱 모듈로 흩어져 앱마다 자기 것을 지킨다.
+
+**왜 중첩 클래스인가**: Spring Framework 6.1.5 `ConfigurationClassParser`는 직접 붙은 `@ComponentScan`을 먼저 모으고 하나라도 있으면 메타 애노테이션(`@SpringBootApplication` 안의 스캔)을 무시한다. `@SpringBootApplication` 클래스에 직접 달면 앱 자기 패키지 스캔과 Boot의 `TypeExcludeFilter`·`AutoConfigurationExcludeFilter`가 조용히 사라지므로 금지다(위 마지막 단정이 이를 막는다). 중첩 `@Configuration`은 별도 설정 클래스로 처리돼 안전하며, 부작용으로 application 클래스패스 스캔이 기동 시 2회 돌지만 빈 집합은 같다.
 
 ### `shouldDependOnOauthSpiOnlyNotProviderPackages` — 3앱 중 web-api에만 있다
 

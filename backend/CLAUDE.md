@@ -65,7 +65,14 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
 ## 모듈 등록 컨벤션 (auto-configuration — 챕터 02)
 
-**챕터 02로 라이브러리 모듈 13개 전부가 `@Import` 수동 조합에서 Spring Boot auto-configuration으로 전환됐다.** 과거에는 앱의 `*Application.java`가 `@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, SecurityModuleConfig.class, ...})`처럼 라이브러리 모듈 설정 클래스를 나열해 "앱은 자기 패키지만 스캔하고 라이브러리 모듈은 명시적으로 조합한다"는 것이 표준 구성이었다. 지금은 그 반대다 — **라이브러리 모듈이 자기 자신을 등록**하고, 앱은 `{App}ApplicationConfig` 하나만 `@Import`한다(이것은 `application` 모듈의 예외 — 아래 참고).
+**챕터 02로 라이브러리 모듈 13개 전부가 `@Import` 수동 조합에서 Spring Boot auto-configuration으로 전환됐다.** 과거에는 앱의 `*Application.java`가 `@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, SecurityModuleConfig.class, ...})`처럼 라이브러리 모듈 설정 클래스를 나열해 "앱은 자기 패키지만 스캔하고 라이브러리 모듈은 명시적으로 조합한다"는 것이 표준 구성이었다. 지금은 그 반대다 — **라이브러리 모듈이 자기 자신을 등록**하고, 앱은 `@Import`를 하나도 갖지 않는다. `application` 모듈의 마커 스캔은 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로) 참고). **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 앱이 `{App}ApplicationConfig` 하나만 `@Import`했고 그 클래스가 `application` 모듈 안에 있었다.
+
+| 항목 | before | after |
+|---|---|---|
+| 앱의 `@Import` | `@Import({App}ApplicationConfig.class)` 1줄 | 없음(0줄) |
+| 마커 스캔 `@ComponentScan`의 위치 | `application` 모듈의 `{Web,Admin,Ceo,Batch}ApplicationConfig` 4개 | 각 앱 부트스트랩 안의 `static class ApplicationLayerScanConfig` 4개 |
+| `application` 모듈이 아는 것 | "어느 앱이 어떤 마커를 싣는가"(앱 조립 지식) | 없음 — 마커 애노테이션만 제공 |
+| 동작 | — | 변경 없음(스캔 대상·필터·빈 집합 동일) |
 
 ### 컨벤션 본문
 
@@ -76,7 +83,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 - **`@ConfigurationProperties`는 `@EnableConfigurationProperties` 명시 등록 유지**: auto-configuration 클래스에 `@EnableConfigurationProperties(XxxProperties.class)`를 그대로 붙인다. 이 부분은 전환 전후로 바뀌지 않았다.
 - **모듈 yml은 여전히 앱 `spring.config.import`로 로딩한다**: 자동 로딩은 `EnvironmentPostProcessor`가 있어야 가능한데 이번 전환 범위가 아니며, `@PropertySource`로는 `logging.*`이나 `optional:configtree:` 같은 특수 프로퍼티 소스가 동작하지 않는다. 그래서 모듈을 앱에 붙이는 비용은 여전히 "gradle 1줄 + (설정이 있으면) yml import 1줄"이다.
 - **escape hatch — `spring.autoconfigure.exclude`**: 특정 환경에서 특정 auto-configuration을 끄고 싶으면 이 표준 Boot 프로퍼티를 쓴다. 이 저장소가 별도 온오프 스위치를 만들지 않는 이유이기도 하다(§"클래스패스 존재 = 활성화" 참고 — 프로퍼티 스위치를 새로 만들면 보안 회귀를 반복하기 쉽다).
-- **auto-config를 갖지 않는 예외 5건**: `application`(앱 정체성을 표현하는 `{App}ApplicationConfig`가 여전히 `@Import`되는 대상이라 자기 등록 대상이 아니다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
+- **auto-config를 갖지 않는 예외 5건**: `application`(앱별 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 소유하고, application에는 등록 클래스가 없다 — 자기 등록할 대상 자체가 없다. **(번복됨 — application `*ApplicationConfig` 삭제)** 과거 사유는 "`{App}ApplicationConfig`가 `@Import`되는 대상이라 자기 등록 대상이 아니다"였다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
 
 ### "클래스패스 존재 = 활성화" 원칙
 
@@ -133,17 +140,17 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
 ### 앱별 의존 (전환 후 — `runtimeOnly`로 하향)
 
-| 앱 | `implementation` | `runtimeOnly` | 남는 `@Import` |
+| 앱 | `implementation` | `runtimeOnly` | 남는 `@Import` (before) → 마커 스캔 위치 (after) |
 |---|---|---|---|
-| web-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | `WebApplicationConfig` |
-| admin-api / ceo-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` | `AdminApplicationConfig` / `CeoApplicationConfig` |
-| batch-module | `:application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | `BatchApplicationConfig` |
+| web-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | before `WebApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| admin-api / ceo-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` | before `AdminApplicationConfig` / `CeoApplicationConfig` → after 없음, 각 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| batch-module | `:application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | before `BatchApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
 
 3앱의 `implementation` 열에 있던 `spring-boot-starter-data-redis`는 **챕터 01에서 삭제됐다** — 앱이 `StringRedisTemplate`을 직접 참조하던 `config/jwt/RedisRepositoryConfig`가 사라져 그 명시 선언의 근거가 소멸했기 때문이다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지)). `runtimeOnly` 열은 불변이다.
 
 `:infrastructure:restclient`(구 `:infrastructure:external` → `:infrastructure:http-client`를 거쳐 개명)·`:infrastructure:firebase`는 챕터 03부터 앱이 **직접 선언하지 않는다** — `:infrastructure:firebase`는 `:infrastructure:file-storage` 스타터가 `runtimeOnly`로 묶어 노출하므로 전이로 `runtimeClasspath`에만 실린다. `:infrastructure:restclient`는 코어 SPI 삭제 후 스타터의 조립 대상에서 빠져, web(oauth 경유 — 스타터 `oauth`가 벤더 4종을 `runtimeOnly`로 조립하고 벤더가 코어를 의존한다 —·pg 경유 — `pg`가 `tosspayments`를 `runtimeOnly`로 조립하고 `tosspayments`가 코어를 의존한다 —·solapi 경유)과 batch(bbq·admdongkor 경유)에만 전이로 실리고 **admin·ceo의 `runtimeClasspath`에는 없다**(webflux도 리포 전체에서 제거됐다)(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03) 참고).
 
-4앱의 `compileClasspath`에는 이제 `infrastructure:*`·`logging-module`이 **없고**(실측), `runtimeClasspath`에는 있다. api 모듈은 라이브러리 모듈의 어댑터 클래스를 컴파일 시점에 아예 볼 수 없다(헥사고날 경계가 의존 스코프로 강제된다) — 남는 `@Import`는 `{App}ApplicationConfig` 하나뿐이며, 이것은 위 예외 5건의 `application` 모듈 케이스와 같은 것이다.
+4앱의 `compileClasspath`에는 이제 `infrastructure:*`·`logging-module`이 **없고**(실측), `runtimeClasspath`에는 있다. api 모듈은 라이브러리 모듈의 어댑터 클래스를 컴파일 시점에 아예 볼 수 없다(헥사고날 경계가 의존 스코프로 강제된다) — 앱에 `@Import`는 남지 않는다. `application`의 마커 스캔은 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 맡는다(위 예외 5건의 `application` 케이스). **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 `{App}ApplicationConfig` 하나가 `@Import`로 남아 있었다.
 
 ### 벤더 선택은 앱이 아니라 스타터 모듈이 한다 (챕터 03)
 
@@ -232,9 +239,12 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
   반증 probe 7종(Shared → Web 주입, `..service..` 밖 마커-only, 구현체가 다른 앱뿐인 인터페이스 주입, 마커 2개, 마커 누락 POJO 주입, `MailSender`·`List<PgProviderGateway>`를 받는 `@SharedApp`)으로 각 규칙이 실제로 실패하는 것을 확인했다. **남은 사각지대**: 마커 오배정으로 빈이 빠지는 것은 위 규칙이 잡지만, 최종 확인은 4앱 `java -jar` 기동뿐이다(contextLoads 테스트는 빈 껍데기). `List<I>` 주입은 구현체가 0개여도 기동이 되므로 규칙이 잡지 못한다. 상세는 `application/AGENTS.md`의 "봉인·가드 목록"·"코드 주석에서 이관된 설계 근거" 절.
 - **빈과 UseCase 인터페이스는 정확히 하나씩 단다**: `@Service`/`@Component` 빈 242개(@Service 220 + @Component 22)와 `..port.in..`의 UseCase 인터페이스 257개 전부에 마커가 붙어 있다. 형태는 `@Service` 애노테이션 바로 옆에 마커를 병기하는 두 줄이다(예: `@Service` 다음 줄 또는 같은 줄에 `@WebApp`). **(ServiceConfig 삭제 후 추가)** 여기에 더해 `..service..`의 도메인 서비스 78개는 `@Service` 없이 **마커 한 줄만** 단다(위 항목) — `beansShouldHaveExactlyOneAppMarker`는 이 마커-only 서비스도 대상으로 삼는다.
-- **Command record에는 마커를 달지 않는다 — 소속은 유도한다**: 300여 개 record에 손으로 마커를 다는 것은 누락이 확실하다는 판단으로, `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/application/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄, 고정점까지)로 유도한다. 유도 결과가 0개면 고아(죽은 코드), 2개 이상이면 앱 간 공유(경계 위반)로 둘 다 위반이다. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로, `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다. 이 목록에는 이런 "런타임 역직렬화로만 생성되는" 경우만 담고, 새 항목을 추가하기 전에 그 record를 실제로 어디서 만드는지부터 확인한다.
+- **Command record에는 마커를 달지 않는다 — 소속은 유도한다**: 300여 개 record에 손으로 마커를 다는 것은 누락이 확실하다는 판단으로, `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄, 고정점까지)로 유도한다. 유도 결과가 0개면 고아(죽은 코드), 2개 이상이면 앱 간 공유(경계 위반)로 둘 다 위반이다. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로, `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다. 이 목록에는 이런 "런타임 역직렬화로만 생성되는" 경우만 담고, 새 항목을 추가하기 전에 그 record를 실제로 어디서 만드는지부터 확인한다.
   - `AppOwnership`은 `application`의 `testFixtures`에 있고 `java-test-fixtures` 플러그인으로 api 4모듈이 `testImplementation(testFixtures(project(':application')))`로 재사용한다 — api 모듈의 `adaptersShouldOnlyUseOwnAppUseCases`도 같은 유도(컨트롤러가 의존하는 Command record가 자기 앱 것인지 판정)가 필요하기 때문이다.
-- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 4개 `*ApplicationConfig`(`WebApplicationConfig` 등)가 `com.tastyhouse.application` 루트로 이동했고 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = {XxxApp.class, SharedApp.class}))` 형태다(자기 앱 마커 + 리스너 전용 `SharedApp`). **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 기동 시점에 그 빈이 처음 필요해질 때 `NoSuchBeanDefinitionException`으로만 드러난다. api 4모듈의 `@Import(XxxApplicationConfig.class)`는 불변이고 jar 이름·경로도 불변이다.
+- **스캔이 패키지에서 애노테이션으로 바뀌었다**: 마커 스캔은 각 앱 부트스트랩(`WebApiApplication`·`AdminApiApplication`·`CeoApiApplication`·`BatchApplication`) 안의 static 중첩 `ApplicationLayerScanConfig`가 소유하며 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = {XxxApp.class, SharedApp.class}))` 형태다(자기 앱 마커 + 리스너 전용 `SharedApp`). **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 기동 시점에 그 빈이 처음 필요해질 때 `NoSuchBeanDefinitionException`으로만 드러난다. jar 이름·경로는 불변이다.
+  - **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 이 `@ComponentScan`이 `application` 모듈의 `{Web,Admin,Ceo,Batch}ApplicationConfig`에 있었고 앱이 `@Import`했다. `application`이 "어느 앱이 어떤 마커를 싣는가"라는 조립 지식을 갖는 것은 [컴포지션 루트 규칙](#앱이-가질-수-있는-조립-코드의-상한)에 어긋나 4클래스를 삭제하고 각 앱으로 옮겼다. 동작(HTTP·DB·빈 집합)은 변경 없다.
+  - **중첩 클래스여야 하는 이유(Spring 6.1 함정)**: Spring Framework 6.1.5 `ConfigurationClassParser`는 설정 클래스에 **직접 붙은** `@ComponentScan`을 먼저 모으고, 하나라도 있으면 메타 애노테이션(`@SpringBootApplication` 안의 `@ComponentScan`)은 **무시한다**. 그래서 `@SpringBootApplication` 클래스에 `@ComponentScan`을 직접 달면 앱 자기 패키지 스캔과 Boot의 `TypeExcludeFilter`·`AutoConfigurationExcludeFilter`가 **조용히 사라진다**(금지). static 중첩 `@Configuration`은 별도 설정 클래스로 처리되어 이 문제가 없다. 부작용으로 `com.tastyhouse.application` 클래스패스 스캔이 기동 시 2회 돈다(중첩 클래스 처리 경로 + 앱 기본 스캔이 모두 이 클래스를 발견; 두 번째는 `ClassPathBeanDefinitionScanner.isCompatible`로 건너뛰어 빈은 중복되지 않는다). 설정 클래스 자신의 빈 이름은 `webApiApplication.ApplicationLayerScanConfig`처럼 되지만 주입 대상이 아니다.
+  - **가드**: 각 앱 모듈의 `ApplicationLayerScanConfigTest`(마커 오기입·직접 선언 금지 — 단정 본문은 `application` testFixtures의 `ApplicationLayerScanAssertions` 한 곳에 있고 앱 테스트는 부트스트랩·마커만 넘긴다. 단정을 바꿀 때 4개 앱을 함께 고칠 필요가 없다)와 `application`의 `LayerRulesTest#applicationShouldNotDeclareComponentScan`(앱 조립 config가 application에 되살아나는 것 차단). 상세는 각 모듈 `AGENTS.md`의 `## 봉인·가드 목록`.
 - **`<ctx>/port/out`의 의미가 넓어졌다** — 평탄화 이전에는 "읽기 계약(QueryPort·Result·SearchCondition)"만의 자리였으나, 지금은 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약 + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
   - **이 확장이 `commandServicesShouldNotDependOnQueryPorts`를 이름 기준으로 바꾸게 만들었다**: `port.out`에 Command 반환 record가 함께 살게 되면서, 이 규칙이 여전히 패키지 술어(`resideInAPackage("..port.out..")`)였다면 그 record를 반환하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡혔을 것이다. 그래서 판별을 **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바꿨다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryPorts`도 이름 기준으로 전환했다.
 - **ArchUnit 규칙 4종(`AppIsolationTest`, `application` 모듈)**: `appsShouldNotDependOnEachOther`(마커 5종의 5×4=20조합 — 앱 간 수평 의존 금지, 공유는 domain과 읽기 계약 + `@SharedApp` 리스너뿐. `SharedApp`이 `AppOwnership.MARKERS`에 들어가 공유 리스너 ↔ 앱 전용 빈 사이 의존도 양방향으로 금지된다), `beansShouldHaveExactlyOneAppMarker`, `useCasesShouldHaveExactlyOneAppMarker`, `commandRecordsShouldBelongToExactlyOneApp`(위 유도 결과 검증). 마커별 빈·UseCase 개수 하한(`markerBeanCounts`·`markerUseCaseCounts`)이 앱별 anchor를 승계한다(`markerBeanCounts`에는 `@SharedApp` 빈 ≥ 12 포함). **(번복됨 — application `*ServiceConfig` 삭제)** 지금 `appsShouldNotDependOnEachOther`는 앱 마커 → `..service..`의 `@SharedApp` 도메인 서비스 단방향 의존을 허용하고, 규칙이 2개(`constructorDependenciesShouldBeVisibleToApp`·`appRestrictedPortDependentsShouldBelongToThatApp`) 늘었으며, `markerBeanCounts` 하한은 마커-only 서비스를 포함해 `@WebApp` ≥83 · `@AdminApp` ≥65 · `@CeoApp` ≥122 · `@BatchApp` ≥15 · `@SharedApp` ≥47이다(위 "application `*ServiceConfig` 전면 삭제" 항목의 표).
@@ -1007,7 +1017,7 @@ import는 **5개 그룹**으로 나눕니다. 앞의 4개는 Spring Framework가
 | 1 | **Domain** (중심) | `domain` — `domain.shared`·`domain.exception`도 **여기에 포함됩니다** |
 | 2 | **Application** | `application` — `port.in`·`port.out`(`port.out.write` 포함)·`service`·`listener`·`shared` 전부 |
 | 3 | 바깥 원: **driven 어댑터** (Persistence 쪽) | `external` · `infrastructure` · `restclient` |
-| 4 | 바깥 원: **공유 횡단 모듈** | `apicommon` · `logging` · `security` |
+| 4 | 바깥 원: **공유 횡단 모듈** | `apicommon` · `architecture`(`application` testFixtures 전용 — 테스트 코드에서만 나온다) · `logging` · `security` |
 | 5 | 바깥 원: **driving 어댑터** (Presentation 쪽) | `adminapi` · `batch` · `ceoapi` · `webapi` — 내부는 아래 5-a → 5-b |
 
 - **같은 순위 안에서는 ASCII 알파벳 오름차순**으로 정렬합니다. 3순위 안에서는 `external` → `infrastructure` → `restclient` 순서입니다.
@@ -1706,7 +1716,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 ### 앱이 가질 수 있는 조립 코드의 상한
 
-**`@Import({App}ApplicationConfig)` 한 줄(앱 정체성) + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 `@Import` 1줄만 갖는다.
+**부트스트랩 중첩 `ApplicationLayerScanConfig` 1개(마커 스캔) + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 부트스트랩 중첩 클래스 1개만 갖는다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이전 상한은 `@Import({App}ApplicationConfig)` 한 줄이었다(그 클래스가 `application` 모듈에 있었다).
 
 허용되는 앱 `@Configuration`은 두 종류뿐이다.
 
@@ -1717,7 +1727,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 ### 비채택 대안과 재고 조건
 
-- **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication` + `@Import` 두 줄뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때.
+- **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication`과 마커 스캔 중첩 클래스(앱마다 마커만 다른 같은 틀 4벌)뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때, 또는 중첩 스캔 클래스가 마커 스캔 이상으로 자라날 때. (과거 표현: "`@SpringBootApplication` + `@Import` 두 줄뿐" — `*ApplicationConfig` 삭제로 번복됨.)
 - **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 7개 어댑터를 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 auto-config가 어느 앱에서 발화하는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
 
 ### [존재] 사례 해설 — `@RateLimit`의 앱 배선은 0줄이다

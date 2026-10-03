@@ -18,6 +18,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScans;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.application.shared.marker.AdminApp;
@@ -440,6 +442,16 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.apicommon..")
             .because("유스케이스 계층은 표현 모듈(api-common-module)을 알지 않는다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void applicationShouldNotDeclareComponentScan() {
+        ArchRule rule = noClasses()
+            .should().beMetaAnnotatedWith(ComponentScan.class)
+            .orShould().beMetaAnnotatedWith(ComponentScans.class)
+            .because("앱별 스캔 범위는 각 앱 부트스트랩의 ApplicationLayerScanConfig가 소유한다 — application은 앱 조립을 모른다");
 
         rule.check(classes);
     }

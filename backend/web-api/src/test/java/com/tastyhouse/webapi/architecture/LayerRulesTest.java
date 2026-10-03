@@ -16,8 +16,8 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.architecture.AppOwnership;
 import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.architecture.AppOwnership;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;

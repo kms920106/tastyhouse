@@ -12,12 +12,12 @@
 
 ```
 com.tastyhouse.batch/                  ← 이 모듈 (부트스트랩 + driving adapter)
-├── BatchApplication.java          @SpringBootApplication + @EnableScheduling + @Import(BatchApplicationConfig)
+├── BatchApplication.java          @SpringBootApplication + @EnableScheduling + 중첩 ApplicationLayerScanConfig(@ComponentScan 마커 필터) — @Import 없음
 └── <job>/adapter/in/scheduler/     @Scheduled 트리거 클래스(로직 없음, UseCase 호출만)
                                     잡 슬러그 7종 — region · grade · product · productsoldout · rank · reviewblind · search
 
 com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 앱 패키지가 이 하나로 평탄화됨)
-├── BatchApplicationConfig.java    @ComponentScan(마커 필터) 진입점 — 이 모듈을 쓰는 앱이 @Import 한다
+│   (루트에는 클래스가 없다 — 과거 BatchApplicationConfig.java는 삭제됐다. 마커 스캔은 BatchApplication의 중첩 ApplicationLayerScanConfig가 소유한다)
 ├── <job>/port/in/                 잡 UseCase 인터페이스(`@BatchApp` 부착, 입력이 없어 Command record 불필요)
 ├── <job>/service/                 *SchedulerService(`@BatchApp` 부착) implements {Job}UseCase + *Executor/*Runner
 ├── crawling/bbq/                  BBQ 크롤링 동기화(application 서비스 — 아래 "왜 함께 옮겼나" 참고)
@@ -56,7 +56,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ## Dependencies
 
 ### Internal
-- `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + `BatchApplicationConfig`(`BatchApplication`이 `@Import`)
+- `application` (implementation) — 잡 UseCase 인바운드 포트(트리거가 주입) + 마커 애노테이션 `BatchApp`·`SharedApp`(`BatchApplication`의 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `BatchApplicationConfig`를 `@Import`)
 - `infrastructure:persistence` (**runtimeOnly**, 챕터 02 개정) — DAO 구현체가 뜨는 빈 스캔 대상. `com.tastyhouse.infrastructure..`·`com.querydsl..` 소스 import는 ArchUnit이 전면 차단. auto-configuration 전환으로 `@Import`용 컴파일 타임 참조가 사라져 `implementation`에서 내려갔다
 - `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터(챕터 03). 자바 코드 없이 `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:restclient`는 스타터가 아니라 아래 `infrastructure:bbq`·`infrastructure:admdongkor`를 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
 - `infrastructure:bbq` (**runtimeOnly**) — `external.bbq.BbqApiClient`(BBQ 메뉴 HTTP 클라이언트)·`external.bbq.RemoteImageDownloader`. 설정은 `application-bbq.yml`
@@ -71,7 +71,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 빈 배선 (챕터 02 개정 — auto-configuration)
 
-**과거 `BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합했다. 지금은 `@Import(BatchApplicationConfig.class)` 하나만 남는다.** `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`RestClientModuleAutoConfiguration`(구 `ExternalModuleAutoConfiguration`/`ExternalModuleConfig` → `HttpClientModuleAutoConfiguration`을 거쳐 개명)·`FirebaseModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`·`LoggingModuleAutoConfiguration`은 전부 각자 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 auto-configuration이 되어, "쓰는 앱이 `@Import`한다"는 배선 방식 자체가 사라졌다. `BatchApplicationConfig`만 여전히 `@Import`하는 이유는 그것이 batch **앱 자신의 정체성**(`@ComponentScan` + 마커 필터)이라 자동 등록 대상이 아니기 때문이다(`application` 모듈은 auto-configuration을 갖지 않는다 — 위 `backend/CLAUDE.md`의 모듈 등록 컨벤션 참고).
+**과거 `BatchApplication`은 `@Import({InfrastructureModuleConfig, ExternalModuleConfig, LoggingModuleConfig, BatchApplicationConfig})`로 각 모듈의 진입점 설정을 조합했다. 지금은 `@Import`가 하나도 없다.** (번복됨 — application `*ApplicationConfig` 삭제: 그 직전 상태는 `@Import(BatchApplicationConfig.class)` 하나였다.) `PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)·`RestClientModuleAutoConfiguration`(구 `ExternalModuleAutoConfiguration`/`ExternalModuleConfig` → `HttpClientModuleAutoConfiguration`을 거쳐 개명)·`FirebaseModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`·`LoggingModuleAutoConfiguration`은 전부 각자 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 auto-configuration이 되어, "쓰는 앱이 `@Import`한다"는 배선 방식 자체가 사라졌다. batch **앱 자신의 정체성**(`@ComponentScan` + 마커 필터)은 `BatchApplication`의 static 중첩 `ApplicationLayerScanConfig`가 소유한다. `application` 모듈은 auto-configuration도 스캔 선언도 갖지 않는다 — 위 `backend/CLAUDE.md`의 모듈 등록 컨벤션 참고. **왜 중첩 클래스인가(과거 "왜 `BatchApplicationConfig`를 `@Import`하는가"의 답을 대체)**: Spring Framework 6.1.5는 설정 클래스에 직접 붙은 `@ComponentScan`이 있으면 `@SpringBootApplication`의 메타 `@ComponentScan`을 무시해 앱 기본 스캔이 사라지므로 직접 선언은 금지이고, 중첩 `@Configuration`은 별도 설정 클래스로 처리돼 안전하다. 부작용으로 application 클래스패스 스캔이 기동 시 2회 돌지만 빈 집합은 같다.
 
 **아래 §다음 절이 이 배선 변화의 핵심 — batch가 non-servlet인 이유를 이 문서가 유일하게 담보한다는 사실은 그대로 유효하다.**
 
@@ -87,7 +87,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 외부 수집(`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)은 이 모듈이 실제로 쓰는 의도된 발화다. **Redis(`RedisModuleAutoConfiguration`)는 챕터 01부터 이 모듈에서 발화하지 않는다** — 과거 "전이로 끌려온 의도치 않은(그러나 무해한) 발화"였던 것이 전이 경로 소멸로 사라졌다(§챕터 02 감사표의 batch 행은 이 개정으로 갱신 대상이다).
 
-> **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, `@Import`에서 모듈 하나를 빠뜨려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
+> **이 모듈에는 `contextLoads` 테스트가 없다.** web/admin/ceo와 달리 `BatchApplicationTests`가 없어서, 마커 스캔 설정(`ApplicationLayerScanConfig`)이 빠지거나 마커가 틀려도 **빌드는 green이고 jar만 조용히 깨진다**(빈을 못 찾아 부팅 실패. 마커 오기입은 `ApplicationLayerScanConfigTest`가 잡는다). 배선을 건드렸으면 빌드만 믿지 말고 실제로 띄워 `Started BatchApplication` 마커를 확인한다.
 >
 > ```bash
 > pkill -f 'batch-module-.*\.jar'
@@ -143,6 +143,32 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ## 봉인·가드 목록
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+
+### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/ApplicationLayerScanConfigTest.java`
+→ `BatchApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/batch-module/src/main/java/com/tastyhouse/batch/BatchApplication.java`)의 `@ComponentScan`
+
+**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(BatchApplication.class, BatchApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(BatchApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
+
+| 항목 | before | after |
+|---|---|---|
+| 단정 본문 위치 | 4개 앱 테스트에 같은 내용 복사(각 40여 줄) | `ApplicationLayerScanAssertions` 1곳, 앱 테스트는 호출 2줄 |
+| 중첩 클래스 참조 | `BatchApplication.ApplicationLayerScanConfig.class` 직접 참조 | 부트스트랩의 중첩 클래스 중 단순명 `ApplicationLayerScanConfig`를 찾는다 — 이름을 바꾸거나 지우면 "must declare nested ApplicationLayerScanConfig"로 실패 |
+| 추가 단정 | 없음 | 넘긴 마커가 `AppOwnership.MARKERS`에 있고 `SharedApp`이 아닐 것 · 부트스트랩의 중첩 클래스 중 `@ComponentScan`/`@ComponentScans`를 가진 것은 `ApplicationLayerScanConfig` 하나뿐일 것(잘못된 마커를 단 두 번째 스캔 클래스 차단) |
+| 동작 | — | 기존 단정 동일 + 위 추가 단정으로 강화(앱 런타임 동작 변경 없음. 반증 실측: web 테스트에 `AdminApp`을 넘기면 실패) |
+
+단정 내용(순수 자바 리플렉션 `getDeclaredAnnotation` — Spring `MergedAnnotations`는 `@SpringBootApplication` → `@EnableAutoConfiguration` → `@Import`를 따라가 "`@Import` 없음" 단정이 항상 실패하므로 쓰지 않는다):
+
+- `basePackages == {"com.tastyhouse.application"}`, `value`·`basePackageClasses`는 비어 있다.
+- `useDefaultFilters == false`, `excludeFilters`는 비어 있다.
+- include 필터가 정확히 1개이고 타입이 `FilterType.ANNOTATION`이며 `classes == {BatchApp, SharedApp}`.
+- 부트스트랩 클래스 자체에는 직접 선언된 `@ComponentScan`·`@ComponentScans`·`@Import`가 없다.
+
+**왜 막는가**: 마커 하나 오기입(예: 다른 앱의 마커)은 다른 앱의 빈과 권한 경계를 이 앱에 싣는데, 컴파일도 ArchUnit도 못 잡는 보안 회귀다. 과거에는 4개 설정이 마커 옆 `application` 모듈에 모여 리뷰로 볼 수 있었지만 지금은 4개 앱 모듈로 흩어져 앱마다 자기 것을 지킨다.
+
+**왜 중첩 클래스인가**: Spring Framework 6.1.5 `ConfigurationClassParser`는 직접 붙은 `@ComponentScan`을 먼저 모으고 하나라도 있으면 메타 애노테이션(`@SpringBootApplication` 안의 스캔)을 무시한다. `@SpringBootApplication` 클래스에 직접 달면 앱 자기 패키지 스캔과 Boot의 `TypeExcludeFilter`·`AutoConfigurationExcludeFilter`가 조용히 사라지므로 금지다(위 마지막 단정이 이를 막는다). 중첩 `@Configuration`은 별도 설정 클래스로 처리돼 안전하며, 부작용으로 application 클래스패스 스캔이 기동 시 2회 돌지만 빈 집합은 같다.
 
 ### `ProductScheduler`의 cron 기본값 `-`를 지우지 않는다
 

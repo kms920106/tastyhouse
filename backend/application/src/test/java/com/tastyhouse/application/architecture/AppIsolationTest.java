@@ -43,6 +43,7 @@ import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shared.marker.WebApp;
 import com.tastyhouse.application.sms.port.out.SmsSender;
 import com.tastyhouse.application.sms.service.SmsVerificationService;
+import com.tastyhouse.architecture.AppOwnership;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;

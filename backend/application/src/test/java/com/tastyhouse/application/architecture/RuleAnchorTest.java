@@ -65,4 +65,18 @@ class RuleAnchorTest {
                 + "queryServicesShouldNotDependOnWritePorts가 공허하게 통과한다")
             .isGreaterThanOrEqualTo(107);
     }
+
+    @Test
+    void testFixturesShouldNotResideInApplicationPackage() {
+        assertThat(classes.stream()
+            .filter(c -> c.getSource()
+                .map(source -> source.getUri().toString())
+                .filter(uri -> uri.contains("test-fixtures") || uri.contains("/testFixtures/"))
+                .isPresent())
+            .map(c -> c.getName())
+            .toList())
+            .as("testFixtures 클래스가 com.tastyhouse.application 아래 있으면 DO_NOT_INCLUDE_TESTS를 통과해 "
+                + "모든 application 대상 규칙의 검사 대상(프로덕션 클래스)으로 섞인다 — com.tastyhouse.architecture에 둔다")
+            .isEmpty();
+    }
 }
