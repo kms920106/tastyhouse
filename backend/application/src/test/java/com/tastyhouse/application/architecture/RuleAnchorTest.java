@@ -1,9 +1,12 @@
 package com.tastyhouse.application.architecture;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
+
+import com.tastyhouse.architecture.ModuleOrigin;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +19,41 @@ class RuleAnchorTest {
 
     private long countSuffix(String suffix) {
         return classes.stream().filter(c -> c.getSimpleName().endsWith(suffix)).count();
+    }
+
+    private long countBeans(String module) {
+        return classes.stream()
+            .filter(c -> !c.isInterface())
+            .filter(c -> c.isAnnotatedWith("org.springframework.stereotype.Service")
+                || c.isAnnotatedWith("org.springframework.stereotype.Component"))
+            .filter(c -> ModuleOrigin.isFrom(c, module))
+            .count();
+    }
+
+    private long countUseCases(String module) {
+        return classes.stream()
+            .filter(JavaClass::isInterface)
+            .filter(c -> resideInAPackage("..port.in..").test(c))
+            .filter(c -> ModuleOrigin.isFrom(c, module))
+            .count();
+    }
+
+    @Test
+    void moduleBeanCounts() {
+        assertThat(countBeans(ModuleOrigin.WEB)).as("web-application 빈").isGreaterThanOrEqualTo(83);
+        assertThat(countBeans(ModuleOrigin.ADMIN)).as("admin-application 빈").isGreaterThanOrEqualTo(65);
+        assertThat(countBeans(ModuleOrigin.CEO)).as("ceo-application 빈").isGreaterThanOrEqualTo(122);
+        assertThat(countBeans(ModuleOrigin.BATCH)).as("batch-application 빈").isGreaterThanOrEqualTo(15);
+        assertThat(countBeans(ModuleOrigin.CORE)).as("core(application) 빈").isGreaterThanOrEqualTo(47);
+    }
+
+    @Test
+    void moduleUseCaseCounts() {
+        assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(50);
+        assertThat(countUseCases(ModuleOrigin.ADMIN)).as("admin-application UseCase").isGreaterThanOrEqualTo(100);
+        assertThat(countUseCases(ModuleOrigin.CEO)).as("ceo-application UseCase").isGreaterThanOrEqualTo(95);
+        assertThat(countUseCases(ModuleOrigin.BATCH)).as("batch-application UseCase").isEqualTo(7);
+        assertThat(countUseCases(ModuleOrigin.CORE)).as("core에는 UseCase가 없다").isZero();
     }
 
     @Test
@@ -73,7 +111,7 @@ class RuleAnchorTest {
                 .map(source -> source.getUri().toString())
                 .filter(uri -> uri.contains("test-fixtures") || uri.contains("/testFixtures/"))
                 .isPresent())
-            .map(c -> c.getName())
+            .map(JavaClass::getName)
             .toList())
             .as("testFixtures 클래스가 com.tastyhouse.application 아래 있으면 DO_NOT_INCLUDE_TESTS를 통과해 "
                 + "모든 application 대상 규칙의 검사 대상(프로덕션 클래스)으로 섞인다 — com.tastyhouse.architecture에 둔다")

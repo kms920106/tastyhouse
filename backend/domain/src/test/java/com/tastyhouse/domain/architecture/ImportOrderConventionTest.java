@@ -33,6 +33,7 @@ class ImportOrderConventionTest {
         Map.entry("architecture", 4),
         Map.entry("logging", 4),
         Map.entry("security", 4),
+        Map.entry("testsupport", 4),
         Map.entry("adminapi", 5),
         Map.entry("batch", 5),
         Map.entry("ceoapi", 5),

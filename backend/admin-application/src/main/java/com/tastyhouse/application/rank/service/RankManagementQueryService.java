@@ -1,0 +1,59 @@
+package com.tastyhouse.application.rank.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.rank.model.RankType;
+import com.tastyhouse.domain.rank.vo.RankPeriodId;
+import com.tastyhouse.domain.rank.vo.RankPrizeId;
+import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
+import com.tastyhouse.application.rank.port.out.MemberRankResult;
+import com.tastyhouse.application.rank.port.out.RankManagementQueryPort;
+import com.tastyhouse.application.rank.port.out.RankPeriodResult;
+import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
+
+@Service
+@Transactional(readOnly = true)
+public class RankManagementQueryService implements RankManagementQueryUseCase {
+
+    private final RankManagementQueryPort rankManagementQueryPort;
+
+    public RankManagementQueryService(RankManagementQueryPort rankManagementQueryPort) {
+        this.rankManagementQueryPort = rankManagementQueryPort;
+    }
+
+    @Override
+    public List<MemberRankResult> getMemberRankList(String type, int limit) {
+        RankType rankType = RankType.from(type);
+        LocalDate baseDate = LocalDate.now();
+
+        return rankManagementQueryPort.findMemberRanks(rankType.name(), baseDate, limit);
+    }
+
+    @Override
+    public List<RankPeriodResult> getPeriods() {
+        return rankManagementQueryPort.findAllPeriods();
+    }
+
+    @Override
+    public RankPeriodResult getPeriod(Long id) {
+        return rankManagementQueryPort.findPeriodById(RankPeriodId.of(id).value())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
+    }
+
+    @Override
+    public List<RankPrizeManagementResult> getPrizesByPeriod(Long periodId) {
+        return rankManagementQueryPort.findPrizesByPeriodId(RankPeriodId.of(periodId).value());
+    }
+
+    @Override
+    public RankPrizeManagementResult getPrize(Long prizeId) {
+        return rankManagementQueryPort.findPrizeById(RankPrizeId.of(prizeId).value())
+            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
+    }
+}

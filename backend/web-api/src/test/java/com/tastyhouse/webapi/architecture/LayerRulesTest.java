@@ -1,13 +1,7 @@
 package com.tastyhouse.webapi.architecture;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -15,9 +9,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
-
-import com.tastyhouse.application.shared.marker.WebApp;
-import com.tastyhouse.architecture.AppOwnership;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -152,43 +143,6 @@ class LayerRulesTest {
                 + "페이징은 application 페이징 계약, enum은 Result의 String으로 받는다");
 
         rule.check(classes);
-    }
-
-    @Test
-    void adaptersShouldOnlyUseOwnAppUseCases() {
-        JavaClasses applicationClasses = new ClassFileImporter()
-            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("com.tastyhouse.application");
-
-        Map<String, Set<Class<? extends Annotation>>> commandApps = new HashMap<>();
-        AppOwnership.derive(applicationClasses)
-            .forEach((record, apps) -> commandApps.put(record.getName(), apps));
-
-        List<String> violations = new ArrayList<>();
-        for (JavaClass adapter : classes) {
-            for (JavaClass dependency : adapter.getDirectDependenciesFromSelf().stream()
-                .map(Dependency::getTargetClass).toList()) {
-                if (!dependency.getPackageName().contains(".port.in")) {
-                    continue;
-                }
-                if (dependency.isInterface()) {
-                    if (!dependency.isAnnotatedWith(WebApp.class)) {
-                        violations.add(adapter.getName() + " -> " + dependency.getName()
-                            + " (다른 앱의 UseCase — @WebApp가 아니다)");
-                    }
-                } else if (dependency.isRecord()) {
-                    Set<Class<? extends Annotation>> apps = commandApps.get(dependency.getName());
-                    if (apps != null && !apps.equals(Set.of(WebApp.class))) {
-                        violations.add(adapter.getName() + " -> " + dependency.getName()
-                            + " (소속 앱 " + AppOwnership.describe(apps) + " — @WebApp가 아니다)");
-                    }
-                }
-            }
-        }
-
-        assertThat(violations)
-            .as("인바운드 어댑터는 자기 앱(@WebApp)의 application 슬라이스만 의존한다")
-            .isEmpty();
     }
 
     @Test

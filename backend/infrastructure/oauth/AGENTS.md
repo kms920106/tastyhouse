@@ -51,11 +51,13 @@ backend/infrastructure/oauth/
 
 ## SPI 규칙 — 계약은 `application`, 구현은 벤더 4모듈
 
+> **(앱 마커 제거 후 갱신)** 계약(`auth.port.out`의 SPI)은 지금 코어 `application`이 아니라 **`web-application`** 모듈에 있다. 소셜 로그인은 web만 쓰므로 web 전용 SPI로 분류됐다. 패키지(`com.tastyhouse.application.auth.port.out`)는 그대로이고, 벤더 4모듈은 `:web-application`을 의존한다. 아래 "`application`"은 `web-application`으로 읽는다.
+
 **소셜 로그인은 `com.tastyhouse.application.auth.port.out`의 SPI를 통해서만 사용한다.**
 
 | 역할 | 위치 |
 |---|---|
-| 계약 — `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`application` 모듈**의 `com.tastyhouse.application.auth.port.out` |
+| 계약 — `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`web-application` 모듈**(앱 마커 제거 전에는 `application`)의 `com.tastyhouse.application.auth.port.out` |
 | 구현 — 제공자별 클라이언트 4종 | 벤더 모듈의 `com.tastyhouse.external.{kakao,naver,apple,facebook}.oauth` |
 | 조립 | 이 모듈(코드 없음) |
 
@@ -82,7 +84,7 @@ backend/infrastructure/oauth/
 ## Dependencies
 
 - `infrastructure:kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth` (runtimeOnly) — 벤더 4종. compileClasspath에는 없다
-- `infrastructure:restclient`·`application`·`domain` 의존 없음 — 그것들은 벤더 모듈이 쓴다
+- `infrastructure:restclient`·`application`·`web-application`·`domain` 의존 없음 — 그것들은 벤더 모듈이 쓴다(벤더는 앱 마커 제거 후 `:web-application`을 의존)
 
 ## 주의
 

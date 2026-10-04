@@ -5,6 +5,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -16,9 +18,8 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ProductImageApprovalService {
 
     private final ProductImageChangeRequestPersistencePort requestPersistencePort;

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -27,10 +29,9 @@ import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePor
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
-@SharedApp
+@Service
 public class ReviewLifecycleService {
 
     private final ReviewPersistencePort reviewPersistencePort;

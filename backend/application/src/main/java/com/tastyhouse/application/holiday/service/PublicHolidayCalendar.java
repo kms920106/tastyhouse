@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
 import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class PublicHolidayCalendar {
 
     private final PublicHolidayPersistencePort publicHolidayPersistencePort;

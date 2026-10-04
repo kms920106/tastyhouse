@@ -7,10 +7,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class PolicyActivatedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PolicyActivatedEventListener.class);

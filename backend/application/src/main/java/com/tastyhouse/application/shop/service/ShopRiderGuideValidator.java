@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.Shop;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ShopRiderGuideValidator {
 
     private static final int VISIT_GUIDE_MAX_LENGTH = 200;

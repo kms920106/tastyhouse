@@ -29,10 +29,38 @@ class ServiceContextBoundaryTest {
 
     private static final Set<String> NON_CONTEXT_PACKAGES = Set.of("shared", "exception");
 
-    private static final Set<String> STEREOTYPES = Set.of(
-        "org.springframework.stereotype.Service",
-        "org.springframework.stereotype.Component",
-        "org.springframework.context.annotation.Configuration"
+    private static final String CONFIGURATION = "org.springframework.context.annotation.Configuration";
+
+    private static final Set<String> EXCLUDED_COLLABORATORS = Set.of(
+        "com.tastyhouse.application.auth.service.AuthPasswordResetService",
+        "com.tastyhouse.application.auth.service.CredentialLoginService",
+        "com.tastyhouse.application.auth.service.PhoneLoginService",
+        "com.tastyhouse.application.auth.service.apple.AppleSocialLoginService",
+        "com.tastyhouse.application.auth.service.facebook.FacebookSocialLoginService",
+        "com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService",
+        "com.tastyhouse.application.auth.service.naver.NaverSocialLoginService",
+        "com.tastyhouse.application.member.service.MemberAuthService",
+        "com.tastyhouse.application.member.service.MemberGradeService",
+        "com.tastyhouse.application.member.service.MemberReviewService",
+        "com.tastyhouse.application.member.service.MemberShopService",
+        "com.tastyhouse.application.payment.service.PaymentCancellationExecutor",
+        "com.tastyhouse.application.payment.service.PaymentConfirmationExecutor",
+        "com.tastyhouse.application.product.service.ProductImageSpecValidator",
+        "com.tastyhouse.application.product.service.ProductNameValidator",
+        "com.tastyhouse.application.product.service.ProductOptionGroupOwnershipValidator",
+        "com.tastyhouse.application.productsoldout.service.ProductSoldOutReleaseExecutor",
+        "com.tastyhouse.application.region.service.AdminDongSyncExecutor",
+        "com.tastyhouse.application.region.service.AdminDongSyncRunner",
+        "com.tastyhouse.application.reservation.service.ReservationBookingExecutor",
+        "com.tastyhouse.application.reviewblind.service.ReviewBlindExpirationExecutor",
+        "com.tastyhouse.application.shop.service.OwnedShopIdProvider",
+        "com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader",
+        "com.tastyhouse.application.shop.service.ShopImageSpecValidator",
+        "com.tastyhouse.application.shop.service.ShopMenuCollectionImageSpecValidator",
+        "com.tastyhouse.application.shop.service.ShopOwnershipValidator",
+        "com.tastyhouse.application.shop.service.StorePriceListImageSpecValidator",
+        "com.tastyhouse.application.shop.service.StorePriceVerificationOwnerReader",
+        "com.tastyhouse.application.shop.service.StorePriceVerificationReader"
     );
 
     private static final Set<String> SEALED_VIOLATIONS = Set.of(
@@ -75,7 +103,7 @@ class ServiceContextBoundaryTest {
         }
 
         assertThat(violations)
-            .as("도메인 서비스(application ..service..의 마커 없는 POJO)는 타 컨텍스트를 ID VO·이벤트·"
+            .as("도메인 서비스(application ..service..에서 UseCase를 구현하지 않는 도메인 서비스)는 타 컨텍스트를 ID VO·이벤트·"
                 + "포트(port.out, write 제외)로만 참조한다 — 타 컨텍스트의 model·write 포트·service 직접 참조 금지(봉인 목록 제외)")
             .isEmpty();
     }
@@ -133,16 +161,48 @@ class ServiceContextBoundaryTest {
             .isEmpty();
     }
 
+    @Test
+    void excludedCollaboratorsShouldNotBeStale() {
+        Set<String> structural = new TreeSet<>();
+        for (JavaClass javaClass : classes) {
+            if (javaClass.getName().startsWith(APPLICATION_ROOT + ".")
+                && contextOf(javaClass.getName()) != null
+                && subpackageSegments(javaClass.getName()).contains("service")
+                && javaClass.isTopLevelClass()
+                && isStructuralDomainService(javaClass)) {
+                structural.add(javaClass.getName());
+            }
+        }
+
+        Set<String> stale = new TreeSet<>(EXCLUDED_COLLABORATORS);
+        stale.removeAll(structural);
+
+        assertThat(stale)
+            .as("제외 목록의 클래스가 사라졌거나 이미 구조 조건으로 빠진다 — 목록에서 지운다(목록은 줄어들기만 한다)")
+            .isEmpty();
+    }
+
+    private static boolean isStructuralDomainService(JavaClass javaClass) {
+        return !javaClass.isInterface()
+            && !javaClass.getSimpleName().endsWith("CommandService")
+            && !javaClass.getSimpleName().endsWith("QueryService")
+            && !javaClass.isAnnotatedWith(CONFIGURATION)
+            && javaClass.getAllRawInterfaces().stream().noneMatch(ServiceContextBoundaryTest::isPortInInterface);
+    }
+
+    private static boolean isPortInInterface(JavaClass javaClass) {
+        String packageName = javaClass.getPackageName();
+        return javaClass.isInterface() && (packageName.endsWith(".port.in") || packageName.contains(".port.in."));
+    }
+
     private List<JavaClass> domainServices() {
         return classes.stream()
             .filter(javaClass -> javaClass.getName().startsWith(APPLICATION_ROOT + "."))
             .filter(javaClass -> contextOf(javaClass.getName()) != null)
             .filter(javaClass -> subpackageSegments(javaClass.getName()).contains("service"))
             .filter(JavaClass::isTopLevelClass)
-            .filter(javaClass -> !javaClass.isInterface())
-            .filter(javaClass -> !javaClass.getSimpleName().endsWith("CommandService"))
-            .filter(javaClass -> !javaClass.getSimpleName().endsWith("QueryService"))
-            .filter(javaClass -> STEREOTYPES.stream().noneMatch(javaClass::isAnnotatedWith))
+            .filter(ServiceContextBoundaryTest::isStructuralDomainService)
+            .filter(javaClass -> !EXCLUDED_COLLABORATORS.contains(javaClass.getName()))
             .toList();
     }
 

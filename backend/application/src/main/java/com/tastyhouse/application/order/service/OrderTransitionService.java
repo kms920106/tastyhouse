@@ -1,5 +1,7 @@
 package com.tastyhouse.application.order.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -8,9 +10,8 @@ import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class OrderTransitionService {
 
     private final OrderPersistencePort orderPersistencePort;

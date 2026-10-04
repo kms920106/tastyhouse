@@ -7,10 +7,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.file.event.FileUploadedEvent;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class FileUploadedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(FileUploadedEventListener.class);

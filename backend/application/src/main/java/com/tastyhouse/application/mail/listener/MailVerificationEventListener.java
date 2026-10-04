@@ -7,10 +7,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class MailVerificationEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(MailVerificationEventListener.class);

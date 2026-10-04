@@ -6,7 +6,7 @@ plugins {
 dependencies {
     implementation platform('software.amazon.awssdk:bom:2.21.46')
 
-    implementation project(':application')
+    implementation project(':web-application')
 
     implementation 'software.amazon.awssdk:ses'
 

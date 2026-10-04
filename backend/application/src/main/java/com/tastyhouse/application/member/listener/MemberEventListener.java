@@ -8,10 +8,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.event.MemberWithdrawnEvent;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class MemberEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(MemberEventListener.class);

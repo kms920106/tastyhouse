@@ -6,7 +6,7 @@
 음식점/가게(Shop) 기반 커머스 플랫폼의 백엔드. Spring Boot 3.2.4 / Java 21 기반 Gradle 멀티모듈 프로젝트로, 회원·주문·결제·리뷰·예약·쿠폰·포인트 등 22개 도메인을 제공한다. 전통적 계층형에서 시작해 **DDD / Clean Architecture(Strangler Fig 점진 전환)** 를 거쳐, `core-module` → `domain` 전환으로 **도메인 계층이 프레임워크를 전혀 모르는(production 의존 0개) 구조**에 도달했다. 비즈니스 규칙을 도메인 객체에 캡슐화하는 Rich Domain Model을 지향한다.
 
 전환 이후 구조의 핵심 네 가지:
-- **`domain`은 프레임워크-프리**다. Spring Web뿐 아니라 JPA·QueryDSL·`spring-tx`/`spring-orm`도 없다 — `@Transactional`/`@Service`/`@Component`가 한 곳도 없고, 도메인 서비스는 순수 POJO이며 빈 등록은 ~~`infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당한다~~ **(번복됨 — application `*ServiceConfig` 삭제)** 지금은 포트를 주입받는 도메인 서비스가 `application/<ctx>/service/`에 살며 클래스에 앱 마커만 달아 스캔으로 등록되고, domain에 남은 순수 계산기·정책만 `application`의 `shared/config/SharedBeanConfig`가 `@Bean`으로 등록한다.
+- **`domain`은 프레임워크-프리**다. Spring Web뿐 아니라 JPA·QueryDSL·`spring-tx`/`spring-orm`도 없다 — `@Transactional`/`@Service`/`@Component`가 한 곳도 없고, 도메인 서비스는 순수 POJO이며 빈 등록은 ~~`infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당한다~~ **(번복됨 — application `*ServiceConfig` 삭제)** 지금은 포트를 주입받는 도메인 서비스가 `application/<ctx>/service/`에 살며 ~~클래스에 앱 마커만 달아~~ **(번복됨 — 앱 마커 제거)** `@Service`를 달고 소비 앱 수에 따라 코어 `application` 또는 `{앱}-application` 모듈에 있으며 스캔으로 등록되고, domain에 남은 순수 계산기·정책만 `application`의 `shared/config/SharedBeanConfig`가 `@Bean`으로 등록한다.
 - **api 모듈(web/admin/ceo/batch)은 QueryDSL도 infrastructure도 모른다**. 조회 계약(`{Ctx}QueryPort` 인터페이스 + `*Result`/`*SearchCondition`)은 패키지 `com.tastyhouse.application.<ctx>.port.out`에 있고, **소유 모듈은 소비자 수로 갈린다** — 한 앱만 쓰면 그 앱의 `{앱}-application`, 2개 이상이 쓰면 `domain`이다(챕터 09로 `application-common-module`이 해체되며 5개 모듈에 분산됐다. 패키지는 그대로라 소비 측 import는 바뀌지 않는다). `infrastructure:persistence`의 `{도메인}QueryAdapter`가 그 인터페이스를 구현한다. 각 앱의 `{도메인}QueryService`는 DAO가 아니라 포트 인터페이스를 주입하므로 `com.tastyhouse.infrastructure..` import가 **0건**이다. `com.tastyhouse.infrastructure..`(전면)·`com.querydsl..` 의존은 4개 모듈의 ArchUnit `LayerRulesTest`가 차단한다.
 - **application 계층은 앱별 모듈로 물리 분리됐다 (모듈 재편 프로그램, 챕터 01~06)**. 도메인당 `{도메인}CommandService`/`{도메인}QueryService` CQRS 쌍은 이제 api 모듈이 아니라 `{web|admin|ceo|batch}-application`이 소유하고(예: `com.tastyhouse.application.notice.service.NoticeQueryService`), api 모듈은 컨트롤러 + `request/`(+ 챕터 06 적용분은 `response/`)를 갖는 **thin adapter**로 축소됐다. **`response/`의 거처는 챕터 06(admin)·09(ceo)·10(web)으로 api 모듈로 이동했다** — 3개 앱 전부 완료(admin 85개·ceo 105개·web 131개, 세 application 모듈의 `io.swagger` import 0건). 모듈 경계가 "계층 × 앱" 2차원이 되어, 계층 위반이 ArchUnit 사후 검출이 아니라 **컴파일 에러**가 된다.
 - **`@QueryProjection`은 전 리포지토리에서 폐지**됐다. `infrastructure:persistence`의 QueryAdapter는 `Projections.constructor(XxxResult.class, ...)`로 Result record를 조립한다 — Result가 QueryDSL을 모르는 계약 모듈(현재는 `{앱}-application`·`domain`)로 이관되어 그 모듈에 apt를 붙일 수 없기 때문이다.
@@ -14,7 +14,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `settings.gradle` | 멀티모듈 정의 — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 1개(`application` — 4개 앱 공통) + 공유 모듈(`domain`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:{restclient,file-storage,firebase,aws-s3,aws-ses,aws-sns,oauth,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
+| `settings.gradle` | 멀티모듈 정의(36개 — 앱 마커 제거로 32 → 36) — 실행 앱 4개(`web-api`, `admin-api`, `ceo-api`, `batch-module`) + application 5개(코어 `application` + 앱 모듈 `web-application`·`admin-application`·`ceo-application`·`batch-application`. ~~application 1개 — 4개 앱 공통~~ 앱 마커 제거로 번복) + 공유 모듈(`domain`, `infrastructure:persistence`, `infrastructure:redis`, `infrastructure:{restclient,file-storage,firebase,aws-s3,aws-ses,aws-sns,oauth,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`, `security-core`, `security-module`, `api-common-module`, `logging-module`) |
 | `build.gradle` | 루트 빌드 — 전 모듈 공통 설정 (Java 21, Spring Boot 플러그인). **spring-cloud-aws BOM은 `infrastructure/aws-s3/build.gradle`로 이관**됐다 — spring-cloud-aws SDK를 쓰는 모듈이 `aws-s3` 하나뿐이라 전 모듈 일괄 imports가 필요 없다(ses·sns는 awssdk BOM을 각자 갖는다). **라이브러리 모듈의 BOM은 `dependencyManagement { mavenBom }`이 아니라 `implementation platform(…)`으로 선언한다** — 블록 방식은 소비 앱으로 전파되지 않아 버전 없는 의존이 앱에서 FAILED가 된다(`infrastructure/aws-s3/AGENTS.md` §Dependencies) |
 | `gradlew` | Gradle Wrapper 실행 스크립트 |
 | `CLAUDE.md` | backend 고유 코딩 컨벤션 (네이밍·DTO·레이어 경계 등). AI 작업 규칙(한국어 응답, 빌드 테스트 생략, 커밋/롤백 금지)은 리포 루트 `../CLAUDE.md` |
@@ -38,11 +38,11 @@
 | `infrastructure/naver-oauth/` | 네이버 로그인 벤더(`NaverOAuthClient`, `oauth.naver.*`). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/naver-oauth/AGENTS.md`) |
 | `infrastructure/apple-oauth/` | 애플 로그인 벤더(`AppleOAuthClient`, `oauth.apple.*`, jjwt). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/apple-oauth/AGENTS.md`) |
 | `infrastructure/facebook-oauth/` | 페이스북 로그인 벤더(`FacebookOAuthClient`, `oauth.facebook.*`). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/facebook-oauth/AGENTS.md`) |
-| `infrastructure/pg/` | **[조립·채널, 코드 없음]** 결제 PG **채널 스타터** — 기본 벤더 tosspayments 조립(`runtimeOnly`)만 하는 자바 코드 없는 모듈. 라우터(`List<PgProviderGateway>` → `PgPaymentGatewayRouter`)는 `application`의 `payment/service/PgPaymentGatewayRouter` 클래스에 `@WebApp` 마커만 달아 등록된다(`PgGatewayConfig`는 덩어리 02/03a로 삭제, 이관처였던 `PgRouterConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/pg/AGENTS.md`) |
+| `infrastructure/pg/` | **[조립·채널, 코드 없음]** 결제 PG **채널 스타터** — 기본 벤더 tosspayments 조립(`runtimeOnly`)만 하는 자바 코드 없는 모듈. 라우터(`List<PgProviderGateway>` → `PgPaymentGatewayRouter`)는 `web-application`의 `payment/service/PgPaymentGatewayRouter`(`@Service`)로 등록된다(앱 마커 제거 전에는 `application` + `@WebApp`. `PgGatewayConfig`는 덩어리 02/03a로 삭제, 이관처였던 `PgRouterConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/pg/AGENTS.md`) |
 | `infrastructure/tosspayments/` | Toss 결제 승인·취소 벤더 구현(`PgProviderGateway` 구현, `provider()`가 `PgProvider.TOSS`). 앱이 아니라 `:pg`가 조립 (see `infrastructure/tosspayments/AGENTS.md`) |
-| `infrastructure/mail/` | **[조립·채널, 코드 없음]** 메일 **채널 스타터** — `mail.provider`·`mail.sender-address` + 기본 벤더 javamail 조립(`runtimeOnly`). `MailVerificationService`는 `application/mail/service/`에서 클래스에 `@WebApp` 마커만 달아 등록된다(`MailDomainConfig`는 덩어리 02/03a로 삭제, 이관처였던 `MailServiceConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/mail/AGENTS.md`) |
+| `infrastructure/mail/` | **[조립·채널, 코드 없음]** 메일 **채널 스타터** — `mail.provider`·`mail.sender-address` + 기본 벤더 javamail 조립(`runtimeOnly`). `MailVerificationService`는 `web-application`의 `mail/service/`에서 `@Service`로 등록된다(앱 마커 제거 전에는 `application` + `@WebApp`. `MailDomainConfig`는 덩어리 02/03a로 삭제, 이관처였던 `MailServiceConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/mail/AGENTS.md`) |
 | `infrastructure/javamail/` | JavaMail(SMTP) 메일 발송 벤더(`JavaMailAdapter` + starter-mail). 앱이 아니라 `:mail`이 조립 (see `infrastructure/javamail/AGENTS.md`) |
-| `infrastructure/sms/` | **[조립·채널, 코드 없음]** SMS **채널 스타터** — `sms.provider`·`sms.sender-number` + 기본 벤더 solapi 조립(`runtimeOnly`). `SmsVerificationService`는 `application/sms/service/`에서 클래스에 `@WebApp` 마커만 달아 등록된다(`SmsDomainConfig`는 덩어리 02/03a로 삭제, 이관처였던 `SmsServiceConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/sms/AGENTS.md`) |
+| `infrastructure/sms/` | **[조립·채널, 코드 없음]** SMS **채널 스타터** — `sms.provider`·`sms.sender-number` + 기본 벤더 solapi 조립(`runtimeOnly`). `SmsVerificationService`는 `web-application`의 `sms/service/`에서 `@Service`로 등록된다(앱 마커 제거 전에는 `application` + `@WebApp`. `SmsDomainConfig`는 덩어리 02/03a로 삭제, 이관처였던 `SmsServiceConfig`도 application `*ServiceConfig` 삭제로 없어졌다). **web-api만 의존** (see `infrastructure/sms/AGENTS.md`) |
 | `infrastructure/solapi/` | Solapi SMS 발송 벤더(`SolapiSmsClient` + restclient). 앱이 아니라 `:sms`가 조립 (see `infrastructure/solapi/AGENTS.md`) |
 | `infrastructure/bbq/` | BBQ 메뉴 수집·원격 이미지 다운로드. **batch-module만 의존** (see `infrastructure/bbq/AGENTS.md`) |
 | `infrastructure/admdongkor/` | 행정동 경계 GeoJSON 수집(원천 `vuski/admdongkor`). **batch-module만 의존** (see `infrastructure/admdongkor/AGENTS.md`) |
@@ -51,7 +51,7 @@
 | `security-module/` | 공유 보안/인증 지원 라이브러리 — `security-core`를 `api`로 재노출하고, 서블릿 결합 타입(JWT 인증 필터·EntryPoint·AccessDeniedHandler)만 잔류한다. **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
 | `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `admin-api/AGENTS.md`) |
-| `application/` | **4개 앱 공통의 application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + batch 잡 서비스·BBQ 크롤링 + auth 토큰·principal + ceo 소유권·이미지 규격 검증기) + 앱 단독 읽기 계약 271개 + 도메인 이벤트 리스너 12종(`<ctx>/listener`). **자바 패키지는 챕터 03으로 `com.tastyhouse.application` 하나로 평탄화됐다** — 앱 소속은 패키지가 아니라 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 리스너 전용 `@SharedApp` = 4앱 전부)이 표현한다. **`response/`는 각 api 모듈로 승격됐다** — `io.swagger`·`apicommon` import가 0건이고 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. infra를 컴파일 클래스패스에 두지 않는다 (see `application/AGENTS.md`) |
+| `application/` | **(앱 마커 제거 후) application 계층의 코어** — 2개 앱 이상이 쓰는 도메인 서비스·리스너·`@Configuration`·`shared/**`·모든 `port.out` 계약을 담고, 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트는 앱 모듈 `web-application/`·`admin-application/`·`ceo-application/`·`batch-application/`(각 `AGENTS.md`)이 담는다. 앱 소속은 마커가 아니라 모듈이 표현한다. 아래는 앱 마커 제거 전 서술이다 — **4개 앱 공통의 application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + batch 잡 서비스·BBQ 크롤링 + auth 토큰·principal + ceo 소유권·이미지 규격 검증기) + 앱 단독 읽기 계약 271개 + 도메인 이벤트 리스너 12종(`<ctx>/listener`). **자바 패키지는 챕터 03으로 `com.tastyhouse.application` 하나로 평탄화됐다** — ~~앱 소속은 패키지가 아니라 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 리스너 전용 `@SharedApp` = 4앱 전부)이 표현한다~~(번복됨 — 앱 마커 제거, 지금은 5모듈 split package). **`response/`는 각 api 모듈로 승격됐다** — `io.swagger`·`apicommon` import가 0건이고 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. infra를 컴파일 클래스패스에 두지 않는다 (see `application/AGENTS.md`) |
 | `ceo-api/` | 점주(매장 오너)용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `ceo-api/AGENTS.md`) |
 | `batch-module/` | 배치 앱의 **부트스트랩 + driving adapter**(`@Scheduled` 트리거 7종) 전담 독립 실행 모듈 (see `batch-module/AGENTS.md`) |
 | `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드 |
@@ -83,29 +83,35 @@
 ### Module Dependency Graph
 ```
 ── 실행 앱 4개 (thin adapter — 컨트롤러/트리거 + request/ + config + 부트스트랩) ──
-web-api ──┬─→ application (implementation)             ← 컨트롤러가 자기 앱의 UseCase 포트를 주입
+web-api ──┬─→ application (implementation)             ← 코어(공유 서비스·port.out 계약·리스너)
+          ├─→ web-application (implementation)         ← (앱 마커 제거) 컨트롤러가 자기 앱의 UseCase 포트를 주입. api project(':application')
           ├─→ domain (implementation)
           ├─→ infrastructure:persistence (runtimeOnly) ← DAO 구현체는 주입하지 않고, 챕터 02로 빈 스캔용 컴파일 참조도 필요 없어졌다(auto-configuration)
           ├─→ infrastructure:{file-storage,oauth,pg,mail,sms} (runtimeOnly) ← 조립 5모듈(스타터 2 + 채널 3)만
           │     ※ file-storage가 firebase를, oauth가 kakao/naver/apple/facebook-oauth를, pg·mail·sms가 tosspayments·javamail·solapi를
           │       전이로 끌어온다 — 앱은 벤더를 모른다
           ├─→ security-module(→security-core 전이) / api-common-module (implementation) / logging-module (runtimeOnly)
-admin-api  ─(동일 패턴) ─→ application
-ceo-api    ─(동일 패턴) ─→ application
+admin-api  ─(동일 패턴) ─→ application + admin-application
+ceo-api    ─(동일 패턴) ─→ application + ceo-application
 batch-module ─(동일 패턴 — security-module·api-common-module 없음, logging-module은 p6spy exclude)
              └→ infrastructure:{file-storage,bbq,admdongkor} (runtimeOnly)
    ※ admin-api·ceo-api는 infrastructure:file-storage 하나뿐이다 — 실사용이 파일 저장 하나여서
      OAuth·결제·메일·SMS·크롤링과 그 SDK를 더 이상 받지 않는다(챕터 01 분리)
-                        └→ application   ← 스케줄러가 잡 UseCase 포트를 주입
-   ※ 4개 api 모듈이 같은 application 모듈을 의존하므로, "자기 앱의 UseCase만 주입"은 빌드가 아니라
-     각 모듈 LayerRulesTest의 adaptersShouldOnlyUseOwnAppUseCases가 강제한다(챕터 01 신설)
+                        └→ application + batch-application   ← 스케줄러가 잡 UseCase 포트를 주입
+   ※ ~~4개 api 모듈이 같은 application 모듈을 의존하므로, "자기 앱의 UseCase만 주입"은 빌드가 아니라
+     각 모듈 LayerRulesTest의 adaptersShouldOnlyUseOwnAppUseCases가 강제한다(챕터 01 신설)~~
+     (번복됨 — 앱 마커 제거) 지금은 각 앱이 자기 {앱}-application만 의존하므로 "자기 앱의 UseCase만 주입"을 빌드가 강제한다.
+     그 규칙은 삭제됐고, 다른 앱 모듈이 섞이는 것은 각 앱의 ApplicationModuleClasspathTest가 막는다
    ※ 챕터 02(auto-configuration 전환)로 라이브러리 모듈 의존이 `implementation` → `runtimeOnly`로 내려갔다.
      앱은 각 모듈의 `{Xxx}ModuleAutoConfiguration`을 `@Import`하지 않는다 — 모듈이
      `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다.
      `security-module`·`api-common-module`만 `implementation`으로 남는다 — 소비 측이 그 모듈의 구체 타입
      (`TokenService`가 쓰는 `JwtTokenProvider`, api-common의 공용 record 등)을 컴파일 타임에 직접 참조하기 때문이다
 
-── application 계층 1개 (infra 의존 없음이 핵심) ──
+── application 계층 5개 (infra 의존 없음이 핵심) — 앱 마커 제거로 1 → 5 ──
+{web,admin,ceo,batch}-application ─→ application (api) + domain·security-core·spring-security-core·spring-web·jackson-databind·spring-tx (implementation)
+   ※ 앱 모듈끼리는 서로를 의존하지 않고, 코어는 앱 모듈을 모른다 — 앱 간 수평 의존은 컴파일 에러다
+   ※ 아래 application 블록이 코어다. 앱 전용 SPI 포트(web: Mail/Sms/PG/Social, batch: BBQ/행정동 경계)는 앱 모듈이 소유한다
 application ─┬→ domain (implementation)   ← 공유 읽기 계약 55개도 여기 있다(앱 단독 271개는 이 모듈 소유)
              ├→ security-core (implementation)        ← web·admin·ceo auth/token의 JwtTokenProvider·토큰 저장소 포트 6종.
              │                                          security-module 대신 이 모듈만 의존해 서블릿 스택을 배제
@@ -113,7 +119,7 @@ application ─┬→ domain (implementation)   ← 공유 읽기 계약 55개�
              ├→ spring-web (implementation)           ← web·admin·ceo MultipartFile 업로드 경계 타입 전용(starter-web 아님)
              ├→ jackson-databind (implementation)     ← ceo ShopStorePriceVerificationCommandService의 ObjectMapper
              └→ spring-tx (implementation)            ← @Transactional 전용, infra 제외로 드러난 의존
-   ※ infrastructure:* 의존 없음 — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약을 이 모듈이 소유하고
+   ※ infrastructure:* 의존 없음 — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약을 이 모듈이(앱 마커 제거 후에는 web-application·batch-application이) 소유하고
      infrastructure:{kakao,naver,apple,facebook}-oauth·infrastructure:bbq·infrastructure:admdongkor가 그것을 구현한다(의존 역전). 되살리면 순환이 되어 빌드가 깨진다
    ※ api-common-module 의존 없음 — 챕터 11로 절단됐다(표현 계약 조립이 api 모듈로 승격 완료).
      빌드 그래프가 1차 방어선이고 applicationShouldNotDependOnApiCommon이 2차 방어선으로 휴면 상태로 남는다
@@ -147,27 +153,29 @@ infrastructure:file-storage ─→ infrastructure:firebase (runtimeOnly)   [조�
 infrastructure:firebase  ─→ application                            + firebase-admin   ← FileStoragePort 직접 구현
    ※ (번복됨 — 덩어리 02/03a) 이 포트는 domain에서 application의 application.file.port.out으로 이관됐다. firebase·아래 aws 계열·pg/mail/sms 벤더의 domain 의존은 그 이관을 따라 전부 application으로 바뀌었다
 infrastructure:aws-s3    ─→ application                            + spring-cloud-aws-starter-s3(+BOM) ← FileStoragePort 직접 구현
-infrastructure:aws-ses   ─→ application  + awssdk:ses(+BOM)
+infrastructure:aws-ses   ─→ web-application  + awssdk:ses(+BOM)
    ※ infrastructure:restclient·채널 모듈 의존 없음(직접·전이 모두) — mail.sender-address는 @Value 키로 읽는다
-infrastructure:aws-sns   ─→ application  + awssdk:sns(+BOM)
+infrastructure:aws-sns   ─→ web-application  + awssdk:sns(+BOM)
    ※ infrastructure:restclient·채널 모듈 의존 없음(직접·전이 모두)
 infrastructure:oauth     ─→ runtimeOnly infrastructure:{kakao,naver,apple,facebook}-oauth ← [조립·스타터] 자바 코드 없음(web 전용)
-infrastructure:kakao-oauth    ─→ infrastructure:restclient, application(auth SPI)          ← SocialOAuthClient 구현(KAKAO)
-infrastructure:naver-oauth    ─→ infrastructure:restclient, application(auth SPI)          ← SocialOAuthClient 구현(NAVER)
-infrastructure:apple-oauth    ─→ infrastructure:restclient, application(auth SPI) + jjwt ← SocialOAuthClient 구현(APPLE)
-infrastructure:facebook-oauth ─→ infrastructure:restclient, application(auth SPI)  ← SocialOAuthClient 구현(FACEBOOK)
+   ※ (앱 마커 제거) 아래 벤더의 "application" 표기 중 web 전용 SPI를 구현하는 것(oauth 4종·tosspayments·javamail·solapi·aws-ses·aws-sns)은
+     지금 web-application을, bbq·admdongkor는 batch-application을 의존한다. persistence·firebase·aws-s3는 application(코어) 그대로
+infrastructure:kakao-oauth    ─→ infrastructure:restclient, web-application(auth SPI)          ← SocialOAuthClient 구현(KAKAO)
+infrastructure:naver-oauth    ─→ infrastructure:restclient, web-application(auth SPI)          ← SocialOAuthClient 구현(NAVER)
+infrastructure:apple-oauth    ─→ infrastructure:restclient, web-application(auth SPI) + jjwt ← SocialOAuthClient 구현(APPLE)
+infrastructure:facebook-oauth ─→ infrastructure:restclient, web-application(auth SPI)  ← SocialOAuthClient 구현(FACEBOOK)
    ※ 4벤더 전부 domain 의존이 없다(카카오·네이버는 애초에 없었고, 애플·페이스북도 실패 표현이 application의
      SocialOAuthResult/SocialOAuthFailure로 바뀌며 덩어리 02/03a로 domain 의존이 사라졌다). jjwt 선언은 apple만 — 컴파일 격리일 뿐이며
      런타임에는 application → security-core 경로로 jjwt가 이미 web 전체에 실린다
-infrastructure:pg        ─→ runtimeOnly infrastructure:tosspayments ← [조립·채널, 코드 없음] 라우터는 application PgPaymentGatewayRouter의 @WebApp 마커로 등록
-infrastructure:tosspayments ─→ infrastructure:restclient, application ← PgProviderGateway 구현(provider()는 application의 PgProviderCode.TOSS)
-infrastructure:mail      ─→ runtimeOnly javamail                  ← [조립·채널, 코드 없음] MailVerificationService는 application에서 @WebApp 마커로 등록
-infrastructure:javamail  ─→ application  + starter-mail            ← MailSender 구현
-infrastructure:sms       ─→ runtimeOnly solapi                     ← [조립·채널, 코드 없음] SmsVerificationService는 application에서 @WebApp 마커로 등록
-infrastructure:solapi    ─→ infrastructure:restclient, application  ← SmsSender 구현
+infrastructure:pg        ─→ runtimeOnly infrastructure:tosspayments ← [조립·채널, 코드 없음] 라우터는 web-application PgPaymentGatewayRouter(@Service)로 등록
+infrastructure:tosspayments ─→ infrastructure:restclient, web-application ← PgProviderGateway 구현(provider()는 web-application의 PgProviderCode.TOSS)
+infrastructure:mail      ─→ runtimeOnly javamail                  ← [조립·채널, 코드 없음] MailVerificationService는 web-application에서 @Service로 등록
+infrastructure:javamail  ─→ web-application  + starter-mail        ← MailSender 구현
+infrastructure:sms       ─→ runtimeOnly solapi                     ← [조립·채널, 코드 없음] SmsVerificationService는 web-application에서 @Service로 등록
+infrastructure:solapi    ─→ infrastructure:restclient, web-application  ← SmsSender 구현
    ※ 벤더(javamail·solapi·aws-ses·aws-sns·tosspayments·{kakao,naver,apple,facebook}-oauth)는 채널 모듈을 의존하지 않는다 — 채널이 벤더를 runtimeOnly로 조립하므로 역방향은 순환
-infrastructure:bbq       ─→ infrastructure:restclient, application(BBQ 포트) (webflux 없음 — 동기 RestClient)
-infrastructure:admdongkor ─→ infrastructure:restclient, application(행정동 경계 포트) + starter-json (webflux 없음)
+infrastructure:bbq       ─→ infrastructure:restclient, batch-application(BBQ 포트) (webflux 없음 — 동기 RestClient)
+infrastructure:admdongkor ─→ infrastructure:restclient, batch-application(행정동 경계 포트) + starter-json (webflux 없음)
    ※ bbq·admdongkor도 domain 의존이 없다 — RemoteImagePort/AdminDongBoundaryPort가 각각 ImageDownloadResult·
      AdminDongBoundaryFetchResult(+BoundaryRing/BoundaryCoordinate, application 소유 좌표 타입)를 반환하도록 바뀌어
      (덩어리 02/03a) domain의 GeoRing/GeoPoint를 벤더가 몰라도 되게 됐다
@@ -208,7 +216,7 @@ domain → 의존 없음 (production 의존 0개)
 - **모듈 경계 원칙 (챕터 05 개정 — 2차원 경계)**: 모듈 경계는 이제 **계층 × 앱** 두 축이다.
   - **계층 축**: `domain`(순수 도메인) → `{앱}-application`(유스케이스) → api 모듈(인바운드 어댑터). `infrastructure/` 아래 21모듈은 **driven 16 + 조립 5**로 나뉜다. `infrastructure:{persistence,redis,restclient,firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,tosspayments,javamail,solapi,bbq,admdongkor}` 16모듈이 아웃바운드(driven) 어댑터 쪽이다(`restclient`는 포트를 구현하지 않는 HTTP 코어지만 벤더가 쓰는 기술 코어라 여기에 센다). 나머지 **조립 5모듈** — 스타터 `file-storage`·`oauth`·`pg`·`mail`·`sms` **전부 코드 없음**(덩어리 02/03a로 `pg`·`mail`·`sms`의 `PgGatewayConfig`/`MailDomainConfig`/`SmsDomainConfig`가 삭제되고 라우터·서비스 등록이 `application`으로 이관됐다) — 는 도메인 포트를 구현하지 않는 컴포지션 루트 조각으로, 앱이 외부 연동을 쓸 때 직접 의존하는 좌표다(`backend/CLAUDE.md`의 "모듈 지도").
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(같은 이름의 서비스가 여러 모듈에 공존하는 것이 정상).
-  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`)와 그 벤더 13모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`tosspayments`·`javamail`·`solapi`·`bbq`·`admdongkor`)이 외부 시스템 연동 어댑터이고, 조립 5모듈(스타터 `file-storage`·`oauth`, 채널 `pg`·`mail`·`sms`)이 그 벤더를 앱에 묶어 준다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 벤더 13 + 채널 3 = 16모듈이 `com.tastyhouse.external..`을 나눠 소유하고, 코어 `restclient`는 `com.tastyhouse.restclient..`를 소유한다 — `file-storage`·`oauth`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다(AWS는 이후 활성화 경로가 다른 채널별로 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 다시 나뉘었다). domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다. **코어는 이후 `WebClient`/webflux를 전면 제거하고 Spring `RestClient`로 통일했으며, 예외 계약(`ExternalApiException`/`ExternalApiErrorCode`)도 완전히 해체해 도메인 `ErrorCode`로 흡수했다 — 지금 이 모듈에는 설정(`RestClientConfig`)만 남는다.** 결제(`infrastructure:pg`)는 벤더 배타 선택이 아니라 **여러 PG 벤더가 공존하며 `PgProvider`로 라우팅**하지만, 그 라우터(`PgPaymentGatewayRouter`)는 이 모듈이 아니라 `application`에서 클래스의 `@WebApp` 마커로 등록된다(덩어리 02/03a로 이 모듈은 코드 없는 채널 스타터가 됐고, 한때 등록을 맡던 `PgRouterConfig`는 application `*ServiceConfig` 삭제로 없어졌다) — 상세는 `backend/CLAUDE.md`의 "공존형 채널 — PG 라우터" 절. 소셜 로그인(`infrastructure:oauth`)도 제공자 4종이 공존하지만 소비 측이 빈 이름으로 주입하므로 라우터 없이 코드 없는 스타터로 조립만 한다(같은 파일의 "공존형 채널 — 소셜 로그인 스타터" 절).
+  - **infrastructure는 기술별로 나눈다**: `infrastructure:persistence`는 domain 포트의 **DB 어댑터 전용**(write `persistence` + read `query` + 이벤트 `listener`), `infrastructure:redis`는 Redis 연결·rate limiting, `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`)와 그 벤더 13모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`tosspayments`·`javamail`·`solapi`·`bbq`·`admdongkor`)이 외부 시스템 연동 어댑터이고, 조립 5모듈(스타터 `file-storage`·`oauth`, 채널 `pg`·`mail`·`sms`)이 그 벤더를 앱에 묶어 준다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**(모듈명과 자바 패키지명은 다를 수 있다: 벤더 13 + 채널 3 = 16모듈이 `com.tastyhouse.external..`을 나눠 소유하고, 코어 `restclient`는 `com.tastyhouse.restclient..`를 소유한다 — `file-storage`·`oauth`는 자바 코드가 없어 소유할 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo가 파일 저장 하나만 쓰는데 OAuth·결제·메일·SMS와 AWS·Firebase SDK를 통째로 받고 있었다(AWS는 이후 활성화 경로가 다른 채널별로 `aws-s3`·`aws-ses`·`aws-sns` 3모듈로 다시 나뉘었다). domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다. **코어는 이후 `WebClient`/webflux를 전면 제거하고 Spring `RestClient`로 통일했으며, 예외 계약(`ExternalApiException`/`ExternalApiErrorCode`)도 완전히 해체해 도메인 `ErrorCode`로 흡수했다 — 지금 이 모듈에는 설정(`RestClientConfig`)만 남는다.** 결제(`infrastructure:pg`)는 벤더 배타 선택이 아니라 **여러 PG 벤더가 공존하며 `PgProvider`로 라우팅**하지만, 그 라우터(`PgPaymentGatewayRouter`)는 이 모듈이 아니라 `web-application`에서 `@Service`로 등록된다(앱 마커 제거 전에는 `application` + `@WebApp`. 덩어리 02/03a로 이 모듈은 코드 없는 채널 스타터가 됐고, 한때 등록을 맡던 `PgRouterConfig`는 application `*ServiceConfig` 삭제로 없어졌다) — 상세는 `backend/CLAUDE.md`의 "공존형 채널 — PG 라우터" 절. 소셜 로그인(`infrastructure:oauth`)도 제공자 4종이 공존하지만 소비 측이 빈 이름으로 주입하므로 라우터 없이 코드 없는 스타터로 조립만 한다(같은 파일의 "공존형 채널 — 소셜 로그인 스타터" 절).
   - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다(과거 "모듈별로 각각 둠" 관례 개정): 세 모듈에 package 선언 1줄만 다르게 복제돼 있던 `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`와 admin↔ceo 복제였던 `GlobalExceptionHandler`를 통합했다. **완전 동일한 것만** 통합하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 복제를 유지한다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`는 빈이므로 web-api의 자체 핸들러와 충돌할 수 있는데, **챕터 02 이후 이것은 스캔 범위가 아니라 조건부 `@Bean`으로 해소된다** — `ApiCommonModuleAutoConfiguration`의 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`가 web에서 스스로 물러난다. (`FileService`는 이후 계층 재배치로 `application`의 유스케이스가 됐고 `apicommon.file` 패키지는 없다.)
 - **소셜 로그인은 `com.tastyhouse.application.auth.port.out` SPI로만 사용**한다: web-api는 제공자별 패키지(`com.tastyhouse.external.kakao.oauth..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClient`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI를 domain이 아니라 `application`이 소유하는 이유(구현은 벤더 4모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`이고 `infrastructure:oauth`는 그것을 조립하는 코드 없는 스타터다. 채널·벤더 분할 전에는 `infrastructure:oauth`, external 분리 전에는 `infrastructure:external`)는 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다(security-module 선례와 동일 판단). 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
@@ -223,7 +231,7 @@ domain → 의존 없음 (production 의존 0개)
 ### Common Patterns
 - 계층 배치: `domain`의 `<ctx>/{model,vo,event,repository,service,port}` / `infrastructure:persistence`의 `<ctx>/{persistence,query,listener}` / api 모듈의 `<ctx>/adapter/in/web/`(컨트롤러 + `request/` + **`response/`** — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 전부) / `{앱}-application`의 `<ctx>/{port/in,service}`.
 - 식별자 강타입화: `record MemberId(Long value)`(domain) + `AttributeConverter`(`infrastructure:persistence`의 `<ctx>/persistence/XxxIdConverter`)로 JPA 매핑. **(번복됨 — 정책 B 이후 `*IdConverter` 삭제, 03b로 `IdMapping`·`AmountConverter`도 삭제)** 엔티티는 raw `Long`이고, `XxxId` 승격·언패킹은 persistence `<ctx>/persistence/XxxMapper`가 null 가드와 함께 한다(`backend/CLAUDE.md` "ID VO 경계 규칙"). ~~03b: `XxxState`·`application/<ctx>/store/XxxStateMapper`~~ **(번복됨 — persistence domain 재허용: 변환 위치만)**
-- BC 간 통신은 도메인 서비스 호출 또는 `DomainEvent`로만. 이벤트 발행은 domain 포트 `DomainEventPublisher`(`domain/shared/event/`)를 통하고, 스프링 구현(`SpringDomainEventPublisher`)은 `infrastructure:persistence`에, 리스너(`<ctx>/listener/`, `@Component @SharedApp` + `@TransactionalEventListener(AFTER_COMMIT)`)는 `application`에 있다.
+- BC 간 통신은 도메인 서비스 호출 또는 `DomainEvent`로만. 이벤트 발행은 domain 포트 `DomainEventPublisher`(`domain/shared/event/`)를 통하고, 스프링 구현(`SpringDomainEventPublisher`)은 `infrastructure:persistence`에, 리스너(`<ctx>/listener/`, `@Component` + `@TransactionalEventListener(AFTER_COMMIT)` — 앱 마커 제거 전에는 `@SharedApp`도 달았다)는 코어 `application`에만 있다(앱 모듈 금지 — `listenersAndConfigsShouldResideInCore`).
 - CQS: 쓰기 `{도메인}CommandService`(`@Transactional`) / 읽기 `{도메인}QueryService`(`@Transactional(readOnly = true)`) — 트랜잭션 경계는 `{앱}-application`의 서비스가 소유한다(domain 서비스는 POJO라 `@Transactional`을 갖지 않는다).
 
 ## Dependencies
@@ -333,6 +341,8 @@ application 계층을 대상으로 하던 규칙(`commandServicesShouldNotDepend
 `restControllersShouldResideInWebAdapterPackage`가 `classes()` 형태인 것은 **컨트롤러 실존에 anchor** 하기 위해서다 — 컨트롤러가 0건이 되면 곧바로 실패한다. `apiModuleShouldBeDomainModelFree`는 anchor가 모듈 전체(`noClasses()`)라 클래스가 존재하는 한 **대상 0건이 될 수 없다.**
 
 ### 인바운드 어댑터의 앱 격리 — 마커로 판정한다
+
+> **(번복됨 — 앱 마커 제거)** 이 앱 격리 규칙(`adaptersShouldOnlyUseOwnAppUseCases`)과 `AppOwnership`은 삭제됐다. 각 앱이 자기 `{앱}-application` 하나만 의존하므로 다른 앱의 UseCase·Command는 클래스패스에 없어 **컴파일 에러**다. 다른 앱 모듈이 의존에 섞이는 사고는 각 앱의 `ApplicationModuleClasspathTest`가 막는다. 아래는 과거 기록이다.
 
 **대상**: 각 앱의 `LayerRulesTest.java` (앱 격리 규칙)
 

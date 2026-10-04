@@ -42,6 +42,9 @@ import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePor
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistoryPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

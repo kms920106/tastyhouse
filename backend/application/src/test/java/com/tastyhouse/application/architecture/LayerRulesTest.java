@@ -1,37 +1,33 @@
 package com.tastyhouse.application.architecture;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.tastyhouse.application.shared.marker.AdminApp;
-import com.tastyhouse.application.shared.marker.BatchApp;
-import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.application.shared.marker.WebApp;
+import com.tastyhouse.architecture.ModuleOrigin;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -51,8 +47,7 @@ class LayerRulesTest {
 
     private static final String SERVICE = "org.springframework.stereotype.Service";
 
-    private static final List<Class<? extends Annotation>> APP_MARKERS =
-        List.of(WebApp.class, AdminApp.class, CeoApp.class, BatchApp.class, SharedApp.class);
+    private static final int RESOLVED_FLOOR = 43;
 
     private static final DescribedPredicate<JavaClass> DECLARE_TRANSACTIONAL_EVENT_LISTENER =
         new DescribedPredicate<>("@TransactionalEventListener 메서드를 가진 클래스") {
@@ -124,7 +119,7 @@ class LayerRulesTest {
     void commandRecordsShouldBeBoundaryTyped() {
         ArchRule rule = noClasses()
             .that().resideInAPackage("..port.in..")
-            .and().areNotAnnotatedWith(BatchApp.class)
+            .and(not(ModuleOrigin.from(ModuleOrigin.BATCH)))
             .should().dependOnClassesThat(
                 resideInAnyPackage(
                     "com.tastyhouse.domain..",
@@ -257,94 +252,145 @@ class LayerRulesTest {
     }
 
     @Test
-    void listenersShouldBeShared() {
-        ArchRule rule = classes()
-            .that(DECLARE_TRANSACTIONAL_EVENT_LISTENER)
-            .should().beAnnotatedWith(SharedApp.class)
-            .andShould().resideInAPackage("..listener..")
-            .because("마커 없는 AFTER_COMMIT 리스너는 어느 앱에도 뜨지 않아 이벤트가 예외도 로그도 없이 유실된다");
+    void listenersAndConfigsShouldResideInCore() {
+        List<JavaClass> listeners = classes.stream().filter(DECLARE_TRANSACTIONAL_EVENT_LISTENER).toList();
+        List<JavaClass> configurations = classes.stream()
+            .filter(javaClass -> javaClass.isAnnotatedWith(CONFIGURATION))
+            .toList();
 
-        rule.check(classes);
-    }
+        assertThat(listeners)
+            .as("리스너가 12개 미만이면 이 규칙이 대상을 잃었다")
+            .hasSizeGreaterThanOrEqualTo(12);
+        assertThat(configurations)
+            .as("설정 클래스가 0개면 이 규칙이 공허하게 통과한다")
+            .isNotEmpty();
 
-    @Test
-    void sharedAppOnlyOnListeners() {
-        DescribedPredicate<JavaClass> sharedListener = resideInAPackage("..listener..")
-            .and(DECLARE_TRANSACTIONAL_EVENT_LISTENER);
-        DescribedPredicate<JavaClass> sharedConfiguration = resideInAPackage("..config..")
-            .and(annotatedWith(CONFIGURATION));
-        DescribedPredicate<JavaClass> sharedDomainService = new DescribedPredicate<>("마커만 단 도메인 서비스") {
-            @Override
-            public boolean test(JavaClass javaClass) {
-                return isMarkerOnlyClass(javaClass) && isDomainServiceLocation(javaClass);
+        List<String> violations = new ArrayList<>();
+        for (JavaClass listener : listeners) {
+            if (!ModuleOrigin.isFrom(listener, ModuleOrigin.CORE)
+                || !(listener.getPackageName().endsWith(".listener") || listener.getPackageName().contains(".listener."))) {
+                violations.add(listener.getName() + ": " + ModuleOrigin.of(listener));
             }
-        };
-
-        ArchRule rule = classes()
-            .that().areAnnotatedWith(SharedApp.class)
-            .should(ArchCondition.from(sharedListener.or(sharedConfiguration).or(sharedDomainService)
-                .as("..listener..의 @TransactionalEventListener 클래스이거나 ..config..의 @Configuration 클래스이거나 "
-                    + "..service..의 스테레오타입 없는 도메인 서비스(*CommandService/*QueryService·UseCase 구현 제외)")))
-            .because("@SharedApp은 리스너·설정 클래스·여러 앱이 공유하는 도메인 서비스 전용이다 — 앱 오케스트레이터(@Service)에 "
-                + "붙이면 앱 격리(앱 마커 스캔 필터)를 우회한다");
-
-        rule.check(classes);
-    }
-
-    @Test
-    void markerOnlyClassesShouldBeDomainServices() {
-        List<JavaClass> markerOnlyClasses = classes.stream()
-            .filter(LayerRulesTest::isMarkerOnlyClass)
-            .toList();
-
-        assertThat(markerOnlyClasses)
-            .as("스테레오타입 없이 앱 마커만 단 클래스가 0개면 이 규칙이 공허하게 통과한다")
-            .hasSizeGreaterThanOrEqualTo(78);
-
-        List<String> violations = markerOnlyClasses.stream()
-            .filter(javaClass -> !isDomainServiceLocation(javaClass))
-            .map(JavaClass::getName)
-            .toList();
+        }
+        for (JavaClass configuration : configurations) {
+            if (!ModuleOrigin.isFrom(configuration, ModuleOrigin.CORE)) {
+                violations.add(configuration.getName() + ": " + ModuleOrigin.of(configuration));
+            }
+        }
 
         assertThat(violations)
-            .as("스테레오타입 없이 앱 마커만 다는 형태는 ..service..의 도메인 서비스 전용이다(*CommandService/*QueryService와 "
-                + "UseCase 구현은 @Service를 단다) — 리스너는 @Component, 설정은 @Configuration을 함께 단다")
+            .as("AFTER_COMMIT 리스너와 @Configuration은 4앱 전부에 떠야 하므로 core(application 모듈)의 ..listener..·설정에만 둔다 "
+                + "— 앱 모듈에 두면 그 앱에서만 떠서 다른 앱이 발행한 이벤트의 후속 처리가 예외도 로그도 없이 유실된다")
             .isEmpty();
     }
 
     @Test
-    void sharedConfigsShouldOnlyDeclareUnmarkedBeans() {
+    void coreShouldNotContainUseCasesOrOrchestrators() {
+        List<JavaClass> coreClasses = classes.stream()
+            .filter(javaClass -> ModuleOrigin.isFrom(javaClass, ModuleOrigin.CORE))
+            .toList();
+
+        assertThat(coreClasses)
+            .as("core 출처 클래스가 줄면 출처 판정이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .hasSizeGreaterThanOrEqualTo(500);
+
+        List<String> violations = coreClasses.stream()
+            .filter(javaClass -> isPortInType(javaClass)
+                || (!javaClass.isInterface() && implementsPortInInterface(javaClass))
+                || javaClass.getSimpleName().endsWith("CommandService")
+                || javaClass.getSimpleName().endsWith("QueryService"))
+            .map(JavaClass::getName)
+            .toList();
+
+        assertThat(violations)
+            .as("core는 4앱 전부에 실리므로 UseCase·Command(..port.in..)·UseCase 구현·*CommandService/*QueryService를 두지 않는다 "
+                + "— 그 앱의 {app}-application 모듈로 옮긴다")
+            .isEmpty();
+    }
+
+    @Test
+    void coreBeansShouldOnlyDependOnCoreVisibleTypes() {
+        List<JavaClass> beans = classes.stream()
+            .filter(javaClass -> !javaClass.isInterface())
+            .filter(javaClass -> javaClass.isAnnotatedWith(SERVICE) || javaClass.isAnnotatedWith(COMPONENT))
+            .toList();
+        List<JavaMethod> beanMethods = classes.stream()
+            .filter(javaClass -> javaClass.isAnnotatedWith(CONFIGURATION))
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .filter(method -> method.isAnnotatedWith(BEAN))
+            .toList();
+
+        Set<String> violations = new TreeSet<>();
+        int checked = 0;
+        int resolved = 0;
+        for (JavaClass bean : beans) {
+            String beanModule = ModuleOrigin.of(bean);
+            List<String> hostApps = beanModule.equals(ModuleOrigin.CORE) ? ModuleOrigin.APP_MODULES : List.of(beanModule);
+            for (JavaClass dependency : constructorParameterTypes(bean)) {
+                if (!isApplicationInterface(dependency)) {
+                    continue;
+                }
+                checked++;
+                List<JavaClass> candidates = candidatesOf(dependency, beans, beanMethods);
+                if (candidates.isEmpty()) {
+                    continue;
+                }
+                resolved++;
+                for (String appModule : hostApps) {
+                    long visible = candidates.stream()
+                        .filter(candidate -> ModuleOrigin.isFrom(candidate, ModuleOrigin.CORE)
+                            || ModuleOrigin.isFrom(candidate, appModule))
+                        .count();
+                    if (visible == 0) {
+                        violations.add(bean.getName() + " → " + dependency.getName()
+                            + ": " + appModule + " 컨텍스트에 구현이 없다(다른 앱 모듈에만 있다)");
+                    } else if (visible >= 2) {
+                        violations.add(bean.getName() + " → " + dependency.getName()
+                            + ": " + appModule + " 컨텍스트에 주입 후보가 " + visible + "개다");
+                    }
+                }
+            }
+        }
+
+        assertThat(checked)
+            .as("검사한 인터페이스 의존이 줄면 타입 해석이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .isGreaterThanOrEqualTo(300);
+        assertThat(resolved)
+            .as("application 안에서 구현 후보가 해석된 의존이 줄면 후보 탐색이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .isGreaterThanOrEqualTo(RESOLVED_FLOOR);
+        assertThat(violations)
+            .as("빈은 자기가 뜨는 앱 컨텍스트(core 빈은 4앱 전부, 앱 빈은 그 앱)에서 application 인터페이스 구현을 정확히 1개 봐야 한다 — "
+                + "구현이 다른 앱 모듈에만 있으면 그 앱 기동이 실패하고, 2개 이상이면 주입이 모호해진다")
+            .isEmpty();
+    }
+
+    @Test
+    void configurationsShouldNotRegisterStereotypedClasses() {
         List<String> violations = new ArrayList<>();
         for (JavaClass configuration : classes) {
-            if (!configuration.isAnnotatedWith(SharedApp.class)
-                || !configuration.isAnnotatedWith(CONFIGURATION)) {
+            if (!configuration.isAnnotatedWith(CONFIGURATION)) {
                 continue;
             }
             if (configuration.isAnnotatedWith(COMPONENT) || configuration.isAnnotatedWith(SERVICE)) {
-                violations.add(configuration.getName() + ": @SharedApp 설정 클래스가 @Component/@Service를 겸한다");
+                violations.add(configuration.getName() + ": 설정 클래스가 @Component/@Service를 겸한다");
             }
             for (JavaMethod method : configuration.getMethods()) {
-                if (!method.isAnnotatedWith(BEAN)) {
-                    continue;
-                }
-                JavaClass beanType = method.getRawReturnType();
-                if (hasAppMarker(beanType)) {
+                if (method.isAnnotatedWith(BEAN) && isStereotyped(method.getRawReturnType())) {
                     violations.add(configuration.getName() + "#" + method.getName()
-                        + ": @Bean 반환 타입 " + beanType.getName() + "에 앱 마커가 있다");
+                        + ": @Bean 반환 타입 " + method.getRawReturnType().getName() + "이 스캔 대상이다");
                 }
             }
             for (JavaConstructorCall call : configuration.getConstructorCallsFromSelf()) {
                 JavaClass target = call.getTargetOwner();
-                if (!target.equals(configuration) && hasAppMarker(target)) {
-                    violations.add(configuration.getName() + ": 앱 마커가 있는 "
-                        + target.getName() + "를 직접 생성한다");
+                if (!target.equals(configuration) && isStereotyped(target)) {
+                    violations.add(configuration.getName() + ": 스캔 대상인 " + target.getName() + "를 직접 생성한다");
                 }
             }
         }
 
         assertThat(violations)
-            .as("@SharedApp 설정 클래스는 마커 없는 POJO만 @Bean으로 등록한다 — 마커가 붙은 클래스를 "
-                + "생성하면 스캔과 @Bean이 겹치거나 앱 격리를 우회한다(인터페이스로 반환해도 생성 호출로 잡는다)")
+            .as("@Configuration은 스테레오타입 없는 POJO(domain 계산기 등)만 @Bean으로 등록한다 — @Service/@Component 클래스를 "
+                + "생성하면 스캔과 @Bean이 겹친다(인터페이스로 반환해도 생성 호출로 잡는다)")
             .isEmpty();
     }
 
@@ -372,7 +418,7 @@ class LayerRulesTest {
 
         assertThat(violations)
             .as("UseCase를 구현한 서비스는 구체 타입이 아니라 port.in 인터페이스로 주입한다 — "
-                + "도메인 타입 협력이 필요하면 write 포트나 마커 없는 도메인 서비스를 직접 주입한다")
+                + "도메인 타입 협력이 필요하면 write 포트나 UseCase를 구현하지 않는 도메인 서비스를 직접 주입한다")
             .isEmpty();
     }
 
@@ -415,26 +461,42 @@ class LayerRulesTest {
         return current;
     }
 
-    private static boolean isMarkerOnlyClass(JavaClass javaClass) {
-        return !javaClass.isInterface()
-            && !javaClass.isAnnotation()
-            && !javaClass.isAnnotatedWith(SERVICE)
-            && !javaClass.isAnnotatedWith(COMPONENT)
-            && !javaClass.isAnnotatedWith(CONFIGURATION)
-            && hasAppMarker(javaClass);
-    }
-
-    private static boolean isDomainServiceLocation(JavaClass javaClass) {
+    private static boolean isPortInType(JavaClass javaClass) {
         String packageName = javaClass.getPackageName();
-        String simpleName = javaClass.getSimpleName();
-        return (packageName.endsWith(".service") || packageName.contains(".service."))
-            && !simpleName.endsWith("CommandService")
-            && !simpleName.endsWith("QueryService")
-            && !implementsPortInInterface(javaClass);
+        return packageName.endsWith(".port.in") || packageName.contains(".port.in.");
     }
 
-    private static boolean hasAppMarker(JavaClass javaClass) {
-        return APP_MARKERS.stream().anyMatch(javaClass::isAnnotatedWith);
+    private static boolean isApplicationInterface(JavaClass javaClass) {
+        return javaClass.isInterface() && javaClass.getName().startsWith("com.tastyhouse.application.");
+    }
+
+    private static boolean isStereotyped(JavaClass javaClass) {
+        return javaClass.isAnnotatedWith(SERVICE) || javaClass.isAnnotatedWith(COMPONENT);
+    }
+
+    private static List<JavaClass> constructorParameterTypes(JavaClass javaClass) {
+        return javaClass.getConstructors().stream()
+            .map(JavaConstructor::getRawParameterTypes)
+            .flatMap(List::stream)
+            .toList();
+    }
+
+    private static List<JavaClass> candidatesOf(JavaClass dependency, List<JavaClass> beans, List<JavaMethod> beanMethods) {
+        List<JavaClass> candidates = new ArrayList<>();
+        for (JavaClass bean : beans) {
+            if (!bean.getModifiers().contains(JavaModifier.ABSTRACT)
+                && bean.getAllRawInterfaces().contains(dependency)
+                && constructorParameterTypes(bean).stream().noneMatch(dependency::equals)) {
+                candidates.add(bean);
+            }
+        }
+        for (JavaMethod method : beanMethods) {
+            JavaClass returnType = method.getRawReturnType();
+            if (returnType.equals(dependency) || returnType.getAllRawInterfaces().contains(dependency)) {
+                candidates.add(method.getOwner());
+            }
+        }
+        return candidates;
     }
 
     @Test

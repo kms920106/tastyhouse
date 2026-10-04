@@ -16,8 +16,8 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.notification.service.NotificationService;
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

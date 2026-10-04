@@ -31,7 +31,7 @@
 | `notice/` | 공지사항 조회 API |
 | `order/` | 주문 생성, 조회, 취소, 배송 추적 API |
 | `partnership/` | 파트너십/제휴 관리 API |
-| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 `application`(`payment/service/PgPaymentGatewayRouter`, `@WebApp`)이 `application`의 포트 `PgPaymentGateway`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGateway`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
+| `payment/` | 결제 생성·승인·취소·현장완료·환불. CQRS 분리(`PaymentCommandService`/`PaymentQueryService`). PG 연동은 `web-application`(`payment/service/PgPaymentGatewayRouter` — 앱 마커 제거 전에는 `application` + `@WebApp`)이 `web-application`의 포트 `PgPaymentGateway`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGateway`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
 | `policy/` | 약관/정책 조회 API |
 | `product/` | 상품 조회, 검색, 필터링 API |
 | `rank/` | 순위/랭킹 조회 API |

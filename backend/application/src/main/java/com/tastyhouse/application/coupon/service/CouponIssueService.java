@@ -2,6 +2,8 @@ package com.tastyhouse.application.coupon.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.coupon.event.MemberCouponIssuedEvent;
 import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;
 import com.tastyhouse.domain.coupon.model.Coupon;
@@ -16,9 +18,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
 import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class CouponIssueService {
 
     private final CouponPersistencePort couponPersistencePort;

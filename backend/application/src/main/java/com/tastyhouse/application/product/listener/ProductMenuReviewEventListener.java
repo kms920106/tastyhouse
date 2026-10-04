@@ -11,10 +11,8 @@ import com.tastyhouse.domain.menureview.event.MenuReviewCreatedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewDeletedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewRatingChangedEvent;
 import com.tastyhouse.application.product.service.ProductReviewStatsService;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class ProductMenuReviewEventListener {
 
     private final ProductReviewStatsService productReviewStatsService;

@@ -9,10 +9,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class PointEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PointEventListener.class);

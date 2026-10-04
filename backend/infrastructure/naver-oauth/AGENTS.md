@@ -2,7 +2,7 @@
 
 # infrastructure:naver-oauth
 
-네이버 로그인 **벤더 모듈**(`java-library`). `application`의 SPI `SocialOAuthClient`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+네이버 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -40,7 +40,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 네이버 API 호출은 **동기 `RestClient`**다(호스트가 둘이라 baseUrl 없이 `build()`).
-- `application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 - **`domain` 의존 없음** — 실패 번역이 없고(`../kakao-oauth/AGENTS.md`의 설계 근거와 같은 상태), gender도 문자열로 넘긴다
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 

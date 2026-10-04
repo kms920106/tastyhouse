@@ -13,10 +13,8 @@ import com.tastyhouse.domain.payment.event.PaymentCompletedEvent;
 import com.tastyhouse.domain.payment.event.RefundRequestedEvent;
 import com.tastyhouse.application.payment.service.PaymentConfirmationService;
 import com.tastyhouse.application.point.service.PointLedgerService;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class PaymentEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentEventListener.class);

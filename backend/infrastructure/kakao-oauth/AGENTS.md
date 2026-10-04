@@ -2,7 +2,7 @@
 
 # infrastructure:kakao-oauth
 
-카카오 로그인 **벤더 모듈**(`java-library`). `application`의 SPI `SocialOAuthClient`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+카카오 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `kakao/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.kakao` → `com.tastyhouse.external.kakao.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `kakaoOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -39,7 +39,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 카카오 API 호출은 **동기 `RestClient`**다(호스트가 둘이라 baseUrl 없이 `build()`, 폼 전송은 `.body(MultiValueMap)`). 코어의 전역 customizer로 connect 5s / read 10s가 적용된다.
-- `application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. adapter → port의 정상 방향이다
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로). adapter → port의 정상 방향이다
 - **`domain` 의존 없음** — 실패를 `BusinessException`으로 번역하지 않고(아래 설계 근거), gender도 도메인 enum이 아니라 문자열로 넘기므로 필요가 없다
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 

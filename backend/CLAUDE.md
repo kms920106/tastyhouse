@@ -1,22 +1,26 @@
 > AI 규칙(한국어 답변·빌드 미실행·체크리스트 질문), GIT 규칙(`NO_COMMIT_OR_ROLLBACK`·추천 커밋 메시지), 플랜 작성 규칙, 일반 네이밍 규칙 등 리포 전체 공통 규칙은 **리포지토리 루트의 `CLAUDE.md`** 를 참조합니다. 이 파일은 backend 고유 컨벤션만 다룹니다.
 
 
-## 모듈 지도 (모듈 재편 완료 + application 모듈 통합 + external 분리)
+## 모듈 지도 (모듈 재편 완료 + application 모듈 통합 + external 분리 + 앱 모듈 재분리)
 
-**모듈은 32개이고, 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
+**모듈은 36개이고(앱 마커 제거로 32 → 36 — `{web,admin,ceo,batch}-application` 4모듈 신설), 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
 
 ```
 실행 앱 4 (bootJar)      web-api      admin-api      ceo-api      batch-module
    │  컨트롤러/@Scheduled 트리거 + request/ + config·security 정책 + 부트스트랩
    ↓
-application 1            application   ← 4개 앱의 유스케이스를 담는 단일 모듈(챕터 01로 4 → 1)
-                         자바 패키지도 챕터 03으로 평탄화됐다 — com.tastyhouse.application 하나뿐이며
-                         앱 소속은 패키지가 아니라 마커 애노테이션(@WebApp/@AdminApp/@CeoApp/@BatchApp)이 표현한다
-                         (리스너 전용 @SharedApp = 앱 소속 없음 → 4앱 전부)
-   │  <ctx>/port/in/(UseCase + Command) + <ctx>/service/(CQRS) + <ctx>/listener/(도메인 이벤트 리스너, @SharedApp)
+application 5            application (코어)  ← 2개 앱 이상이 쓰는 것 + 리스너·@Configuration + 모든 port.out 계약
+                         web-application  admin-application  ceo-application  batch-application
+                                             ← 앱 하나만 쓰는 것(UseCase·Command·오케스트레이터·앱 전용 도메인 서비스·앱 전용 SPI 포트)
+                         자바 패키지는 전부 com.tastyhouse.application 하나다(5모듈이 split package로 나눠 쓴다).
+                         앱 소속은 마커 애노테이션이 아니라 "어느 Gradle 모듈에 있는가"가 표현한다(앱 마커 제거)
+                         ~~앱 소속은 패키지가 아니라 마커 애노테이션(@WebApp/@AdminApp/@CeoApp/@BatchApp)이 표현한다
+                         (리스너 전용 @SharedApp = 앱 소속 없음 → 4앱 전부)~~ (번복됨 — 앱 마커 제거)
+   │  앱 모듈: <ctx>/port/in/(UseCase + Command) + <ctx>/service/(CQRS·앱 전용 도메인 서비스) + 앱 전용 <ctx>/port/out/(SPI)
+   │  코어:    <ctx>/port/out/(읽기 계약·write 포트·Command 반환 Result) + <ctx>/service/(공유 도메인 서비스) + <ctx>/listener/ + shared/**
    │  ※ <ctx>/response/ 는 api 모듈로 이동 완료 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
-   │  ※ 앱 간 수평 의존은 모듈이 아니라 ArchUnit이 막는다 — AppIsolationTest(이 모듈) ·
-   ↓    adaptersShouldOnlyUseOwnAppUseCases(api 4모듈). 통합으로 컴파일 게이트가 사라진 자리다
+   │  ※ 앱 간 수평 의존은 컴파일러가 막는다 — 앱 모듈끼리는 서로를 의존하지 않고, 코어는 앱 모듈을 모른다
+   ↓    ~~ArchUnit이 막는다 — AppIsolationTest · adaptersShouldOnlyUseOwnAppUseCases~~ (번복됨 — 앱 마커 제거, 둘 다 삭제)
                                         ※ infrastructure를 컴파일 클래스패스에 두지 않는다
                                         ※ api-common-module 의존도 없다 — 챕터 11로 절단 완료
 도메인                   domain               모델·VO·이벤트 타입·포트 없는 순수 계산기/정책 (프레임워크-프리)
@@ -60,12 +64,13 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 - **조립 모듈의 벤더 전환은 세 곳을 함께 바꾼다**: 채널/스타터 `build.gradle`의 `runtimeOnly` 대상, 그 모듈 yml의 `spring.config.import`, `provider` 값. 각 모듈은 벤더를 하나만 싣기 때문에 `provider` 값만 바꾸면 켤 수 있는 벤더가 없어 기동이 실패한다. 절차는 `infrastructure/{file-storage,mail,sms}/AGENTS.md`의 "벤더 전환 절차"에 있다.
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것도, 챕터 01의 통합으로 줄어든 것도 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
 - **자바 패키지는 모듈명과 다르다**: `infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). **`infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 16모듈(driven 13 + 조립 채널 3 — `pg`·`mail`·`sms`)은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다**(모듈 하나당 하위 패키지 한 덩어리라 split package는 아니다. 외부 연동 19모듈 중 코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌고, 조립 스타터 `infrastructure:file-storage`·`infrastructure:oauth`는 자바 코드가 아예 없어 소유할 패키지가 없으므로 빠져 있다) — `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다(아래 [infrastructure를 기술별로 나눈 이유](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure), [모듈 등록 컨벤션(auto-configuration)](#모듈-등록-컨벤션-auto-configuration--챕터-02) 참고). **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
-- **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(4개 앱 공통), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain/AGENTS.md`, JWT 토큰 발급/검증·토큰 저장소 **포트**는 `security-core/AGENTS.md`(Redis 구현은 `infrastructure/redis/AGENTS.md`), 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
+- **application 5모듈 — 어느 모듈에 둘지는 "몇 개 앱이 쓰는가"로 정한다 (앱 마커 제거)**: 앱 하나만 쓰는 UseCase·Command·서비스·SPI 포트는 `{web,admin,ceo,batch}-application`, 2개 앱 이상이 쓰는 도메인 서비스와 리스너·`@Configuration`·`port.out` 계약은 코어 `application`에 둔다. 앱 모듈은 `api project(':application')`로 코어를 노출하고, 실행 앱은 `implementation project(':application')` + `implementation project(':{앱}-application')` 두 줄을 갖는다. 상세는 아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
+- **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(5모듈 공통 규칙 정본)와 `{앱}-application/AGENTS.md`(앱 모듈 요약), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain/AGENTS.md`, JWT 토큰 발급/검증·토큰 저장소 **포트**는 `security-core/AGENTS.md`(Redis 구현은 `infrastructure/redis/AGENTS.md`), 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
 - **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleAutoConfiguration`(챕터 02로 `SecurityModuleConfig`에서 리네임)·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)는 전부 불변이다. **단 토큰 저장소 6종은 챕터 01에서 다시 포트/어댑터로 갈렸다** — 계약만 이 모듈에 남고 구현은 `infrastructure:redis`의 `token` 패키지로 내려갔으므로, 위 "`@Repository` 빈을 `security-module`이 스캔한다"는 배선은 더 이상 이 저장소들에 해당하지 않는다(어댑터는 `RedisModuleAutoConfiguration`이 등록한다). API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
 ## 모듈 등록 컨벤션 (auto-configuration — 챕터 02)
 
-**챕터 02로 라이브러리 모듈 13개 전부가 `@Import` 수동 조합에서 Spring Boot auto-configuration으로 전환됐다.** 과거에는 앱의 `*Application.java`가 `@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, SecurityModuleConfig.class, ...})`처럼 라이브러리 모듈 설정 클래스를 나열해 "앱은 자기 패키지만 스캔하고 라이브러리 모듈은 명시적으로 조합한다"는 것이 표준 구성이었다. 지금은 그 반대다 — **라이브러리 모듈이 자기 자신을 등록**하고, 앱은 `@Import`를 하나도 갖지 않는다. `application` 모듈의 마커 스캔은 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로) 참고). **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 앱이 `{App}ApplicationConfig` 하나만 `@Import`했고 그 클래스가 `application` 모듈 안에 있었다.
+**챕터 02로 라이브러리 모듈 13개 전부가 `@Import` 수동 조합에서 Spring Boot auto-configuration으로 전환됐다.** 과거에는 앱의 `*Application.java`가 `@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, SecurityModuleConfig.class, ...})`처럼 라이브러리 모듈 설정 클래스를 나열해 "앱은 자기 패키지만 스캔하고 라이브러리 모듈은 명시적으로 조합한다"는 것이 표준 구성이었다. 지금은 그 반대다 — **라이브러리 모듈이 자기 자신을 등록**하고, 앱은 `@Import`를 하나도 갖지 않는다. `application` 계층의 컴포넌트 스캔은 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다) 참고 — 앱 마커 제거로 마커 필터 없는 스캔이 됐다). **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 앱이 `{App}ApplicationConfig` 하나만 `@Import`했고 그 클래스가 `application` 모듈 안에 있었다.
 
 | 항목 | before | after |
 |---|---|---|
@@ -73,6 +78,8 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | 마커 스캔 `@ComponentScan`의 위치 | `application` 모듈의 `{Web,Admin,Ceo,Batch}ApplicationConfig` 4개 | 각 앱 부트스트랩 안의 `static class ApplicationLayerScanConfig` 4개 |
 | `application` 모듈이 아는 것 | "어느 앱이 어떤 마커를 싣는가"(앱 조립 지식) | 없음 — 마커 애노테이션만 제공 |
 | 동작 | — | 변경 없음(스캔 대상·필터·빈 집합 동일) |
+
+> **(번복됨 — 앱 마커 제거)** 위 표의 "마커 스캔"·"마커 애노테이션만 제공"은 그 시점 기준이다. 지금 `ApplicationLayerScanConfig`는 `@ComponentScan(basePackages = "com.tastyhouse.application")`(기본 필터, include 필터 없음)이고, `application` 코어는 마커도 제공하지 않는다 — 무엇이 뜰지는 앱의 클래스패스(코어 + 자기 앱 모듈)가 정한다.
 
 ### 컨벤션 본문
 
@@ -83,7 +90,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 - **`@ConfigurationProperties`는 `@EnableConfigurationProperties` 명시 등록 유지**: auto-configuration 클래스에 `@EnableConfigurationProperties(XxxProperties.class)`를 그대로 붙인다. 이 부분은 전환 전후로 바뀌지 않았다.
 - **모듈 yml은 여전히 앱 `spring.config.import`로 로딩한다**: 자동 로딩은 `EnvironmentPostProcessor`가 있어야 가능한데 이번 전환 범위가 아니며, `@PropertySource`로는 `logging.*`이나 `optional:configtree:` 같은 특수 프로퍼티 소스가 동작하지 않는다. 그래서 모듈을 앱에 붙이는 비용은 여전히 "gradle 1줄 + (설정이 있으면) yml import 1줄"이다.
 - **escape hatch — `spring.autoconfigure.exclude`**: 특정 환경에서 특정 auto-configuration을 끄고 싶으면 이 표준 Boot 프로퍼티를 쓴다. 이 저장소가 별도 온오프 스위치를 만들지 않는 이유이기도 하다(§"클래스패스 존재 = 활성화" 참고 — 프로퍼티 스위치를 새로 만들면 보안 회귀를 반복하기 쉽다).
-- **auto-config를 갖지 않는 예외 5건**: `application`(앱별 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 소유하고, application에는 등록 클래스가 없다 — 자기 등록할 대상 자체가 없다. **(번복됨 — application `*ApplicationConfig` 삭제)** 과거 사유는 "`{App}ApplicationConfig`가 `@Import`되는 대상이라 자기 등록 대상이 아니다"였다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
+- **auto-config를 갖지 않는 예외 5건**(앱 마커 제거로 신설된 `{web,admin,ceo,batch}-application` 4모듈도 같은 이유로 auto-config가 없다 — 스캔은 앱 부트스트랩이 한다): `application`(앱별 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 소유하고, application에는 등록 클래스가 없다 — 자기 등록할 대상 자체가 없다. **(번복됨 — application `*ApplicationConfig` 삭제)** 과거 사유는 "`{App}ApplicationConfig`가 `@Import`되는 대상이라 자기 등록 대상이 아니다"였다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
 
 ### "클래스패스 존재 = 활성화" 원칙
 
@@ -140,11 +147,13 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 
 ### 앱별 의존 (전환 후 — `runtimeOnly`로 하향)
 
+> **(앱 마커 제거)** `implementation` 열의 `:{앱}-application`은 앱 마커 제거로 추가된 1줄이다(before: `:application`만). 마지막 열의 "마커 스캔"은 지금 마커 필터 없는 `com.tastyhouse.application` 스캔이다.
+
 | 앱 | `implementation` | `runtimeOnly` | 남는 `@Import` (before) → 마커 스캔 위치 (after) |
 |---|---|---|---|
-| web-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | before `WebApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
-| admin-api / ceo-api | `:application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` | before `AdminApplicationConfig` / `CeoApplicationConfig` → after 없음, 각 부트스트랩 중첩 `ApplicationLayerScanConfig` |
-| batch-module | `:application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | before `BatchApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| web-api | `:application`, `:web-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | before `WebApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| admin-api / ceo-api | `:application`, `:admin-application` / `:ceo-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` | before `AdminApplicationConfig` / `CeoApplicationConfig` → after 없음, 각 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| batch-module | `:application`, `:batch-application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | before `BatchApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
 
 3앱의 `implementation` 열에 있던 `spring-boot-starter-data-redis`는 **챕터 01에서 삭제됐다** — 앱이 `StringRedisTemplate`을 직접 참조하던 `config/jwt/RedisRepositoryConfig`가 사라져 그 명시 선언의 근거가 소멸했기 때문이다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지)). `runtimeOnly` 열은 불변이다.
 
@@ -192,7 +201,7 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | 최상위 패키지 | 소유 모듈 | 계층 |
 |---|---|---|
 | `com.tastyhouse.domain..` | `domain` | 도메인 |
-| `com.tastyhouse.application..` | **`application` 단독 소유** — 유스케이스(`<ctx>/port/in`·`<ctx>/service`) + 읽기 계약(`<ctx>/port/out`) + 도메인 이벤트 리스너(`<ctx>/listener`) 전부 | 챕터 01(모듈 통합) 시점에는 앱별 패키지(`com.tastyhouse.{web\|admin\|ceo\|batch}application..`)와 읽기 계약 패키지가 나뉘어 있었으나, **챕터 03(패키지 평탄화)으로 이 한 패키지 `com.tastyhouse.application`으로 합쳐졌다.** 유스케이스(`<ctx>/port/in`·`<ctx>/service`)와 읽기 계약(`<ctx>/port/out`)이 같은 패키지 트리 안에 공존하고, 한 모듈이 그 트리를 통째로 소유한다(챕터 04로 공유 계약 55개가 `domain`에서 돌아오며 split package가 끝났다 — 패키지 경로가 같아 이동에도 소비 측 import는 바뀌지 않았다). 패키지만으로는 4개 앱 중 어디 소속인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 대신 표현한다. 읽기 계약 소유 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence) 참고 |
+| `com.tastyhouse.application..` | **~~`application` 단독 소유~~ → `application`(코어) + `{web,admin,ceo,batch}-application` 5모듈 split package (앱 마커 제거)** — 유스케이스(`<ctx>/port/in`·`<ctx>/service`) + 읽기 계약(`<ctx>/port/out`) + 도메인 이벤트 리스너(`<ctx>/listener`) 전부 | 챕터 01(모듈 통합) 시점에는 앱별 패키지(`com.tastyhouse.{web\|admin\|ceo\|batch}application..`)와 읽기 계약 패키지가 나뉘어 있었으나, **챕터 03(패키지 평탄화)으로 이 한 패키지 `com.tastyhouse.application`으로 합쳐졌다.** 유스케이스(`<ctx>/port/in`·`<ctx>/service`)와 읽기 계약(`<ctx>/port/out`)이 같은 패키지 트리 안에 공존하고, 한 모듈이 그 트리를 통째로 소유한다(챕터 04로 공유 계약 55개가 `domain`에서 돌아오며 split package가 끝났다 — 패키지 경로가 같아 이동에도 소비 측 import는 바뀌지 않았다). 패키지만으로는 4개 앱 중 어디 소속인지 알 수 없으므로, ~~앱 소속은 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 대신 표현한다~~ **(번복됨 — 앱 마커 제거)** 앱 소속은 그 클래스가 들어 있는 Gradle 모듈(코어 `application` / `{web,admin,ceo,batch}-application`)이 표현한다. 그래서 "단독 소유"도 끝났다 — 지금은 **5모듈이 같은 패키지 트리를 나눠 쓰는 split package**다(`security-core`/`security-module` 선례와 같다. 아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다)). 읽기 계약 소유 판정은 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence) 참고 |
 | `com.tastyhouse.webapi..` | `web-api` | 인바운드 어댑터 |
 | `com.tastyhouse.adminapi..` | `admin-api` | 인바운드 어댑터 |
 | `com.tastyhouse.ceoapi..` | `ceo-api` | 인바운드 어댑터 |
@@ -205,9 +214,91 @@ application 1            application   ← 4개 앱의 유스케이스를 담는
 | `com.tastyhouse.apicommon..` | `api-common-module` | 공유(HTTP 플럼빙) |
 | `com.tastyhouse.logging..` | `logging-module` | 공유(횡단) |
 
+## 앱 모듈 경계 규칙 (앱 마커 제거 — 앱 소속은 Gradle 모듈이 표현한다)
+
+**"이 클래스는 어느 앱 것인가"를 애노테이션이 아니라 Gradle 모듈이 표현한다.** 과거에는 `application` 한 모듈 안의 클래스에 앱 마커(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`, 패키지 `com.tastyhouse.application.shared.marker`)를 달고, 각 앱이 자기 마커만 골라 스캔했다(아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로) — 지금은 번복됨). 마커는 **컴파일러가 모르는 약속**이라 잘못 달거나 빠뜨려도 빌드는 통과했고, 그 구멍을 ArchUnit 규칙 여러 개(`AppIsolationTest` 등)로 메웠다. 지금은 마커 5종을 **전부 삭제**하고 앱 소속을 모듈 경계로 옮겼다. 다른 앱의 타입을 쓰면 **컴파일이 실패**하므로 규칙이 아니라 컴파일러가 지킨다.
+
+### 무엇이 어디에 사는가
+
+| 모듈 | 담는 것 | 의존 |
+|---|---|---|
+| `application`(코어, 모듈명 유지) | **2개 앱 이상이 쓰는 것** — 공유 도메인 서비스(과거 `@SharedApp` 35개), 도메인 이벤트 리스너 12종(`<ctx>/listener`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), `PgConfirmResult`·`TossPaymentDetail` | 앱 모듈을 모른다 |
+| `web-application` | web 전용 `@Service`/`@Component`·UseCase(`port.in`)·Command record·web 전용 도메인 서비스 + **web 전용 SPI 포트**: `mail.port.out.{MailSender,MailSendResult}`, `sms.port.out.{SmsSender,SmsSendResult,SmsSendFailure}`, `payment.port.out.{PgProviderGateway,PgPaymentGateway,PgCancelResult,PgProviderCode}`, `auth.port.out.{SocialOAuthClient,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` | `api project(':application')` |
+| `admin-application` | admin 전용 빈·UseCase·Command·도메인 서비스 | `api project(':application')` |
+| `ceo-application` | ceo 전용 빈·UseCase·Command·도메인 서비스 + **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidator`(구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`와 유일한 소비자가 ceo라 코어에서 옮겨옴) | `api project(':application')` |
+| `batch-application` | batch 전용 빈·UseCase·Command·도메인 서비스 + **batch 전용 SPI 포트**: `crawling.bbq.port.out.*`(`BbqMenuPort`·`RemoteImagePort`·DTO), `region.port.out.{AdminDongBoundaryPort,AdminDongBoundaryFetchResult,AdminDongBoundarySource,BoundaryCoordinate,BoundaryRing}` | `api project(':application')` |
+
+- **자바 패키지는 바뀌지 않았다** — 5모듈 모두 `com.tastyhouse.application.<ctx>..`를 쓴다(split package). 클래스를 모듈 사이로 옮겨도 import가 바뀌지 않아 이동 비용이 작다. 선례는 `security-core`/`security-module`(`com.tastyhouse.security..`)이다.
+- **앱 모듈은 평면 이름(`web-application` 등)이고 `java-library`다.** `api project(':application')`이므로 앱 모듈을 의존하면 코어도 함께 보인다.
+- **앱 전용 SPI 포트가 앱 모듈에 있는 이유**: 그 포트의 구현(벤더)이 그 앱에만 조립되기 때문이다. 예컨대 `MailSender`가 코어에 있으면 admin·ceo·batch의 코어 빈이 그것을 주입받아도 컴파일이 통과하고 기동 시점에야 빈이 없다고 실패한다. 앱 모듈에 두면 **코어가 `MailSender`를 import하는 순간 컴파일 에러**다(반증 확인 완료).
+
+### 실행 앱·벤더의 의존 (before / after)
+
+| 의존하는 모듈 | before | after |
+|---|---|---|
+| `web-api` / `admin-api` / `ceo-api` / `batch-module` | `implementation project(':application')` | 그대로 + `implementation project(':{web,admin,ceo,batch}-application')` 1줄 추가 |
+| `infrastructure:{kakao,naver,apple,facebook}-oauth`, `tosspayments`, `javamail`, `solapi`, `aws-ses`, `aws-sns` | `:application` | `:web-application`(구현하는 SPI 포트가 그 모듈로 옮겨갔다) |
+| `infrastructure:{bbq,admdongkor}` | `:application` | `:batch-application` |
+| `infrastructure:persistence`, `firebase`, `aws-s3`, `security-module`, `api-common-module` | `:application` | 변경 없음(`:application`만) |
+
+- 모듈 수는 **32 → 36**이다(`settings.gradle` include 31줄 → 35줄 + 암묵 `infrastructure` 컨테이너). **bootJar 4개의 이름·경로는 불변**이다.
+
+### 과거 "앱별 모듈 4개 → 1개" 통합의 번복 근거
+
+챕터 01은 `{web,admin,ceo,batch}-application` 4모듈을 `application` 하나로 합쳤다. 그때 근거는 "`infrastructure:persistence`가 4개 앱 모듈 전부를 의존하므로, 모듈이 나뉘어 있어도 persistence를 거쳐 서로가 보여 **컴파일 게이트가 실제로는 없다**"였다. 지금은 이 전제가 성립하지 않는다 — persistence가 application에서 import하는 것은 `..port.out..`뿐이고 `port.out`이 전부 코어에 있으므로, **persistence는 코어 하나만 의존**한다. 따라서 앱 모듈끼리는 어떤 경로로도 서로를 보지 못하고, 컴파일 게이트가 진짜로 동작한다. 그래서 다시 나눴다(모듈명은 같아도 내용은 다르다 — 과거 4모듈은 읽기 계약까지 나눠 가졌고, 지금 4모듈은 계약을 코어에 두고 앱 전용 빈만 갖는다).
+
+### 스캔 설정
+
+각 앱 부트스트랩(`WebApiApplication`·`AdminApiApplication`·`CeoApiApplication`·`BatchApplication`)의 static 중첩 클래스가 스캔을 소유한다.
+
+| 항목 | before (앱 마커) | after (모듈 경계) |
+|---|---|---|
+| 형태 | `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = {XxxApp.class, SharedApp.class}))` | `@Configuration(proxyBeanMethods = false) @ComponentScan(basePackages = "com.tastyhouse.application")` — 기본 필터, include 필터 없음 |
+| 무엇이 뜨는가를 정하는 것 | 마커 애노테이션 | 앱의 클래스패스(코어 + 자기 앱 모듈) — **"클래스패스 존재 = 활성화"** |
+| 마커/스테레오타입 누락 시 | 마커 없는 `@Service`는 어느 앱에도 안 뜸(기동 시 `NoSuchBeanDefinitionException`) | `@Service`가 없으면 안 뜸(일반 Spring과 같다) |
+| 동작 | — | 변경 없음 — 4앱 jar를 띄워 싱글턴 빈 이름을 비교해 차이 0(web 1131 · admin 1079 · ceo 1155 · batch 791) |
+
+- **중첩 클래스 형태는 유지한다** — `@SpringBootApplication` 클래스에 `@ComponentScan`을 직접 달면 메타 `@ComponentScan`이 무시되는 Spring 6.1 함정 때문이다(아래 번복된 절의 "중첩 클래스여야 하는 이유" 항목은 지금도 유효하다).
+- **함의 — 다른 앱 모듈을 실수로 의존에 추가하면 그 앱의 빈이 전부 뜬다.** 필터가 없으므로 클래스패스에 있는 것은 다 스캔된다. 이것을 막는 가드가 아래 `ApplicationModuleClasspathTest`다.
+
+### 새 클래스를 추가할 때 (어느 모듈에 두나)
+
+1. **그 클래스를 쓰는 앱이 하나면 그 앱의 `{앱}-application`에 둔다.** UseCase 인터페이스·Command record·`*CommandService`/`*QueryService`는 언제나 앱 모듈이다(코어에는 UseCase가 0개다).
+2. **2개 앱 이상이 쓰는 도메인 서비스만 코어 `application`에 둔다.** 처음엔 한 앱만 쓰다가 두 번째 앱이 필요해지면 그때 코어로 옮긴다(패키지가 같아 import는 안 바뀐다).
+3. **빈이면 언제나 `@Service`(또는 `@Component`)를 단다.** 마커는 더 이상 없다.
+4. **리스너(`@TransactionalEventListener`)와 `@Configuration`은 코어에만 둔다.** 이벤트는 어느 앱이 발행하든 후속 처리가 빠지면 안 되기 때문이다. `@Configuration`이 스테레오타입 클래스를 `@Bean`으로 다시 등록하면 스캔과 겹치므로 금지한다.
+5. **`port.out` 계약은 코어에 둔다.** 예외는 위 표의 앱 전용 SPI 포트뿐이다(구현이 그 앱에만 조립되는 포트).
+6. **코어 빈은 앱 모듈에만 구현체가 있는 인터페이스를 주입받지 않는다**(아래 가드).
+
+- **오케스트레이터와 도메인 서비스의 구분이 바뀌었다**: 과거 컨벤션 "마커만 = 도메인 서비스, `@Service` + 마커 = 오케스트레이터"는 번복됐다. 지금은 **`port.in` UseCase를 구현하면 오케스트레이터, 아니면 도메인 서비스**다. 과거 마커만 달던 도메인 서비스 78개는 이제 `@Service`를 단다.
+
+### 가드 (before / after)
+
+| 대상 | before | after |
+|---|---|---|
+| 앱 간 수평 의존·앱 전용 포트 소비·Command 소속 | `AppIsolationTest`(파일 전체), testFixtures `AppOwnership`·`DESERIALIZED_COMMANDS`, api 4모듈 `LayerRulesTest#adaptersShouldOnlyUseOwnAppUseCases` | **삭제 — 컴파일 게이트로 대체**(다른 앱 모듈은 클래스패스에 없다) |
+| 리스너·마커 위치 | 코어 `LayerRulesTest#listenersShouldBeShared`·`#sharedAppOnlyOnListeners`·`#markerOnlyClassesShouldBeDomainServices`·`#sharedConfigsShouldOnlyDeclareUnmarkedBeans` | 삭제. 신설 `#listenersAndConfigsShouldResideInCore`(리스너·`@Configuration`은 코어에만) |
+| 코어에 UseCase가 새는 것 | 없음 | 신설 `#coreShouldNotContainUseCasesOrOrchestrators` |
+| 코어 빈이 앱에만 있는 구현을 주입 | `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp` | 신설 `#coreBeansShouldOnlyDependOnCoreVisibleTypes` — 모든 `@Service`/`@Component` 빈(코어·앱 모듈 모두)의 생성자 파라미터 중 `com.tastyhouse.application.` 인터페이스마다 **후보** = 그 인터페이스의 추상이 아닌 스테레오타입 구현체(같은 인터페이스를 생성자로 받는 데코레이터는 제외) + 그 타입을 반환하는 `@Bean` 메서드. 후보가 1개 이상이면, 그 빈이 뜨는 **각 앱 컨텍스트**(코어 빈 → 4앱 전부, 앱 빈 → 자기 앱. 컨텍스트 = 코어 + 그 앱 모듈)에서 보이는 후보가 0개면 위반(구현이 다른 앱 모듈에만 있어 그 앱이 기동하지 못한다), 2개 이상이면 모호 위반이다. 위반은 Set으로 모아 한 번에 보고한다. anchor: 검사한 의존 ≥ 300, 후보가 1개 이상인 의존(`RESOLVED_FLOOR`) ≥ 43. **알려진 한계**: `@Primary`/`@Qualifier`는 모델링하지 않는다. infrastructure 구현체는 import 대상이 아니어서 후보 0인 의존(persistence·벤더가 구현하는 포트)은 건너뛴다 |
+| `@Configuration`의 이중 등록 | `sharedConfigsShouldOnlyDeclareUnmarkedBeans` | 신설 `#configurationsShouldNotRegisterStereotypedClasses` |
+| `commandRecordsShouldBeBoundaryTyped`의 batch 예외 | `.areNotAnnotatedWith(BatchApp.class)` | 클래스의 출처 모듈(`batch-application`)로 판정 |
+| `BatchSchedulerRulesTest` 대상 | `@BatchApp` 클래스 | `batch-application` 출처 클래스 |
+| 개수 anchor(`RuleAnchorTest`) | `markerBeanCounts`·`markerUseCaseCounts` | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0) |
+| 스캔 형태(`ApplicationLayerScanConfigTest`) | `assertScansOnlyOwnAppAndSharedMarkers` | `assertScansApplicationLayerWithoutFilters` — basePackages가 정확히 `com.tastyhouse.application`, `useDefaultFilters = true`, include/exclude 필터 없음 |
+| 다른 앱 모듈의 클래스패스 유입 | 없음(마커 필터가 막았다) | 신설 4앱 각 `ApplicationModuleClasspathTest` + `ApplicationLayerScanAssertions#assertLoadsOnlyOwnApplicationModule(app)` — 각 `{앱}-application`이 `src/main/resources/META-INF/tastyhouse/application-module.properties`(`app=web` 등)를 싣고, 앱 테스트 클래스패스에 이 리소스가 **정확히 1개, 자기 값으로** 있어야 한다 |
+
+- **출처 모듈 판정 — testFixtures `com.tastyhouse.architecture.ModuleOrigin`**: 규칙은 `ModuleOrigin.from(module)`(ArchUnit `DescribedPredicate`)로 "그 모듈의 main 출력에서 온 클래스"를 고른다(규칙마다 따로 두던 `FROM_BATCH_APPLICATION` 같은 술어를 대체). **main 출력만 인정한다** — 클래스 디렉터리 `.../{module}/build/classes/java/main/...`, main jar `{module}-<버전>.jar`. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), 해석할 수 없는(opaque·형식이 깨진) URI는 전부 `IllegalStateException`이다(조용히 빈 집합이 되어 규칙이 공허 통과하지 않게). 그래서 **아키텍처 테스트는 Gradle로 실행해야 한다** — IntelliJ에서는 "Build and run using: Gradle" 설정이 필요하다. `ModuleOriginTest`가 짝 테스트다.
+- **split package FQCN 중복 금지 — `SplitPackageUniquenessTest`**: 패키지를 유지했으므로 같은 FQCN이 core와 앱 모듈에 함께 생겨도 컴파일은 통과하고 클래스패스 순서로 한쪽이 조용히 가려진다. ArchUnit은 같은 이름을 하나로 합쳐 보므로, 5모듈의 소스 경로를 훑어 중복 상대 경로를 실패시킨다(근거 `backend/application/AGENTS.md`의 "앱 모듈 경계 가드").
+- **아키텍처 테스트는 코어 `application`의 테스트에 둔다.** `:application`이 `testImplementation project(':{앱}-application')` 4줄을 가져 ArchUnit이 5모듈을 모두 본다(test → main 방향이라 Gradle 순환이 아니다).
+- **공유 테스트 더블은 코어 testFixtures의 `com.tastyhouse.testsupport.<ctx>..`에 있다**(`Fake*`/`Stub*`/`Recording*`/`ListenerLogCapture` 20개). `RuleAnchorTest#testFixturesShouldNotResideInApplicationPackage`가 testFixtures에 `com.tastyhouse.application` 패키지를 금지하기 때문이다. 이동하며 package-private이던 9개를 public으로 바꿨다. import 순서에서 `testsupport`는 4순위다(아래 [코딩 스타일](#코딩-스타일-import-순서)).
+- **`ServiceContextBoundaryTest#domainServices()`의 대상 집합은 이전과 같은 94개다.** 과거에는 "스테레오타입이 없는 클래스"로 골랐으나 이제 모든 서비스가 `@Service`를 달므로 그 술어를 쓸 수 없다. 그래서 **구조 조건**(`..service..`, 인터페이스 아님, `*CommandService`/`*QueryService` 아님, `@Configuration` 아님, `port.in` 구현 아님)에서 **FQN 목록 `EXCLUDED_COLLABORATORS` 29개**를 뺀다 — 원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈(Executor 6 · `*SocialLoginService` 4 · Validator 7 · Reader 3 · `OwnedShopIdProvider` · `Member{Auth,Grade,Review,Shop}Service` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)이다. 짝 테스트 `excludedCollaboratorsShouldNotBeStale`이 목록의 낡은 항목을 잡는다 — 단 **더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만** 잡고, "빼도 경계 규칙을 통과할 항목"은 잡지 못한다. Reader 3개는 `ShopFoodTypeCategoryReader`·`StorePriceVerificationReader`·`StorePriceVerificationOwnerReader`다. `SEALED_VIOLATIONS`는 불변이다. **솔직히 말해 이 술어는 "구조 + 이름 목록"이다** — 새 협력 빈을 만들면 목록에 넣을지 판단해야 한다.
+- 새 규칙은 전부 위반 probe로 실패를 확인했다(코어가 `MailSender`를 import하면 컴파일 에러인 것도 확인).
+
 ## 앱 마커 규칙 (챕터 03 — 스캔이 패키지에서 애노테이션으로)
 
-**패키지 평탄화(위 [모듈 지도](#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리) 참고)로 `com.tastyhouse.{web|admin|ceo|batch}application` 4개 최상위 패키지가 `com.tastyhouse.application` 하나로 합쳐지면서, "이 클래스가 어느 앱 것인가"를 패키지로 가릴 수 없게 됐다. 그 자리를 마커 애노테이션 4종이 대신한다(리스너 전용 5번째 마커 `@SharedApp`은 아래).**
+> **(번복됨 — 앱 마커 제거)** 이 절 전체는 과거 기록이다. 마커 5종(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`)과 `AppIsolationTest`·`AppOwnership`·`markerBeanCounts`·`markerUseCaseCounts`·`adaptersShouldOnlyUseOwnAppUseCases`·마커 include 필터 스캔은 전부 삭제됐다. 현재 규칙은 위 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다)이 정본이다. 아래 서술 중 지금도 유효한 것은 "중첩 클래스여야 하는 이유(Spring 6.1 함정)"와 "`<ctx>/port/out`의 의미가 넓어졌다"(단 앱 전용 SPI 포트는 앱 모듈로 갔다) 두 항목뿐이다.
+
+**패키지 평탄화(위 [모듈 지도](#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리--앱-모듈-재분리) 참고)로 `com.tastyhouse.{web|admin|ceo|batch}application` 4개 최상위 패키지가 `com.tastyhouse.application` 하나로 합쳐지면서, "이 클래스가 어느 앱 것인가"를 패키지로 가릴 수 없게 됐다. 그 자리를 마커 애노테이션 4종이 대신한다(리스너 전용 5번째 마커 `@SharedApp`은 아래).**
 
 - **`com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`** — 순수 마커다. `@Component` 메타를 얹지 않고 `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`만 갖는다(메타를 얹으면 기존 `@Service`/`@Component`의 의미가 흐려진다).
 - **5번째 마커 `com.tastyhouse.application.shared.marker.SharedApp` — 리스너 전용**: 뜻은 "앱 소속 없음 = 4앱 전부에 뜬다"이다. 도메인 이벤트 리스너 12종(`com.tastyhouse.application.<ctx>.listener`, `@Component @SharedApp`)을 `infrastructure:persistence`에서 옮기며 신설했다. 이벤트는 어느 앱이 발행하든 후속 처리가 누락되면 안 되므로 4앱 전부가 스캔해야 한다. **리스너 외에는 달지 않는다** — `LayerRulesTest#sharedAppOnlyOnListeners`(`@SharedApp`은 `..listener..`의 `@TransactionalEventListener` 보유 클래스에만)와 `#listenersShouldBeShared`(`@TransactionalEventListener` 메서드를 가진 클래스는 `@SharedApp` + `..listener..`)가 양방향으로 강제한다. 마커를 빠뜨린 AFTER_COMMIT 리스너는 예외도 로그도 없이 사라지기 때문이다. 상세는 `application/AGENTS.md`의 "`<ctx>/listener/` — 도메인 이벤트 리스너" 절. **— "리스너 외에는 달지 않는다"는 번복됨(표현 계층 domain 절단 프로그램 덩어리 01, 아래 항목).**
@@ -441,7 +532,7 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
   | wire 계약(상태·`errorCode`·메시지) | — | **불변**(변경 전후 jar 응답 diff로 확인) |
 
   - **`resolve`는 최상위 예외가 `BusinessException`(하위 타입 포함 — `ResourceNotFoundException` 등)일 때만 값을 돌려주고, `getCause()`를 따라가지 않습니다.** 전용 핸들러도 최상위 타입만 매칭했으므로 그와 같은 의미이며, cause를 따라가면 오늘 500으로 응답되는 "래핑된" 예외가 조용히 4xx로 바뀝니다. 메시지는 예외의 `getMessage()`입니다.
-  - **빈이 아니라 정적 유틸이고, AOP로 번역하지 않습니다** — 근거는 `application/AGENTS.md`의 `ErrorResponses` 항목(빈이면 앱 마커가 필요해 api-common의 자동설정 테스트가 빈을 못 찾고, AOP면 예약 낙관적 락 재시도 경로가 깨진다).
+  - **빈이 아니라 정적 유틸이고, AOP로 번역하지 않습니다** — 근거는 `application/AGENTS.md`의 `ErrorResponses` 항목(빈이면 ~~앱 마커가 필요해~~ application 스캔에 기대야 해(앱 마커 제거 후에도 같은 이유) api-common의 자동설정 테스트가 빈을 못 찾고, AOP면 예약 낙관적 락 재시도 경로가 깨진다).
 - **(번복) 표현 계층이 직접 쓰는 에러코드 상수는 `ErrorContracts`가 미러링합니다**: 핸들러·필터가 `ErrorCode.X`를 참조하던 자리(rate limit·권한·인증)는 `com.tastyhouse.application.shared.error.ErrorContracts`의 `rateLimit()`·`accessDenied()`·`authRequired()`로 바뀌었습니다. 각각 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`와 상태·code·메시지가 같아야 하며, **`ErrorContractsConsistencyTest`**(`application` 테스트, `resolve` 의미도 함께 검증)가 어긋남을 잡습니다. 새 상수를 표현 계층에서 써야 하면 `ErrorCode`를 import하지 말고 여기에 미러를 추가합니다.
 - **`ErrorCode`는 도메인별로 쪼개지 않습니다**: 상수 230여 개의 단일 카탈로그이지만 이는 "비즈니스 에러 카탈로그"라는 단일 책임이며, 도메인별 enum으로 분리하면 이 enum을 import하는 167개 파일을 전면 수정해야 하는 데 비해 얻는 것이 파일 분할뿐입니다. 대신 아래 가드 테스트로 규약을 강제합니다.
 - **`ErrorCodeConventionTest`가 카탈로그 규약을 지킵니다** (`domain` 순수 단위 테스트): `code` 유일성, 상수명↔`code` 일치, `*_NOT_FOUND` 이름은 404, `httpStatusCode`는 4xx·5xx, `defaultMessage` 비어 있지 않음. **기존 위반은 wire 계약이라 고치지 않고 봉인 목록(`EnumSet`)으로 통과시키며, 그 목록이 낡으면(고쳐졌으면) 별도 테스트가 실패해 알려줍니다.** 봉인 목록에 새 항목을 추가하지 말고 신규 상수는 규약을 지킵니다.
@@ -1017,7 +1108,7 @@ import는 **5개 그룹**으로 나눕니다. 앞의 4개는 Spring Framework가
 | 1 | **Domain** (중심) | `domain` — `domain.shared`·`domain.exception`도 **여기에 포함됩니다** |
 | 2 | **Application** | `application` — `port.in`·`port.out`(`port.out.write` 포함)·`service`·`listener`·`shared` 전부 |
 | 3 | 바깥 원: **driven 어댑터** (Persistence 쪽) | `external` · `infrastructure` · `restclient` |
-| 4 | 바깥 원: **공유 횡단 모듈** | `apicommon` · `architecture`(`application` testFixtures 전용 — 테스트 코드에서만 나온다) · `logging` · `security` |
+| 4 | 바깥 원: **공유 횡단 모듈** | `apicommon` · `architecture`(`application` testFixtures 전용 — 테스트 코드에서만 나온다) · `logging` · `security` · `testsupport`(`application` testFixtures의 공유 테스트 더블 — 테스트 코드에서만 나온다. 앱 마커 제거 때 추가) |
 | 5 | 바깥 원: **driving 어댑터** (Presentation 쪽) | `adminapi` · `batch` · `ceoapi` · `webapi` — 내부는 아래 5-a → 5-b |
 
 - **같은 순위 안에서는 ASCII 알파벳 오름차순**으로 정렬합니다. 3순위 안에서는 `external` → `infrastructure` → `restclient` 순서입니다.
@@ -1029,7 +1120,7 @@ import는 **5개 그룹**으로 나눕니다. 앞의 4개는 Spring Framework가
 | 모듈 | 등장 가능한 자사 순위 |
 |---|---|
 | `domain` | 1 |
-| `application` | 1 · 2 (+ 4의 `security`) |
+| `application` · `{web,admin,ceo,batch}-application` | 1 · 2 (+ 4의 `security`. 테스트 코드는 4의 `architecture`·`testsupport`도) |
 | `infrastructure:persistence` | 1 · 2 · 3 (1은 쓰기 어댑터 `<ctx>/persistence/`의 `XxxPersistenceAdapter`·`XxxMapper`에서만 나옵니다 — 조회 DAO `<ctx>/query/`와 봉인 조회 어댑터 3개에는 **1이 나올 수 없습니다**, `queryShouldNotDependOnDomain`) |
 
 > **(번복됨 — persistence domain 재허용)** 03b(엄격 레이어드) 시점에는 persistence 행이 `2 · 3`이었고 "1은 나올 수 없습니다 — persistence는 domain을 모릅니다"였다. 쓰기 경로의 State 계열을 걷어내고 persistence가 domain을 `implementation`으로 다시 의존하면서 쓰기 어댑터에 1순위가 돌아왔다. 번복 근거는 아래 [도메인 모델 / JPA 엔티티 분리 규칙](#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)의 번복 표기.
@@ -1159,6 +1250,8 @@ import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.application.notice.port.out.write.NoticePersistencePort;
 import com.tastyhouse.application.shared.marker.AdminApp;
 ```
+
+> **(번복됨 — 앱 마커 제거)** 위 예시의 `com.tastyhouse.application.shared.marker.AdminApp` import는 마커 삭제로 지금 코드에는 없다(이 서비스도 지금은 `admin-application` 모듈에 있다). 정렬 규칙을 보여 주는 예시로서는 그대로 유효하다.
 
 > `domain.exception`은 과거에 "external/shared" 순위로 분류돼 도메인 모델보다 아래에 두었습니다. 지금은 접두어가 `domain`이면 전부 1순위입니다(**번복**). `domain.exception` < `domain.notice`인 것은 알파벳순 결과입니다.
 
@@ -1334,10 +1427,11 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryAdapt
 - **Spring 조립 — 스캔·전역 설정은 소유 모듈(infrastructure)이 선언 (개정됨)**: `com.tastyhouse.infrastructure`는 **챕터 02 이후 앱의 `scanBasePackages`가 아니라 `PersistenceModuleAutoConfiguration`의 `@ComponentScan`이 스캔**하며(앱은 `runtimeOnly` 의존 선언만 갖는다), JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`, `basePackageClasses` 타입 세이프 방식)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 전부 `infrastructure:persistence` 자신의 `InfrastructurePersistenceConfig`(패키지 루트)로 병합됐다.** domain은 완전 프레임워크-프리가 되며 과거 core의 `config/DatabaseConfig.java`를 폐지했다(그 파일이 `@EnableJpaRepositories(basePackages="com.tastyhouse.core.domain")`·`@EntityScan`·`@EnableJpaAuditing`·`@EnableTransactionManagement`를 core에서 선언했으나, 도메인 패키지에 더 이상 JPA가 없어 무의미해졌고 auditing/tx는 엔티티·리포지토리를 소유한 infrastructure로 옮기는 것이 응집도상 자연스럽다). domain은 infrastructure를 의존하지 않아 컴파일 타임에 그 패키지를 볼 수 없으므로(IDE "Cannot resolve package" 에러), 엔티티를 소유한 모듈이 스스로 스캔·전역 설정을 선언하는 것이 Spring Boot 공식 권장(`basePackageClasses`)과 일치한다.
 - **(번복됨 — 덩어리 03a) 도메인 서비스 빈 등록 위치는 `application`의 `<ctx>/config/<Ctx>ServiceConfig`다.** 아래 항목이 말하는 `infrastructure:persistence`의 `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application/<ctx>/config/<Ctx>ServiceConfig`(`@Configuration(proxyBeanMethods = false) @SharedApp` — persistence DomainConfig가 4앱 전부에서 뜨던 등록 범위를 그대로 승계)로 옮겨졌고, 포트를 주입받는 서비스 자체도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다(`@Bean` 메서드 이름은 불변). domain에 남은 순수 서비스(`CupDepositPolicy`·`*Calculator` 등)도 클래스만 domain에 두고 `@Bean`은 같은 설정이 갖는다. ~~**새 도메인 서비스를 추가하면 아래의 `<Ctx>DomainConfig`가 아니라 `<Ctx>ServiceConfig`에 `@Bean`을 추가한다(없으면 신설, `@SharedApp`).**~~ 상세는 `application/AGENTS.md`의 "덩어리 03a" 절.
   - **(번복됨 — application `*ServiceConfig` 삭제) 지금은 `<Ctx>ServiceConfig`도 없다.** 22개 `*ServiceConfig`와 `PgRouterConfig`가 전부 삭제됐고, 서비스는 `application/<ctx>/service/`에서 **클래스에 앱 마커 하나만**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`, `@Service` 없이) 달고 마커 스캔으로 등록된다. **새 도메인 서비스를 추가하면 `@Bean`을 쓰지 말고 클래스에 그 빈을 최종적으로 쓰는 앱의 마커를 단다**(한 앱이면 그 앱 마커, 두 앱 이상이거나 `@SharedApp` 빈·리스너가 쓰면 `@SharedApp`). domain 모듈 클래스(`CupDepositPolicy`·`*Calculator` 등)처럼 애노테이션을 달 수 없는 빈만 `application/shared/config/SharedBeanConfig`의 `@Bean`으로 둔다. 마커를 잘못 고르면 `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp`이 빌드에서 잡는다. 규칙 표는 위 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로)의 "application `*ServiceConfig` 전면 삭제" 항목.
+  - **(번복됨 — 앱 마커 제거) 지금은 마커도 없다.** 도메인 서비스는 `@Service`를 달고, **쓰는 앱이 하나면 그 앱의 `{앱}-application` 모듈, 두 앱 이상이면 코어 `application`**에 둔다. 잘못 두면 컴파일이 실패하거나 코어 `LayerRulesTest#coreBeansShouldOnlyDependOnCoreVisibleTypes`가 잡는다. `SharedBeanConfig`(코어)는 그대로다. 규칙은 위 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
 - **scanBasePackages에서 domain 스캔 엔트리를 제거한다 (개정됨)**: domain에는 `@Component`/`@Service`/`@Configuration`이 **0건**이므로(도메인 서비스는 순수 POJO이고 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리 메서드로 수행) 스캔할 대상이 아예 없다. 따라서 4개 앱의 `scanBasePackages`에서 과거의 `"com.tastyhouse.core"` 항목을 삭제했다. **챕터 02 이후로는 `scanBasePackages` 자체가 4개 앱 전부에서 사라졌다** — 라이브러리 모듈이 각자의 auto-configuration으로 자기 패키지를 스캔하므로, 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)만 남는다(아래 [컴포지션 루트 규칙](#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03)). 도메인에 새 순수 POJO 서비스를 추가할 때도 스캔 엔트리를 되살리지 말고 **해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean`을 추가한다(없으면 신설)**.
   - **예외 — 포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다 (external 분리 → messaging 4분할 → 02-vendor-ports로 재개정)**: `@Bean` 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 존재하면, 그 등록도 해당 범위로 한정한다. `MailVerificationService`(`MailSender`)·`SmsVerificationService`(`SmsSender`)·`PgPaymentGatewayRouter`(`PgProviderGateway`)가 그 사례다.
 
-    **(번복됨 — application `*ServiceConfig` 삭제) 지금 이 한정은 config가 아니라 클래스 마커로 표현한다.** 아래 두 문단이 말하는 `MailServiceConfig`·`SmsServiceConfig`·`PgRouterConfig`·`FileServiceConfig`·`PaymentServiceConfig`는 전부 삭제됐다. 세 서비스는 클래스에 `@WebApp`만 달아(`@Service` 없음) web에만 뜨고, `FileUploadService`·`PaymentConfirmationService`처럼 여러 앱이 쓰는 서비스는 `@SharedApp`을 단다. "포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다"는 원칙 자체는 그대로이며, 이제 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`(web 전용 포트 `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient`를 생성자로 받는 마커 클래스는 `@WebApp`, batch 전용 포트 `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`는 `@BatchApp`)이 빌드에서 강제한다. 아래 두 문단은 02-vendor-ports 시점의 기록이다.
+    **(번복됨 — application `*ServiceConfig` 삭제) 지금 이 한정은 config가 아니라 클래스 마커로 표현한다.** 아래 두 문단이 말하는 `MailServiceConfig`·`SmsServiceConfig`·`PgRouterConfig`·`FileServiceConfig`·`PaymentServiceConfig`는 전부 삭제됐다. 세 서비스는 클래스에 `@WebApp`만 달아(`@Service` 없음) web에만 뜨고, `FileUploadService`·`PaymentConfirmationService`처럼 여러 앱이 쓰는 서비스는 `@SharedApp`을 단다. "포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다"는 원칙 자체는 그대로이며, 이제 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`(web 전용 포트 `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient`를 생성자로 받는 마커 클래스는 `@WebApp`, batch 전용 포트 `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`는 `@BatchApp`)이 빌드에서 강제한다. 아래 두 문단은 02-vendor-ports 시점의 기록이다. **(번복됨 — 앱 마커 제거)** 지금은 이 한정을 모듈 위치가 표현한다 — 세 서비스(`MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`)와 그들이 쓰는 web 전용 포트는 `web-application`에, `FileUploadService`·`PaymentConfirmationService`는 코어 `application`에 있고(`PaymentCancellationService`는 `web-application`), `appRestrictedPortDependentsShouldBelongToThatApp`는 삭제됐다 — web 전용 포트가 `web-application`에 있으므로 다른 앱의 빈은 그 포트를 컴파일 단계에서 볼 수 없다.
 
     | 항목 | before (02-vendor-ports) | after (현행) |
     |---|---|---|
@@ -1363,6 +1457,8 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryAdapt
 **이 규칙은 폐기됐다.** 2개 이상의 앱이 함께 쓰는 읽기 계약 55개를 `domain`에 두던 시기가 있었고, 그동안 `com.tastyhouse.application.<ctx>.port.out`은 두 모듈이 나눠 갖는 split package였다. 지금은 **읽기 계약 전부를 `application` 모듈이 소유**한다.
 
 **원래 근거.** 당시 이 문서는 이렇게 적었다 — "포트를 소비자별로 쪼개도 여러 앱이 함께 쓰는 메서드와 `*Result`가 남는다. 그것을 어느 한 앱의 application 모듈에 주면 나머지 앱이 그 모듈을 의존해야 한다 — **앱 간 수평 의존**이다. `domain`은 이미 4개 앱이 전부 의존하므로 소유자를 여기로 옮기면 **새 의존 간선이 하나도 생기지 않는다.**" 근거는 이 하나뿐이었고, 그 시점에는 타당했다.
+
+> **(앱 마커 제거 후 재확인)** 앱 마커 제거로 `{web,admin,ceo,batch}-application` 4모듈이 다시 생겼지만 **이 절의 결론은 그대로다** — 읽기 계약을 포함한 `port.out`은 전부 코어 `application`에 두므로, 앱 모듈끼리 계약을 공유하려고 서로를 의존할 일이 없다(앱 모듈은 코어만 의존한다). 다만 `com.tastyhouse.application..` 패키지는 다시 5모듈이 나눠 쓰는 split package가 됐다.
 
 **왜 번복했나.** application 모듈 통합 프로그램 챕터 01이 앱별 application 모듈 4개를 `application` 하나로 합치면서 **"어느 한 앱의 모듈"이라는 것이 존재하지 않게 됐다.** 공유 계약을 `application`에 두어도 의존할 다른 앱 모듈이 없으니 수평 의존이 생길 자리가 없다 — 회피하려던 대상이 사라져 근거가 소멸했다. 되돌린 결과 두 가지를 얻었다.
 
@@ -1422,7 +1518,7 @@ reference 구현: `domain/.../notice/repository/NoticePersistencePort`(`findById
 **신규 컨텍스트 `domain/menureview/`(메뉴 평가)** — 매장 리뷰(`domain/review/`)와 **독립된 축**이라 review 안이 아니라 별도 컨텍스트로 뒀다. 애그리거트 경계(FK 없음·생애주기 무관)와 변경 이유("매장 리뷰와 그 소셜 기능" vs "상품 평점의 근거")가 모두 갈리며, 무엇보다 **경계 규칙이 이 설계의 최상위 불변식을 지켜준다** — 같은 컨텍스트에 두면 나중에 누군가 `review_id`를 붙일 때 아무 규칙도 막지 못하지만, 나눠 두면 그 참조가 즉시 `ContextBoundaryTest` 위반으로 드러난다("어느 쪽을 먼저 하든, 하나만 하든 성립한다"를 빌드가 강제). 타 컨텍스트를 ID VO(`MemberId`·`ShopId`·`ProductId`·`OrderId`·`OrderProductId`)와 이벤트로만 참조하므로 **`SEALED_VIOLATIONS`에 항목이 늘지 않는다**. 도메인 문서는 `docs/domain/menu-review.md`.
 
 - **기존 위반은 고치지 않고 봉인했다**: 규칙 도입 시점의 위반 클래스 21개를 `ContextBoundaryTest.SEALED_VIOLATIONS`에, 컨텍스트 간 순환 성분 2개(`member,point`와 `order,product,review,shop`)를 `SEALED_CYCLES`에 등재해 통과시켰다. 이 단계의 목표는 전면 재설계가 아니라 **현상 동결 + 신규 위반 차단**이며, 실제 결합 해소는 후속 단계가 담당한다. 방식은 `ErrorCodeConventionTest`의 봉인 목록(EnumSet) 선례를 그대로 따른 수동 `Set`이다.
-- **(덩어리 03a) 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`로 옮겨졌다.** 포트를 주입받는 도메인 서비스 71개가 `application`으로 떠나면서 domain `ContextBoundaryTest`의 봉인 위반은 14개 → **1개**(`DeliveryAreaProjection`)가 됐고, 순환 성분 `order,product,review,shop`을 만들던 간선이 전부 서비스에서 나왔던 탓에 domain의 순환 성분은 **0개**가 되어 `SEALED_CYCLES`와 짝 테스트를 지우고 `beFreeOfCycles()`를 순수 강제로 전환했다. 그 대신 `application`에 **`ServiceContextBoundaryTest`**를 신설해 옮겨 온 서비스(~~마커 없는 POJO~~ 스테레오타입 없는 POJO, `..service..` — **ServiceConfig 삭제 후에는 클래스에 앱 마커만 달린다. 검사 대상에서 빠지는 것은 `@Service`/`@Component`가 붙은 클래스뿐이라 마커-only 서비스는 계속 검사된다**)들 사이의 경계를 같은 구조로 강제한다 — 금지는 타 컨텍스트의 domain `model`·`service`와 application `port.out.write`·`service`, 허용은 `vo`·`event`·`port.out`(write 제외). 봉인 목록은 **domain에서 옮겨 온 위반만** 담는다(15개 = 03a가 옮긴 13 + 02가 옮긴 `MailVerificationService`·`PaymentConfirmationService`), 순환 봉인은 그 성분 1개. 두 목록 모두 줄어들기만 한다. 아래 문단들의 수치(21→16 등)는 03a 이전 이력이다.
+- **(덩어리 03a) 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`로 옮겨졌다.** 포트를 주입받는 도메인 서비스 71개가 `application`으로 떠나면서 domain `ContextBoundaryTest`의 봉인 위반은 14개 → **1개**(`DeliveryAreaProjection`)가 됐고, 순환 성분 `order,product,review,shop`을 만들던 간선이 전부 서비스에서 나왔던 탓에 domain의 순환 성분은 **0개**가 되어 `SEALED_CYCLES`와 짝 테스트를 지우고 `beFreeOfCycles()`를 순수 강제로 전환했다. 그 대신 `application`에 **`ServiceContextBoundaryTest`**를 신설해 옮겨 온 서비스(~~마커 없는 POJO~~ 스테레오타입 없는 POJO, `..service..` — **ServiceConfig 삭제 후에는 클래스에 앱 마커만 달린다. 검사 대상에서 빠지는 것은 `@Service`/`@Component`가 붙은 클래스뿐이라 마커-only 서비스는 계속 검사된다** — **(번복됨 — 앱 마커 제거)** 지금은 모든 서비스가 `@Service`를 달므로 스테레오타입으로 고를 수 없다. 대상은 구조 조건에서 FQN 목록 `EXCLUDED_COLLABORATORS` 29개를 뺀 같은 94개다. 상세는 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다)의 가드 항목)들 사이의 경계를 같은 구조로 강제한다 — 금지는 타 컨텍스트의 domain `model`·`service`와 application `port.out.write`·`service`, 허용은 `vo`·`event`·`port.out`(write 제외). 봉인 목록은 **domain에서 옮겨 온 위반만** 담는다(15개 = 03a가 옮긴 13 + 02가 옮긴 `MailVerificationService`·`PaymentConfirmationService`), 순환 봉인은 그 성분 1개. 두 목록 모두 줄어들기만 한다. 아래 문단들의 수치(21→16 등)는 03a 이전 이력이다.
 - **후속 해소 진행 상황(step 7)**: 위반 21개 → **16개**, 순환 성분 2개 → **1개**로 줄었다. 해소된 것은 `ReferralRegistrationService`(추천 보상 적립을 point 컨텍스트 서비스로 이관 → `member,point` 순환 소멸), `Order`·`OrderPlacement`·`OrderDeliveryDestination`·`OrderSchedule`(아래 두 규칙으로 order VO·모델의 타 컨텍스트 참조 제거)이다. `OrderPlacementService`는 타 컨텍스트를 **서비스로만** 참조하도록 정리했으나 서비스 간 의존은 규칙상 여전히 위반이라 봉인에 남는다.
 - **⚠️ 순환은 쌍이 아니라 강결합 성분(SCC) 단위로 봉인한다**: `SliceRule#beFreeOfCycles`는 2노드 상호 참조뿐 아니라 `order → product → shop → order` 같은 **전이 순환**까지 잡으므로, 봉인 목록과 그 짝 테스트도 같은 단위여야 한다. 쌍으로 적으면 두 모델이 어긋나 **짝 테스트가 "이 쌍을 지우라"고 지시했는데 그대로 따르면 정작 전이 순환이 드러나 규칙이 깨지는** 모순이 생긴다. 실제로 이 저장소의 순환은 `order↔shop`·`review↔shop` 두 쌍이 아니라 **`product`까지 포함한 4-노드 성분 하나**이며, 쌍 표기로는 `product`가 봉인 목록에 이름조차 등장하지 않아 감사(audit)가 불가능했다(리뷰에서 발견해 SCC 단위로 교정).
 - **⚠️ 봉인 목록에 새 항목을 추가하지 말 것.** 목록은 **줄어들기만 해야 한다** — 항목 추가는 새 위반을 승인하는 것이다. 신규 코드는 규칙을 지키고, 기존 위반을 해소했으면 그 클래스를 목록에서 지운다.
@@ -1462,6 +1558,7 @@ reference 구현: `domain/.../notice/repository/NoticePersistencePort`(`findById
     - **컨텍스트 경계는 여전히 모듈이 아니다.** 25개 컨텍스트의 수평 경계는 `domain`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 계속 담당한다. 이 항목의 금지는 그대로 유효하다.
     - 분할 대상이 "컨텍스트"(25개, 수평)가 아니라 "계층 × 앱"(8개, 수직)이었기 때문에 위 우려(모듈 폭증)가 현실화되지 않았다 — 모듈은 25개가 아니라 6개 늘었다.
     - **다만 앱 축은 되돌렸다(application 통합 챕터 01).** 위 4개 application 모듈은 `application` 하나로 합쳐졌다 — 앱 분할이 준 컴파일 게이트가 사실상 없었고(`infrastructure:persistence`가 4개를 모두 의존해 모든 실행 jar에 4개 jar가 들어 있었다) 규칙 16종이 4벌 중복이었기 때문이다. **계층 축 분할은 그대로 유효하다.** 근거와 대체 규칙은 `application/AGENTS.md`의 "과거 판단의 번복" 절 참고.
+    - **(번복됨 — 앱 마커 제거) 앱 축을 다시 나눴다.** `port.out`을 전부 코어 `application`에 두자 persistence가 코어만 의존하게 되어, 앱 모듈의 컴파일 게이트가 실제로 동작한다. 그래서 `{web,admin,ceo,batch}-application` 4모듈이 앱 전용 빈만 담는 형태로 돌아왔다. 상세는 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
   - **~~단일 예외 — `application-common-module`~~ (챕터 09에서 소멸)**: 읽기 경로 포트를 소유할 모듈 하나를 신설했던 예외는 **모듈 자체가 삭제되며 사라졌다**. 계약이 전부 소비 앱의 application 모듈로 옮겨가 그 모듈이 비었기 때문이다(공유분 55개는 잠시 `domain`을 거쳐 챕터 04에서 `application`으로 돌아왔다). 지금은 **읽기 계약 전용 모듈이 없다** — 계약은 전부 `application`이 소유한다. 위 [소유 규칙](#query-daoqueryportresult-dtosearchcondition-소유-규칙-개정--읽기-계약은-전부-application이-소유-구현은-infrastructurepersistence) 참고.
 
 reference 구현: `domain/src/test/.../architecture/ContextBoundaryTest`(경계 규칙 1 + 순환 규칙 1 + 봉인 짝 테스트 3). 같은 모듈의 `DomainPurityTest`(프레임워크 순수성·모듈 방향)와 역할이 겹치지 않는다 — 이쪽은 **컨텍스트 간 수평 경계**만 본다.
@@ -1518,11 +1615,11 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 
 | 테스트 위치 | 규칙 수 | 대상 |
 |---|---|---|
-| `application/.../architecture/LayerRulesTest` | 18 (리스너 마커 2종·덩어리 01의 `sharedConfigsShouldOnlyDeclareUnmarkedBeans` 추가분 포함) | 4개 앱 **공통** — CQRS 서비스·Command record·`port/in`·servlet-free·adapter 역참조·읽기 계약 (챕터 01로 4벌 통합) |
-| `application/.../architecture/AppIsolationTest` | 2 | **앱 간 수평 의존 금지**(슬라이스) + 슬라이스 4개 anchor — 모듈 통합으로 사라진 컴파일 게이트의 대체 |
+| `application/.../architecture/LayerRulesTest` | 18 (리스너 마커 2종·덩어리 01의 `sharedConfigsShouldOnlyDeclareUnmarkedBeans` 추가분 포함) — **(번복됨 — 앱 마커 제거)** 마커 규칙 4개 삭제, 모듈 경계 규칙 4개(`listenersAndConfigsShouldResideInCore`·`coreShouldNotContainUseCasesOrOrchestrators`·`coreBeansShouldOnlyDependOnCoreVisibleTypes`·`configurationsShouldNotRegisterStereotypedClasses`) 신설. ArchUnit은 `testImplementation`으로 앱 모듈 4개까지 함께 본다 | 4개 앱 **공통** — CQRS 서비스·Command record·`port/in`·servlet-free·adapter 역참조·읽기 계약 (챕터 01로 4벌 통합) |
+| ~~`application/.../architecture/AppIsolationTest`~~ **(삭제 — 앱 마커 제거, 컴파일 게이트로 대체)** | 2 | **앱 간 수평 의존 금지**(슬라이스) + 슬라이스 4개 anchor — 모듈 통합으로 사라진 컴파일 게이트의 대체 |
 | `application/.../architecture/BatchSchedulerRulesTest` | 7 | batch 고유 4종(`*SchedulerService`·잡 UseCase 엄격판·response record) + exact anchor 3 |
-| `{web,admin,ceo}-api/.../architecture/LayerRulesTest` | 각 13 (덩어리 01로 15→13 — `apiModuleShouldOnlyReadDomainEnums`·`domainBoundaryPredicatesShouldStillBite` 삭제) | 컨트롤러·Request record + **모듈 전역 domain-free·부트스트랩 포트 주입** (어댑터가 지킬 것만 **잔류**) + **`adaptersShouldOnlyUseOwnAppUseCases`**(챕터 01 신설) |
-| `batch-module/.../architecture/LayerRulesTest` | 3 | `@Scheduled` 트리거 + `adaptersShouldOnlyUseOwnAppUseCases`(챕터 01 신설) |
+| `{web,admin,ceo}-api/.../architecture/LayerRulesTest` | 각 13 (덩어리 01로 15→13 — `apiModuleShouldOnlyReadDomainEnums`·`domainBoundaryPredicatesShouldStillBite` 삭제) | 컨트롤러·Request record + **모듈 전역 domain-free·부트스트랩 포트 주입** (어댑터가 지킬 것만 **잔류**) + ~~**`adaptersShouldOnlyUseOwnAppUseCases`**(챕터 01 신설)~~ (삭제 — 앱 마커 제거. 다른 앱 UseCase는 클래스패스에 없다) |
+| `batch-module/.../architecture/LayerRulesTest` | 3 → 2 | `@Scheduled` 트리거 + ~~`adaptersShouldOnlyUseOwnAppUseCases`(챕터 01 신설)~~ (삭제 — 앱 마커 제거) |
 | `infrastructure/persistence/.../architecture/LayerRulesTest` | 5 | infra 계층 방향(아래 절) |
 | `domain/.../architecture/{DomainPurityTest,ContextBoundaryTest}` | — | 프레임워크 순수성 · 컨텍스트 수평 경계 |
 | `application/.../architecture/RuleAnchorTest` | 5 | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다 |
@@ -1566,8 +1663,8 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 
   ```
   {앱}-api/    <ctx>/adapter/in/web/   컨트롤러 + request/
-  application/ <ctx>/port/in/         UseCase 인터페이스 + Command record (마커 애노테이션으로 앱 소속 표시)
-  application/ <ctx>/service/         서비스 구현 (마커 애노테이션으로 앱 소속 표시)
+  {앱}-application/ <ctx>/port/in/    UseCase 인터페이스 + Command record (앱 소속은 모듈 위치 — 과거 마커 애노테이션은 번복됨)
+  {앱}-application/ <ctx>/service/    서비스 구현 (2개 앱 이상이 쓰는 도메인 서비스만 코어 application/)
   {앱}-api/    <ctx>/adapter/in/web/response/  표현 계약 — 3개 앱 전부(admin 챕터 06 · ceo 챕터 09 · web 챕터 10)
   ```
 
@@ -1578,9 +1675,9 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
   | 역할 | 실제 경로 |
   |---|---|
   | 인바운드 어댑터 | `ceo-api/.../ceoapi/shop/adapter/in/web/ShopBusinessHourApiController.java` |
-  | 인바운드 포트 + Command | `application/.../application/shop/port/in/ShopBusinessHourCommandUseCase.java`(`@CeoApp`)·`ShopBusinessHourCreateCommand.java`(마커 없음 — 유도로 ceo 소속 판정) |
-  | 서비스 구현 | `application/.../application/shop/service/ShopBusinessHourCommandService.java`(`@CeoApp`) |
-  | 읽기 포트(아웃바운드) | `application/.../application/shop/port/out/ShopQueryPort.java`(소유 모듈은 언제나 `application` — 마커 없음) |
+  | 인바운드 포트 + Command | `ceo-application/.../application/shop/port/in/ShopBusinessHourCommandUseCase.java`·`ShopBusinessHourCreateCommand.java`(앱 마커 제거 전에는 `application` 모듈 + `@CeoApp`, Command는 유도로 ceo 소속 판정) |
+  | 서비스 구현 | `ceo-application/.../application/shop/service/ShopBusinessHourCommandService.java`(과거 `application` + `@CeoApp`) |
+  | 읽기 포트(아웃바운드) | `application/.../application/shop/port/out/ShopQueryPort.java`(소유 모듈은 언제나 코어 `application`) |
 
   컨트롤러는 `ShopBusinessHourCommandUseCase`만 주입하고 서비스 구현을 알지 않으며(`webAdaptersShouldNotDependOnApplicationServices`, 그리고 모듈 분리 후에는 `apiModuleMustNotContainApplicationLayer`가 이 모듈에 서비스가 다시 생기는 것 자체를 막는다), 조회 측 `ShopBusinessHourQueryService`는 `infrastructure:persistence`의 DAO가 아니라 `ShopQueryPort` 인터페이스를 주입한다.
 
@@ -1601,7 +1698,7 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 - **조회만 있는 도메인은 QueryService만 둔다**: 쓰기 경로가 없는 도메인(공개 조회 전용 등)에 빈 `CommandService`를 만들지 않는다. 반대로 쓰기만 있는 경로도 `CommandService` 하나만 둔다 — "도메인당 2개"는 상한이 아니라 **역할이 존재할 때의 이름 규칙**이다.
 - **모듈 간 같은 이름이 공존하는 것은 정상이다**: `web-api`와 `admin-api`가 각각 `NoticeQueryService`를 갖는다(패키지가 달라 충돌하지 않음). 소비자가 다르면 조회 범위·응답 형태가 다르므로 통합하지 않는다.
 
-reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `NoticePersistencePort` 주입, 변경 후 명시적 `save`)·`application`의 `notice/NoticeManagementQueryService`(`@AdminApp`, `NoticeQueryPort` 주입. **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다** — private 매퍼가 남아 있는 것은 ceo·web뿐이다), `web-api`의 `notice/NoticeQueryService`(조회 전용이라 CommandService 없음)·`faq/FaqQueryService`(같은 이유), `web-api`의 `reservation/ReservationCommandService`(도메인 서비스 `ReservationBookingService`를 경유하는 명령 — 재시도 루프 때문에 트랜잭션 경계를 별도 `ReservationBookingExecutor`가 갖는 예외 형태).
+reference 구현: `admin-api`의 `notice/NoticeCommandService`(write 포트 `NoticePersistencePort` 주입, 변경 후 명시적 `save`)·`admin-application`의 `notice/NoticeManagementQueryService`(과거 `application` + `@AdminApp`, `NoticeQueryPort` 주입. **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다** — private 매퍼가 남아 있는 것은 ceo·web뿐이다), `web-api`의 `notice/NoticeQueryService`(조회 전용이라 CommandService 없음)·`faq/FaqQueryService`(같은 이유), `web-api`의 `reservation/ReservationCommandService`(도메인 서비스 `ReservationBookingService`를 경유하는 명령 — 재시도 루프 때문에 트랜잭션 경계를 별도 `ReservationBookingExecutor`가 갖는 예외 형태).
 
 ## 앱 간 타입명 충돌 시 `Management`/`Owner` 한정어 상시 적용 규칙 (Result·Port·UseCase·Service·Command·협력 빈)
 
@@ -1636,7 +1733,7 @@ reference 구현: `com.tastyhouse.application.faq.port.out`(`FaqCategoryManageme
 - **DAO는 분할된 포트를 전부 `implements`하며 본문은 바뀌지 않는다.** 분할 전후로 `@Override` 개수가 같아야 한다(`grep -c '@Override' {DAO}`로 대조). 메서드 누락은 `implements` 미구현으로 컴파일 에러가 나므로 기계적으로 드러난다.
 - **application 소비자가 없는 조회는 포트에 두지 않는다.** infra 내부에서만 쓰는 조회는 DAO의 평범한 public 메서드로 남긴다(`MemberReviewCountQueryPort` 선례와 같은 취급). 과거 사례였던 `ShopQueryAdapter#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동해 infra DAO를 구체 타입으로 주입할 수 없게 되면서 공용 포트 `ShopBasicInfoQueryPort`에 선언됐다(web 전용 `ShopQueryPort`에 넣으면 이 분할 규칙에 어긋난다).
 
-**분할 후 남은 공유 포트는 의도적으로 남긴 것뿐이다** — `ShopBasicInfoQueryPort`(4앱 — web·admin·ceo + `@SharedApp` 리스너 `ReviewOwnerReplyEventListener`를 통해 batch까지)·`ShopDeliveryTipQueryPort`(web+ceo)·`ReviewTagQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`(각 2앱) 5개이며, 전부 위 "겹침이 압도적" 판정을 거쳤다. **그 밖에 어떤 앱도 다른 앱의 계약을 주입하지 않는다.**
+**분할 후 남은 공유 포트는 의도적으로 남긴 것뿐이다** — `ShopBasicInfoQueryPort`(4앱 — web·admin·ceo + 코어 리스너 `ReviewOwnerReplyEventListener`(과거 `@SharedApp`)를 통해 batch까지)·`ShopDeliveryTipQueryPort`(web+ceo)·`ReviewTagQueryPort`·`ShopOrderNoticeManagementQueryPort`·`ShopSearchManagementQueryPort`(각 2앱) 5개이며, 전부 위 "겹침이 압도적" 판정을 거쳤다. **그 밖에 어떤 앱도 다른 앱의 계약을 주입하지 않는다.**
 
 reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`ShopBasicInfoQueryPort`/`ShopManagementQueryPort`/`ShopOwnerQueryPort` — 35개 메서드를 4분할한 최대 사례), `com.tastyhouse.application.product.port.out`(`ProductQueryPort`/`ProductManagementQueryPort`/`ProductOwnerQueryPort`), `com.tastyhouse.application.review.port.out`(`ReviewTagQueryPort` — 구현 DAO가 달라 별도 포트로 뗀 사례).
 
@@ -1647,7 +1744,7 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 | 두어야 할 곳 | 기준 |
 |---|---|
 | `domain` | 도메인 모델·VO·이벤트 타입·불변식·포트 없는 순수 계산기/정책(순수 POJO, 프레임워크-프리). **write 포트·출력 포트·포트 주입 도메인 서비스는 덩어리 03a로 `application`** |
-| `application` | 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 + 읽기 계약 `<ctx>/port/out/` + 도메인 이벤트 리스너 `<ctx>/listener/`(`@SharedApp`) + write 포트 `<ctx>/port/out/write/`(`XxxPersistencePort` — 도메인 타입 시그니처, 구현은 persistence) ~~+ **(03b)** 도메인 타입 리포지토리와 그 구현 `<ctx>/store/`(`XxxPersistencePort`·`XxxStore`·`XxxStateMapper`) + 상태 record·포트 `<ctx>/port/out/write/`(`XxxState`·`XxxSnapshot`·`XxxStatePort`)~~ **(번복됨 — persistence domain 재허용)** (**`response/`는 없다 — 3개 앱 전부 api 모듈 소유**). **infra를 컴파일 클래스패스에 두지 않는다** |
+| `application`(코어) + `{web,admin,ceo,batch}-application` | **(앱 마커 제거로 5모듈 — 앱 하나만 쓰는 `port/in`·CQRS 서비스·앱 전용 SPI는 앱 모듈, 나머지는 코어)** 유스케이스 — `<ctx>/port/in/` + CQRS 서비스 + 읽기 계약 `<ctx>/port/out/` + 도메인 이벤트 리스너 `<ctx>/listener/`(~~`@SharedApp`~~ 코어 전용) + write 포트 `<ctx>/port/out/write/`(`XxxPersistencePort` — 도메인 타입 시그니처, 구현은 persistence) ~~+ **(03b)** 도메인 타입 리포지토리와 그 구현 `<ctx>/store/`(`XxxPersistencePort`·`XxxStore`·`XxxStateMapper`) + 상태 record·포트 `<ctx>/port/out/write/`(`XxxState`·`XxxSnapshot`·`XxxStatePort`)~~ **(번복됨 — persistence domain 재허용)** (**`response/`는 없다 — 3개 앱 전부 api 모듈 소유**). **infra를 컴파일 클래스패스에 두지 않는다** |
 | `{web,admin,ceo}-api` · `batch-module` | 인바운드 어댑터 — 컨트롤러/`@Scheduled` 트리거 + `request/` + config·security 정책 + 부트스트랩 |
 | `infrastructure:persistence` | write 포트(`application/<ctx>/port/out/write`)의 JPA 어댑터 + `{Ctx}QueryPort` 구현 DAO — 리스너는 없다(`application`으로 이동). ~~도메인 서비스 빈 등록 + 이벤트 발행 어댑터(`SpringDomainEventPublisher`)~~ **(03a로 `application` 이동)**. write 포트 구현은 `XxxPersistenceAdapter`(도메인 모델 직접 사용, 변환은 `XxxMapper`). 의존은 `domain` `implementation` + `application` `implementation`(`port.out`만 참조). **조회 DAO(`..query..`)는 domain을 모른다**(`queryShouldNotDependOnDomain`). ~~**(03b)** write 포트는 이제 `XxxStatePort`(State record 시그니처)이고 구현은 `XxxStatePortImpl`이다. **domain을 모른다** — 의존은 `application`(`port.out`만 참조) 하나~~ **(번복됨 — persistence domain 재허용)** |
 | `infrastructure:redis` | Redis 연결·`StringRedisTemplate` + rate limiting. **domain조차 모른다**(포트가 없는 순수 기술) |
@@ -1716,7 +1813,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 ### 앱이 가질 수 있는 조립 코드의 상한
 
-**부트스트랩 중첩 `ApplicationLayerScanConfig` 1개(마커 스캔) + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 부트스트랩 중첩 클래스 1개만 갖는다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이전 상한은 `@Import({App}ApplicationConfig)` 한 줄이었다(그 클래스가 `application` 모듈에 있었다).
+**부트스트랩 중첩 `ApplicationLayerScanConfig` 1개(~~마커 스캔~~ 필터 없는 `com.tastyhouse.application` 스캔 — 앱 마커 제거) + `{앱}-application` 의존 1줄 + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 부트스트랩 중첩 클래스 1개만 갖는다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이전 상한은 `@Import({App}ApplicationConfig)` 한 줄이었다(그 클래스가 `application` 모듈에 있었다).
 
 허용되는 앱 `@Configuration`은 두 종류뿐이다.
 
@@ -1727,7 +1824,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 ### 비채택 대안과 재고 조건
 
-- **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication`과 마커 스캔 중첩 클래스(앱마다 마커만 다른 같은 틀 4벌)뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때, 또는 중첩 스캔 클래스가 마커 스캔 이상으로 자라날 때. (과거 표현: "`@SpringBootApplication` + `@Import` 두 줄뿐" — `*ApplicationConfig` 삭제로 번복됨.)
+- **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication`과 스캔 중첩 클래스(앱 마커 제거 후에는 4앱이 글자까지 같은 틀 4벌)뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때, 또는 중첩 스캔 클래스가 단순 패키지 스캔 이상으로 자라날 때. (과거 표현: "`@SpringBootApplication` + `@Import` 두 줄뿐" — `*ApplicationConfig` 삭제로 번복됨.)
 - **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 7개 어댑터를 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 auto-config가 어느 앱에서 발화하는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
 
 ### [존재] 사례 해설 — `@RateLimit`의 앱 배선은 0줄이다
@@ -1763,7 +1860,7 @@ reference 구현: `domain`의 `mail/domain/`(`MailVerification`·`MailVerificati
 
 **인증코드 발급 서비스는 출력 포트(`MailSender`/`SmsSender`)를 주입받아 `issue()` 안에서 저장과 발송을 함께 수행합니다.** 발송 호출을 api 계층 command 서비스나 이벤트 리스너로 미루지 않습니다. 이 규칙(발급과 발송의 원자성)은 아래 내용 그대로 유지되며, **바뀐 것은 서비스가 사는 위치뿐입니다.**
 
-**(번복됨 — 02-vendor-ports, 위치만)** 과거 `MailVerificationService`/`SmsVerificationService`는 domain의 순수 POJO 도메인 서비스였고, 아래 문단들의 "도메인 서비스"·"도메인이 소유"라는 서술은 그 시점 기준입니다. 지금은 두 서비스 모두 **application**으로 옮겨져 `application/mail/service/MailVerificationService`·`application/sms/service/SmsVerificationService`에 있습니다. ~~마커 없는 POJO이고, 등록은 `application/mail/config/MailServiceConfig`·`application/sms/config/SmsServiceConfig`(둘 다 `@WebApp`)가 담당합니다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 두 config는 삭제됐고, 두 서비스 클래스에 `@WebApp` 마커만(`@Service` 없이) 붙어 마커 스캔으로 web에만 등록됩니다. `MailSender`/`SmsSender` 포트도 `domain/{mail,sms}/port` → `application/{mail,sms}/port/out`으로 함께 옮겨졌고, 벤더는 이제 발송 실패를 `BusinessException`으로 직접 던지지 않고 `MailSendResult(success, cause)`/`SmsSendResult(failure, cause)`(enum `SmsSendFailure{NO_RESPONSE,FAILED,API_ERROR}`) 결과 record를 돌려주며, 이 두 서비스가 실패 결과를 `BusinessException(MAIL_SEND_FAILED, cause)`/`SMS_SEND_{NO_RESPONSE,FAILED,API_ERROR}`로 번역합니다. **발급과 발송의 원자성, 롤백 의미, 문구 소유, 이벤트 리스너 비분리 원칙은 전혀 바뀌지 않았습니다** — application도 domain과 마찬가지로 이 서비스들이 `@Transactional` 없는 POJO(지금은 클래스에 `@WebApp` 마커만 붙는다. 트랜잭션 경계는 이 서비스를 호출하는 컨트롤러/CommandService가 가짐)이므로 규칙의 근거(호출부에 발송 위임 금지, 실패 시 예외 전파로 같은 트랜잭션 롤백)가 그대로 성립합니다.
+**(번복됨 — 02-vendor-ports, 위치만)** 과거 `MailVerificationService`/`SmsVerificationService`는 domain의 순수 POJO 도메인 서비스였고, 아래 문단들의 "도메인 서비스"·"도메인이 소유"라는 서술은 그 시점 기준입니다. 지금은 두 서비스 모두 **application**으로 옮겨져 `application/mail/service/MailVerificationService`·`application/sms/service/SmsVerificationService`에 있습니다. ~~마커 없는 POJO이고, 등록은 `application/mail/config/MailServiceConfig`·`application/sms/config/SmsServiceConfig`(둘 다 `@WebApp`)가 담당합니다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 두 config는 삭제됐고, 두 서비스 클래스에 `@WebApp` 마커만(`@Service` 없이) 붙어 마커 스캔으로 web에만 등록됩니다. **(번복됨 — 앱 마커 제거)** 지금은 두 서비스가 `web-application` 모듈에 있고 `@Service`로 등록됩니다. `MailSender`/`SmsSender` 포트도 `web-application`의 `{mail,sms}.port.out`에 있습니다(패키지 불변). `MailSender`/`SmsSender` 포트도 `domain/{mail,sms}/port` → `application/{mail,sms}/port/out`으로 함께 옮겨졌고, 벤더는 이제 발송 실패를 `BusinessException`으로 직접 던지지 않고 `MailSendResult(success, cause)`/`SmsSendResult(failure, cause)`(enum `SmsSendFailure{NO_RESPONSE,FAILED,API_ERROR}`) 결과 record를 돌려주며, 이 두 서비스가 실패 결과를 `BusinessException(MAIL_SEND_FAILED, cause)`/`SMS_SEND_{NO_RESPONSE,FAILED,API_ERROR}`로 번역합니다. **발급과 발송의 원자성, 롤백 의미, 문구 소유, 이벤트 리스너 비분리 원칙은 전혀 바뀌지 않았습니다** — application도 domain과 마찬가지로 이 서비스들이 `@Transactional` 없는 POJO(앱 마커 제거 후에는 `web-application`의 `@Service`다. 트랜잭션 경계는 이 서비스를 호출하는 컨트롤러/CommandService가 가짐)이므로 규칙의 근거(호출부에 발송 위임 금지, 실패 시 예외 전파로 같은 트랜잭션 롤백)가 그대로 성립합니다.
 
 - **이 규칙이 생긴 이유(실제 장애)**: 과거에는 발송 책임이 호출부에 흩어져 있어 `AuthPasswordResetService`(비밀번호 재설정 파사드)만 `issue()` 후 `mailSender.send()`를 직접 호출했고, **인증코드 발송 API 경로 두 개는 그 호출을 빠뜨려 코드를 DB에 저장만 하고 발송하지 않았습니다**(사용자는 200을 받지만 메일/SMS를 받지 못함). 그 결과 `SmsSender`는 프로덕션에서 한 번도 호출되지 않는 죽은 포트였습니다. 발급의 정의에 발송을 포함시키면 이 누락이 구조적으로 불가능해집니다.
 - **롤백 의미가 이 도메인에서는 올바릅니다**: 발송이 실패하면 예외가 전파되어 인증 레코드 저장도 롤백됩니다. 인증코드는 발송되지 않으면 존재 가치가 0이므로, DB에 PENDING 코드만 남는 유령 레코드보다 502를 반환하는 것이 옳습니다. (일반적으로 "외부 I/O를 트랜잭션에 넣지 말라"가 정석이지만 그 규칙은 외부 호출 실패 시 로컬 커밋을 살려야 할 때 적용됩니다 — 여기는 반대입니다.)
@@ -1773,7 +1870,7 @@ reference 구현: `domain`의 `mail/domain/`(`MailVerification`·`MailVerificati
 - **유효시간 상수는 도메인 모델이 단독 소유합니다**: 발송 문구에 노출되는 유효시간을 문구 유틸에 리터럴로 복제하지 않고 `{애그리거트}.EXPIRATION_MINUTES`를 참조합니다 — 복제하면 한쪽만 바뀌어 "실제 만료 10분 / 안내 문구 5분" 같은 불일치가 테스트에도 걸리지 않고 생깁니다.
 - **회귀 방어 테스트가 필수입니다**: `{도메인}VerificationServiceTest`에 fake Sender를 주입해 "`issue`가 발급한 코드를 담아 발송한다"를 검증합니다. 이 테스트가 있으면 위 누락이 CI에서 잡힙니다(발송 호출을 제거하면 실제로 실패하는 것까지 확인).
 
-reference 구현: `application/mail/service/MailVerificationService#issue`(`MailSender` 주입 + `MailVerificationMessage`로 목적별 문구)·`application/sms/service/SmsVerificationService#issue`, 빈 등록은 두 서비스 클래스의 `@WebApp` 마커(~~`application/mail/config/MailServiceConfig`·`application/sms/config/SmsServiceConfig`~~ — 두 config는 application `*ServiceConfig` 삭제로 없어졌다. 발송 포트 구현이 web에만 있어 등록도 web 전용으로 남았다. **과거에는 채널 모듈 `infrastructure:mail`/`infrastructure:sms`의 `MailDomainConfig`/`SmsDomainConfig`가 이 등록을 맡았으나, 02-vendor-ports로 그 채널 모듈은 코드가 전부 사라진 조립 스타터가 됐다**), 테스트는 `MailVerificationServiceTest`·`SmsVerificationServiceTest`(위치도 `application`의 `src/test`로 이동). `AuthPasswordResetService`는 이 전환으로 `MailSender` 직접 의존과 문구 상수가 사라져 `mailVerificationService.issue(username, PASSWORD_RESET)` 한 줄이 되었습니다.
+reference 구현: `application/mail/service/MailVerificationService#issue`(`MailSender` 주입 + `MailVerificationMessage`로 목적별 문구)·`application/sms/service/SmsVerificationService#issue`, 빈 등록은 ~~두 서비스 클래스의 `@WebApp` 마커~~ `web-application` 모듈의 `@Service`(앱 마커 제거)(~~`application/mail/config/MailServiceConfig`·`application/sms/config/SmsServiceConfig`~~ — 두 config는 application `*ServiceConfig` 삭제로 없어졌다. 발송 포트 구현이 web에만 있어 등록도 web 전용으로 남았다. **과거에는 채널 모듈 `infrastructure:mail`/`infrastructure:sms`의 `MailDomainConfig`/`SmsDomainConfig`가 이 등록을 맡았으나, 02-vendor-ports로 그 채널 모듈은 코드가 전부 사라진 조립 스타터가 됐다**), 테스트는 `MailVerificationServiceTest`·`SmsVerificationServiceTest`(위치도 `application`의 `src/test`로 이동). `AuthPasswordResetService`는 이 전환으로 `MailSender` 직접 의존과 문구 상수가 사라져 `mailVerificationService.issue(username, PASSWORD_RESET)` 한 줄이 되었습니다.
 
 ## 크로스 컨텍스트 후처리를 AFTER_COMMIT 리스너로 이관할 때의 규칙
 
@@ -1794,7 +1891,7 @@ reference 구현: `ReferralRegistrationService`(등록 + 이벤트 발행만) �
 
 ## 점주 가게 관리(ceo-api) 소유권 검증 규칙
 
-**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `application`의 `shop/service/ShopOwnershipValidator`(`@Component` + `@CeoApp`)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain이 아니라 **점주 앱의 application 계층(`application` 모듈의 `shop` 패키지, `@CeoApp` 마커)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
+**ceo-api의 모든 가게 관리 엔드포인트는 도메인 계층 호출 전에 소유권을 검증한다.** 점주(`ceoId`)는 자기 소유 가게(`shop.ceoId == ceoId`)에만 접근할 수 있어야 하므로, `ceo-application`의 `shop/service/ShopOwnershipValidator`(`@Component`, 앱 마커 제거 전에는 `application` + `@CeoApp`)의 `Shop validateOwnership(Long ceoId, Long shopId)`를 컨트롤러→Service 경로에서 먼저 호출하고, 불일치·미배정 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. 이 검증기는 domain이 아니라 **점주 앱의 application 계층(`ceo-application` 모듈의 `shop` 패키지 — 과거 `application` 모듈 + `@CeoApp` 마커)에 둔다** — admin(무제한)·web(회원 관점)과 구분되는 ceo 고유의 인가 관심사이기 때문이다(모듈 경계 규칙의 "도메인 포트 없는 관심사는 presentation에" 원칙과 일관). `CustomUserDetails`는 `ceoId`만 노출하므로 `shopId`는 경로/바디로 받아 이 검증기로 확인한다.
 
 - **점주-가게 연결**: `Shop`에 `ceoId`(nullable, `@Convert` 없이 raw `Long` FK) 컬럼을 두어 1점주 N가게를 표현한다. 배정은 admin-api의 `ShopCreateCommand.ceoId`로 관리자가 수행하고, `Shop` 도메인은 `assignCeo(Long)`로 배정한다. `ShopSearchCondition.ceoId`로 "내 가게" 목록을 필터링한다.
 - **개별 리소스 삭제/변경 시 소유권 한계**: 하위 리소스 식별자만 경로에 있고(예: `/v1/phone-numbers/{phoneNumberId}`) infra query DAO에 해당 단건→shopId 역조회 메서드가 없으면 소유권 검증을 생략하고 그대로 위임한다. 이런 지점은 Service에 한계를 주석으로 명시하며, 향후 `shop/query/ShopQueryAdapter`에 `findXxxById`(shopId 포함) 조회를 추가해 검증을 강화할 수 있다. 역조회가 가능한 경우(영업시간/휴게시간)는 `ShopQueryService.findShopBusinessHourById`/`findShopBreakTimeById`로 대상의 shopId를 얻어 검증한다.

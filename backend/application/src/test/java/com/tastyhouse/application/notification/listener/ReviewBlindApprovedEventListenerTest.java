@@ -12,7 +12,7 @@ import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.notification.service.NotificationService;
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

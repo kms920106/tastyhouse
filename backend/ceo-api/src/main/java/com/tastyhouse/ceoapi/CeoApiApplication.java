@@ -5,10 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 
-import com.tastyhouse.application.shared.marker.CeoApp;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.ceoapi.config.CeoSeedProperties;
 
 @SpringBootApplication
@@ -20,10 +17,7 @@ public class CeoApiApplication {
     }
 
     @Configuration(proxyBeanMethods = false)
-    @ComponentScan(
-        basePackages = "com.tastyhouse.application",
-        useDefaultFilters = false,
-        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {CeoApp.class, SharedApp.class}))
+    @ComponentScan(basePackages = "com.tastyhouse.application")
     static class ApplicationLayerScanConfig {
     }
 }

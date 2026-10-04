@@ -2,7 +2,7 @@
 
 # infrastructure:bbq
 
-배치 전용 BBQ 메뉴 수집 어댑터 모듈(`java-library`). 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`(`com.tastyhouse.application.crawling.bbq.port.out`)를 각각 `BbqMenuAdapter`·`RemoteImageDownloader`가 구현한다.
+배치 전용 BBQ 메뉴 수집 어댑터 모듈(`java-library`). 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`(`batch-application`의 `com.tastyhouse.application.crawling.bbq.port.out` — 앱 마커 제거 전에는 `application`)를 각각 `BbqMenuAdapter`·`RemoteImageDownloader`가 구현한다.
 
 ## 이 모듈이 `crawling`에서 갈라진 이유 (2026-09-26)
 
@@ -42,7 +42,7 @@ com.tastyhouse.external.bbq/
 
 ### Internal
 - `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유)
-- `application` (implementation) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다
+- `batch-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
 - `domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCode`)만
 
 ### External
@@ -88,7 +88,7 @@ com.tastyhouse.external.bbq/
 ### 어댑터는 I/O만 하고, 업로드 조율은 `BbqService`가 한다
 
 **대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/RemoteImageDownloader.java`
-→ `download(String)` · `backend/application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java` → `uploadRemoteImage`
+→ `download(String)` · `backend/batch-application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java` → `uploadRemoteImage`(앱 마커 제거로 `backend/application/...`에서 이동)
 
 `RemoteImageDownloader`는 HTTP로 이미지를 받아 본문·미디어 타입·파일명(URL 마지막 경로 세그먼트에서 `?` 이후를 자른 값, 퍼센트 인코딩 보존)을 `DownloadedImage`로 돌려주는 데서 끝난다. **도메인 서비스 `FileUploadService`를 주입받지 않는다.** 과거에는 이 어댑터가 `uploadFromUrl`로 "다운로드 → `FileUploadCommand` 조립 → `FileUploadService.upload`"를 직접 조율해, 아웃바운드 어댑터가 유스케이스 흐름을 소유하고 persistence가 등록하는 `FileUploadService` 빈에 런타임으로 묶여 있었다. 그 흐름은 유스케이스 `BbqService`로 올렸다(동작 무변경 — 예외 종류·10MB 상한·`@Transactional` 경계 동일). 어댑터에 업로드·저장 호출을 되살리지 않는다. 파일명 추출은 URL 해석이라 어댑터에 남긴다.
 

@@ -33,6 +33,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

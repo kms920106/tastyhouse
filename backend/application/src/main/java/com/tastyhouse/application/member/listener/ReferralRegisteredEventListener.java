@@ -11,10 +11,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.domain.member.referral.event.ReferralRegisteredEvent;
 import com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService;
 import com.tastyhouse.application.point.service.PointLedgerService;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class ReferralRegisteredEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ReferralRegisteredEventListener.class);

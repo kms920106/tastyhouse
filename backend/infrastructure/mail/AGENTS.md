@@ -36,9 +36,11 @@ backend/infrastructure/mail/
 - **조립**: `build.gradle`의 `runtimeOnly project(':infrastructure:javamail')` 한 줄이 기본 벤더를 web-api의 runtimeClasspath에 싣는다.
 - **설정**: `application-mail.yml`이 `mail.provider`·`mail.sender-address`를 소유하고 벤더 yml을 중첩 import한다(아래 §yml).
 
-빈 등록은 이제 조립 대상(javamail/aws-ses)의 auto-configuration이 `MailSender` 구현체를, `application`의 `MailVerificationService` 클래스가 자기 `@WebApp` 마커로 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
+빈 등록은 이제 조립 대상(javamail/aws-ses)의 auto-configuration이 `MailSender` 구현체를, `web-application`의 `MailVerificationService` 클래스가 `@Service` 스캔으로(앱 마커 제거 전에는 `application` + `@WebApp` 마커) 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
 
 ## 도메인 서비스 등록은 이제 어디인가 — `application`의 `MailVerificationService` 클래스 마커
+
+> **(번복됨 — 앱 마커 제거)** 지금 `MailVerificationService`는 **`web-application` 모듈**의 `mail/service/`에 있고 **`@Service`**로 등록된다(마커 없음). `MailSender` 포트도 `web-application`의 `mail.port.out`에 있다(패키지 불변). web-api만 `web-application`을 의존하므로 발송 기능이 없는 admin·ceo·batch에는 여전히 이 빈이 뜨지 않는다. 아래의 "`MailSender`를 받는 마커 클래스가 `@WebApp`이 아니면 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`이 잡는다"는 번복됐다 — 그 규칙은 삭제됐고, `MailSender`가 `web-application`에 있어 다른 앱의 빈은 **컴파일 단계에서** 그 포트를 볼 수 없다. 빈 이름과 등록 앱(web)은 그대로다.
 
 **(번복됨 — application `*ServiceConfig` 삭제)** 아래 문단의 `MailServiceConfig`는 삭제됐다. 지금은 `application/mail/service/MailVerificationService` 클래스에 `@WebApp` 마커만(`@Service` 없이) 붙고, web-api의 마커 기반 컴포넌트 스캔이 생성자 주입으로 등록한다. 빈 이름(`mailVerificationService`)과 등록 앱(web)은 바뀌지 않았다. `MailSender`를 생성자로 받는 마커 클래스가 `@WebApp`이 아니면 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`이 빌드에서 실패시킨다. 아래는 ServiceConfig 삭제 전의 기록이다.
 
@@ -90,7 +92,7 @@ backend/infrastructure/mail/
 
 **대상**: `backend/infrastructure/mail/` 전체(`src/main/java` 부재가 정상)
 
-이 모듈은 원래 `MailDomainConfig`를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 도메인 서비스 등록이 `application`(당시 `MailServiceConfig`, 지금은 `MailVerificationService` 클래스의 `@WebApp` 마커)으로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`MailModuleAutoConfiguration`·`MailDomainConfig`를 되살리지 않는다** — 도메인 서비스 등록은 `application`의 일이다.
+이 모듈은 원래 `MailDomainConfig`를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 도메인 서비스 등록이 `application`(당시 `MailServiceConfig`, 이후 `MailVerificationService` 클래스의 `@WebApp` 마커, 앱 마커 제거 후에는 `web-application`의 `@Service`)으로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`MailModuleAutoConfiguration`·`MailDomainConfig`를 되살리지 않는다** — 도메인 서비스 등록은 `application`의 일이다.
 
 ### 발신자 주소는 클래스가 아니라 프로퍼티 키로 공유한다
 

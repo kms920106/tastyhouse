@@ -54,7 +54,7 @@
 
 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종)을 신설 모듈 `security-core`로 옮기고, `application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch 유스케이스는 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
 
-자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리) 참고.
+자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리--앱-모듈-재분리) 참고.
 
 ## Redis 위임 (챕터 05)
 
@@ -132,8 +132,8 @@ batch-module은 이 모듈을 의존하지 않아 **jar 자체가 클래스패�
 
 `@ConfigurationProperties` record(`JwtProperties`)는 컴포넌트 스캔 대신
 `@EnableConfigurationProperties`로 여기서 명시 등록한다. `JwtAuthenticationFilter`는 POJO라 스캔 대상이
-아니므로 `@Bean` 메서드로 등록하며, 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 정확히 하나(앱
-마커로 걸러진 하위 클래스)여서 타입 주입이 모호하지 않다.
+아니므로 `@Bean` 메서드로 등록하며, 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 정확히 하나(~~앱
+마커로 걸러진~~ 그 앱의 `{앱}-application` 모듈에만 있는 하위 클래스 — 앱 마커 제거)여서 타입 주입이 모호하지 않다.
 
 ### `JwtAuthenticationEntryPoint` / `JwtAccessDeniedHandler` — 필터 단계 응답의 스키마 일치
 

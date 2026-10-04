@@ -2,6 +2,8 @@ package com.tastyhouse.application.shop.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -11,10 +13,9 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
-@SharedApp
+@Service
 public class ShopRequestIndexRecorder {
 
     private final ShopRequestIndexPersistencePort shopRequestIndexPersistencePort;

@@ -13,6 +13,12 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
+import com.tastyhouse.testsupport.review.service.FakeReviewImagePersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewLikePersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewTagPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeTagPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

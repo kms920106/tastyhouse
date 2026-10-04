@@ -11,10 +11,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.application.notification.service.NotificationService;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
 @Component
-@SharedApp
 public class ReviewBlindApprovedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindApprovedEventListener.class);

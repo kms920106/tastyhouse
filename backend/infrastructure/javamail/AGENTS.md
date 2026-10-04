@@ -2,7 +2,7 @@
 
 # infrastructure:javamail
 
-JavaMail(SMTP) 메일 발송 **벤더 모듈**(`java-library`). 도메인 포트 `MailSender`를 `JavaMailAdapter`가 구현한다. 메일 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:mail`이 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-ses`다.
+JavaMail(SMTP) 메일 발송 **벤더 모듈**(`java-library`). 포트 `MailSender`(`web-application`의 `com.tastyhouse.application.mail.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `JavaMailAdapter`가 구현한다. 메일 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:mail`이 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-ses`다.
 
 `infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.mail.javamail` → `external.javamail`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되지 않게 하기 위함이다.
 
@@ -22,7 +22,7 @@ com.tastyhouse.external.javamail/
 
 ## Dependencies
 
-- `domain` (implementation) — `MailSender` 포트 + `BusinessException`·`ErrorCode.MAIL_SEND_FAILED`
+- `web-application` (implementation) — `MailSender`·`MailSendResult` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (메일 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `MailSender` 포트 + `BusinessException`·`ErrorCode.MAIL_SEND_FAILED`~~ (02-vendor-ports 이전 기록 — 지금 `build.gradle`의 프로젝트 의존은 `:web-application` 하나다)
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이다.**
 - `infrastructure:mail`을 의존하지 않는다 — 발신자 주소는 `@Value("${mail.sender-address}")`로 키만 읽는다(순환 방지, `../mail/AGENTS.md` 봉인 목록)
 

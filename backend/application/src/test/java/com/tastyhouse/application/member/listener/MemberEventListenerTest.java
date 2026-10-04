@@ -11,7 +11,7 @@ import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.event.MemberWithdrawnEvent;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

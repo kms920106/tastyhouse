@@ -1,13 +1,14 @@
 package com.tastyhouse.application.shop.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
 
-@SharedApp
+@Service
 public class ShopCeoAssignmentRecorder {
 
     private final ShopCeoAssignmentHistoryPersistencePort shopCeoAssignmentHistoryPersistencePort;

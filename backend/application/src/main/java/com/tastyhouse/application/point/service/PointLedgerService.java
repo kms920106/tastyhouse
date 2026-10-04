@@ -2,6 +2,8 @@ package com.tastyhouse.application.point.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
@@ -14,9 +16,8 @@ import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePort;
 import com.tastyhouse.application.point.port.out.write.PointPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class PointLedgerService {
 
     private static final String USE_ON_ORDER_REASON = "주문 결제 사용";

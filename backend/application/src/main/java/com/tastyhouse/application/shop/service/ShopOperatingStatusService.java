@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -18,13 +20,12 @@ import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.service.ShopOrderMethodAvailability;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
-@SharedApp
+@Service
 public class ShopOperatingStatusService {
 
     private static final boolean PUBLIC_HOLIDAY = false;

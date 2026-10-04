@@ -13,10 +13,16 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    testImplementation project(':web-application')
+    testImplementation project(':admin-application')
+    testImplementation project(':ceo-application')
+    testImplementation project(':batch-application')
 
     testFixturesApi 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testFixturesImplementation 'org.springframework.boot:spring-boot-autoconfigure'
     testFixturesImplementation 'org.assertj:assertj-core'
+    testFixturesImplementation project(':domain')
+    testFixturesImplementation 'ch.qos.logback:logback-classic'
 }
 
 jar {

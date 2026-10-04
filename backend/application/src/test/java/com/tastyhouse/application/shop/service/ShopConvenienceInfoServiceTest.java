@@ -37,6 +37,7 @@ import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistenceP
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -2,7 +2,7 @@
 
 # infrastructure:facebook-oauth
 
-페이스북 로그인 **벤더 모듈**(`java-library`). `application`의 SPI `SocialOAuthClient`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+페이스북 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `facebook/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.facebook` → `com.tastyhouse.external.facebook.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `facebookOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -39,7 +39,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Graph API 호출은 **동기 `RestClient`**다.
-- `application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
 **`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(ErrorCode.SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`(소비 측 `*SocialLoginService` 4종이 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)

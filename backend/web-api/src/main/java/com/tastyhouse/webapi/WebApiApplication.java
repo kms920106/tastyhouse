@@ -4,10 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-
-import com.tastyhouse.application.shared.marker.SharedApp;
-import com.tastyhouse.application.shared.marker.WebApp;
 
 @SpringBootApplication
 public class WebApiApplication {
@@ -17,10 +13,7 @@ public class WebApiApplication {
     }
 
     @Configuration(proxyBeanMethods = false)
-    @ComponentScan(
-        basePackages = "com.tastyhouse.application",
-        useDefaultFilters = false,
-        includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {WebApp.class, SharedApp.class}))
+    @ComponentScan(basePackages = "com.tastyhouse.application")
     static class ApplicationLayerScanConfig {
     }
 }

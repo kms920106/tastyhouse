@@ -7,7 +7,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.application.shared.marker.BatchApp;
+import com.tastyhouse.architecture.ModuleOrigin;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -25,7 +25,7 @@ class BatchSchedulerRulesTest {
     @Test
     void applicationServicesShouldNotDependOnWebLayer() {
         ArchRule rule = noClasses()
-            .that().areAnnotatedWith(BatchApp.class)
+            .that(ModuleOrigin.from(ModuleOrigin.BATCH))
             .should().dependOnClassesThat().resideInAnyPackage(
                 "org.springframework.web.bind..",
                 "org.springframework.web.servlet..",
@@ -40,7 +40,7 @@ class BatchSchedulerRulesTest {
     @Test
     void inboundPortsShouldBeBoundaryTyped() {
         ArchRule rule = noClasses()
-            .that().resideInAPackage("..port.in..").and().areAnnotatedWith(BatchApp.class)
+            .that().resideInAPackage("..port.in..").and(ModuleOrigin.from(ModuleOrigin.BATCH))
             .should().dependOnClassesThat(
                 resideInAnyPackage(
                     "com.tastyhouse.domain..",
@@ -67,10 +67,10 @@ class BatchSchedulerRulesTest {
     @Test
     void schedulerServicesExist() {
         assertThat(classes.stream()
-            .filter(c -> c.isAnnotatedWith(BatchApp.class))
+            .filter(ModuleOrigin.from(ModuleOrigin.BATCH))
             .filter(c -> c.getSimpleName().endsWith("SchedulerService"))
             .count())
-            .as("@BatchApp *SchedulerService가 0건이면 두 규칙이 공허하게 통과한다")
+            .as("batch-application의 *SchedulerService가 0건이면 두 규칙이 공허하게 통과한다")
             .isEqualTo(7);
     }
 
@@ -78,10 +78,10 @@ class BatchSchedulerRulesTest {
     void inboundPortsExist() {
         assertThat(classes.stream()
             .filter(JavaClass::isInterface)
-            .filter(c -> c.isAnnotatedWith(BatchApp.class))
+            .filter(ModuleOrigin.from(ModuleOrigin.BATCH))
             .filter(c -> resideInAPackage("..port.in..").test(c))
             .count())
-            .as("@BatchApp UseCase가 0건이면 경계 타입 규칙이 공허하게 통과한다")
+            .as("batch-application UseCase가 0건이면 경계 타입 규칙이 공허하게 통과한다")
             .isEqualTo(7);
     }
 }

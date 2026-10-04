@@ -2,7 +2,7 @@
 
 # infrastructure:aws-sns
 
-AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). `application` 모듈이 소유한 포트 `SmsSender`(`com.tastyhouse.application.sms.port.out`)를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 벤더(Solapi)는 `infrastructure:solapi`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:sms`가 한다.
+AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유한 포트 `SmsSender`(`com.tastyhouse.application.sms.port.out`)를 `SnsSmsSender`가 구현한다. SMS 채널의 기본 벤더(Solapi)는 `infrastructure:solapi`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:sms`가 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
@@ -37,7 +37,7 @@ com.tastyhouse.external.aws.sns/
 
 ### Internal
 - **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제됐다.
-- `application` (implementation) — `SmsSender` 포트(`com.tastyhouse.application.sms.port.out`)
+- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — `SmsSender` 포트(`com.tastyhouse.application.sms.port.out`)
 
 `SnsSmsSender#send`는 `ErrorCode.SMS_SEND_API_ERROR`/`SMS_SEND_FAILED`로 `BusinessException`을 직접 던지지 않고, `SmsSendResult`(`sent()`/`failed(SmsSendFailure, cause)`, `SmsSendFailure`는 `NO_RESPONSE`·`FAILED`·`API_ERROR` 3종)를 반환한다 — 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 소비 측 `SmsVerificationService`(application 계층)로 옮겨갔다. 이 모듈은 도메인 `BusinessException`/`ErrorCode`를 전혀 참조하지 않는다.
 

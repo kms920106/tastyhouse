@@ -2,6 +2,8 @@ package com.tastyhouse.application.product.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -15,9 +17,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ProductFeedbackService {
 
     public static final int FEEDBACK_WINDOW_DAYS = 7;

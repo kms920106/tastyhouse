@@ -11,11 +11,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.domain.review.event.ReviewOwnerReplyCreatedEvent;
 import com.tastyhouse.application.notification.service.NotificationService;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 
 @Component
-@SharedApp
 public class ReviewOwnerReplyEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewOwnerReplyEventListener.class);

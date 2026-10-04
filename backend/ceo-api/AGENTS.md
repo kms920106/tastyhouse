@@ -8,7 +8,7 @@
 
 **챕터 04로 application 계층이 `application` 모듈로 물리 분리되어, 이 모듈은 인바운드 어댑터(컨트롤러 + `request/`)와 config·security 정책·부트스트랩만 담당한다** (과거 "점주 유스케이스의 application 계층은 이 모듈이 직접 소유한다"의 번복 — 유스케이스가 점주 전용이라는 사실은 그대로이고 담는 모듈만 바뀌었다). 컨트롤러는 `com.tastyhouse.application.<ctx>.port.in`의 UseCase 인터페이스만 주입한다.
 
-> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.ceoapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌다. 패키지만으로는 이 모듈이 주입하는 UseCase가 ceo 것인지 알 수 없으므로, 앱 소속은 마커 애노테이션(`@CeoApp`)이 표현한다 — 마커·유도 규칙 상세는 `application/AGENTS.md` 참고.
+> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.ceoapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌다. 패키지만으로는 이 모듈이 주입하는 UseCase가 ceo 것인지 알 수 없으므로, ~~앱 소속은 마커 애노테이션(`@CeoApp`)이 표현한다~~. **(번복됨 — 앱 마커 제거)** 지금은 Gradle 모듈이 표현한다 — ceo 전용 UseCase·Command·서비스는 `ceo-application` 모듈에 있다. 상세는 `application/AGENTS.md`·`ceo-application/AGENTS.md` 참고.
 
 **현재 상태: 로그인 + 점주 가게 관리 API 구현 완료** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소, `auth`(로그인/토큰갱신/로그아웃)에 더해, 배민 사장님 셀프서비스 가이드 기반 **점주 가게 설정 API(`shop`)** 를 구현했다: 내 가게 조회, 영업시간·휴게시간(PDF 규격 검증), 휴무일(공휴일/정기/임시), 전화번호(다건+대표번호), 가게 상태(노출정지), 가게소개(금칙어 검수), 편의정보·찾아오는길·노출위치, 상표·대표이미지 변경요청(승인 워크플로), 콘텐츠보드, 영업 임시중지, 위생정보 조회. order 등 나머지 도메인 엔드포인트는 아직 없다.
 
@@ -22,7 +22,7 @@
 
 **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다).
 
-**부트스트랩에 `scanBasePackages`가 없다 (챕터 02)**: `CeoApiApplication`은 `@SpringBootApplication` + `@EnableConfigurationProperties(CeoSeedProperties.class)`와 static 중첩 `ApplicationLayerScanConfig`(마커 스캔 — 개정 전에는 `@Import(CeoApplicationConfig.class)`)만 갖는다 — 과거의 `scanBasePackages`/`@ComponentScan basePackages` 나열(`com.tastyhouse.ceoapi`·`infrastructure`·`external`·`security`·`logging`)도, 그 `excludeFilters`도 **전부 사라졌다**. 라이브러리 모듈이 각자의 `{Xxx}ModuleAutoConfiguration`으로 자기 자신을 등록하고, 이 앱에 실리지 않는 모듈은 애초에 클래스패스에 없어(예: `infrastructure:oauth`는 web 전용) 제외 필터가 필요 없기 때문이다. `application`은 부트스트랩 중첩 `ApplicationLayerScanConfig`(`{CeoApp, SharedApp}` 마커 스캔)가 배선한다 — 직접 `@ComponentScan`을 달면 Spring 6.1에서 앱 기본 스캔이 사라지므로 중첩 클래스여야 한다. (번복됨 — application `*ApplicationConfig` 삭제: 과거에는 `CeoApplicationConfig`를 `@Import`했다.) `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
+**부트스트랩에 `scanBasePackages`가 없다 (챕터 02)**: `CeoApiApplication`은 `@SpringBootApplication` + `@EnableConfigurationProperties(CeoSeedProperties.class)`와 static 중첩 `ApplicationLayerScanConfig`(~~마커 스캔~~ 앱 마커 제거 후 필터 없는 `com.tastyhouse.application` 스캔 — 개정 전에는 `@Import(CeoApplicationConfig.class)`)만 갖는다 — 과거의 `scanBasePackages`/`@ComponentScan basePackages` 나열(`com.tastyhouse.ceoapi`·`infrastructure`·`external`·`security`·`logging`)도, 그 `excludeFilters`도 **전부 사라졌다**. 라이브러리 모듈이 각자의 `{Xxx}ModuleAutoConfiguration`으로 자기 자신을 등록하고, 이 앱에 실리지 않는 모듈은 애초에 클래스패스에 없어(예: `infrastructure:oauth`는 web 전용) 제외 필터가 필요 없기 때문이다. `application`은 부트스트랩 중첩 `ApplicationLayerScanConfig`(`{CeoApp, SharedApp}` 마커 스캔)가 배선한다 — 직접 `@ComponentScan`을 달면 Spring 6.1에서 앱 기본 스캔이 사라지므로 중첩 클래스여야 한다. (번복됨 — application `*ApplicationConfig` 삭제: 과거에는 `CeoApplicationConfig`를 `@Import`했다.) `domain`은 `@Component`/`@Service`/`@Configuration`이 0건이라(도메인 서비스는 POJO, 빈 등록은 infra `<ctx>/config/<Ctx>DomainConfig`) 스캔 대상이 아니다. 조립의 상한은 루트 [CLAUDE.md 컴포지션 루트 규칙](../CLAUDE.md#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03) 참고.
 
 ## Key Files
 | File | Description |
@@ -55,7 +55,7 @@
 - **레이어 경계는 `src/test/.../architecture/LayerRulesTest`(ArchUnit)가 강제**한다 — **CQRS 서비스 대상 규칙 10종은 챕터 04에서 `application`으로 이동**했고, 이 모듈에는 인바운드 어댑터를 대상으로 하는 규칙만 남았다: `controllersShouldNotDependOnPersistencePorts`·`controllersShouldNotDependOnQueryPorts`·`controllersShouldBeDomainFree`·`requestRecordsShouldBeDomainAndInfraFree`·`controllersShouldDependOnUseCasesOnly`·`webAdaptersShouldNotDependOnApplicationServices`·`shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`, 그리고 분리로 신설된 `apiModuleMustNotContainApplicationLayer`·`restControllersShouldResideInWebAdapterPackage`. `allowEmptyShould(true)`를 쓰지 않아 대상 0건이면 실패로 드러난다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다.
 
 ### Common Patterns
-- **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. `application`의 `CeoJwtTokenProvider`(`@Component @CeoApp`)가 그 공용 provider를 상속해 `ceoId` 클레임·`CeoUserDetails` 재구성만 주입한다(검증 토큰 없음). **공용 필터 빈은 `SecurityModuleAutoConfiguration`이 `BlacklistRepository` 포트를 받아 등록**한다(챕터 02) — 이 앱에 조립 코드가 없다. 저장소 구현·접두사(`ceo:bl:`/`ceo:rt:`)는 챕터 01부터 `infrastructure:redis`가 프로퍼티로 소유한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`. (`config/jwt/` 디렉터리는 챕터 01~02로 소멸.)
+- **JWT 인증 메커니즘은 `security-module`의 `com.tastyhouse.security.jwt`에 공유**된다. `ceo-application`의 `CeoJwtTokenProvider`(`@Component` — 앱 마커 제거 전에는 `application` + `@CeoApp`)가 그 공용 provider를 상속해 `ceoId` 클레임·`CeoUserDetails` 재구성만 주입한다(검증 토큰 없음). **공용 필터 빈은 `SecurityModuleAutoConfiguration`이 `BlacklistRepository` 포트를 받아 등록**한다(챕터 02) — 이 앱에 조립 코드가 없다. 저장소 구현·접두사(`ceo:bl:`/`ceo:rt:`)는 챕터 01부터 `infrastructure:redis`가 프로퍼티로 소유한다. 정책은 ceo-api에 잔류: `config/security/SecurityConfig`·`PublicPaths`. (`config/jwt/` 디렉터리는 챕터 01~02로 소멸.)
 - **점주 계정 도메인(`ceo`)은 `domain`의 `admin` 도메인과 동일한 최소 CRUD 패턴**이다(`Admin` 대비 `role` 없이 `status`만 보유). `Ceo`(순수 POJO)/`CeoStatus`/`CeoId`/`CeoPersistencePort`는 `domain/src/main/java/com/tastyhouse/domain/ceo/`에, 영속 어댑터(`CeoJpaEntity`/`CeoMapper`/`CeoJpaRepository`/`CeoPersistenceAdapter`)와 조회 DAO(`ceo/query/`)는 `infrastructure/persistence/.../ceo/`에, application 서비스(`CeoCommandService`/`CeoQueryService`)는 `application`의 `ceo/service/`에 있다(admin-api에도 관리자용 `ceo/CeoQueryService`가 따로 있다). DDL은 `schema.sql`의 `CEO` 테이블.
 - **인가 체인은 `.anyRequest().hasRole("CEO")`로 강화되어 있다** — `CeoUserDetailsService`가 로그인 시 고정 `ROLE_CEO` 권한을 부여한다(점주는 단일 역할이라 역할 enum 없음).
 - **최초 점주 계정은 부팅 시드로 주입**된다(`config/CeoSeeder`+`CeoSeedProperties`, admin-api `AdminSeeder` 패턴과 동일). `ceo.seed.password`가 기본 센티넬(`__UNSET__`)이면 fail-fast로 부팅을 거부하므로, 운영/최초 기동 시 `CEO_SEED_PASSWORD` 환경변수가 필수다.
@@ -76,14 +76,15 @@
 ## Dependencies
 
 ### Internal
-- `application` (implementation) — 컨텍스트 UseCase 인바운드 포트(컨트롤러가 주입) + 마커 애노테이션 `CeoApp`·`SharedApp`(부트스트랩 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `CeoApplicationConfig`를 `@Import`)
+- `application` (implementation) — 코어(공유 도메인 서비스·`port.out` 계약·리스너). ~~+ 마커 애노테이션 `CeoApp`·`SharedApp`(부트스트랩 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `CeoApplicationConfig`를 `@Import`)~~ (번복됨 — 앱 마커 제거)
+- `ceo-application` (implementation, 앱 마커 제거로 추가) — ceo 전용 UseCase 인바운드 포트(컨트롤러가 주입)·Command·서비스. **다른 앱의 application 모듈을 추가하지 않는다** — 필터 없는 스캔이라 그 앱의 빈이 전부 뜬다(`ApplicationModuleClasspathTest`가 막는다)
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다. 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
 - `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 파일 업로드)를 묶어 전이로 공급하므로 **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClient.Builder` customizer만 — 예외·에러코드는 도메인 `ErrorCode` 소유)는 파일 저장 SPI가 삭제된 뒤 스타터의 조립 대상에서 빠져 **이 앱의 `runtimeClasspath`에 없다**(webflux는 리포 전체에서 제거됐다). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
 - `logging-module`, `security-module`
 - `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터와 `StringRedisTemplate` 빈. `RedisModuleAutoConfiguration`이 자기 등록하며(챕터 02) 부트스트랩은 `@Import`하지 않는다
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
 - **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), ~~domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).~~ **번복됨 (덩어리 01)** — `api-common-module`은 이제 `api project(':application')`이고 `application`은 `domain`을 `implementation`으로만 가지므로, **이 모듈의 컴파일 클래스패스에 `domain`이 아예 없다.** domain 타입이 필요해 보이면 재선언하지 말고 application이 제공하는 대체물을 쓴다 — 에러 판정 `ErrorResponses`/상수 `ErrorContracts`(`com.tastyhouse.application.shared.error`), 페이징 `com.tastyhouse.application.shared.port.out.page`, enum은 `*Result`의 `String`(+ `{field}Description`/`{field}DisplayName`). `domain`을 이 모듈에 선언하는 것은 표현 계층 domain 절단을 되돌리는 것이다.
-- `testFixtures(project(':application'))` — `adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다(챕터 03).
+- `testFixtures(project(':application'))` — `ApplicationLayerScanAssertions`(스캔 단정·클래스패스 단정)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다. ~~`adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 공유한다(챕터 03)~~ **(번복됨 — 앱 마커 제거)** 그 규칙과 `AppOwnership`은 삭제됐다 — 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 에러다.
 
 ### External — starter를 직접 선언하지 않는다
 공유 모듈이 `api`로 전이 노출하므로 이 모듈은 starter 좌표를 직접 쓰지 않는다.
@@ -114,7 +115,24 @@
 이 파일의 규칙 대부분은 web-api·다른 앱과 동일하며, 그 공통분은 [backend/AGENTS.md](../AGENTS.md)의 "계층 규칙 봉인 — api 앱 3종 공통"에 있다. **아래는 이 앱 고유의 차이다.**
 
 
+### `ApplicationModuleClasspathTest` — 다른 앱의 application 모듈이 클래스패스에 섞이지 않게 막는다 (앱 마커 제거)
+
+**대상**: `backend/ceo-api/src/test/java/com/tastyhouse/ceoapi/ApplicationModuleClasspathTest.java` → `loadsOnlyOwnApplicationModule`
+· 단정 본문 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule("ceo")`
+· 표식 리소스 `backend/ceo-application/src/main/resources/META-INF/tastyhouse/application-module.properties`(`app=ceo`)
+
+**무엇을 확인하나**: 이 앱의 테스트 클래스패스에 `META-INF/tastyhouse/application-module.properties`가 **정확히 1개** 있고 그 `app` 값이 `ceo`인지 본다. 각 `{앱}-application` 모듈이 자기 이름이 적힌 이 파일을 하나씩 싣는다.
+
+**왜 막는가**: 앱 마커 제거 후 `ApplicationLayerScanConfig`는 **필터 없이** `com.tastyhouse.application`을 스캔한다. 무엇이 뜰지는 클래스패스가 정한다("클래스패스 존재 = 활성화"). 그래서 누가 이 모듈 `build.gradle`에 다른 앱의 application 모듈(예: `:web-application`)을 실수로 추가하면, 컴파일도 기동도 성공한 채 **그 앱의 빈·권한 경계가 이 앱에 통째로 실린다.** 과거에는 마커 include 필터가 이것을 막았다. 이 테스트가 그 자리를 대신한다. 리소스 개수가 0이면 자기 앱 모듈이 빠진 것이고, 2 이상이면 다른 앱 모듈이 섞인 것이다.
+
+| 항목 | before (앱 마커) | after (모듈 경계) |
+|---|---|---|
+| 다른 앱 빈이 뜨는 것을 막는 수단 | 스캔의 마커 include 필터(`{CeoApp, SharedApp}`) | 클래스패스에 다른 앱 모듈이 없음 + 이 테스트 |
+| 의존 | `implementation project(':application')` | 그대로 + `implementation project(':ceo-application')` |
+
 ### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
+
+> **(앱 마커 제거 후 갱신)** 이 테스트는 지금 `assertScansApplicationLayerWithoutFilters(CeoApiApplication.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(CeoApiApplication.class)`를 부른다(마커 인자 없음). 단정은 이렇게 바뀌었다 — `basePackages == {"com.tastyhouse.application"}`(`value`·`basePackageClasses` 비어 있음), **`useDefaultFilters == true`**, **include·exclude 필터 둘 다 없음**, 부트스트랩 자체에는 직접 선언된 `@ComponentScan`·`@ComponentScans`·`@Import`가 없음. 앱 소속을 마커가 아니라 클래스패스가 정하므로, 다른 앱 모듈이 섞이는 사고는 위 `ApplicationModuleClasspathTest`가 막는다. 아래 "마커 오기입"·`AppOwnership.MARKERS`·`{CeoApp, SharedApp}` 서술은 과거 기록이다. 중첩 클래스여야 하는 이유는 그대로 유효하다.
 
 **대상**: `backend/ceo-api/src/test/java/com/tastyhouse/ceoapi/ApplicationLayerScanConfigTest.java`
 → `CeoApiApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/CeoApiApplication.java`)의 `@ComponentScan`

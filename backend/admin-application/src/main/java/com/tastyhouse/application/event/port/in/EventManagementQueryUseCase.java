@@ -1,0 +1,20 @@
+package com.tastyhouse.application.event.port.in;
+
+import java.util.List;
+
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
+import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
+import com.tastyhouse.application.event.port.out.EventWinnerResult;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+
+public interface EventManagementQueryUseCase {
+
+    PageResult<EventManagementListItemResult> getEvents(String name, String status, int page, int size);
+
+    EventManagementDetailResult getEvent(Long id);
+
+    EventAnnouncementResult getAnnouncement(Long id);
+
+    List<EventWinnerResult> getWinners(Long id);
+}

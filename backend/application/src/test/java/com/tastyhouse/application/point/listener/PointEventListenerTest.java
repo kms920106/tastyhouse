@@ -11,7 +11,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

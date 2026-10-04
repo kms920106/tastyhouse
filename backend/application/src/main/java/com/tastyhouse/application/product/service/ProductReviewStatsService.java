@@ -1,11 +1,12 @@
 package com.tastyhouse.application.product.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ProductReviewStatsService {
 
     private final ProductPersistencePort productPersistencePort;

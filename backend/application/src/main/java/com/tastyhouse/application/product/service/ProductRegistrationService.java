@@ -2,6 +2,8 @@ package com.tastyhouse.application.product.service;
 
 import java.math.BigDecimal;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
@@ -28,9 +30,8 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ProductRegistrationService {
 
     private final ProductPersistencePort productPersistencePort;

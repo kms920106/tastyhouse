@@ -2,6 +2,8 @@ package com.tastyhouse.application.product.service;
 
 import java.util.Set;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
@@ -12,9 +14,8 @@ import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ProductVegetarianApprovalService {
 
     private static final Set<String> DISALLOWED_SHOP_CATEGORIES = Set.of(

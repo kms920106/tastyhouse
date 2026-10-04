@@ -1,13 +1,14 @@
 package com.tastyhouse.application.member.referral.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class ReferralRewardCompletionService {
 
     private final MemberReferralPersistencePort memberReferralPersistencePort;

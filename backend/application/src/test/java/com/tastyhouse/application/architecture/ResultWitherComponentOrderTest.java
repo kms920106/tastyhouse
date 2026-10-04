@@ -22,8 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ResultWitherComponentOrderTest {
 
-    private static final Path APPLICATION_SOURCE_ROOT =
-        Path.of("src/main/java/com/tastyhouse/application");
+    private static final List<Path> APPLICATION_SOURCE_ROOTS = List.of(
+        Path.of("src/main/java/com/tastyhouse/application"),
+        Path.of("../web-application/src/main/java/com/tastyhouse/application"),
+        Path.of("../admin-application/src/main/java/com/tastyhouse/application"),
+        Path.of("../ceo-application/src/main/java/com/tastyhouse/application"),
+        Path.of("../batch-application/src/main/java/com/tastyhouse/application"));
 
     private static final Pattern PACKAGE_DECLARATION =
         Pattern.compile("^package\\s+([\\w.]+)\\s*;", Pattern.MULTILINE);
@@ -100,7 +104,7 @@ class ResultWitherComponentOrderTest {
 
         assertThat(checked)
             .as("port/out wither를 하나도 찾지 못했다 — 스캔 경로(%s)나 패턴이 잘못되었을 수 있다",
-                APPLICATION_SOURCE_ROOT)
+                APPLICATION_SOURCE_ROOTS)
             .isPositive();
 
         assertThat(mismatches)
@@ -271,14 +275,17 @@ class ResultWitherComponentOrderTest {
     }
 
     private List<Path> portOutSources() {
-        try (Stream<Path> paths = Files.walk(APPLICATION_SOURCE_ROOT)) {
-            return paths
-                .filter(path -> path.toString().endsWith(".java"))
-                .filter(path -> path.getParent().endsWith(Path.of("port", "out")))
-                .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException("application 소스 스캔에 실패했다: " + APPLICATION_SOURCE_ROOT, e);
+        List<Path> sources = new ArrayList<>();
+        for (Path root : APPLICATION_SOURCE_ROOTS) {
+            try (Stream<Path> paths = Files.walk(root)) {
+                paths.filter(path -> path.toString().endsWith(".java"))
+                    .filter(path -> path.getParent().endsWith(Path.of("port", "out")))
+                    .forEach(sources::add);
+            } catch (IOException e) {
+                throw new UncheckedIOException("application 소스 스캔에 실패했다: " + root, e);
+            }
         }
+        return sources;
     }
 
     private String read(Path path) {

@@ -2,6 +2,8 @@ package com.tastyhouse.application.payment.service;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -24,9 +26,8 @@ import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class PaymentConfirmationService {
 
     private static final int CASH_POINT_EARN_RATE = 10;

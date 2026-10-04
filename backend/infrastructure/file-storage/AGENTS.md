@@ -63,4 +63,4 @@ backend/infrastructure/file-storage/
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - `file.provider` 값은 이 모듈이 소유한다. 챕터 03 이전에는 `infrastructure:external`의 `application-external.yml`이 소유했으나, 그 파일은 이 값만 담고 있어 이동 후 삭제됐다. 이 값은 벤더 구현(`FirebaseFileStorage`·`S3FileStorage` 등)의 `@ConditionalOnProperty` 문자열로만 소비되며, 바인딩하는 Properties record는 없다.
-- 기동 성공이 곧 스타터 경유 배선의 증명이다. persistence의 `FileUrlResolver`와 `application`의 `FileUploadService`(`@SharedApp` 마커로 4앱 전부에 스캔 등록 — 과거 등록처 `FileDomainConfig`·`FileServiceConfig`는 둘 다 삭제됨)가 `FileStoragePort`(Firebase 구현) 빈을 주입받으므로, 전이 의존이 끊기면 `FileStoragePort` 빈을 찾지 못해 컨텍스트 로딩이 실패한다.
+- 기동 성공이 곧 스타터 경유 배선의 증명이다. persistence의 `FileUrlResolver`와 코어 `application`의 `FileUploadService`(`@Service` — 코어는 4앱 전부의 클래스패스에 있어 4앱 전부에 스캔 등록된다. 앱 마커 제거 전에는 `@SharedApp` 마커로 같은 효과를 냈다. 과거 등록처 `FileDomainConfig`·`FileServiceConfig`는 둘 다 삭제됨)가 `FileStoragePort`(Firebase 구현) 빈을 주입받으므로, 전이 의존이 끊기면 `FileStoragePort` 빈을 찾지 못해 컨텍스트 로딩이 실패한다.

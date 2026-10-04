@@ -2,7 +2,7 @@
 
 # infrastructure:apple-oauth
 
-애플 로그인 **벤더 모듈**(`java-library`). `application`의 SPI `SocialOAuthClient`를 `AppleOAuthClient`가 구현하고 `provider()`로 `SocialProvider.APPLE`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+애플 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `AppleOAuthClient`가 구현하고 `provider()`로 `SocialProvider.APPLE`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
 
@@ -42,7 +42,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토큰 교환·JWKS 조회는 **동기 `RestClient`**다.
-- `application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
 **`domain` 의존은 없다.** `exchange()`/`fetchProfile()`은 id_token 검증 실패를 `BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`(소비 측 `*SocialLoginService` 4종이 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
 - `io.jsonwebtoken:jjwt-api:0.13.0` (implementation) + `jjwt-impl`·`jjwt-jackson` (runtimeOnly) — client_secret ES256 서명(비공개키 PKCS8, Base64 저장), id_token RS256 검증(Apple JWKS 공개키). **컴파일 시점 격리만이다** — 이 선언으로 다른 소셜 벤더 모듈의 컴파일 클래스패스에 jjwt가 없지만, 런타임에는 `application → security-core`(`api` jjwt-api, `runtimeOnly` impl·jackson) 경로로 jjwt가 web-api 전체에 이미 실려 있다. 분할 전 `infrastructure:oauth`가 카카오·네이버·페이스북까지 jjwt를 컴파일 클래스패스에 두던 것을 애플 한 모듈로 좁힌 것이 이 선언의 의미다.

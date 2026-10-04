@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':infrastructure:restclient')
-    implementation project(':application')
+    implementation project(':web-application')
 
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'

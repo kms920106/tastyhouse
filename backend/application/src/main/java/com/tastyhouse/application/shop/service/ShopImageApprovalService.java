@@ -1,5 +1,7 @@
 package com.tastyhouse.application.shop.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -13,11 +15,10 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
-@SharedApp
+@Service
 public class ShopImageApprovalService {
 
     private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;

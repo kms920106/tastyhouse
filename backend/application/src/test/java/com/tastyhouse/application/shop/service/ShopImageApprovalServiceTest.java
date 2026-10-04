@@ -24,6 +24,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

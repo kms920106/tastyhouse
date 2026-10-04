@@ -1,14 +1,15 @@
 package com.tastyhouse.application.shop.service;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
-@SharedApp
+@Service
 public class ShopOrderNoticeService {
 
     private static final int MAX_CONTENT_LENGTH = 500;

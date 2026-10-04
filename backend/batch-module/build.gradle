@@ -1,5 +1,6 @@
 dependencies {
     implementation project(':application')
+    implementation project(':batch-application')
 
     runtimeOnly project(':infrastructure:persistence')
     runtimeOnly project(':infrastructure:file-storage')

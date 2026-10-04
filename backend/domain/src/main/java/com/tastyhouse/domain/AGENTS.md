@@ -16,14 +16,14 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | `shared/vo/PhoneNumber.java` | 공유 커널 Value Object. `record`(compact constructor 검증) — `@Embeddable` 어노테이션 없음, 컬럼 매핑은 각 JpaEntity의 `@AttributeOverride`가 소유 |
 | `shared/model/ApprovalStatus.java` | 승인 워크플로 공용 enum(PENDING/APPROVED/REJECTED). 상표·대표이미지 변경요청 등에서 재사용 |
 | ~~`shared/page/PageQuery.java` / `PageResult.java`~~ | **이동됨 (덩어리 01)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/page/`로 `git mv`. domain 안에 사용처가 0건이었고, 소비자(persistence DAO 32곳·표현 계층)가 전부 application 쪽이라 domain이 소유할 이유가 없었다. 표현 계층이 domain을 끊는 데 필요한 이동이기도 하다 |
-| ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 ~~`shared/config/SharedEventConfig`~~ `shared/config/SharedBeanConfig`(`@SharedApp`, application `*ServiceConfig` 삭제 때 `SharedEventConfig`에서 리네임)가 등록한다 |
+| ~~`shared/event/DomainEventPublisher.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/event/`로 `git mv`. 구현 `SpringDomainEventPublisher`도 persistence에서 같은 패키지로 옮겨 ~~`shared/config/SharedEventConfig`~~ `shared/config/SharedBeanConfig`(코어 `application` — 앱 마커 제거 전에는 `@SharedApp`. application `*ServiceConfig` 삭제 때 `SharedEventConfig`에서 리네임)가 등록한다 |
 | ~~`shared/exception/OptimisticLockConflictException.java`~~ | **이동됨 (덩어리 03a)** — `backend/application/src/main/java/com/tastyhouse/application/shared/port/out/`로 `git mv`. 던지는 쪽(persistence `ReservationSlotPersistenceAdapter`)이 03b에서 domain 없이 참조할 수 있도록 `port/out` 아래에 둔다 |
 | `exception/ErrorCode.java` | 도메인 에러 코드 enum. `httpStatusCode`(int)/`code`(String)/`defaultMessage`(String). Spring Web 비의존이므로 `HttpStatus` 대신 int 사용 |
 | `exception/BusinessException.java` | 기본 비즈니스 예외. 모든 도메인 예외의 부모 |
 | `exception/ResourceNotFoundException.java` | 리소스(애그리거트) 미존재 예외 (BusinessException 상속). 과거 `EntityNotFoundException`이었으나 `jakarta.persistence.EntityNotFoundException`과 동명이라 JPA 관심사로 오해될 수 있어 리네이밍 |
 | `exception/ErrorCodeSpec.java` | 에러코드 공통 계약 인터페이스(`getHttpStatusCode`/`getCode`/`getDefaultMessage`). 지금 구현체는 `ErrorCode` 하나뿐이다 — 과거 `infrastructure:http-client`(구 `infrastructure:external`)가 소유하던 `ExternalApiErrorCode`는 완전히 삭제됐고, 외부 연동 실패 코드(SMS 발송·메일 발송·행정동 경계 조회 실패 등)도 지금은 이 `ErrorCode` 카탈로그의 상수다. 인터페이스 자체는 "카탈로그는 하나로 유지하되 필요하면 domain이 모듈별 에러 카탈로그를 다시 호스트할 수 있는 확장점"으로 남긴다. `BusinessException`이 이 타입을 보유해 전역 핸들러가 그대로 처리한다 |
 
-> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지 소관이 아닙니다 — ~~infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`~~ **(번복됨 — 03a)** ~~`application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp`)가 이 패키지에 남은 순수 서비스까지 함께 등록합니다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 이 패키지에 남은 순수 서비스는 `application`의 `shared/config/SharedBeanConfig`(`@SharedApp`)가 `@Bean`으로 등록하고, application으로 옮겨 간 포트 주입 서비스는 클래스에 앱 마커만 달아 스캔으로 등록됩니다.
+> JPA 설정(`@EnableJpaRepositories`/`@EntityScan`/`@EnableJpaAuditing`/`@EnableTransactionManagement`)·`QueryDslConfig`·`BaseEntity`는 이 패키지에 없습니다. 전부 `infrastructure-module`(`InfrastructurePersistenceConfig`·`config/QueryDslConfig`·`shared/persistence/BaseEntity`)이 소유합니다. 도메인 서비스 빈 등록도 이 패키지 소관이 아닙니다 — ~~infrastructure-module의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`~~ **(번복됨 — 03a)** ~~`application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp`)가 이 패키지에 남은 순수 서비스까지 함께 등록합니다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 이 패키지에 남은 순수 서비스는 `application`의 `shared/config/SharedBeanConfig`(앱 마커 제거 전에는 `@SharedApp`)가 `@Bean`으로 등록하고, application으로 옮겨 간 포트 주입 서비스는 ~~클래스에 앱 마커만 달아~~ **(번복됨 — 앱 마커 제거)** `@Service`를 달고 코어 또는 `{앱}-application` 모듈에서 스캔으로 등록됩니다.
 
 ## Bounded Contexts
 
@@ -72,7 +72,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
    · {도메인}CommandService(@Transactional) / {도메인}QueryService(@Transactional(readOnly))
         ↓                                              ↓
    application — <ctx>/port/out/write (write 포트) · <ctx>/port/out (출력 포트)
-               · <ctx>/service (포트 주입 도메인 서비스, 앱 마커만 — @Service 없음) · shared/config/SharedBeanConfig(domain 계산기 등록)
+               · <ctx>/service (포트 주입 도메인 서비스, @Service — 앱 마커 제거 전에는 앱 마커만. 소비 앱이 하나면 {앱}-application 모듈) · shared/config/SharedBeanConfig(domain 계산기 등록)
         ↓                                              ↑ 구현
    domain (이 패키지)                       infrastructure-module
    · model/vo/event                            · <ctx>/persistence (write 어댑터)
@@ -187,9 +187,9 @@ public interface DomainEventPublisher {
 }
 
 // application: shared/event/SpringDomainEventPublisher — ApplicationEventPublisher 위임 (03a로 persistence에서 이동, SharedBeanConfig(구 SharedEventConfig)가 @Bean 등록)
-// application: <ctx>/listener/XxxListener — @Component @SharedApp + @TransactionalEventListener(AFTER_COMMIT)
+// application(코어 모듈): <ctx>/listener/XxxListener — @Component + @TransactionalEventListener(AFTER_COMMIT)  (앱 마커 제거 전에는 @SharedApp도)
 ```
-리스너를 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 4앱 전부가 스캔하는 `application`에 `@SharedApp`으로 둔다(과거 infrastructure-module 배치는 번복됨).
+리스너를 특정 api 모듈이나 앱 모듈(`{앱}-application`)에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 4앱 전부의 클래스패스에 있는 코어 `application`에 둔다(과거 infrastructure-module 배치는 번복됨. ~~`@SharedApp`으로 둔다~~ — 앱 마커 제거로 번복).
 
 **출력 포트 — 파일·메일·SMS·결제는 이 모듈에 없다 (번복됨)**: `FileStoragePort`(`file`)·`MailSender`(`mail`)·`SmsSender`(`sms`)·`PgPaymentGateway`/`PgProviderGateway`(+ 입출력 record, `payment`)는 전부 `domain`에서 `application`의 `port/out`으로 이관됐다. 과거에는 이 모듈이 벤더 무관 계약을 직접 선언하고 외부 연동 모듈이 그것을 구현했으나(아래는 그 시절의 형태), 지금은 domain의 write 포트만 남고 아웃바운드 SPI는 `com.tastyhouse.application.<ctx>.port.out`이 소유한다.
 
@@ -197,11 +197,11 @@ public interface DomainEventPublisher {
 // application/mail/port/out/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
 // application/sms/port/out/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // application/file/port/out/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — application의 라우터 PgPaymentGatewayRouter(@WebApp 마커만, 스캔 등록 — PgRouterConfig는 삭제됨)가 구현(infrastructure:pg는 코드 없는 채널 스타터)
+// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — web-application의 라우터 PgPaymentGatewayRouter(@Service 스캔 등록 — 앱 마커 제거 전에는 application + @WebApp, PgRouterConfig는 삭제됨)가 구현(infrastructure:pg는 코드 없는 채널 스타터). PgPaymentGateway도 지금은 web-application 소유
 // application/payment/port/out/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
 ```
 
-domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(POJO+마커 등록 패턴, `backend/application/AGENTS.md` 참고). `PgPaymentGateway`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGateway`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
+domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(~~POJO+마커 등록 패턴~~ 앱 마커 제거 후에는 `@Service` — `MailVerificationService`·`SmsVerificationService`는 `web-application`, `FileUploadService`·`PaymentConfirmationService`는 코어. `backend/application/AGENTS.md` 참고). `PgPaymentGateway`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGateway`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
 
 **QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryAdapter` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryAdapter`)는 `infrastructure-module/AGENTS.md` 참고.
 

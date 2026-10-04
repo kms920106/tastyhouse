@@ -41,9 +41,11 @@ backend/infrastructure/pg/
 - **조립**: `build.gradle`의 `runtimeOnly project(':infrastructure:tosspayments')` 한 줄이 기본 벤더를 web-api의 runtimeClasspath에 싣는다.
 - **설정**: `application-pg.yml`이 벤더 yml을 중첩 import한다(아래 §yml).
 
-빈 등록은 이제 조립 대상(tosspayments 등)의 auto-configuration이 `PgProviderGateway` 구현체를, `application`의 라우터 클래스 `PgPaymentGatewayRouter`가 자기 `@WebApp` 마커로 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
+빈 등록은 이제 조립 대상(tosspayments 등)의 auto-configuration이 `PgProviderGateway` 구현체를, `web-application`의 라우터 클래스 `PgPaymentGatewayRouter`가 `@Service` 스캔으로(앱 마커 제거 전에는 `application` + `@WebApp` 마커) 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
 
 ## 라우터 등록은 이제 어디인가 — `application`의 `PgPaymentGatewayRouter` 클래스 마커
+
+> **(번복됨 — 앱 마커 제거)** 아래 "클래스에 `@WebApp` 마커만 붙고(`@Service`는 달지 않는다)"는 번복됐다. 지금 라우터는 **`web-application` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. web-api만 `web-application`을 의존하므로 결제 기능이 없는 admin·ceo·batch에는 여전히 이 빈이 뜨지 않는다 — 한정하는 수단이 마커에서 모듈 경계로 바뀌었을 뿐이다. 라우터가 다루는 포트 `PgPaymentGateway`·`PgProviderGateway`·`PgCancelResult`·`PgProviderCode`도 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application`에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 빈 이름 `pgPaymentGatewayRouter`는 그대로다. 아래 코드 블록은 그 시점 기록이다.
 
 **(번복됨 — application `*ServiceConfig` 삭제)** 아래 첫 코드 블록(before)의 `PgRouterConfig`는 삭제됐다. 지금은 라우터 클래스 자체에 `@WebApp` 마커만 붙고(`@Service`는 달지 않는다 — "마커만 = 도메인 서비스" 컨벤션), 마커 기반 컴포넌트 스캔이 생성자에 `List<PgProviderGateway>`를 주입해 등록한다. 빈 이름 `pgPaymentGatewayRouter`와 등록 앱(web)은 그대로다.
 
@@ -81,6 +83,8 @@ public class PgRouterConfig {
 
 ## 포트 2단 구조 — 벤더는 공존하고 앱은 하나만 주입한다 (지금은 둘 다 `application` 소유)
 
+> **(앱 마커 제거 후 갱신)** 두 포트(`PgPaymentGateway`·`PgProviderGateway`)는 지금 `web-application` 소유다(web 전용 SPI). 아래 "`application` 소유"는 "application 계층 소유"로 읽고, 모듈은 `web-application`이다.
+
 | 계약 (`com.tastyhouse.application.payment.port.out`) | 누가 구현하나 | 누가 주입하나 |
 |---|---|---|
 | `PgProviderGateway` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소 | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
@@ -103,7 +107,7 @@ public class PgRouterConfig {
 
 ## 어느 앱이 의존하는가
 
-**web-api 하나뿐이다**(`runtimeOnly`). 클래스패스 존재가 곧 활성화이므로 다른 앱에 이 모듈을 추가하면 벤더 어댑터가 그 앱에도 올라온다(라우터 등록은 `application`의 `PgPaymentGatewayRouter` 클래스가 `@WebApp` 마커로 이미 web-api에 한정하지만, 벤더 어댑터 자체는 이 모듈의 조립을 따라간다). 결제는 사용자 앱에서만 일어나므로 추가하지 않는다.
+**web-api 하나뿐이다**(`runtimeOnly`). 클래스패스 존재가 곧 활성화이므로 다른 앱에 이 모듈을 추가하면 벤더 어댑터가 그 앱에도 올라온다(라우터 등록은 `web-application` 모듈에 있는 `PgPaymentGatewayRouter`가 이미 web-api에 한정하지만 — 앱 마커 제거 전에는 `@WebApp` 마커가 한정했다 — 벤더 어댑터 자체는 이 모듈의 조립을 따라간다). 결제는 사용자 앱에서만 일어나므로 추가하지 않는다.
 
 ## yml — `application-pg.yml`
 
@@ -129,7 +133,7 @@ public class PgRouterConfig {
 
 **대상**: `backend/infrastructure/pg/` 전체(`src/main/java` 부재가 정상)
 
-이 모듈은 원래 `PgGatewayConfig`(라우터 등록)를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 라우터 등록이 `application`(당시 `PgRouterConfig`, 지금은 라우터 클래스의 `@WebApp` 마커)으로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`PgModuleAutoConfiguration`·`PgGatewayConfig`를 되살리지 않는다** — 라우터 등록은 `application`의 일이다.
+이 모듈은 원래 `PgGatewayConfig`(라우터 등록)를 가진 채널 모듈이었으나(chunk 02-vendor-ports 이전), 라우터 등록이 `application`(당시 `PgRouterConfig`, 이후 라우터 클래스의 `@WebApp` 마커, 앱 마커 제거 후에는 `web-application`의 `@Service`)으로 이관되며 코드 없는 스타터가 됐다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`PgModuleAutoConfiguration`·`PgGatewayConfig`를 되살리지 않는다** — 라우터 등록은 `application`의 일이다.
 
 ### 벤더 어댑터에 `@ConditionalOnProperty`를 붙이지 않는다
 
@@ -139,7 +143,7 @@ public class PgRouterConfig {
 
 ### 라우터 등록에 `@ConditionalOnBean`을 쓰지 않는다
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@WebApp`). ~~`backend/application/src/main/java/com/tastyhouse/application/payment/config/PgRouterConfig.java` → `pgPaymentGatewayRouter`~~ (번복됨 — application `*ServiceConfig` 삭제로 이 파일이 없어져 앵커를 옮겼다)
+**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@Service`). (앱 마커 제거로 앵커를 옮겼다 — 과거 `backend/application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → `@WebApp`) ~~`backend/application/src/main/java/com/tastyhouse/application/payment/config/PgRouterConfig.java` → `pgPaymentGatewayRouter`~~ (번복됨 — application `*ServiceConfig` 삭제로 이 파일이 없어져 앵커를 옮겼다)
 
 사용자 설정 사이의 등록 순서에 따라 조건이 거짓이 되어 라우터가 조용히 빠질 수 있다(`../mail/AGENTS.md`와 같은 판단). 벤더가 0개여도 빈 목록으로 라우터가 생성되고, 첫 결제에서 `PG_PROVIDER_UNSUPPORTED`로 드러난다.
 

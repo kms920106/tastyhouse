@@ -24,6 +24,15 @@ import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
+import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
+import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestAttachmentPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewImagePersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewLikePersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewTagPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeShopRequestIndexPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeTagPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.stereotype.Service;
+
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
@@ -26,9 +28,8 @@ import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
-import com.tastyhouse.application.shared.marker.SharedApp;
 
-@SharedApp
+@Service
 public class StorePriceVerificationService {
 
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =

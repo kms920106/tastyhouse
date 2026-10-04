@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
 import com.tastyhouse.domain.mail.vo.MailVerificationId;
-import com.tastyhouse.application.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

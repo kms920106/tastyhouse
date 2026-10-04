@@ -21,14 +21,12 @@ import com.tastyhouse.domain.shop.service.ShopNextOpenTimeCalculator;
 import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.event.SpringDomainEventPublisher;
-import com.tastyhouse.application.shared.marker.SharedApp;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.CachingProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 @Configuration(proxyBeanMethods = false)
-@SharedApp
 public class SharedBeanConfig {
 
     @Bean
