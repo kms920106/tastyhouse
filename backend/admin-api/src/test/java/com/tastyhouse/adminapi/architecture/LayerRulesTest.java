@@ -53,7 +53,7 @@ class LayerRulesTest {
     @Test
     void shouldNotDependOnInfrastructurePersistence() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..");
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure.persistence..");
 
         rule.check(classes);
     }

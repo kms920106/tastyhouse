@@ -4,17 +4,18 @@
 
 애플 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `AppleOAuthClient`가 구현하고 `provider()`로 `SocialProvider.APPLE`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
+옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.apple.oauth`가 됐고, wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.apple.oauth.dto`로 모였다. 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.apple.oauth/
+com.tastyhouse.infrastructure.apple.oauth/
 ├── AppleOAuthModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(AppleOAuthProperties)
 ├── AppleOAuthProperties.java               oauth.apple.* (team-id, client-id, key-id, redirect-uri, private-key)
 ├── AppleOAuthClient.java                   SocialOAuthClient 구현 — ES256 client_secret 생성·토큰 교환·id_token(RS256) 검증
-├── AppleTokenResponse.java                 wire DTO
-└── AppleIdTokenPayload.java                id_token claim 해석
+└── dto/
+    ├── AppleTokenResponse.java             wire DTO
+    └── AppleIdTokenPayload.java            id_token claim 해석
 ```
 
 `AppleOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `AppleOAuthProperties`를 받아 같은 이름의 `final` 필드로 옮기며, **개인키만 이름이 다르다** — `privateKeyBase64 = properties.privateKey()`(값이 Base64 문자열이라는 것을 필드명이 드러낸다).
@@ -60,19 +61,19 @@ oauth:
 
 ### `AppleOAuthProperties`의 기동 시 검증을 지우지 않는다
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleOAuthProperties.java` → compact constructor · `requireResolved`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/AppleOAuthProperties.java` → compact constructor · `requireResolved`
 
 설정 누락을 기동 시점에 드러내는 유일한 장치다. `@Validated` + `@NotBlank`로 바꾸지 않는다 — 해석되지 않은 placeholder는 `${...}` 리터럴이라 공백이 아니어서 통과한다. 검사를 지우면 누락된 환경변수가 조용히 바인딩돼 운영 배포 후 첫 로그인에서야 드러난다. 반증 테스트 `failsStartupWhenPropertyMissing`·`failsStartupWhenPlaceholderUnresolved`가 이 동작을 고정한다.
 
 ### 자바 패키지 `com.tastyhouse.external.apple.oauth` 봉인
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/`
 
-`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**.
+~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.apple.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/apple-oauth/src/test/java/com/tastyhouse/infrastructure/apple/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(루트 통일 때 그 목록을 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`로 교체했다).
 
 ### id_token 검증 실패는 `SocialOAuthResult.failed`로 표현하고, `BusinessException` 번역은 `application`이 한다
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleOAuthClient.java` → `verifyIdToken`·`exchange`·`fetchProfile`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/AppleOAuthClient.java` → `verifyIdToken`·`exchange`·`fetchProfile`
 
 검증 실패의 bare `RuntimeException`을 이 어댑터가 삼키고 `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`로 표현하는 것은 이 어댑터의 책임이다(과거 web-api `AppleSocialLoginService` 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것이 그 시작이었다). 다만 그 결과를 도메인 의미의 예외(`BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`)로 번역하는 것은 이제 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`가 한다 — 어댑터는 `BusinessException`/`ErrorCode`를 참조하지 않는다. 응답 계약(`APPLE_ID_TOKEN_INVALID`)은 무변경이다. 번역을 어댑터로 되돌리지 않는다.
 
@@ -82,7 +83,7 @@ oauth:
 
 ### Apple id_token payload claim의 의미
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleIdTokenPayload.java`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/dto/AppleIdTokenPayload.java`
 
 Apple id_token JWT payload의 claim 해석 규약이다.
 
@@ -95,7 +96,7 @@ Apple id_token JWT payload의 claim 해석 규약이다.
 
 ### Apple 로그인이 표준 OAuth와 다른 두 지점
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/external/apple/oauth/AppleOAuthClient.java`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/AppleOAuthClient.java`
 
 1. **`client_secret`이 shared secret이 아니라 ES256 서명된 JWT여야 한다.** 일반 shared secret은 미지원이다. 생성 규약은 `iss` = Team ID, `sub` = Services ID(= client_id), `aud` = `https://appleid.apple.com`이며 유효기간은 최대 6개월(현재 구현은 180일).
 2. **UserInfo 엔드포인트가 없다.** id_token(RS256 JWT) 자체가 유일한 프로필 소스다. 그래서 `exchange()`가 액세스 토큰이 아니라 id_token을 자격증명으로 반환하며, **그 시점에 한 번 검증해 잘못된 토큰이 Redis 임시토큰 저장소에 들어가지 않게 한다.**

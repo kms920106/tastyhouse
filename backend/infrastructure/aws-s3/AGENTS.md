@@ -36,7 +36,7 @@ S3는 4앱이 스타터를 통해, SES·SNS는 web만 직접 활성화한다 —
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.aws.s3/
+com.tastyhouse.infrastructure.aws.s3/
 ├── AwsS3ModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(S3FileStorageProperties)
 ├── S3FileStorage.java                 FileStoragePort 직접 구현 @ConditionalOnProperty(file.provider=s3), 삭제는 FileDeleteResult 반환
 └── S3FileStorageProperties.java       file.aws.s3.* (bucketName · baseUrl)
@@ -77,19 +77,19 @@ com.tastyhouse.external.aws.s3/
 
 ### 자바 패키지 `com.tastyhouse.external.aws.s3` 봉인
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/external/aws/s3/`
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/`
 
-`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin·ceo·batch 부팅이 깨진다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`external.aws.ses`는 `aws-ses`, `external.aws.sns`는 `aws-sns` 소유).
+~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.s3`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`com.tastyhouse.infrastructure.aws.ses`는 `aws-ses`, `com.tastyhouse.infrastructure.aws.sns`는 `aws-sns` 소유 — 루트 통일 전 `external.aws.*`).
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/external/aws/s3/AwsS3ModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleAutoConfiguration.java`
 
-과거 `AwsModuleAutoConfiguration`은 `com.tastyhouse.external.aws` 루트를 통째로 스캔했다. 세 모듈로 나뉜 뒤 루트를 스캔하면 형제 모듈이 같은 클래스패스에 있을 때 그 빈까지 이 설정이 등록하게 되므로, 스캔 범위를 `external.aws.s3`로 넓히지 않는다.
+과거 `AwsModuleAutoConfiguration`은 `com.tastyhouse.external.aws` 루트를 통째로 스캔했다. 세 모듈로 나뉜 뒤 루트(지금은 `com.tastyhouse.infrastructure.aws`)를 스캔하면 형제 모듈이 같은 클래스패스에 있을 때 그 빈까지 이 설정이 등록하게 되므로, 스캔 범위를 자기 패키지(`com.tastyhouse.infrastructure.aws.s3`) 밖으로 넓히지 않는다.
 
 ### 위 "S3로 전환하는 절차"는 이 모듈의 유일한 활성화 경로다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/external/aws/s3/AwsS3ModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleAutoConfiguration.java`
 
 앱 `build.gradle`에 이 모듈을 직접 추가하지 않는다. 벤더 선택은 스타터가 소유한다(`backend/CLAUDE.md` §벤더 선택은 앱이 아니라 스타터 모듈이 한다).
 
@@ -99,12 +99,12 @@ com.tastyhouse.external.aws.s3/
 
 ### S3 클라이언트 빈은 직접 만들지 않는다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/external/aws/s3/S3FileStorage.java` → 생성자의 `S3Operations` 주입
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/S3FileStorage.java` → 생성자의 `S3Operations` 주입
 
 `spring-cloud-aws-starter-s3`의 autoconfigure가 `S3Operations`·`S3Client`를 등록하므로 이 모듈이 손수 정의하지 않는다. 과거 빈 설정 클래스 `S3FileStorageConfig`가 있었으나 내용이 없어 3분할 때 지웠다. **이 전제는 과거에 성립하지 않았다** — 라이브러리만 선언돼 autoconfigure가 없었기 때문이다(위 결함 2). 스타터를 라이브러리로 되돌리면 같은 결함이 컴파일 에러 없이 재발한다.
 
 ### 조건부 전략 배선은 반증 테스트로 확인한다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/external/aws/s3/S3FileStorage.java` (`@ConditionalOnProperty(file.provider=s3)`)
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/S3FileStorage.java` (`@ConditionalOnProperty(file.provider=s3)`)
 
 기동 성공이 곧 이 전략이 선택됐다는 증거가 아니다 — 조건이 거짓이면 빈이 조용히 빠진 채로도 앱은 뜬다. 전환 후 검증은 틀린 provider 값으로 실패를 확인하는 반증 방향으로 한다(위 "모듈 없이 provider만 바꾸면 기동 시 실패한다"가 그 실패 양식).

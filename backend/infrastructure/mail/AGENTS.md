@@ -96,8 +96,8 @@ backend/infrastructure/mail/
 
 ### 발신자 주소는 클래스가 아니라 프로퍼티 키로 공유한다
 
-**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/external/javamail/JavaMailAdapter.java` → 생성자 `@Value("${mail.sender-address}")`
-**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/external/aws/ses/SesConfig.java` → `awsSesMailSender` `@Value("${mail.sender-address}")`
+**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/infrastructure/javamail/JavaMailAdapter.java` → 생성자 `@Value("${mail.sender-address}")`
+**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/SesConfig.java` → `awsSesMailSender` `@Value("${mail.sender-address}")`
 
 `mail.sender-address`는 이 채널 스타터의 yml이 소유하고 벤더가 키로 읽는다. 과거 `MailProperties` record를 되살려 벤더가 이 모듈을 `implementation`으로 의존하게 하지 않는다 — 이 모듈이 벤더를 `runtimeOnly`로 조립하므로 **채널 ↔ 벤더 순환**이 된다(`../file-storage/AGENTS.md`가 SPI 이동안을 같은 이유로 비채택했다).
 

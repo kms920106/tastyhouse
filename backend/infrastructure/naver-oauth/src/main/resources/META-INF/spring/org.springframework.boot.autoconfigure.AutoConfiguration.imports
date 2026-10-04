@@ -1,1 +1,1 @@
-com.tastyhouse.external.naver.oauth.NaverOAuthModuleAutoConfiguration
+com.tastyhouse.infrastructure.naver.oauth.NaverOAuthModuleAutoConfiguration

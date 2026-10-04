@@ -23,7 +23,7 @@ AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). `web-app
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.aws.ses/
+com.tastyhouse.infrastructure.aws.ses/
 ├── AwsSesModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
 ├── SesConfig.java                      SesClient 빈 + MailSender 빈   @ConditionalOnProperty(mail.provider=ses)
 └── SesMailSender.java                  MailSender 구현 (POJO — SesConfig가 @Bean으로 등록), 발송 실패는 MailSendResult로 반환
@@ -58,15 +58,15 @@ com.tastyhouse.external.aws.ses/
 
 ### 자바 패키지 `com.tastyhouse.external.aws.ses` 봉인
 
-**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/external/aws/ses/`
+**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/`
 
-원래 패키지 `external.mail.ses`로 되돌리면 채널 모듈 `infrastructure:mail`의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되어 mail을 받은 앱에 SES 빈이 딸려 올라온다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+원래 패키지 `external.mail.ses`로 되돌리면 채널 모듈 `infrastructure:mail`의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되어 mail을 받은 앱에 SES 빈이 딸려 올라온다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.ses`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-ses/src/test/java/com/tastyhouse/infrastructure/aws/ses/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/external/aws/ses/AwsSesModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/AwsSesModuleAutoConfiguration.java`
 
-`com.tastyhouse.external.aws` 루트를 스캔하지 않는다. 형제 모듈(`aws-s3`·`aws-sns`)이 같은 클래스패스에 있으면 그 빈까지 이 설정이 등록하게 된다.
+`com.tastyhouse.infrastructure.aws` 루트를 스캔하지 않는다. 형제 모듈(`aws-s3`·`aws-sns`)이 같은 클래스패스에 있으면 그 빈까지 이 설정이 등록하게 된다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -74,6 +74,6 @@ com.tastyhouse.external.aws.ses/
 
 ### 조건부 전략 배선은 반증 테스트로 확인한다
 
-**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/external/aws/ses/SesConfig.java` (`@ConditionalOnProperty(mail.provider=ses)`)
+**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/SesConfig.java` (`@ConditionalOnProperty(mail.provider=ses)`)
 
 기동 성공이 곧 SES가 선택됐다는 증거가 아니다. 전환 후 검증은 틀린 provider 값으로 실패를 확인하는 반증 방향으로 한다(위 "모듈 없이 provider만 바꾸면 기동 시 실패한다").

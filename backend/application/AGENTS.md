@@ -193,9 +193,9 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 | 상태 record · 원시 타입 포트 | `port/out/write/NoticeState`·`NoticeStatePort` | 있음 | **삭제** |
 | Store · StateMapper | `store/NoticeStore`·`NoticeStateMapper` | 있음 | **삭제**(`store` 패키지 전체 삭제) |
 | 등록 | `config/NoticeServiceConfig` | `@SharedApp` 설정의 `@Bean`으로 Store 등록 | **삭제** — Store 빈만 있던 파일은 파일째 삭제 |
-| persistence 구현 | `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/notice/persistence/NoticePersistenceAdapter.java` | `NoticeStatePortImpl`(State 반환) | `NoticePersistenceAdapter`(`@Repository`, **`NoticePersistencePort` 구현, 도메인 반환**) |
+| persistence 구현 | `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/notice/persistence/NoticePersistenceAdapter.java` | `NoticeStatePortImpl`(State 반환) | `NoticePersistenceAdapter`(`@Repository`, **`NoticePersistencePort` 구현, 도메인 반환**) |
 | persistence 매퍼 | `.../notice/persistence/NoticeMapper.java` | JpaEntity ↔ `NoticeState` | **JpaEntity ↔ `Notice`** — StateMapper의 표현식을 흡수 |
-| 매퍼 테스트 | `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/<ctx>/persistence/XxxMapperTest.java` | application `store/*StateMapperTest`(왕복 비교) | persistence로 이관 — Domain→Entity / Entity→Domain **두 방향 따로**(아래) |
+| 매퍼 테스트 | `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/<ctx>/persistence/XxxMapperTest.java` | application `store/*StateMapperTest`(왕복 비교) | persistence로 이관 — Domain→Entity / Entity→Domain **두 방향 따로**(아래) |
 
 규모: 삭제 State 122 · Snapshot 7 · StatePort 105 · Store 105 · StateMapper 121. `port/out/write/`에는 옮겨 온 `XxxPersistencePort` 105개와 `ShopDeliveryTipRegionLookupPort`, 원래 있던 `StationPersistencePort`·`AdminDongSyncResult`가 남는다. persistence `XxxPersistenceAdapter`은 106개(`StationPersistenceAdapter` 포함, 03b 이전과 같음).
 
@@ -204,7 +204,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 - **`XxxPersistencePort`는 `<ctx>/port/out/write/`에 둔다.** 시그니처는 도메인 타입(`Optional<Notice> findById(NoticeId)`)이고, 구현은 persistence `<ctx>/persistence/XxxPersistenceAdapter`(`@Repository`, `PersistenceModuleAutoConfiguration`의 스캔으로 4앱 전부에 뜬다)이다. 이 모듈에는 구현을 두지 않는다.
 - **write 포트는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..port.out..`만 의존한다** — `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut`. 서비스·UseCase·설정을 참조하면 persistence가 그 타입까지 봐야 해 `shouldNotDependOnApiModules`에 걸린다.
 - **변환은 persistence `XxxMapper`가 한다** — `toDomain(entity)`(`reconstitute` 호출)·`toEntity(domain)`·`applyChanges(entity, domain)`. enum은 `valueOf`/`name()`, ID·단일값 VO는 `Xxx.of(...)`/`.value()`, 복합 VO는 persistence 소유 `*Embeddable` 또는 평탄 컬럼으로 바꾼다. nullable enum·VO·FK는 `x == null ? null : ...` 삼항 가드를 **모든 FK에 예외 없이** 둔다(`backend/CLAUDE.md` "ID VO 경계 규칙").
-- **Store에 있던 로직은 PersistenceAdapter로 옮겼다** — 빈 컬렉션 조기 반환, `LinkedHashSet` 수집, 도메인 정책 상수 호출(예: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/reservation/persistence/ReservationPersistenceAdapter.java`가 `ReservationStatus.blockingStatuses()`를 `name()` 목록으로 풀어 쿼리에 넘긴다). 인터페이스 둘을 구현하던 Store(`ShopDeliveryTipStore`)는 PersistenceAdapter도 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort` 둘을 구현한다.
+- **Store에 있던 로직은 PersistenceAdapter로 옮겼다** — 빈 컬렉션 조기 반환, `LinkedHashSet` 수집, 도메인 정책 상수 호출(예: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/reservation/persistence/ReservationPersistenceAdapter.java`가 `ReservationStatus.blockingStatuses()`를 `name()` 목록으로 풀어 쿼리에 넘긴다). 인터페이스 둘을 구현하던 Store(`ShopDeliveryTipStore`)는 PersistenceAdapter도 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort` 둘을 구현한다.
 - **Store 빈 등록 설정은 없다** — ~~`<Ctx>ServiceConfig`에는 Store가 아닌 빈(도메인 서비스·어댑터·정책 record)만 남는다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** 남아 있던 `<Ctx>ServiceConfig`도 전부 삭제됐다. Store 빈만 갖던 `Admin`·`Banner`·`Event`·`Notice`·`Partnership`·`Region`의 `*ServiceConfig`는 파일째 삭제됐다. `@WebApp`이던 `MailServiceConfig`·`SmsServiceConfig`의 `MailVerificationPersistencePort`·`SmsVerificationPersistencePort` 구현은 이제 `@Repository` 스캔으로 전 앱에 뜬다 — 03b 이전과 같은 상태이고 admin·ceo·batch에는 주입처가 없다.
 - **서비스 테스트의 Repository fake는 import만 바뀌었다** — 도메인 타입 시그니처가 불변이므로 `FakeMailVerificationPersistencePort` 등은 그대로다.
 
@@ -525,7 +525,7 @@ com.tastyhouse.application/
 스펙은 "driven 클라이언트면 batch-module 잔류 + 인터페이스 분리"를 원칙으로 했으나, 확인 결과 **`crawling/bbq`는 driven 클라이언트가 아니라 application 계층 코드**였다.
 
 - `BbqProductSyncService`는 `@Service @Transactional`로 **트랜잭션 경계를 소유**하고, 저장 불변식은 도메인 서비스 `ProductRegistrationService`에 위임하며, 동기화 대상 탐색은 `ProductQueryPort`(읽기 포트)로 한다.
-- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:bbq`에 있다**(`external.bbq.BbqApiClient`·`external.bbq.RemoteImageDownloader`). 원격 이미지는 어댑터가 받아오기만 하고(`RemoteImagePort.download` → `DownloadedImage`), 파일 등록(`FileUploadService.upload`)은 `BbqService`가 조율한다.
+- `BbqService`는 오케스트레이션이고, **진짜 driven 클라이언트는 `infrastructure:bbq`에 있다**(`com.tastyhouse.infrastructure.bbq.BbqApiClient`·`com.tastyhouse.infrastructure.bbq.RemoteImageDownloader`). 원격 이미지는 어댑터가 받아오기만 하고(`RemoteImagePort.download` → `DownloadedImage`), 파일 등록(`FileUploadService.upload`)은 `BbqService`가 조율한다.
 - `BatchJobException`은 `BbqService`만 던지므로 함께 이동했다.
 
 batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`가 0개이고 잡 본문이 `*SchedulerService`에 담기며, 스케줄이 유일한 입력이라 Command record가 없고 인바운드 포트가 전부 `void foo()`다.
@@ -1181,13 +1181,13 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 #### 매퍼 테스트의 필드 값을 같은 값으로 채우지 않는다 (구 `*StateMapperTest`)
 
-**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/<ctx>/persistence/*MapperTest.java` → 각 `reconstitute`·`XxxJpaEntity.create` 호출 인자 (03b 동안은 `backend/application/src/test/java/com/tastyhouse/application/<ctx>/store/*StateMapperTest.java` 81개)
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/<ctx>/persistence/*MapperTest.java` → 각 `reconstitute`·`XxxJpaEntity.create` 호출 인자 (03b 동안은 `backend/application/src/test/java/com/tastyhouse/application/<ctx>/store/*StateMapperTest.java` 81개)
 
 **같은 타입의 연속 필드(`String`·`Long`·`boolean`·`LocalDateTime`)는 반드시 서로 다른 값으로 채운다.** `title`과 `content`에 같은 문자열을 넣으면 매퍼가 둘을 뒤바꿔도 단언이 통과한다. ~~`StateRecordArityTest`는 개수만 본다~~(삭제됨) — 같은 타입 컴포넌트의 순서 뒤바뀜을 잡는 것은 이 테스트뿐이다. 자식 컬렉션·Embeddable이 있으면 비우지 말고 채워서 검사한다.
 
 #### 매퍼의 null 가드를 "NOT NULL 컬럼이라 불필요"하다며 지우지 않는다 (구 `XxxStateMapper`)
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/<ctx>/persistence/*Mapper.java` → `x == null ? null : XxxId.of(x)` 형태 전부 (03b 동안은 `backend/application/src/main/java/com/tastyhouse/application/<ctx>/store/*StateMapper.java` — 표현식은 한 글자도 바꾸지 않고 옮겼다)
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/<ctx>/persistence/*Mapper.java` → `x == null ? null : XxxId.of(x)` 형태 전부 (03b 동안은 `backend/application/src/main/java/com/tastyhouse/application/<ctx>/store/*StateMapper.java` — 표현식은 한 글자도 바꾸지 않고 옮겼다)
 
 삭제된 `IdMapping`이 강제하던 규칙을 삼항 가드가 승계했다. 컬럼이 NOT NULL이어도 도메인 모델이 미배정 상태를 `null` VO로 들 수 있고(`toState` 방향 NPE), nullable FK는 **그 행이 실제로 있을 때만** `XxxId.of(null)`로 터진다. 컬럼별로 가드 유무를 나누지 않는다.
 

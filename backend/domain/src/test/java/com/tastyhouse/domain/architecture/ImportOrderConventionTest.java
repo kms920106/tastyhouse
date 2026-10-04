@@ -26,9 +26,7 @@ class ImportOrderConventionTest {
     private static final Map<String, Integer> TOP_SEGMENT_RANK = Map.ofEntries(
         Map.entry("domain", 1),
         Map.entry("application", 2),
-        Map.entry("external", 3),
         Map.entry("infrastructure", 3),
-        Map.entry("restclient", 3),
         Map.entry("apicommon", 4),
         Map.entry("architecture", 4),
         Map.entry("logging", 4),

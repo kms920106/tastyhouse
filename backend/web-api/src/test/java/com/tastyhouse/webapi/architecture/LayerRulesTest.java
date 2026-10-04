@@ -53,7 +53,7 @@ class LayerRulesTest {
     @Test
     void shouldNotDependOnInfrastructurePersistence() {
         ArchRule rule = noClasses()
-            .should().dependOnClassesThat().resideInAPackage("..infrastructure..persistence..");
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure.persistence..");
 
         rule.check(classes);
     }
@@ -72,10 +72,10 @@ class LayerRulesTest {
     void shouldDependOnOauthSpiOnlyNotProviderPackages() {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAnyPackage(
-                "com.tastyhouse.external.kakao.oauth..",
-                "com.tastyhouse.external.naver.oauth..",
-                "com.tastyhouse.external.facebook.oauth..",
-                "com.tastyhouse.external.apple.oauth.."
+                "com.tastyhouse.infrastructure.kakao.oauth..",
+                "com.tastyhouse.infrastructure.naver.oauth..",
+                "com.tastyhouse.infrastructure.facebook.oauth..",
+                "com.tastyhouse.infrastructure.apple.oauth.."
             )
             .because("소셜 로그인은 com.tastyhouse.application.auth.port.out을 통해서만 사용한다");
 

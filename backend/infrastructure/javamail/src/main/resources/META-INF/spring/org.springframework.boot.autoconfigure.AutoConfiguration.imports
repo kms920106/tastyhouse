@@ -1,1 +1,1 @@
-com.tastyhouse.external.javamail.JavaMailModuleAutoConfiguration
+com.tastyhouse.infrastructure.javamail.JavaMailModuleAutoConfiguration

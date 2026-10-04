@@ -13,14 +13,14 @@
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.admdongkor/
+com.tastyhouse.infrastructure.admdongkor/
 ├── AdmdongkorModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(AdminDongBoundaryProperties)
 ├── AdminDongBoundaryClient.java            AdminDongBoundaryPort 구현
 ├── AdminDongBoundaryProperties.java        region.admin-dong.boundary.*
 └── BoundedInputStream.java                 응답 크기 상한 스트림
 ```
 
-패키지는 분리 때 `com.tastyhouse.external.region`에서 **`com.tastyhouse.external.admdongkor`로 바뀌었다**(모듈명과 맞춤 — `external.file.firebase → external.firebase` 선례). 클래스명·프로퍼티 접두사·환경변수 이름은 불변이다.
+패키지는 분리 때 `com.tastyhouse.external.region`에서 **`com.tastyhouse.external.admdongkor`로 바뀌었다**(모듈명과 맞춤 — `external.file.firebase → external.firebase` 선례). 클래스명·프로퍼티 접두사·환경변수 이름은 불변이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.admdongkor`가 됐다(클래스명은 역시 불변).
 
 ## 어느 앱이 의존하는가
 
@@ -71,29 +71,29 @@ com.tastyhouse.external.admdongkor/
 
 ### `@SuppressWarnings("NullableProblems")` — `org.jetbrains:annotations` 의존을 들이지 않는다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/BoundedInputStream.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/BoundedInputStream.java`
 → `read(byte[], int, int)`
 
 이 프로젝트는 nullability 애노테이션을 쓰지 않으므로, JetBrains 외부 애노테이션이 상위 `FilterInputStream#read`의 buffer에 걸어 둔 `@NotNull`을 애노테이션 없이 덮게 된다. **그 경고 하나를 없애려고 `org.jetbrains:annotations` 의존을 추가하지 않는다** — 억제만 한다(`PhoneNumber` 선례). 이 `@SuppressWarnings`를 제거하면 경고가 되살아나므로 제거 대상이 아니다.
 
 ### 좌표 순서 — GeoJSON `[경도, 위도]` vs `GeoPoint(위도, 경도)`
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/AdminDongBoundaryClient.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdminDongBoundaryClient.java`
 → `appendPolygonRings`
 
 GeoJSON 좌표 배열은 `[경도, 위도]` 순서이고 `GeoPoint`는 `(위도, 경도)` 순서다. 이 메서드가 **인덱스를 뒤집어** 넣는다(`point.get(1)` → 위도, `point.get(0)` → 경도). 두 값 다 `BigDecimal`이라 **바꿔 넣어도 컴파일·실행이 성공하고 경계만 조용히 엉뚱한 곳에 놓인다.** 이 뒤집기를 "실수처럼 보인다"고 되돌리지 않는다.
 
 ### 자바 패키지 `com.tastyhouse.external.admdongkor` 봉인
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/`
 
-`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.** 옛 위치 `external.region`으로도 되돌리지 않는다 — 외부 연동 모듈마다 모듈명과 같은 하위 패키지를 소유한다.
+~~`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.**~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.admdongkor`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/admdongkor/src/test/java/com/tastyhouse/infrastructure/admdongkor/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.region`으로도 되돌리지 않는다 — 외부 연동 모듈마다 모듈명과 같은 하위 패키지를 소유한다.
 
 ### 진입 설정은 자기 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/AdmdongkorModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdmdongkorModuleAutoConfiguration.java`
 
-분리 전 `CrawlingModuleAutoConfiguration`은 `external.crawling`과 `external.region` 두 패키지를 함께 스캔했다. 스캔 범위를 `com.tastyhouse.external` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
+분리 전 `CrawlingModuleAutoConfiguration`은 `external.crawling`과 `external.region` 두 패키지를 함께 스캔했다. 스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -101,28 +101,28 @@ GeoJSON 좌표 배열은 `[경도, 위도]` 순서이고 `GeoPoint`는 `(위도,
 
 ### 경계 수집은 한 동의 실패로 전국 동기화를 실패시키지 않는다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/AdminDongBoundaryClient.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdminDongBoundaryClient.java`
 → `fetchAll` · `appendPolygonRings`
 
 대표점을 만들지 못한 행(경계가 깨졌거나 링 정점이 부족한 경우)은 **건너뛰고 로그만 남긴다.** 한 동 때문에 전국 동기화를 실패시키는 것보다 그 동만 빠지는 편이 낫고, 빠진 동은 다음 동기화에서 원천이 고쳐지면 자연히 복구된다. 같은 이유로 **정점이 3개 미만인 퇴화 링은 면을 이루지 못하므로 버린다**(`GeoRing.of`의 `IllegalArgumentException`을 잡아 `debug` 로그만 남긴다).
 
 ### 여러 폴리곤을 링 목록 하나로 합친다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/AdminDongBoundaryClient.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdminDongBoundaryClient.java`
 → `toRings`(GeoJSON `MultiPolygon`/`Polygon` 평탄화)
 
 여러 폴리곤(본토 + 부속 섬)을 **하나의 링 목록으로 합친다** — 이 저장 형식이 링 목록만 표현하기 때문이다. 대표점은 `GeoRing`/`InteriorPoint`가 **첫 링(가장 먼저 나오는 외곽)** 을 기준으로 잡으므로, 링 순서를 임의로 정렬하면 대표점이 부속 섬으로 옮겨갈 수 있다.
 
 ### `BoundedInputStream`은 `Content-Length`를 믿지 않는다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/BoundedInputStream.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/BoundedInputStream.java`
 → `countRead`
 
 읽은 **누적 바이트**가 상한을 넘으면 실패하는 스트림이다. 원천이 예고 없이 커지거나 응답이 엉뚱한 내용으로 바뀌었을 때 배치가 힙을 모두 소진하며 죽는 것을 막는다. `Content-Length` 헤더를 믿지 않고 **실제로 읽은 양**을 세는 이유는, 헤더가 없거나(chunked) 실제와 다를 수 있기 때문이다.
 
 ### `sidoName`·`admDongName` 정규화 규칙
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/external/admdongkor/AdminDongBoundaryClient.java`
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdminDongBoundaryClient.java`
 → `shortSidoName` · `lastToken` · `SIDO_SUFFIXES`
 
 - `shortSidoName`: `"서울특별시"` → `"서울"`. **접미어가 없으면 원래 값을 그대로 둔다**(예: `"제주"`). 위 §수집 방식의 정규화 근거(주소 문자열 토큰 직접 비교)가 이 변환의 이유다.

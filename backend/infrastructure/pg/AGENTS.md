@@ -98,7 +98,7 @@ public class PgRouterConfig {
 
 **web-api를 건드리지 않는다.**
 
-1. `infrastructure:danal` 신설 — 패키지 `com.tastyhouse.external.danal`, 어댑터가 `application` 소유 `PgProviderGateway`를 구현하고 `provider()`로 새 `PgProviderCode` 상수(`DANAL`)를 반환한다. **도메인 `PgProvider`에도 같은 이름으로 상수를 추가해야 한다**(`../tosspayments/AGENTS.md`의 `EnumCodeConstantsTest`가 두 enum의 상수 집합 일치를 검증한다). 자기 auto-configuration과 `application-danal.yml`(`pg.danal.*`)을 갖는다.
+1. `infrastructure:danal` 신설 — 패키지 `com.tastyhouse.infrastructure.danal`(모듈 루트 규칙 — `VendorLayerRulesTest#shouldResideInModuleRootPackage`를 함께 둔다), 어댑터가 `application` 소유 `PgProviderGateway`를 구현하고 `provider()`로 새 `PgProviderCode` 상수(`DANAL`)를 반환한다. **도메인 `PgProvider`에도 같은 이름으로 상수를 추가해야 한다**(`../tosspayments/AGENTS.md`의 `EnumCodeConstantsTest`가 두 enum의 상수 집합 일치를 검증한다). 자기 auto-configuration과 `application-danal.yml`(`pg.danal.*`)을 갖는다.
 2. 이 모듈 `build.gradle`에 `runtimeOnly project(':infrastructure:danal')` 한 줄.
 3. `application-pg.yml`에 `classpath:application-danal.yml` import 한 줄.
 4. `.env`에 벤더 키.
@@ -137,7 +137,7 @@ public class PgRouterConfig {
 
 ### 벤더 어댑터에 `@ConditionalOnProperty`를 붙이지 않는다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/external/tosspayments/TossPaymentGatewayAdapter.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentGatewayAdapter.java`
 
 메일·SMS·파일 저장 벤더처럼 provider 조건으로 배타 선택하면 결제가 다시 "한 번에 한 PG" 구조가 된다. 벤더 선택은 조건이 아니라 이 모듈의 `build.gradle` 조립과 결제 건의 `PgProvider`로 한다.
 
@@ -153,6 +153,6 @@ public class PgRouterConfig {
 
 ### 진입 설정이 벤더 클래스를 참조하지 않는다, 벤더는 이 모듈을 의존하지 않는다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/external/tosspayments/TossPaymentsModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentsModuleAutoConfiguration.java`
 
 옛 `PaymentModuleAutoConfiguration`은 `@EnableConfigurationProperties(TossPaymentProperties.class)`를 들고 있었다. 채널이 벤더 클래스를 컴파일 참조하면 `runtimeOnly` 조립이 불가능해지므로 그 등록은 벤더의 `TossPaymentsModuleAutoConfiguration`으로 옮겼다. 반대로 벤더가 이 모듈을 `implementation`으로 의존하면 채널 ↔ 벤더 순환이다. 벤더가 채널 값을 써야 하면 프로퍼티 키로만 읽는다.

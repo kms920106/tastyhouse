@@ -1,0 +1,32 @@
+package com.tastyhouse.infrastructure.persistence.file.persistence;
+
+import com.tastyhouse.domain.file.model.UploadedFile;
+
+final class UploadedFileMapper {
+
+    private UploadedFileMapper() {
+    }
+
+    static UploadedFile toDomain(UploadedFileJpaEntity entity) {
+        return UploadedFile.reconstitute(
+            entity.getId(),
+            entity.getOriginalFilename(),
+            entity.getStoredFilename(),
+            entity.getFilePath(),
+            entity.getFileSize(),
+            entity.getContentType(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt()
+        );
+    }
+
+    static UploadedFileJpaEntity toEntity(UploadedFile uploadedFile) {
+        return UploadedFileJpaEntity.create(
+            uploadedFile.getOriginalFilename(),
+            uploadedFile.getStoredFilename(),
+            uploadedFile.getFilePath(),
+            uploadedFile.getFileSize(),
+            uploadedFile.getContentType()
+        );
+    }
+}

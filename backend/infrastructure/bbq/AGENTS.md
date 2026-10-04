@@ -13,7 +13,7 @@
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.bbq/
+com.tastyhouse.infrastructure.bbq/
 ├── BbqModuleAutoConfiguration.java   @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(BbqProperties)
 ├── BbqApiClient.java                 BBQ 메뉴 API 호출 (RestClient, 동기)
 ├── BbqMenuAdapter.java               BbqMenuPort 구현
@@ -22,7 +22,7 @@ com.tastyhouse.external.bbq/
 └── dto/  BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse
 ```
 
-패키지는 분리 때 바뀌었다 — `external.crawling.bbq` → **`external.bbq`**, `external.crawling.RemoteImageDownloader` → **`external.bbq.RemoteImageDownloader`**(모듈명과 맞춤). 포트·DTO는 전부 `application` 소유라 소비자 import 변경은 0건이었다.
+패키지는 분리 때 바뀌었다 — `external.crawling.bbq` → **`external.bbq`**, `external.crawling.RemoteImageDownloader` → **`external.bbq.RemoteImageDownloader`**(모듈명과 맞춤). 포트·DTO는 전부 `application` 소유라 소비자 import 변경은 0건이었다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.bbq`가 됐다(`dto/` 구성은 불변).
 
 ## 어느 앱이 의존하는가
 
@@ -62,15 +62,15 @@ com.tastyhouse.external.bbq/
 
 ### 자바 패키지 `com.tastyhouse.external.bbq` 봉인
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/`
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/`
 
-`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.** 외부 연동 모듈이 `com.tastyhouse.external..`을 유지하는 것은 취향이 아니라 스캔 범위 제약이다. 옛 위치 `external.crawling`으로도 되돌리지 않는다.
+~~`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.** 외부 연동 모듈이 `com.tastyhouse.external..`을 유지하는 것은 취향이 아니라 스캔 범위 제약이다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.bbq`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/bbq/src/test/java/com/tastyhouse/infrastructure/bbq/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.crawling`으로도 되돌리지 않는다.
 
 ### 진입 설정은 자기 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/BbqModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqModuleAutoConfiguration.java`
 
-스캔 범위를 `com.tastyhouse.external` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈(admdongkor 등) 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
+스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈(admdongkor 등) 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -78,7 +78,7 @@ com.tastyhouse.external.bbq/
 
 ### `BbqApiClient`는 포트 계약에 올리지 않는다
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/BbqMenuAdapter.java`
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqMenuAdapter.java`
 → 클래스 전체
 
 `BbqMenuAdapter`는 `BbqMenuPort`의 구현으로, BBQ wire DTO를 application 계약 타입으로 변환한다. 변환 로직은 이전에 `BbqService`가 갖고 있던 `convertToProduct*` 메서드를 그대로 옮긴 것이며, **값 매핑(널 `Boolean` → primitive 기본값 등)은 동작을 바꾸지 않도록 원본과 동일하다.**
@@ -87,13 +87,13 @@ com.tastyhouse.external.bbq/
 
 ### 어댑터는 I/O만 하고, 업로드 조율은 `BbqService`가 한다
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/RemoteImageDownloader.java`
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/RemoteImageDownloader.java`
 → `download(String)` · `backend/batch-application/src/main/java/com/tastyhouse/application/crawling/bbq/BbqService.java` → `uploadRemoteImage`(앱 마커 제거로 `backend/application/...`에서 이동)
 
 `RemoteImageDownloader`는 HTTP로 이미지를 받아 본문·미디어 타입·파일명(URL 마지막 경로 세그먼트에서 `?` 이후를 자른 값, 퍼센트 인코딩 보존)을 `DownloadedImage`로 돌려주는 데서 끝난다. **도메인 서비스 `FileUploadService`를 주입받지 않는다.** 과거에는 이 어댑터가 `uploadFromUrl`로 "다운로드 → `FileUploadCommand` 조립 → `FileUploadService.upload`"를 직접 조율해, 아웃바운드 어댑터가 유스케이스 흐름을 소유하고 persistence가 등록하는 `FileUploadService` 빈에 런타임으로 묶여 있었다. 그 흐름은 유스케이스 `BbqService`로 올렸다(동작 무변경 — 예외 종류·10MB 상한·`@Transactional` 경계 동일). 어댑터에 업로드·저장 호출을 되살리지 않는다. 파일명 추출은 URL 해석이라 어댑터에 남긴다.
 
 ### `RemoteImageDownloader`의 패키지 이력
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/external/bbq/RemoteImageDownloader.java`
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/RemoteImageDownloader.java`
 
-`external.file.RemoteImageDownloader`(external 7모듈 분리 전) → `external.crawling.RemoteImageDownloader`(crawling 모듈) → `external.bbq.RemoteImageDownloader`(이 모듈). 첫 이동은 당시 코어가 `external.file`을 스캔해 admin/ceo에도 이 빈이 동반 스캔됐기 때문이고, 두 번째 이동은 소유 모듈의 패키지에 두는 규칙을 따른 것이다. `external.file`로 되돌리지 않는다.
+`external.file.RemoteImageDownloader`(external 7모듈 분리 전) → `external.crawling.RemoteImageDownloader`(crawling 모듈) → `external.bbq.RemoteImageDownloader`(이 모듈) → `com.tastyhouse.infrastructure.bbq.RemoteImageDownloader`(infrastructure 패키지 루트 통일). 첫 이동은 당시 코어가 `external.file`을 스캔해 admin/ceo에도 이 빈이 동반 스캔됐기 때문이고, 두 번째 이동은 소유 모듈의 패키지에 두는 규칙을 따른 것이다. `external.file`로 되돌리지 않는다.

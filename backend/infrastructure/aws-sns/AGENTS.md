@@ -23,7 +23,7 @@ AWS SNS SMS 발송 어댑터를 소유하는 모듈(`java-library`). `web-applic
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.aws.sns/
+com.tastyhouse.infrastructure.aws.sns/
 ├── AwsSnsModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
 ├── SnsConfig.java                      SnsClient 빈 + SmsSender 빈   @ConditionalOnProperty(sms.provider=sns)
 └── SnsSmsSender.java                   SmsSender 구현 (POJO — SnsConfig가 @Bean으로 등록), 발송 실패는 SmsSendResult로 반환
@@ -57,15 +57,15 @@ com.tastyhouse.external.aws.sns/
 
 ### 자바 패키지 `com.tastyhouse.external.aws.sns` 봉인
 
-**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/external/aws/sns/`
+**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/`
 
-원래 패키지 `external.sms.sns`로 되돌리면 채널 모듈 `infrastructure:sms`의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+원래 패키지 `external.sms.sns`로 되돌리면 채널 모듈 `infrastructure:sms`의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.sns`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-sns/src/test/java/com/tastyhouse/infrastructure/aws/sns/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/external/aws/sns/AwsSnsModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/AwsSnsModuleAutoConfiguration.java`
 
-`com.tastyhouse.external.aws` 루트를 스캔하지 않는다. 형제 모듈이 같은 클래스패스에 있으면 그 빈까지 등록하게 된다.
+`com.tastyhouse.infrastructure.aws` 루트를 스캔하지 않는다. 형제 모듈이 같은 클래스패스에 있으면 그 빈까지 등록하게 된다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -73,6 +73,6 @@ com.tastyhouse.external.aws.sns/
 
 ### 조건부 전략 배선은 반증 테스트로 확인한다
 
-**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/external/aws/sns/SnsConfig.java` (`@ConditionalOnProperty(sms.provider=sns)`)
+**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/SnsConfig.java` (`@ConditionalOnProperty(sms.provider=sns)`)
 
 기동 성공이 곧 SNS가 선택됐다는 증거가 아니다. 전환 후 검증은 틀린 provider 값으로 실패를 확인하는 반증 방향으로 한다.

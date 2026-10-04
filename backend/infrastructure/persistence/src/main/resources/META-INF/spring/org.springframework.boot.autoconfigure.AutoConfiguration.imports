@@ -1,1 +1,1 @@
-com.tastyhouse.infrastructure.PersistenceModuleAutoConfiguration
+com.tastyhouse.infrastructure.persistence.PersistenceModuleAutoConfiguration

@@ -56,19 +56,20 @@
 
 ## 코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지
 
-**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더·채널 16모듈(kakao-oauth·naver-oauth·apple-oauth·facebook-oauth·pg·tosspayments·mail·javamail·sms·solapi·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*` 아래에 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.
+> **(번복됨 — infrastructure 패키지 루트 통일)** 이 절 제목과 아래 본문은 과거 상태다. 지금은 코어와 벤더 13모듈 모두 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓴다 — 코어는 `com.tastyhouse.restclient.config` → **`com.tastyhouse.infrastructure.restclient`**(하위 패키지 `config`도 함께 없어졌다), 벤더는 `com.tastyhouse.external.*` → `com.tastyhouse.infrastructure.*`. 아래 본문이 말하는 제약(persistence가 `com.tastyhouse.infrastructure`를 통째로 스캔한다)은 persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 사라졌다. 제목은 앵커 보존을 위해 그대로 둔다.
+
+~~**코어(이 모듈)만 자기 패키지 루트 `com.tastyhouse.restclient`로 옮겼다.** `security-core`/`security-module`이 이미 `com.tastyhouse.security..`를 공유하는 선례(모듈명 ≠ 패키지명)를 따라, 코어는 모듈 리네임과 함께 패키지도 `com.tastyhouse.restclient.config`로 옮겼다. **벤더·채널 16모듈(kakao-oauth·naver-oauth·apple-oauth·facebook-oauth·pg·tosspayments·mail·javamail·sms·solapi·bbq·admdongkor·firebase·aws-s3·aws-ses·aws-sns)의 패키지는 `com.tastyhouse.external.*` 아래에 남는다** — persistence의 `PersistenceModuleAutoConfiguration`(챕터 02로 `InfrastructureModuleConfig`에서 리네임)이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하기 때문에, 벤더 모듈을 그 아래로 옮기면 앱이 의존하지도 않은 어댑터까지 스캔 대상이 된다(분리 전에는 이 스캔이 진입 설정의 OAuth REGEX 제외 필터를 우회해 admin/ceo/batch가 `Could not resolve placeholder 'apple.team-id'`로 부팅에 실패했다). **코어는 그 스캔 트리에 들어가는 벤더 빈이 없으므로**(설정 클래스뿐, `@ComponentScan` 대상 자체가 이 모듈 안에서 끝난다) 이 제약에서 자유롭고, 패키지를 옮겨도 스캔 범위 충돌이 생기지 않는다.~~
 
 ## 패키지 구조
 
 ```
-com.tastyhouse.restclient/
-└── config/
-    ├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth 경유 kakao/naver/apple/facebook-oauth·pg 경유 tosspayments·solapi·bbq·admdongkor를 경유해 web·batch에만 실린다)
-    ├── RestClientConfig.java        @Bean RestClientCustomizer restClientTimeoutCustomizer — 모든 Boot RestClient.Builder에 요청 팩토리 connect 5s / read 10s 적용
-    └── HttpRequestFactories.java     public static ClientHttpRequestFactory withTimeouts(Duration connect, Duration read) — SimpleClientHttpRequestFactory(HttpURLConnection) 기반, 이 저장소에서 타임아웃 있는 요청 팩토리를 만드는 유일한 지점
+com.tastyhouse.infrastructure.restclient/
+├── RestClientModuleAutoConfiguration.java  진입점 — 구 ExternalModuleAutoConfiguration(챕터 02) → HttpClientModuleAutoConfiguration을 거쳐 개명, @AutoConfiguration + @ComponentScan(이 패키지), 자기 등록(oauth 경유 kakao/naver/apple/facebook-oauth·pg 경유 tosspayments·solapi·bbq·admdongkor를 경유해 web·batch에만 실린다)
+├── RestClientConfig.java        @Bean RestClientCustomizer restClientTimeoutCustomizer — 모든 Boot RestClient.Builder에 요청 팩토리 connect 5s / read 10s 적용
+└── HttpRequestFactories.java     public static ClientHttpRequestFactory withTimeouts(Duration connect, Duration read) — SimpleClientHttpRequestFactory(HttpURLConnection) 기반, 이 저장소에서 타임아웃 있는 요청 팩토리를 만드는 유일한 지점
 ```
 
-**이 모듈에는 이제 `exception/` 패키지가 없다.** `RestClientModuleAutoConfiguration`의 `@ComponentScan`은 `com.tastyhouse.restclient.config` 한 패키지뿐이고, `@EnableConfigurationProperties`는 없다(등록할 Properties record가 이 모듈에 남지 않았다). 분리 전에 있던 OAuth REGEX `excludeFilters`와 타 모듈 Properties 등록은 제거됐다 — **모듈 경계(= 의존 선언)가 그 역할을 대신한다.**
+**이 모듈에는 이제 `exception/` 패키지가 없다.** `RestClientModuleAutoConfiguration`의 `@ComponentScan`은 `com.tastyhouse.infrastructure.restclient` 한 패키지뿐이고(infrastructure 패키지 루트 통일 전에는 `com.tastyhouse.restclient.config`), `@EnableConfigurationProperties`는 없다(등록할 Properties record가 이 모듈에 남지 않았다). 분리 전에 있던 OAuth REGEX `excludeFilters`와 타 모듈 Properties 등록은 제거됐다 — **모듈 경계(= 의존 선언)가 그 역할을 대신한다.**
 
 ### `RestClient.Builder`는 코어가 직접 등록하지 않는다
 
@@ -84,7 +85,7 @@ com.tastyhouse.restclient/
 | `external.file.s3` | `external.aws.s3` | aws-s3 |
 | `external.file.RemoteImageDownloader` | `external.crawling.RemoteImageDownloader` → (2분할 후) `external.bbq.RemoteImageDownloader` | crawling → bbq |
 
-같은 취지로 AWS 채널 어댑터도 `external.mail.ses` → `external.aws.ses`, `external.sms.sns` → `external.aws.sns`로 모았다(메시징 스캔에 딸려 오지 않게 하기 위함). split package는 없다 — `external.mail`(messaging) vs `external.aws.ses`(aws-ses), `external.firebase`(firebase) vs `external.aws.s3`(aws-s3)가 각각 다른 모듈에 온전히 속한다. `external.file` 패키지는 SPI 삭제로 어느 모듈에도 존재하지 않는다. **이후 3분할(2026-09-26)로 `external.aws.s3`·`external.aws.ses`·`external.aws.sns`는 옛 `:aws` 한 모듈이 아니라 각각 `aws-s3`·`aws-ses`·`aws-sns` 모듈이 소유한다** — 패키지 세그먼트는 그대로다.
+같은 취지로 AWS 채널 어댑터도 `external.mail.ses` → `external.aws.ses`, `external.sms.sns` → `external.aws.sns`로 모았다(메시징 스캔에 딸려 오지 않게 하기 위함). split package는 없다 — `external.mail`(messaging) vs `external.aws.ses`(aws-ses), `external.firebase`(firebase) vs `external.aws.s3`(aws-s3)가 각각 다른 모듈에 온전히 속한다. `external.file` 패키지는 SPI 삭제로 어느 모듈에도 존재하지 않는다. **이후 3분할(2026-09-26)로 `external.aws.s3`·`external.aws.ses`·`external.aws.sns`는 옛 `:aws` 한 모듈이 아니라 각각 `aws-s3`·`aws-ses`·`aws-sns` 모듈이 소유한다** — 패키지 세그먼트는 그대로다. **이후 infrastructure 패키지 루트 통일로 접두어만 `com.tastyhouse.external` → `com.tastyhouse.infrastructure`로 바뀌었고 세그먼트(`.firebase`·`.aws.s3`·`.aws.ses`·`.aws.sns`·`.bbq`)는 그대로다** — 모듈마다 겹치지 않는 하위 패키지를 소유하는 구조도 그대로 유지된다.
 
 ## 과거 판단의 번복 — 파일 저장 SPI 삭제
 
@@ -133,10 +134,10 @@ com.tastyhouse.restclient/
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar. 스타터 `file-storage`를 포함한 11모듈 전부 같다.
 - **이 모듈은 설정만 갖는다 — 예외·에러코드를 두지 않는다.** 외부 연동 실패 코드는 도메인 `ErrorCode`가 소유한다. 새 채널 연동을 추가할 때 이 모듈에 예외 타입을 되살리지 않는다(위 [예외 계약 해체](#예외-계약-해체--도메인-errorcode로-흡수)).
 - **RestTemplate·WebClient 모듈을 미리 만들어 두지 않는다.** `infrastructure:aws-s3`/`aws-ses`/`aws-sns`가 "만들어 뒀지만 어느 앱도 안 쓰는" 선례이긴 하나, 그것들은 도메인 포트 뒤에서 설정 한 줄로 교체 가능한 구현체다. HTTP 클라이언트는 어댑터 코드가 직접 호출하는 라이브러리라 교체 = 어댑터 재작성이며, 미리 만들면 webflux·reactor-netty가 빌드 그래프로 되돌아온다. WebClient가 필요해지면 그때 `infrastructure:webclient`를 신설한다(1순위는 virtual threads + `RestClient`, 불가피하면 그 모듈 + 가드 예외만 도입).
-- **`com.tastyhouse.infrastructure.restclient`로 두지 않는다.** `infrastructure:persistence`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 경로도 스캔 대상에 넣어, 진입 설정을 persistence의 스캔이 다시 등록하는 이중 등록이 된다. Spring은 같은 클래스의 중복 스캔을 한 번만 등록하므로 **기동 실패로 이어지지는 않지만**, 등록 주체가 persistence 쪽으로 넘어가 `@AutoConfiguration`의 순서·조건 계약이 무력화된다(redis REGEX 제외와 같은 이유). 이 이동은 후속 프로그램의 stage B 대상이다 — `backend/CLAUDE.md`의 "후속 프로그램 — 벤더 패키지를 `com.tastyhouse.infrastructure.*`로 정렬" 절에서 `restclient`를 벤더·redis와 함께 stage B 대상으로 명시한다.
+- ~~**`com.tastyhouse.infrastructure.restclient`로 두지 않는다.** `infrastructure:persistence`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 경로도 스캔 대상에 넣어, 진입 설정을 persistence의 스캔이 다시 등록하는 이중 등록이 된다. Spring은 같은 클래스의 중복 스캔을 한 번만 등록하므로 **기동 실패로 이어지지는 않지만**, 등록 주체가 persistence 쪽으로 넘어가 `@AutoConfiguration`의 순서·조건 계약이 무력화된다(redis REGEX 제외와 같은 이유). 이 이동은 후속 프로그램의 stage B 대상이다 — `backend/CLAUDE.md`의 "후속 프로그램 — 벤더 패키지를 `com.tastyhouse.infrastructure.*`로 정렬" 절에서 `restclient`를 벤더·redis와 함께 stage B 대상으로 명시한다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** 그 stage A·B가 실행됐다 — persistence 스캔이 `com.tastyhouse.infrastructure.persistence`로 좁아졌으므로 이 모듈은 이제 **`com.tastyhouse.infrastructure.restclient`에 있다.** persistence의 스캔과 겹치지 않으므로 이중 등록 위험도 없고, 루트 밖으로 클래스를 두면 `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage`이 실패한다.
 - **빈 배선 (파일 저장 SPI 삭제로 개정)**: `RestClientModuleAutoConfiguration`은 클래스패스 존재만으로 자동 등록된다. **앱은 이 모듈을 직접 선언하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi를, batch는 bbq·admdongkor를 경유해 전이로 받는다. 스타터 `infrastructure:file-storage`는 더 이상 이 모듈을 조립하지 않으므로(firebase 한 줄), admin-api·ceo-api의 `runtimeClasspath`에는 이 모듈이 없다. 파일 저장의 기동 실패 조건도 이 모듈과 무관해졌다 — `FileStoragePort` 구현이 없으면 persistence의 `FileUrlResolver`와 `application`의 `FileUploadService`(`@SharedApp` 마커 등록 — 과거 `FileDomainConfig` → `FileServiceConfig`를 거쳐 지금은 config 없음)가 `FileStoragePort` 빈을 찾지 못해 **기동 시** 실패한다(`../file-storage/AGENTS.md`).
-- **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/restclient/AGENTS.md`.
-- **가드 테스트**: `NoReactiveHttpClientTest`는 `src/test/java/com/tastyhouse/restclient/architecture/`로 이동했다.
+- **하위 문서**: 코어에 남은 어댑터 패키지 설명은 `src/main/java/com/tastyhouse/infrastructure/restclient/AGENTS.md`(infrastructure 패키지 루트 통일로 `src/main/java/com/tastyhouse/restclient/AGENTS.md`에서 이동).
+- **가드 테스트**: `NoReactiveHttpClientTest`는 `src/test/java/com/tastyhouse/infrastructure/restclient/architecture/`에 있다(`com.tastyhouse.restclient.architecture`에서 이동 — 가드가 자기 자신을 예외로 지정하는 `GUARD_SOURCE` 경로 문자열도 함께 바뀌었다). 같은 패키지의 `PackageRootTest`가 main 클래스의 루트 패키지를 강제한다(ArchUnit `testImplementation`).
 
 ## 봉인·가드 목록
 
@@ -144,25 +145,29 @@ com.tastyhouse.restclient/
 
 ### 자바 패키지 `com.tastyhouse.external..` 봉인 (벤더 9모듈 공통 — 코어는 대상 아님)
 
-**대상**: 벤더·채널 16개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`pg`·`tosspayments`·`mail`·`javamail`·`sms`·`solapi`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.
+**대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage` · 벤더 13모듈의 `architecture/VendorLayerRulesTest` → `shouldResideInModuleRootPackage`
 
-위 "코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지" 절과 같은 사실을, **가드로서** 다시 못박는다. 벤더 모듈을 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.
+**(번복됨 — infrastructure 패키지 루트 통일)** ~~**대상**: 벤더·채널 16개 모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`pg`·`tosspayments`·`mail`·`javamail`·`sms`·`solapi`·`bbq`·`admdongkor`)의 `com.tastyhouse.external..` 패키지 루트. **코어(이 모듈)의 `com.tastyhouse.restclient..`는 이 봉인 대상이 아니다** — 이미 리네임됐다.~~
+
+~~위 "코어 패키지는 `com.tastyhouse.restclient..`, 벤더 9모듈은 `com.tastyhouse.external..` 유지" 절과 같은 사실을, **가드로서** 다시 못박는다. 벤더 모듈을 `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 그 트리를 통째로 스캔하므로 **빈 스캔 범위가 어긋나 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 모듈 디렉터리와 패키지 이름이 어긋나 보인다는 이유로 정리하지 않는다.~~
+
+지금 봉인은 방향이 반대다 — **코드가 있는 infrastructure 모듈(이 모듈 + 벤더 13 + persistence·redis)의 main 클래스는 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}` 아래에 둔다.** 모듈마다 아키텍처 테스트의 `shouldResideInModuleRootPackage`(이 모듈·redis는 `PackageRootTest`, 벤더는 `VendorLayerRulesTest`, persistence는 `LayerRulesTest`)가 강제한다. `com.tastyhouse.external..`·`com.tastyhouse.restclient..`로 되돌리지 않는다. 이 절의 제목은 앵커 보존을 위해 그대로 둔다.
 
 ### `@ConfigurationProperties` record는 명시 등록한다
 
-**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/RestClientModuleAutoConfiguration.java` → 클래스 선언부(현재 `@EnableConfigurationProperties` 없음)
+**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/infrastructure/restclient/RestClientModuleAutoConfiguration.java` → 클래스 선언부(현재 `@EnableConfigurationProperties` 없음)
 
 `@ConfigurationPropertiesScan`을 쓰지 않는 것이 이 저장소의 방침이다. 파일 저장 SPI 삭제로 이 모듈에 등록할 Properties record가 없어져 `@EnableConfigurationProperties`도 함께 제거됐다. 이후 Properties record를 이 모듈에 추가한다면 컴포넌트 스캔에 맡기지 말고 진입 설정의 `@EnableConfigurationProperties`에 명시한다.
 
 ### `RestClient.Builder`/`RestClient` 빈을 직접 등록하지 않는다
 
-**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/RestClientConfig.java`
+**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/infrastructure/restclient/RestClientConfig.java`
 
 Boot가 제공하는 prototype 빌더 + `RestClientCustomizer`만 쓴다. 싱글톤 빌더를 직접 등록하면 과거 `WebClient.Builder` 싱글톤을 `TossPaymentClient`가 `.baseUrl()`로 오염시키던 것과 같은 유형의 버그가 재발할 수 있다.
 
 ### `java.net.http.HttpClient`는 쓰지 않는다 — 요청 팩토리는 `HttpRequestFactories.withTimeouts`(Simple)만
 
-**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/HttpRequestFactories.java`
+**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/infrastructure/restclient/HttpRequestFactories.java`
 
 이 저장소에서 `java.net.http.*`(JDK `HttpClient`) 사용은 **0곳**이다. 타임아웃 있는 요청 팩토리가 필요한 모든 지점(코어의 전역 customizer, admdongkor·bbq의 per-client override)은 `HttpRequestFactories.withTimeouts(connect, read)`(`SimpleClientHttpRequestFactory`/`HttpURLConnection` 기반) 하나만 쓴다.
 
@@ -170,7 +175,7 @@ Boot가 제공하는 prototype 빌더 + `RestClientCustomizer`만 쓴다. 싱글
 
 ### WebClient·webflux 재도입 금지
 
-**대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/restclient/architecture/NoReactiveHttpClientTest.java`
+**대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/NoReactiveHttpClientTest.java`
 
 `org.springframework.web.reactive`·`reactor.`·`java.net.http.` **토큰**을 소스 전체(FQN 직접 사용·static import 우회 포함)에서 검사하고, `*/build.gradle`의 `spring-boot-starter-webflux`를 전 `infrastructure/*` 모듈에서 금지한다. 예외는 가드 자신의 파일 1개(경로 전체로 지정)뿐이다 — 이전에는 import 줄 접두어만 검사해 FQN 직접 사용이나 static import로 우회할 수 있었으나, 토큰 검사로 강화해 그 우회를 막았다. 필요해지면 1순위 대안은 Java 21 virtual threads + `RestClient`이고, 그래도 불가피하면 그 모듈만 예외로 도입하되 이 가드의 예외 목록과 그 모듈 AGENTS.md에 근거를 남긴다.
 
@@ -192,7 +197,7 @@ override는 `MockRestServiceServer.bindTo(builder)`가 심어 둔 목 팩토리�
 
 ### 코어 auto-configuration의 발화 조건과 형제 모듈의 자기 등록
 
-**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/RestClientModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/infrastructure/restclient/RestClientModuleAutoConfiguration.java`
 
 이 코어는 **클래스패스 존재만으로 활성화**되며, 앱은 이 클래스를 `@Import` 하지 않는다(앱이 직접 선언하지도 않고 어댑터 모듈을 통해 전이로 받는다). 실제 저장소 구현(Firebase·S3)·OAuth·결제·메시징·외부 수집(BBQ·행정동 경계)은 각각 별도 모듈이며, 그 모듈들도 자기 auto-configuration(`FirebaseModuleAutoConfiguration`·`AwsS3ModuleAutoConfiguration`·`AwsSesModuleAutoConfiguration`·`AwsSnsModuleAutoConfiguration`·`KakaoOAuthModuleAutoConfiguration`·`NaverOAuthModuleAutoConfiguration`·`AppleOAuthModuleAutoConfiguration`·`FacebookOAuthModuleAutoConfiguration`·`PgModuleAutoConfiguration`·`TossPaymentsModuleAutoConfiguration`·`MessagingModuleAutoConfiguration`·`BbqModuleAutoConfiguration`·`AdmdongkorModuleAutoConfiguration`)으로 자기 등록한다. 앱은 실제로 쓰는 모듈만 의존한다.
 
@@ -204,6 +209,6 @@ override는 `MockRestServiceServer.bindTo(builder)`가 심어 둔 목 팩토리�
 
 ### `RestClient.Builder`를 코어가 customizer로 꾸미는 이유와 버퍼 한도 (RestClient 전환으로 개정)
 
-**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/restclient/config/RestClientConfig.java`
+**대상**: `backend/infrastructure/restclient/src/main/java/com/tastyhouse/infrastructure/restclient/RestClientConfig.java`
 
 동기 HTTP 클라이언트(타임아웃 포함)를 코어가 customizer로 꾸민다. OAuth·결제 등 외부 연동 클라이언트가 Boot `RestClient.Builder`를 주입받아 build하므로, 이 설정을 코어에 두어 코어를 받는 모든 앱에서 customizer가 적용되게 한다. **`RestClient`는 WebClient의 `maxInMemorySize` 같은 버퍼 상한이 없다** — 대신 대용량 응답을 다루는 어댑터는 `retrieve().body(...)`가 아니라 `exchange()` 스트리밍 + `BoundedInputStream`으로 힙 사용을 직접 제어한다(선례: admdongkor 모듈의 `AdminDongBoundaryClient`).

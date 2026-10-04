@@ -1,0 +1,218 @@
+package com.tastyhouse.infrastructure.persistence.payment.persistence;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
+
+@Entity
+@Table(name = "PAYMENT")
+public class PaymentJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "order_id", nullable = false, unique = true)
+    private Long orderId;
+
+    @Column(name = "payment_method", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
+    private String paymentMethod;
+
+    @Column(name = "payment_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private String paymentStatus;
+
+    @Column(name = "amount", nullable = false)
+    private Integer amount;
+
+    @Column(name = "pg_provider", length = 30, columnDefinition = "VARCHAR(30)")
+    private String pgProvider;
+
+    @Column(name = "pg_tid", length = 100)
+    private String pgTid;
+
+    @Column(name = "pg_order_id", length = 100)
+    private String pgOrderId;
+
+    @Column(name = "card_company", length = 50)
+    private String cardCompany;
+
+    @Column(name = "card_number", length = 30)
+    private String cardNumber;
+
+    @Column(name = "installment_months")
+    private Integer installmentMonths;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "cancel_reason", length = 500)
+    private String cancelReason;
+
+    @Column(name = "receipt_url", length = 500)
+    private String receiptUrl;
+
+    protected PaymentJpaEntity() {
+    }
+
+    private PaymentJpaEntity(
+        Long orderId,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl
+    ) {
+        this.orderId = orderId;
+        this.paymentMethod = paymentMethod;
+        this.paymentStatus = paymentStatus;
+        this.amount = amount;
+        this.pgProvider = pgProvider;
+        this.pgTid = pgTid;
+        this.pgOrderId = pgOrderId;
+        this.cardCompany = cardCompany;
+        this.cardNumber = cardNumber;
+        this.installmentMonths = installmentMonths;
+        this.approvedAt = approvedAt;
+        this.cancelledAt = cancelledAt;
+        this.cancelReason = cancelReason;
+        this.receiptUrl = receiptUrl;
+    }
+
+    static PaymentJpaEntity create(
+        Long orderId,
+        String paymentMethod,
+        String paymentStatus,
+        Integer amount,
+        String pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl
+    ) {
+        return new PaymentJpaEntity(
+            orderId,
+            paymentMethod,
+            paymentStatus,
+            amount,
+            pgProvider,
+            pgTid,
+            pgOrderId,
+            cardCompany,
+            cardNumber,
+            installmentMonths,
+            approvedAt,
+            cancelledAt,
+            cancelReason,
+            receiptUrl
+        );
+    }
+
+    void applyChanges(
+        String paymentStatus,
+        String pgProvider,
+        String pgTid,
+        String pgOrderId,
+        String cardCompany,
+        String cardNumber,
+        Integer installmentMonths,
+        LocalDateTime approvedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
+        String receiptUrl
+    ) {
+        this.paymentStatus = paymentStatus;
+        this.pgProvider = pgProvider;
+        this.pgTid = pgTid;
+        this.pgOrderId = pgOrderId;
+        this.cardCompany = cardCompany;
+        this.cardNumber = cardNumber;
+        this.installmentMonths = installmentMonths;
+        this.approvedAt = approvedAt;
+        this.cancelledAt = cancelledAt;
+        this.cancelReason = cancelReason;
+        this.receiptUrl = receiptUrl;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getOrderId() {
+        return this.orderId;
+    }
+
+    public String getPaymentMethod() {
+        return this.paymentMethod;
+    }
+
+    public String getPaymentStatus() {
+        return this.paymentStatus;
+    }
+
+    public Integer getAmount() {
+        return this.amount;
+    }
+
+    public String getPgProvider() {
+        return this.pgProvider;
+    }
+
+    public String getPgTid() {
+        return this.pgTid;
+    }
+
+    public String getPgOrderId() {
+        return this.pgOrderId;
+    }
+
+    public String getCardCompany() {
+        return this.cardCompany;
+    }
+
+    public String getCardNumber() {
+        return this.cardNumber;
+    }
+
+    public Integer getInstallmentMonths() {
+        return this.installmentMonths;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return this.approvedAt;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return this.cancelledAt;
+    }
+
+    public String getCancelReason() {
+        return this.cancelReason;
+    }
+
+    public String getReceiptUrl() {
+        return this.receiptUrl;
+    }
+}

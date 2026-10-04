@@ -69,6 +69,7 @@ com.tastyhouse.infrastructure.redis/
 ### External
 - `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. `api`로 두는 이유는 이제 소비 모듈의 시그니처 노출이 아니라 **이 모듈의 어댑터가 그 타입을 쓰기 때문**이다. 챕터 01로 앱과 `security-core`의 compileClasspath에서 Redis 타입이 사라졌고, `runtimeOnly project(':infrastructure:redis')`가 4앱 중 3앱의 **유일한** Redis 선언이 됐다(batch는 선언 자체가 없다)
 - ~~**테스트용 `api-common-module` 별도 선언은 불필요하다** — 위 `implementation`이 테스트 컴파일 클래스패스에도 보이기 때문이다~~ **(번복됨)** — `api-common-module` 의존이 main에서 삭제됐고, `afterName` 문자열 가드 테스트도 `api-common-module`로 옮겨졌다(아래 §조건부 전략 배선). 이 모듈은 테스트에서도 api-common을 선언하지 않는다 — redis → api-common 방향은 테스트 클래스패스에서도 사라졌다.
+- `archunit-junit5` (**testImplementation**) — 패키지 루트 가드 `architecture/PackageRootTest`용(infrastructure 패키지 루트 통일로 추가)
 - `spring-boot-starter-aop`·`spring-boot-starter-web`는 **선언하지 않는다** — `@Aspect`와 `HttpServletRequest` 기반 IP 해석이 전부 `api-common-module`로 이동했다(챕터 02). 남은 것은 Redis Lua 카운터뿐이라 이 모듈은 서블릿·AOP 스택을 알지 않는다.
 
 ## security-core / security-module과의 관계
@@ -92,6 +93,21 @@ com.tastyhouse.infrastructure.redis/
 ## 봉인·가드 목록
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
+
+### 패키지 루트 `com.tastyhouse.infrastructure.redis` — 다른 모듈의 스캔과 겹치지 않는다
+
+**대상**: `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage`
+→ `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/PersistenceModuleAutoConfiguration.java` → `@ComponentScan`
+
+이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.redis` 아래에 있어야 한다(`PackageRootTest`, ArchUnit은 `testImplementation`으로만 선언). 이 모듈의 패키지는 infrastructure 패키지 루트 통일 전후로 **바뀌지 않았다** — 바뀐 것은 형제 모듈 쪽이다.
+
+| 항목 | before | after |
+|---|---|---|
+| persistence 스캔 | `@ComponentScan("com.tastyhouse.infrastructure")` — 이 모듈의 트리까지 덮고, REGEX `excludeFilters`(`com\.tastyhouse\.infrastructure\.redis\..*`)로 되돌렸다 | `@ComponentScan("com.tastyhouse.infrastructure.persistence")` — 이 모듈과 겹치지 않아 제외 필터가 삭제됐다 |
+| Redis 빈 등록 주체 | `RedisModuleAutoConfiguration` (제외 필터가 빠지면 중복 등록) | `RedisModuleAutoConfiguration` 하나 — 구조적으로 보장된다 |
+| 동작 | — | 변경 없음 |
+
+- 이 모듈의 클래스를 `com.tastyhouse.infrastructure` 바로 아래 등 루트 밖으로 옮기지 않는다 — `PackageRootTest`가 실패하고, 다른 모듈의 스캔 범위와 다시 겹칠 수 있다.
 
 ### `@AutoConfiguration(before = RedisAutoConfiguration.class)` — `before`를 `after`로 바꾸지 않는다
 

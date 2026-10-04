@@ -1,1 +1,1 @@
-com.tastyhouse.external.aws.s3.AwsS3ModuleAutoConfiguration
+com.tastyhouse.infrastructure.aws.s3.AwsS3ModuleAutoConfiguration

@@ -4,12 +4,12 @@
 
 토스페이먼츠 **벤더 모듈**(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유하는 벤더 SPI `PgProviderGateway`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 `web-application` 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 채널의 라우터(`PgPaymentGatewayRouter`, 지금은 `application/payment/service/`에 있다)가 이 어댑터로 넘긴다.
 
-옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다.
+옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.tosspayments`가 됐다(`dto/` 구성은 불변).
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.tosspayments/
+com.tastyhouse.infrastructure.tosspayments/
 ├── TossPaymentsModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(TossPaymentProperties)
 ├── TossPaymentGatewayAdapter.java            PgProviderGateway 구현, provider()=TOSS
 ├── TossPaymentClient.java                    결제 승인(confirmPayment)·취소(cancelPayment) HTTP 호출 — 동기 RestClient
@@ -68,13 +68,13 @@ pg:
 
 ### 자바 패키지 `com.tastyhouse.external.tosspayments` 봉인
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/external/tosspayments/`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/`
 
-`external.pg.toss`로 옮기면 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+`external.pg.toss`로 옮기면 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
 
 ### 어댑터는 `PgPaymentGateway`를 직접 구현하지 않는다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/external/tosspayments/TossPaymentGatewayAdapter.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentGatewayAdapter.java`
 
 `PgPaymentGateway`의 구현은 라우터 하나여야 한다. 벤더가 그것을 구현하면 두 번째 벤더가 들어오는 순간 application의 단일 주입이 모호해져 web-api 기동이 실패한다.
 
@@ -84,6 +84,6 @@ pg:
 
 ### 토스 승인 응답의 에러 필드는 성공 응답과 한 타입에 담긴다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/external/tosspayments/dto/TossPaymentConfirmResponse.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/dto/TossPaymentConfirmResponse.java`
 
 승인 응답 wire DTO 안에 **에러 응답 필드가 함께 선언돼 있다.** 토스가 성공·실패를 같은 엔드포인트에서 돌려주기 때문이며, 실패 판별은 `TossPaymentGatewayAdapter`가 수행한다. 이 필드들을 별도 DTO로 떼어내면 어댑터가 응답 본문을 두 번 역직렬화해야 하므로 분리 대상이 아니다.

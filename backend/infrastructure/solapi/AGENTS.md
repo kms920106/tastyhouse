@@ -4,17 +4,18 @@
 
 Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSender`(`web-application`의 `com.tastyhouse.application.sms.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `SolapiSmsClient`가 구현한다. SMS 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:sms`가 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-sns`다.
 
-`infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.sms.solapi` → `external.solapi`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔되지 않게 하기 위함이다.
+`infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.sms.solapi` → `external.solapi`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔되지 않게 하기 위함이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.solapi`가 됐고, `request/`·`response/` 두 하위 패키지는 `dto/` 하나로 합쳐졌다(`SolapiMessageRequest`·`SolapiMessageResponse` — 다른 벤더의 `dto/` 관례와 맞춤).
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.solapi/
+com.tastyhouse.infrastructure.solapi/
 ├── SolapiModuleAutoConfiguration.java    @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(SolapiProperties)
 ├── SolapiSmsClient.java                  SmsSender 구현 @ConditionalOnProperty(sms.provider=solapi, matchIfMissing=true)
 ├── SolapiProperties.java                 sms.solapi.*
-├── request/SolapiMessageRequest.java
-└── response/SolapiMessageResponse.java
+└── dto/
+    ├── SolapiMessageRequest.java
+    └── SolapiMessageResponse.java
 ```
 
 `application-solapi.yml`은 `sms.solapi.*`(api-key·api-secret·sender-number·base-url·send-many-path)를 담고, 채널의 `application-sms.yml`이 중첩 import로 로딩한다. `sender-number`는 채널 값 `${sms.sender-number}`를 참조한다.
@@ -41,6 +42,6 @@ com.tastyhouse.external.solapi/
 
 ### 자바 패키지 `com.tastyhouse.external.solapi` 봉인
 
-**대상**: `backend/infrastructure/solapi/src/main/java/com/tastyhouse/external/solapi/`
+**대상**: `backend/infrastructure/solapi/src/main/java/com/tastyhouse/infrastructure/solapi/`
 
-`external.sms.solapi`로 되돌리면 채널 모듈 `infrastructure:sms`의 스캔에 동반 스캔된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+`external.sms.solapi`로 되돌리면 채널 모듈 `infrastructure:sms`의 스캔에 동반 스캔된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.solapi`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/solapi/src/test/java/com/tastyhouse/infrastructure/solapi/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.

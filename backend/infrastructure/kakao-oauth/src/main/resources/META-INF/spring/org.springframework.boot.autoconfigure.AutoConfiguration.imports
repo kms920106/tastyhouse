@@ -1,1 +1,1 @@
-com.tastyhouse.external.kakao.oauth.KakaoOAuthModuleAutoConfiguration
+com.tastyhouse.infrastructure.kakao.oauth.KakaoOAuthModuleAutoConfiguration

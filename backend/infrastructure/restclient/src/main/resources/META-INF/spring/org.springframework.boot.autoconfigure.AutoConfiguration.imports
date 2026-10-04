@@ -1,1 +1,1 @@
-com.tastyhouse.restclient.config.RestClientModuleAutoConfiguration
+com.tastyhouse.infrastructure.restclient.RestClientModuleAutoConfiguration

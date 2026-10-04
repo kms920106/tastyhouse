@@ -171,12 +171,12 @@ JWT 필터체인·Spring Security 정책·Redis 캐시·요청 제한(rate limit
 
 금지 대상 제공자 패키지 4개를 FQN 문자열로 열거한다.
 
-- `com.tastyhouse.external.kakao.oauth..`
-- `com.tastyhouse.external.naver.oauth..`
-- `com.tastyhouse.external.facebook.oauth..`
-- `com.tastyhouse.external.apple.oauth..`
+- `com.tastyhouse.infrastructure.kakao.oauth..`
+- `com.tastyhouse.infrastructure.naver.oauth..`
+- `com.tastyhouse.infrastructure.facebook.oauth..`
+- `com.tastyhouse.infrastructure.apple.oauth..`
 
-소유 모듈이 external-api → `infrastructure:external` → `infrastructure:oauth`로 바뀌는 동안에는 자바 패키지가 불변(`com.tastyhouse.external.oauth.{kakao,naver,facebook,apple}`)이라 규칙은 그대로 유효했다. 채널·벤더 분할(2026-09-27)로 벤더 4모듈이 생기며 패키지가 `com.tastyhouse.external.{vendor}.oauth`로 바뀌었고, 그때 이 목록을 새 패키지로 교체했다. 반대로 **패키지를 바꾸면 이 규칙은 실패하는 대신 조용히 대상을 잃으므로, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.**
+소유 모듈이 external-api → `infrastructure:external` → `infrastructure:oauth`로 바뀌는 동안에는 자바 패키지가 불변(`com.tastyhouse.external.oauth.{kakao,naver,facebook,apple}`)이라 규칙은 그대로 유효했다. 채널·벤더 분할(2026-09-27)로 벤더 4모듈이 생기며 패키지가 `com.tastyhouse.external.{vendor}.oauth`로 바뀌었고, 그때 이 목록을 새 패키지로 교체했다. 이어서 infrastructure 패키지 루트 통일로 패키지가 `com.tastyhouse.infrastructure.{vendor}.oauth`가 되어 목록을 다시 교체했다(위 4줄). 반대로 **패키지를 바꾸면 이 규칙은 실패하는 대신 조용히 대상을 잃으므로, 제공자 패키지를 옮길 때는 이 목록을 함께 고친다.**
 
 **이 규칙을 admin-api·ceo-api에 복제하지 않는다** — 두 앱에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다.
 

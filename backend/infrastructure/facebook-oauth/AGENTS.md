@@ -4,17 +4,18 @@
 
 페이스북 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `facebook/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.facebook` → `com.tastyhouse.external.facebook.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `facebookOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
+옛 `infrastructure:oauth`의 `facebook/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.facebook` → `com.tastyhouse.external.facebook.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.facebook.oauth`가 됐고, wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.facebook.oauth.dto`로 모였다. 클래스명은 그대로라 빈 이름 `facebookOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.facebook.oauth/
+com.tastyhouse.infrastructure.facebook.oauth/
 ├── FacebookOAuthModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(FacebookOAuthProperties)
 ├── FacebookOAuthProperties.java               oauth.facebook.* (app-id, app-secret)
 ├── FacebookOAuthClient.java                   SocialOAuthClient 구현 — debug_token 검증 + /me 조회(graph.facebook.com), 동기 RestClient
-├── FacebookTokenDebugResponse.java            wire DTO
-└── FacebookUserInfoResponse.java              wire DTO
+└── dto/
+    ├── FacebookTokenDebugResponse.java        wire DTO
+    └── FacebookUserInfoResponse.java          wire DTO
 ```
 
 `FacebookOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `FacebookOAuthProperties`를 받아 같은 이름의 `final` 필드(`appId`·`appSecret`)로 옮긴다.
@@ -56,19 +57,19 @@ oauth:
 
 ### `FacebookOAuthProperties`의 기동 시 검증을 지우지 않는다
 
-**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/external/facebook/oauth/FacebookOAuthProperties.java` → compact constructor · `requireResolved`
+**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/FacebookOAuthProperties.java` → compact constructor · `requireResolved`
 
 설정 누락을 기동 시점에 드러내는 유일한 장치다. `@Validated` + `@NotBlank`로 바꾸지 않는다 — 해석되지 않은 placeholder는 `${...}` 리터럴이라 공백이 아니어서 통과한다. 검사를 지우면 누락된 환경변수가 조용히 바인딩돼 운영 배포 후 첫 로그인에서야 드러난다. 반증 테스트 `failsStartupWhenPropertyMissing`·`failsStartupWhenPlaceholderUnresolved`가 이 동작을 고정한다.
 
 ### 자바 패키지 `com.tastyhouse.external.facebook.oauth` 봉인
 
-**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/external/facebook/oauth/`
+**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/`
 
-`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**.
+~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.facebook.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/facebook-oauth/src/test/java/com/tastyhouse/infrastructure/facebook/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(루트 통일 때 그 목록을 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`로 교체했다).
 
 ### 쿼리는 문자열 연결이 아니라 URI 템플릿 변수로 조립한다
 
-**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/external/facebook/oauth/FacebookOAuthClient.java` → `debugToken`·`fetchUserInfo`
+**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/FacebookOAuthClient.java` → `debugToken`·`fetchUserInfo`
 
 `/debug_token?input_token={inputToken}&access_token={accessToken}`, `/me?fields={fields}&access_token={accessToken}` 형태를 유지한다. 사용자가 제공하는 액세스 토큰에 `&`·`=`·`{` 같은 문자가 섞여 있으면 문자열 연결로는 파라미터 주입이나 500으로 이어질 수 있다 — WebClient 시절에도 있던 기존 결함이며, RestClient 전환 작업에서 함께 해소했다. 문자열 연결로 되돌리지 않는다.
 
@@ -78,12 +79,12 @@ oauth:
 
 ### 페이스북은 토큰 교환 단계가 없다
 
-**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/external/facebook/oauth/FacebookOAuthClient.java` → `exchange()`
+**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/FacebookOAuthClient.java` → `exchange()`
 
 페이스북은 JS SDK가 클라이언트에서 이미 액세스 토큰을 발급하므로 교환할 것이 없다. 그래서 `exchange()`는 교환 대신 **Facebook 공식 문서가 요구하는 서버측 검증**(`debug_token`으로 토큰의 `app_id`가 우리 앱과 일치하는지 확인)을 수행하고 토큰을 그대로 돌려준다. 검증이 실패하거나 `app_id`가 다르면 `BusinessException(ErrorCode.SOCIAL_OAUTH_FAILED)`를 직접 던지지 않고 `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`를 반환한다 — `BusinessException`으로의 번역은 `application.auth.service.SocialOAuthFailures`가 소비 측 `*SocialLoginService`의 `.orElseThrow(...)` 호출 지점에서 수행한다. 이 검증 자체(서버측 app_id 확인)는 과거 web-api `FacebookSocialLoginService#validateToken`에 있었으나, `app_id` 설정값과 `debug_token` 호출은 어댑터의 관심사이므로 어댑터로 회수했다. 응답 계약(`SOCIAL_OAUTH_FAILED`)은 무변경이다.
 
 ### 실패 메시지에 앱 시크릿이 남지 않는다
 
-**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/external/facebook/oauth/FacebookOAuthClient.java` → `debugToken`
+**대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/FacebookOAuthClient.java` → `debugToken`
 
 `debug_token`의 `access_token`은 `appId|appSecret` 형태의 앱 액세스 토큰이다. RestClient의 `RestClientResponseException`/`ResourceAccessException` 메시지는 쿼리 문자열 이후를 잘라내므로, 호출이 실패해도 로그에 앱 시크릿이 노출되지 않는다. 과거 `WebClientResponseException`은 쿼리를 포함한 전체 URI를 메시지에 그대로 담아 로그에 시크릿이 노출될 수 있었다. 예외 메시지에 요청 URI를 직접 붙여 다시 던지는 코드를 추가하지 않는다.

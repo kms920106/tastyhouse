@@ -25,7 +25,7 @@ backend/infrastructure/oauth/
 
 **web-api를 건드리지 않는다.**
 
-1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.external.{vendor}.oauth`, 클라이언트가 `SocialOAuthClient`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
+1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.infrastructure.{vendor}.oauth`(wire DTO는 `.dto` 하위), 클라이언트가 `SocialOAuthClient`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
 2. 이 모듈 `build.gradle`에 `runtimeOnly project(':infrastructure:{vendor}-oauth')` 한 줄.
 3. `application-oauth.yml`에 `classpath:application-{vendor}-oauth.yml` import 한 줄.
 4. `.env`에 벤더 키.
@@ -58,12 +58,12 @@ backend/infrastructure/oauth/
 | 역할 | 위치 |
 |---|---|
 | 계약 — `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`web-application` 모듈**(앱 마커 제거 전에는 `application`)의 `com.tastyhouse.application.auth.port.out` |
-| 구현 — 제공자별 클라이언트 4종 | 벤더 모듈의 `com.tastyhouse.external.{kakao,naver,apple,facebook}.oauth` |
+| 구현 — 제공자별 클라이언트 4종 | 벤더 모듈의 `com.tastyhouse.infrastructure.{kakao,naver,apple,facebook}.oauth`(infrastructure 패키지 루트 통일 전 `com.tastyhouse.external.*`) |
 | 조립 | 이 모듈(코드 없음) |
 
 > **개정 이력**: 과거 이 SPI는 external 모듈 자신의 `external.oauth.spi` 패키지에 있었다(도메인 포트가 없는 공유 기술은 그 어댑터 모듈이 자기 SPI를 소유한다는 `security-module` 선례). 이후 읽기 경로 포트화·모듈 재편을 거치며 아웃바운드 계약이 전부 `application`의 `<ctx>/port/out`으로 모이면서 이 SPI도 그리로 옮겨갔고, 어댑터가 계약 소유 모듈을 의존하는 방향(adapter → port)이 됐다. **소셜 OAuth를 `domain`에 두지 않는 이유는 그대로 유효하다** — 호출부가 전부 표현·유스케이스 계층이라 도메인 서비스가 호출하는 포트가 아니므로, domain에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 된다.
 
-**web-api는 SPI만 의존하고 제공자 패키지를 직접 import 하지 않는다.** 이것은 규율이 아니라 빌드 게이트다 — web-api의 ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 `com.tastyhouse.external.{kakao,naver,facebook,apple}.oauth..` 의존을 금지한다(web-api는 이 모듈을 `runtimeOnly`로 받으므로 컴파일 클래스패스에도 없다). **이 규칙이 패키지 문자열로 대상을 지정하므로, 벤더 패키지 이름을 바꾸면 규칙이 조용히 대상을 잃는다.**
+**web-api는 SPI만 의존하고 제공자 패키지를 직접 import 하지 않는다.** 이것은 규율이 아니라 빌드 게이트다 — web-api의 ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..` 의존을 금지한다(web-api는 이 모듈을 `runtimeOnly`로 받으므로 컴파일 클래스패스에도 없다). **이 규칙이 패키지 문자열로 대상을 지정하므로, 벤더 패키지 이름을 바꾸면 규칙이 조용히 대상을 잃는다.** 실제로 infrastructure 패키지 루트 통일(`com.tastyhouse.external.*` → `com.tastyhouse.infrastructure.*`) 때 이 목록을 함께 교체했다.
 
 ### 2단 계약이 제공자별 흐름 차이를 흡수한다
 - `exchange(SocialAuthorization) → SocialCredential` — 카카오·네이버·애플의 토큰 교환, 페이스북의 app_id 검증
@@ -110,7 +110,7 @@ backend/infrastructure/oauth/
 
 ### 벤더 auto-configuration에 `@ConditionalOnProperty`를 붙이지 않는다
 
-**대상**: `backend/infrastructure/{kakao,naver,apple,facebook}-oauth/src/main/java/com/tastyhouse/external/{kakao,naver,apple,facebook}/oauth/*OAuthModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/{kakao,naver,apple,facebook}-oauth/src/main/java/com/tastyhouse/infrastructure/{kakao,naver,apple,facebook}/oauth/*OAuthModuleAutoConfiguration.java`
 
 메일·SMS·파일 저장 벤더처럼 provider 조건으로 배타 선택하면 제공자 하나만 뜨고 나머지 `@Qualifier` 주입이 `NoSuchBeanDefinitionException`으로 실패한다. 제공자 선택은 조건이 아니라 이 모듈의 `build.gradle` 조립으로 한다.
 

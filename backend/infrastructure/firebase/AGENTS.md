@@ -2,12 +2,12 @@
 
 # infrastructure:firebase
 
-Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-library`). `application` 모듈이 소유한 포트 `com.tastyhouse.application.file.port.out.FileStoragePort`를 **직접 구현**한다. 코어(당시 `infrastructure:external`, 현 `infrastructure:restclient`)의 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔됐기 때문이다(`../restclient/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI가 삭제되며 그 `external.file` 스캔은 없어졌다.
+Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-library`). `application` 모듈이 소유한 포트 `com.tastyhouse.application.file.port.out.FileStoragePort`를 **직접 구현**한다. 코어(당시 `infrastructure:external`, 현 `infrastructure:restclient`)의 7모듈 분리(챕터 01)로 코어에서 떨어져 나왔고, 원래 패키지 `external.file.firebase`에서 **`com.tastyhouse.external.firebase`로 옮겼다** — 당시 코어 `ExternalModuleAutoConfiguration`(구 `ExternalModuleConfig`)가 `com.tastyhouse.external.file`을 스캔해서 그 하위에 두면 동반 스캔됐기 때문이다(`../restclient/AGENTS.md`의 패키지 예외 3건). 이후 코어의 파일 저장 SPI가 삭제되며 그 `external.file` 스캔은 없어졌다. 그 뒤 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.firebase`가 됐다.
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.firebase/
+com.tastyhouse.infrastructure.firebase/
 ├── FirebaseModuleAutoConfiguration.java  진입점 — 챕터 02로 FirebaseModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
 ├── FirebaseStorageConfig.java      FirebaseApp 빈 (서비스 계정 JSON으로 초기화)
 ├── FirebaseFileStorage.java        FileStoragePort 직접 구현 (업로드·URL·삭제, 삭제는 FileDeleteResult 반환)
@@ -20,7 +20,7 @@ com.tastyhouse.external.firebase/
 
 ## 진입 설정과 스캔 범위
 
-`FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.external.firebase")` + `@EnableConfigurationProperties(FirebaseStorageProperties.class)`를 갖는다. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
+`FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.infrastructure.firebase")` + `@EnableConfigurationProperties(FirebaseStorageProperties.class)`를 갖는다. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
 
 **`@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")`는 `FirebaseFileStorage`·`FirebaseStorageConfig` 두 구현 클래스에 붙어 있고 진입 설정에는 없다.** 따라서 이 모듈이 클래스패스에 있더라도 `file.provider`가 `firebase`가 아니면 빈이 등록되지 않는다 — 그때는 다른 `FileStoragePort` 구현(S3)이 등록돼 있어야 하며, 구현이 하나도 없으면 `FileStoragePort`를 주입받는 persistence 빈(`FileUrlResolver`·`FileDomainConfig`)이 그 빈을 찾지 못해 **기동 시** 실패한다. 구현은 `file.provider`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나다.
 
@@ -68,15 +68,15 @@ file:
 
 ### 서비스 계정 키를 "경로"로 되돌리지 않는다
 
-**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/FirebaseStorageConfig.java` → `FirebaseApp` 빈 초기화
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/FirebaseStorageConfig.java` → `FirebaseApp` 빈 초기화
 
 서비스 계정 키는 파일 **경로**가 아니라 configtree로 주입된 JSON **내용**(`firebase.service-account` 프로퍼티)을 그대로 읽는다. 경로 기반 로딩(`file:` 상대경로 + `ResourceLoader`)으로 되돌리지 않는다 — 상대경로는 JVM 작업 디렉터리 기준으로 해석되어 **실행 위치마다 성패가 갈렸다**(`gradle -p` 실행 · `java -jar`의 CWD · systemd `WorkingDirectory`). 내용 주입 방식은 CWD와 완전히 무관하며 Kubernetes/Docker secret 마운트 패턴과 코드가 동일하다. 시크릿 디렉터리 규약은 위 "yml — `application-firebase.yml`" 절과 `application-firebase.yml`의 configtree import 선언을 참조한다.
 
 ### 자바 패키지 `com.tastyhouse.external.firebase` 봉인
 
-**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/`
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/`
 
-`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.** 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 분리 당시에는 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되는 것이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈마다 겹치지 않는 하위 패키지(`external.firebase` / `external.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다.
+~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.**~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 분리 당시에는 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되는 것이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈마다 겹치지 않는 하위 패키지(지금 `com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3` — 루트 통일 전 `external.firebase` / `external.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -84,6 +84,6 @@ file:
 
 ### 클래스패스 존재 = 활성화, 다만 provider 조건이 한 겹 더 있다
 
-**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/external/firebase/FirebaseModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/FirebaseModuleAutoConfiguration.java`
 
 이 auto-configuration은 클래스패스 존재만으로 활성화되고, 현재 4개 앱 전부가 (스타터를 통해) 이 모듈을 `runtimeOnly`로 받는다. 다만 `FirebaseFileStorage`는 `@ConditionalOnProperty(file.provider=firebase)`이므로 **모듈이 클래스패스에 있어도 provider가 다르면 빈이 등록되지 않는다.** 즉 "기동에 성공했다"는 사실이 이 전략이 선택됐다는 증거가 아니다 — 조건부 전략 배선은 틀린 provider 값으로 **실패를 확인하는 반증 테스트**로 검증한다.

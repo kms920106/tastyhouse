@@ -4,12 +4,12 @@
 
 JavaMail(SMTP) 메일 발송 **벤더 모듈**(`java-library`). 포트 `MailSender`(`web-application`의 `com.tastyhouse.application.mail.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `JavaMailAdapter`가 구현한다. 메일 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:mail`이 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-ses`다.
 
-`infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.mail.javamail` → `external.javamail`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되지 않게 하기 위함이다.
+`infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.mail.javamail` → `external.javamail`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.mail")`에 동반 스캔되지 않게 하기 위함이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.javamail`이 됐다.
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.javamail/
+com.tastyhouse.infrastructure.javamail/
 ├── JavaMailModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
 └── JavaMailAdapter.java                  MailSender 구현 @ConditionalOnProperty(mail.provider=javamail, matchIfMissing=true)
 ```
@@ -37,9 +37,9 @@ com.tastyhouse.external.javamail/
 
 ### 자바 패키지 `com.tastyhouse.external.javamail` 봉인
 
-**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/external/javamail/`
+**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/infrastructure/javamail/`
 
-`external.mail.javamail`로 되돌리면 채널 모듈 `infrastructure:mail`의 스캔에 동반 스캔된다. `com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.
+`external.mail.javamail`로 되돌리면 채널 모듈 `infrastructure:mail`의 스캔에 동반 스캔된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.javamail`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/javamail/src/test/java/com/tastyhouse/infrastructure/javamail/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -47,6 +47,6 @@ com.tastyhouse.external.javamail/
 
 ### `JavaMailAdapter`가 `JavaMailMailSender`가 아닌 이유
 
-**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/external/javamail/JavaMailAdapter.java`
+**대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/infrastructure/javamail/JavaMailAdapter.java`
 
 클래스명이 `JavaMailMailSender`가 아닌 것은 이 어댑터가 **주입받는 Spring의 `JavaMailSender`와 타입명이 혼동되기 때문**이며, `Adapter` 접미어로 구분한다. 포트 구현체 이름을 포트명에 맞춰 정리하려는 시도가 이 지점에서 되돌아오기 쉽다.

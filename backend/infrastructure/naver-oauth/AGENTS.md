@@ -4,17 +4,18 @@
 
 네이버 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
+옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.naver.oauth`가 됐고, wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.naver.oauth.dto`로 모였다. 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
 ## 무엇을 소유하는가
 
 ```
-com.tastyhouse.external.naver.oauth/
+com.tastyhouse.infrastructure.naver.oauth/
 ├── NaverOAuthModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(NaverOAuthProperties)
 ├── NaverOAuthProperties.java               oauth.naver.* (client-id, client-secret, redirect-uri)
 ├── NaverOAuthClient.java                   SocialOAuthClient 구현 — 토큰 교환(nid.naver.com, state 포함) + userinfo(openapi.naver.com), 동기 RestClient
-├── NaverTokenResponse.java                 wire DTO
-└── NaverUserInfoResponse.java              wire DTO — response 중첩 해제·gender 정규화·birthday 분해
+└── dto/
+    ├── NaverTokenResponse.java             wire DTO
+    └── NaverUserInfoResponse.java          wire DTO — response 중첩 해제·gender 정규화·birthday 분해
 ```
 
 `NaverOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `NaverOAuthProperties`를 받아 같은 이름의 `final` 필드(`clientId`·`clientSecret`·`redirectUri`)로 옮긴다.
@@ -57,19 +58,19 @@ oauth:
 
 ### `NaverOAuthProperties`의 기동 시 검증을 지우지 않는다
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/external/naver/oauth/NaverOAuthProperties.java` → compact constructor · `requireResolved`
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/NaverOAuthProperties.java` → compact constructor · `requireResolved`
 
 설정 누락을 기동 시점에 드러내는 유일한 장치다. `@Validated` + `@NotBlank`로 바꾸지 않는다 — 해석되지 않은 placeholder는 `${...}` 리터럴이라 공백이 아니어서 통과한다. 검사를 지우면 누락된 환경변수가 조용히 바인딩돼 운영 배포 후 첫 로그인에서야 드러난다. 반증 테스트 `failsStartupWhenPropertyMissing`·`failsStartupWhenPlaceholderUnresolved`가 이 동작을 고정한다.
 
 ### 자바 패키지 `com.tastyhouse.external.naver.oauth` 봉인
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/external/naver/oauth/`
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/`
 
-`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**.
+~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.naver.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/naver-oauth/src/test/java/com/tastyhouse/infrastructure/naver/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(루트 통일 때 그 목록을 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`로 교체했다).
 
 ### 외부 응답 DTO는 도메인 enum을 반환하지 않는다
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/external/naver/oauth/NaverUserInfoResponse.java` → `getGender()` 정규화 매퍼
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/dto/NaverUserInfoResponse.java` → `getGender()` 정규화 매퍼
 
 gender 매퍼는 도메인 enum `MemberGender`가 아니라 **그 상수명 문자열**(`"MALE"`/`"FEMALE"`/`null`)을 반환한다. 외부 응답 DTO가 도메인 타입을 보유하면 어댑터 → domain 역방향 결합이 생기기 때문이다. 도메인 enum 승격은 소비 측(web-api 서비스)이 `MemberGender.from(String)`으로 수행한다. 편의를 이유로 enum을 반환하도록 되돌리지 않는다.
 
@@ -79,13 +80,13 @@ gender 매퍼는 도메인 enum `MemberGender`가 아니라 **그 상수명 문�
 
 ### 네이버만 `state`를 쓴다 (CSRF 방어)
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/external/naver/oauth/NaverOAuthClient.java` → `exchange()`·`fetchToken(String, String)`
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/NaverOAuthClient.java` → `exchange()`·`fetchToken(String, String)`
 
 4개 제공자 중 네이버만 인가 요청·토큰 교환에 `state`를 함께 넘겨 CSRF를 방어한다. 나머지 3종은 `SocialAuthorization`의 `state`가 `null`이다. 이 비대칭은 제공자 사양 차이이며 통일 대상이 아니다.
 
 ### 네이버 응답의 결측·형식 처리
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/external/naver/oauth/NaverUserInfoResponse.java`
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/dto/NaverUserInfoResponse.java`
 
 - 프로필 응답(`GET https://openapi.naver.com/v1/nid/me`)은 사용자 정보를 **최상위 `response` 객체 안에 중첩**해 돌려준다. 다른 3종과 달리 한 겹 더 벗겨야 한다.
 - `response.gender()`는 **사용자가 성별 제공에 동의하지 않으면 `null`** 이므로 반드시 가드한다(카카오 형제와 동일한 이유).

@@ -1,1 +1,1 @@
-com.tastyhouse.external.aws.ses.AwsSesModuleAutoConfiguration
+com.tastyhouse.infrastructure.aws.ses.AwsSesModuleAutoConfiguration
