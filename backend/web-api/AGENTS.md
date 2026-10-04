@@ -261,11 +261,17 @@ web-api에는 시더가 없어 대상 0건이므로(**공허 통과 회피**) ad
 → `confirm(Long)`, `reject(Long)`, `complete(Long)`, `getShopReservations(Long)`
 
 Shop-owner 연결 후 **점주 본인 검증을 추가해야 한다.** 현재 이 4개 엔드포인트는 예약 id·가게 id만으로 상태 전이(`PENDING→CONFIRMED`/`REJECTED`, `CONFIRMED→COMPLETED`)와 목록 조회를 허용하므로, 남의 가게 예약을 조작·열람할 수 있는 **미해결 IDOR**다. 주석을 지우면 이 결함의 유일한 기록이 사라지므로 반드시 문서로 옮긴다.
-### `ShopApiController`·`ReviewApiController`의 `@CurrentUser`는 `null`일 수 있다 — 비-null 가정으로 바꾸지 않는다
+### shop·review 공개 경로 컨트롤러의 `@CurrentUser`는 `null`일 수 있다 — 비-null 가정으로 바꾸지 않는다
 
 **대상**:
-- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopApiController.java` → `memberIdOrNull(MemberUserDetails)`, `getBestShops(...)`, `getDeliveryTip(...)`
-- `backend/web-api/src/main/java/com/tastyhouse/webapi/review/adapter/in/web/ReviewApiController.java` → 동명 헬퍼
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopApiController.java` → `memberIdOrNull(MemberUserDetails)`, `getBestShops(...)`, `getLatestShops(...)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopBookmarkApiController.java` → `isBookmarked(...)`, `toggleBookmark(...)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/shop/adapter/in/web/ShopOrderInfoApiController.java` → `getShopDeliveryTip(...)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/review/adapter/in/web/ReviewApiController.java` → `memberIdOrNull(MemberUserDetails)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/review/adapter/in/web/ReviewLikeApiController.java` → `isLiked(...)`
+- `backend/web-api/src/main/java/com/tastyhouse/webapi/review/adapter/in/web/ReviewCommentApiController.java` → `memberIdOrNull(MemberUserDetails)`, `getComments(...)`
+
+컨트롤러 분할(`backend/CLAUDE.md`의 "컨트롤러 분할 기준" 절)로 null 분기가 여러 컨트롤러에 흩어졌다. `memberIdOrNull` 헬퍼는 공유 유틸 없이 쓰는 컨트롤러마다 복제돼 있다.
 
 `/api/shops/**`·`/api/reviews/**`는 `PublicPaths`의 공개 경로라 비로그인 접근이 가능하고, 그때 principal이 `null`로 들어온다. `@CurrentUser`를 필수로 취급하거나 NPE 방어를 걷어내면 비로그인 손님 경로가 500으로 깨진다. 비로그인 시 배달지역 필터를 걸지 않고, 배달팁은 확정 계산 대신 **범위 모드**로 떨어뜨리며, 사장님만보기 리뷰는 본인 판정을 하지 않는다.
 ### `ProductBatchRequest.orderMethod` — 화면이 배달가/픽업가를 고르게 하지 않는다

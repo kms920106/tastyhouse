@@ -170,7 +170,7 @@ Response record는 읽기 계약(`*Result`)을 표현 계약으로 **옮겨 담�
 - `shop/adapter/in/web/ShopOrderNoticeApiController.java` → 타입
 - `review/adapter/in/web/ReviewBlindConsentApiController.java` → 타입
 
-대형 컨트롤러(`ProductApiController`·`ReviewApiController`)에 얹지 않고 별도 컨트롤러로 둔다. 근거는 두 가지다 — (1) **수명이 다르다**: 영양성분은 "영양성분 보기"를 눌렀을 때만 조회되는 지연 로딩 대상이고 그 화면 하나만이 응답을 쓴다. (2) **관심사·인가 규칙이 다르다**: 게시중단 동의/거부는 "게시중단 생애주기"라는 다른 관심사이고 인가 규칙(작성자 본인 + 게시중단 상태)이 리뷰 CRUD와 다르다.
+기존 컨트롤러(`ProductApiController`·`ReviewApiController`)에 얹지 않고 별도 컨트롤러로 둔다. 근거는 두 가지다 — (1) **수명이 다르다**: 영양성분은 "영양성분 보기"를 눌렀을 때만 조회되는 지연 로딩 대상이고 그 화면 하나만이 응답을 쓴다. (2) **관심사·인가 규칙이 다르다**: 게시중단 동의/거부는 "게시중단 생애주기"라는 다른 관심사이고 인가 규칙(작성자 본인 + 게시중단 상태)이 리뷰 CRUD와 다르다.
 
 ### 인앱 알림함은 대상 회원을 토큰에서만 얻는다 (IDOR 방어)
 **대상**: `notification/adapter/in/web/NotificationApiController.java` → 타입
@@ -240,12 +240,12 @@ command(생성·승인·취소·현장완료·환불)와 조회를 CQRS로 분�
 ### 조회 불가 상태는 404가 아니라 `200 + available:false`
 **대상**:
 - `shop/adapter/in/web/response/ScheduledOrderSlotsResponse.java` → 타입, `available`
-- `shop/adapter/in/web/ShopApiController.java` → `getScheduledOrderSlots(...)`
+- `shop/adapter/in/web/ShopOrderInfoApiController.java` → `getScheduledOrderSlots(...)`
 
 예약주문 미운영·미지원 주문방식·영업 종료·영업시간 미등록은 모두 오류가 아니라 **"지금은 예약할 수 없다"는 정상적인 조회 결과**이므로 404가 아니라 `200 + available:false`로 응답한다(배달팁 통합 조회의 선례를 따른다). 프론트는 같은 분기 하나로 안내 문구를 띄운다. 시각 의존 응답이라 캐시하지 않는다.
 
 ### 상세 초기 렌더 비용을 0으로 유지한다 — 팝업 데이터는 별도 엔드포인트
-**대상**: `shop/adapter/in/web/ShopApiController.java` → `getDeliveryTip(...)`
+**대상**: `shop/adapter/in/web/ShopOrderInfoApiController.java` → `getShopDeliveryTip(...)`
 
 배달팁 표·지역 목록·시간대 목록은 팝업을 열 때만 필요하므로 가게 상세(`/v1/{id}`)에 싣지 않고 이 엔드포인트로 분리했다. **상세는 하한/상한 2필드만 갖는다.**
 

@@ -19,28 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
-import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewDeleteCommand;
-import com.tastyhouse.application.review.port.in.ReviewLikeToggleCommand;
 import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
-import com.tastyhouse.application.review.port.in.ReviewReplyCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.review.adapter.in.web.request.CommentCreateRequest;
-import com.tastyhouse.webapi.review.adapter.in.web.request.ReplyCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReviewCreateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReviewSearchRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.request.ReviewUpdateRequest;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBestListItemResponse;
-import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewCommentListResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewDetailResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLatestListItemResponse;
-import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLikeResponse;
-import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLikeStatusResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewMemberListItemResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewProductResponse;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewResponse;
@@ -86,13 +78,13 @@ public class ReviewApiController {
     }
 
     @Operation(summary = "리뷰 수정", description = "본인이 작성한 리뷰를 수정합니다.")
-    @PutMapping("/v1/{reviewId}")
+    @PutMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReview(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @Valid @RequestBody ReviewUpdateRequest request,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        ReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), reviewId);
+        ReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), id);
         Long updatedReviewId = reviewCommandUseCase.updateReview(command);
         ReviewResponse response = ReviewResponse.from(
             reviewQueryUseCase.getReviewSubmitResult(updatedReviewId, userDetails.getMemberId())
@@ -101,12 +93,12 @@ public class ReviewApiController {
     }
 
     @Operation(summary = "리뷰 삭제", description = "본인이 작성한 리뷰를 삭제합니다.")
-    @DeleteMapping("/v1/{reviewId}")
+    @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteReview(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        ReviewDeleteCommand command = ReviewDeleteCommand.of(userDetails.getMemberId(), reviewId);
+        ReviewDeleteCommand command = ReviewDeleteCommand.of(userDetails.getMemberId(), id);
         reviewCommandUseCase.deleteReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
@@ -139,92 +131,25 @@ public class ReviewApiController {
     }
 
     @Operation(summary = "리뷰 상세 조회", description = "리뷰 ID로 리뷰 상세 정보를 조회합니다. 리뷰 태그 정보도 함께 조회됩니다.")
-    @GetMapping("/v1/{reviewId}")
+    @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReviewDetailResponse>> getReviewDetail(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return reviewQueryUseCase.findReviewDetail(reviewId, memberIdOrNull(userDetails))
+        return reviewQueryUseCase.findReviewDetail(id, memberIdOrNull(userDetails))
                 .map(detail -> ResponseEntity.ok(ApiResponse.success(ReviewDetailResponse.from(detail))))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "리뷰 상세 정보 조회 (상품 정보 포함)", description = "리뷰 ID로 리뷰 상세 정보와 연결된 상품 정보를 함께 조회합니다. 평점, 유저 정보, 작성일, 내용, 이미지, 태그 정보가 포함됩니다.")
-    @GetMapping("/v1/{reviewId}/product")
+    @GetMapping("/v1/{id}/product")
     public ResponseEntity<ApiResponse<ReviewProductResponse>> getReviewProduct(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
+        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return reviewQueryUseCase.findReviewProduct(reviewId, memberIdOrNull(userDetails))
+        return reviewQueryUseCase.findReviewProduct(id, memberIdOrNull(userDetails))
                 .map(product -> ResponseEntity.ok(ApiResponse.success(ReviewProductResponse.from(product))))
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @Operation(summary = "리뷰 좋아요 여부 조회", description = "리뷰가 현재 사용자에 의해 좋아요되었는지 여부를 조회합니다.")
-    @GetMapping("/v1/{reviewId}/like")
-    public ResponseEntity<ApiResponse<ReviewLikeStatusResponse>> isLiked(
-        @PathVariable Long reviewId,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        ReviewLikeStatusResponse liked;
-        if (userDetails == null) {
-            liked = ReviewLikeStatusResponse.from(false);
-        } else {
-            Long memberId = userDetails.getMemberId();
-            liked = ReviewLikeStatusResponse.from(reviewQueryUseCase.isLiked(reviewId, memberId));
-        }
-        return ResponseEntity.ok(ApiResponse.success(liked));
-    }
-
-    @Operation(summary = "리뷰 좋아요 토글", description = "리뷰에 좋아요를 토글합니다. 이미 좋아요한 경우 취소되고, 아닌 경우 좋아요가 추가됩니다.")
-    @PostMapping("/v1/{reviewId}/like")
-    public ResponseEntity<ApiResponse<ReviewLikeResponse>> toggleReviewLike(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        reviewQueryUseCase.requireVisibleReview(reviewId, userDetails.getMemberId());
-        ReviewLikeToggleCommand command = ReviewLikeToggleCommand.of(userDetails.getMemberId(), reviewId);
-        boolean liked = reviewCommandUseCase.toggleReviewLike(command);
-        return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
-    }
-
-    @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다. 생성된 댓글 ID를 반환합니다.")
-    @PostMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<Long>> createComment(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @Valid @RequestBody CommentCreateRequest request,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        reviewQueryUseCase.requireVisibleReview(reviewId, userDetails.getMemberId());
-        ReviewCommentCreateCommand command = request.toCommand(userDetails.getMemberId(), reviewId);
-        Long commentId = reviewCommandUseCase.createComment(command);
-        return ResponseEntity.ok(ApiResponse.success(commentId));
-    }
-
-    @Operation(summary = "답글 등록", description = "댓글에 답글을 등록합니다. 생성된 답글 ID를 반환합니다.")
-    @PostMapping("/v1/comments/{commentId}/replies")
-    public ResponseEntity<ApiResponse<Long>> createReply(
-        @Parameter(description = "댓글 ID", example = "1") @PathVariable Long commentId,
-        @Valid @RequestBody ReplyCreateRequest request,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        Long parentReviewId = reviewCommandUseCase.findReviewIdOfComment(commentId);
-        reviewQueryUseCase.requireVisibleReview(parentReviewId, userDetails.getMemberId());
-        ReviewReplyCreateCommand command = request.toCommand(userDetails.getMemberId(), commentId);
-        Long replyId = reviewCommandUseCase.createReply(command);
-        return ResponseEntity.ok(ApiResponse.success(replyId));
-    }
-
-    @Operation(summary = "댓글 및 답글 조회", description = "리뷰의 모든 댓글과 답글을 조회합니다.")
-    @GetMapping("/v1/{reviewId}/comments")
-    public ResponseEntity<ApiResponse<ReviewCommentListResponse>> getComments(
-        @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        ReviewCommentListResponse response = ReviewCommentListResponse.from(
-            reviewQueryUseCase.searchCommentsWithReplies(reviewId, memberIdOrNull(userDetails))
-        );
-        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "특정 회원의 리뷰 목록 조회", description = "특정 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")

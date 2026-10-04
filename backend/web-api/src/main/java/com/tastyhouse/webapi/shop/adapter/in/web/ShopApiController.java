@@ -8,47 +8,23 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopBookmarkToggleCommand;
-import com.tastyhouse.application.shop.port.in.ShopCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
-import com.tastyhouse.application.shop.port.in.ShopOrderInfoQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSearchQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
-import com.tastyhouse.webapi.shop.adapter.in.web.request.ScheduledOrderSlotSearchRequest;
-import com.tastyhouse.webapi.shop.adapter.in.web.request.ShopDeliveryTipSearchRequest;
 import com.tastyhouse.webapi.shop.adapter.in.web.request.ShopMapMarkerSearchRequest;
-import com.tastyhouse.webapi.shop.adapter.in.web.request.ShopReviewSearchRequest;
 import com.tastyhouse.webapi.shop.adapter.in.web.request.ShopSearchRequest;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ScheduledOrderSlotsResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopAmenityListItemResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBannerResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBestListItemResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBookmarkResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopDeliveryTipResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopDetailResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopEditorChoiceResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopFoodTypeListItemResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopInfoResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopLatestListItemResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMapMarkerResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopNoticeResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderMethodResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPhotoCategoryResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPopularProductResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopProductCategoryResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewStatisticsResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingPageResponse;
-import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingResponse;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemResponse;
 
 @RestController
@@ -56,19 +32,10 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
 @Tag(name = "Shop", description = "가게 관리 API")
 public class ShopApiController {
 
-    private final ShopCommandUseCase shopCommandUseCase;
     private final ShopSearchQueryUseCase shopSearchQueryUseCase;
-    private final ShopDetailQueryUseCase shopDetailQueryUseCase;
-    private final ShopOrderInfoQueryUseCase shopOrderInfoQueryUseCase;
 
-    public ShopApiController(
-        ShopCommandUseCase shopCommandUseCase,
-        ShopSearchQueryUseCase shopSearchQueryUseCase, ShopDetailQueryUseCase shopDetailQueryUseCase, ShopOrderInfoQueryUseCase shopOrderInfoQueryUseCase
-    ) {
-        this.shopCommandUseCase = shopCommandUseCase;
+    public ShopApiController(ShopSearchQueryUseCase shopSearchQueryUseCase) {
         this.shopSearchQueryUseCase = shopSearchQueryUseCase;
-        this.shopDetailQueryUseCase = shopDetailQueryUseCase;
-        this.shopOrderInfoQueryUseCase = shopOrderInfoQueryUseCase;
     }
 
     @Operation(summary = "지도 마커 목록 조회", description = "지도에서 드래그한 위치 기준 주변 가게의 마커 정보(위도, 경도, 상호명)를 조회합니다.")
@@ -157,176 +124,6 @@ public class ShopApiController {
             .map(ShopAmenityListItemResponse::from)
             .toList();
         ApiResponse<List<ShopAmenityListItemResponse>> response = ApiResponse.success(amenities);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "가게 상세 조회", description = "가게의 기본 정보를 조회합니다. 상호명, 주소, 위도/경도, 평점, 전화번호, 썸네일 이미지를 포함합니다.")
-    @GetMapping("/v1/{id}")
-    public ResponseEntity<ApiResponse<ShopDetailResponse>> getShopDetail(@PathVariable Long id) {
-        ShopDetailResponse shopDetail = ShopDetailResponse.from(shopDetailQueryUseCase.getShopDetail(id));
-        return ResponseEntity.ok(ApiResponse.success(shopDetail));
-    }
-
-    @Operation(summary = "정보 조회", description = "가게의 기본 정보를 조회합니다. 운영시간, 전화번호 등을 포함합니다.")
-    @GetMapping("/v1/{id}/info")
-    public ResponseEntity<ApiResponse<ShopInfoResponse>> getShopInfo(@PathVariable Long id) {
-        ShopInfoResponse shopInfo = ShopInfoResponse.from(shopDetailQueryUseCase.getShopInfo(id));
-        ApiResponse<ShopInfoResponse> response = ApiResponse.success(shopInfo);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "배너 이미지 조회", description = "가게의 배너 이미지 목록을 조회합니다.")
-    @GetMapping("/v1/{id}/banners")
-    public ResponseEntity<ApiResponse<List<ShopBannerResponse>>> getShopBanners(@PathVariable Long id) {
-        List<ShopBannerResponse> banners = shopDetailQueryUseCase.getShopBanners(id).stream()
-            .map(ShopBannerResponse::from)
-            .toList();
-        ApiResponse<List<ShopBannerResponse>> response = ApiResponse.success(banners);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "점주 공지 조회", description = "가게에 노출 중인 점주 공지 1건을 조회합니다. 노출 중인 공지가 없으면 data가 null입니다.")
-    @GetMapping("/v1/{id}/notice")
-    public ResponseEntity<ApiResponse<ShopNoticeResponse>> getShopNotice(@PathVariable Long id) {
-        ShopNoticeResult noticeResult = shopDetailQueryUseCase.getShopNotice(id);
-        ShopNoticeResponse notice = noticeResult == null ? null : ShopNoticeResponse.from(noticeResult);
-        ApiResponse<ShopNoticeResponse> response = ApiResponse.success(notice);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "상품 목록 조회", description = "가게의 상품 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
-    @GetMapping("/v1/{id}/products")
-    public ResponseEntity<ApiResponse<List<ShopProductCategoryResponse>>> getShopProducts(@PathVariable Long id) {
-        List<ShopProductCategoryResponse> products = shopDetailQueryUseCase.getShopProducts(id).stream()
-            .map(ShopProductCategoryResponse::from)
-            .toList();
-        ApiResponse<List<ShopProductCategoryResponse>> response = ApiResponse.success(products);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "인기 메뉴 그룹 조회",
-        description = "가게 상세 상단 '가장 인기 있는 메뉴' 그룹을 최대 5건 조회합니다. 사장님 추천 메뉴를 먼저 "
-            + "채우고 남는 자리를 최근 30일 완료 주문의 판매량 순으로 채웁니다. 판매중지·숨김·미노출 메뉴는 제외됩니다. "
-            + "인증이 필요하지 않습니다.")
-    @GetMapping("/v1/{id}/popular-products")
-    public ResponseEntity<ApiResponse<List<ShopPopularProductResponse>>> getPopularProducts(@PathVariable Long id) {
-        List<ShopPopularProductResponse> popularProducts = shopDetailQueryUseCase.getPopularProducts(id).stream()
-            .map(ShopPopularProductResponse::from)
-            .toList();
-        ApiResponse<List<ShopPopularProductResponse>> response = ApiResponse.success(popularProducts);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "포토 목록 조회", description = "가게의 사진 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
-    @GetMapping("/v1/{id}/photos")
-    public ResponseEntity<ApiResponse<List<ShopPhotoCategoryResponse>>> getShopPhotos(@PathVariable Long id) {
-        List<ShopPhotoCategoryResponse> photos = shopDetailQueryUseCase.getShopPhotos(id).stream()
-            .map(ShopPhotoCategoryResponse::from)
-            .toList();
-        ApiResponse<List<ShopPhotoCategoryResponse>> response = ApiResponse.success(photos);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "리뷰 목록 조회", description = "가게의 리뷰 목록을 평점별로 조회합니다. 각 평점(1점~5점)별로 최대 5개씩, 전체 리뷰는 페이지네이션으로 조회합니다.")
-    @GetMapping("/v1/{id}/reviews")
-    public ResponseEntity<ApiResponse<ShopReviewsByRatingResponse>> getShopReviews(
-        @PathVariable Long id,
-        @Valid @ModelAttribute ShopReviewSearchRequest search,
-        @Valid @ModelAttribute PageRequest pageRequest
-    ) {
-        ShopReviewsByRatingPageResponse result = ShopReviewsByRatingPageResponse.from(
-            shopDetailQueryUseCase.getShopReviewsByRatingWithPagination(
-                id,
-                pageRequest.page(),
-                pageRequest.size(),
-                search.hasImage(),
-                search.sortType()
-            )
-        );
-        ApiResponse<ShopReviewsByRatingResponse> response = ApiResponse.success(result.response());
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "리뷰 통계 조회", description = "가게의 리뷰 통계를 조회합니다. 평점, 카테고리별 점수, 재방문의사 등을 포함합니다.")
-    @GetMapping("/v1/{id}/reviews/statistics")
-    public ResponseEntity<ApiResponse<ShopReviewStatisticsResponse>> getShopReviewStatistics(@PathVariable Long id) {
-        ShopReviewStatisticsResponse statistics =
-            ShopReviewStatisticsResponse.from(shopDetailQueryUseCase.getShopReviewStatistics(id));
-        ApiResponse<ShopReviewStatisticsResponse> response = ApiResponse.success(statistics);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "북마크 여부 조회", description = "가게가 현재 사용자에 의해 북마크되었는지 여부를 조회합니다.")
-    @GetMapping("/v1/{id}/bookmark")
-    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> isBookmarked(
-        @PathVariable Long id,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        ShopBookmarkResponse bookmarked;
-        if (userDetails == null) {
-            bookmarked = ShopBookmarkResponse.from(false);
-        } else {
-            Long memberId = userDetails.getMemberId();
-            bookmarked = ShopBookmarkResponse.from(shopDetailQueryUseCase.isBookmarked(id, memberId));
-        }
-        return ResponseEntity.ok(ApiResponse.success(bookmarked));
-    }
-
-    @Operation(summary = "북마크 토글", description = "가게에 대한 북마크를 추가하거나 제거합니다.")
-    @PostMapping("/v1/{id}/bookmark")
-    public ResponseEntity<ApiResponse<ShopBookmarkResponse>> toggleBookmark(
-        @PathVariable Long id,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-        ShopBookmarkToggleCommand command = ShopBookmarkToggleCommand.of(userDetails.getMemberId(), id);
-        boolean bookmarked = shopCommandUseCase.toggleBookmark(command);
-        return ResponseEntity.ok(ApiResponse.success(ShopBookmarkResponse.from(bookmarked)));
-    }
-
-    @Operation(summary = "배달팁 조회", description = "가게의 배달팁 설정과 하한/상한을 조회합니다. 로그인 회원이 배달 주소 ID와 주문금액을 함께 주면 확정 배달팁과 산출 근거를 반환합니다.")
-    @GetMapping("/v1/{id}/delivery-tip")
-    public ResponseEntity<ApiResponse<ShopDeliveryTipResponse>> getShopDeliveryTip(
-        @PathVariable Long id,
-        @Valid @ModelAttribute ShopDeliveryTipSearchRequest search,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        ShopDeliveryTipResponse deliveryTip = ShopDeliveryTipResponse.from(
-            shopOrderInfoQueryUseCase.getShopDeliveryTip(
-                id,
-                userDetails == null ? null : userDetails.getMemberId(),
-                search.deliveryAddressId(),
-                search.orderAmount(),
-                search.orderMethod()
-            )
-        );
-        return ResponseEntity.ok(ApiResponse.success(deliveryTip));
-    }
-
-    @Operation(
-        summary = "예약 가능 수령시간 조회",
-        description = "가게의 예약 가능한 수령시간 슬롯을 30분 단위로 조회합니다. 예약주문 미운영이거나 "
-            + "예약 가능한 시간이 없으면 available=false와 빈 목록을 반환합니다."
-    )
-    @GetMapping("/v1/{id}/scheduled-order-slots")
-    public ResponseEntity<ApiResponse<ScheduledOrderSlotsResponse>> getScheduledOrderSlots(
-        @PathVariable Long id,
-        @Valid @ModelAttribute ScheduledOrderSlotSearchRequest search
-    ) {
-        ScheduledOrderSlotsResponse slots = ScheduledOrderSlotsResponse.from(
-            shopOrderInfoQueryUseCase.getScheduledOrderSlots(id, search.orderMethod())
-        );
-        return ResponseEntity.ok(ApiResponse.success(slots));
-    }
-
-    @Operation(summary = "주문 수단 조회", description = "가게에서 주문 가능한 수단을 조회합니다. 테이블 오더, 예약, 포장 정보를 포함합니다.")
-    @GetMapping("/v1/{id}/order-methods")
-    public ResponseEntity<ApiResponse<ShopOrderMethodResponse>> getShopOrderMethods(@PathVariable Long id) {
-        ShopOrderMethodResponse orderMethods =
-            ShopOrderMethodResponse.from(shopOrderInfoQueryUseCase.getShopOrderMethods(id));
-        ApiResponse<ShopOrderMethodResponse> response = ApiResponse.success(orderMethods);
         return ResponseEntity.ok(response);
     }
 

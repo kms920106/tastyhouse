@@ -1012,7 +1012,18 @@ reference 구현: `admin-api/coupon/CouponApiController` — 단건 CRUD·중첩
 - **타입·명명은 그대로**: 남는 하위 식별자는 [`@PathVariable` 식별자 명명 규칙](#컨트롤러-pathvariable-식별자-명명-규칙-id로-통일)에 따라 `Long` 타입을 유지하며, 이름은 기존 하위 식별자명(`winnerId` 등)을 그대로 씁니다.
 - **적용 대상**: 같은 컨트롤러의 다른 CRUD/중첩 API(예: 생성·목록 조회)는 부모 `id`를 실제로 사용하므로 그대로 둡니다 — 평탄화는 미사용이 확인된 해당 핸들러 하나에만 적용하고, 컨트롤러 전체 경로 스타일을 바꾸지 않습니다.
 
-reference 구현: `admin-api/event/EventApiController#deleteWinner` — `EventCommandService.deleteWinner(Long winnerId)`가 winnerId(전역 유니크 PK)만으로 조회·삭제하고 eventId 소속 검증이 없어, 경로를 `/v1/{id}/winners/{winnerId}`에서 `/v1/winners/{winnerId}`로 평탄화하고 미사용 `@PathVariable Long id`를 제거함. 같은 컨트롤러의 `createWinner`·`getWinners`는 `id`(eventId)를 실제로 사용하므로 `/v1/{id}/winners` 형태를 그대로 유지.
+reference 구현: `admin-api/event/EventWinnerAdminApiController#deleteWinner` — `EventCommandService.deleteWinner(Long winnerId)`가 winnerId(전역 유니크 PK)만으로 조회·삭제하고 eventId 소속 검증이 없어, 경로를 `/v1/{id}/winners/{winnerId}`에서 `/v1/winners/{winnerId}`로 평탄화하고 미사용 `@PathVariable Long id`를 제거함. 같은 컨트롤러의 `createWinner`·`getWinners`는 `id`(eventId)를 실제로 사용하므로 `/v1/{id}/winners` 형태를 그대로 유지.
+
+## 컨트롤러 분할 기준 (하위 리소스별로 나눈다)
+
+**한 `*ApiController`가 서로 다른 하위 리소스를 여러 개 떠안으면 리소스별 컨트롤러로 나눕니다.** `ceo-api`의 shop·product 하위 컨트롤러와 `admin-api`의 `Shop{X}AdminApiController` 검수 컨트롤러가 이 형태의 선례이며, 2026-10-04에 이 관례를 따르지 않던 11개를 40개로 나눴습니다 — admin `ShopApiController`(엔드포인트 54개)를 10개로, web `ShopApiController`·`ReviewApiController`·`MemberMeApiController`·`AuthApiController`와 admin `ProductApiController`·`RankApiController`·`EventApiController`·`FaqApiController`, ceo `ShopDeliveryAreaApiController`·`ProductAvailabilityApiController`를 각각 2~4개로. URL은 하나도 바뀌지 않았습니다(작업 당시 산출물 `docs/tasks/controller-split/backend.md`는 커밋 대상이 아닙니다).
+
+- **판정 기준 — 둘 다 만족하면 분할 대상**: (1) 서로 다른 하위 리소스(경로 세그먼트·애그리거트) **2종 이상**을 다룬다. (2) 엔드포인트가 **10개 이상**이거나 주입 UseCase가 **5개 이상**이다.
+- **왜 나누는가**: 한 파일이 수십 개 UseCase를 주입하면 생성자·import만으로 수백 줄이 되고, 하위 리소스 하나를 고칠 때 무관한 핸들러가 같은 diff·같은 Swagger 태그에 섞입니다. 리소스별로 나누면 Swagger 그룹이 화면 단위와 맞고 변경 범위가 파일 하나로 좁아집니다.
+- **분할 금지(봉인된 예외)**: 리소스 둘에 걸친 **집합 불변식**이 있어 나누면 검증이 흩어지는 경우(`ceo-api`의 `ShopDeliveryTipApiController`·`ProductSortApiController`·`ProductCategoryApiController`·`ProductOptionGroupLinkApiController`·`ProductNutritionApiController`), **검수 탭이 같은 계약을 공유**하는 경우(`admin-api`의 `ProductApprovalApiController`). 근거는 각 앱 `AGENTS.md`의 해당 절에 있습니다. 반복 구조(예: web `PolicyApiController` — 약관 4종 × 같은 3연산)는 하위 리소스가 아니므로 분할 대상이 아닙니다.
+- **나누는 방법**: 같은 패키지(`<ctx>/adapter/in/web/`)에 만들고 클래스 `@RequestMapping` 프리픽스를 원본과 같게 둡니다 — **URL·요청·응답·인가는 바뀌지 않습니다.** 원본 클래스명은 핵심 리소스 담당으로 남기고, UseCase는 분할된 컨트롤러가 각자 필요한 것만 주입합니다(같은 UseCase를 여러 컨트롤러가 주입해도 됩니다). 각 컨트롤러는 자기 `@Tag`를 갖습니다.
+- **명명**: admin은 `{리소스}AdminApiController`(예: `ShopBusinessHourAdminApiController`), web·ceo는 `{리소스}ApiController`(예: `ShopOrderInfoApiController`, `ShopDeliveryAreaPolygonApiController`).
+- **남은 긴장(후속)**: `MemberScreenUseCase`·`MemberAuthCommandUseCase`·`ShopManagementQueryUseCase`는 메서드 7개를 넘고 분할 후 컨트롤러 여러 개가 공유하므로 [인바운드 포트 입도 규칙](#인바운드-포트usecase-인터페이스를-도입한다--완전-매핑-전략-채택-과거-결정의-명시적-번복)상 per-operation 분해 대상입니다. 컨트롤러 분할은 application 계층을 건드리지 않는 범위로 진행해 이 분해는 남겨 두었습니다.
 
 ## Request/Response record `@Schema` 문서화 규칙
 
@@ -2138,7 +2149,7 @@ reference 구현: `reservation` 도메인 — `webapi/reservation/ReservationCom
   - **배치·집계·원장 기록**: `RankApiController#aggregate`, point `earn`/`deduct`(적립·차감은 원장 기록이지 리소스 등록이 아니므로 `Void` 유지).
 - **적용 시점**: 신규 등록 API는 이 규칙을 따르고, 기존 등록 API도 이 규칙에 맞춰 전면 전환을 완료했습니다. 등록 응답 전용 래퍼 record와 재조회 전용 QueryService 메서드는 함께 삭제합니다(단, 그 record가 GET·PUT 등 다른 경로에서도 쓰이면 남깁니다 — 예: `ReviewCommentResponse`/`ReviewReplyResponse`는 댓글 목록 조회의 중첩 요소로 계속 사용되므로 유지).
 
-reference 구현: `ceo-api`의 shop 하위 컨트롤러 전체(등록 API 11개가 전부 `ApiResponse<Long>`, 벌크는 `List<Long>`), `admin-api`의 `ShopApiController`(등록 13개 전부 `Long`)·`NoticeApiController#createNotice`. 전환 사례: `web-api`의 `OrderApiController#createOrder`(`OrderCreateResponse` 삭제)·`BugReportApiController#createBugReport`(재조회 제거 + `BugReportQueryService` 주입 제거)·`AuthApiController#signUp`(`Void`→`Long`, 도메인 `MemberRegistrationService#signUp`까지 4개 계층 시그니처 변경), `admin-api`의 `AdminApiController#createAdmin`(`AdminCreateResponse` 삭제, HTTP 201은 유지).
+reference 구현: `ceo-api`의 shop 하위 컨트롤러 전체(등록 API 11개가 전부 `ApiResponse<Long>`, 벌크는 `List<Long>`), `admin-api`의 shop 하위 컨트롤러(`ShopApiController` 외 `Shop{X}AdminApiController` 9개 — 등록 POST 전부 `Long`)·`NoticeApiController#createNotice`. 전환 사례: `web-api`의 `OrderApiController#createOrder`(`OrderCreateResponse` 삭제)·`BugReportApiController#createBugReport`(재조회 제거 + `BugReportQueryService` 주입 제거)·`AuthApiController#signUp`(`Void`→`Long`, 도메인 `MemberRegistrationService#signUp`까지 4개 계층 시그니처 변경), `admin-api`의 `AdminApiController#createAdmin`(`AdminCreateResponse` 삭제, HTTP 201은 유지).
 
 ## 집합 불변식 설정 컬렉션은 replace-all PUT으로 교체하는 규칙
 
