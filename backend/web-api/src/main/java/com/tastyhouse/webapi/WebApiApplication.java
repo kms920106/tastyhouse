@@ -16,4 +16,14 @@ public class WebApiApplication {
     @ComponentScan(basePackages = "com.tastyhouse.application")
     static class ApplicationLayerScanConfig {
     }
+
+    @Configuration(proxyBeanMethods = false)
+    @ComponentScan(basePackages = {
+        "com.tastyhouse.infrastructure",
+        "com.tastyhouse.security",
+        "com.tastyhouse.logging",
+        "com.tastyhouse.apicommon.ratelimit"
+    })
+    static class ModuleScanConfig {
+    }
 }

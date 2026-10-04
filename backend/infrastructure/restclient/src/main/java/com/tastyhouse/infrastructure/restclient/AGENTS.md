@@ -10,7 +10,7 @@
 ## Packages
 | Package | Purpose |
 |---------|---------|
-| (루트) `com.tastyhouse.infrastructure.restclient` — 과거 `config/` | `RestClientModuleAutoConfiguration`(진입 설정 — 구 `ExternalModuleAutoConfiguration` → `HttpClientModuleAutoConfiguration`을 거쳐 개명, `@AutoConfiguration`, 스캔 범위는 `com.tastyhouse.infrastructure.restclient` 한 패키지) · `RestClientConfig`(`RestClientCustomizer` 빈 — 모든 Boot `RestClient.Builder`에 타임아웃 적용) · `HttpRequestFactories`(`withTimeouts(connect, read)` — 소켓 read timeout이 본문에도 적용되는 `SimpleClientHttpRequestFactory`를 만드는 유일한 지점. per-client override도 이것을 쓴다) |
+| (루트) `com.tastyhouse.infrastructure.restclient` — 과거 `config/` | ~~`RestClientModuleAutoConfiguration`(진입 설정 — 구 `ExternalModuleAutoConfiguration` → `HttpClientModuleAutoConfiguration`을 거쳐 개명, `@AutoConfiguration`)~~ **(번복됨 — imports 제거로 삭제. 이 패키지는 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 등록한다)** · `RestClientConfig`(`RestClientCustomizer` 빈 — 모든 Boot `RestClient.Builder`에 타임아웃 적용) · `HttpRequestFactories`(`withTimeouts(connect, read)` — 소켓 read timeout이 본문에도 적용되는 `SimpleClientHttpRequestFactory`를 만드는 유일한 지점. per-client override도 이것을 쓴다) |
 
 ## 다른 모듈로 이동한 패키지
 아래는 과거 이 디렉터리에 있었고, 지금은 각 모듈이 소유한다. 패키지 이름이 바뀐 것은 표에 별도 표시했다(사유는 모듈 문서의 "벤더 패키지를 `external.file` 아래에 두지 않았던 이유" 절). 이 표의 대상은 전부 벤더 패키지(`com.tastyhouse.external.*`)이며, 코어 자신의 `config`가 `com.tastyhouse.restclient`로 옮겨간 것과는 별개다. 표의 `external.*` 이름은 각 시점의 이름이다 — 지금은 전부 `com.tastyhouse.infrastructure.*`로 옮겨졌다(infrastructure 패키지 루트 통일. 예: `external.kakao.oauth` → `com.tastyhouse.infrastructure.kakao.oauth`).

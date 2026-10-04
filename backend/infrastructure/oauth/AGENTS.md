@@ -15,7 +15,7 @@ backend/infrastructure/oauth/
   src/main/resources/application-oauth.yml   벤더 yml 4개 중첩 import만
 ```
 
-`compileJava`는 NO-SOURCE로 넘어가고 jar에는 yml만 실린다. 빈 등록은 각 벤더의 `{Kakao|Naver|Apple|Facebook}OAuthModuleAutoConfiguration`이 수행한다.
+`compileJava`는 NO-SOURCE로 넘어가고 jar에는 yml만 실린다. 빈 등록은 web-api `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 벤더 4종을 잡아 수행하고, 각 벤더의 `{Kakao|Naver|Apple|Facebook}OAuthModuleConfig`는 `@EnableConfigurationProperties`만 한다(~~`…OAuthModuleAutoConfiguration`이 수행~~ — 번복됨, imports 제거).
 
 ## 채널 쪽 빈이 없다 — `pg`와 다른 점
 
@@ -110,7 +110,7 @@ backend/infrastructure/oauth/
 
 ### 벤더 auto-configuration에 `@ConditionalOnProperty`를 붙이지 않는다
 
-**대상**: `backend/infrastructure/{kakao,naver,apple,facebook}-oauth/src/main/java/com/tastyhouse/infrastructure/{kakao,naver,apple,facebook}/oauth/*OAuthModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/{kakao,naver,apple,facebook}-oauth/src/main/java/com/tastyhouse/infrastructure/{kakao,naver,apple,facebook}/oauth/*OAuthModuleConfig.java`(imports 제거 전 `*OAuthModuleAutoConfiguration.java`) — 제목의 "벤더 auto-configuration"은 지금 이 설정과 스캔되는 벤더 클래스를 함께 가리킨다
 
 메일·SMS·파일 저장 벤더처럼 provider 조건으로 배타 선택하면 제공자 하나만 뜨고 나머지 `@Qualifier` 주입이 `NoSuchBeanDefinitionException`으로 실패한다. 제공자 선택은 조건이 아니라 이 모듈의 `build.gradle` 조립으로 한다.
 

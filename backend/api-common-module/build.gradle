@@ -15,7 +15,6 @@ dependencies {
 
     api "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
 
-    testImplementation project(':infrastructure:redis')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
 }

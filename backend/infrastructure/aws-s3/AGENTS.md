@@ -6,7 +6,7 @@ AWS S3 파일 저장 어댑터를 소유하는 모듈(`java-library`). `applicat
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
-**현재 파일 저장 벤더는 firebase다.** `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 조립하고 `file.provider: firebase`를 소유하므로, 이 모듈은 어떤 앱의 클래스패스에도 없고 `settings.gradle` 포함으로 **컴파일만 검증**된다. jar가 없으니 `AwsS3ModuleAutoConfiguration`도 발화하지 않는다.
+**현재 파일 저장 벤더는 firebase다.** `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 조립하고 `file.provider: firebase`를 소유하므로, 이 모듈은 어떤 앱의 클래스패스에도 없고 `settings.gradle` 포함으로 **컴파일만 검증**된다. jar가 없으니 `AwsS3ModuleConfig`(imports 제거 전 `AwsS3ModuleAutoConfiguration`)도 등록되지 않는다.
 
 `.env`에 `S3_BUCKET_NAME`·`AWS_S3_ACCESS_KEY`·`AWS_S3_SECRET_KEY`가 없다. `application-aws-s3.yml`을 import하는 곳이 없으므로 미해결 플레이스홀더가 부팅을 막지 않는다 — `@ConfigurationProperties` 바인딩은 해당 빈이 등록될 때만 일어난다.
 
@@ -37,12 +37,12 @@ S3는 4앱이 스타터를 통해, SES·SNS는 web만 직접 활성화한다 —
 
 ```
 com.tastyhouse.infrastructure.aws.s3/
-├── AwsS3ModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(S3FileStorageProperties)
+├── AwsS3ModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(S3FileStorageProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 AwsS3ModuleAutoConfiguration에서 리네임
 ├── S3FileStorage.java                 FileStoragePort 직접 구현 @ConditionalOnProperty(file.provider=s3), 삭제는 FileDeleteResult 반환
 └── S3FileStorageProperties.java       file.aws.s3.* (bucketName · baseUrl)
 ```
 
-진입 설정은 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다.
+~~진입 설정은 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다.~~ **(번복됨 — imports 제거)** imports 파일은 없다. 이 모듈이 클래스패스에 실리면(스타터 전환 후) 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 빈을 등록하고, `AwsS3ModuleConfig`는 `@EnableConfigurationProperties`만 한다.
 
 ## yml — `application-aws-s3.yml`
 
@@ -83,13 +83,15 @@ com.tastyhouse.infrastructure.aws.s3/
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleAutoConfiguration.java`
+> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`(imports 제거 전 `AwsS3ModuleAutoConfiguration.java`)
 
 과거 `AwsModuleAutoConfiguration`은 `com.tastyhouse.external.aws` 루트를 통째로 스캔했다. 세 모듈로 나뉜 뒤 루트(지금은 `com.tastyhouse.infrastructure.aws`)를 스캔하면 형제 모듈이 같은 클래스패스에 있을 때 그 빈까지 이 설정이 등록하게 되므로, 스캔 범위를 자기 패키지(`com.tastyhouse.infrastructure.aws.s3`) 밖으로 넓히지 않는다.
 
 ### 위 "S3로 전환하는 절차"는 이 모듈의 유일한 활성화 경로다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`(imports 제거 전 `AwsS3ModuleAutoConfiguration.java`)
 
 앱 `build.gradle`에 이 모듈을 직접 추가하지 않는다. 벤더 선택은 스타터가 소유한다(`backend/CLAUDE.md` §벤더 선택은 앱이 아니라 스타터 모듈이 한다).
 

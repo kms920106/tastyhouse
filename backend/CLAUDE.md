@@ -66,9 +66,55 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 - **infrastructure 모듈의 자바 패키지는 모듈명을 따른다**: 코드가 있는 16모듈 모두 루트가 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`다(`persistence`→`.persistence`, `kakao-oauth`→`.kakao.oauth`). 규칙 전문은 아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명). **(번복됨 — infrastructure 패키지 루트 통일)** ~~`infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). `infrastructure:{firebase,aws-s3,…,bbq,admdongkor}` 16모듈은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다(코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌다) — `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다.~~ persistence를 `com.tastyhouse.infrastructure.persistence`로 내려 그 스캔을 자기 루트로 좁히면서 이 제약이 사라졌다. **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
 - **application 5모듈 — 어느 모듈에 둘지는 "몇 개 앱이 쓰는가"로 정한다 (앱 마커 제거)**: 앱 하나만 쓰는 UseCase·Command·서비스·SPI 포트는 `{web,admin,ceo,batch}-application`, 2개 앱 이상이 쓰는 도메인 서비스와 리스너·`@Configuration`·`port.out` 계약은 코어 `application`에 둔다. 앱 모듈은 `api project(':application')`로 코어를 노출하고, 실행 앱은 `implementation project(':application')` + `implementation project(':{앱}-application')` 두 줄을 갖는다. 상세는 아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
 - **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(5모듈 공통 규칙 정본)와 `{앱}-application/AGENTS.md`(앱 모듈 요약), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain/AGENTS.md`, JWT 토큰 발급/검증·토큰 저장소 **포트**는 `security-core/AGENTS.md`(Redis 구현은 `infrastructure/redis/AGENTS.md`), 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
-- **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleAutoConfiguration`(챕터 02로 `SecurityModuleConfig`에서 리네임)·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)는 전부 불변이다. **단 토큰 저장소 6종은 챕터 01에서 다시 포트/어댑터로 갈렸다** — 계약만 이 모듈에 남고 구현은 `infrastructure:redis`의 `token` 패키지로 내려갔으므로, 위 "`@Repository` 빈을 `security-module`이 스캔한다"는 배선은 더 이상 이 저장소들에 해당하지 않는다(어댑터는 `RedisModuleAutoConfiguration`이 등록한다). API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
+- **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleConfig`(챕터 02에 `SecurityModuleAutoConfiguration`으로 리네임됐다가 imports 제거로 원래 이름으로 돌아왔다)·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)는 전부 불변이다. **단 토큰 저장소 6종은 챕터 01에서 다시 포트/어댑터로 갈렸다** — 계약만 이 모듈에 남고 구현은 `infrastructure:redis`의 `token` 패키지로 내려갔으므로, 위 "`@Repository` 빈을 `security-module`이 스캔한다"는 배선은 더 이상 이 저장소들에 해당하지 않는다(어댑터는 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 등록한다 — ~~`RedisModuleAutoConfiguration`이 등록한다~~ **(번복됨 — imports 제거)**). API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
 
 ## 모듈 등록 컨벤션 (auto-configuration — 챕터 02)
+
+> **(번복됨 — imports 제거)** 이 절 제목의 "auto-configuration"은 과거 기록이다. **지금은 어떤 라이브러리 모듈도 스스로를 등록하지 않는다** — `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` 19개를 전부 지웠고, 각 앱 부트스트랩의 static 중첩 `ModuleScanConfig`가 라이브러리 모듈 패키지를 **문자열로** 스캔한다. 제목은 다른 문서가 이 앵커를 링크하므로 그대로 둔다. 아래 하위 절의 서술 중 auto-config 고유 기능(`before`/`after`, `@ConditionalOnBean`, `spring.autoconfigure.exclude`)에 기대는 것은 전부 과거 기록이며, 현재 사실은 이 표와 바로 아래 "현재 규칙"이 정본이다. 상세 스펙은 `docs/tasks/03-autoconfig-imports-removal/backend.md`.
+
+| 항목 | before (auto-configuration) | after (imports 제거) |
+|---|---|---|
+| 라이브러리 모듈을 활성화하는 주체 | 각 모듈의 imports 파일 | 각 앱 부트스트랩의 static 중첩 `ModuleScanConfig` |
+| imports 파일 | 19개 | **0개** |
+| 설정 클래스 | `{Xxx}ModuleAutoConfiguration` (`@AutoConfiguration`, 자기 패키지 `@ComponentScan`) 20개 | `{Xxx}ModuleConfig` (`@Configuration(proxyBeanMethods = false)`, 스캔 없음) 13개 — 등록할 것이 없어진 7개는 삭제 |
+| 특정 모듈 끄기 | `spring.autoconfigure.exclude` | 소멸 — 그 앱 `ModuleScanConfig`의 목록에서 패키지를 뺀다 |
+| 빈 존재 조건(`@ConditionalOnBean`/`@ConditionalOnMissingBean`) | 사용(예외 핸들러·rate limit aspect·JWT 필터) | **사용 금지** — 일반 `@Configuration`에서는 처리 순서에 좌우돼 조용히 틀린다 |
+| 환경 조건(`@ConditionalOnWebApplication`/`@ConditionalOnProperty`) | 사용 | 유지(환경으로 판정하므로 일반 설정에서도 정확하다) |
+| 동작(HTTP·DB) | — | 변경 없음. 빈 이름만 `sharedGlobalExceptionHandler` → `globalExceptionHandler`(admin·ceo, 주입처 없음)와 설정 클래스 빈 이름이 바뀌었다 |
+
+**앱별 스캔 목록** (`com.tastyhouse.` 생략) — 부트스트랩 안의 `ApplicationLayerScanConfig` 옆에 두 번째 중첩 클래스로 둔다.
+
+```java
+@Configuration(proxyBeanMethods = false)
+@ComponentScan(basePackages = {
+    "com.tastyhouse.infrastructure",
+    "com.tastyhouse.security",
+    "com.tastyhouse.logging",
+    "com.tastyhouse.apicommon.ratelimit",
+    "com.tastyhouse.apicommon.exception"
+})
+static class ModuleScanConfig {
+}
+```
+
+| 앱 | basePackages |
+|---|---|
+| web-api | `infrastructure` · `security` · `logging` · `apicommon.ratelimit` |
+| admin-api · ceo-api | `infrastructure` · `security` · `logging` · `apicommon.ratelimit` · `apicommon.exception` |
+| batch-module | `infrastructure` · `logging` |
+
+- **왜 `@Import(XxxModuleConfig.class)`가 아니라 문자열 스캔인가**: 앱은 infra 모듈을 `runtimeOnly`로 의존해 그 클래스를 컴파일 시점에 볼 수 없다. `@Import`하려면 `implementation`으로 올려야 하고, 그 순간 헥사고날 컴파일 게이트(컨트롤러가 `com.tastyhouse.infrastructure..`를 import하면 컴파일 에러)가 사라진다. 패키지 이름 문자열은 컴파일 클래스패스가 필요 없다.
+- **`com.tastyhouse.infrastructure` 한 줄이 persistence·redis·벤더 모듈 전부를 덮는다** — 모든 infra 모듈 패키지가 `com.tastyhouse.infrastructure.{모듈}`로 통일돼 있기 때문이다(아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명)).
+- **web은 `apicommon.exception`을 스캔하지 않는다** — web-api는 자체 `GlobalExceptionHandler`를 가지므로, 공용 핸들러(`@RestControllerAdvice`라 스캔으로 바로 등록된다)가 web에 뜨지 않는 것은 조건이 아니라 **스캔 범위**가 보장한다.
+- **auto-config만의 기능을 잃은 자리**: Redis `before = RedisAutoConfiguration`·persistence `before = JpaRepositoriesAutoConfiguration`은 필요 없어졌다(사용자 설정은 언제나 auto-config보다 먼저 처리되므로 우리 `stringRedisTemplate`이 먼저 등록되고 Boot가 물러난다). rate limit aspect의 `@ConditionalOnBean(RateLimitCounterPort)` + `afterName`은 삭제했다(`apicommon.ratelimit`을 스캔하는 web·admin·ceo는 전부 Redis 카운터를 갖는다). JWT 필터의 `@ConditionalOnMissingBean`도 삭제했다(앱이 자체 필터 빈을 정의하지 않는다).
+
+### 현재 규칙 — 새 라이브러리 모듈·패키지를 추가할 때 (imports 제거)
+
+1. **빈은 이미 스캔되는 루트 아래에 둔다** — infra 모듈이면 `com.tastyhouse.infrastructure.{모듈}`(위 패키지 규칙), 그 밖에는 기존 스캔 루트(`security`·`logging`·`apicommon.ratelimit`·`apicommon.exception`) 아래. 클래스패스에 올라오기만 하면 앱 `ModuleScanConfig`가 잡는다.
+2. **`@EnableConfigurationProperties`가 필요하면 그 모듈 루트에 평범한 `{Xxx}ModuleConfig`를 둔다** — `@Configuration(proxyBeanMethods = false)`, 자기 패키지 `@ComponentScan` 없음(앱이 스캔한다). 등록할 것이 없으면 만들지 않는다.
+3. **`AutoConfiguration.imports` 파일을 다시 만들지 않는다.** 가드: 4앱 `ApplicationLayerScanConfigTest`의 `ApplicationLayerScanAssertions#assertNoTastyhouseAutoConfiguration`(Boot `ImportCandidates`에 `com.tastyhouse.` 항목이 하나라도 있으면 실패).
+4. **이 설정 클래스들에 `@ConditionalOnBean`/`@ConditionalOnMissingBean`을 쓰지 않는다** — auto-config가 아닌 일반 설정에서는 빈 정의 처리 순서에 결과가 좌우돼 조용히 빈이 빠지거나 남는다. 앱별 차이는 스캔 범위로, 환경별 차이는 `@ConditionalOnWebApplication`/`@ConditionalOnProperty`로 표현한다.
+5. **새 최상위 패키지(`com.tastyhouse.{새 이름}`)를 스캔에 추가하려면** 그것을 써야 하는 각 앱의 `ModuleScanConfig` `basePackages`와 그 앱 `ApplicationLayerScanConfigTest`의 기대 목록(`assertScansModulesWithoutFilters`가 정확 일치를 검사한다)을 함께 고친다. 위 [import 순서 순위 표](#자사-그룹-내부-계층-정렬-클린-아키텍처-원-안--밖)도 함께 갱신한다.
 
 **챕터 02로 라이브러리 모듈 13개 전부가 `@Import` 수동 조합에서 Spring Boot auto-configuration으로 전환됐다.** 과거에는 앱의 `*Application.java`가 `@Import({InfrastructureModuleConfig.class, RedisModuleConfig.class, SecurityModuleConfig.class, ...})`처럼 라이브러리 모듈 설정 클래스를 나열해 "앱은 자기 패키지만 스캔하고 라이브러리 모듈은 명시적으로 조합한다"는 것이 표준 구성이었다. 지금은 그 반대다 — **라이브러리 모듈이 자기 자신을 등록**하고, 앱은 `@Import`를 하나도 갖지 않는다. `application` 계층의 컴포넌트 스캔은 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다) 참고 — 앱 마커 제거로 마커 필터 없는 스캔이 됐다). **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 앱이 `{App}ApplicationConfig` 하나만 `@Import`했고 그 클래스가 `application` 모듈 안에 있었다.
 
@@ -83,6 +129,8 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 
 ### 컨벤션 본문
 
+> **(번복됨 — imports 제거)** 아래는 auto-configuration 시절의 컨벤션이다. 지금 클래스 명명은 `{Xxx}ModuleConfig`(`@Configuration(proxyBeanMethods = false)`)이고, imports 파일은 없으며, 모듈 설정 클래스는 `@ComponentScan`을 갖지 않는다(앱 `ModuleScanConfig`가 스캔). escape hatch `spring.autoconfigure.exclude`도 소멸했다. 유지되는 것은 "`@EnableConfigurationProperties` 명시 등록"과 "모듈 yml은 앱 `spring.config.import`로 로딩" 두 항목뿐이다. 현재 규칙은 위 "현재 규칙" 절.
+
 - **클래스 명명 — `{Xxx}ModuleAutoConfiguration`**: 각 라이브러리 모듈은 모듈 루트 패키지에 이 이름의 설정 클래스 1개를 둔다(`@Configuration(proxyBeanMethods = false)` → `@AutoConfiguration(proxyBeanMethods = false)`, 필요시 `before`/`after`/`afterName`으로 순서 지정). `Module` 중간어를 붙이는 이유는 Boot 자신의 `RedisAutoConfiguration`·`SecurityAutoConfiguration`·`JpaRepositoriesAutoConfiguration`과 **단순명이 충돌**하기 때문이다 — 접미어 없이 `RedisAutoConfiguration`이라고만 지으면 우리 클래스가 Boot의 동명 클래스를 가리는 혼란이 생긴다. `persistence` 모듈만 클래스명이 `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로, 다른 12개는 `{Xxx}ModuleConfig` → `{Xxx}ModuleAutoConfiguration`으로 기계적으로 리네임됐다.
 - **imports 파일**: 각 모듈 `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`에 그 모듈의 auto-configuration 클래스 FQCN을 한 줄로 선언한다. Boot가 클래스패스에서 이 파일을 찾아 자동으로 로딩하므로, 앱 쪽에서 `@Import`할 필요가 없어진다.
 - **빈 발견은 여전히 `@ComponentScan`**: auto-configuration 클래스가 스스로를 `@ComponentScan`으로 등록하는 형태는 유지한다(예: `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure.persistence")`). **스캔 범위는 언제나 그 모듈의 루트 패키지 하나다** — 다른 모듈의 패키지를 덮는 스캔과 그것을 되돌리는 `excludeFilters`를 두지 않는다(아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명)). Spring Boot 공식 레퍼런스는 auto-configuration 안에서의 컴포넌트 스캔을 권장하지 않는다 — 스캔된 컴포넌트의 `@Conditional*`은 실제로는 동작하지만 `java -jar ... --debug`의 `CONDITIONS EVALUATION REPORT`에 나타나지 않고, 스캔 범위를 사용자가 오버라이드하기도 어렵다. 이 저장소는 그 권고를 알고도 채택했다 — 내부 전용 모듈이고, `infrastructure:persistence`의 `@Repository` 수백 개를 auto-configuration 클래스 하나에 일일이 열거하는 것이 현실적이지 않기 때문이다.
@@ -90,9 +138,11 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 - **`@ConfigurationProperties`는 `@EnableConfigurationProperties` 명시 등록 유지**: auto-configuration 클래스에 `@EnableConfigurationProperties(XxxProperties.class)`를 그대로 붙인다. 이 부분은 전환 전후로 바뀌지 않았다.
 - **모듈 yml은 여전히 앱 `spring.config.import`로 로딩한다**: 자동 로딩은 `EnvironmentPostProcessor`가 있어야 가능한데 이번 전환 범위가 아니며, `@PropertySource`로는 `logging.*`이나 `optional:configtree:` 같은 특수 프로퍼티 소스가 동작하지 않는다. 그래서 모듈을 앱에 붙이는 비용은 여전히 "gradle 1줄 + (설정이 있으면) yml import 1줄"이다.
 - **escape hatch — `spring.autoconfigure.exclude`**: 특정 환경에서 특정 auto-configuration을 끄고 싶으면 이 표준 Boot 프로퍼티를 쓴다. 이 저장소가 별도 온오프 스위치를 만들지 않는 이유이기도 하다(§"클래스패스 존재 = 활성화" 참고 — 프로퍼티 스위치를 새로 만들면 보안 회귀를 반복하기 쉽다).
-- **auto-config를 갖지 않는 예외 5건**(앱 마커 제거로 신설된 `{web,admin,ceo,batch}-application` 4모듈도 같은 이유로 auto-config가 없다 — 스캔은 앱 부트스트랩이 한다): `application`(앱별 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 소유하고, application에는 등록 클래스가 없다 — 자기 등록할 대상 자체가 없다. **(번복됨 — application `*ApplicationConfig` 삭제)** 과거 사유는 "`{App}ApplicationConfig`가 `@Import`되는 대상이라 자기 등록 대상이 아니다"였다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
+- **(번복됨 — imports 제거: 이제 어느 모듈도 auto-config를 갖지 않으므로 "예외"라는 구분이 소멸했다. 지금 기준으로는 "`{Xxx}ModuleConfig`가 없는 모듈"이며, 아래 5건 + persistence·logging·restclient·aws-ses·aws-sns·javamail·api-common(공용 핸들러) 7곳이 삭제로 합류했다. 아래 본문의 `RedisModuleAutoConfiguration`은 `RedisModuleConfig`, 벤더 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`은 `…OAuthModuleConfig`로 읽고, 빈 등록은 그 설정이 아니라 앱 `ModuleScanConfig`의 스캔이 수행한다)** ~~auto-config를 갖지 않는 예외 5건~~(앱 마커 제거로 신설된 `{web,admin,ceo,batch}-application` 4모듈도 같은 이유로 auto-config가 없다 — 스캔은 앱 부트스트랩이 한다): `application`(앱별 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 소유하고, application에는 등록 클래스가 없다 — 자기 등록할 대상 자체가 없다. **(번복됨 — application `*ApplicationConfig` 삭제)** 과거 사유는 "`{App}ApplicationConfig`가 `@Import`되는 대상이라 자기 등록 대상이 아니다"였다) · `security-core`(설정 클래스가 없다. 이 모듈의 타입은 대부분 빈이 아니며 — `JwtTokenProvider`는 앱별 하위 클래스가 `@Component`로 등록하고, 토큰 저장소 6종은 챕터 01 이후 인터페이스라 구현 어댑터를 `RedisModuleAutoConfiguration`이 등록한다 — `JwtProperties`만 `security-module`의 `@EnableConfigurationProperties`가 등록한다) · `domain`(프레임워크-프리라 Spring 자체를 모른다) · `infrastructure:file-storage`(챕터 03 신설 — 자바 코드가 아예 없는 조립 전용 스타터라 등록할 빈이 없다. 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다) · `infrastructure:oauth`(채널·벤더 분할로 같은 형태의 코드 없는 스타터가 됐다 — 옛 `OAuthModuleAutoConfiguration`은 삭제됐고, 빈 등록은 벤더 4종의 `{Kakao,Naver,Apple,Facebook}OAuthModuleAutoConfiguration`이 수행한다).
 
 ### "클래스패스 존재 = 활성화" 원칙
+
+> **(번복됨 — imports 제거: 주체만)** 원칙 자체는 그대로다 — 앱 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 스캔하므로 **클래스패스에 올라온 infra 모듈은 전부 활성화**된다(batch에서 redis·OAuth 벤더가 안 잡히는 것도 클래스패스에 없어서다). 바뀐 것은 활성화를 결정하는 주체가 각 모듈의 imports 파일에서 **앱의 스캔 목록**으로 옮겨진 것뿐이다. 그래서 아래 "oauth 모듈 사례"의 위험(의존을 실수로 추가하면 기동 실패)은 지금도 같다. 아래 본문의 `ApiCommonModuleAutoConfiguration`(삭제)·`ApiCommonRateLimitAutoConfiguration`(→ `ApiCommonRateLimitConfig`)·`OAuthModuleAutoConfiguration`(삭제)은 당시 이름이다. batch에서의 재유입 방어선은 이제 `@ConditionalOnWebApplication(SERVLET)` 조건보다 먼저 **batch `ModuleScanConfig`가 `apicommon`·`security`를 스캔하지 않는 것**이 담당한다(`ApiCommonRateLimitConfig`의 `@ConditionalOnWebApplication`은 환경 조건이라 유지).
 
 **auto-configuration은 imports 파일이 클래스패스에 있으면 무조건 로딩을 시도한다.** `@Import` 시절에는 "누가 그 설정 클래스를 명시적으로 나열했는가"가 활성화 여부였지만, 지금은 **의존 선언(`implementation`/`runtimeOnly`) 자체가 활성화 신호**다. 그 라이브러리를 앱이 실제로 쓰든 안 쓰든, 클래스패스에 있으면 그 auto-configuration은 로딩을 시도하고 `@Conditional*`로 스스로 발화 여부를 결정한다.
 
@@ -101,6 +151,24 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 - **새 라이브러리 모듈을 만들 때 스스로에게 물을 질문**: "이 모듈이 어느 앱에도 의도치 않게 전이로 끌려갈 수 있는가? 끌려간다면 그 앱에서 안전하게 비활성화되는 조건이 있는가?" 답이 "없다"면 조건을 추가하거나, 그 모듈이 전이 경로에 놓이지 않도록 의존 그래프를 재검토한다.
 
 ### 모듈별 auto-configuration 인벤토리
+
+> **(번복됨 — imports 제거)** 제목은 앵커 보존을 위해 그대로 둔다. 현재 인벤토리는 아래 첫 표이고, 그 아래 표는 auto-configuration 시절 기록이다.
+
+**현재 — 모듈 설정 클래스 인벤토리 (모두 `@Configuration(proxyBeanMethods = false)`, 자기 패키지 `@ComponentScan` 없음 — 스캔은 앱 `ModuleScanConfig`)**
+
+| 모듈 | 설정 클래스 | 하는 일 | 조건 |
+|---|---|---|---|
+| `infrastructure:persistence` | 없음(`PersistenceModuleAutoConfiguration` 삭제) | — 빈 발견은 앱의 `com.tastyhouse.infrastructure` 스캔. JPA 스캔·Auditing·트랜잭션은 기존 `InfrastructurePersistenceConfig`가 그대로 갖는다 | — |
+| `infrastructure:redis` | `RedisModuleConfig` | `@EnableConfigurationProperties(RedisTokenStoreProperties)` | 없음(`before = RedisAutoConfiguration` 삭제 — 사용자 설정이 언제나 먼저 처리된다) |
+| `security-module` | `SecurityModuleConfig` | `@EnableConfigurationProperties(JwtProperties)` + `@Bean JwtAuthenticationFilter`(POJO라 스캔 대상이 아니다) | `@ConditionalOnWebApplication(SERVLET)`. `@ConditionalOnMissingBean(JwtAuthenticationFilter)`는 삭제 |
+| `logging-module` | 없음(`LoggingModuleAutoConfiguration` 삭제) | — | — |
+| `api-common-module`(예외) | 없음(`ApiCommonModuleAutoConfiguration` 삭제) | `GlobalExceptionHandler`(`@RestControllerAdvice`)를 admin·ceo가 `apicommon.exception` 스캔으로 직접 등록. 빈 이름 `globalExceptionHandler` | 조건 없음 — web은 그 패키지를 스캔하지 않는다 |
+| `api-common-module`(rate limit) | `ApiCommonRateLimitConfig` | `@Bean RateLimitAspect` | `@ConditionalOnWebApplication(SERVLET)`. `@ConditionalOnBean(RateLimitCounterPort)`·`afterName` 삭제 |
+| `infrastructure:restclient` · `aws-ses` · `aws-sns` · `javamail` | 없음(각 `…ModuleAutoConfiguration` 삭제) | — | — |
+| `infrastructure:firebase` · `aws-s3` · `kakao-oauth` · `naver-oauth` · `apple-oauth` · `facebook-oauth` · `tosspayments` · `solapi` · `bbq` · `admdongkor` | `FirebaseModuleConfig` · `AwsS3ModuleConfig` · `KakaoOAuthModuleConfig` · `NaverOAuthModuleConfig` · `AppleOAuthModuleConfig` · `FacebookOAuthModuleConfig` · `TossPaymentsModuleConfig` · `SolapiModuleConfig` · `BbqModuleConfig` · `AdmdongkorModuleConfig` | 각자의 `@EnableConfigurationProperties`만 | 없음(벤더 클래스의 `@ConditionalOnProperty`는 스캔된 클래스에 잔류) |
+| 조립 스타터 5개 (`file-storage`·`oauth`·`pg`·`mail`·`sms`) | 없음 | 자바 코드가 없다 | — |
+
+**과거 — auto-configuration 인벤토리 (번복됨)**
 
 | 모듈 | 클래스 | 스캔/등록 | 조건·순서 |
 |---|---|---|---|
@@ -114,9 +182,21 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 | 조립 — 채널 3개 (`pg`·`mail`·`sms`) | ~~`PgModuleAutoConfiguration`·`MailModuleAutoConfiguration`·`SmsModuleAutoConfiguration` | 자기 패키지(`com.tastyhouse.external.{pg,mail,sms}`) 스캔 — 포트 구현이 아니라 `PgGatewayConfig`(라우터)·`MailDomainConfig`·`SmsDomainConfig`(도메인 서비스 빈)를 등록한다~~ **(번복됨 — 02-vendor-ports로 세 채널 모듈의 코드가 전부 사라졌고, infrastructure 패키지 루트 통일 이후에도 패키지가 없다. 지금은 아래 스타터 행과 같은 형태다)** | — |
 | 조립 — 스타터 2개 (`file-storage`·`oauth`) | 없음 | 자바 코드가 없어 등록할 빈이 없다 — 위 [예외 5건](#모듈-등록-컨벤션-auto-configuration--챕터-02)에 포함 | — |
 
-`ApiCommonConfig`·`ApiCommonRateLimitConfig`는 삭제됐다 — 두 auto-configuration 클래스가 그 역할을 대체한다.
+~~`ApiCommonConfig`·`ApiCommonRateLimitConfig`는 삭제됐다 — 두 auto-configuration 클래스가 그 역할을 대체한다.~~ **(번복됨 — imports 제거)** 지금은 `ApiCommonRateLimitConfig`가 다시 있다(`ApiCommonRateLimitAutoConfiguration`에서 리네임). 예외 핸들러 쪽 설정 클래스는 없다 — `GlobalExceptionHandler`가 스캔으로 직접 뜬다.
 
 ### 앱별 runtimeClasspath 감사표 (§4 — 어떤 auto-config가 어느 앱에서 발화하는가)
+
+> **(번복됨 — imports 제거)** "발화"는 지금 "앱 `ModuleScanConfig`의 스캔에 걸려 등록된다"로 읽는다. 판정은 두 단계다 — (1) 그 모듈이 앱 runtimeClasspath에 있는가, (2) 그 패키지를 앱 `ModuleScanConfig`가 스캔하는가. 아래 표의 클래스패스 사실(●/—)은 그대로 유효하고, 바뀐 열은 다음과 같다.
+>
+> | 행 | before | after |
+> |---|---|---|
+> | Persistence 조건 | `before = JpaRepositoriesAutoConfiguration` | 없음 — 설정 클래스 삭제, 앱 `com.tastyhouse.infrastructure` 스캔 |
+> | ApiCommon(예외 핸들러) | web ●→조건부 Negative / admin·ceo Positive / batch 전이 Negative. `@ConditionalOnMissingBean(annotation = RestControllerAdvice)` | web **스캔 안 함** / admin·ceo 스캔(`apicommon.exception`) / batch 스캔 안 함. 조건 없음 |
+> | ApiCommonRateLimit | `@ConditionalOnBean(RateLimitCounterPort)` + SERVLET | web·admin·ceo 스캔(`apicommon.ratelimit`), batch 스캔 안 함. `@ConditionalOnWebApplication(SERVLET)`만 유지 |
+> | Security | SERVLET 조건 | web·admin·ceo 스캔(`security`), batch 스캔 안 함(클래스패스에도 없다). SERVLET 조건 유지 |
+> | Logging·External·Firebase·벤더·Bbq·Admdongkor·Aws* | 각 imports 파일로 발화 | 클래스패스에 있으면 `infrastructure`/`logging` 스캔으로 등록 — 클래스패스 열은 불변 |
+>
+> 아래 2026-09-05 실측 문단의 `sharedGlobalExceptionHandler`·`JpaRepositoriesAutoConfiguration` Negative 판정은 당시 기록이다(지금 admin·ceo의 공용 핸들러 빈 이름은 `globalExceptionHandler`).
 
 ~~`application → security-core → infrastructure:redis → api-common-module` 전이 사슬이 4앱 전부의 runtimeClasspath에 있다~~ **(챕터 01에서 끊김)**. `security-core`의 토큰 저장소 6종이 포트가 되고 구현이 `infrastructure:redis`로 내려가면서 `security-core → infrastructure:redis` 간선이 사라졌다. 지금은 **web·admin·ceo만 `runtimeOnly project(':infrastructure:redis')`로 직접 선언**해 Redis를 받고, `application`과 `batch-module`의 runtimeClasspath에는 `infrastructure:redis`·`api-common-module`·springdoc이 **없다**.
 
@@ -143,11 +223,13 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 | AwsSes | — | — | — | 없음 | jar 없음 |
 | AwsSns | — | — | — | 없음 | jar 없음 |
 
-**실측(2026-09-05, `java -jar ... --debug` 기동의 `CONDITIONS EVALUATION REPORT`)**: web은 `sharedGlobalExceptionHandler` **Negative**(자체 advice 존재)·`rateLimitAspect` **Positive**, admin/ceo는 둘 다 **Positive**(로그인 rate limit 유지 확인), batch는 `ApiCommon*` 2개 **Negative**(non-servlet). Boot `JpaRepositoriesAutoConfiguration`은 4앱 전부 **Negative**(persistence의 `before` 순서가 이긴 결과). admin(8090)·ceo(8100)·web(8080) 로그인 rate limit을 curl로 10회까지 401·11회째 429로 확인해 회귀 없음을 검증했다.
+**(번복됨 — imports 제거, 당시 기록)** **실측(2026-09-05, `java -jar ... --debug` 기동의 `CONDITIONS EVALUATION REPORT`)**: web은 `sharedGlobalExceptionHandler` **Negative**(자체 advice 존재)·`rateLimitAspect` **Positive**, admin/ceo는 둘 다 **Positive**(로그인 rate limit 유지 확인), batch는 `ApiCommon*` 2개 **Negative**(non-servlet). Boot `JpaRepositoriesAutoConfiguration`은 4앱 전부 **Negative**(persistence의 `before` 순서가 이긴 결과). admin(8090)·ceo(8100)·web(8080) 로그인 rate limit을 curl로 10회까지 401·11회째 429로 확인해 회귀 없음을 검증했다.
 
 ### 앱별 의존 (전환 후 — `runtimeOnly`로 하향)
 
 > **(앱 마커 제거)** `implementation` 열의 `:{앱}-application`은 앱 마커 제거로 추가된 1줄이다(before: `:application`만). 마지막 열의 "마커 스캔"은 지금 마커 필터 없는 `com.tastyhouse.application` 스캔이다.
+>
+> **(imports 제거)** 마지막 열의 after에 중첩 클래스가 하나 더 붙었다 — 각 부트스트랩은 `ApplicationLayerScanConfig`와 함께 **`ModuleScanConfig`**(라이브러리 모듈 문자열 스캔, 위 앱별 목록)를 갖는다. 의존 열(`implementation`/`runtimeOnly`)은 불변이다 — `runtimeOnly`를 유지하려고 `@Import`가 아니라 문자열 스캔을 택했다.
 
 | 앱 | `implementation` | `runtimeOnly` | 남는 `@Import` (before) → 마커 스캔 위치 (after) |
 |---|---|---|---|
@@ -185,14 +267,15 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 
 소셜 로그인도 제공자 4종(카카오·네이버·애플·페이스북)이 **동시에 떠야 하는 공존형**이지만, `pg`와 달리 라우터가 없다. 소비 측(web-api 소셜 로그인 서비스 4종)이 제공자를 이미 알고 `@Qualifier("kakaoOAuthClient")`처럼 빈 이름으로 주입하므로 단일 주입점이 필요 없기 때문이다. 그래서 채널 모듈 `infrastructure:oauth`는 `file-storage`처럼 **자바 코드가 없는 스타터**다(2026-09-27 채널·벤더 분할).
 
-- 벤더 `infrastructure:{kakao,naver,apple,facebook}-oauth`가 각자 `{Vendor}OAuthModuleAutoConfiguration`(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 소유한다. 스타터의 `application-oauth.yml`은 벤더 yml 4개를 중첩 import할 뿐이고, web-api `application.yml`에는 `classpath:application-oauth.yml` 한 줄만 있다.
+- 벤더 `infrastructure:{kakao,naver,apple,facebook}-oauth`가 각자 `{Vendor}OAuthModuleConfig`(`@EnableConfigurationProperties`만 — 빈 스캔은 web-api `ModuleScanConfig`의 `com.tastyhouse.infrastructure`. ~~`{Vendor}OAuthModuleAutoConfiguration`(`@ComponentScan(자기 패키지)` + …)~~ 번복됨 — imports 제거)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 소유한다. 스타터의 `application-oauth.yml`은 벤더 yml 4개를 중첩 import할 뿐이고, web-api `application.yml`에는 `classpath:application-oauth.yml` 한 줄만 있다.
 - **`oauth.provider` 같은 배타 선택 키가 없다** — 벤더에 `@ConditionalOnProperty`를 붙이면 `@Qualifier` 주입이 깨진다.
 - **벤더 추가 = 두 줄, 항상 쌍으로**: `infrastructure/oauth/build.gradle`의 `runtimeOnly` 한 줄과 `application-oauth.yml`의 import 한 줄. 한쪽만 추가하면 `ConfigDataResourceNotFoundException`으로 기동이 실패하거나 벤더가 빈 설정으로 뜬다. 여기에 더해 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`의 패키지 목록에도 새 패키지를 추가한다.
 - **환경변수 누락은 기동 시점에 실패한다** — `@ConfigurationProperties`는 해석하지 못한 placeholder를 문자열 그대로 바인딩하므로, 벤더 record 4개가 compact constructor에서 null·공백·`${`를 검사해 `IllegalStateException`을 던진다(분할 전 `@Value` 시절의 `Could not resolve placeholder 'apple.team-id'`와 같은 조기 실패). `@Validated` + `@NotBlank`로는 대체할 수 없다 — `${...}` 리터럴은 공백이 아니다. 상세는 `infrastructure/oauth/AGENTS.md`.
 
 ### 후속 작업자가 밟기 쉬운 함정 2가지
 
-- **함정 1 — Redis 빈 이름 충돌로 `before`가 필수다 (`after`가 아니다)**: 챕터 02 원 스펙은 `RedisModuleAutoConfiguration`을 `@AutoConfiguration(after = RedisAutoConfiguration.class)`로 설계했으나, 실측 결과 **`before = RedisAutoConfiguration.class`가 맞다.** 우리 `RedisConfig`가 만드는 `stringRedisTemplate` 빈이 Boot의 `RedisAutoConfiguration`이 만드는 동명 빈과 이름이 겹치는데, `after`로 두면 Boot 쪽이 먼저 등록되고 그 뒤에 우리 설정이 같은 이름으로 또 등록을 시도해 `allow-bean-definition-overriding=false`(기본값)에서 **4개 앱 전부 기동 실패**로 이어졌다(실측 확인). `before`로 두면 우리 템플릿이 먼저 등록되고, Boot의 `@ConditionalOnMissingBean`이 그것을 보고 물러난다. `@Import` 시절에는 사용자 설정 클래스가 auto-configuration보다 항상 먼저 처리돼 이 순서 문제가 아예 없었다 — auto-configuration으로 전환하며 처음 생긴 문제이므로, **비슷하게 Boot 표준 빈과 이름이 겹치는 새 auto-configuration을 만들 때는 기본값을 `after`로 가정하지 말고 반드시 실제 기동으로 검증한다.**
+- **(번복됨 — imports 제거: 함정 1은 소멸했다)** `RedisModuleConfig`가 일반 사용자 설정이 되면서 다시 "`@Import` 시절" 조건(사용자 설정이 auto-config보다 항상 먼저 처리된다)으로 돌아왔다 — 우리 `stringRedisTemplate`이 먼저 등록되고 Boot `RedisAutoConfiguration`의 `@ConditionalOnMissingBean`이 물러나므로 `before` 선언 자체가 필요 없다. 아래 본문은 auto-configuration 시절 기록이다. 다만 교훈("Boot 표준 빈과 이름이 겹치면 실제 기동으로 검증한다")은 유효하다.
+- ~~**함정 1 — Redis 빈 이름 충돌로 `before`가 필수다 (`after`가 아니다)**~~: 챕터 02 원 스펙은 `RedisModuleAutoConfiguration`을 `@AutoConfiguration(after = RedisAutoConfiguration.class)`로 설계했으나, 실측 결과 **`before = RedisAutoConfiguration.class`가 맞다.** 우리 `RedisConfig`가 만드는 `stringRedisTemplate` 빈이 Boot의 `RedisAutoConfiguration`이 만드는 동명 빈과 이름이 겹치는데, `after`로 두면 Boot 쪽이 먼저 등록되고 그 뒤에 우리 설정이 같은 이름으로 또 등록을 시도해 `allow-bean-definition-overriding=false`(기본값)에서 **4개 앱 전부 기동 실패**로 이어졌다(실측 확인). `before`로 두면 우리 템플릿이 먼저 등록되고, Boot의 `@ConditionalOnMissingBean`이 그것을 보고 물러난다. `@Import` 시절에는 사용자 설정 클래스가 auto-configuration보다 항상 먼저 처리돼 이 순서 문제가 아예 없었다 — auto-configuration으로 전환하며 처음 생긴 문제이므로, **비슷하게 Boot 표준 빈과 이름이 겹치는 새 auto-configuration을 만들 때는 기본값을 `after`로 가정하지 말고 반드시 실제 기동으로 검증한다.**
 - **함정 2 — 앱이 직접 참조하는 라이브러리 타입은 명시 선언이 필요해진다 (~~사례~~ 챕터 01에서 소멸)**: 챕터 02 시점에는 web/admin/ceo 3개 앱의 `config/jwt/RedisRepositoryConfig`가 앱별 키 접두사(`admin:rt:` 등)를 넘기려고 `StringRedisTemplate`을 **직접 타입 참조**했다. `infrastructure:redis`를 `runtimeOnly`로 내리면서 그 전이가 끊겨 컴파일이 깨졌고, 3개 앱 `build.gradle`에 `implementation 'org.springframework.boot:spring-boot-starter-data-redis'`를 명시 선언해 막았다. **챕터 01에서 이 사례 자체가 사라졌다** — 토큰 저장소가 포트/어댑터로 역전되며 접두사가 `security.token-store.key-prefix` 프로퍼티가 됐고, `RedisRepositoryConfig`와 함께 그 명시 선언도 삭제됐다. 지금 3앱의 유일한 Redis 선언은 `runtimeOnly project(':infrastructure:redis')`다.
   - **일반화된 원칙은 [컴포지션 루트 규칙 §앱이 가질 수 있는 조립 코드의 상한](#앱이-가질-수-있는-조립-코드의-상한)으로 옮겼다.** 요지는 "앱이 라이브러리 타입을 직접 참조해야 하면 서드파티 의존을 앱에 추가하기 전에 라이브러리 쪽 auto-config 흡수를 먼저 검토한다"이며, 이 사례가 그 선례가 된 경위가 거기 적혀 있다.
 
@@ -234,7 +317,7 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 
 - **모듈명 → 패키지**: 하이픈을 점으로 바꾼다. `persistence`→`.persistence`, `redis`→`.redis`, `restclient`→`.restclient`, `kakao-oauth`→`.kakao.oauth`, `aws-s3`→`.aws.s3`, `admdongkor`→`.admdongkor`. 새 모듈도 같은 규칙으로 정한다.
 - **코드 없는 조립 스타터(`file-storage`·`oauth`·`pg`·`mail`·`sms`)는 패키지를 갖지 않는다.** 이름은 예약된 것으로 보지만, persistence의 `mail`·`sms` 컨텍스트는 `com.tastyhouse.infrastructure.persistence.{mail,sms}`라 충돌하지 않는다.
-- **`{Xxx}ModuleAutoConfiguration`은 루트 패키지에 두고, `@ComponentScan`은 자기 루트만 가리킨다.** 다른 모듈을 덮는 스캔과 그것을 되돌리는 `excludeFilters`를 두지 않는다.
+- **`{Xxx}ModuleConfig`(필요할 때만)는 루트 패키지에 두고, `@ComponentScan`을 갖지 않는다** — 스캔은 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 한 줄이 맡는다(위 [모듈 등록 컨벤션](#모듈-등록-컨벤션-auto-configuration--챕터-02)). 다른 모듈을 덮는 스캔과 그것을 되돌리는 `excludeFilters`를 두지 않는다. **(번복됨 — imports 제거)** ~~`{Xxx}ModuleAutoConfiguration`은 루트 패키지에 두고, `@ComponentScan`은 자기 루트만 가리킨다.~~
 - **하위 패키지는 허용 목록 안에서만 만든다.**
   - 벤더: 외부 API의 요청·응답 wire DTO는 `{루트}.dto`에 둔다. Client·Adapter·Properties·Config는 루트에 평면으로 둔다.
   - persistence: `{루트}.{컨텍스트}[.{하위 컨텍스트}].{persistence|query}` + `{루트}.config` + `{루트}.shared.{persistence|query|event}`(현 구조). `persistence.order.persistence`처럼 `persistence`가 두 번 나오는 이름은 감수한다 — 내부의 쓰기(`persistence`)·조회(`query`) 이원 구조가 더 중요하다.
@@ -521,7 +604,7 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 | `ProblemDetails` | `apicommon.exception` | web-api↔공용 핸들러의 `problemDetail(...)` private 헬퍼 복제(바이트 동일) — **web-api도 이것만은 공유** |
 | ~~`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`~~ | ~~`apicommon.shop.response`~~ | **문서 드리프트 — 실제로는 통합되지 않았다**(챕터 09에서 확인). 세 record는 `api-common-module`에 존재한 적이 없고 admin·ceo가 각자 소유한다(admin은 챕터 06, ceo는 챕터 09로 각 api 모듈의 `adapter/in/web/response/`). 필드 구성이 같은 것은 중복이 아니라 **우연히 일치한 앱별 응답 계약**이며, 한쪽 화면 요구가 바뀌면 다른 쪽을 건드리지 않고 갈라져야 한다 |
 
-**핸들러 중복 방지는 스캔 범위가 아니라 조건부 `@Bean`입니다 (챕터 02 개정)**: 과거에는 "admin/ceo는 `com.tastyhouse.apicommon` 전체를, web-api는 `apicommon.file`만 스캔한다"는 스캔 범위 조정으로 `@RestControllerAdvice` 빈이 2개가 되는 것을 막았습니다. 지금 이 모듈은 **컴포넌트 스캔을 아예 쓰지 않습니다** — `ApiCommonModuleAutoConfiguration`이 `@Bean("sharedGlobalExceptionHandler")`을 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`로 등록하므로, 자체 핸들러가 있는 web-api에서는 조건이 Negative가 되어 스스로 물러나고 admin-api·ceo-api에서만 등록됩니다(감사표 실측과 일치). 빈 이름을 기본값 `globalExceptionHandler`가 아니라 `sharedGlobalExceptionHandler`로 지정하는 이유는, 조건이 어떤 이유로 우회되더라도 이름이 겹쳐 `allow-bean-definition-overriding=false`로 **기동이 실패**해 조용히 덮이지 않게 하기 위해서입니다. `ProblemDetails`는 **`@Component`가 아닌 static 유틸**이라 애초에 빈 등록과 무관하며, web-api가 그대로 import해서 씁니다.
+**핸들러 중복 방지는 다시 스캔 범위입니다 (imports 제거로 재개정)**: 지금은 admin-api·ceo-api의 `ModuleScanConfig`만 `com.tastyhouse.apicommon.exception`을 스캔하고 web-api는 스캔하지 않습니다. `GlobalExceptionHandler`는 `@RestControllerAdvice`라 스캔으로 바로 등록되며 빈 이름은 기본값 `globalExceptionHandler`입니다(주입처 없음). web에 자체 핸들러와 공용 핸들러가 함께 뜨지 않는 것은 조건이 아니라 스캔 목록이 보장하고, 그 목록은 각 앱 `ApplicationLayerScanConfigTest`가 정확 일치로 검사합니다. `@ConditionalOnMissingBean`은 일반 `@Configuration`에서 처리 순서에 좌우돼 믿을 수 없어 쓰지 않습니다. 아래는 챕터 02 시점 기록입니다(**번복됨 — imports 제거**). ~~**핸들러 중복 방지는 스캔 범위가 아니라 조건부 `@Bean`입니다 (챕터 02 개정)**~~: 과거에는 "admin/ceo는 `com.tastyhouse.apicommon` 전체를, web-api는 `apicommon.file`만 스캔한다"는 스캔 범위 조정으로 `@RestControllerAdvice` 빈이 2개가 되는 것을 막았습니다. 지금 이 모듈은 **컴포넌트 스캔을 아예 쓰지 않습니다** — `ApiCommonModuleAutoConfiguration`이 `@Bean("sharedGlobalExceptionHandler")`을 `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)`로 등록하므로, 자체 핸들러가 있는 web-api에서는 조건이 Negative가 되어 스스로 물러나고 admin-api·ceo-api에서만 등록됩니다(감사표 실측과 일치). 빈 이름을 기본값 `globalExceptionHandler`가 아니라 `sharedGlobalExceptionHandler`로 지정하는 이유는, 조건이 어떤 이유로 우회되더라도 이름이 겹쳐 `allow-bean-definition-overriding=false`로 **기동이 실패**해 조용히 덮이지 않게 하기 위해서입니다. `ProblemDetails`는 **`@Component`가 아닌 static 유틸**이라 애초에 빈 등록과 무관하며, web-api가 그대로 import해서 씁니다.
 
 ### 복제를 유지하는 것 (허용 목록 — 통합 금지)
 
@@ -539,7 +622,7 @@ reference 구현: `admin-api`/`web-api` 공통 — `common/PaginationResponse.ja
 | `OrderDetailResponse` (web/admin) | `@Schema` example이 `APPROVED` vs `COMPLETED`로 다름(소비자별 대표값) |
 | `ApiResponse`/`PageRequest`/`PaginationResponse`의 **모듈별 사본** | 없음 — 위 표대로 통합 완료 |
 
-reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 의존하는 3개 api 모듈, 조건부 등록을 수행하는 `ApiCommonModuleAutoConfiguration`.
+reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 의존하는 3개 api 모듈, 공용 핸들러를 스캔하는 admin-api·ceo-api 부트스트랩의 `ModuleScanConfig`(~~조건부 등록을 수행하는 `ApiCommonModuleAutoConfiguration`~~ — imports 제거로 삭제).
 
 ## 예외·에러코드 소유 규칙 (`ErrorCodeSpec` 공통 계약 + `BusinessException` 단일 계층)
 
@@ -1030,7 +1113,7 @@ A·B·C로 문서에 적는 모든 항목은 **어느 코드 요소에 대한 �
 ````markdown
 ### 빈 **정의** 순서와 **생성** 순서는 다르다
 
-**대상**: `backend/infrastructure/redis/src/main/java/com/tastyhouse/infrastructure/redis/RedisModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/redis/src/main/java/com/tastyhouse/infrastructure/redis/RedisModuleConfig.java`
 → `before` 속성과 `RedisConnectionFactory` 주입
 
 `RedisConnectionFactory`는 Boot가 만들지만, 빈 *정의* 순서와 *생성* 순서는 다르다 …
@@ -1100,7 +1183,7 @@ find . -name '*.java' -not -path '*/build/*' -not -path '*/bin/*' -print0 \
 
 **어느 AGENTS.md인가 — 설정을 소유한 모듈의 것이다.** 앱 `application.yml`의 값은 그 앱(`{web,admin,ceo}-api/AGENTS.md`의 §설정 파일), 모듈 yml(`application-redis.yml` 등)은 그 모듈(`infrastructure/redis/AGENTS.md`의 §yml), `build.gradle`의 의존 선언 근거는 그 모듈 AGENTS.md의 §Dependencies다. 루트 `build.gradle`의 전역 설정(BOM 프로퍼티 override 등)은 `backend/AGENTS.md`가 소유한다.
 
-reference: `backend/AGENTS.md`의 `ext['netty.version']`·`ext['jackson-bom.version']` 항목(CVE override 근거), `infrastructure/redis/AGENTS.md` §yml — `application-redis.yml`(설정 소유 근거), `web-api/AGENTS.md` §설정 파일(`.env` 2경로·Redis import), `batch-module/AGENTS.md` §`web-application-type: none`이 api-common auto-config 2개를 잠재우는 유일한 근거(가장 긴 근거 서술이 문서에만 사는 형태).
+reference: `backend/AGENTS.md`의 `ext['netty.version']`·`ext['jackson-bom.version']` 항목(CVE override 근거), `infrastructure/redis/AGENTS.md` §yml — `application-redis.yml`(설정 소유 근거), `web-api/AGENTS.md` §설정 파일(`.env` 2경로·Redis import), `batch-module/AGENTS.md` §`web-application-type: none`의 근거(가장 긴 근거 서술이 문서에만 사는 형태 — imports 제거 후에는 batch `ModuleScanConfig`가 `apicommon`을 아예 스캔하지 않는다).
 
 ## 코딩 스타일 (import 순서)
 
@@ -1452,11 +1535,11 @@ reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryAdapt
 - **저장 시맨틱 — load-copy-save (merge 금지)**: ~~**(03b — 위치만 변경)** 아래 `PersistenceAdapter.save`는 지금 `XxxStatePortImpl#save(XxxState)`이며 규칙은 그대로다.~~ **(번복됨 — persistence domain 재허용)** 다시 `XxxPersistenceAdapter#save(domain)`이다. `PersistenceAdapter.save`는 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable=false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지.
 - **명시적 save 규칙 (더티 체킹 상실 보완)**: 도메인 변경 후 **반드시 `repository.save(domain)`를 호출**한다(`@Entity`처럼 자동 flush되지 않음). 누락 시 변경이 조용히 유실된다. 호출 책임은 트랜잭션을 여는 쪽에 있으므로, 변경을 수행한 지점이 api 모듈의 `{도메인}CommandService`든 domain의 순수 POJO 도메인 서비스(`<ctx>/service/`)든 그 안에서 write 포트의 `save`를 명시적으로 부른다.
 - **Q타입 생성 위치 (개정됨 — 읽기 경로 포트화로 재개정)**: `QXxxJpaEntity`는 여전히 `infrastructure:persistence`에서 생성된다. **`QXxxResult`(Result DTO의 Q타입)는 더 이상 생성되지 않는다** — 챕터 04(읽기 경로 포트화)로 Result record가 QueryDSL을 모르는 `application-common-module`로 이관되며 `@QueryProjection`을 뗐고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건, `QXxxResult` 생성물 0건). 따라서 **QueryDSL 의존(`querydsl-jpa`·apt)과 querydsl sourceSets/generated 블록은 여전히 `infrastructure:persistence`에만 남고, domain과 application-common-module 둘 다 `querydsl-core`·`querydsl-apt`를 완전히 제거**했다(과거엔 core가 `@QueryProjection` DTO 컴파일용으로 `querydsl-core`만 잠정 유지하던 상태였다). 이 배치가 api 모듈로의 QueryDSL 전이 노출을 원천 차단하는 지점이기도 하다.
-- **Spring 조립 — 스캔·전역 설정은 소유 모듈(infrastructure)이 선언 (개정됨)**: `com.tastyhouse.infrastructure`는 **챕터 02 이후 앱의 `scanBasePackages`가 아니라 `PersistenceModuleAutoConfiguration`의 `@ComponentScan`이 스캔**하며(앱은 `runtimeOnly` 의존 선언만 갖는다), JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`, `basePackageClasses` 타입 세이프 방식)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 전부 `infrastructure:persistence` 자신의 `InfrastructurePersistenceConfig`(패키지 루트)로 병합됐다.** domain은 완전 프레임워크-프리가 되며 과거 core의 `config/DatabaseConfig.java`를 폐지했다(그 파일이 `@EnableJpaRepositories(basePackages="com.tastyhouse.core.domain")`·`@EntityScan`·`@EnableJpaAuditing`·`@EnableTransactionManagement`를 core에서 선언했으나, 도메인 패키지에 더 이상 JPA가 없어 무의미해졌고 auditing/tx는 엔티티·리포지토리를 소유한 infrastructure로 옮기는 것이 응집도상 자연스럽다). domain은 infrastructure를 의존하지 않아 컴파일 타임에 그 패키지를 볼 수 없으므로(IDE "Cannot resolve package" 에러), 엔티티를 소유한 모듈이 스스로 스캔·전역 설정을 선언하는 것이 Spring Boot 공식 권장(`basePackageClasses`)과 일치한다.
+- **Spring 조립 — 스캔·전역 설정은 소유 모듈(infrastructure)이 선언 (개정됨)**: `com.tastyhouse.infrastructure`는 **각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 문자열로 스캔**하며(앱은 `runtimeOnly` 의존 선언과 그 스캔 목록만 갖는다. ~~챕터 02 이후 앱의 `scanBasePackages`가 아니라 `PersistenceModuleAutoConfiguration`의 `@ComponentScan`이 스캔~~ **번복됨 — imports 제거**), JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`, `basePackageClasses` 타입 세이프 방식)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 전부 `infrastructure:persistence` 자신의 `InfrastructurePersistenceConfig`(패키지 루트)로 병합됐다.** domain은 완전 프레임워크-프리가 되며 과거 core의 `config/DatabaseConfig.java`를 폐지했다(그 파일이 `@EnableJpaRepositories(basePackages="com.tastyhouse.core.domain")`·`@EntityScan`·`@EnableJpaAuditing`·`@EnableTransactionManagement`를 core에서 선언했으나, 도메인 패키지에 더 이상 JPA가 없어 무의미해졌고 auditing/tx는 엔티티·리포지토리를 소유한 infrastructure로 옮기는 것이 응집도상 자연스럽다). domain은 infrastructure를 의존하지 않아 컴파일 타임에 그 패키지를 볼 수 없으므로(IDE "Cannot resolve package" 에러), 엔티티를 소유한 모듈이 스스로 스캔·전역 설정을 선언하는 것이 Spring Boot 공식 권장(`basePackageClasses`)과 일치한다.
 - **(번복됨 — 덩어리 03a) 도메인 서비스 빈 등록 위치는 `application`의 `<ctx>/config/<Ctx>ServiceConfig`다.** 아래 항목이 말하는 `infrastructure:persistence`의 `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application/<ctx>/config/<Ctx>ServiceConfig`(`@Configuration(proxyBeanMethods = false) @SharedApp` — persistence DomainConfig가 4앱 전부에서 뜨던 등록 범위를 그대로 승계)로 옮겨졌고, 포트를 주입받는 서비스 자체도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다(`@Bean` 메서드 이름은 불변). domain에 남은 순수 서비스(`CupDepositPolicy`·`*Calculator` 등)도 클래스만 domain에 두고 `@Bean`은 같은 설정이 갖는다. ~~**새 도메인 서비스를 추가하면 아래의 `<Ctx>DomainConfig`가 아니라 `<Ctx>ServiceConfig`에 `@Bean`을 추가한다(없으면 신설, `@SharedApp`).**~~ 상세는 `application/AGENTS.md`의 "덩어리 03a" 절.
   - **(번복됨 — application `*ServiceConfig` 삭제) 지금은 `<Ctx>ServiceConfig`도 없다.** 22개 `*ServiceConfig`와 `PgRouterConfig`가 전부 삭제됐고, 서비스는 `application/<ctx>/service/`에서 **클래스에 앱 마커 하나만**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`, `@Service` 없이) 달고 마커 스캔으로 등록된다. **새 도메인 서비스를 추가하면 `@Bean`을 쓰지 말고 클래스에 그 빈을 최종적으로 쓰는 앱의 마커를 단다**(한 앱이면 그 앱 마커, 두 앱 이상이거나 `@SharedApp` 빈·리스너가 쓰면 `@SharedApp`). domain 모듈 클래스(`CupDepositPolicy`·`*Calculator` 등)처럼 애노테이션을 달 수 없는 빈만 `application/shared/config/SharedBeanConfig`의 `@Bean`으로 둔다. 마커를 잘못 고르면 `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp`이 빌드에서 잡는다. 규칙 표는 위 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로)의 "application `*ServiceConfig` 전면 삭제" 항목.
   - **(번복됨 — 앱 마커 제거) 지금은 마커도 없다.** 도메인 서비스는 `@Service`를 달고, **쓰는 앱이 하나면 그 앱의 `{앱}-application` 모듈, 두 앱 이상이면 코어 `application`**에 둔다. 잘못 두면 컴파일이 실패하거나 코어 `LayerRulesTest#coreBeansShouldOnlyDependOnCoreVisibleTypes`가 잡는다. `SharedBeanConfig`(코어)는 그대로다. 규칙은 위 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
-- **scanBasePackages에서 domain 스캔 엔트리를 제거한다 (개정됨)**: domain에는 `@Component`/`@Service`/`@Configuration`이 **0건**이므로(도메인 서비스는 순수 POJO이고 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리 메서드로 수행) 스캔할 대상이 아예 없다. 따라서 4개 앱의 `scanBasePackages`에서 과거의 `"com.tastyhouse.core"` 항목을 삭제했다. **챕터 02 이후로는 `scanBasePackages` 자체가 4개 앱 전부에서 사라졌다** — 라이브러리 모듈이 각자의 auto-configuration으로 자기 패키지를 스캔하므로, 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)만 남는다(아래 [컴포지션 루트 규칙](#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03)). 도메인에 새 순수 POJO 서비스를 추가할 때도 스캔 엔트리를 되살리지 말고 **해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean`을 추가한다(없으면 신설)**.
+- **scanBasePackages에서 domain 스캔 엔트리를 제거한다 (개정됨)**: domain에는 `@Component`/`@Service`/`@Configuration`이 **0건**이므로(도메인 서비스는 순수 POJO이고 빈 등록은 `infrastructure:persistence`의 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 `@Bean` 팩토리 메서드로 수행) 스캔할 대상이 아예 없다. 따라서 4개 앱의 `scanBasePackages`에서 과거의 `"com.tastyhouse.core"` 항목을 삭제했다. **챕터 02 이후로는 `scanBasePackages` 자체가 4개 앱 전부에서 사라졌다** — ~~라이브러리 모듈이 각자의 auto-configuration으로 자기 패키지를 스캔하므로, 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)만 남는다~~ **(번복됨 — imports 제거)** 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)과 중첩 `ApplicationLayerScanConfig`·`ModuleScanConfig` 두 스캔이 있다(아래 [컴포지션 루트 규칙](#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03)). 도메인에 새 순수 POJO 서비스를 추가할 때도 스캔 엔트리를 되살리지 말고 **해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean`을 추가한다(없으면 신설)**.
   - **예외 — 포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다 (external 분리 → messaging 4분할 → 02-vendor-ports로 재개정)**: `@Bean` 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 존재하면, 그 등록도 해당 범위로 한정한다. `MailVerificationService`(`MailSender`)·`SmsVerificationService`(`SmsSender`)·`PgPaymentGatewayRouter`(`PgProviderGateway`)가 그 사례다.
 
     **(번복됨 — application `*ServiceConfig` 삭제) 지금 이 한정은 config가 아니라 클래스 마커로 표현한다.** 아래 두 문단이 말하는 `MailServiceConfig`·`SmsServiceConfig`·`PgRouterConfig`·`FileServiceConfig`·`PaymentServiceConfig`는 전부 삭제됐다. 세 서비스는 클래스에 `@WebApp`만 달아(`@Service` 없음) web에만 뜨고, `FileUploadService`·`PaymentConfirmationService`처럼 여러 앱이 쓰는 서비스는 `@SharedApp`을 단다. "포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다"는 원칙 자체는 그대로이며, 이제 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`(web 전용 포트 `MailSender`·`SmsSender`·`PgProviderGateway`·`SocialOAuthClient`를 생성자로 받는 마커 클래스는 `@WebApp`, batch 전용 포트 `BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`는 `@BatchApp`)이 빌드에서 강제한다. 아래 두 문단은 02-vendor-ports 시점의 기록이다. **(번복됨 — 앱 마커 제거)** 지금은 이 한정을 모듈 위치가 표현한다 — 세 서비스(`MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`)와 그들이 쓰는 web 전용 포트는 `web-application`에, `FileUploadService`·`PaymentConfirmationService`는 코어 `application`에 있고(`PaymentCancellationService`는 `web-application`), `appRestrictedPortDependentsShouldBelongToThatApp`는 삭제됐다 — web 전용 포트가 `web-application`에 있으므로 다른 앱의 빈은 그 포트를 컴파일 단계에서 볼 수 없다.
@@ -1815,7 +1898,7 @@ reference 구현: `com.tastyhouse.application.shop.port.out`(`ShopQueryPort`/`Sh
 
 reference 구현: `security-module` — Redis 기반 `RedisConfig`(StringRedisTemplate 빈)·rate limiting(**챕터 02 이후 재배치됨** — `@RateLimit`·`RateLimitAspect`·`RateLimitException`은 `api-common-module`, Redis 카운터 `RedisRateLimitCounter`는 `infrastructure:redis` 소유. 계약 `RateLimitCounterPort`는 챕터 02에서 `api-common-module`에 뒀다가 **이후 `security-core`로 이동했다**(~~`api-common-module` 소유~~ **번복됨** — redis가 계약 하나 때문에 표현 모듈을 의존하던 간선을 끊으려고. 근거는 `security-core/AGENTS.md`))·`RefreshTokenRedisRepository`/`BlacklistRedisRepository`(접두사 생성자 주입형 — web은 `"rt:"`/`"bl:"`, admin은 `"admin:rt:"`/`"admin:bl:"`를 각자 `RedisRepositoryConfig`에서 주입)·소셜 임시토큰 저장소 4종을 web-api·admin-api 중복 없이 통합했다. **(챕터 01로 토큰 저장소 6종은 포트/어댑터로 역전됐다** — 계약은 `security-core`, Redis 구현은 `infrastructure:redis`의 `token` 패키지이며 접두사는 생성자 인자가 아니라 `security.token-store.key-prefix` 프로퍼티다. `RedisRepositoryConfig`는 삭제됐다. 아래 문장은 통합 당시의 역사 기록이다.) `implementation project(':security-module')`로 의존해 `TokenService`의 구체 클래스 직접 주입이 그대로 컴파일된다. 설정값은 `security-module/application-security.yml`이 소유. 상세는 `security-module/AGENTS.md` 참고.
 
-이후 **JWT 인증 메커니즘도 이 모듈의 `com.tastyhouse.security.jwt`로 통합**했다(과거 web-api/admin-api `config/jwt`·`config/security`에 사실상 동일하게 복제돼 있던 `JwtTokenProvider`/`JwtAuthenticationFilter`/`JwtProperties`/`TokenType`/`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler` 12개 파일 제거). 공용 `JwtTokenProvider`는 `@Component`가 아닌 파라미터형 POJO로, principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다 — 각 앱은 이를 상속한 얇은 `@Component` 하위 클래스(`application`의 `Member`/`Admin`/`CeoJwtTokenProvider`, 앱 마커로 컨텍스트당 하나만 발화)로 자기 등록하고(web은 검증 토큰 발급 메서드를 web 전용으로 추가), `JwtAuthenticationFilter`(POJO)는 **`SecurityModuleAutoConfiguration`이 그 provider 빈과 `BlacklistRepository` 포트로 빈 등록**한다(챕터 02 — 3앱의 `config/jwt/JwtConfig`는 삭제됐다). 정책(`SecurityConfig`/`PublicPaths`/`CustomUserDetails`/`UserDetailsService`/`TokenService`)은 각 앱에 잔류하며, `CustomUserDetails`는 `JwtPrincipal`을 구현해 식별자를 노출한다. **web-api와 admin-api의 `jwt.secret`은 반드시 서로 다른 환경변수(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)를 써야 한다** — 동일 시크릿이면 회원 access 토큰이 admin 인증을 통과하는 권한 상승이 발생하므로, admin은 시크릿을 분리하고 인가 체인도 `.anyRequest().hasAnyRole("ADMIN","SUPER_ADMIN")`로 강화했다. 이 통합으로 `security-module`에 `spring-boot-starter-security`(api)·`jjwt`(api/runtimeOnly) 의존이 추가됐다.
+이후 **JWT 인증 메커니즘도 이 모듈의 `com.tastyhouse.security.jwt`로 통합**했다(과거 web-api/admin-api `config/jwt`·`config/security`에 사실상 동일하게 복제돼 있던 `JwtTokenProvider`/`JwtAuthenticationFilter`/`JwtProperties`/`TokenType`/`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler` 12개 파일 제거). 공용 `JwtTokenProvider`는 `@Component`가 아닌 파라미터형 POJO로, principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다 — 각 앱은 이를 상속한 얇은 `@Component` 하위 클래스(`application`의 `Member`/`Admin`/`CeoJwtTokenProvider`, 앱 마커로 컨텍스트당 하나만 발화)로 자기 등록하고(web은 검증 토큰 발급 메서드를 web 전용으로 추가), `JwtAuthenticationFilter`(POJO)는 **`SecurityModuleConfig`(챕터 02 당시 이름 `SecurityModuleAutoConfiguration` — imports 제거로 복귀)가 그 provider 빈과 `BlacklistRepository` 포트로 빈 등록**한다(챕터 02 — 3앱의 `config/jwt/JwtConfig`는 삭제됐다). 정책(`SecurityConfig`/`PublicPaths`/`CustomUserDetails`/`UserDetailsService`/`TokenService`)은 각 앱에 잔류하며, `CustomUserDetails`는 `JwtPrincipal`을 구현해 식별자를 노출한다. **web-api와 admin-api의 `jwt.secret`은 반드시 서로 다른 환경변수(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)를 써야 한다** — 동일 시크릿이면 회원 access 토큰이 admin 인증을 통과하는 권한 상승이 발생하므로, admin은 시크릿을 분리하고 인가 체인도 `.anyRequest().hasAnyRole("ADMIN","SUPER_ADMIN")`로 강화했다. 이 통합으로 `security-module`에 `spring-boot-starter-security`(api)·`jjwt`(api/runtimeOnly) 의존이 추가됐다.
 
 **아래 reference 목록의 읽는 법**: 이 목록은 도메인별 전환을 진행한 순서대로 누적 기록된 것으로, **각 항목의 서술은 그 전환이 이뤄진 시점의 상태**를 담고 있다(어떤 도메인이 아직 미분리였고, 그래서 어떤 우회가 필요했는지 등). 경로 표기는 현재 기준(`domain/...`·`com.tastyhouse.domain.*`)으로 정정했으나, "당시 미분리였다"·"당시엔 core에 어노테이션을 유지했다" 같은 시점 서술은 역사적 기록으로서 그대로 유지한다. 또한 이 목록이 언급하는 `application` 계층 서비스·`application/dto`는 이후 [application 계층 해체](#application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice)로 각 api 모듈의 CQRS 서비스와 infrastructure `<ctx>/query/`로 이관됐다.
 
@@ -1830,7 +1913,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 어댑터 선언이 4개 앱에 흩어져 반복되는 것이 눈에 거슬려 `application`이나 `domain`로 내리고 싶어지지만, **셋 다 막힌 길이다.**
 
 - **(a) Gradle 순환**: `infrastructure:persistence`·`:{kakao,naver,apple,facebook}-oauth`·`:bbq`·`:admdongkor`가 `:application`을, 자바 코드가 있는 외부 연동 모듈 대부분이 `:domain`을 이미 의존한다(예외는 코드 없는 스타터 `:file-storage`·`:oauth`, 코어 `:restclient`, 도메인 타입을 쓰지 않는 `:kakao-oauth`·`:naver-oauth`). 포트를 소유한 모듈이 구현 모듈을 되받으면 그 자리에서 순환이다.
-- **(b) `application`은 4앱 공유 모듈이다**: 앱마다 다른 어댑터 선택을 담을 자리가 없다. 게다가 [클래스패스 존재 = 활성화](#클래스패스-존재--활성화-원칙)이므로, 공유 모듈에 `:infrastructure:oauth`를 걸면 web 전용 벤더 auto-config 4개가 admin·ceo·batch에서도 발화한다 — 채널·벤더 분할 전에는 `Could not resolve placeholder 'apple.team-id'`로, 분할 후에는 벤더 record 검사의 `IllegalStateException`으로 세 앱 **기동이 실패**한다.
+- **(b) `application`은 4앱 공유 모듈이다**: 앱마다 다른 어댑터 선택을 담을 자리가 없다. 게다가 [클래스패스 존재 = 활성화](#클래스패스-존재--활성화-원칙)이므로(imports 제거 후에는 앱 `ModuleScanConfig`의 `infrastructure` 스캔이 그 활성화를 한다), 공유 모듈에 `:infrastructure:oauth`를 걸면 web 전용 벤더 빈 4종이 admin·ceo·batch에서도 발화한다 — 채널·벤더 분할 전에는 `Could not resolve placeholder 'apple.team-id'`로, 분할 후에는 벤더 record 검사의 `IllegalStateException`으로 세 앱 **기동이 실패**한다.
 - **(c) 방향 역전**: 포트를 소유한 모듈이 그 포트의 구현 모듈을 의존하는 것은 의존성 역전 원칙 자체를 뒤집는 것이다.
 
 **앱별 목록이 서로 다르다는 사실 자체가 "이것은 앱의 선언"이라는 증거다** — web 7개 / admin·ceo 4개 / batch 4개이며 겹치는 것은 `persistence`·`file-storage`·`logging-module` 셋뿐이다([앱별 의존 표](#앱별-의존-전환-후--runtimeonly로-하향)). 공통 부분만 뽑아 올리려는 시도는 나머지를 다시 앱에 남기므로 선언 위치만 둘로 쪼갤 뿐이다.
@@ -1843,14 +1926,14 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 ### 앱이 가질 수 있는 조립 코드의 상한
 
-**부트스트랩 중첩 `ApplicationLayerScanConfig` 1개(~~마커 스캔~~ 필터 없는 `com.tastyhouse.application` 스캔 — 앱 마커 제거) + `{앱}-application` 의존 1줄 + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 부트스트랩 중첩 클래스 1개만 갖는다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이전 상한은 `@Import({App}ApplicationConfig)` 한 줄이었다(그 클래스가 `application` 모듈에 있었다).
+**부트스트랩 중첩 스캔 클래스 2개 — `ApplicationLayerScanConfig`(~~마커 스캔~~ 필터 없는 `com.tastyhouse.application` 스캔 — 앱 마커 제거)와 `ModuleScanConfig`(라이브러리 모듈 패키지 문자열 스캔 — imports 제거) — + `{앱}-application` 의존 1줄 + `application.yml`의 앱별 파라미터**(`jwt.*`·`security.token-store.key-prefix`·시드 자격증명)가 상한이다. 기준점은 `batch-module`로, `config/` 디렉터리가 아예 없고 부트스트랩 중첩 클래스 2개만 갖는다. **(번복됨 — imports 제거)** ~~부트스트랩 중첩 `ApplicationLayerScanConfig` 1개~~ — 라이브러리 모듈의 자기 등록(imports 파일)이 사라지며 그 활성화 목록이 앱의 두 번째 중첩 클래스로 올라왔다. `ModuleScanConfig`는 클래스 참조 없이 패키지 문자열만 가지므로 `runtimeOnly` 경계(어댑터를 모른다)를 깨지 않는다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이전 상한은 `@Import({App}ApplicationConfig)` 한 줄이었다(그 클래스가 `application` 모듈에 있었다).
 
 허용되는 앱 `@Configuration`은 두 종류뿐이다.
 
 - **정책** — `SecurityConfig`·`PublicPaths`(web·admin·ceo 각자)와 `OpenApiConfig`·`AsyncConfig`(web만). 앱마다 값이 실제로 다른 결정이라 공유할 수 없다([복제 유지 허용 목록](#복제를-유지하는-것-허용-목록--통합-금지)).
 - **부트스트랩 시드** — `AdminSeeder`·`CeoSeeder`(각 앱의 `*SeedProperties`와 한 쌍). UseCase만 주입받고 어댑터 타입을 모른다.
 
-**앱 `@Configuration`이 라이브러리 타입을 직접 참조해야 한다면, 그것은 라이브러리가 파라미터를 프로퍼티로 받지 않는다는 신호다.** 이때 앱에 서드파티 의존을 추가해 해결하지 말고, **라이브러리 쪽 auto-config가 그 조립을 흡수할 수 있는지 먼저 검토한다.** 챕터 01·02가 그 선례다 — 3앱의 `config/jwt/RedisRepositoryConfig`는 앱별 키 접두사를 넘기려고 `StringRedisTemplate`을 직접 참조했으나 접두사가 `RedisTokenStoreProperties` 프로퍼티가 되며 소멸했고, `config/jwt/JwtConfig`는 필터 등록이 `SecurityModuleAutoConfiguration`의 `@Bean`으로 흡수되며 소멸했다. 그 결과 3앱의 `config/jwt/` 디렉터리가 통째로 사라졌다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지) 참고).
+**앱 `@Configuration`이 라이브러리 타입을 직접 참조해야 한다면, 그것은 라이브러리가 파라미터를 프로퍼티로 받지 않는다는 신호다.** 이때 앱에 서드파티 의존을 추가해 해결하지 말고, **라이브러리 쪽 auto-config가 그 조립을 흡수할 수 있는지 먼저 검토한다.** 챕터 01·02가 그 선례다 — 3앱의 `config/jwt/RedisRepositoryConfig`는 앱별 키 접두사를 넘기려고 `StringRedisTemplate`을 직접 참조했으나 접두사가 `RedisTokenStoreProperties` 프로퍼티가 되며 소멸했고, `config/jwt/JwtConfig`는 필터 등록이 `SecurityModuleConfig`(당시 이름 `SecurityModuleAutoConfiguration`)의 `@Bean`으로 흡수되며 소멸했다. 그 결과 3앱의 `config/jwt/` 디렉터리가 통째로 사라졌다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지) 참고).
 
 ### 비채택 대안과 재고 조건
 
@@ -1866,9 +1949,9 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 | 표현 계약 — `@RateLimit`·`RateLimitAspect`·`RateLimitException` | `api-common-module` | 컨트롤러에 붙이는 애노테이션 1개 |
 | 카운터 계약 — `RateLimitCounterPort` | `security-core` | 없음(~~`api-common-module`~~ **번복됨** — 서블릿-프리 보안 계약이라 토큰 저장소 포트와 같은 모듈로 이동) |
 | 카운터 구현 — `RedisRateLimitCounter` | `infrastructure:redis` | 없음(`runtimeOnly`) |
-| 조건부 등록 — `ApiCommonRateLimitAutoConfiguration` | `api-common-module` | 없음(`@ConditionalOnBean(RateLimitCounterPort)`) |
+| 등록 — `ApiCommonRateLimitConfig`(~~`ApiCommonRateLimitAutoConfiguration`~~, imports 제거로 리네임) | `api-common-module` | 앱 `ModuleScanConfig`의 `apicommon.ratelimit` 스캔 목록 1항목(~~`@ConditionalOnBean(RateLimitCounterPort)`~~ 조건 삭제 — 스캔하는 web·admin·ceo는 전부 Redis 카운터를 갖는다) |
 
-의존 방향은 `api-common-module` → `security-core` ← `infrastructure:redis`이며, 구현(redis)과 표현(api-common)이 main 클래스패스에서 서로를 모른다(api-common은 `afterName` 검증용으로 redis를 `testImplementation`만 한다). 카운터 빈이 있는 앱에서만 aspect가 등록되므로, 앱은 `@RateLimit`을 붙이기만 하고 "Redis로 센다"는 것도 "aspect를 등록해야 한다"는 것도 모른다.
+의존 방향은 `api-common-module` → `security-core` ← `infrastructure:redis`이며, 구현(redis)과 표현(api-common)이 main 클래스패스에서 서로를 모른다(~~api-common은 `afterName` 검증용으로 redis를 `testImplementation`만 한다~~ — imports 제거로 그 테스트 의존도 삭제돼 이제 테스트 클래스패스에서도 서로를 모른다). ~~카운터 빈이 있는 앱에서만 aspect가 등록되므로~~ **(번복됨 — imports 제거)** 앱 배선은 0줄이 아니라 **`ModuleScanConfig`의 `"com.tastyhouse.apicommon.ratelimit"` 문자열 1항목**이 됐다 — 그 목록에 넣은 앱(web·admin·ceo, 전부 Redis 카운터 보유)에서만 aspect가 등록된다. 그래도 앱은 `@RateLimit`을 붙이고 패키지 이름 하나를 적을 뿐, "Redis로 센다"는 것은 모른다.
 
 ## 채널 도메인 어휘 통일 규칙 (`mail`/`sms` — 패키지·타입 모두)
 

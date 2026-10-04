@@ -15,4 +15,21 @@ class ApplicationLayerScanConfigTest {
     void bootstrapShouldNotDeclareScanOrImportDirectly() {
         ApplicationLayerScanAssertions.assertBootstrapDoesNotDeclareScanOrImport(AdminApiApplication.class);
     }
+
+    @Test
+    void scansLibraryModulesByPackageName() {
+        ApplicationLayerScanAssertions.assertScansModulesWithoutFilters(
+            AdminApiApplication.class,
+            "com.tastyhouse.infrastructure",
+            "com.tastyhouse.security",
+            "com.tastyhouse.logging",
+            "com.tastyhouse.apicommon.ratelimit",
+            "com.tastyhouse.apicommon.exception"
+        );
+    }
+
+    @Test
+    void libraryModulesShouldNotSelfRegisterAsAutoConfiguration() {
+        ApplicationLayerScanAssertions.assertNoTastyhouseAutoConfiguration();
+    }
 }

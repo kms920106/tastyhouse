@@ -1,0 +1,9 @@
+package com.tastyhouse.infrastructure.apple.oauth;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(AppleOAuthProperties.class)
+public class AppleOAuthModuleConfig {
+}

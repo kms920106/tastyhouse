@@ -14,7 +14,7 @@
 
 ```
 com.tastyhouse.infrastructure.bbq/
-├── BbqModuleAutoConfiguration.java   @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(BbqProperties)
+├── BbqModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(BbqProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 BbqModuleAutoConfiguration에서 리네임
 ├── BbqApiClient.java                 BBQ 메뉴 API 호출 (RestClient, 동기)
 ├── BbqMenuAdapter.java               BbqMenuPort 구현
 ├── BbqProperties.java                bbq.api.* (base-url만 — timeoutSeconds는 삭제됨)
@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.bbq/
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스 존재만으로 `BbqModuleAutoConfiguration`이 발화하므로 `@Import`는 없다. batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
+**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`BbqModuleAutoConfiguration`이 발화~~ — imports 제거, 설정 클래스는 `BbqModuleConfig`). batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
 
 ## yml — `application-bbq.yml`
 
@@ -68,7 +68,9 @@ com.tastyhouse.infrastructure.bbq/
 
 ### 진입 설정은 자기 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqModuleAutoConfiguration.java`
+> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqModuleConfig.java`(imports 제거 전 `BbqModuleAutoConfiguration.java`)
 
 스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈(admdongkor 등) 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
 

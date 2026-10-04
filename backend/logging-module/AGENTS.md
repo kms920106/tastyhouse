@@ -40,7 +40,7 @@ dependencies {
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.logging`** — `LoggingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록, 조건 없음)이 이 패키지를 `@ComponentScan`해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. **과거에는 `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지를 직접 등록해야 했으나, auto-configuration 전환으로 그 등록이 필요 없어졌다** — `runtimeOnly` 의존 선언만으로 발화한다(batch-module도 조건 없이 발화한다 — 의도된 동작).
+- **패키지 루트는 `com.tastyhouse.logging`** — 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 이 패키지를 문자열로 스캔해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. 이 모듈에는 설정 클래스가 없다. **(번복됨 — imports 제거)** ~~`LoggingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration` + `AutoConfiguration.imports`로 자기 등록, 조건 없음)이 이 패키지를 `@ComponentScan`~~ — 그 클래스와 imports 파일은 삭제됐다. **과거에는 `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지를 직접 등록해야 했으나, auto-configuration 전환으로 그 등록이 필요 없어졌다** — ~~`runtimeOnly` 의존 선언만으로 발화한다~~ **(번복됨 — imports 제거)** 지금은 `runtimeOnly` 의존 선언 + 앱 `ModuleScanConfig`의 `"com.tastyhouse.logging"` 한 항목으로 등록된다(4앱 전부 — batch-module도 의도된 동작). 문자열이라 `runtimeOnly`가 유지된다.
 - **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain`/`infrastructure:persistence`/`infrastructure:restclient`를 비롯한 외부 연동 모듈 7개/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
 - **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. ~~마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.~~ **(번복됨)** 이제 `ApiLoggingAspect`가 마스킹을 거쳐 `[BODY]`를 찍으므로 목록 갱신이 즉시 반영된다.
@@ -125,10 +125,11 @@ dependencies {
 
 ### `LoggingModuleAutoConfiguration`을 끄는 방법
 
-**대상**: `backend/logging-module/src/main/java/com/tastyhouse/logging/LoggingModuleAutoConfiguration.java`
-→ 클래스 선언
+> **(번복됨 — imports 제거)** `LoggingModuleAutoConfiguration`은 삭제됐고 `spring.autoconfigure.exclude`도 더는 통하지 않는다. **지금 끄는 방법은 그 앱 부트스트랩의 중첩 `ModuleScanConfig`에서 `"com.tastyhouse.logging"`을 빼고, 그 앱 `ApplicationLayerScanConfigTest`의 기대 목록도 함께 고치는 것**이다. 제목은 앵커 보존을 위해 그대로 둔다.
 
-이 모듈이 앱의 runtimeClasspath에 있으면 **자동으로 활성화되며**(조건 없음), 앱은 `runtimeOnly`로만
-의존한다(4개 앱 전부). 끄려면 `spring.autoconfigure.exclude`를 쓴다.
+**대상**: 각 앱 부트스트랩(`WebApiApplication`·`AdminApiApplication`·`CeoApiApplication`·`BatchApplication`) → 중첩 `ModuleScanConfig`
+
+~~이 모듈이 앱의 runtimeClasspath에 있으면 **자동으로 활성화되며**(조건 없음), 앱은 `runtimeOnly`로만
+의존한다(4개 앱 전부). 끄려면 `spring.autoconfigure.exclude`를 쓴다.~~
 
 <!-- MANUAL: -->

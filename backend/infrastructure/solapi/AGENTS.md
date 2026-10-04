@@ -10,7 +10,7 @@ Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSender`(`web-app
 
 ```
 com.tastyhouse.infrastructure.solapi/
-├── SolapiModuleAutoConfiguration.java    @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(SolapiProperties)
+├── SolapiModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(SolapiProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 SolapiModuleAutoConfiguration에서 리네임
 ├── SolapiSmsClient.java                  SmsSender 구현 @ConditionalOnProperty(sms.provider=solapi, matchIfMissing=true)
 ├── SolapiProperties.java                 sms.solapi.*
 └── dto/

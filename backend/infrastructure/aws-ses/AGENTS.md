@@ -24,7 +24,7 @@ AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). `web-app
 
 ```
 com.tastyhouse.infrastructure.aws.ses/
-├── AwsSesModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
+├── ~~AwsSesModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)~~ (번복됨 — imports 제거로 삭제. 빈은 앱 ModuleScanConfig의 com.tastyhouse.infrastructure 스캔이 등록)
 ├── SesConfig.java                      SesClient 빈 + MailSender 빈   @ConditionalOnProperty(mail.provider=ses)
 └── SesMailSender.java                  MailSender 구현 (POJO — SesConfig가 @Bean으로 등록), 발송 실패는 MailSendResult로 반환
 ```
@@ -64,7 +64,9 @@ com.tastyhouse.infrastructure.aws.ses/
 
 ### 진입 설정은 자기 하위 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/AwsSesModuleAutoConfiguration.java`
+> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+
+**대상**: ~~`backend/infrastructure/aws-ses/src/main/java/com/tastyhouse/infrastructure/aws/ses/AwsSesModuleAutoConfiguration.java`~~ (imports 제거로 삭제)
 
 `com.tastyhouse.infrastructure.aws` 루트를 스캔하지 않는다. 형제 모듈(`aws-s3`·`aws-sns`)이 같은 클래스패스에 있으면 그 빈까지 이 설정이 등록하게 된다.
 

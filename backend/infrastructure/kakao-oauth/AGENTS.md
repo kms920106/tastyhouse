@@ -10,7 +10,7 @@
 
 ```
 com.tastyhouse.infrastructure.kakao.oauth/
-├── KakaoOAuthModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(KakaoOAuthProperties)
+├── KakaoOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(KakaoOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 KakaoOAuthModuleAutoConfiguration에서 리네임
 ├── KakaoOAuthProperties.java               oauth.kakao.* (client-id, redirect-uri)
 ├── KakaoOAuthClient.java                   SocialOAuthClient 구현 — 토큰 교환(kauth.kakao.com) + userinfo(kapi.kakao.com), 동기 RestClient
 └── dto/
@@ -20,7 +20,7 @@ com.tastyhouse.infrastructure.kakao.oauth/
 
 `KakaoOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `KakaoOAuthProperties`를 받아 같은 이름의 `final` 필드(`clientId`·`redirectUri`)로 옮긴다.
 
-테스트: `KakaoOAuthModuleAutoConfigurationTest`(`ApplicationContextRunner`, 4건) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
+테스트: `KakaoOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — imports 제거로 `KakaoOAuthModuleAutoConfigurationTest`에서 리네임. `withUserConfiguration(KakaoOAuthModuleConfig.class, KakaoOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
 
 ## 어느 앱이 의존하는가
 

@@ -14,7 +14,7 @@
 
 ```
 com.tastyhouse.infrastructure.admdongkor/
-├── AdmdongkorModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(AdminDongBoundaryProperties)
+├── AdmdongkorModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(AdminDongBoundaryProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 AdmdongkorModuleAutoConfiguration에서 리네임
 ├── AdminDongBoundaryClient.java            AdminDongBoundaryPort 구현
 ├── AdminDongBoundaryProperties.java        region.admin-dong.boundary.*
 └── BoundedInputStream.java                 응답 크기 상한 스트림
@@ -24,7 +24,7 @@ com.tastyhouse.infrastructure.admdongkor/
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:admdongkor')`). 행정동 마스터 동기화(`AdminDongSchedulerService`)가 소비한다. 클래스패스 존재만으로 `AdmdongkorModuleAutoConfiguration`이 발화하므로 `@Import`는 없다.
+**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:admdongkor')`). 행정동 마스터 동기화(`AdminDongSchedulerService`)가 소비한다. 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`AdmdongkorModuleAutoConfiguration`이 발화~~ — imports 제거, 설정 클래스는 `AdmdongkorModuleConfig`).
 
 ## 수집 방식
 
@@ -91,7 +91,9 @@ GeoJSON 좌표 배열은 `[경도, 위도]` 순서이고 `GeoPoint`는 `(위도,
 
 ### 진입 설정은 자기 패키지만 스캔한다
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdmdongkorModuleAutoConfiguration.java`
+> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdmdongkorModuleConfig.java`(imports 제거 전 `AdmdongkorModuleAutoConfiguration.java`)
 
 분리 전 `CrawlingModuleAutoConfiguration`은 `external.crawling`과 `external.region` 두 패키지를 함께 스캔했다. 스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
 

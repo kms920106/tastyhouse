@@ -10,7 +10,7 @@
 
 ```
 com.tastyhouse.infrastructure.apple.oauth/
-├── AppleOAuthModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(AppleOAuthProperties)
+├── AppleOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(AppleOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 AppleOAuthModuleAutoConfiguration에서 리네임
 ├── AppleOAuthProperties.java               oauth.apple.* (team-id, client-id, key-id, redirect-uri, private-key)
 ├── AppleOAuthClient.java                   SocialOAuthClient 구현 — ES256 client_secret 생성·토큰 교환·id_token(RS256) 검증
 └── dto/
@@ -20,7 +20,7 @@ com.tastyhouse.infrastructure.apple.oauth/
 
 `AppleOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `AppleOAuthProperties`를 받아 같은 이름의 `final` 필드로 옮기며, **개인키만 이름이 다르다** — `privateKeyBase64 = properties.privateKey()`(값이 Base64 문자열이라는 것을 필드명이 드러낸다).
 
-테스트: `AppleOAuthModuleAutoConfigurationTest`(`ApplicationContextRunner`, 4건) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
+테스트: `AppleOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — imports 제거로 `AppleOAuthModuleAutoConfigurationTest`에서 리네임. `withUserConfiguration(AppleOAuthModuleConfig.class, AppleOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
 
 ## 어느 앱이 의존하는가
 

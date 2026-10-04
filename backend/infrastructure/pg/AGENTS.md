@@ -122,7 +122,7 @@ public class PgRouterConfig {
 ## 주의
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- 벤더 auto-configuration(`TossPaymentsModuleAutoConfiguration`)은 조건이 없어 `--debug` 리포트의 "Unconditional classes" 절에 나온다. 스캔된 라우터·어댑터 빈은 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다.
+- ~~벤더 auto-configuration(`TossPaymentsModuleAutoConfiguration`)은 조건이 없어 `--debug` 리포트의 "Unconditional classes" 절에 나온다.~~ **(번복됨 — imports 제거)** 벤더 설정은 이제 `TossPaymentsModuleConfig`(일반 `@Configuration`)라 `--debug` 조건 리포트에 나오지 않는다. 스캔된 라우터·어댑터 빈은 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다.
 - 결제 실패는 도메인 `BusinessException(ErrorCode.X)`으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
 
 ## 봉인·가드 목록
@@ -153,6 +153,6 @@ public class PgRouterConfig {
 
 ### 진입 설정이 벤더 클래스를 참조하지 않는다, 벤더는 이 모듈을 의존하지 않는다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentsModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentsModuleConfig.java`(imports 제거 전 `TossPaymentsModuleAutoConfiguration.java`)
 
-옛 `PaymentModuleAutoConfiguration`은 `@EnableConfigurationProperties(TossPaymentProperties.class)`를 들고 있었다. 채널이 벤더 클래스를 컴파일 참조하면 `runtimeOnly` 조립이 불가능해지므로 그 등록은 벤더의 `TossPaymentsModuleAutoConfiguration`으로 옮겼다. 반대로 벤더가 이 모듈을 `implementation`으로 의존하면 채널 ↔ 벤더 순환이다. 벤더가 채널 값을 써야 하면 프로퍼티 키로만 읽는다.
+옛 `PaymentModuleAutoConfiguration`은 `@EnableConfigurationProperties(TossPaymentProperties.class)`를 들고 있었다. 채널이 벤더 클래스를 컴파일 참조하면 `runtimeOnly` 조립이 불가능해지므로 그 등록은 벤더의 `TossPaymentsModuleAutoConfiguration`(imports 제거 후 `TossPaymentsModuleConfig`)으로 옮겼다. 반대로 벤더가 이 모듈을 `implementation`으로 의존하면 채널 ↔ 벤더 순환이다. 벤더가 채널 값을 써야 하면 프로퍼티 키로만 읽는다.

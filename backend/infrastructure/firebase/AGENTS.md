@@ -8,7 +8,7 @@ Firebase Storage 파일 저장을 소유하는 벤더 어댑터 모듈(`java-lib
 
 ```
 com.tastyhouse.infrastructure.firebase/
-├── FirebaseModuleAutoConfiguration.java  진입점 — 챕터 02로 FirebaseModuleConfig에서 리네임 + @AutoConfiguration, 자기 등록
+├── FirebaseModuleConfig.java  @Configuration(proxyBeanMethods = false) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 FirebaseModuleAutoConfiguration에서 리네임
 ├── FirebaseStorageConfig.java      FirebaseApp 빈 (서비스 계정 JSON으로 초기화)
 ├── FirebaseFileStorage.java        FileStoragePort 직접 구현 (업로드·URL·삭제, 삭제는 FileDeleteResult 반환)
 └── FirebaseStorageProperties.java  file.firebase.* 프로퍼티
@@ -16,11 +16,11 @@ com.tastyhouse.infrastructure.firebase/
 
 ## 어느 앱이 의존하는가
 
-**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로 `@Import`는 없다. **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
+**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). 클래스패스에 실리면 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록~~ — 번복됨, imports 제거). **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
 
 ## 진입 설정과 스캔 범위
 
-`FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration(proxyBeanMethods = false)`, `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.infrastructure.firebase")` + `@EnableConfigurationProperties(FirebaseStorageProperties.class)`를 갖는다. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
+`FirebaseModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 `@EnableConfigurationProperties(FirebaseStorageProperties.class)`만 갖고, 빈 스캔은 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure`가 한다. **(번복됨 — imports 제거)** ~~`FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration`, `AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.infrastructure.firebase")` + `@EnableConfigurationProperties(...)`를 갖는다~~. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
 
 **`@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")`는 `FirebaseFileStorage`·`FirebaseStorageConfig` 두 구현 클래스에 붙어 있고 진입 설정에는 없다.** 따라서 이 모듈이 클래스패스에 있더라도 `file.provider`가 `firebase`가 아니면 빈이 등록되지 않는다 — 그때는 다른 `FileStoragePort` 구현(S3)이 등록돼 있어야 하며, 구현이 하나도 없으면 `FileStoragePort`를 주입받는 persistence 빈(`FileUrlResolver`·`FileDomainConfig`)이 그 빈을 찾지 못해 **기동 시** 실패한다. 구현은 `file.provider`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나다.
 
@@ -59,7 +59,7 @@ file:
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선 (챕터 03 개정)**: `FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
+- **빈 배선 (챕터 03 → imports 제거로 개정)**: 이 모듈은 클래스패스에 실리기만 하면 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로(~~`FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록~~), 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
 - **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FirebaseFileStorage#getFileUrl`(`FileStoragePort#getFileUrl` 구현, Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고 DB에는 URL이 아니라 그 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
 
 ## 봉인·가드 목록
@@ -84,6 +84,6 @@ file:
 
 ### 클래스패스 존재 = 활성화, 다만 provider 조건이 한 겹 더 있다
 
-**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/FirebaseModuleAutoConfiguration.java`
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/FirebaseModuleConfig.java`(imports 제거 전 `FirebaseModuleAutoConfiguration.java`)
 
-이 auto-configuration은 클래스패스 존재만으로 활성화되고, 현재 4개 앱 전부가 (스타터를 통해) 이 모듈을 `runtimeOnly`로 받는다. 다만 `FirebaseFileStorage`는 `@ConditionalOnProperty(file.provider=firebase)`이므로 **모듈이 클래스패스에 있어도 provider가 다르면 빈이 등록되지 않는다.** 즉 "기동에 성공했다"는 사실이 이 전략이 선택됐다는 증거가 아니다 — 조건부 전략 배선은 틀린 provider 값으로 **실패를 확인하는 반증 테스트**로 검증한다.
+이 모듈은 클래스패스 존재만으로 활성화되고(imports 제거 후에는 앱 `ModuleScanConfig`의 스캔이 그 주체다), 현재 4개 앱 전부가 (스타터를 통해) 이 모듈을 `runtimeOnly`로 받는다. 다만 `FirebaseFileStorage`는 `@ConditionalOnProperty(file.provider=firebase)`이므로 **모듈이 클래스패스에 있어도 provider가 다르면 빈이 등록되지 않는다.** 즉 "기동에 성공했다"는 사실이 이 전략이 선택됐다는 증거가 아니다 — 조건부 전략 배선은 틀린 provider 값으로 **실패를 확인하는 반증 테스트**로 검증한다.

@@ -52,7 +52,7 @@ backend/infrastructure/file-storage/
 
 **(번복됨 — chunk 02-vendor-ports)** 과거에는 메일·SMS 채널 모듈(`infrastructure:mail`·`infrastructure:sms`)이 `MailDomainConfig`/`SmsDomainConfig` 코드를 갖고 이 모듈과 다른 개념이었다 — 그쪽은 포트 구현이 web에만 있어 도메인 서비스 빈을 persistence에 둘 수 없는 채널이고, 파일 저장은 `FileDomainConfig`가 persistence에 남아 이 모듈에 둘 코드가 없다는 것이 그 근거였다(`../mail/AGENTS.md`의 "채널 모듈과 파일 저장 스타터의 차이"). **지금은 `FileDomainConfig`·`MailDomainConfig`·`SmsDomainConfig` 셋 다 삭제됐다** — 도메인 서비스(`FileUploadService`·`MailVerificationService`·`SmsVerificationService`)가 전부 유스케이스 계층으로 재분류되어 `application`의 마커 등록 설정(`FileServiceConfig`·`MailServiceConfig`·`SmsServiceConfig` — **이 세 설정도 이후 application `*ServiceConfig` 삭제로 없어졌고, 지금은 서비스 클래스의 마커(`FileUploadService`는 `@SharedApp`, 나머지 둘은 `@WebApp`)가 등록한다**)이 대신하므로, 파일·메일·SMS 세 채널이 이제 같은 형태(코드 없는 스타터)로 수렴했다.
 
-**자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 auto-configuration을 갖지 않는다(`META-INF/spring/...AutoConfiguration.imports` 없음) — 빈 등록은 조립 대상인 firebase의 auto-configuration이 수행한다.
+**자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 설정 클래스도 `AutoConfiguration.imports`도 갖지 않는다 — 빈 등록은 4앱 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 조립 대상(firebase)의 클래스를 잡아 수행하고, firebase의 `FirebaseModuleConfig`가 Properties만 등록한다(~~조립 대상인 firebase의 auto-configuration이 수행한다~~ — 번복됨, imports 제거).
 
 파일 저장 관련 코드가 필요해지면 소속은 둘 중 하나다.
 

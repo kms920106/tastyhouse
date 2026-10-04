@@ -10,7 +10,7 @@ JavaMail(SMTP) 메일 발송 **벤더 모듈**(`java-library`). 포트 `MailSend
 
 ```
 com.tastyhouse.infrastructure.javamail/
-├── JavaMailModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)
+├── ~~JavaMailModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)~~ (번복됨 — imports 제거로 삭제. 빈은 앱 ModuleScanConfig의 com.tastyhouse.infrastructure 스캔이 등록)
 └── JavaMailAdapter.java                  MailSender 구현 @ConditionalOnProperty(mail.provider=javamail, matchIfMissing=true)
 ```
 

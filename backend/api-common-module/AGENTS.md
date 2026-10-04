@@ -19,12 +19,22 @@
 | Directory | Purpose |
 |-----------|---------|
 | `src/main/java/com/tastyhouse/apicommon/common/` | `ApiResponse<T>`(성공 응답 + `Pagination`), `PaginationResponse<T>`(표준 4필드 페이징), `PageRequest`(`@ModelAttribute` 페이징 요청) |
-| `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler` — **`@Bean("sharedGlobalExceptionHandler")`로 조건부 등록**(아래 "등록 방식" 절). web-api는 자체 핸들러가 있어 이 빈이 등록되지 않는다 |
+| `src/main/java/com/tastyhouse/apicommon/exception/` | `GlobalExceptionHandler`(`@RestControllerAdvice`) — admin-api·ceo-api 부트스트랩의 중첩 `ModuleScanConfig`가 이 패키지를 스캔해 직접 등록한다(빈 이름 `globalExceptionHandler`). web-api는 자체 핸들러가 있어 이 패키지를 스캔하지 않는다. **(번복됨 — imports 제거)** ~~`@Bean("sharedGlobalExceptionHandler")`로 조건부 등록~~ |
 | `src/main/java/com/tastyhouse/apicommon/ratelimit/` | rate limit **표현 관심사 전부** — `@RateLimit`·`RateLimitKeyType`·`RateLimitAspect`(키 조립: IP·요청 필드 해석)·`RateLimitException`. 카운터 계약 `RateLimitCounterPort`는 **`security-core`(`com.tastyhouse.security.ratelimit`) 소유**(~~이 패키지 소유~~ 번복됨 — 아래 [security-core로 옮긴 이유](#ratelimitcounterport를-security-core로-옮긴-이유)), 카운터 구현은 `infrastructure:redis`의 `RedisRateLimitCounter`(챕터 02) |
 | `src/main/java/com/tastyhouse/apicommon/file/` | `FileService` — `MultipartFile`을 도메인 `FileUploadCommand`로 바꾸는 얇은 업로드 어댑터(조회·URL 변환 책임 없음) |
 | `src/main/java/com/tastyhouse/apicommon/shop/response/` | admin↔ceo 바이트 동일이던 shop 응답 record 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`) |
 
 ## 등록 방식 — auto-configuration (챕터 02 개정, 전면 교체)
+
+> **(번복됨 — imports 제거)** 제목은 앵커 보존을 위해 그대로 둔다. 지금 이 모듈에는 imports 파일이 없고, 앱별 차이는 다시 **스캔 범위**로 표현한다 — 조건(`@ConditionalOnMissingBean`/`@ConditionalOnBean`)은 일반 `@Configuration`에서 처리 순서에 좌우돼 믿을 수 없어 쓰지 않는다.
+>
+> | 클래스 | before | after |
+> |---|---|---|
+> | 예외 핸들러 등록 | `ApiCommonModuleAutoConfiguration`의 `@Bean("sharedGlobalExceptionHandler")` + `@ConditionalOnMissingBean(annotation = RestControllerAdvice.class)` | 설정 클래스 **삭제**. `GlobalExceptionHandler`(`@RestControllerAdvice`)를 admin·ceo의 `ModuleScanConfig`가 `com.tastyhouse.apicommon.exception` 스캔으로 직접 등록(빈 이름 `globalExceptionHandler`). web은 그 패키지를 스캔하지 않는다 |
+> | rate limit aspect | `ApiCommonRateLimitAutoConfiguration` — `@ConditionalOnBean(RateLimitCounterPort)` + `afterName = "…RedisModuleAutoConfiguration"` | **`ApiCommonRateLimitConfig`**(`@Configuration(proxyBeanMethods = false)` + `@ConditionalOnWebApplication(SERVLET)`) — `@Bean RateLimitAspect`. web·admin·ceo의 `ModuleScanConfig`가 `com.tastyhouse.apicommon.ratelimit`을 스캔해 등록. 빈 존재 조건·`afterName` 삭제(스캔하는 세 앱은 전부 Redis 카운터를 갖는다) |
+> | 앱의 배선 | 0줄(imports 파일) | 각 앱 `ModuleScanConfig`의 패키지 문자열 1~2항목. 문자열이라 `implementation` 의존 그대로 컴파일 게이트 무관 |
+>
+> 아래 표와 항목은 챕터 02 시점 기록이다.
 
 **과거 이 절은 "부분 진입점 스캔"(`ApiCommonConfig` 전체 스캔 vs `ApiCommonFileConfig`+`ApiCommonRateLimitConfig` 부분 스캔) 구조를 다뤘다. 그 구조는 챕터 02로 완전히 사라졌다** — `ApiCommonConfig`·`ApiCommonRateLimitConfig` 두 `@Configuration` 진입점 클래스 자체가 **삭제**됐고, 대신 아래 두 `@AutoConfiguration` 클래스가 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다. 3개 api 모듈 어디에도 `@Import(ApiCommon...)`가 없다 — "클래스패스 존재 = 활성화"이며, 앱별 차이는 스캔 범위가 아니라 **`@Bean` 메서드의 조건**으로 표현한다.
 
@@ -38,6 +48,16 @@
 - **과거 "부분 진입점을 쓰는 앱에 패키지를 추가할 때는 그 앱의 `@Import`도 함께 늘린다"는 함정은 이제 존재하지 않는다.** admin/ceo/web 어느 쪽도 `@Import`를 갖지 않으므로 배선 누락이라는 실패 양식 자체가 사라졌다 — 대신 위 조건이 앱별 차이를 자동으로 답한다.
 
 ## 스캔 주의 (조건부 등록이 곧 동작 — 개정)
+
+> **(번복됨 — imports 제거)** 다시 "어느 앱이 어느 패키지를 스캔하는가"가 런타임 동작을 결정한다. 현재 판정:
+>
+> | 앱 | `globalExceptionHandler`(공용) | `rateLimitAspect` |
+> |---|---|---|
+> | `AdminApiApplication` / `CeoApiApplication` | 등록 — `apicommon.exception` 스캔 | 등록 — `apicommon.ratelimit` 스캔 |
+> | `WebApiApplication` | 미등록 — 스캔 안 함(같은 이름의 빈은 web 자체 `webapi.exception.GlobalExceptionHandler`) | 등록 — 스캔 |
+> | `BatchApplication` | 미등록 — 스캔 안 함(jar도 클래스패스에 없다) | 미등록 — 동일 |
+>
+> 목록은 각 앱 `ApplicationLayerScanConfigTest`의 `assertScansModulesWithoutFilters`가 정확 일치로 검사한다. 아래 표는 챕터 02 시점 기록이다.
 `GlobalExceptionHandler`(`@RestControllerAdvice`)와 `RateLimitAspect`는 이제 컴포넌트 스캔이 아니라 **`@Bean` 메서드 + 조건**으로 등록되므로, "어느 앱이 어느 패키지를 스캔하는가"가 아니라 "어느 앱이 어떤 조건을 만족하는가"가 런타임 동작을 결정한다.
 
 | 앱 | `sharedGlobalExceptionHandler` | `rateLimitAspect` |
@@ -66,8 +86,8 @@
   | presentation 컴파일 클래스패스의 `domain` | 있음(이 `api` 노출 경유) | **없음** — `application`은 `domain`을 `implementation`으로만 가진다 |
 
   `domain`이 되돌아오는 회귀는 `src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java` → `shouldNotDependOnDomain`이 잡는다(이 모듈 전체 ✗ `com.tastyhouse.domain..`, 테스트 의존 `archunit-junit5` 신설).
-- `security-core` (implementation — **신설 간선**) — `RateLimitAspect`·`ApiCommonRateLimitAutoConfiguration`이 쓰는 `RateLimitCounterPort`의 소유 모듈. `api`로 노출하지 않는다 — web·admin·ceo는 `security-module`의 `api project(':security-core')`로 이미 이 모듈을 받는다. 부수적으로 compileClasspath에 `jjwt-api`가 security-core를 통해 전이로 실리는데 허용 범위다(`spring-security-core`는 원래 직접 선언돼 있다).
-- `infrastructure:redis` (**testImplementation**) — `afterName` 문자열이 가리키는 `RedisModuleAutoConfiguration`이 실재하는지 리플렉션으로 단정하려고 테스트에서만 본다(아래 [`afterName`에 클래스 리터럴을 쓸 수 없는 이유](#aftername에-클래스-리터럴을-쓸-수-없는-이유-순환-회피)). `ApplicationContextRunner`가 `AutoConfigurations.of(...)`로 대상 클래스를 명시하므로, 테스트 클래스패스에 redis의 imports 파일이 있어도 redis auto-config가 저절로 로딩되지는 않는다.
+- `security-core` (implementation — **신설 간선**) — `RateLimitAspect`·`ApiCommonRateLimitConfig`(당시 이름 `ApiCommonRateLimitAutoConfiguration`)가 쓰는 `RateLimitCounterPort`의 소유 모듈. `api`로 노출하지 않는다 — web·admin·ceo는 `security-module`의 `api project(':security-core')`로 이미 이 모듈을 받는다. 부수적으로 compileClasspath에 `jjwt-api`가 security-core를 통해 전이로 실리는데 허용 범위다(`spring-security-core`는 원래 직접 선언돼 있다).
+- **(번복됨 — imports 제거: 이 테스트 의존은 삭제됐다. `afterName`이 사라져 검증할 문자열이 없다. 지금 이 모듈은 main·test 어느 클래스패스에서도 redis를 모른다)** ~~`infrastructure:redis` (**testImplementation**)~~ — `afterName` 문자열이 가리키는 `RedisModuleAutoConfiguration`이 실재하는지 리플렉션으로 단정하려고 테스트에서만 본다(아래 [`afterName`에 클래스 리터럴을 쓸 수 없는 이유](#aftername에-클래스-리터럴을-쓸-수-없는-이유-순환-회피)). `ApplicationContextRunner`가 `AutoConfigurations.of(...)`로 대상 클래스를 명시하므로, 테스트 클래스패스에 redis의 imports 파일이 있어도 redis auto-config가 저절로 로딩되지는 않는다.
 - **main 클래스패스에서는 여전히 `infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 rate limit의 표현 관심사(`@RateLimit`·`RateLimitAspect`·`RateLimitException`, 당시에는 `RateLimitCounterPort`까지)를 이 모듈로 올리고 Redis 카운터만 인프라에 남겨 **포트로 역전**했다. ~~방향은 이제 `redis → api-common`이다.~~ **(번복됨)** 그 뒤 계약을 `security-core`로 옮겨, 방향은 이제 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — redis도 이 모듈을 모르고, 이 모듈도 redis를 모른다.
 
 ### External
@@ -84,18 +104,19 @@
 
 ### rate limit aspect에 프로퍼티 스위치를 두지 않는다
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitConfig.java`(imports 제거 전 `ApiCommonRateLimitAutoConfiguration.java`)
 → 클래스 선언 / `rateLimitAspect(RateLimitCounterPort)`
 
 web-api뿐 아니라 admin-api·ceo-api의 로그인 엔드포인트도 `@RateLimit(IP, 10회/60초)`로 이 aspect에
 의존한다. **앱별 on/off 프로퍼티는 그 보호를 조용히 제거하는 보안 회귀**가 되므로 추가하지 않는다.
-등록 조건은 "카운터 빈이 있는 서블릿 앱"뿐이다.
+등록 조건은 "`apicommon.ratelimit`을 스캔 목록에 둔 서블릿 앱"뿐이다(~~"카운터 빈이 있는 서블릿 앱"~~ — imports 제거로 빈 존재 조건 삭제). 끄려고 그 앱 `ModuleScanConfig`에서 패키지를 빼는 것도 같은 보안 회귀다.
 
 ### `@ConditionalOnWebApplication(SERVLET)` 두 건 — 재유입 방어선이므로 제거하지 않는다
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`,
-`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
-→ 두 클래스의 `@ConditionalOnWebApplication(type = SERVLET)`
+> **(번복됨 — imports 제거)** 지금은 **한 건**이다 — `ApiCommonModuleAutoConfiguration`이 삭제돼 `ApiCommonRateLimitConfig`의 조건만 남았다(환경 조건이라 일반 `@Configuration`에서도 정확하므로 유지). 예외 핸들러의 재유입 방어는 조건이 아니라 batch·web `ModuleScanConfig`가 `apicommon.exception`을 스캔하지 않는 것이 담당한다.
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitConfig.java`
+→ `@ConditionalOnWebApplication(type = SERVLET)` (과거 대상: ~~`ApiCommonModuleAutoConfiguration.java`~~·`ApiCommonRateLimitAutoConfiguration.java`)
 
 과거 batch-module은 이 모듈을 직접 의존하지 않으면서도
 `application → security-core → infrastructure:redis → api-common-module` **전이 사슬**로 클래스패스에
@@ -110,8 +131,10 @@ non-servlet 앱의 클래스패스에 다시 올리는 경우)에 대한 방어�
 
 ### 빈 이름 `sharedGlobalExceptionHandler`를 기본 이름으로 되돌리지 않는다
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`
-→ `@Bean("sharedGlobalExceptionHandler")`
+> **(번복됨 — imports 제거)** 이 봉인은 해제됐다. 등록 설정 클래스가 삭제되고 `GlobalExceptionHandler`가 스캔으로 직접 등록되면서 빈 이름은 기본값 **`globalExceptionHandler`**가 됐다(주입처 없음 — 영향 없음). 원래 취지인 "조용히 덮이지 않는다"는 지금도 성립한다 — web이 실수로 `apicommon.exception`을 스캔하면 web 자체 핸들러와 같은 기본 이름이 겹쳐 스캔 시점에 기동이 실패한다. 아래는 당시 기록이다.
+
+**대상**: ~~`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`
+→ `@Bean("sharedGlobalExceptionHandler")`~~ (삭제됨)
 
 web-api의 자체 핸들러와 단순명이 같아 기본 빈 이름 `globalExceptionHandler`는 충돌한다. 이름을 다르게
 둔 덕분에, 조건이 어떤 이유로 우회되더라도 `allow-bean-definition-overriding=false`로 **기동이 실패해
@@ -148,16 +171,19 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 
 ### `ApiCommonModuleAutoConfiguration`이 컴포넌트 스캔을 쓰지 않는 이유
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`
-→ 클래스 선언
+> **(번복됨 — imports 제거)** 이 클래스는 삭제됐다. 지금은 반대로 **앱이 이 모듈의 패키지를 골라 스캔**한다 — admin·ceo는 `apicommon.exception`·`apicommon.ratelimit`, web은 `apicommon.ratelimit`만. `com.tastyhouse.apicommon` 루트를 통째로 스캔하지 않는 이유는 아래 본문과 같다 — 나머지 공용 자산은 빈이 아니라 타입이다.
+
+**대상**: ~~`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ApiCommonModuleAutoConfiguration.java`~~ (삭제됨) → 지금은 각 앱 부트스트랩의 `ModuleScanConfig`
 
 이 모듈의 나머지 공용 자산(`ApiResponse`·`PageRequest`·`ClientIpResolver` 등)은 **빈이 아니라 타입**이라
 등록할 것이 없다. 앱별로 켜고 꺼야 하는 빈만 조건부 `@Bean`으로 등록한다.
 
 ### `afterName`에 클래스 리터럴을 쓸 수 없는 이유 (순환 회피)
 
-**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
-→ `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")`
+> **(번복됨 — imports 제거)** `afterName`과 `@ConditionalOnBean(RateLimitCounterPort.class)`는 삭제됐고, 그것을 검증하던 `rateLimitAutoConfigurationAfterNameResolvesToRealClass` 테스트와 `testImplementation project(':infrastructure:redis')`도 함께 삭제됐다. 순서를 선언할 필요가 없어졌기 때문이다 — 일반 `@Configuration`끼리는 순서 선언 수단이 없고, 빈 존재 조건을 쓰지 않으므로 순서가 결과를 바꾸지 않는다. 아래는 당시 기록이다.
+
+**대상**: ~~`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitAutoConfiguration.java`
+→ `@AutoConfiguration(afterName = "com.tastyhouse.infrastructure.redis.RedisModuleAutoConfiguration")`~~ (삭제됨)
 
 ~~의존 방향이 `infrastructure:redis → api-common-module`이라 api-common은 redis 모듈의 타입을 **컴파일
 시점에 볼 수 없다**(참조하면 순환).~~ **(번복됨 — 지금은 순환이 아니다.)** 방향이
@@ -215,7 +241,7 @@ web-api와 admin·ceo-api는 응답 계약이 달라 전역 핸들러를 각자 
 **대상**: `backend/security-core/src/main/java/com/tastyhouse/security/ratelimit/RateLimitCounterPort.java`
 → 인터페이스 선언 / `isLimitExceeded(String, int, Duration)`
 (소비 지점: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitAspect.java`,
-`ApiCommonRateLimitAutoConfiguration.java` → `@ConditionalOnBean(RateLimitCounterPort.class)`)
+`ApiCommonRateLimitConfig.java` → `rateLimitAspect(RateLimitCounterPort)` — 과거 `ApiCommonRateLimitAutoConfiguration.java`의 `@ConditionalOnBean(RateLimitCounterPort.class)`는 imports 제거로 삭제)
 
 > **이전 판단 — 표현 계층에 둔다 (번복됨)**: 챕터 02 당시 이 포트는 `com.tastyhouse.apicommon.ratelimit`에
 > 있었다. 그 전에는 api-common-module이 `RateLimitException` 처리를 위해 `infrastructure:redis`를 의존했고,
@@ -246,8 +272,10 @@ HTTP 관심사는 그대로 이 모듈의 `RateLimitAspect`에 남는다. 상세
 
 ### `ApiCommonAutoConfigurationTest`가 증명하는 것과 증명하지 못하는 것
 
-**대상**: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/ApiCommonAutoConfigurationTest.java`
-→ 클래스 선언 / `NonServletApplication`
+> **(번복됨 — imports 제거)** 이 테스트는 `src/test/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitConfigTest.java`로 옮겨지며 **2건**만 남았다 — `rateLimitAspectRegisteredInServletContext`(서블릿 컨텍스트에서 등록)와 `rateLimitAspectAbsentInNonServletContext`(비-서블릿에서 미등록). afterName 검증·핸들러 back-off·aspect 빈 존재 조건 등 대상이 사라진 4건은 삭제됐다. 핸들러가 web에 뜨지 않는 것은 이제 조건이 아니라 스캔 목록이므로, 그 보증은 각 앱 `ApplicationLayerScanConfigTest`의 `assertScansModulesWithoutFilters`가 맡는다. 같은 정리로 이 모듈 `LayerRulesTest`의 클래스 수 하한이 14 → 13으로 내려갔다(설정 클래스 1개 삭제). "단위 수준 근거일 뿐, 실제 회귀 방지는 앱 기동 실측"이라는 아래 결론은 유효하다.
+
+**대상**: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/ratelimit/ApiCommonRateLimitConfigTest.java`(과거 `ApiCommonAutoConfigurationTest.java`)
+→ 클래스 선언
 
 `ApplicationContextRunner` 기본값이 비-웹 컨텍스트라 batch의 `web-application-type: none`에 해당한다.
 `rateLimitAutoConfigurationAfterNameResolvesToRealClass`는 `afterName` 문자열이 실제 클래스를 가리키는지를

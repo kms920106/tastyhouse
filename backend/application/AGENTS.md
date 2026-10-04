@@ -201,7 +201,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 
 ### write 어댑터 작성 규칙 (현행)
 
-- **`XxxPersistencePort`는 `<ctx>/port/out/write/`에 둔다.** 시그니처는 도메인 타입(`Optional<Notice> findById(NoticeId)`)이고, 구현은 persistence `<ctx>/persistence/XxxPersistenceAdapter`(`@Repository`, `PersistenceModuleAutoConfiguration`의 스캔으로 4앱 전부에 뜬다)이다. 이 모듈에는 구현을 두지 않는다.
+- **`XxxPersistencePort`는 `<ctx>/port/out/write/`에 둔다.** 시그니처는 도메인 타입(`Optional<Notice> findById(NoticeId)`)이고, 구현은 persistence `<ctx>/persistence/XxxPersistenceAdapter`(`@Repository`, 4앱 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 4앱 전부에 뜬다 — ~~`PersistenceModuleAutoConfiguration`의 스캔~~ 번복됨, imports 제거)이다. 이 모듈에는 구현을 두지 않는다.
 - **write 포트는 `java..`·`com.tastyhouse.domain..`·`com.tastyhouse.application..port.out..`만 의존한다** — `LayerRulesTest#writePortsShouldOnlyDependOnDomainAndPortOut`. 서비스·UseCase·설정을 참조하면 persistence가 그 타입까지 봐야 해 `shouldNotDependOnApiModules`에 걸린다.
 - **변환은 persistence `XxxMapper`가 한다** — `toDomain(entity)`(`reconstitute` 호출)·`toEntity(domain)`·`applyChanges(entity, domain)`. enum은 `valueOf`/`name()`, ID·단일값 VO는 `Xxx.of(...)`/`.value()`, 복합 VO는 persistence 소유 `*Embeddable` 또는 평탄 컬럼으로 바꾼다. nullable enum·VO·FK는 `x == null ? null : ...` 삼항 가드를 **모든 FK에 예외 없이** 둔다(`backend/CLAUDE.md` "ID VO 경계 규칙").
 - **Store에 있던 로직은 PersistenceAdapter로 옮겼다** — 빈 컬렉션 조기 반환, `LinkedHashSet` 수집, 도메인 정책 상수 호출(예: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/reservation/persistence/ReservationPersistenceAdapter.java`가 `ReservationStatus.blockingStatuses()`를 `name()` 목록으로 풀어 쿼리에 넘긴다). 인터페이스 둘을 구현하던 Store(`ShopDeliveryTipStore`)는 PersistenceAdapter도 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort` 둘을 구현한다.
@@ -505,7 +505,7 @@ com.tastyhouse.application/
 
 | 앱 | 인증 방식 | 이 모듈에 있는 것 | api 모듈에 남은 것 |
 |---|---|---|---|
-| web | 소셜 로그인 SPI + JWT | `JwtTokenProvider` · `TokenService` · `CustomUserDetails(Service)` · `AuthCommandService` | `SecurityConfig` · `PublicPaths` (`JwtConfig`는 챕터 02에서 삭제 — 필터 빈은 `SecurityModuleAutoConfiguration`이 등록) |
+| web | 소셜 로그인 SPI + JWT | `JwtTokenProvider` · `TokenService` · `CustomUserDetails(Service)` · `AuthCommandService` | `SecurityConfig` · `PublicPaths` (`JwtConfig`는 챕터 02에서 삭제 — 필터 빈은 `SecurityModuleConfig`(당시 이름 `SecurityModuleAutoConfiguration`)가 등록) |
 | admin | `spring-security-core` + JWT | 위 + `AdminUserDetailsService` | 위 (`RedisRepositoryConfig`는 챕터 01에서 삭제 — 키 접두사는 `security.token-store.key-prefix` 프로퍼티) |
 | ceo | `spring-security-core` + JWT | 위 + `CeoUserDetailsService` | 위 (동일) |
 | batch | 없음 | — | — |
@@ -572,7 +572,7 @@ write 포트는 **≥ 107**(`RuleAnchorTest#writePortsExist` — `port.out.write
 
 ### 빌드 스크립트 형태
 - **(앱 마커 제거)** `testImplementation project(':{web,admin,ceo,batch}-application')` 4줄 — 이 모듈의 ArchUnit 테스트가 5모듈 전부를 보게 한다. test → main 방향이라 Gradle 순환이 아니다(앱 모듈은 `api project(':application')`로 이 모듈을 main에서 의존한다).
-- `java-test-fixtures` 플러그인 — ~~`AppOwnership`과~~(앱 마커 제거로 삭제) `ApplicationLayerScanAssertions`(앱 부트스트랩 스캔 단정 — 지금은 필터 없는 스캔·자기 앱 모듈만 로딩 단정, 각 앱의 `ApplicationLayerScanConfigTest`가 호출)를 api 4모듈 테스트가 재사용하기 위한 것이다. `testFixturesImplementation`으로 `spring-boot-autoconfigure`(`@SpringBootApplication`·`@ComponentScan` 애노테이션 읽기)와 `assertj-core`를 선언한 것은 `ApplicationLayerScanAssertions` 때문이다. **같은 파일을 각 모듈에 복제하면 두 벌이 갈라지므로** test fixture로 공유한다(위 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). `testFixturesApi`로 `archunit-junit5`를 노출하는 이유는 `AppOwnership`이 마커 애노테이션(main)과 ArchUnit을 함께 보기 때문이다.
+- `java-test-fixtures` 플러그인 — ~~`AppOwnership`과~~(앱 마커 제거로 삭제) `ApplicationLayerScanAssertions`(앱 부트스트랩 스캔 단정 — 지금은 필터 없는 스캔·자기 앱 모듈만 로딩 단정 + imports 제거로 신설된 `assertScansModulesWithoutFilters`(중첩 `ModuleScanConfig`의 패키지 목록 정확 일치 + 패키지마다 스테레오타입 클래스가 1개 이상 실재 — 문자열 오타·패키지 리네임으로 모듈 빈이 조용히 사라지는 것을 막는다. `@ConditionalOnWebApplication`이 붙은 설정이 비-웹 스캐너에서 걸러지지 않도록 조건을 평가하지 않고 `@Component` 메타 애노테이션만 본다)·`assertNoTastyhouseAutoConfiguration`(`ImportCandidates`에 `com.tastyhouse.` 항목 0건). 중첩 스캔 클래스는 `ApplicationLayerScanConfig`·`ModuleScanConfig` 2개만 허용, 각 앱의 `ApplicationLayerScanConfigTest`가 호출)를 api 4모듈 테스트가 재사용하기 위한 것이다. `testFixturesImplementation`으로 `spring-boot-autoconfigure`(`@SpringBootApplication`·`@ComponentScan` 애노테이션 읽기)와 `assertj-core`를 선언한 것은 `ApplicationLayerScanAssertions` 때문이다. **같은 파일을 각 모듈에 복제하면 두 벌이 갈라지므로** test fixture로 공유한다(위 [챕터 03](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복) 참고). `testFixturesApi`로 `archunit-junit5`를 노출하는 이유는 `AppOwnership`이 마커 애노테이션(main)과 ArchUnit을 함께 보기 때문이다.
 - **실행 모듈이 아니므로 `bootJar { enabled = false }` + `jar { enabled = true; archiveClassifier = '' }`** — plain jar만 만든다(`security-module` 선례). 아래 [주의](#주의) 참고.
 
 ### Internal
@@ -1608,7 +1608,7 @@ ceo 전용 Result에만 있는 것이 그 사례).
 - ~~`@SharedApp`은 **리스너 전용**이다~~ **(번복됨 — 덩어리 01)** `@SharedApp`("앱 소속 없음 = 4앱 전부")은 **리스너와 공유 `@Configuration`**에만 붙는다 — 그 밖(`..listener..`/`..config..` 밖, 또는 일반 `@Service`)에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막고, 반대로 리스너가 이 마커를 빠뜨리면 `listenersShouldBeShared`가 잡는다. 공유 설정이 등록하는 빈은 **마커 없는 POJO**여야 하며 `sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 강제한다(클래스에 마커를 달면 앱 격리에 걸리고, 스캔과 `@Bean`이 겹치면 기동이 실패한다). **(번복됨 — application `*ServiceConfig` 삭제)** 허용 대상에 **`..service..`의 마커-only 도메인 서비스**가 추가됐다(`port.in` UseCase 구현체·`*CommandService`/`*QueryService` 제외). 공유 설정은 `SharedBeanConfig` 하나뿐이고 "마커 없는 POJO만 `@Bean`" 규칙은 그 설정에 그대로 적용된다 — 마커를 단 서비스를 거기 `@Bean`으로 추가하면 스캔 빈과 이름이 겹쳐 기동이 실패한다.
 - **마커만 = 도메인 서비스, `@Service` + 마커 = 앱 오케스트레이터.** 새 도메인 서비스는 `@Bean`이 아니라 클래스에 소비 앱 마커만 단다(`markerOnlyClassesShouldBeDomainServices`가 위치를 강제한다).
 - `@Component` 메타를 얹지 않은 **순수 마커**로 유지한다 — 얹으면 기존 `@Service`의 의미가 흐려진다.
-- 라이브러리 모듈은 auto-configuration으로 자기 등록하지만 **application은 자기 등록하지 않는다** —
+- ~~라이브러리 모듈은 auto-configuration으로 자기 등록하지만~~ **(번복됨 — imports 제거: 이제 라이브러리 모듈도 자기 등록하지 않는다 — 각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 문자열 스캔으로 조립한다)** **application은 자기 등록하지 않는다** —
   application 계층은 **앱 정체성 그 자체**라 클래스패스 존재만으로 어느 앱인지 결정할 수 없다
   (4개 앱의 빈이 같은 jar에 있고 마커로만 갈린다). 그 선택은 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 한다.
   **(번복됨 — application `*ApplicationConfig` 삭제)** 과거에는 "이 설정만은 앱이 `@Import` 한다"였고 그 설정이 이 모듈의 `{App}ApplicationConfig`였다.
@@ -1738,7 +1738,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 표현 계층(web-api·api-common-module의 `GlobalExceptionHandler`, security-module의 필터 단계 핸들러)이 `com.tastyhouse.domain.exception`을 보지 않고도 에러 응답을 만들게 하는 번역점이다(덩어리 01). 규칙 본문은 `backend/CLAUDE.md` "예외·에러코드 소유 규칙".
 
 - **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
-- **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
+- **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`(imports 제거 후 `ratelimit/ApiCommonRateLimitConfigTest`)처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
 - **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(`reservation/service/ReservationCommandService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
 - **`ErrorContracts`는 `ErrorCode` 3종의 미러다.** 표현 계층이 특정 코드를 직접 내야 하는 자리(rate limit 429·권한 403·인증 401)는 `resolve`로 판정할 예외가 없으므로 상수가 필요한데, `ErrorCode`를 import할 수 없어 값을 복제했다. 복제는 갈라질 수 있으므로 `ErrorContractsConsistencyTest`가 각 미러의 상태·code·메시지를 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`와 대조하고, `resolve`의 의미(최상위만·cause 무시·하위 타입 포함)도 함께 단정한다. **새 미러를 추가하면 이 테스트에 대조 케이스도 추가한다.**
 

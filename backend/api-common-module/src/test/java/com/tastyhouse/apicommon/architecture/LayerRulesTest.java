@@ -19,7 +19,7 @@ class LayerRulesTest {
     void shouldNotDependOnDomain() {
         assertThat(classes.size())
             .as("모듈이 비면 noClasses() 전역 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(14);
+            .isGreaterThanOrEqualTo(13);
 
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")

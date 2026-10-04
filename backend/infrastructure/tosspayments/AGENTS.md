@@ -10,7 +10,7 @@
 
 ```
 com.tastyhouse.infrastructure.tosspayments/
-├── TossPaymentsModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지) + @EnableConfigurationProperties(TossPaymentProperties)
+├── TossPaymentsModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(TossPaymentProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 TossPaymentsModuleAutoConfiguration에서 리네임
 ├── TossPaymentGatewayAdapter.java            PgProviderGateway 구현, provider()=TOSS
 ├── TossPaymentClient.java                    결제 승인(confirmPayment)·취소(cancelPayment) HTTP 호출 — 동기 RestClient
 ├── TossPaymentUtils.java                     카드사 코드 매핑·일시 파싱

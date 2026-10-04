@@ -20,9 +20,9 @@
 |-----------|---------|
 | `src/main/java/com/tastyhouse/security/jwt/` | `JwtTokenProvider`(파라미터형 POJO, 서명/파싱), `JwtProperties`, `TokenType`, `JwtPrincipal`/`JwtPrincipalFactory`(앱별 principal 재구성 계약) |
 | `src/main/java/com/tastyhouse/security/token/` | **인터페이스 6종**(챕터 01) — `RefreshTokenRepository`·`BlacklistRepository` + 소셜 임시토큰 4종(`Kakao`/`Naver`/`Apple`/`Facebook`TempTokenRepository). 구현·키 접두사·TTL 정책은 전부 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.token`이 소유한다 |
-| `src/main/java/com/tastyhouse/security/ratelimit/` | **`RateLimitCounterPort` 1종** — `boolean isLimitExceeded(String key, int limit, Duration duration)`. `api-common-module`의 `com.tastyhouse.apicommon.ratelimit`에서 본문 그대로 옮겨 왔다. 구현은 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.ratelimit.RedisRateLimitCounter`, 소비자는 `api-common-module`의 `RateLimitAspect`·`ApiCommonRateLimitAutoConfiguration`(`@ConditionalOnBean(RateLimitCounterPort.class)`) |
+| `src/main/java/com/tastyhouse/security/ratelimit/` | **`RateLimitCounterPort` 1종** — `boolean isLimitExceeded(String key, int limit, Duration duration)`. `api-common-module`의 `com.tastyhouse.apicommon.ratelimit`에서 본문 그대로 옮겨 왔다. 구현은 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.ratelimit.RedisRateLimitCounter`, 소비자는 `api-common-module`의 `RateLimitAspect`·`ApiCommonRateLimitConfig`(~~`ApiCommonRateLimitAutoConfiguration`의 `@ConditionalOnBean(RateLimitCounterPort.class)`~~ — imports 제거로 리네임·조건 삭제) |
 
-자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). `SecurityModuleAutoConfiguration`(`security-module` 소유, 챕터 02로 `SecurityModuleConfig`에서 리네임 + `@AutoConfiguration`)의 `@ComponentScan("com.tastyhouse.security")`가 패키지 불변 덕분에 이 모듈로 이동한 `@Repository` 빈들도 그대로 스캔한다.
+자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.security"`를 스캔하므로 패키지 불변 덕분에 이 모듈의 빈도 그대로 잡힌다. **(번복됨 — imports 제거)** ~~`SecurityModuleAutoConfiguration`(챕터 02로 `SecurityModuleConfig`에서 리네임 + `@AutoConfiguration`)의 `@ComponentScan("com.tastyhouse.security")`가 스캔~~ — 지금 그 설정은 `SecurityModuleConfig`이고 스캔을 갖지 않는다.
 
 ## For AI Agents
 
@@ -101,7 +101,7 @@
 보거나 볼 수 있어 실익이 없다. (2) `domain` — rate limit은 비즈니스 규칙이 아니라 요청 방어 기술이며,
 redis가 `domain`을 모르는 순수 기술 모듈이라는 성질(`infrastructure/redis/AGENTS.md`)을 깨게 된다.
 
-동작 변경은 없다 — Redis 키·Lua 스크립트·`ApiCommonRateLimitAutoConfiguration`의 배선 조건이 그대로다.
+동작 변경은 없다 — Redis 키·Lua 스크립트·`ApiCommonRateLimitAutoConfiguration`(현 `ApiCommonRateLimitConfig` — imports 제거로 리네임, 빈 존재 조건 삭제)의 배선 조건이 그대로였다.
 
 ### `JwtPrincipal` / `JwtPrincipalFactory` — 앱별 principal 차이 흡수 계약
 

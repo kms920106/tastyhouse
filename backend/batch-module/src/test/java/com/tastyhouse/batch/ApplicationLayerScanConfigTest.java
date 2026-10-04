@@ -15,4 +15,18 @@ class ApplicationLayerScanConfigTest {
     void bootstrapShouldNotDeclareScanOrImportDirectly() {
         ApplicationLayerScanAssertions.assertBootstrapDoesNotDeclareScanOrImport(BatchApplication.class);
     }
+
+    @Test
+    void scansLibraryModulesByPackageName() {
+        ApplicationLayerScanAssertions.assertScansModulesWithoutFilters(
+            BatchApplication.class,
+            "com.tastyhouse.infrastructure",
+            "com.tastyhouse.logging"
+        );
+    }
+
+    @Test
+    void libraryModulesShouldNotSelfRegisterAsAutoConfiguration() {
+        ApplicationLayerScanAssertions.assertNoTastyhouseAutoConfiguration();
+    }
 }
