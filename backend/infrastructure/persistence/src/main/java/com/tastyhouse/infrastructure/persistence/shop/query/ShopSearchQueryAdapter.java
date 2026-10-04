@@ -28,6 +28,8 @@ import com.tastyhouse.application.shop.port.out.ShopSearchCondition;
 import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 import com.tastyhouse.infrastructure.persistence.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdCountRow;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdStringRow;
 import com.tastyhouse.infrastructure.persistence.shop.persistence.ShopJpaEntity;
 
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
@@ -389,30 +391,30 @@ public class ShopSearchQueryAdapter implements ShopSearchQueryPort, ShopSearchMa
 
     private Map<Long, String> stationNamesByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(shopJpaEntity.id, stationJpaEntity.stationName)
+            .select(Projections.constructor(IdStringRow.class, shopJpaEntity.id, stationJpaEntity.stationName))
             .from(shopJpaEntity)
             .join(stationJpaEntity).on(stationJpaEntity.id.eq(shopJpaEntity.stationId))
             .where(shopJpaEntity.id.in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)),
-                tuple -> Objects.requireNonNull(tuple.get(stationJpaEntity.stationName))
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.value())
             ));
     }
 
     private Map<Long, String> thumbnailUrlsByShopId(List<Long> shopIds) {
         Map<Long, String> filePathsByShopId = queryFactory
-            .select(shopJpaEntity.id, uploadedFileJpaEntity.filePath)
+            .select(Projections.constructor(IdStringRow.class, shopJpaEntity.id, uploadedFileJpaEntity.filePath))
             .from(shopJpaEntity)
             .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(shopJpaEntity.thumbnailImageFileId))
             .where(shopJpaEntity.id.in(shopIds))
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(uploadedFileJpaEntity.filePath) != null)
+            .filter(row -> row.value() != null)
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(shopJpaEntity.id)),
-                tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath))
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.value())
             ));
 
         return fileUrlResolver.resolveAll(filePathsByShopId);
@@ -420,21 +422,21 @@ public class ShopSearchQueryAdapter implements ShopSearchQueryPort, ShopSearchMa
 
     private Map<Long, List<String>> foodTypesByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType)
+            .select(Projections.constructor(IdStringRow.class, shopFoodTypeJpaEntity.shopId, shopFoodTypeCategoryJpaEntity.foodType))
             .from(shopFoodTypeJpaEntity)
             .join(shopFoodTypeCategoryJpaEntity).on(shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryJpaEntity.id))
             .where(shopFoodTypeJpaEntity.shopId.in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(shopFoodTypeJpaEntity.shopId)),
-                Collectors.mapping(tuple -> tuple.get(shopFoodTypeCategoryJpaEntity.foodType), Collectors.toList())
+                row -> Objects.requireNonNull(row.id()),
+                Collectors.mapping(IdStringRow::value, Collectors.toList())
             ));
     }
 
     private Map<Long, Long> reviewCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(reviewJpaEntity.shopId, reviewJpaEntity.shopId.count())
+            .select(Projections.constructor(IdCountRow.class, reviewJpaEntity.shopId, reviewJpaEntity.shopId.count()))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.in(shopIds),
@@ -445,22 +447,22 @@ public class ShopSearchQueryAdapter implements ShopSearchQueryPort, ShopSearchMa
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId)),
-                tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.shopId.count()))
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.count())
             ));
     }
 
     private Map<Long, Long> bookmarkCountsByShopId(List<Long> shopIds) {
         return queryFactory
-            .select(shopBookmarkJpaEntity.shopId, shopBookmarkJpaEntity.count())
+            .select(Projections.constructor(IdCountRow.class, shopBookmarkJpaEntity.shopId, shopBookmarkJpaEntity.count()))
             .from(shopBookmarkJpaEntity)
             .where(shopBookmarkJpaEntity.shopId.in(shopIds))
             .groupBy(shopBookmarkJpaEntity.shopId)
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.shopId)),
-                tuple -> Objects.requireNonNull(tuple.get(shopBookmarkJpaEntity.count()))
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.count())
             ));
     }
 

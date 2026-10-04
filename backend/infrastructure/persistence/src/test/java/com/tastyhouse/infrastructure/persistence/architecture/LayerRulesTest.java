@@ -122,6 +122,18 @@ class LayerRulesTest {
     }
 
     @Test
+    void queryAdaptersShouldNotUseTuple() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().haveFullyQualifiedName("com.querydsl.core.Tuple")
+            .orShould().dependOnClassesThat().haveFullyQualifiedName("com.querydsl.core.types.QTuple")
+            .orShould().dependOnClassesThat().haveFullyQualifiedName("com.querydsl.core.types.MappingProjection")
+            .because("Tuple은 타입 없는 행이라 위치 접근·같은 타입 컬럼 순서 착오가 컴파일을 통과한다 — "
+                + "다중 컬럼 select는 Projections.constructor로 public XxxRow record에 투영한다");
+
+        rule.check(classes);
+    }
+
+    @Test
     void infraOwnedQueryPortListShouldNotBeStale() {
         for (String portName : INFRA_OWNED_QUERY_PORTS) {
             if (!classes.contain(portName)) {

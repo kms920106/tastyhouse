@@ -1,22 +1,34 @@
 package com.tastyhouse.infrastructure.persistence.file.query;
 
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.MappingProjection;
+import java.util.List;
 
-class FileUrlProjection extends MappingProjection<String> {
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.FactoryExpressionBase;
+import com.querydsl.core.types.Visitor;
+
+class FileUrlProjection extends FactoryExpressionBase<String> {
 
     private final Expression<String> filePath;
     private final transient FileUrlResolver resolver;
 
     FileUrlProjection(Expression<String> filePath, FileUrlResolver resolver) {
-        super(String.class, filePath);
+        super(String.class);
         this.filePath = filePath;
         this.resolver = resolver;
     }
 
     @Override
-    protected String map(Tuple row) {
-        return resolver.resolve(row.get(filePath));
+    public List<Expression<?>> getArgs() {
+        return List.of(filePath);
+    }
+
+    @Override
+    public String newInstance(Object... args) {
+        return resolver.resolve((String) args[0]);
+    }
+
+    @Override
+    public <R, C> R accept(Visitor<R, C> visitor, C context) {
+        return visitor.visit(this, context);
     }
 }

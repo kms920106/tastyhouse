@@ -45,11 +45,12 @@ class ProjectionConstructorMatchingTest {
         for (Path source : javaSources()) {
             String text = read(source);
             List<String> imports = importsOf(text);
+            String packageName = packageOf(text);
             Matcher matcher = CALL_START.matcher(text);
 
             while (matcher.find()) {
                 String simpleName = matcher.group(1);
-                Class<?> target = resolve(simpleName, imports);
+                Class<?> target = resolve(simpleName, imports, packageName);
                 if (target == null || !target.isRecord()) {
                     continue;
                 }
@@ -218,7 +219,7 @@ class ProjectionConstructorMatchingTest {
         return arities;
     }
 
-    private Class<?> resolve(String simpleName, List<String> imports) {
+    private Class<?> resolve(String simpleName, List<String> imports, String packageName) {
         if (simpleName.contains(".")) {
             return load(simpleName);
         }
@@ -227,7 +228,18 @@ class ProjectionConstructorMatchingTest {
                 return load(imported);
             }
         }
-        return null;
+        if (packageName == null) {
+            return null;
+        }
+        return load(packageName + "." + simpleName);
+    }
+
+    private String packageOf(String text) {
+        return text.lines()
+            .filter(line -> line.startsWith("package "))
+            .map(line -> line.substring("package ".length()).replace(";", "").trim())
+            .findFirst()
+            .orElse(null);
     }
 
     private Class<?> load(String fullyQualifiedName) {

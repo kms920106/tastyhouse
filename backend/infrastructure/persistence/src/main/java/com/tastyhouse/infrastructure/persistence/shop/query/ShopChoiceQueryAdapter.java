@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
@@ -59,15 +58,15 @@ public class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceMa
             return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<Tuple> shopChoices = queryFactory
-            .select(
+        List<ShopChoiceRow> shopChoices = queryFactory
+            .select(Projections.constructor(ShopChoiceRow.class,
                 shopChoiceJpaEntity.id,
                 shopChoiceJpaEntity.shopId,
                 shopJpaEntity.name,
                 shopChoiceJpaEntity.title,
                 shopChoiceJpaEntity.content,
-                uploadedFileJpaEntity.filePath
-            )
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
+            ))
             .from(shopChoiceJpaEntity)
             .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(shopChoiceJpaEntity.shopId)
                 .and(shopJpaEntity.permanentlyClosed.eq(false))
@@ -78,23 +77,23 @@ public class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceMa
             .fetch();
 
         List<Long> shopIds = shopChoices.stream()
-            .map(tuple -> tuple.get(shopChoiceJpaEntity.shopId))
+            .map(ShopChoiceRow::shopId)
             .distinct()
             .toList();
 
         Map<Long, List<ProductSimpleResult>> productsByShopId = productsByShopId(shopIds, productLimit);
 
         List<EditorChoiceResult> content = shopChoices.stream()
-            .map(tuple -> {
-                Long shopIdValue = tuple.get(shopChoiceJpaEntity.shopId);
+            .map(row -> {
+                Long shopIdValue = row.shopId();
                 List<ProductSimpleResult> products = productsByShopId.getOrDefault(shopIdValue, new ArrayList<>());
                 return new EditorChoiceResult(
-                    tuple.get(shopChoiceJpaEntity.id),
+                    row.id(),
                     shopIdValue,
-                    tuple.get(shopJpaEntity.name),
-                    tuple.get(shopChoiceJpaEntity.title),
-                    tuple.get(shopChoiceJpaEntity.content),
-                    fileUrlResolver.resolve(tuple.get(uploadedFileJpaEntity.filePath)),
+                    row.name(),
+                    row.title(),
+                    row.content(),
+                    row.imageUrl(),
                     products
                 );
             })
@@ -159,8 +158,8 @@ public class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceMa
             productJpaEntity.discountInfo.discountRate
         );
 
-        List<Tuple> productTuples = queryFactory
-            .select(productShopLinkJpaEntity.shopId, productProjection)
+        List<ShopChoiceProductRow> productRows = queryFactory
+            .select(Projections.constructor(ShopChoiceProductRow.class, productShopLinkJpaEntity.shopId, productProjection))
             .from(productShopLinkJpaEntity)
             .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productShopLinkJpaEntity.productId))
             .innerJoin(shopJpaEntity).on(shopJpaEntity.id.eq(productShopLinkJpaEntity.shopId))
@@ -179,12 +178,12 @@ public class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceMa
             .where(productShopLinkJpaEntity.shopId.in(shopIds), productJpaEntity.deleted.isFalse())
             .fetch();
 
-        return productTuples.stream()
-            .filter(tuple -> tuple.get(productShopLinkJpaEntity.shopId) != null)
+        return productRows.stream()
+            .filter(row -> row.shopId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(productShopLinkJpaEntity.shopId)),
+                row -> Objects.requireNonNull(row.shopId()),
                 Collectors.mapping(
-                    tuple -> Objects.requireNonNull(tuple.get(productProjection)),
+                    row -> Objects.requireNonNull(row.product()),
                     Collectors.toList()
                 )
             ))

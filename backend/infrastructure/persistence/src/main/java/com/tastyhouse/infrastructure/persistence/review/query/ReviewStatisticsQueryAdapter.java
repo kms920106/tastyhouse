@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -110,24 +109,24 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
 
     @Override
     public Map<Integer, Long> getRatingCounts(Long shopId) {
-        List<Tuple> results = queryFactory
-            .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
+        List<ReviewRatingCountRow> results = queryFactory
+            .select(Projections.constructor(ReviewRatingCountRow.class, reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count()))
             .from(reviewJpaEntity)
             .where(reviewJpaEntity.shopId.eq(shopId), visibleToCustomer())
             .groupBy(reviewJpaEntity.totalRating.floor().intValue())
             .fetch();
 
         Map<Integer, Long> ratingMap = new HashMap<>();
-        for (Tuple row : results) {
-            ratingMap.put(row.get(0, Integer.class), row.get(1, Long.class));
+        for (ReviewRatingCountRow row : results) {
+            ratingMap.put(row.rating(), row.count());
         }
         return ratingMap;
     }
 
     @Override
     public Map<Integer, Long> getMonthlyReviewCounts(Long shopId, int year) {
-        List<Tuple> results = queryFactory
-            .select(reviewJpaEntity.createdAt.month(), reviewJpaEntity.count())
+        List<ReviewMonthCountRow> results = queryFactory
+            .select(Projections.constructor(ReviewMonthCountRow.class, reviewJpaEntity.createdAt.month(), reviewJpaEntity.count()))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
@@ -138,8 +137,8 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
             .fetch();
 
         Map<Integer, Long> monthlyMap = new HashMap<>();
-        for (Tuple row : results) {
-            monthlyMap.put(row.get(0, Integer.class), row.get(1, Long.class));
+        for (ReviewMonthCountRow row : results) {
+            monthlyMap.put(row.month(), row.count());
         }
         return monthlyMap;
     }
@@ -229,8 +228,8 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
     }
 
     public Map<Integer, Long> getRatingCounts(Long shopId, LocalDateTime from, LocalDateTime to) {
-        List<Tuple> results = queryFactory
-            .select(reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count())
+        List<ReviewRatingCountRow> results = queryFactory
+            .select(Projections.constructor(ReviewRatingCountRow.class, reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count()))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
@@ -242,15 +241,15 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
             .fetch();
 
         Map<Integer, Long> ratingMap = new HashMap<>();
-        for (Tuple row : results) {
-            ratingMap.put(row.get(0, Integer.class), row.get(1, Long.class));
+        for (ReviewRatingCountRow row : results) {
+            ratingMap.put(row.rating(), row.count());
         }
         return ratingMap;
     }
 
     public Map<String, Long> getMonthlyReviewCounts(Long shopId, LocalDateTime from, LocalDateTime to) {
-        List<Tuple> results = queryFactory
-            .select(yearMonthKey(), reviewJpaEntity.count())
+        List<ReviewYearMonthCountRow> results = queryFactory
+            .select(Projections.constructor(ReviewYearMonthCountRow.class, yearMonthKey(), reviewJpaEntity.count()))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
@@ -262,16 +261,16 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
             .fetch();
 
         Map<String, Long> monthlyMap = new HashMap<>();
-        for (Tuple row : results) {
-            monthlyMap.put(row.get(0, String.class), row.get(1, Long.class));
+        for (ReviewYearMonthCountRow row : results) {
+            monthlyMap.put(row.yearMonth(), row.count());
         }
         return monthlyMap;
     }
 
     @Override
     public Map<String, Double> getMonthlyAverageRatings(Long shopId, LocalDateTime from, LocalDateTime to) {
-        List<Tuple> results = queryFactory
-            .select(yearMonthKey(), reviewJpaEntity.totalRating.avg())
+        List<ReviewYearMonthAverageRow> results = queryFactory
+            .select(Projections.constructor(ReviewYearMonthAverageRow.class, yearMonthKey(), reviewJpaEntity.totalRating.avg()))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.shopId.eq(shopId),
@@ -283,8 +282,8 @@ public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, 
             .fetch();
 
         Map<String, Double> monthlyMap = new HashMap<>();
-        for (Tuple row : results) {
-            monthlyMap.put(row.get(0, String.class), row.get(1, Double.class));
+        for (ReviewYearMonthAverageRow row : results) {
+            monthlyMap.put(row.yearMonth(), row.average());
         }
         return monthlyMap;
     }

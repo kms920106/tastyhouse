@@ -345,7 +345,7 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `Projections.constructor`는 **리플렉션으로 생성자를 찾으므로 정적 호출부가 0개**다. IDE·정적분석이 "사용되지 않는 생성자"로 표시하지만 삭제하면 조회 시점에 `No constructor found`로 터진다.
 
-`backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/file/query/FileUrlProjection.java` → `map(Tuple)`도 같은 처지다. QueryDSL이 `MappingProjection#newInstance`를 거쳐 호출하므로 **정적 호출부가 0개**지만, 지우거나 비우면 `urlOf(...)`로 감싼 모든 URL 슬롯이 망가진다.
+`backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/file/query/FileUrlProjection.java` → `newInstance(Object...)`·`getArgs()`·`accept(...)`도 같은 처지다. QueryDSL이 select 평탄화·결과 압축 과정에서 호출하므로 **정적 호출부가 0개**지만, 지우거나 비우면 `urlOf(...)`로 감싼 모든 URL 슬롯이 망가진다.
 
 ### `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow` — 재조립 헬퍼 봉인 0개, 올리지 않는다
 
@@ -359,6 +359,17 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 - **알려진 한계 — 패턴은 `private … withResolved*(` 헬퍼만 센다.** 인라인 람다(`.map(row -> new XxxResult(..., resolve(row.xxx()), ...))`)나 public wither로 같은 재조립을 만들면 이 봉인을 빠져나간다. 02 롤아웃에서 실제로 그런 형태 4건(`ShopRequestQueryAdapter`의 이미지변경·배달지역 상세 람다 2건, `ShopNoticeQueryAdapter#findImageUrlsByNoticeIds` 람다, `OrderProductResult#withResolvedImageUrl` wither)을 함께 걷어냈다. Result record의 URL 슬롯을 `resolve(row.xxx())`로 다시 채우는 코드는 형태와 무관하게 리뷰에서 거절한다.
 - 패턴이 `private` 헬퍼만 세므로, 가시성을 바꿔 헬퍼를 늘리는 우회도 가능하다. 그것은 이 봉인의 의도를 우회한 것이므로 리뷰에서 거절한다.
 
+### `ProjectionConstructorMatchingTest`는 같은 패키지 투영 대상도 해석한다 — `resolve`의 package 폴백
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/ProjectionConstructorMatchingTest.java` → `resolve(String, List<String>, String)`·`packageOf(String)`
+
+| 항목 | before | after |
+|---|---|---|
+| `Projections.constructor(X.class, …)`의 `X` 해석 | 점이 든 이름 → 명시적 `import` → 실패하면 `null` | 같은 순서 + 실패하면 `<그 파일의 package>.<X>`로 한 번 더 |
+| 같은 패키지 record(`import` 없음) | `null` → 호출부의 `continue`로 **조용히 건너뜀**(인자 개수·순서 검사 없음) | 검사 대상 |
+
+DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 이 가드의 사각지대였다(`ShopTipAggregateRow`·`ProductSummaryRow`·`ShopNoticeRow`·`BugReportDetailProjection` 등 9종 12곳). Tuple 제거로 같은 패키지 Row가 20개 넘게 늘어나기 때문에, 폴백을 더한 뒤 기존 대상이 전부 통과하는 것을 확인하고 도입했다. **폴백을 지우지 않는다** — 지우면 새 Row 대부분이 다시 검사 밖으로 빠지고, 인자 개수 불일치가 런타임 500으로만 드러난다.
+
 ### `urlOf(...)`는 `*.filePath` 컬럼만 감싼다 — 래핑 대상 단정
 
 **대상**: 같은 파일 → `projectionArgumentCountShouldMatchConstructor`의 `URL_WRAPPER` 검사, `trailingPropertyName`의 언랩
@@ -369,7 +380,7 @@ fetch 직후 `new XxxResult(...)`로 Result record를 다시 만드는 `withReso
 - **`trailingPropertyName`은 같은 래퍼를 언랩한다.** 언랩하지 않으면 래퍼가 붙은 인자가 전부 `null`(이름 추출 불가)로 처리되어 순서 검출이 지금보다 더 무력해진다. URL 슬롯 자체는 컴포넌트명(`imageUrl`)과 컬럼명(`filePath`)이 달라 이름 일치 판정에 걸리지 않는다 — 언랩의 실익은 **래퍼가 있어도 나머지 인자의 순서 검출이 계속 동작한다**는 것이고, URL 슬롯 자체는 위 래핑 대상 단정이 담당한다.
 - **도입 시점에는 검사할 대상이 0건이었다.** `urlOf`는 02 덩어리(URL 투영 롤아웃)에서 도입됐고, 롤아웃 완료 후 `Projections.constructor` 최상위 인자의 `urlOf` 전부(70여 곳)가 이 단정의 대상이다.
 - **패턴은 두 가지를 고정한다 — 인자 전체가 호출식일 것, 수신자 이름이 `fileUrlResolver`일 것.** `ExpressionUtils.as(fileUrlResolver.urlOf(...), "a")`처럼 감싸이거나 `this.fileUrlResolver`·다른 필드명으로 호출하면 단정과 언랩을 모두 빠져나간다. 반대로 `urlOf(x.filePath).as("y")`는 탐욕적 `(.+)`가 `).as("y"`까지 삼켜 **요란한 오탐**이 난다. 그래서 DAO는 `urlOf(...)`를 `Projections.constructor`의 최상위 인자로 그대로 두고, 필드명은 `fileUrlResolver`로 통일한다.
-- 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(...)`는 투영식 인자가 아니라 fetch 뒤 **값**(Tuple·스칼라·Map 룩업으로 얻은 경로)에만 쓰이므로 이 검사와 만나지 않는다.
+- 언랩 대상은 `fileUrlResolver.urlOf(...)` 1-인자 래퍼 하나뿐이다. `fileUrlResolver.resolve(...)`는 투영식 인자가 아니라 fetch 뒤 **값**(Row record 컴포넌트·스칼라·Map 룩업으로 얻은 경로)에만 쓰이므로 이 검사와 만나지 않는다.
 
 ### enum 필드는 문자열로 투영한다 — `.stringValue()`와 `EnumLabelProjection` (덩어리 01)
 
@@ -973,15 +984,24 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 '매장가격 픽업' 뱃지가 **픽업가 설정 익일(영업일)** 부터 노출되는데, `updated_at`은 가격명·정렬만 바뀌어도 갱신되므로 **뱃지 노출 시점이 뒤로 밀린다.**
 
-### 남긴 `Tuple`은 key→value 룩업 빌더다 — record로 바꾸지 않는다
+### `Tuple`을 쓰지 않는다 — 다중 컬럼 select는 public `XxxRow` record로 받는다 (`LayerRulesTest#queryAdaptersShouldNotUseTuple`)
 
-**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/**/query/*QueryAdapter.java`의 잔존 `com.querydsl.core.Tuple` 사용처 — `ShopReviewManagementQueryAdapter`·`ReviewQueryAdapter`·`ProductFeedbackQueryAdapter`의 `(reviewId, filePath) → Map<Long, List<String>>` 수집, `ReviewStatisticsQueryAdapter#getRatingCounts`·`getMonthly*`, `ShopChoiceQueryAdapter`의 `select(shopId, ConstructorExpression<ProductSimpleResult>)`, `ShopDeliveryTipQueryAdapter#findSettings`의 `select(shopId, Projections.constructor(ShopDeliveryTipSettingResult.class, ...))`, `ProductQueryAdapter`의 메서드 내부 전용 `Map<Long, Tuple>` 그룹 조회
+**대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/**/query/*QueryAdapter.java`의 모든 다중 컬럼 `select(...)` · `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java` → `queryAdaptersShouldNotUseTuple`
 
-위치 인덱스 접근을 투영 record로 교체한 것은 **03 덩어리의 3건뿐**이다(`ProductQueryAdapter#findActiveProductSummaries`·`ReviewStatisticsQueryAdapter#getCategoryAverages`·`ShopDeliveryTipQueryAdapter#findTipRanges`). 위 목록은 **의도적으로 남긴 것**이며 "Tuple 전량 제거"를 근거로 바꾸지 않는다.
+> **(번복됨 — QueryDSL Tuple 전면 제거)** 이 절의 이전 제목은 "남긴 `Tuple`은 key→value 룩업 빌더다 — record로 바꾸지 않는다"였다. 당시에는 2컬럼 key→value 수집을 Tuple의 정당한 용법으로 보고, `ShopReviewManagementQueryAdapter`·`ReviewQueryAdapter`·`ProductFeedbackQueryAdapter`·`ReviewStatisticsQueryAdapter`·`ShopChoiceQueryAdapter`·`ShopDeliveryTipQueryAdapter`·`ShopSearchQueryAdapter`·`ProductQueryAdapter`의 Tuple 39건을 의도적으로 남겼다. 사용자 결정으로 전부 Row record로 바꿨다.
 
-- **2컬럼 key→value 수집은 Tuple의 정당한 용법이다.** 표현식 인스턴스로 `tuple.get(path)`를 꺼내므로 위치 착오가 없고, record로 바꾸면 타입만 늘어난다.
-- **Tuple을 메서드 밖으로 내보내지 않는다.** 반환 타입·필드·맵 값으로 Tuple이 메서드 경계를 넘으면 타입 없는 DTO가 된다 — 그때는 이 목록 대상이 아니라 투영 record 전환 대상이다(`findActiveProductSummaries`가 그 선례).
-- **`row.get(0, Xxx.class)` 위치 인덱스 접근을 새로 쓰지 않는다.** 같은 타입 컬럼이 여러 개면 순서가 어긋나도 예외 없이 값만 뒤바뀐다. 다중 컬럼을 위치로 읽어야 한다면 `Projections.constructor`로 public 최상위 record에 투영한다.
+| 항목 | before | after |
+|---|---|---|
+| 다중 컬럼 select 결과 | `List<Tuple>` + `tuple.get(path)` / `row.get(0, X.class)` | `Projections.constructor(XxxRow.class, ...)` → `List<XxxRow>` + `row.xxx()` |
+| 메서드 경계 | `toSummary(Tuple row)`, `Map<Long, Tuple>` 등 타입 없는 행이 오감 | Row 타입이 시그니처에 드러난다 |
+| `FileUrlProjection` | `MappingProjection#map(Tuple)` | `FactoryExpressionBase`를 직접 상속(아래 `FileUrlProjection` 절) |
+| 동작 | — | 변경 없음(HTTP·SQL·DB 동일) |
+
+- **Row record는 그 DAO와 같은 `<ctx>/query/` 패키지의 public 최상위 record다.** 2개 이상 컨텍스트가 같은 모양을 쓰면 `shared/query/`에 둔다 — 지금은 `IdStringRow(Long id, String value)`·`IdCountRow(Long id, Long count)` 2개다. private 중첩 record는 `getConstructors()`에 보이지 않아 런타임에 `No constructor found`가 난다(`QueryResultRecordVisibilityTest`가 public을 강제한다).
+- **컴포넌트는 wrapper 타입(`Boolean`·`Integer`·`Long`·`Double`)이다.** QueryDSL 경로가 내는 타입과 같아야 리플렉션 생성자 매칭이 된다. `boolean` 엔티티 필드를 소비할 때는 지금처럼 `Boolean.TRUE.equals(row.xxx())`로 푼다.
+- **컴포넌트 이름은 select 인자의 마지막 프로퍼티명과 같게, 같은 순서로 둔다.** `ProjectionConstructorMatchingTest#detectReordering`이 그 이름으로 순서 착오를 잡는다. 두 엔티티에서 같은 이름이 오면 엔티티 접두를 붙인다(`ProductAvailabilityRow`의 `categoryId`·`productId`) — 이름이 겹치는 인자는 그 검사가 건너뛴다.
+- **URL 슬롯은 Row 투영 안에서 `fileUrlResolver.urlOf(...)`로 채운다**(`ShopChoiceRow`·`ProductAvailabilityRow`). 경로 **값**을 모아 `resolve(Objects.toString(path, ""))`·`resolveAll(map)` 하는 수집(리뷰 이미지·썸네일·대표 이미지)은 빈 문자열 처리 동작을 보존하려고 post-fetch로 둔다.
+- **가드가 재발을 막는다.** `queryAdaptersShouldNotUseTuple`은 persistence 클래스가 `com.querydsl.core.Tuple`·`QTuple`·`MappingProjection`에 의존하면 실패한다. 도입 시점에 구현 전 코드에서 9개 클래스(8개 DAO + `FileUrlProjection`)가 실패하는 것을 확인했다. 생성 Q타입은 이 타입들을 참조하지 않아 오탐이 없다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -1163,11 +1183,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 성분 코드 알파벳순이 **법령 열거 순서와 무관**해 화면 나열 순서가 고지 순서와 어긋나기 때문이다. 저장 순서(id 순)를 유지하면 점주가 체크한 순서(= 화면의 법령 순서)가 그대로 보인다.
 
-#### `select`와 `Tuple.get`은 같은 표현식 인스턴스를 참조해야 한다
+#### 지역 변수로 뽑은 표현식(`optionGroupId`·`commonOptionGroupId`·`imageProductId`)
 
-→ `findProductOptions` · `findProductsBatch` · `findProductOptionGroupsForManagement` · `representativeImageOf` 주변 조회
+→ `findNormalOptionGroups` · `findBatchOptions` · `findOptionsForManagement` · `findRepresentativeImagePaths` 주변 조회
 
-`NumberPath`·서브쿼리를 **지역 변수로 추출해** `select`와 `Tuple.get`이 같은 인스턴스를 보게 한다. 새로 만든 동등한 표현식을 `Tuple.get`에 넘기면 값을 찾지 못한다.
+> **(번복됨 — QueryDSL Tuple 전면 제거)** 이 절의 이전 제목은 "`select`와 `Tuple.get`은 같은 표현식 인스턴스를 참조해야 한다"였다. `Tuple.get(expr)`은 `equals`로 select 목록에서 값을 찾으므로, 새로 만든 동등 표현식을 넘기면 값을 못 찾았다. Row record로 바꾼 뒤에는 값이 생성자 위치로 들어가므로 이 제약이 사라졌다.
+
+`NumberPath`·서브쿼리를 지역 변수로 추출해 둔 것은 이제 select·where·orderBy에서 같은 식을 재사용하려는 가독성 목적이다. Row 컴포넌트 이름은 그 변수명(`optionGroupId`)과 같게 둔다. 예외: 일반·공통 옵션이 함께 쓰는 `ProductOptionAvailabilityRow`는 공통 경로에서도 `commonOptionGroupId`를 `optionGroupId` 자리에 넣는다 — 이 인자는 이름이 달라 `detectReordering`의 대조 대상에서 빠진다.
 
 #### `findOptionGroupMergeCandidates` — 이 메서드만 네이티브 쿼리다
 
@@ -1222,13 +1244,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 .fetch();
 ```
 
-- **왜 post-fetch 재조립 대신 `MappingProjection` 래퍼인가.** `Projections.constructor`는 record canonical 생성자를 직접 호출하므로, 변환을 넣으려면 fetch 후 `new XxxResult(...)`로 **전 컴포넌트를 위치 기반으로 재나열**해야 했다. 인접한 같은 타입 슬롯(active ↔ inactive 아이콘)을 바꿔 써도 컴파일·가드를 모두 통과해 값만 조용히 뒤바뀐다. 변환을 **해당 슬롯의 인자 자리**에 두면 재나열 자체가 사라지고, 슬롯 순서는 `ProjectionConstructorMatchingTest`가 보는 `Projections.constructor` 인자 목록 한 벌로 수렴한다.
+- **왜 post-fetch 재조립 대신 `FactoryExpression` 래퍼인가.** `Projections.constructor`는 record canonical 생성자를 직접 호출하므로, 변환을 넣으려면 fetch 후 `new XxxResult(...)`로 **전 컴포넌트를 위치 기반으로 재나열**해야 했다. 인접한 같은 타입 슬롯(active ↔ inactive 아이콘)을 바꿔 써도 컴파일·가드를 모두 통과해 값만 조용히 뒤바뀐다. 변환을 **해당 슬롯의 인자 자리**에 두면 재나열 자체가 사라지고, 슬롯 순서는 `ProjectionConstructorMatchingTest`가 보는 `Projections.constructor` 인자 목록 한 벌로 수렴한다.
 - **중첩 `FactoryExpression`은 바깥 생성자의 arity·리플렉션 탐색을 바꾸지 않는다**(QueryDSL 6.11 `FactoryExpressionUtils` 소스 확인). `wrap()`이 중첩 factory를 `FactoryExpressionAdapter`로 감싸고, `expand()`가 인자를 select 목록으로 평탄화하며, `compress()`가 `rv[i] = fe.newInstance(compressed)`로 **래퍼의 반환값을 바깥 생성자의 i번 슬롯에 넣는다.** 바깥에서 보면 `urlOf(...)`는 `String` 인자 1개다. 그래서 `ProjectionConstructorMatchingTest#readArguments`가 `depth == 1`의 콤마만 세도 arity 검사가 그대로 유효하다.
-- **`MappingProjection`은 QueryDSL 공식 API다.** `FactoryExpressionBase` 상속으로 equals/hashCode를, `MappingProjection` 자체 구현으로 `accept(visitor)`·`newInstance`를 제공받으므로 `FactoryExpression`을 직접 구현하지 않는다.
+- **`FactoryExpressionBase`를 직접 상속한다 — `getArgs`·`newInstance`·`accept` 세 개만 구현한다.** querydsl-core 6.11에서 `FactoryExpressionBase`는 생성자·`skipNulls`·`equals`만 갖고, `hashCode`·`toString`은 `ExpressionBase`가 `final`로 구현한다. `accept`는 `visitor.visit(this, context)`(`Visitor#visit(FactoryExpression, C)`)다. **(번복됨 — QueryDSL Tuple 전면 제거)** 이전에는 `MappingProjection`을 상속해 `map(Tuple)` 하나만 구현했다. `MappingProjection`은 내부 `QTuple`로 행을 `Tuple`로 감싸 넘기므로 Tuple 금지 가드와 양립할 수 없어 상위 타입을 바꿨다. `equals`는 둘 다 `FactoryExpressionBase#equals`라 의미가 같다.
 - **`FileUrlProjection`은 package-private이어도 된다 — Result record가 `public`이어야 하는 규칙과는 층위가 다르다.** QueryDSL은 이 클래스를 리플렉션으로 생성하지 않는다. DAO가 `urlOf`로 **직접 인스턴스를 만들어** 넘기고, QueryDSL은 받은 인스턴스의 `newInstance`만 호출한다. 반면 `Projections.constructor`의 대상 record는 QueryDSL이 `getConstructors()`로 **public 생성자를 찾아** 호출하므로 public이어야 한다(`QueryResultRecordVisibilityTest`). `FileUrlProjection`은 record가 아니라 class라 그 테스트의 대상도 아니다. 외부에 노출할 이유가 없으므로 진입점은 `FileUrlResolver#urlOf` 하나로 둔다.
-- **`urlOf`를 다인자로 확장하지 않는다.** `MappingProjection` 생성자는 `ExpressionUtils.distinctList(args)`로 인자를 `LinkedHashSet`에 합친다. 같은 인자(같은 alias의 같은 컬럼)를 두 번 넘기면 `Expression.equals` 기준으로 같아 **예외 없이 1개로 줄어들고**, `map`이 기대한 위치와 다른 값을 읽는다. 1-인자면 합쳐질 대상이 없어 안전하다. URL 슬롯이 둘인 투영(아이콘 active/inactive, 썸네일/배너)은 **`urlOf`를 슬롯마다 한 번씩 호출**한다. 서로 다른 alias(`activeFile`·`inactiveFile`)는 별개 `QUploadedFileJpaEntity` 인스턴스라 `equals` 기준으로 다르므로 각각 감싸도 충돌하지 않는다. `map`이 인덱스가 아니라 `row.get(filePath)`로 읽는 것도 같은 이유다.
-- **`resolver` 필드의 `transient`.** `MappingProjection`이 `Serializable`(`Expression<T> extends Serializable`)이라, 직렬화 대상이 아닌 Spring 빈(`FileUrlResolver`)을 필드로 들면 정적 분석이 비직렬화 필드 경고를 낸다. 투영식은 쿼리 1회 동안만 사는 객체이고 직렬화될 일이 없으므로, 빈 참조를 직렬화 그래프에서 빼 의도를 명시한다.
-- **`null` 경로는 `null` URL이다.** `leftJoin`에서 파일이 없으면 `row.get(filePath)`가 `null`이고 `FileUrlResolver#resolve`가 `null`을 그대로 돌려준다 — 예외가 아니다(`BannerQueryAdapter#findAllBanners`·`#findDetailById`의 이미지 없는 배너).
+- **`urlOf`를 다인자로 확장하지 않는다.** `newInstance`는 `args[0]` 하나만 읽는다. 다인자로 넓히면 인자 순서와 `newInstance`의 인덱스를 손으로 맞춰야 해 `Projections.constructor`를 다시 위치 기반으로 만드는 셈이다(과거 `MappingProjection`은 `distinctList`로 같은 인자를 조용히 합치는 문제까지 있었다). URL 슬롯이 둘인 투영(아이콘 active/inactive, 썸네일/배너)은 **`urlOf`를 슬롯마다 한 번씩 호출**한다. 서로 다른 alias(`activeFile`·`inactiveFile`)는 별개 `QUploadedFileJpaEntity` 인스턴스라 `equals` 기준으로 다르므로 각각 감싸도 충돌하지 않는다. 슬롯마다 별개 인스턴스이므로 각 래퍼의 `args[0]`은 자기 alias의 경로다.
+- **`resolver` 필드의 `transient`.** `FactoryExpressionBase`가 `Serializable`(`Expression<T> extends Serializable`)이라, 직렬화 대상이 아닌 Spring 빈(`FileUrlResolver`)을 필드로 들면 정적 분석이 비직렬화 필드 경고를 낸다. 투영식은 쿼리 1회 동안만 사는 객체이고 직렬화될 일이 없으므로, 빈 참조를 직렬화 그래프에서 빼 의도를 명시한다.
+- **`null` 경로는 `null` URL이다.** `leftJoin`에서 파일이 없으면 `newInstance`가 받는 `args[0]`이 `null`이고 `FileUrlResolver#resolve`가 `null`을 그대로 돌려준다 — 예외가 아니다(`BannerQueryAdapter#findAllBanners`·`#findDetailById`의 이미지 없는 배너).
 - **`urlOf`는 `*.filePath`만 감싸고, `Projections.constructor`의 최상위 인자로 둔다.** 그 이유와 가드는 [`urlOf(...)`는 `*.filePath` 컬럼만 감싼다](#urlof는-filepath-컬럼만-감싼다--래핑-대상-단정) 절에 있다.
 - **`resolve`·`resolveAll` 2종은 유지한다.** 별도 쿼리로 얻은 Map/Collection을 배치 변환하는 경로(이미지 목록·태그 보강 등)는 컬럼 표현식이 아니므로 post-fetch가 정상이다.
 

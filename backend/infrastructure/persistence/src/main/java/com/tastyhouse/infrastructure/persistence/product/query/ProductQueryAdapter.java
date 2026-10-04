@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -70,6 +69,7 @@ import com.tastyhouse.application.product.port.out.TodayDiscountProductResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.infrastructure.persistence.file.query.FileUrlResolver;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdStringRow;
 
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.order.persistence.QOrderJpaEntity.orderJpaEntity;
@@ -264,8 +264,8 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     }
 
     private List<OptionGroupResult> findNormalOptionGroups(Long productId) {
-        List<Tuple> groups = queryFactory
-            .select(
+        List<ProductOptionGroupRow> groups = queryFactory
+            .select(Projections.constructor(ProductOptionGroupRow.class,
                 productOptionGroupJpaEntity.id,
                 productOptionGroupJpaEntity.name,
                 productOptionGroupJpaEntity.description,
@@ -274,7 +274,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionGroupJpaEntity.minSelect,
                 productOptionGroupJpaEntity.maxSelect,
                 productOptionGroupJpaEntity.groupType
-            )
+            ))
             .from(productOptionGroupJpaEntity)
             .innerJoin(productOptionGroupLinkJpaEntity)
             .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
@@ -289,10 +289,10 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             return List.of();
         }
 
-        List<Long> groupIds = groups.stream().map(tuple -> tuple.get(productOptionGroupJpaEntity.id)).toList();
+        List<Long> groupIds = groups.stream().map(ProductOptionGroupRow::id).toList();
         NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
         Map<Long, List<OptionResult>> optionsByGroupId = queryFactory
-            .select(
+            .select(Projections.constructor(ProductOptionRow.class,
                 optionGroupId,
                 productOptionJpaEntity.id,
                 productOptionJpaEntity.name,
@@ -300,49 +300,49 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionJpaEntity.soldOut,
                 productOptionJpaEntity.cupCount,
                 productOptionJpaEntity.personalCupDiscountAmount
-            )
+            ))
             .from(productOptionJpaEntity)
             .where(optionGroupId.in(groupIds), productOptionJpaEntity.visible.eq(true))
             .orderBy(productOptionJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(optionGroupId) != null)
+            .filter(row -> row.optionGroupId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(optionGroupId)),
+                row -> Objects.requireNonNull(row.optionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new OptionResult(
-                        tuple.get(productOptionJpaEntity.id),
-                        tuple.get(productOptionJpaEntity.name),
-                        tuple.get(productOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
-                        tuple.get(productOptionJpaEntity.cupCount),
+                    row -> new OptionResult(
+                        row.id(),
+                        row.name(),
+                        row.additionalPrice(),
+                        Boolean.TRUE.equals(row.soldOut()),
+                        row.cupCount(),
                         null,
-                        tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
+                        row.personalCupDiscountAmount()
                     ),
                     Collectors.toList()
                 )
             ));
 
         return groups.stream()
-            .map(tuple -> new OptionGroupResult(
-                tuple.get(productOptionGroupJpaEntity.id),
-                tuple.get(productOptionGroupJpaEntity.name),
-                tuple.get(productOptionGroupJpaEntity.description),
-                Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
-                Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.multipleSelect)),
-                tuple.get(productOptionGroupJpaEntity.minSelect),
-                tuple.get(productOptionGroupJpaEntity.maxSelect),
+            .map(row -> new OptionGroupResult(
+                row.id(),
+                row.name(),
+                row.description(),
+                Boolean.TRUE.equals(row.required()),
+                Boolean.TRUE.equals(row.multipleSelect()),
+                row.minSelect(),
+                row.maxSelect(),
                 false,
-                tuple.get(productOptionGroupJpaEntity.groupType),
-                optionsByGroupId.getOrDefault(tuple.get(productOptionGroupJpaEntity.id), Collections.emptyList())
+                row.groupType(),
+                optionsByGroupId.getOrDefault(row.id(), Collections.emptyList())
             ))
             .toList();
     }
 
     private List<OptionGroupResult> findCommonOptionGroups(Long productId, String commonOptionGroupType) {
-        List<Tuple> groups = queryFactory
-            .select(
+        List<ProductCommonOptionGroupRow> groups = queryFactory
+            .select(Projections.constructor(ProductCommonOptionGroupRow.class,
                 productCommonOptionGroupJpaEntity.id,
                 productCommonOptionGroupJpaEntity.name,
                 productCommonOptionGroupJpaEntity.description,
@@ -350,7 +350,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productCommonOptionGroupJpaEntity.multipleSelect,
                 productCommonOptionGroupJpaEntity.minSelect,
                 productCommonOptionGroupJpaEntity.maxSelect
-            )
+            ))
             .from(productCommonOptionGroupJpaEntity)
             .innerJoin(productCommonOptionGroupLinkJpaEntity)
             .on(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id))
@@ -365,16 +365,16 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             return List.of();
         }
 
-        List<Long> groupIds = groups.stream().map(tuple -> tuple.get(productCommonOptionGroupJpaEntity.id)).toList();
+        List<Long> groupIds = groups.stream().map(ProductCommonOptionGroupRow::id).toList();
         NumberExpression<Long> commonOptionGroupId = productCommonOptionJpaEntity.optionGroupId;
         Map<Long, List<OptionResult>> optionsByGroupId = queryFactory
-            .select(
+            .select(Projections.constructor(ProductCommonOptionRow.class,
                 commonOptionGroupId,
                 productCommonOptionJpaEntity.id,
                 productCommonOptionJpaEntity.name,
                 productCommonOptionJpaEntity.additionalPrice,
                 productCommonOptionJpaEntity.soldOut
-            )
+            ))
             .from(productCommonOptionJpaEntity)
             .where(
                 commonOptionGroupId.in(groupIds),
@@ -383,16 +383,16 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .orderBy(productCommonOptionJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(commonOptionGroupId) != null)
+            .filter(row -> row.commonOptionGroupId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(commonOptionGroupId)),
+                row -> Objects.requireNonNull(row.commonOptionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new OptionResult(
-                        tuple.get(productCommonOptionJpaEntity.id),
-                        tuple.get(productCommonOptionJpaEntity.name),
-                        tuple.get(productCommonOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut)),
+                    row -> new OptionResult(
+                        row.id(),
+                        row.name(),
+                        row.additionalPrice(),
+                        Boolean.TRUE.equals(row.soldOut()),
                         null,
                         0,
                         null
@@ -402,17 +402,17 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             ));
 
         return groups.stream()
-            .map(tuple -> new OptionGroupResult(
-                tuple.get(productCommonOptionGroupJpaEntity.id),
-                tuple.get(productCommonOptionGroupJpaEntity.name),
-                tuple.get(productCommonOptionGroupJpaEntity.description),
-                Boolean.TRUE.equals(tuple.get(productCommonOptionGroupJpaEntity.required)),
-                Boolean.TRUE.equals(tuple.get(productCommonOptionGroupJpaEntity.multipleSelect)),
-                tuple.get(productCommonOptionGroupJpaEntity.minSelect),
-                tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
+            .map(row -> new OptionGroupResult(
+                row.id(),
+                row.name(),
+                row.description(),
+                Boolean.TRUE.equals(row.required()),
+                Boolean.TRUE.equals(row.multipleSelect()),
+                row.minSelect(),
+                row.maxSelect(),
                 true,
                 commonOptionGroupType,
-                optionsByGroupId.getOrDefault(tuple.get(productCommonOptionGroupJpaEntity.id), Collections.emptyList())
+                optionsByGroupId.getOrDefault(row.id(), Collections.emptyList())
             ))
             .toList();
     }
@@ -532,45 +532,45 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
         NumberExpression<Long> commonOptionGroupId = productCommonOptionJpaEntity.optionGroupId;
 
         queryFactory
-            .select(
+            .select(Projections.constructor(ProductBatchOptionRow.class,
                 productOptionJpaEntity.id,
                 optionGroupId,
                 productOptionJpaEntity.name,
                 productOptionJpaEntity.additionalPrice,
                 productOptionJpaEntity.cupCount,
                 productOptionJpaEntity.personalCupDiscountAmount
-            )
+            ))
             .from(productOptionJpaEntity)
             .where(productOptionJpaEntity.id.in(optionIds), productOptionJpaEntity.visible.eq(true))
             .fetch()
-            .forEach(tuple -> optionById.put(
-                tuple.get(productOptionJpaEntity.id),
+            .forEach(row -> optionById.put(
+                row.id(),
                 new BatchOptionInfo(
-                    tuple.get(optionGroupId),
-                    tuple.get(productOptionJpaEntity.name),
-                    tuple.get(productOptionJpaEntity.additionalPrice),
+                    row.optionGroupId(),
+                    row.name(),
+                    row.additionalPrice(),
                     false,
-                    tuple.get(productOptionJpaEntity.cupCount),
-                    tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
+                    row.cupCount(),
+                    row.personalCupDiscountAmount()
                 )
             ));
 
         queryFactory
-            .select(
+            .select(Projections.constructor(ProductBatchCommonOptionRow.class,
                 productCommonOptionJpaEntity.id,
                 commonOptionGroupId,
                 productCommonOptionJpaEntity.name,
                 productCommonOptionJpaEntity.additionalPrice
-            )
+            ))
             .from(productCommonOptionJpaEntity)
             .where(productCommonOptionJpaEntity.id.in(optionIds), productCommonOptionJpaEntity.visible.eq(true))
             .fetch()
-            .forEach(tuple -> optionById.putIfAbsent(
-                tuple.get(productCommonOptionJpaEntity.id),
+            .forEach(row -> optionById.putIfAbsent(
+                row.id(),
                 new BatchOptionInfo(
-                    tuple.get(commonOptionGroupId),
-                    tuple.get(productCommonOptionJpaEntity.name),
-                    tuple.get(productCommonOptionJpaEntity.additionalPrice),
+                    row.commonOptionGroupId(),
+                    row.name(),
+                    row.additionalPrice(),
                     true,
                     null,
                     null
@@ -598,32 +598,34 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
 
         if (!normalGroupIds.isEmpty()) {
             queryFactory
-                .select(productOptionGroupLinkJpaEntity.optionGroupId, productOptionGroupLinkJpaEntity.productId)
+                .select(Projections.constructor(ProductOptionGroupLinkRow.class,
+                    productOptionGroupLinkJpaEntity.optionGroupId,
+                    productOptionGroupLinkJpaEntity.productId
+                ))
                 .from(productOptionGroupLinkJpaEntity)
                 .where(productOptionGroupLinkJpaEntity.optionGroupId.in(normalGroupIds))
                 .fetch()
-                .forEach(tuple -> linkedProductIdsByGroupKey
+                .forEach(row -> linkedProductIdsByGroupKey
                     .computeIfAbsent(
-                        BatchOptionInfo.groupKey(
-                            tuple.get(productOptionGroupLinkJpaEntity.optionGroupId), false),
+                        BatchOptionInfo.groupKey(row.optionGroupId(), false),
                         key -> new HashSet<>())
-                    .add(tuple.get(productOptionGroupLinkJpaEntity.productId)));
+                    .add(row.productId()));
         }
 
         if (!commonGroupIds.isEmpty()) {
             queryFactory
-                .select(
+                .select(Projections.constructor(ProductOptionGroupLinkRow.class,
                     productCommonOptionGroupLinkJpaEntity.optionGroupId,
-                    productCommonOptionGroupLinkJpaEntity.productId)
+                    productCommonOptionGroupLinkJpaEntity.productId
+                ))
                 .from(productCommonOptionGroupLinkJpaEntity)
                 .where(productCommonOptionGroupLinkJpaEntity.optionGroupId.in(commonGroupIds))
                 .fetch()
-                .forEach(tuple -> linkedProductIdsByGroupKey
+                .forEach(row -> linkedProductIdsByGroupKey
                     .computeIfAbsent(
-                        BatchOptionInfo.groupKey(
-                            tuple.get(productCommonOptionGroupLinkJpaEntity.optionGroupId), true),
+                        BatchOptionInfo.groupKey(row.optionGroupId(), true),
                         key -> new HashSet<>())
-                    .add(tuple.get(productCommonOptionGroupLinkJpaEntity.productId)));
+                    .add(row.productId()));
         }
 
         return linkedProductIdsByGroupKey;
@@ -961,8 +963,8 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .from(subOptionGroupLink)
             .where(subOptionGroupLink.optionGroupId.eq(productOptionGroupJpaEntity.id));
 
-        List<Tuple> groups = queryFactory
-            .selectDistinct(
+        List<ProductOptionGroupManagementRow> groups = queryFactory
+            .selectDistinct(Projections.constructor(ProductOptionGroupManagementRow.class,
                 productOptionGroupJpaEntity.id,
                 productOptionGroupJpaEntity.name,
                 productOptionGroupJpaEntity.description,
@@ -974,7 +976,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionGroupJpaEntity.visible,
                 productOptionGroupJpaEntity.groupType,
                 linkedProductCount
-            )
+            ))
             .from(productOptionGroupJpaEntity)
             .innerJoin(productOptionGroupLinkJpaEntity)
             .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
@@ -987,29 +989,29 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             return List.of();
         }
 
-        Map<Long, Tuple> groupById = new LinkedHashMap<>();
-        for (Tuple tuple : groups) {
-            groupById.putIfAbsent(tuple.get(productOptionGroupJpaEntity.id), tuple);
+        Map<Long, ProductOptionGroupManagementRow> groupById = new LinkedHashMap<>();
+        for (ProductOptionGroupManagementRow row : groups) {
+            groupById.putIfAbsent(row.id(), row);
         }
 
         List<Long> groupIds = List.copyOf(groupById.keySet());
         Map<Long, List<ProductOptionManagementResult>> optionsByGroupId = findOptionsForManagement(groupIds);
 
         return groupById.values().stream()
-            .map(tuple -> {
-                Long groupId = tuple.get(productOptionGroupJpaEntity.id);
-                Long linkedCount = tuple.get(linkedProductCount);
+            .map(row -> {
+                Long groupId = row.id();
+                Long linkedCount = row.linkedProductCount();
                 return new ProductOptionGroupManagementResult(
                     groupId,
-                    tuple.get(productOptionGroupJpaEntity.name),
-                    tuple.get(productOptionGroupJpaEntity.description),
-                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
-                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.multipleSelect)),
-                    tuple.get(productOptionGroupJpaEntity.minSelect),
-                    tuple.get(productOptionGroupJpaEntity.maxSelect),
-                    tuple.get(productOptionGroupLinkJpaEntity.sort),
-                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.visible)),
-                    tuple.get(productOptionGroupJpaEntity.groupType),
+                    row.name(),
+                    row.description(),
+                    Boolean.TRUE.equals(row.required()),
+                    Boolean.TRUE.equals(row.multipleSelect()),
+                    row.minSelect(),
+                    row.maxSelect(),
+                    row.sort(),
+                    Boolean.TRUE.equals(row.visible()),
+                    row.groupType(),
                     linkedCount != null ? linkedCount : 0L,
                     optionsByGroupId.getOrDefault(groupId, List.of())
                 );
@@ -1020,7 +1022,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     private Map<Long, List<ProductOptionManagementResult>> findOptionsForManagement(List<Long> groupIds) {
         NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductOptionManagementRow.class,
                 optionGroupId,
                 productOptionJpaEntity.id,
                 productOptionJpaEntity.name,
@@ -1030,26 +1032,26 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionJpaEntity.visible,
                 productOptionJpaEntity.cupCount,
                 productOptionJpaEntity.personalCupDiscountAmount
-            )
+            ))
             .from(productOptionJpaEntity)
             .where(optionGroupId.in(groupIds))
             .orderBy(productOptionJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(optionGroupId) != null)
+            .filter(row -> row.optionGroupId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(optionGroupId)),
+                row -> Objects.requireNonNull(row.optionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new ProductOptionManagementResult(
-                        tuple.get(productOptionJpaEntity.id),
-                        tuple.get(productOptionJpaEntity.name),
-                        tuple.get(productOptionJpaEntity.additionalPrice),
-                        tuple.get(productOptionJpaEntity.sort),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible)),
-                        tuple.get(productOptionJpaEntity.cupCount),
-                        tuple.get(productOptionJpaEntity.personalCupDiscountAmount)
+                    row -> new ProductOptionManagementResult(
+                        row.id(),
+                        row.name(),
+                        row.additionalPrice(),
+                        row.sort(),
+                        Boolean.TRUE.equals(row.soldOut()),
+                        Boolean.TRUE.equals(row.visible()),
+                        row.cupCount(),
+                        row.personalCupDiscountAmount()
                     ),
                     Collectors.toList()
                 )
@@ -1059,30 +1061,27 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     @Override
     public List<ProductOptionGroupLinkedProductResult> findLinkedProductsByOptionGroupId(Long optionGroupId) {
         return queryFactory
-            .select(productJpaEntity.id, productJpaEntity.shopId, productJpaEntity.name)
+            .select(Projections.constructor(ProductOptionGroupLinkedProductResult.class,
+                productJpaEntity.id,
+                productJpaEntity.shopId,
+                productJpaEntity.name
+            ))
             .from(productOptionGroupLinkJpaEntity)
             .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
             .where(productOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId), notDeleted())
             .orderBy(productOptionGroupLinkJpaEntity.sort.asc(), productJpaEntity.id.asc())
-            .fetch()
-            .stream()
-            .map(tuple -> new ProductOptionGroupLinkedProductResult(
-                tuple.get(productJpaEntity.id),
-                tuple.get(productJpaEntity.shopId),
-                tuple.get(productJpaEntity.name)
-            ))
-            .toList();
+            .fetch();
     }
 
     @Override
     public Map<Long, List<ProductOptionGroupLinkedProductResult>> findLinkedProductsByShop(Long shopId) {
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductLinkedProductRow.class,
                 productOptionGroupLinkJpaEntity.optionGroupId,
                 productJpaEntity.id,
                 productJpaEntity.shopId,
                 productJpaEntity.name
-            )
+            ))
             .from(productOptionGroupLinkJpaEntity)
             .innerJoin(productJpaEntity).on(productOptionGroupLinkJpaEntity.productId.eq(productJpaEntity.id))
             .where(productJpaEntity.shopId.eq(shopId), notDeleted())
@@ -1090,13 +1089,13 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .fetch()
             .stream()
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(productOptionGroupLinkJpaEntity.optionGroupId)),
+                row -> Objects.requireNonNull(row.optionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new ProductOptionGroupLinkedProductResult(
-                        tuple.get(productJpaEntity.id),
-                        tuple.get(productJpaEntity.shopId),
-                        tuple.get(productJpaEntity.name)
+                    row -> new ProductOptionGroupLinkedProductResult(
+                        row.id(),
+                        row.shopId(),
+                        row.name()
                     ),
                     Collectors.toList()
                 )
@@ -1141,7 +1140,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     @Override
     public List<ProductAvailabilityItemResult> findProductAvailability(ProductAvailabilitySearchCondition condition) {
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductAvailabilityRow.class,
                 productCategoryJpaEntity.id,
                 productCategoryJpaEntity.name,
                 productCategoryJpaEntity.sort,
@@ -1149,13 +1148,13 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productJpaEntity.name,
                 productJpaEntity.originalPrice,
                 productJpaEntity.discountInfo.discountPrice,
-                uploadedFileJpaEntity.filePath,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
                 productJpaEntity.soldOut,
                 productJpaEntity.soldOutUntil,
                 productJpaEntity.visible,
                 productJpaEntity.representative,
                 productShopLinkJpaEntity.sort
-            )
+            ))
             .from(productShopLinkJpaEntity)
             .innerJoin(productJpaEntity).on(productJpaEntity.id.eq(productShopLinkJpaEntity.productId))
             .leftJoin(productCategoryJpaEntity)
@@ -1171,20 +1170,20 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .orderBy(productCategoryJpaEntity.sort.asc().nullsLast(), productShopLinkJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .map(tuple -> new ProductAvailabilityItemResult(
-                tuple.get(productCategoryJpaEntity.id),
-                tuple.get(productCategoryJpaEntity.name),
-                tuple.get(productCategoryJpaEntity.sort),
-                tuple.get(productJpaEntity.id),
-                tuple.get(productJpaEntity.name),
-                tuple.get(productJpaEntity.originalPrice),
-                tuple.get(productJpaEntity.discountInfo.discountPrice),
-                fileUrlResolver.resolve(tuple.get(uploadedFileJpaEntity.filePath)),
-                Boolean.TRUE.equals(tuple.get(productJpaEntity.soldOut)),
-                tuple.get(productJpaEntity.soldOutUntil),
-                Boolean.TRUE.equals(tuple.get(productJpaEntity.visible)),
-                Boolean.TRUE.equals(tuple.get(productJpaEntity.representative)),
-                tuple.get(productShopLinkJpaEntity.sort)
+            .map(row -> new ProductAvailabilityItemResult(
+                row.categoryId(),
+                row.categoryName(),
+                row.categorySort(),
+                row.productId(),
+                row.productName(),
+                row.originalPrice(),
+                row.discountPrice(),
+                row.imageUrl(),
+                Boolean.TRUE.equals(row.soldOut()),
+                row.soldOutUntil(),
+                Boolean.TRUE.equals(row.visible()),
+                Boolean.TRUE.equals(row.representative()),
+                row.linkSort()
             ))
             .toList();
     }
@@ -1222,8 +1221,8 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             return List.of();
         }
 
-        List<Tuple> groups = queryFactory
-            .select(
+        List<ProductOptionAvailabilityGroupRow> groups = queryFactory
+            .select(Projections.constructor(ProductOptionAvailabilityGroupRow.class,
                 productOptionGroupJpaEntity.id,
                 productOptionGroupJpaEntity.name,
                 productOptionGroupJpaEntity.required,
@@ -1231,7 +1230,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionGroupJpaEntity.maxSelect,
                 productOptionGroupJpaEntity.sort,
                 productJpaEntity.name
-            )
+            ))
             .from(productOptionGroupJpaEntity)
             .innerJoin(productOptionGroupLinkJpaEntity)
             .on(productOptionGroupLinkJpaEntity.optionGroupId.eq(productOptionGroupJpaEntity.id))
@@ -1241,30 +1240,30 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .fetch();
 
         Map<Long, List<String>> linkedProductNamesByGroupId = new LinkedHashMap<>();
-        Map<Long, Tuple> groupById = new LinkedHashMap<>();
-        for (Tuple tuple : groups) {
-            Long groupId = tuple.get(productOptionGroupJpaEntity.id);
-            groupById.putIfAbsent(groupId, tuple);
+        Map<Long, ProductOptionAvailabilityGroupRow> groupById = new LinkedHashMap<>();
+        for (ProductOptionAvailabilityGroupRow row : groups) {
+            Long groupId = row.id();
+            groupById.putIfAbsent(groupId, row);
             linkedProductNamesByGroupId
                 .computeIfAbsent(groupId, key -> new ArrayList<>())
-                .add(tuple.get(productJpaEntity.name));
+                .add(row.productName());
         }
 
         Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
             findNormalOptionsForAvailability(groupIds, condition, normalOptionType);
 
         return groupById.values().stream()
-            .map(tuple -> {
-                Long groupId = tuple.get(productOptionGroupJpaEntity.id);
+            .map(row -> {
+                Long groupId = row.id();
                 return new ProductOptionAvailabilityGroupResult(
                     groupId,
                     normalOptionType,
-                    tuple.get(productOptionGroupJpaEntity.name),
-                    Boolean.TRUE.equals(tuple.get(productOptionGroupJpaEntity.required)),
-                    tuple.get(productOptionGroupJpaEntity.minSelect),
-                    tuple.get(productOptionGroupJpaEntity.maxSelect),
+                    row.name(),
+                    Boolean.TRUE.equals(row.required()),
+                    row.minSelect(),
+                    row.maxSelect(),
                     linkedProductNamesByGroupId.getOrDefault(groupId, List.of()),
-                    tuple.get(productOptionGroupJpaEntity.sort),
+                    row.sort(),
                     optionsByGroupId.getOrDefault(groupId, List.of())
                 );
             })
@@ -1278,7 +1277,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     ) {
         NumberExpression<Long> optionGroupId = productOptionJpaEntity.optionGroupId;
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductOptionAvailabilityRow.class,
                 optionGroupId,
                 productOptionJpaEntity.id,
                 productOptionJpaEntity.name,
@@ -1287,7 +1286,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productOptionJpaEntity.soldOutUntil,
                 productOptionJpaEntity.visible,
                 productOptionJpaEntity.sort
-            )
+            ))
             .from(productOptionJpaEntity)
             .where(
                 optionGroupId.in(groupIds),
@@ -1297,20 +1296,20 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .orderBy(productOptionJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(optionGroupId) != null)
+            .filter(row -> row.optionGroupId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(optionGroupId)),
+                row -> Objects.requireNonNull(row.optionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new ProductOptionAvailabilityItemResult(
-                        tuple.get(productOptionJpaEntity.id),
+                    row -> new ProductOptionAvailabilityItemResult(
+                        row.id(),
                         normalOptionType,
-                        tuple.get(productOptionJpaEntity.name),
-                        tuple.get(productOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.soldOut)),
-                        tuple.get(productOptionJpaEntity.soldOutUntil),
-                        Boolean.TRUE.equals(tuple.get(productOptionJpaEntity.visible)),
-                        tuple.get(productOptionJpaEntity.sort)
+                        row.name(),
+                        row.additionalPrice(),
+                        Boolean.TRUE.equals(row.soldOut()),
+                        row.soldOutUntil(),
+                        Boolean.TRUE.equals(row.visible()),
+                        row.sort()
                     ),
                     Collectors.toList()
                 )
@@ -1339,8 +1338,8 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             return List.of();
         }
 
-        List<Tuple> groups = queryFactory
-            .select(
+        List<ProductOptionAvailabilityGroupRow> groups = queryFactory
+            .select(Projections.constructor(ProductOptionAvailabilityGroupRow.class,
                 productCommonOptionGroupJpaEntity.id,
                 productCommonOptionGroupJpaEntity.name,
                 productCommonOptionGroupJpaEntity.required,
@@ -1348,7 +1347,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productCommonOptionGroupJpaEntity.maxSelect,
                 productCommonOptionGroupJpaEntity.sort,
                 productJpaEntity.name
-            )
+            ))
             .from(productCommonOptionGroupJpaEntity)
             .innerJoin(productCommonOptionGroupLinkJpaEntity)
             .on(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(productCommonOptionGroupJpaEntity.id))
@@ -1359,30 +1358,30 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .fetch();
 
         Map<Long, List<String>> linkedProductNamesByGroupId = new LinkedHashMap<>();
-        Map<Long, Tuple> groupById = new LinkedHashMap<>();
-        for (Tuple tuple : groups) {
-            Long groupId = tuple.get(productCommonOptionGroupJpaEntity.id);
-            groupById.putIfAbsent(groupId, tuple);
+        Map<Long, ProductOptionAvailabilityGroupRow> groupById = new LinkedHashMap<>();
+        for (ProductOptionAvailabilityGroupRow row : groups) {
+            Long groupId = row.id();
+            groupById.putIfAbsent(groupId, row);
             linkedProductNamesByGroupId
                 .computeIfAbsent(groupId, key -> new ArrayList<>())
-                .add(tuple.get(productJpaEntity.name));
+                .add(row.productName());
         }
 
         Map<Long, List<ProductOptionAvailabilityItemResult>> optionsByGroupId =
             findCommonOptionsForAvailability(groupIds, condition, commonOptionType);
 
         return groupById.values().stream()
-            .map(tuple -> {
-                Long groupId = tuple.get(productCommonOptionGroupJpaEntity.id);
+            .map(row -> {
+                Long groupId = row.id();
                 return new ProductOptionAvailabilityGroupResult(
                     groupId,
                     commonOptionType,
-                    tuple.get(productCommonOptionGroupJpaEntity.name),
-                    Boolean.TRUE.equals(tuple.get(productCommonOptionGroupJpaEntity.required)),
-                    tuple.get(productCommonOptionGroupJpaEntity.minSelect),
-                    tuple.get(productCommonOptionGroupJpaEntity.maxSelect),
+                    row.name(),
+                    Boolean.TRUE.equals(row.required()),
+                    row.minSelect(),
+                    row.maxSelect(),
                     linkedProductNamesByGroupId.getOrDefault(groupId, List.of()),
-                    tuple.get(productCommonOptionGroupJpaEntity.sort),
+                    row.sort(),
                     optionsByGroupId.getOrDefault(groupId, List.of())
                 );
             })
@@ -1396,7 +1395,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
     ) {
         NumberExpression<Long> commonOptionGroupId = productCommonOptionJpaEntity.optionGroupId;
         return queryFactory
-            .select(
+            .select(Projections.constructor(ProductOptionAvailabilityRow.class,
                 commonOptionGroupId,
                 productCommonOptionJpaEntity.id,
                 productCommonOptionJpaEntity.name,
@@ -1405,7 +1404,7 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
                 productCommonOptionJpaEntity.soldOutUntil,
                 productCommonOptionJpaEntity.visible,
                 productCommonOptionJpaEntity.sort
-            )
+            ))
             .from(productCommonOptionJpaEntity)
             .where(
                 commonOptionGroupId.in(groupIds),
@@ -1415,20 +1414,20 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             .orderBy(productCommonOptionJpaEntity.sort.asc())
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(commonOptionGroupId) != null)
+            .filter(row -> row.optionGroupId() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(commonOptionGroupId)),
+                row -> Objects.requireNonNull(row.optionGroupId()),
                 LinkedHashMap::new,
                 Collectors.mapping(
-                    tuple -> new ProductOptionAvailabilityItemResult(
-                        tuple.get(productCommonOptionJpaEntity.id),
+                    row -> new ProductOptionAvailabilityItemResult(
+                        row.id(),
                         commonOptionType,
-                        tuple.get(productCommonOptionJpaEntity.name),
-                        tuple.get(productCommonOptionJpaEntity.additionalPrice),
-                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.soldOut)),
-                        tuple.get(productCommonOptionJpaEntity.soldOutUntil),
-                        Boolean.TRUE.equals(tuple.get(productCommonOptionJpaEntity.visible)),
-                        tuple.get(productCommonOptionJpaEntity.sort)
+                        row.name(),
+                        row.additionalPrice(),
+                        Boolean.TRUE.equals(row.soldOut()),
+                        row.soldOutUntil(),
+                        Boolean.TRUE.equals(row.visible()),
+                        row.sort()
                     ),
                     Collectors.toList()
                 )
@@ -1790,7 +1789,10 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
         }
         NumberExpression<Long> imageProductId = productImageJpaEntity.productId;
         return queryFactory
-            .select(imageProductId, uploadedFileJpaEntity.filePath)
+            .select(Projections.constructor(IdStringRow.class,
+                imageProductId,
+                uploadedFileJpaEntity.filePath
+            ))
             .from(productImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
@@ -1806,11 +1808,10 @@ public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQuer
             )
             .fetch()
             .stream()
-            .filter(tuple -> tuple.get(imageProductId) != null
-                && tuple.get(uploadedFileJpaEntity.filePath) != null)
+            .filter(row -> row.id() != null && row.value() != null)
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(imageProductId)),
-                tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath)),
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.value()),
                 (existing, ignored) -> existing
             ));
     }

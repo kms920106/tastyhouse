@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
@@ -38,6 +37,7 @@ import com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEn
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewCommentJpaEntity;
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewImageJpaEntity;
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewLikeJpaEntity;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdStringRow;
 
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -592,8 +592,8 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
 
         long total = allReviewIds.size();
 
-        List<Tuple> pagedRows = queryFactory
-            .select(reviewJpaEntity.id, reviewJpaEntity.ownerOnly)
+        List<MyReviewRow> pagedRows = queryFactory
+            .select(Projections.constructor(MyReviewRow.class, reviewJpaEntity.id, reviewJpaEntity.ownerOnly))
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.memberId.eq(memberId),
@@ -605,18 +605,18 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
             .fetch();
 
         List<Long> pagedReviewIds = pagedRows.stream()
-            .map(row -> row.get(reviewJpaEntity.id))
+            .map(MyReviewRow::id)
             .toList();
 
         Map<Long, String> imageUrlMap = findFirstImageUrlsByReviewIds(pagedReviewIds);
 
         List<MyReviewListItemResult> reviews = pagedRows.stream()
             .map(row -> {
-                Long reviewId = row.get(reviewJpaEntity.id);
+                Long reviewId = row.id();
                 return new MyReviewListItemResult(
                     reviewId,
                     imageUrlMap.get(reviewId),
-                    Boolean.TRUE.equals(row.get(reviewJpaEntity.ownerOnly))
+                    Boolean.TRUE.equals(row.ownerOnly())
                 );
             })
             .collect(Collectors.toList());
@@ -871,8 +871,8 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
     }
 
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
-        List<Tuple> results = queryFactory
-            .select(reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath)
+        List<IdStringRow> results = queryFactory
+            .select(Projections.constructor(IdStringRow.class, reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath))
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(reviewImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(reviewImageJpaEntity.reviewId.in(reviewIds))
@@ -880,11 +880,11 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
             .fetch();
 
         return results.stream()
-            .filter(tuple -> tuple.get(reviewImageJpaEntity.reviewId) != null)
+            .filter(row -> row.id() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(reviewImageJpaEntity.reviewId)),
+                row -> Objects.requireNonNull(row.id()),
                 Collectors.mapping(
-                    tuple -> fileUrlResolver.resolve(Objects.toString(tuple.get(uploadedFileJpaEntity.filePath), "")),
+                    row -> fileUrlResolver.resolve(Objects.toString(row.value(), "")),
                     Collectors.toList()
                 )
             ));
@@ -907,8 +907,8 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
             return Map.of();
         }
 
-        List<Tuple> results = queryFactory
-            .select(reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath)
+        List<IdStringRow> results = queryFactory
+            .select(Projections.constructor(IdStringRow.class, reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath))
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(reviewImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
             .where(
@@ -923,10 +923,10 @@ public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
             .fetch();
 
         Map<Long, String> filePathByReviewId = results.stream()
-            .filter(tuple -> tuple.get(reviewImageJpaEntity.reviewId) != null && tuple.get(uploadedFileJpaEntity.filePath) != null)
+            .filter(row -> row.id() != null && row.value() != null)
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(reviewImageJpaEntity.reviewId)),
-                tuple -> Objects.requireNonNull(tuple.get(uploadedFileJpaEntity.filePath)),
+                row -> Objects.requireNonNull(row.id()),
+                row -> Objects.requireNonNull(row.value()),
                 (existing, replacement) -> existing
             ));
 

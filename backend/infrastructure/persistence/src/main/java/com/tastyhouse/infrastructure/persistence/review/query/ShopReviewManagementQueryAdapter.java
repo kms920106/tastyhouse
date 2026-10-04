@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -32,6 +31,7 @@ import com.tastyhouse.infrastructure.persistence.file.query.FileUrlResolver;
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewBlindRequestJpaEntity;
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewImageJpaEntity;
 import com.tastyhouse.infrastructure.persistence.review.persistence.QReviewLikeJpaEntity;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdStringRow;
 
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
@@ -221,8 +221,8 @@ public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQue
     }
 
     private Map<Long, List<String>> findImageUrlsByReviewIds(List<Long> reviewIds) {
-        List<Tuple> results = queryFactory
-            .select(reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath)
+        List<IdStringRow> results = queryFactory
+            .select(Projections.constructor(IdStringRow.class, reviewImageJpaEntity.reviewId, uploadedFileJpaEntity.filePath))
             .from(reviewImageJpaEntity)
             .innerJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(reviewImageJpaEntity.imageFileId))
             .where(reviewImageJpaEntity.reviewId.in(reviewIds))
@@ -230,11 +230,11 @@ public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQue
             .fetch();
 
         return results.stream()
-            .filter(tuple -> tuple.get(reviewImageJpaEntity.reviewId) != null)
+            .filter(row -> row.id() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(reviewImageJpaEntity.reviewId)),
+                row -> Objects.requireNonNull(row.id()),
                 Collectors.mapping(
-                    tuple -> fileUrlResolver.resolve(Objects.toString(tuple.get(uploadedFileJpaEntity.filePath), "")),
+                    row -> fileUrlResolver.resolve(Objects.toString(row.value(), "")),
                     Collectors.toList()
                 )
             ));
@@ -245,8 +245,8 @@ public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQue
     }
 
     private Map<Long, List<String>> findProductNames(List<Long> reviewIds) {
-        List<Tuple> results = queryFactory
-            .select(reviewJpaEntity.id, orderProductJpaEntity.name)
+        List<IdStringRow> results = queryFactory
+            .select(Projections.constructor(IdStringRow.class, reviewJpaEntity.id, orderProductJpaEntity.name))
             .from(reviewJpaEntity)
             .innerJoin(orderProductJpaEntity)
             .on(orderProductJpaEntity.orderId.eq(reviewJpaEntity.orderId))
@@ -255,11 +255,11 @@ public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQue
             .fetch();
 
         return results.stream()
-            .filter(tuple -> tuple.get(reviewJpaEntity.id) != null)
+            .filter(row -> row.id() != null)
             .collect(Collectors.groupingBy(
-                tuple -> Objects.requireNonNull(tuple.get(reviewJpaEntity.id)),
+                row -> Objects.requireNonNull(row.id()),
                 Collectors.mapping(
-                    tuple -> Objects.toString(tuple.get(orderProductJpaEntity.name), ""),
+                    row -> Objects.toString(row.value(), ""),
                     Collectors.toList()
                 )
             ));

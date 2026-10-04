@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +14,7 @@ import com.tastyhouse.application.product.port.out.ProductFeedbackQueryPort;
 import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.infrastructure.persistence.shared.query.IdStringRow;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductFeedbackJpaEntity.productFeedbackJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
@@ -37,7 +38,7 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
         PageQuery pageQuery
     ) {
         long total = queryFactory
-            .select(productFeedbackJpaEntity.productId, productFeedbackJpaEntity.feedbackType)
+            .select(productFeedbackJpaEntity.productId)
             .from(productFeedbackJpaEntity)
             .where(
                 productFeedbackJpaEntity.shopId.eq(shopId),
@@ -51,13 +52,13 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
             return PageResult.empty(pageQuery.page(), pageQuery.size());
         }
 
-        List<Tuple> rows = queryFactory
-            .select(
+        List<ProductFeedbackSummaryRow> rows = queryFactory
+            .select(Projections.constructor(ProductFeedbackSummaryRow.class,
                 productFeedbackJpaEntity.productId,
                 productJpaEntity.name,
                 productFeedbackJpaEntity.feedbackType,
                 productFeedbackJpaEntity.count()
-            )
+            ))
             .from(productFeedbackJpaEntity)
             .leftJoin(productJpaEntity).on(productJpaEntity.id.eq(productFeedbackJpaEntity.productId))
             .where(
@@ -87,13 +88,13 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
     }
 
     private ProductFeedbackSummaryResult toSummary(
-        Tuple row,
+        ProductFeedbackSummaryRow row,
         String contentRequiredType,
         Map<Long, List<String>> contentsByProductId
     ) {
-        Long productId = row.get(productFeedbackJpaEntity.productId);
-        String feedbackType = row.get(productFeedbackJpaEntity.feedbackType);
-        Long rowCount = row.get(productFeedbackJpaEntity.count());
+        Long productId = row.productId();
+        String feedbackType = row.feedbackType();
+        Long rowCount = row.count();
 
         List<String> contents = contentRequiredType.equals(feedbackType)
             ? contentsByProductId.getOrDefault(productId, List.of())
@@ -101,7 +102,7 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
 
         return new ProductFeedbackSummaryResult(
             productId,
-            row.get(productJpaEntity.name),
+            row.name(),
             feedbackType,
             rowCount == null ? 0 : rowCount.intValue(),
             contents
@@ -112,11 +113,11 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
         Long shopId,
         LocalDateTime since,
         String contentRequiredType,
-        List<Tuple> rows
+        List<ProductFeedbackSummaryRow> rows
     ) {
         List<Long> contentProductIds = rows.stream()
-            .filter(row -> contentRequiredType.equals(row.get(productFeedbackJpaEntity.feedbackType)))
-            .map(row -> row.get(productFeedbackJpaEntity.productId))
+            .filter(row -> contentRequiredType.equals(row.feedbackType()))
+            .map(ProductFeedbackSummaryRow::productId)
             .distinct()
             .toList();
 
@@ -124,8 +125,11 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
             return Map.of();
         }
 
-        List<Tuple> contentRows = queryFactory
-            .select(productFeedbackJpaEntity.productId, productFeedbackJpaEntity.content)
+        List<IdStringRow> contentRows = queryFactory
+            .select(Projections.constructor(IdStringRow.class,
+                productFeedbackJpaEntity.productId,
+                productFeedbackJpaEntity.content
+            ))
             .from(productFeedbackJpaEntity)
             .where(
                 productFeedbackJpaEntity.shopId.eq(shopId),
@@ -138,11 +142,11 @@ public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
             .fetch();
 
         Map<Long, List<String>> contentsByProductId = new LinkedHashMap<>();
-        for (Tuple contentRow : contentRows) {
-            Long productId = contentRow.get(productFeedbackJpaEntity.productId);
+        for (IdStringRow contentRow : contentRows) {
+            Long productId = contentRow.id();
             List<String> contents = contentsByProductId.computeIfAbsent(productId, key -> new ArrayList<>());
             if (contents.size() < MAX_CONTENTS_PER_GROUP) {
-                contents.add(contentRow.get(productFeedbackJpaEntity.content));
+                contents.add(contentRow.value());
             }
         }
         return contentsByProductId;

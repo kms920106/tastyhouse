@@ -223,7 +223,7 @@ public class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
 
     private Map<Long, ShopDeliveryTipSettingResult> findSettings(List<Long> shopIds) {
         return queryFactory
-            .select(
+            .select(Projections.constructor(ShopDeliveryTipSettingRow.class,
                 shopDeliveryTipSettingJpaEntity.shopId,
                 Projections.constructor(ShopDeliveryTipSettingResult.class,
                     shopDeliveryTipSettingJpaEntity.id,
@@ -232,14 +232,14 @@ public class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
                     shopDeliveryTipSettingJpaEntity.surchargeUnit.stringValue(),
                     shopDeliveryTipSettingJpaEntity.surchargeAmount
                 )
-            )
+            ))
             .from(shopDeliveryTipSettingJpaEntity)
             .where(shopDeliveryTipSettingJpaEntity.shopId.in(shopIds))
             .fetch()
             .stream()
             .collect(Collectors.toMap(
-                tuple -> Objects.requireNonNull(tuple.get(shopDeliveryTipSettingJpaEntity.shopId)),
-                tuple -> Objects.requireNonNull(tuple.get(1, ShopDeliveryTipSettingResult.class))
+                row -> Objects.requireNonNull(row.shopId()),
+                row -> Objects.requireNonNull(row.setting())
             ));
     }
 
