@@ -6,6 +6,7 @@ import java.util.Set;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
@@ -166,6 +167,37 @@ class LayerRulesTest {
             .check(moduleClasses);
     }
 
+    private static final Set<String> PUBLIC_BY_NECESSITY = Set.of(
+        "com.tastyhouse.infrastructure.persistence.file.query.FileUrlResolver",
+        "com.tastyhouse.infrastructure.persistence.menureview.query.MenuReviewStatisticsQueryAdapter",
+        "com.tastyhouse.infrastructure.persistence.review.query.MemberReviewCountQueryAdapter",
+        "com.tastyhouse.infrastructure.persistence.search.query.SearchQueryAdapter",
+        "com.tastyhouse.infrastructure.persistence.shop.persistence.ShopJpaEntity"
+    );
+
+    @Test
+    void topLevelClassesShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that().areTopLevelClasses()
+            .and(not(publicByCategory()))
+            .and(not(publicByNecessity()))
+            .should().notBePublic()
+            .because("persistence의 엔티티·JPA 리포지토리·어댑터는 앱 ModuleScanConfig의 문자열 스캔과 "
+                + "@EnableJpaRepositories로만 등록된다 — public이 없어야 다른 패키지가 구현에 직접 결합하는 것을 컴파일러가 막는다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void publicByNecessityShouldStillBePublic() {
+        for (String name : PUBLIC_BY_NECESSITY) {
+            if (!classes.get(name).getModifiers().contains(JavaModifier.PUBLIC)) {
+                throw new AssertionError(
+                    "허용 목록이 낡았습니다 — 더 이상 public이 아니므로 PUBLIC_BY_NECESSITY에서 제거하세요: " + name);
+            }
+        }
+    }
+
     private static DescribedPredicate<JavaClass> infraOwnedQueryPort() {
         return DescribedPredicate.describe(
             "infra 자체 소유 읽기 계약",
@@ -182,5 +214,21 @@ class LayerRulesTest {
         return DescribedPredicate.describe(
             fullyQualifiedName,
             javaClass -> javaClass.getName().equals(fullyQualifiedName));
+    }
+
+    private static DescribedPredicate<JavaClass> publicByCategory() {
+        return DescribedPredicate.describe(
+            "범주상 public이어야 하는 타입(조회 투영 record·infra 소유 읽기 계약·BaseEntity·Embeddable·QueryDSL Q타입)",
+            javaClass -> (javaClass.isAssignableTo(Record.class) && javaClass.getPackageName().endsWith(".query"))
+                || javaClass.getSimpleName().endsWith("QueryPort")
+                || javaClass.getSimpleName().equals("BaseEntity")
+                || javaClass.getSimpleName().endsWith("Embeddable")
+                || javaClass.isAssignableTo("com.querydsl.core.types.dsl.BeanPath"));
+    }
+
+    private static DescribedPredicate<JavaClass> publicByNecessity() {
+        return DescribedPredicate.describe(
+            "다른 패키지가 참조해 public이어야 하는 타입(허용 목록)",
+            javaClass -> PUBLIC_BY_NECESSITY.contains(javaClass.getName()));
     }
 }

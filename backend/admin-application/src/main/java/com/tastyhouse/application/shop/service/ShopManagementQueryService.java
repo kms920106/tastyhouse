@@ -37,7 +37,7 @@ import com.tastyhouse.application.shop.port.out.TagResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopManagementQueryService implements ShopManagementQueryUseCase {
+class ShopManagementQueryService implements ShopManagementQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopManagementQueryPort shopManagementQueryPort;

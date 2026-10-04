@@ -30,7 +30,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberVerifyPassword
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Member Me Account", description = "내 계정 관리 API")
-public class MemberMeAccountApiController {
+class MemberMeAccountApiController {
 
     private final MemberScreenUseCase memberUseCase;
 

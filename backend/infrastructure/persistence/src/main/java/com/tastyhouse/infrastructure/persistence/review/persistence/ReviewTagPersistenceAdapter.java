@@ -12,7 +12,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewTagJpaEntity.reviewTagJpaEntity;
 
 @Repository
-public class ReviewTagPersistenceAdapter implements ReviewTagPersistencePort {
+class ReviewTagPersistenceAdapter implements ReviewTagPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewTagJpaRepository reviewTagJpaRepository;

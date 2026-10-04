@@ -44,7 +44,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJp
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
 @Repository
-public class ShopSearchQueryAdapter implements ShopSearchQueryPort, ShopSearchManagementQueryPort {
+class ShopSearchQueryAdapter implements ShopSearchQueryPort, ShopSearchManagementQueryPort {
 
     private static final double MAP_MARKER_RADIUS_METERS = 200.0;
     private static final double METERS_PER_DEGREE = 111000.0;

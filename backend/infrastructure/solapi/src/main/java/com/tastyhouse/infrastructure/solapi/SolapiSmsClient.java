@@ -18,12 +18,10 @@ import org.springframework.web.client.RestClientResponseException;
 import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
-import com.tastyhouse.infrastructure.solapi.dto.SolapiMessageRequest;
-import com.tastyhouse.infrastructure.solapi.dto.SolapiMessageResponse;
 
 @ConditionalOnProperty(name = "sms.provider", havingValue = "solapi", matchIfMissing = true)
 @Component
-public class SolapiSmsClient implements SmsSender {
+class SolapiSmsClient implements SmsSender {
 
     private static final Logger log = LoggerFactory.getLogger(SolapiSmsClient.class);
 

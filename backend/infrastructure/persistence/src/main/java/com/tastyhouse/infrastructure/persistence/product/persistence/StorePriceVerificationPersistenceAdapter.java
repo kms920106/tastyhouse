@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
 
 @Repository
-public class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationPersistencePort {
+class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationPersistencePort {
 
     private final StorePriceVerificationJpaRepository storePriceVerificationJpaRepository;
     private final StorePriceVerificationItemJpaRepository storePriceVerificationItemJpaRepository;

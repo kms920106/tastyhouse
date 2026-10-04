@@ -10,7 +10,7 @@ import com.tastyhouse.domain.coupon.event.MemberCouponIssuedEvent;
 import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;
 
 @Component
-public class CouponEventListener {
+class CouponEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(CouponEventListener.class);
 

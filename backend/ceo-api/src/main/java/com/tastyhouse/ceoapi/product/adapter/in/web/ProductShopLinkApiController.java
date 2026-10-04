@@ -33,7 +33,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResp
 @Tag(name = "Ceo Product Shop Link", description = "점주 메뉴-가게 연결 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductShopLinkApiController {
+class ProductShopLinkApiController {
 
     private final ProductShopLinkQueryUseCase productShopLinkQueryUseCase;
     private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;

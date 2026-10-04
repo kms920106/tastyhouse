@@ -15,7 +15,7 @@ import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
 
 @Service
 @Transactional
-public class FaqCategoryCommandService implements FaqCategoryCommandUseCase {
+class FaqCategoryCommandService implements FaqCategoryCommandUseCase {
 
     private final FaqCategoryPersistencePort faqCategoryPersistencePort;
     private final FaqCategoryDeletionPolicy faqCategoryDeletionPolicy;

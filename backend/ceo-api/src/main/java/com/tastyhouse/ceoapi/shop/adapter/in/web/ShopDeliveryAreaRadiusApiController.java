@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
 @Tag(name = "Ceo Shop Delivery Area Radius", description = "점주 가게 반경 배달가능지역 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopDeliveryAreaRadiusApiController {
+class ShopDeliveryAreaRadiusApiController {
 
     private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;

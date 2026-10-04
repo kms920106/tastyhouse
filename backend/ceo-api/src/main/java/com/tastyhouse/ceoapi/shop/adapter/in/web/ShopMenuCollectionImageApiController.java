@@ -33,7 +33,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @Tag(name = "Ceo Shop Menu Collection Image", description = "점주 메뉴모음컷 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopMenuCollectionImageApiController {
+class ShopMenuCollectionImageApiController {
 
     private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;

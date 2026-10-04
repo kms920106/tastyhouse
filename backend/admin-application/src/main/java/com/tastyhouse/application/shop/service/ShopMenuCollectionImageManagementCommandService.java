@@ -10,7 +10,7 @@ import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectComm
 
 @Service
 @Transactional
-public class ShopMenuCollectionImageManagementCommandService implements ShopMenuCollectionImageManagementCommandUseCase {
+class ShopMenuCollectionImageManagementCommandService implements ShopMenuCollectionImageManagementCommandUseCase {
 
     private final ShopMenuCollectionImageService shopMenuCollectionImageService;
 

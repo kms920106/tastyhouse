@@ -12,7 +12,7 @@ import com.tastyhouse.application.faq.port.out.write.FaqPersistencePort;
 import static com.tastyhouse.infrastructure.persistence.faq.persistence.QFaqJpaEntity.faqJpaEntity;
 
 @Repository
-public class FaqPersistenceAdapter implements FaqPersistencePort {
+class FaqPersistenceAdapter implements FaqPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final FaqJpaRepository faqJpaRepository;

@@ -19,7 +19,7 @@ import com.tastyhouse.application.rank.port.out.RankPrizeManagementResult;
 
 @Service
 @Transactional(readOnly = true)
-public class RankManagementQueryService implements RankManagementQueryUseCase {
+class RankManagementQueryService implements RankManagementQueryUseCase {
 
     private final RankManagementQueryPort rankManagementQueryPort;
 

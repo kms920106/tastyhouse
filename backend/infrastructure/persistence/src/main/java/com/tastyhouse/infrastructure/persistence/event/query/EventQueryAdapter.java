@@ -30,7 +30,7 @@ import static com.tastyhouse.infrastructure.persistence.event.persistence.QEvent
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 @Repository
-public class EventQueryAdapter implements EventQueryPort, EventManagementQueryPort {
+class EventQueryAdapter implements EventQueryPort, EventManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

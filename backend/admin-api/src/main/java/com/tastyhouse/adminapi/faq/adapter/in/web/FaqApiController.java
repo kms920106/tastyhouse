@@ -35,7 +35,7 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
 @Tag(name = "FAQ Admin", description = "FAQ 관리자 API")
 @RestController
 @RequestMapping("/api/faqs")
-public class FaqApiController {
+class FaqApiController {
 
     private final FaqCommandUseCase faqCommandUseCase;
     private final FaqManagementQueryUseCase faqQueryUseCase;

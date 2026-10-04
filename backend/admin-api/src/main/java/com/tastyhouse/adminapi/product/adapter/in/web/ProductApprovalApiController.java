@@ -38,7 +38,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarian
 @Tag(name = "Product Approval Admin", description = "메뉴 이미지·채식·사장님 추천 승인요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductApprovalApiController {
+class ProductApprovalApiController {
 
     private final ProductApprovalQueryUseCase productApprovalQueryUseCase;
     private final ProductApprovalCommandUseCase productApprovalCommandUseCase;

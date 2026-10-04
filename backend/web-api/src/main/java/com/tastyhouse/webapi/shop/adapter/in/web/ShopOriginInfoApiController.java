@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @Tag(name = "Shop Origin Info", description = "가게 원산지 표시 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOriginInfoApiController {
+class ShopOriginInfoApiController {
 
     private final ShopOriginInfoQueryUseCase shopOriginInfoQueryUseCase;
 

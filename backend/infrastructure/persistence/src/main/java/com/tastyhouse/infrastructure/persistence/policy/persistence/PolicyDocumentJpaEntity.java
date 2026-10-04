@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "POLICY_DOCUMENT")
-public class PolicyDocumentJpaEntity extends BaseEntity {
+class PolicyDocumentJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -34,7 +34,7 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResp
 @Tag(name = "BugReport Admin", description = "버그 제보 관리자 API")
 @RestController
 @RequestMapping("/api/bug-reports")
-public class BugReportApiController {
+class BugReportApiController {
 
     private final BugReportManagementCommandUseCase bugReportCommandUseCase;
     private final BugReportQueryUseCase bugReportQueryUseCase;

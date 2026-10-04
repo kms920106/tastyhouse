@@ -13,7 +13,7 @@ import com.tastyhouse.application.member.referral.service.ReferralRewardCompleti
 import com.tastyhouse.application.point.service.PointLedgerService;
 
 @Component
-public class ReferralRegisteredEventListener {
+class ReferralRegisteredEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ReferralRegisteredEventListener.class);
 

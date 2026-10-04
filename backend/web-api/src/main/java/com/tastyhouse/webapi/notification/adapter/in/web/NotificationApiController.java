@@ -28,7 +28,7 @@ import com.tastyhouse.webapi.notification.adapter.in.web.response.NotificationLi
 @RestController
 @RequestMapping("/api/notifications")
 @Tag(name = "Notification", description = "인앱 알림함 API")
-public class NotificationApiController {
+class NotificationApiController {
 
     private final NotificationQueryUseCase notificationQueryUseCase;
     private final NotificationCommandUseCase notificationCommandUseCase;

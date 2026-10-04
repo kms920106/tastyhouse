@@ -95,7 +95,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QPro
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, ProductManagementQueryPort, ProductOwnerQueryPort {
+class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, ProductManagementQueryPort, ProductOwnerQueryPort {
 
     private static final com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageJpaEntity subProductImage =
         new com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageJpaEntity("subProductImage");

@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.in.ShopCommandUseCase;
 
 @Service
 @Transactional
-public class ShopCommandService implements ShopCommandUseCase {
+class ShopCommandService implements ShopCommandUseCase {
 
     private final ShopLifecycleService shopLifecycleService;
 

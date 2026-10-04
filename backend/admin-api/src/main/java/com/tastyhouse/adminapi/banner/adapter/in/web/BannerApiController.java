@@ -35,7 +35,7 @@ import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResp
 @Tag(name = "Banner Admin", description = "배너 관리자 API")
 @RestController
 @RequestMapping("/api/banners")
-public class BannerApiController {
+class BannerApiController {
 
     private final BannerCommandUseCase bannerCommandUseCase;
     private final BannerManagementQueryUseCase bannerQueryUseCase;

@@ -27,7 +27,7 @@ import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
 
 @Service
-public class PaymentCommandService implements PaymentCommandUseCase {
+class PaymentCommandService implements PaymentCommandUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentCommandService.class);
 

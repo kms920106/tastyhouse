@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProductImageChangeRequestJpaRepository
+interface ProductImageChangeRequestJpaRepository
     extends JpaRepository<ProductImageChangeRequestJpaEntity, Long> {
 
     List<ProductImageChangeRequestJpaEntity> findAllByProductId(Long productId);

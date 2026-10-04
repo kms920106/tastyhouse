@@ -20,7 +20,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QPro
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
 
 @Repository
-public class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
+class ProductFeedbackQueryAdapter implements ProductFeedbackQueryPort {
 
     private static final int MAX_CONTENTS_PER_GROUP = 10;
 

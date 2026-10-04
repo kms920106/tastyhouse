@@ -47,7 +47,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductQueryService implements ProductQueryUseCase {
+class ProductQueryService implements ProductQueryUseCase {
 
     private final ProductQueryPort productQueryPort;
     private final ReviewQueryPort reviewQueryPort;

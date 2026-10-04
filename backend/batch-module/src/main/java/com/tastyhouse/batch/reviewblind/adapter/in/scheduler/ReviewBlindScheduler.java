@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.reviewblind.port.in.ExpireBlindedReviewsUseCase;
 
 @Component
-public class ReviewBlindScheduler {
+class ReviewBlindScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindScheduler.class);
 

@@ -22,7 +22,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductExposureQueryService implements ProductExposureQueryUseCase {
+class ProductExposureQueryService implements ProductExposureQueryUseCase {
 
     private static final ZoneId SERVICE_ZONE = ZoneId.of("Asia/Seoul");
 

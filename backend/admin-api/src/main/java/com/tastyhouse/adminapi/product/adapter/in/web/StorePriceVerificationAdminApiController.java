@@ -32,7 +32,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerific
 @Tag(name = "Store Price Verification Admin", description = "매장 가격 인증 요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class StorePriceVerificationAdminApiController {
+class StorePriceVerificationAdminApiController {
 
     private final StorePriceVerificationQueryUseCase storePriceVerificationQueryUseCase;
     private final StorePriceVerificationCommandUseCase storePriceVerificationCommandUseCase;

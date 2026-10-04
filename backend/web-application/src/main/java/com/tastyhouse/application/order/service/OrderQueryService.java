@@ -28,7 +28,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class OrderQueryService implements OrderQueryUseCase {
+class OrderQueryService implements OrderQueryUseCase {
 
     private final OrderQueryPort orderQueryPort;
     private final ReviewQueryUseCase reviewQueryUseCase;

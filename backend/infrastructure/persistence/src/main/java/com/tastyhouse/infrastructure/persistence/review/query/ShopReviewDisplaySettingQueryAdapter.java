@@ -13,7 +13,7 @@ import com.tastyhouse.application.review.port.out.ShopReviewSortTypeResult;
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QShopReviewDisplaySettingJpaEntity.shopReviewDisplaySettingJpaEntity;
 
 @Repository
-public class ShopReviewDisplaySettingQueryAdapter implements ShopReviewDisplaySettingQueryPort, ShopReviewDisplaySettingOwnerQueryPort {
+class ShopReviewDisplaySettingQueryAdapter implements ShopReviewDisplaySettingQueryPort, ShopReviewDisplaySettingOwnerQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

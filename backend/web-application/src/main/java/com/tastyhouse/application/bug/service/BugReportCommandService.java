@@ -11,7 +11,7 @@ import com.tastyhouse.application.bug.port.in.BugReportCreateCommand;
 
 @Service
 @Transactional
-public class BugReportCommandService implements BugReportCommandUseCase {
+class BugReportCommandService implements BugReportCommandUseCase {
 
     private final BugReportRegistrationService bugReportRegistrationService;
 

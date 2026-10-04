@@ -19,7 +19,7 @@ import com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService;
 import com.tastyhouse.application.auth.service.naver.NaverSocialLoginService;
 
 @Service
-public class MemberAuthCommandService implements MemberAuthCommandUseCase {
+class MemberAuthCommandService implements MemberAuthCommandUseCase {
 
     private final CredentialLoginService credentialLoginService;
     private final AuthPasswordResetService authPasswordResetService;

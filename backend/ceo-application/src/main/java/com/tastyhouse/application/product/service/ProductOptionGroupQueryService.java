@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
+class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
     private final CupDepositPolicy cupDepositPolicy;

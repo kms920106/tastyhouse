@@ -8,7 +8,7 @@ import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
 
 @Repository
-public class ShopConvenienceInfoPersistenceAdapter implements ShopConvenienceInfoPersistencePort {
+class ShopConvenienceInfoPersistenceAdapter implements ShopConvenienceInfoPersistencePort {
 
     private final ShopConvenienceInfoJpaRepository shopConvenienceInfoJpaRepository;
 

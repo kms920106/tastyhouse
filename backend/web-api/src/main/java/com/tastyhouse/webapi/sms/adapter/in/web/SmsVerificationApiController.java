@@ -23,7 +23,7 @@ import com.tastyhouse.webapi.sms.adapter.in.web.response.SmsVerificationTokenRes
 @RestController
 @RequestMapping("/api/sms-verifications")
 @Tag(name = "SMS Verification", description = "SMS(휴대폰번호) 인증 API")
-public class SmsVerificationApiController {
+class SmsVerificationApiController {
 
     private final SmsVerificationCommandUseCase smsVerificationCommandUseCase;
     private final MemberJwtTokenProvider jwtTokenProvider;

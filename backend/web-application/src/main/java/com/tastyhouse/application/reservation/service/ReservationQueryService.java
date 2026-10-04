@@ -29,7 +29,7 @@ import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ReservationQueryService implements ReservationQueryUseCase {
+class ReservationQueryService implements ReservationQueryUseCase {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 

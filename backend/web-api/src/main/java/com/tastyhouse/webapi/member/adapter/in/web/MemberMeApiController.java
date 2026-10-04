@@ -23,7 +23,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Member Me", description = "내 정보 관리 API")
-public class MemberMeApiController {
+class MemberMeApiController {
 
     private final MemberScreenUseCase memberUseCase;
 

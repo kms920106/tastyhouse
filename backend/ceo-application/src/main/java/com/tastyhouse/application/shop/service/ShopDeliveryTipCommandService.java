@@ -24,7 +24,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryTipTiersUpdateCommand
 
 @Service
 @Transactional
-public class ShopDeliveryTipCommandService implements ShopDeliveryTipCommandUseCase {
+class ShopDeliveryTipCommandService implements ShopDeliveryTipCommandUseCase {
 
     private final ShopDeliveryTipService shopDeliveryTipService;
     private final ShopOwnershipValidator shopOwnershipValidator;

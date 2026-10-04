@@ -17,7 +17,7 @@ import com.tastyhouse.apicommon.common.ApiResponse;
 @Tag(name = "File Admin", description = "파일 업로드 관리자 API")
 @RestController
 @RequestMapping("/api/files")
-public class FileApiController {
+class FileApiController {
 
     private final FileUploadManagementCommandUseCase fileUploadCommandUseCase;
 

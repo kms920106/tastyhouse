@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.FacebookTempTokenRepository;
 
 @Component
-public class RedisFacebookTempTokenRepository implements FacebookTempTokenRepository {
+class RedisFacebookTempTokenRepository implements FacebookTempTokenRepository {
 
     private static final String PREFIX = "facebook_temp:";
     private static final long TTL_MINUTES = 10;

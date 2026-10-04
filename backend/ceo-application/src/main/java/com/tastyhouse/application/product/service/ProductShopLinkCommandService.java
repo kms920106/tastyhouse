@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductShopLinkCommandService implements ProductShopLinkCommandUseCase {
+class ProductShopLinkCommandService implements ProductShopLinkCommandUseCase {
 
     private final ProductShopLinkService productShopLinkService;
     private final OwnedShopIdProvider ownedShopIdProvider;

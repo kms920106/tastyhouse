@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.RefreshTokenRepository;
 
 @Component
-public class RedisRefreshTokenRepository implements RefreshTokenRepository {
+class RedisRefreshTokenRepository implements RefreshTokenRepository {
 
     private static final String REFRESH_TOKEN_SUFFIX = "rt:";
 

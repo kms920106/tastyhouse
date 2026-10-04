@@ -20,7 +20,7 @@ import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.infrastructure.restclient.HttpRequestFactories;
 
 @Component
-public class RemoteImageDownloader implements RemoteImagePort {
+class RemoteImageDownloader implements RemoteImagePort {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteImageDownloader.class);
 

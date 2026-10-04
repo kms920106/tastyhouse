@@ -30,7 +30,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
 @Tag(name = "Ceo Shop Rider Guide", description = "점주 라이더 가게방문 안내·픽업 위치 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopRiderGuideApiController {
+class ShopRiderGuideApiController {
 
     private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;

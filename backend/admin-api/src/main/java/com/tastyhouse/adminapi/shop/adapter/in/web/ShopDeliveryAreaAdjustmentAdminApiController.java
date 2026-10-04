@@ -32,7 +32,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdju
 @Tag(name = "Shop Delivery Area Adjustment Admin", description = "프랜차이즈 배달지역 조정 신청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopDeliveryAreaAdjustmentAdminApiController {
+class ShopDeliveryAreaAdjustmentAdminApiController {
 
     private final ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
     private final ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;

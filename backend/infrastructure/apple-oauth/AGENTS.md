@@ -4,7 +4,7 @@
 
 애플 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `AppleOAuthClient`가 구현하고 `provider()`로 `SocialProvider.APPLE`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.apple.oauth`가 됐고, wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.apple.oauth.dto`로 모였다. 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
+옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.apple.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.apple.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.apple.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
 
 ## 무엇을 소유하는가
 
@@ -13,9 +13,8 @@ com.tastyhouse.infrastructure.apple.oauth/
 ├── AppleOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(AppleOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 AppleOAuthModuleAutoConfiguration에서 리네임
 ├── AppleOAuthProperties.java               oauth.apple.* (team-id, client-id, key-id, redirect-uri, private-key)
 ├── AppleOAuthClient.java                   SocialOAuthClient 구현 — ES256 client_secret 생성·토큰 교환·id_token(RS256) 검증
-└── dto/
-    ├── AppleTokenResponse.java             wire DTO
-    └── AppleIdTokenPayload.java            id_token claim 해석
+├── AppleTokenResponse.java             wire DTO (package-private, 과거 dto/ 하위)
+└── AppleIdTokenPayload.java            id_token claim 해석 (package-private, 과거 dto/ 하위)
 ```
 
 `AppleOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `AppleOAuthProperties`를 받아 같은 이름의 `final` 필드로 옮기며, **개인키만 이름이 다르다** — `privateKeyBase64 = properties.privateKey()`(값이 Base64 문자열이라는 것을 필드명이 드러낸다).
@@ -77,13 +76,21 @@ oauth:
 
 검증 실패의 bare `RuntimeException`을 이 어댑터가 삼키고 `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`로 표현하는 것은 이 어댑터의 책임이다(과거 web-api `AppleSocialLoginService` 3곳에 중복돼 있던 try/catch를 어댑터로 회수한 것이 그 시작이었다). 다만 그 결과를 도메인 의미의 예외(`BusinessException(ErrorCode.APPLE_ID_TOKEN_INVALID)`)로 번역하는 것은 이제 이 어댑터가 아니라 `application.auth.service.SocialOAuthFailures`가 한다 — 어댑터는 `BusinessException`/`ErrorCode`를 참조하지 않는다. 응답 계약(`APPLE_ID_TOKEN_INVALID`)은 무변경이다. 번역을 어댑터로 되돌리지 않는다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/apple-oauth/src/test/java/com/tastyhouse/infrastructure/apple/oauth/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다.
+
+외부 API wire DTO(`AppleTokenResponse`·`AppleIdTokenPayload`)도 예외가 아니다. **`{루트}.dto` 하위 패키지로 되돌리지 않는다** — package-private 타입은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 Client와 같은 루트 패키지에 있어야 한다. Jackson은 별도 가시성 설정 없이(기본 `CAN_OVERRIDE_ACCESS_MODIFIERS`) package-private record를 (역)직렬화한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->
 
 ### Apple id_token payload claim의 의미
 
-**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/dto/AppleIdTokenPayload.java`
+**대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/AppleIdTokenPayload.java`
 
 Apple id_token JWT payload의 claim 해석 규약이다.
 

@@ -17,7 +17,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_uploaded_file_created_at", columnList = "created_at")
     }
 )
-public class UploadedFileJpaEntity extends BaseEntity {
+class UploadedFileJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

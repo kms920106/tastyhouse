@@ -30,7 +30,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnre
 @Tag(name = "Ceo Product Feedback", description = "점주 메뉴 정보 고객 의견 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductFeedbackApiController {
+class ProductFeedbackApiController {
 
     private final ProductFeedbackQueryUseCase productFeedbackQueryUseCase;
     private final ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase;

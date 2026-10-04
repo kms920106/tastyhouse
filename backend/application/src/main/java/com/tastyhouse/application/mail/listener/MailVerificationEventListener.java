@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
 
 @Component
-public class MailVerificationEventListener {
+class MailVerificationEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(MailVerificationEventListener.class);
 

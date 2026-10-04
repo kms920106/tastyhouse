@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopSuspensionResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopSuspensionQueryService implements ShopSuspensionQueryUseCase {
+class ShopSuspensionQueryService implements ShopSuspensionQueryUseCase {
 
     private final ShopOwnerQueryPort shopOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

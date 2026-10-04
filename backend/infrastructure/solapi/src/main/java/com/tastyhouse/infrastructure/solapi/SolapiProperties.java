@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "sms.solapi")
-public record SolapiProperties(
+record SolapiProperties(
     String apiKey,
     String apiSecret,
     String senderNumber,

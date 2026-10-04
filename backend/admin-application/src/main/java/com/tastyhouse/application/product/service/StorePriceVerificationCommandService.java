@@ -13,7 +13,7 @@ import com.tastyhouse.application.product.port.in.StorePriceVerificationStartRev
 
 @Service
 @Transactional
-public class StorePriceVerificationCommandService implements StorePriceVerificationCommandUseCase {
+class StorePriceVerificationCommandService implements StorePriceVerificationCommandUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
 

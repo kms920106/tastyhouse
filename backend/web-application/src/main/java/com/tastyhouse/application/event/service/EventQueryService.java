@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class EventQueryService implements EventQueryUseCase {
+class EventQueryService implements EventQueryUseCase {
 
     private final EventQueryPort eventQueryPort;
 

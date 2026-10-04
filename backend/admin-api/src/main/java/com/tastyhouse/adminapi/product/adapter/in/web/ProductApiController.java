@@ -39,7 +39,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemRe
 @Tag(name = "Product Admin", description = "상품 관리자 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductApiController {
+class ProductApiController {
 
     private final ProductManagementCreateUseCase productCreateUseCase;
     private final ProductManagementUpdateUseCase productUpdateUseCase;

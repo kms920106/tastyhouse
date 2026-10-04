@@ -20,7 +20,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.persistence.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 
 @Repository
-public class PartnershipQueryAdapter implements PartnershipQueryPort {
+class PartnershipQueryAdapter implements PartnershipQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

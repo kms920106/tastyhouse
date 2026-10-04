@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ShopDeliveryTipSettingJpaRepository extends JpaRepository<ShopDeliveryTipSettingJpaEntity, Long> {
+interface ShopDeliveryTipSettingJpaRepository extends JpaRepository<ShopDeliveryTipSettingJpaEntity, Long> {
 
     Optional<ShopDeliveryTipSettingJpaEntity> findByShopId(Long shopId);
 }

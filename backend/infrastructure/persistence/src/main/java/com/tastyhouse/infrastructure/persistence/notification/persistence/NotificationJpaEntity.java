@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "NOTIFICATION")
-public class NotificationJpaEntity extends BaseEntity {
+class NotificationJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

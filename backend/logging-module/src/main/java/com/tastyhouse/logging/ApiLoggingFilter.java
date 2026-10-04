@@ -22,7 +22,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class ApiLoggingFilter extends OncePerRequestFilter {
+class ApiLoggingFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiLoggingFilter.class);
     private static final String MDC_REQUEST_ID = "requestId";

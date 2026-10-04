@@ -14,7 +14,7 @@ import com.tastyhouse.application.notification.port.out.write.NotificationPersis
 import static com.tastyhouse.infrastructure.persistence.notification.persistence.QNotificationJpaEntity.notificationJpaEntity;
 
 @Repository
-public class NotificationPersistenceAdapter implements NotificationPersistencePort {
+class NotificationPersistenceAdapter implements NotificationPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final NotificationJpaRepository notificationJpaRepository;

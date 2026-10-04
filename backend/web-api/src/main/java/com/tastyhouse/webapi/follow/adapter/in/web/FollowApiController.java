@@ -33,7 +33,7 @@ import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchLi
 @RestController
 @RequestMapping("/api/follows")
 @Tag(name = "Follow", description = "팔로우 API")
-public class FollowApiController {
+class FollowApiController {
 
     private final FollowCommandUseCase followCommandUseCase;
     private final FollowQueryUseCase followQueryUseCase;

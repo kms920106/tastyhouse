@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopOrderMethodItemR
 @Tag(name = "Shop Order Method Admin", description = "가게 주문수단 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOrderMethodAdminApiController {
+class ShopOrderMethodAdminApiController {
 
     private final ShopOrderMethodAssignUseCase shopOrderMethodAssignUseCase;
     private final ShopOrderMethodUnassignUseCase shopOrderMethodUnassignUseCase;

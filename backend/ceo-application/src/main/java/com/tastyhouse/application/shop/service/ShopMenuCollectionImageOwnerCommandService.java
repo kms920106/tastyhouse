@@ -17,7 +17,7 @@ import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCom
 
 @Service
 @Transactional
-public class ShopMenuCollectionImageOwnerCommandService implements ShopMenuCollectionImageOwnerCommandUseCase {
+class ShopMenuCollectionImageOwnerCommandService implements ShopMenuCollectionImageOwnerCommandUseCase {
 
     private final ShopMenuCollectionImageService shopMenuCollectionImageService;
     private final ShopOwnershipValidator shopOwnershipValidator;

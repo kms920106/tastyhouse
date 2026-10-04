@@ -18,7 +18,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
+class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

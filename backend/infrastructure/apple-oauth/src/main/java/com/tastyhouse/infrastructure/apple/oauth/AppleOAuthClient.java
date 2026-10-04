@@ -26,11 +26,9 @@ import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
-import com.tastyhouse.infrastructure.apple.oauth.dto.AppleIdTokenPayload;
-import com.tastyhouse.infrastructure.apple.oauth.dto.AppleTokenResponse;
 
 @Component
-public class AppleOAuthClient implements SocialOAuthClient {
+class AppleOAuthClient implements SocialOAuthClient {
 
     private static final String APPLE_AUTH_BASE_URL = "https://appleid.apple.com";
     private static final String APPLE_JWKS_URI = APPLE_AUTH_BASE_URL + "/auth/keys";

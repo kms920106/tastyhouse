@@ -22,7 +22,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
 @Service
 @Transactional
-public class MenuReviewCommandService implements MenuReviewCommandUseCase {
+class MenuReviewCommandService implements MenuReviewCommandUseCase {
 
     private final MenuReviewLifecycleService menuReviewLifecycleService;
     private final OrderProductPersistencePort orderProductPersistencePort;

@@ -16,7 +16,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductImageQueryService implements ProductImageQueryUseCase {
+class ProductImageQueryService implements ProductImageQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

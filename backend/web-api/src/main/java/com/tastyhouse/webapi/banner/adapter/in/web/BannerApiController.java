@@ -20,7 +20,7 @@ import com.tastyhouse.webapi.banner.adapter.in.web.response.BannerListItemRespon
 @RestController
 @RequestMapping("/api/banners")
 @Tag(name = "Banner", description = "배너 관리 API")
-public class BannerApiController {
+class BannerApiController {
 
     private final BannerQueryUseCase bannerQueryUseCase;
 

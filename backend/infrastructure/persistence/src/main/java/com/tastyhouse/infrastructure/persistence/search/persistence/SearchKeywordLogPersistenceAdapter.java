@@ -8,7 +8,7 @@ import com.tastyhouse.domain.search.model.SearchKeywordLog;
 import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
 
 @Repository
-public class SearchKeywordLogPersistenceAdapter implements SearchKeywordLogPersistencePort {
+class SearchKeywordLogPersistenceAdapter implements SearchKeywordLogPersistencePort {
 
     private final SearchKeywordLogJpaRepository jpaRepository;
 

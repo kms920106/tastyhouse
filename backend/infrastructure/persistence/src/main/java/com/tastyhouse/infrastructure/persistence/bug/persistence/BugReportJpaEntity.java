@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_bug_report_status", columnList = "status")
     }
 )
-public class BugReportJpaEntity extends BaseEntity {
+class BugReportJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

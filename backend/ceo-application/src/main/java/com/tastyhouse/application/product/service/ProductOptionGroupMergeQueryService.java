@@ -27,7 +27,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQueryUseCase {
+class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQueryUseCase {
 
     private static final String DIFF_SAME = "SAME";
 

@@ -12,11 +12,9 @@ import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
-import com.tastyhouse.infrastructure.naver.oauth.dto.NaverTokenResponse;
-import com.tastyhouse.infrastructure.naver.oauth.dto.NaverUserInfoResponse;
 
 @Component
-public class NaverOAuthClient implements SocialOAuthClient {
+class NaverOAuthClient implements SocialOAuthClient {
 
     private static final String NAUTH_BASE_URL = "https://nid.naver.com";
     private static final String NAPI_BASE_URL = "https://openapi.naver.com";

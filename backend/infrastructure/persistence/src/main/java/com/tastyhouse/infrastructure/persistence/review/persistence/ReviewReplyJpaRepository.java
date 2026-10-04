@@ -2,5 +2,5 @@ package com.tastyhouse.infrastructure.persistence.review.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReviewReplyJpaRepository extends JpaRepository<ReviewReplyJpaEntity, Long> {
+interface ReviewReplyJpaRepository extends JpaRepository<ReviewReplyJpaEntity, Long> {
 }

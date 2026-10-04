@@ -25,7 +25,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class BugReportQueryService implements BugReportQueryUseCase {
+class BugReportQueryService implements BugReportQueryUseCase {
 
     private final BugReportQueryPort bugReportQueryPort;
     private final MemberManagementQueryPort memberManagementQueryPort;

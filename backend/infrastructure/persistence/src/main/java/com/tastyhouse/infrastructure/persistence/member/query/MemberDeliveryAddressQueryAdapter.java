@@ -16,7 +16,7 @@ import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemb
 import static com.tastyhouse.infrastructure.persistence.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
 
 @Repository
-public class MemberDeliveryAddressQueryAdapter implements MemberDeliveryAddressQueryPort {
+class MemberDeliveryAddressQueryAdapter implements MemberDeliveryAddressQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

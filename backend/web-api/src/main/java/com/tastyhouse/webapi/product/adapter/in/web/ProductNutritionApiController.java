@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductNutritionRes
 @Tag(name = "Product Nutrition", description = "메뉴 영양성분·알레르기 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductNutritionApiController {
+class ProductNutritionApiController {
 
     private final ProductNutritionQueryUseCase productNutritionQueryUseCase;
 

@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
 @Tag(name = "Ceo Shop Store Price Verification", description = "점주 매장 가격 인증 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopStorePriceVerificationApiController {
+class ShopStorePriceVerificationApiController {
 
     private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase;
     private final ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase;

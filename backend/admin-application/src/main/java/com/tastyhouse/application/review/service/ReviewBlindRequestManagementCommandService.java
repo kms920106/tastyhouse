@@ -11,7 +11,7 @@ import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand
 
 @Service
 @Transactional
-public class ReviewBlindRequestManagementCommandService implements ReviewBlindRequestManagementCommandUseCase {
+class ReviewBlindRequestManagementCommandService implements ReviewBlindRequestManagementCommandUseCase {
 
     private final ReviewBlindRequestService reviewBlindRequestService;
 

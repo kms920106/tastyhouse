@@ -19,7 +19,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.Verification
     @Index(name = "idx_mail_verification_email", columnList = "email"),
     @Index(name = "idx_mail_verification_expires_at", columnList = "expires_at")
 })
-public class MailVerificationJpaEntity {
+class MailVerificationJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

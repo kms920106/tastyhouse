@@ -24,7 +24,7 @@ import static com.tastyhouse.infrastructure.persistence.bug.persistence.QBugRepo
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 @Repository
-public class BugReportQueryAdapter implements BugReportQueryPort {
+class BugReportQueryAdapter implements BugReportQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

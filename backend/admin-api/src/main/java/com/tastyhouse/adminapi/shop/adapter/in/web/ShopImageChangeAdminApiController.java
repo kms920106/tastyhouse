@@ -30,7 +30,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeReque
 @Tag(name = "Shop Image Change Admin", description = "가게 이미지 변경 요청 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopImageChangeAdminApiController {
+class ShopImageChangeAdminApiController {
 
     private final ShopImageChangeQueryUseCase shopImageChangeQueryUseCase;
     private final ShopImageChangeCommandUseCase shopImageChangeCommandUseCase;

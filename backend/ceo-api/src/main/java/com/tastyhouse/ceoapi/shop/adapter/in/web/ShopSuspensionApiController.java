@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
 @Tag(name = "Ceo Shop Suspension", description = "점주 가게 영업 임시중지 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopSuspensionApiController {
+class ShopSuspensionApiController {
 
     private final ShopSuspensionQueryUseCase shopSuspensionQueryUseCase;
     private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;

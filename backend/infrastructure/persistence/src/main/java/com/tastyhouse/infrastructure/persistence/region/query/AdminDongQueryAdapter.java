@@ -24,7 +24,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.persistence.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
 
 @Repository
-public class AdminDongQueryAdapter implements AdminDongQueryPort {
+class AdminDongQueryAdapter implements AdminDongQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

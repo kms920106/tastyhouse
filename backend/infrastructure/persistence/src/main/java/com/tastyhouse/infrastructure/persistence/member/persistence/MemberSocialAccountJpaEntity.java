@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         columnNames = {"provider", "provider_id"}
     )
 )
-public class MemberSocialAccountJpaEntity extends BaseEntity {
+class MemberSocialAccountJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

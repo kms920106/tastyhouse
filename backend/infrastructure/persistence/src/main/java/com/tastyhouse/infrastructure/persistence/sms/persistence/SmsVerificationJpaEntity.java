@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.Verification
     @Index(name = "idx_sms_verification_phone_number", columnList = "phone_number"),
     @Index(name = "idx_sms_verification_expires_at", columnList = "expires_at")
 })
-public class SmsVerificationJpaEntity {
+class SmsVerificationJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

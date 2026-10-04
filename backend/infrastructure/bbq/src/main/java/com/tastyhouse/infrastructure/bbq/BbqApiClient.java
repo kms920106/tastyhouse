@@ -10,12 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuCategoryResponse;
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuResponse;
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuSubOptionResponse;
-
 @Component
-public class BbqApiClient {
+class BbqApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(BbqApiClient.class);
 

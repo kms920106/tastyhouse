@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "SHOP_BUSINESS_HOUR")
-public class ShopBusinessHourJpaEntity {
+class ShopBusinessHourJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

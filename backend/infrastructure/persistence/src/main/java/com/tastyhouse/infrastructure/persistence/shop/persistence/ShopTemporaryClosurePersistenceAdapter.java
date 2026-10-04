@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
 @Repository
-public class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePersistencePort {
+class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePersistencePort {
 
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;
 

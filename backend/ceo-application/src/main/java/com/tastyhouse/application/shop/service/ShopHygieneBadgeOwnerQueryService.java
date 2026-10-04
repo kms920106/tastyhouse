@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopHygieneBadgeResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopHygieneBadgeOwnerQueryService implements ShopHygieneBadgeOwnerQueryUseCase {
+class ShopHygieneBadgeOwnerQueryService implements ShopHygieneBadgeOwnerQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

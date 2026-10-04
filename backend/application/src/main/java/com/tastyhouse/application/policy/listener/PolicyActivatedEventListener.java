@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.domain.policy.event.PolicyActivatedEvent;
 
 @Component
-public class PolicyActivatedEventListener {
+class PolicyActivatedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PolicyActivatedEventListener.class);
 

@@ -27,7 +27,7 @@ import com.tastyhouse.application.shared.error.ErrorResponses;
 import com.tastyhouse.apicommon.ratelimit.RateLimitException;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 

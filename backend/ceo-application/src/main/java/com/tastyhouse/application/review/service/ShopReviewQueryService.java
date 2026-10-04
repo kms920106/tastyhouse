@@ -45,7 +45,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopReviewQueryService implements ShopReviewQueryUseCase {
+class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
     private static final ShopReviewStatisticsOwnerResult EMPTY_STATISTICS = new ShopReviewStatisticsOwnerResult(
         false, null, null, null, Map.of(), null, null, null, null, null, null, null, List.of()

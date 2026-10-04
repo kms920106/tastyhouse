@@ -28,7 +28,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_member_rank", columnList = "member_id, rank_type")
     }
 )
-public class MemberReviewRankJpaEntity extends BaseEntity {
+class MemberReviewRankJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

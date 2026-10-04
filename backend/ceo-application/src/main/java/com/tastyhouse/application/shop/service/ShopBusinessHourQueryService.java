@@ -12,7 +12,7 @@ import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCase {
+class ShopBusinessHourQueryService implements ShopBusinessHourQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

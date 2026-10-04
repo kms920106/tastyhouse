@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
 
 @Repository
-public class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersistencePort {
+class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersistencePort {
 
     private final ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository;
 

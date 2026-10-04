@@ -21,7 +21,7 @@ import jakarta.persistence.UniqueConstraint;
         @Index(name = "idx_admin_dong_center", columnList = "center_latitude, center_longitude")
     }
 )
-public class AdminDongJpaEntity {
+class AdminDongJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLikeStatusResp
 @RestController
 @RequestMapping("/api/reviews")
 @Tag(name = "Review Like", description = "리뷰 좋아요 API")
-public class ReviewLikeApiController {
+class ReviewLikeApiController {
 
     private final ReviewCommandUseCase reviewCommandUseCase;
     private final ReviewQueryUseCase reviewQueryUseCase;

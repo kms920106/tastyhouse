@@ -12,7 +12,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewImagePersistencePo
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 
 @Repository
-public class ReviewImagePersistenceAdapter implements ReviewImagePersistencePort {
+class ReviewImagePersistenceAdapter implements ReviewImagePersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewImageJpaRepository reviewImageJpaRepository;

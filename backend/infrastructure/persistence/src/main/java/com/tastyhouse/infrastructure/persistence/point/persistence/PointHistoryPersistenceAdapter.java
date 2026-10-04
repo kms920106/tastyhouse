@@ -6,7 +6,7 @@ import com.tastyhouse.domain.point.model.PointHistory;
 import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePort;
 
 @Repository
-public class PointHistoryPersistenceAdapter implements PointHistoryPersistencePort {
+class PointHistoryPersistenceAdapter implements PointHistoryPersistencePort {
 
     private final PointHistoryJpaRepository pointHistoryJpaRepository;
 

@@ -13,7 +13,7 @@ import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistenc
 import static com.tastyhouse.infrastructure.persistence.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 
 @Repository
-public class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort {
+class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final PolicyDocumentJpaRepository policyDocumentJpaRepository;

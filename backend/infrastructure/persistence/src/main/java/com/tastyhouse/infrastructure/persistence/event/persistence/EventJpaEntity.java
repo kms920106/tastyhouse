@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_event_period", columnList = "start_at, end_at")
     }
 )
-public class EventJpaEntity extends BaseEntity {
+class EventJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

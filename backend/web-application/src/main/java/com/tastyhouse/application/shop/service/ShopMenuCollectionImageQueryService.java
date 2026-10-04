@@ -12,7 +12,7 @@ import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
+class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
     private final ShopQueryPort shopQueryPort;
 

@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.kakao.oauth.dto;
+package com.tastyhouse.infrastructure.kakao.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record KakaoUserInfoResponse(
+record KakaoUserInfoResponse(
     @JsonProperty("id") Long id,
     @JsonProperty("connected_at") String connectedAt,
     @JsonProperty("kakao_account") KakaoAccount kakaoAccount

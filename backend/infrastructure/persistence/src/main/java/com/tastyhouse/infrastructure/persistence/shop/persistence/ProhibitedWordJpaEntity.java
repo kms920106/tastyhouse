@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "PROHIBITED_WORD")
-public class ProhibitedWordJpaEntity {
+class ProhibitedWordJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

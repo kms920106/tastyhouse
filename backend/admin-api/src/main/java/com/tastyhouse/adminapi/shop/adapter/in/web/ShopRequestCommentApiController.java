@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentRe
 @Tag(name = "Admin Shop Request Comment", description = "관리자 요청건 문의 답변 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopRequestCommentApiController {
+class ShopRequestCommentApiController {
 
     private final ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase;
     private final ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase;

@@ -14,7 +14,7 @@ import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopRequestCommentQueryService implements ShopRequestCommentQueryUseCase {
+class ShopRequestCommentQueryService implements ShopRequestCommentQueryUseCase {
 
     private final ShopRequestManagementQueryPort shopRequestManagementQueryPort;
 

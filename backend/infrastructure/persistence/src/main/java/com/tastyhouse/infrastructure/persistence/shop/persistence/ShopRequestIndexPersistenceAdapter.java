@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
 @Repository
-public class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexPersistencePort {
+class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexPersistencePort {
 
     private final ShopRequestIndexJpaRepository shopRequestIndexJpaRepository;
 

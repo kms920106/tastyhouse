@@ -44,7 +44,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductAvailabilityCommandService implements ProductSoldOutOwnerUseCase, ProductHideUseCase, ProductReleaseUseCase, ProductSoldOutUntilChangeUseCase, ProductOptionSoldOutUseCase, ProductOptionHideUseCase, ProductOptionReleaseUseCase, ProductOptionSoldOutUntilChangeUseCase {
+class ProductAvailabilityCommandService implements ProductSoldOutOwnerUseCase, ProductHideUseCase, ProductReleaseUseCase, ProductSoldOutUntilChangeUseCase, ProductOptionSoldOutUseCase, ProductOptionHideUseCase, ProductOptionReleaseUseCase, ProductOptionSoldOutUntilChangeUseCase {
 
     private static final long FALLBACK_SOLD_OUT_HOURS = 24L;
 

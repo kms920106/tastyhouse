@@ -12,7 +12,7 @@ import com.tastyhouse.application.grade.port.out.GradeInfoResult;
 
 @Service
 @Transactional(readOnly = true)
-public class GradeQueryService implements GradeQueryUseCase {
+class GradeQueryService implements GradeQueryUseCase {
 
     @Override
     public List<GradeInfoResult> getGradeInfoList() {

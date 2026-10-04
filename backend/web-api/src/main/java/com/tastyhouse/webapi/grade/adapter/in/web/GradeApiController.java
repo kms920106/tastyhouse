@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResp
 @Tag(name = "Grade", description = "등급 정책 API")
 @RestController
 @RequestMapping("/api/grades")
-public class GradeApiController {
+class GradeApiController {
 
     private final GradeQueryUseCase gradeQueryUseCase;
 

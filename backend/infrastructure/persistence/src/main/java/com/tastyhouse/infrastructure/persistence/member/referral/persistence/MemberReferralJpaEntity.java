@@ -23,7 +23,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_member_referral_status", columnList = "status")
     }
 )
-public class MemberReferralJpaEntity extends BaseEntity {
+class MemberReferralJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

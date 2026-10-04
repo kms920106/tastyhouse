@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.TagResponse;
 @Tag(name = "Shop Tag Admin", description = "가게 태그 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopTagAdminApiController {
+class ShopTagAdminApiController {
 
     private final TagCreateUseCase tagCreateUseCase;
     private final TagDeleteUseCase tagDeleteUseCase;

@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "MEMBER_WITHDRAWAL")
-public class MemberWithdrawalJpaEntity extends BaseEntity {
+class MemberWithdrawalJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

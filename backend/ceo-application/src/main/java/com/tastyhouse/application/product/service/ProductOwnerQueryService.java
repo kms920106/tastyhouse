@@ -12,7 +12,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductOwnerQueryService implements ProductOwnerQueryUseCase {
+class ProductOwnerQueryService implements ProductOwnerQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

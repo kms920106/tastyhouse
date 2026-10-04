@@ -269,6 +269,13 @@ ceo-api의 동명 record와 필드가 같지만 **통합하지 않는다** — �
 
 부적합 라이더 안내 문구 삭제 조치 요청. 사유를 쿼리 파라미터가 아니라 **바디로 받는 이유는 한글 사유가 URL에 그대로 로깅되는 것을 피하기 위함**이다. `DELETE`인데 바디가 있다는 이유로 쿼리 파라미터로 되돌리지 말 것.
 
+### 컨트롤러·설정에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/LayerRulesTest.java` → `controllersAndConfigsShouldNotBePublic`
+
+`@RestController` 48개, `config` 패키지의 `SecurityConfig`·`PublicPaths`, `AdminSeeder`, `OpenApiConfig`·`AsyncConfig` 등 `config` 패키지 클래스를 package-private으로 좁혔다. 가드는 `@RestController`·`@RestControllerAdvice`와 `config` 패키지(단 `*SeedProperties` 제외)의 `public`을 금지한다. 이 클래스들은 부트스트랩 스캔으로만 등록되고 다른 패키지가 이름으로 부르지 않는다. **핸들러 메서드의 `public`은 유지한다** — `RateLimitAspect`·`@PreAuthorize`가 프록시로 감싸는 대상이다.
+
+**public으로 남는 것**: `request/`·`response/`의 Request/Response record(컨트롤러와 다른 하위 패키지 — 옮기지 않기로 결정), `*Application`, `*SeedProperties`(부트스트랩 `@EnableConfigurationProperties`가 참조). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 

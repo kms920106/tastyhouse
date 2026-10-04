@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectCommand;
 
 @Service
 @Transactional
-public class ShopImageChangeCommandService implements ShopImageChangeCommandUseCase {
+class ShopImageChangeCommandService implements ShopImageChangeCommandUseCase {
 
     private final ShopImageApprovalService shopImageApprovalService;
 

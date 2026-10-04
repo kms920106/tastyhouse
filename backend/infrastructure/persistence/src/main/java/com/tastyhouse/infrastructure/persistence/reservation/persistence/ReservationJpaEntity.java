@@ -21,7 +21,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_reservation_member", columnList = "member_id")
     }
 )
-public class ReservationJpaEntity extends BaseEntity {
+class ReservationJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

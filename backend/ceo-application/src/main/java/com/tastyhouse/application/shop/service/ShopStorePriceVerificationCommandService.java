@@ -24,7 +24,7 @@ import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequest
 
 @Service
 @Transactional
-public class ShopStorePriceVerificationCommandService implements ShopStorePriceVerificationCommandUseCase {
+class ShopStorePriceVerificationCommandService implements ShopStorePriceVerificationCommandUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;

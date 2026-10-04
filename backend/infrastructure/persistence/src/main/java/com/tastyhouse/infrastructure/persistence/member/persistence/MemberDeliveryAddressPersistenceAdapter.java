@@ -10,7 +10,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 
 @Repository
-public class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPersistencePort {
+class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPersistencePort {
 
     private final MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository;
 

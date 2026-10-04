@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "RECOMMENDED_KEYWORD")
-public class RecommendedKeywordJpaEntity extends BaseEntity {
+class RecommendedKeywordJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

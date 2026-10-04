@@ -27,7 +27,7 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 @Service
-public class CeoAuthCommandService implements CeoAuthCommandUseCase {
+class CeoAuthCommandService implements CeoAuthCommandUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(CeoAuthCommandService.class);
 

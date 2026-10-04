@@ -18,7 +18,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_point_history_created_at", columnList = "created_at")
     }
 )
-public class PointHistoryJpaEntity extends BaseEntity {
+class PointHistoryJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

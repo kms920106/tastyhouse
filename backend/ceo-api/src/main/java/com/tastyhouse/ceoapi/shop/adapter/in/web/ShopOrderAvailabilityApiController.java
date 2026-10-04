@@ -20,7 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderMethodItemRes
 @Tag(name = "Ceo Shop Order Availability", description = "점주 가게 주문가능 상태 조회 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOrderAvailabilityApiController {
+class ShopOrderAvailabilityApiController {
 
     private final ShopOrderAvailabilityQueryUseCase shopOrderAvailabilityQueryUseCase;
 

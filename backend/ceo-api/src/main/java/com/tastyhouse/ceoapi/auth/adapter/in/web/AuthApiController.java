@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapi.auth.adapter.in.web.response.JwtResponse;
 @Tag(name = "Ceo Auth", description = "점주 인증 API")
 @RestController
 @RequestMapping("/api/auth")
-public class AuthApiController {
+class AuthApiController {
 
     private final CeoAuthCommandUseCase authCommandUseCase;
 

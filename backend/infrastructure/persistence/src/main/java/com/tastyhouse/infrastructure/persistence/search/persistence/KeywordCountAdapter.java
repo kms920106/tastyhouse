@@ -11,7 +11,7 @@ import com.tastyhouse.application.search.port.out.KeywordCountResult;
 import com.tastyhouse.infrastructure.persistence.search.query.SearchQueryAdapter;
 
 @Component
-public class KeywordCountAdapter implements KeywordCountPort {
+class KeywordCountAdapter implements KeywordCountPort {
 
     private final SearchQueryAdapter searchQueryAdapter;
 

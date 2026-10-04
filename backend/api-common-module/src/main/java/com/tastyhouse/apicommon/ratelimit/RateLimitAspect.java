@@ -18,7 +18,7 @@ import com.tastyhouse.apicommon.common.ClientIpResolver;
 import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 @Aspect
-public class RateLimitAspect {
+class RateLimitAspect {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimitAspect.class);
     private static final String UNKNOWN_IDENTIFIER = "unknown";

@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.facebook.oauth.dto;
+package com.tastyhouse.infrastructure.facebook.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record FacebookTokenDebugResponse(
+record FacebookTokenDebugResponse(
     @JsonProperty("data") TokenData data
 ) {
 

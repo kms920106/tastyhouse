@@ -36,7 +36,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionAvaila
 @Tag(name = "Ceo Product Option Availability", description = "점주 옵션 품절·숨김 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductOptionAvailabilityApiController {
+class ProductOptionAvailabilityApiController {
 
     private final ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase;
     private final ProductOptionSoldOutUseCase productOptionSoldOutUseCase;

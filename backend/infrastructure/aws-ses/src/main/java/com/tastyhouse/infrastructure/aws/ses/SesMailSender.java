@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.ses.model.SesException;
 import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
 
-public class SesMailSender implements MailSender {
+class SesMailSender implements MailSender {
 
     private static final Logger log = LoggerFactory.getLogger(SesMailSender.class);
 

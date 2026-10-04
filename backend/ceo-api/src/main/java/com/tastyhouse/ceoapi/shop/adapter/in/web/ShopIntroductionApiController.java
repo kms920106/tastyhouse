@@ -26,7 +26,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
 @Tag(name = "Ceo Shop Introduction", description = "점주 가게소개(사장님 한마디) 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopIntroductionApiController {
+class ShopIntroductionApiController {
 
     private final ShopIntroductionQueryUseCase shopIntroductionQueryUseCase;
     private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;

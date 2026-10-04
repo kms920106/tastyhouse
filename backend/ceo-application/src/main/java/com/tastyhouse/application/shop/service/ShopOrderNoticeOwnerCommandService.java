@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUpsertCommand;
 
 @Service
 @Transactional
-public class ShopOrderNoticeOwnerCommandService implements ShopOrderNoticeOwnerCommandUseCase {
+class ShopOrderNoticeOwnerCommandService implements ShopOrderNoticeOwnerCommandUseCase {
 
     private final ShopOrderNoticeService shopOrderNoticeService;
     private final ShopOwnershipValidator shopOwnershipValidator;

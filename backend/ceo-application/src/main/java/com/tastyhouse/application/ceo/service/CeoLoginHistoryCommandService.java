@@ -11,7 +11,7 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 
 @Service
 @Transactional
-public class CeoLoginHistoryCommandService implements CeoLoginHistoryCommandUseCase {
+class CeoLoginHistoryCommandService implements CeoLoginHistoryCommandUseCase {
 
     private final CeoLoginHistoryRecorder ceoLoginHistoryRecorder;
 

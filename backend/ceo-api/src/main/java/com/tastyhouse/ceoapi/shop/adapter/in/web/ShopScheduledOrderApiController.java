@@ -20,7 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdat
 @Tag(name = "Ceo Shop Scheduled Order", description = "점주 가게 예약주문 설정 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopScheduledOrderApiController {
+class ShopScheduledOrderApiController {
 
     private final ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase;
 

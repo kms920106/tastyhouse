@@ -14,7 +14,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePo
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoReplyPhraseJpaEntity.ceoReplyPhraseJpaEntity;
 
 @Repository
-public class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhrasePersistencePort {
+class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhrasePersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final CeoReplyPhraseJpaRepository ceoReplyPhraseJpaRepository;

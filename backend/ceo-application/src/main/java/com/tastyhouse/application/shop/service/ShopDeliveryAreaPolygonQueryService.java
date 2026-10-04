@@ -38,7 +38,7 @@ import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQueryUseCase {
+class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQueryUseCase {
 
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");
 

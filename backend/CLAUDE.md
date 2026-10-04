@@ -309,8 +309,8 @@ static class ModuleScanConfig {
 | persistence 스캔 | `@ComponentScan(basePackages = "com.tastyhouse.infrastructure", excludeFilters = REGEX redis)` | `@ComponentScan("com.tastyhouse.infrastructure.persistence")` |
 | redis | `com.tastyhouse.infrastructure.redis` | 불변 |
 | restclient | `com.tastyhouse.restclient.config.RestClientConfig` | `com.tastyhouse.infrastructure.restclient.RestClientConfig` |
-| kakao-oauth | `com.tastyhouse.external.kakao.oauth.KakaoTokenResponse` | `com.tastyhouse.infrastructure.kakao.oauth.dto.KakaoTokenResponse` |
-| solapi | `com.tastyhouse.external.solapi.{request,response}.*` | `com.tastyhouse.infrastructure.solapi.dto.*` |
+| kakao-oauth | `com.tastyhouse.external.kakao.oauth.KakaoTokenResponse` | ~~`com.tastyhouse.infrastructure.kakao.oauth.dto.KakaoTokenResponse`~~ **(번복됨 — package-private 적용)** `com.tastyhouse.infrastructure.kakao.oauth.KakaoTokenResponse`(package-private) |
+| solapi | `com.tastyhouse.external.solapi.{request,response}.*` | ~~`com.tastyhouse.infrastructure.solapi.dto.*`~~ **(번복됨 — package-private 적용)** `com.tastyhouse.infrastructure.solapi.SolapiMessage{Request,Response}`(package-private) |
 | 그 밖의 벤더 | `com.tastyhouse.external.{벤더}` | `com.tastyhouse.infrastructure.{벤더}` |
 
 **런타임 동작은 바뀌지 않았다** — JPQL·yml·logback·AOP pointcut·Redis 직렬화에 이 FQN 문자열이 없다. `@EnableConfigurationProperties`로 등록된 Properties 빈 이름(`{prefix}-{FQN}`)은 바뀌지만 문자열로 참조하는 곳이 없다.
@@ -319,11 +319,87 @@ static class ModuleScanConfig {
 - **코드 없는 조립 스타터(`file-storage`·`oauth`·`pg`·`mail`·`sms`)는 패키지를 갖지 않는다.** 이름은 예약된 것으로 보지만, persistence의 `mail`·`sms` 컨텍스트는 `com.tastyhouse.infrastructure.persistence.{mail,sms}`라 충돌하지 않는다.
 - **`{Xxx}ModuleConfig`(필요할 때만)는 루트 패키지에 두고, `@ComponentScan`을 갖지 않는다** — 스캔은 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 한 줄이 맡는다(위 [모듈 등록 컨벤션](#모듈-등록-컨벤션-auto-configuration--챕터-02)). 다른 모듈을 덮는 스캔과 그것을 되돌리는 `excludeFilters`를 두지 않는다. **(번복됨 — imports 제거)** ~~`{Xxx}ModuleAutoConfiguration`은 루트 패키지에 두고, `@ComponentScan`은 자기 루트만 가리킨다.~~
 - **하위 패키지는 허용 목록 안에서만 만든다.**
-  - 벤더: 외부 API의 요청·응답 wire DTO는 `{루트}.dto`에 둔다. Client·Adapter·Properties·Config는 루트에 평면으로 둔다.
+  - 벤더: ~~외부 API의 요청·응답 wire DTO는 `{루트}.dto`에 둔다.~~ **(번복됨 — package-private 적용)** 외부 API의 요청·응답 wire DTO도 `{루트}`에 평면으로 두고 package-private으로 선언한다. package-private 타입은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 `*Client`와 같은 패키지에 있어야 하기 때문이다(16개 이동 — 상세는 아래 [접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)). Client·Adapter·Properties·Config도 루트에 평면으로 둔다. 결과적으로 **벤더 모듈에는 하위 패키지가 없다.**
   - persistence: `{루트}.{컨텍스트}[.{하위 컨텍스트}].{persistence|query}` + `{루트}.config` + `{루트}.shared.{persistence|query|event}`(현 구조). `persistence.order.persistence`처럼 `persistence`가 두 번 나오는 이름은 감수한다 — 내부의 쓰기(`persistence`)·조회(`query`) 이원 구조가 더 중요하다.
   - redis: 기능 하위 패키지(`ratelimit`·`token`)를 쓴다.
-- **가드**: 각 모듈 아키텍처 테스트의 `shouldResideInModuleRootPackage`가 `build/classes/java/main`의 모든 클래스가 자기 루트 아래 있는지 검사한다 — 벤더 13개는 `VendorLayerRulesTest`, persistence는 `LayerRulesTest`, redis·restclient는 `architecture/PackageRootTest`(이 둘은 이 가드 때문에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 갖는다).
+- **가드**: 각 모듈 아키텍처 테스트의 `shouldResideInModuleRootPackage`가 `build/classes/java/main`의 모든 클래스가 자기 루트 아래 있는지 검사한다 — 벤더 13개는 `VendorLayerRulesTest`, persistence는 `LayerRulesTest`, redis·restclient는 `architecture/PackageRootTest`(이 둘은 이 가드 때문에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 갖는다). 같은 테스트 클래스의 `topLevelClassesShouldNotBePublic`이 최상위 클래스의 `public`을 금지해, wire DTO를 다시 `public`·`dto` 하위 패키지로 되돌리면 빌드가 실패한다([접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)).
 - **ArchUnit 패키지 술어 함정**: 루트에 `persistence` 세그먼트가 생겼으므로 `"com.tastyhouse.infrastructure..persistence.."`는 `...persistence.order.query`까지 매칭한다. persistence `LayerRulesTest`의 술어는 `"com.tastyhouse.infrastructure.persistence..persistence.."`·`"com.tastyhouse.infrastructure.persistence..query.."`로 쓰며 줄이지 않는다. 앱(`{web,admin,ceo}-api`·`batch-module`) `LayerRulesTest`의 persistence 금지 술어는 `"com.tastyhouse.infrastructure.persistence.."`다.
+
+## 접근 제어자 규칙 (내부 구현은 package-private)
+
+**다른 패키지가 이름으로 참조하지 않는 내부 구현 클래스는 최상위 `public`을 붙이지 않는다(package-private).** 어댑터·JPA 엔티티·JPA 리포지토리·UseCase 구현 서비스·리스너·컨트롤러·설정 클래스가 대상이다. 다른 패키지에서 import하는 순간 **컴파일이 실패**하므로, "이건 내부 구현이니 직접 쓰지 말라"는 약속을 문서·리뷰가 아니라 컴파일러가 지킨다.
+
+**왜 지금 가능한가.** 과거에는 이 클래스들이 `public`이어야 할 이유가 있었다 — 모듈이 자기 `@Configuration`을 `AutoConfiguration.imports`로 등록하고 다른 모듈이 구체 타입을 import해 조립했으며, 협력 서비스가 구체 클래스를 주입받았다. 지금은 두 이유가 모두 사라졌다.
+
+- **조립이 문자열 패키지 스캔이다**: 각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure` 등을 **문자열로** 스캔한다(위 [모듈 등록 컨벤션](#모듈-등록-컨벤션-auto-configuration--챕터-02)). 스캔은 클래스의 접근 제어자를 보지 않으므로, 어느 클래스도 다른 모듈에서 타입 이름으로 불릴 필요가 없다.
+- **주입은 포트(인터페이스)로만 한다**: 컨트롤러·협력 서비스는 `port.in` UseCase를, 서비스는 `port.out` 포트를 주입받는다. 구현 클래스 이름은 그 패키지 밖에 나타나지 않는다.
+- **프레임워크가 package-private을 지원한다**: Spring 컴포넌트 스캔·CGLIB 프록시(`@Transactional`·`@Async`)·Spring Data JPA 리포지토리(JDK 프록시)·`@ConfigurationProperties`·Hibernate 엔티티·Jackson 역직렬화 모두 package-private 클래스로 동작한다. 선례로 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`·`ModuleScanConfig`가 이미 package-private이었다.
+
+**변경 전후 (854개 클래스).** 검증: 전체 `./gradlew build` 통과, 4앱 기동 시 싱글턴 빈 이름 집합 HEAD 대비 diff 0, api-docs 경로 155 = 155. **런타임 동작은 바뀌지 않았다.**
+
+| 범주 | 모듈 | 개수 | before | after |
+|---|---|---|---|---|
+| JPA 엔티티 `*JpaEntity` | `infrastructure:persistence` | 123 | `public class` | `class` |
+| Spring Data `*JpaRepository` | `infrastructure:persistence` | 123 | `public interface` | `interface` |
+| 쓰기 어댑터 `*PersistenceAdapter` | `infrastructure:persistence` | 106 | `public class` | `class` |
+| 조회 어댑터 `*QueryAdapter` | `infrastructure:persistence` | 45 | `public class` | `class` |
+| `@Component` 어댑터(`MemberGradeReviewCountAdapter`·`ProductReviewStatisticsAdapter`·`KeywordCountAdapter`·`MemberReviewCountAdapter`) | `infrastructure:persistence` | 4 | `public class` | `class` |
+| 설정(`InfrastructurePersistenceConfig`·`QueryDslConfig`) | `infrastructure:persistence` | 2 | `public class` | `class` |
+| 벤더 13 + `redis` + `restclient`의 최상위 타입 전부 | `infrastructure:*` | 66 | `public` | package-private |
+| └ 그중 벤더 wire DTO | kakao·naver·apple·facebook-oauth 각 2, tosspayments 3, solapi 2, bbq 3 | (16, 위 66에 포함) | `{루트}.dto`의 `public record` | **`{루트}`로 이동** + package-private |
+| `port.in` UseCase 구현 서비스(`..service..`) | web 48 · admin 59 · ceo 88 · batch 7(`*SchedulerService`) | 202 | `public class` | `class` |
+| 리스너(`<ctx>/listener`) | `application` 5모듈 | 12 | `public class` | `class` |
+| `SharedBeanConfig` | `application` | 1 | `public class` | `class` |
+| `@RestController` | web 44 · admin 48 · ceo 53 | 145 | `public class` | `class` |
+| 앱 설정·예외 처리(`SecurityConfig`·`PublicPaths` ×3, `OpenApiConfig`, `AsyncConfig`, `AdminSeeder`, `CeoSeeder`, web-api `exception/GlobalExceptionHandler`) | `{web,admin,ceo}-api` | 11 (설정 10 + 예외 핸들러 1) | `public class` | `class` |
+| `*Scheduler` | `batch-module` | 7 | `public class` | `class` |
+| `SecurityModuleConfig` | `security-module` | 1 | `public class` | `class` |
+| `SensitiveFieldMasker`·`ApiLoggingAspect`·`ApiLoggingFilter` | `logging-module` | 3 | `public class` | `class` |
+| `RateLimitAspect`·`ApiCommonRateLimitConfig`·`exception/GlobalExceptionHandler` | `api-common-module` | 3 | `public class` | `class` |
+
+합계는 persistence 403 + 벤더·redis·restclient 66(이동한 wire DTO 16 포함) + application 215 + 어댑터·공유 모듈 170 = **854**다.
+
+- **선언 키워드만 바꿨다 — 생성자·메서드의 `public`은 유지한다.** `@Transactional`은 public 메서드에만 적용되고, `RateLimitAspect`·`@PreAuthorize`가 감싸는 컨트롤러 핸들러 메서드도 public이어야 프록시 대상이 된다. 클래스를 package-private으로 좁혀도 메서드 가시성은 손대지 않는다.
+- **벤더 wire DTO는 `{루트}.dto`에서 `{루트}`로 옮겼다.** package-private은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 `*Client`와 같은 패키지에 있어야 한다. 그래서 `dto` 하위 패키지는 더 이상 없다(아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명)). Jackson은 별도 가시성 설정 없이(기본 `CAN_OVERRIDE_ACCESS_MODIFIERS`) package-private record를 역직렬화한다 — `BbqApiClientTest`·`TossPaymentClientTest`가 증거다.
+- **JPA 엔티티를 package-private으로 해도 다른 패키지의 QueryDSL 조회가 동작한다(스파이크로 확인).** QueryDSL이 생성하는 Q타입(`QNoticeJpaEntity` 등)은 `public`이라, `notice/query/NoticeQueryAdapter`가 package-private `NoticeJpaEntity`의 Q타입으로 조회해도 컴파일되고, `ddl-auto: validate`에서 Hibernate가 부팅되며, 쿼리도 실행된다. **막히는 것은 다른 패키지에서 엔티티 타입 이름을 직접 쓰는 경우뿐이다** — 그런 엔티티만 `public`으로 남긴다(아래 표의 `ShopJpaEntity`).
+
+**public으로 남기는 범주와 이유.** "다른 패키지가 이름으로 참조한다"와 "프레임워크가 public을 요구한다" 두 가지다.
+
+| 남기는 대상 | 모듈 | 이유 |
+|---|---|---|
+| `query` 패키지의 `*Row`/`*Result`/`*Projection` record | `infrastructure:persistence` | `Projections.constructor`가 `Class#getConstructors()`로 **public 생성자만** 찾는다 — package-private이면 컴파일은 통과하고 런타임 500(아래 [record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)의 ⚠️ 항목) |
+| QueryDSL 생성 Q타입, `BaseEntity`, `*Embeddable`, `*QueryPort`(`MemberReviewCountQueryPort`) | `infrastructure:persistence` | 생성 코드이거나 다른 패키지의 엔티티·어댑터가 상속·임베드·주입한다 |
+| `FileUrlResolver`, `MemberReviewCountQueryAdapter`, `MenuReviewStatisticsQueryAdapter`, `SearchQueryAdapter`, `ShopJpaEntity` | `infrastructure:persistence` | 다른 패키지가 타입 이름으로 참조한다(예: `ShopSearchQueryAdapter`가 `List<ShopJpaEntity>`를 쓴다) — 허용 목록 `PUBLIC_BY_NECESSITY` |
+| `HttpRequestFactories` | `infrastructure:restclient` | `bbq`·`admdongkor`가 다른 모듈에서 호출한다 |
+| `token/RedisTokenStoreProperties` | `infrastructure:redis` | 상위 패키지의 `RedisModuleConfig`가 `@EnableConfigurationProperties`로 참조한다 |
+| UseCase 없는 도메인 서비스(약 48개는 다른 패키지에서 import) | `application` 5모듈 | 리스너→서비스, api 모듈→`CeoUserDetails`·`ShopOwnershipValidator`처럼 다른 패키지가 쓴다. 같은 패키지에서만 쓰이는 나머지는 **아직 좁히지 않았다**(후속 과제) |
+| `port.in`·`port.out`·`*Result`·`*Command` | `application` 5모듈 | 모듈 간 계약 자체다 |
+| `SpringDomainEventPublisher`·`ProhibitedWordValidator`·`CachingProhibitedWordPersistencePort` | `application` | 다른 패키지의 `SharedBeanConfig`가 참조한다 |
+| Request/Response record | `{web,admin,ceo}-api` | 컨트롤러와 다른 하위 패키지(`request/`·`response/`)에 있다 — 옮기지 않기로 결정했다 |
+| `*Application`, `*SeedProperties` | `{web,admin,ceo}-api` | 부트스트랩·`@EnableConfigurationProperties`가 참조한다 |
+| `CurrentUser`, `jwt/*` | `security-module` | 앱 `SecurityConfig`·컨트롤러가 다른 모듈에서 쓴다 |
+| `ApiResponse`·`PageRequest`·`PaginationResponse`·`RateLimit`·`RateLimitKeyType`·`RateLimitException`·`ProblemDetails`·`ClientIpResolver` | `api-common-module` | 3개 api 모듈이 공용 계약으로 쓴다 |
+
+**가드 (전부 반증 확인 — 대상 하나를 `public`으로 되돌리면 규칙이 실패한다).**
+
+| 모듈 | 테스트 | 검사 내용 |
+|---|---|---|
+| 벤더 13개 | `VendorLayerRulesTest#topLevelClassesShouldNotBePublic` | `build/classes/java/main`의 최상위 클래스 전부 public 아님 |
+| `redis`·`restclient` | `architecture/PackageRootTest#topLevelClassesShouldNotBePublic` + `#publicByNecessityShouldStillBePublic` | 허용 목록 `PUBLIC_BY_NECESSITY`(각 FQN 1개) 외 public 금지 + 허용 목록이 낡지 않았는지(아직 public인지) |
+| `infrastructure:persistence` | `architecture/LayerRulesTest#topLevelClassesShouldNotBePublic` + `#publicByNecessityShouldStillBePublic` | 범주 술어 `publicByCategory()`와 허용 목록 `PUBLIC_BY_NECESSITY`(FQN 5개) 외 public 금지 + 허용 목록 낡음 검사 |
+| `application` | `architecture/LayerRulesTest#useCaseImplementationsShouldNotBePublic`(대상 하한 200 이상) + `#listenersAndConfigsShouldNotBePublic` | UseCase 구현 서비스·리스너·설정 public 금지 |
+| `{web,admin,ceo}-api` | `architecture/LayerRulesTest#controllersAndConfigsShouldNotBePublic` | `@RestController`·`@RestControllerAdvice`·`config` 패키지(`*SeedProperties` 제외) public 금지 |
+| `batch-module` | `LayerRulesTest#schedulersShouldNotBePublic` | `*Scheduler` public 금지 |
+| `security-module` | `LayerRulesTest#configurationsShouldNotBePublic` | `@Configuration` public 금지 |
+| `api-common-module` | `LayerRulesTest#scannedComponentsShouldNotBePublic` | `@Configuration`·`@Aspect`·`@RestControllerAdvice` public 금지 |
+| `logging-module` | `src/test/java/com/tastyhouse/logging/architecture/VisibilityRulesTest#topLevelClassesShouldNotBePublic`(신설) | 최상위 클래스 public 금지. 이 테스트를 위해 `build.gradle`에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 추가했다 |
+
+**새 코드 규칙.**
+
+- **새 어댑터·엔티티·JPA 리포지토리·UseCase 구현 서비스·리스너·컨트롤러·설정은 `public` 없이 만든다.** IDE 템플릿이 `public class`를 넣어도 지운다. 위 가드가 빌드에서 잡는다.
+- **다른 패키지가 그 타입을 이름으로 참조해야 하면 `public`으로 두고, 해당 모듈 가드의 허용 목록(`PUBLIC_BY_NECESSITY`)에 FQN을 추가하고 그 사유를 그 모듈 `AGENTS.md`의 `## 봉인·가드 목록`에 적는다.** 허용 목록에서 빠진 public은 빌드가 실패하고, 더는 public이 아닌데 목록에 남은 FQN도 `#publicByNecessityShouldStillBePublic`이 실패시킨다.
+- **조회 투영 record는 예외 없이 `public`이다** — 이 규칙으로 좁히면 안 된다([record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)).
+- **후속 과제**: UseCase 없는 도메인 서비스 중 같은 패키지에서만 쓰이는 것은 아직 public이다. 좁힐 때는 다른 패키지(리스너·api 모듈) 참조가 없는지 먼저 확인한다.
 
 ## 앱 모듈 경계 규칙 (앱 마커 제거 — 앱 소속은 Gradle 모듈이 표현한다)
 
@@ -659,7 +735,7 @@ reference 구현: `domain`의 `exception/ErrorCodeSpec`·`ErrorCode`(외부 연�
 
 **소셜 로그인은 `application` 모듈이 소유한 SPI(`com.tastyhouse.application.auth.port.out`)를 통해서만 사용합니다.** web-api는 제공자별 패키지(`com.tastyhouse.infrastructure.kakao.oauth..` 등)의 wire DTO·클라이언트 구현을 직접 import하지 않습니다.
 
-> **소유 모듈 이력**: 이 SPI는 원래 `external-api`(현 `infrastructure:oauth`)가 소유했으나, **의존 역전으로 `application`으로 옮겨갔습니다** — 어댑터가 자신이 구현하는 계약의 소유 모듈을 의존하는 방향(adapter → port)입니다. 그 뒤 채널·벤더 분할(2026-09-27)로 구현체도 `infrastructure:oauth`를 떠났습니다 — 지금 `infrastructure:oauth`는 코드 없는 채널 스타터이고, 구현체는 벤더 4모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`의 `com.tastyhouse.infrastructure.{kakao,naver,apple,facebook}.oauth` 패키지에 있습니다(옛 `com.tastyhouse.external.oauth.{kakao,naver,apple,facebook}` → `com.tastyhouse.external.{kakao,naver,apple,facebook}.oauth`를 거쳐 infrastructure 패키지 루트 통일로 옮겨졌고, `spi/` 하위 패키지는 없습니다. 외부 API wire DTO는 `.dto` 하위 패키지에 있습니다). 아래 "왜 domain이 아닌가"의 판단은 여전히 유효합니다 — 바뀐 것은 "domain이 아니라 어디인가"의 답뿐입니다.
+> **소유 모듈 이력**: 이 SPI는 원래 `external-api`(현 `infrastructure:oauth`)가 소유했으나, **의존 역전으로 `application`으로 옮겨갔습니다** — 어댑터가 자신이 구현하는 계약의 소유 모듈을 의존하는 방향(adapter → port)입니다. 그 뒤 채널·벤더 분할(2026-09-27)로 구현체도 `infrastructure:oauth`를 떠났습니다 — 지금 `infrastructure:oauth`는 코드 없는 채널 스타터이고, 구현체는 벤더 4모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`의 `com.tastyhouse.infrastructure.{kakao,naver,apple,facebook}.oauth` 패키지에 있습니다(옛 `com.tastyhouse.external.oauth.{kakao,naver,apple,facebook}` → `com.tastyhouse.external.{kakao,naver,apple,facebook}.oauth`를 거쳐 infrastructure 패키지 루트 통일로 옮겨졌고, `spi/` 하위 패키지는 없습니다. ~~외부 API wire DTO는 `.dto` 하위 패키지에 있습니다~~ **(번복됨 — package-private 적용)** 외부 API wire DTO도 `.dto` 하위 패키지가 아니라 루트 패키지에 package-private으로 있습니다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문입니다). 아래 "왜 domain이 아닌가"의 판단은 여전히 유효합니다 — 바뀐 것은 "domain이 아니라 어디인가"의 답뿐입니다.
 
 - **왜 domain이 아닌가**: domain의 출력 포트(`MailSender`·`FileStoragePort` 등)는 전부 **도메인 서비스가** 불변식을 만족시키려고 호출하는 것들입니다. 소셜 OAuth는 호출부가 전부 web-api(표현 계층)이고 도메인 서비스가 쓰는 곳이 없어, domain에 두면 "아무 도메인 서비스도 호출하지 않는 포트"가 됩니다. 도메인에 대응 개념이 없는 공유 기술은 별도 모듈이 소유한다는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)(security-module의 Redis JWT·rate limit 선례)에 따라 domain 밖에 둡니다. **그 자리는 호출부인 유스케이스가 있는 `application` 모듈이며**, 어댑터(벤더 4모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`)가 그것을 의존해 구현합니다.
 - **2단 계약으로 제공자별 흐름 차이를 흡수**: `exchange(SocialAuthorization) → SocialCredential`(카카오·네이버·애플의 토큰 교환, 페이스북의 app_id 검증)과 `fetchProfile(SocialCredential) → SocialProfile`(카카오·네이버·페이스북의 userinfo 조회, 애플의 id_token 검증·추출). `state`는 네이버만 쓰며 나머지는 `null`입니다.
@@ -778,7 +854,7 @@ reference 구현: `admin-api`의 `notice` 도메인 — `NoticeCommandService#up
   - **가드 테스트가 강제합니다**: `QueryResultRecordVisibilityTest`가 infra 내부 투영(`<ctx>/query/`)과 읽기 계약 패키지(`com.tastyhouse.application..port.out`) **양쪽**의 최상위 record를 클래스패스 스캔해 `public` 여부를 검증합니다(목록 수동 관리 불필요). **이 문서는 챕터 04부터 "port.out을 스캔한다"고 서술해 왔으나 실제 코드는 infra 패턴만 스캔하고 있었고, 챕터 09에서 계약 패턴을 추가해 문서와 코드를 일치시켰습니다** — 그동안 정작 주된 투영 대상인 계약 Result가 이 가드의 사각지대에 있었습니다. `infrastructure:persistence`의 신설 `ProjectionConstructorMatchingTest`는 select 절 인자 개수·대상 record 생성자 파라미터 개수 일치를 소스 스캔으로 검증해, `@QueryProjection`이 주던 컴파일 게이트 상실을 보완합니다. DAO 본문에 중첩된 `private` 헬퍼 record는 `new`로 직접 조립하는 내부 계산용이라 검사 대상이 아닙니다 — 투영에 쓰려면 애초에 이 규칙대로 독립 파일로 분리해야 하고, 그 시점에 가드 대상이 됩니다.
 - **적용 대상**: 응답/결과 DTO뿐 아니라 서비스 내부 전용 헬퍼 record(예: 조회 중간 계산용)도 동일하게 분리합니다.
 - 이미 자기 파일 하나에 정의된 최상위 record(도메인 이벤트, ID VO 등)는 그대로 두며, 이 규칙은 "다른 클래스 본문 안에 중첩된 record"를 제거하는 것을 목표로 합니다.
-- **적용 대상은 다른 클래스가 참조하는 DTO record입니다**: 같은 패키지 내부에서만 쓰이는 헬퍼 유틸 클래스는 `public` 격상 대상이 아니며 package-private을 유지해 노출을 좁힙니다(reference: `MailVerificationMessage`·`SmsVerificationMessage`(도메인 서비스 전용 문구), `MailVerificationMapper`(infrastructure)).
+- **적용 대상은 다른 클래스가 참조하는 DTO record입니다**: 같은 패키지 내부에서만 쓰이는 헬퍼 유틸 클래스는 `public` 격상 대상이 아니며 package-private을 유지해 노출을 좁힙니다(reference: `MailVerificationMessage`·`SmsVerificationMessage`(도메인 서비스 전용 문구), `MailVerificationMapper`(infrastructure)). 벤더 모듈의 외부 API wire DTO record도 그 Client와 같은 패키지에서만 쓰이므로 package-private이다. 클래스 범주별 접근 제어자 기준과 가드는 [접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)을 따른다 — 단 `Projections.constructor` 투영 대상 record는 위 ⚠️ 항목대로 예외 없이 `public`이다.
 
 reference 구현: `web-api`의 `NoticeListItemResponse`(`notice/response/`)와 `com.tastyhouse.application.product.port.out` 결과 record들(과거 core `application/dto/result/`의 `OptionInfo`처럼 서비스 본문에 중첩돼 있던 헬퍼 record를 `private` → `public` 최상위 파일로 격상한 전례). (과거 도메인별 페이징 래퍼 `NoticePageResponse`/`PolicyPageResponse`/`OrderPageResponse`는 공용 `common/PaginationResponse.java` 하나로 통합되어 삭제되었습니다 — [페이징 응답 공용 제네릭 래퍼 규칙](#페이징-응답-공용-제네릭-래퍼-규칙-paginationresponset) 참고.)
 

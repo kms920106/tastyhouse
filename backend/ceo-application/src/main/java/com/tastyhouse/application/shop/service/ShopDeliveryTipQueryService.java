@@ -15,7 +15,7 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase {
+class ShopDeliveryTipQueryService implements ShopDeliveryTipQueryUseCase {
 
     private final ShopDeliveryTipQueryPort shopDeliveryTipQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

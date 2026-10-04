@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.rank.port.in.AggregateRanksUseCase;
 
 @Component
-public class RankScheduler {
+class RankScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(RankScheduler.class);
 

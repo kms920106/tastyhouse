@@ -33,7 +33,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJp
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QStationJpaEntity.stationJpaEntity;
 
 @Repository
-public class ReviewManagementQueryAdapter implements ReviewManagementQueryPort {
+class ReviewManagementQueryAdapter implements ReviewManagementQueryPort {
 
     private static final QMemberJpaEntity replyToMember = new QMemberJpaEntity("replyToMember");
 

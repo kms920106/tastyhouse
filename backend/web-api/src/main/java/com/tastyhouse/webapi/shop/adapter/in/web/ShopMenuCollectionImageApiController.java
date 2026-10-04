@@ -17,7 +17,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @Tag(name = "Shop Menu Collection Image", description = "메뉴모음컷 조회 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopMenuCollectionImageApiController {
+class ShopMenuCollectionImageApiController {
 
     private final ShopMenuCollectionImageQueryUseCase shopMenuCollectionImageQueryUseCase;
 

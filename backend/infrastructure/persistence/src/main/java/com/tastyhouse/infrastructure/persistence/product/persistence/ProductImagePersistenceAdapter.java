@@ -14,7 +14,7 @@ import com.tastyhouse.application.product.port.out.write.ProductImagePersistence
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 
 @Repository
-public class ProductImagePersistenceAdapter implements ProductImagePersistencePort {
+class ProductImagePersistenceAdapter implements ProductImagePersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductImageJpaRepository productImageJpaRepository;

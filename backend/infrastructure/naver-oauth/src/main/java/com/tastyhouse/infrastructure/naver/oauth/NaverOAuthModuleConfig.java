@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(NaverOAuthProperties.class)
-public class NaverOAuthModuleConfig {
+class NaverOAuthModuleConfig {
 }

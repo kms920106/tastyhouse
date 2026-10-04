@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOrderRequest;
 @Tag(name = "Ceo Product Sort", description = "점주 메뉴그룹·메뉴 순서 변경 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductSortApiController {
+class ProductSortApiController {
 
     private final ProductSortCommandUseCase productSortCommandUseCase;
 

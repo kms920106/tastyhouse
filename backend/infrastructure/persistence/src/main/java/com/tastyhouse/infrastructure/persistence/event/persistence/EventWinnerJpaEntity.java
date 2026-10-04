@@ -23,7 +23,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.PhoneNumberE
         @Index(name = "idx_event_winner_announced_at", columnList = "announced_at")
     }
 )
-public class EventWinnerJpaEntity extends BaseEntity {
+class EventWinnerJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

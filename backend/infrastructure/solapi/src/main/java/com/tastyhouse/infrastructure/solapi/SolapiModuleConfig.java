@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SolapiProperties.class)
-public class SolapiModuleConfig {
+class SolapiModuleConfig {
 }

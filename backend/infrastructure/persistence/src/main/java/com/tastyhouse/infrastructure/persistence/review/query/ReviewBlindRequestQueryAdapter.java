@@ -31,7 +31,7 @@ import static com.tastyhouse.infrastructure.persistence.review.persistence.QRevi
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class ReviewBlindRequestQueryAdapter implements ReviewBlindRequestQueryPort, ReviewBlindRequestManagementQueryPort {
+class ReviewBlindRequestQueryAdapter implements ReviewBlindRequestQueryPort, ReviewBlindRequestManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

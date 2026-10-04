@@ -8,7 +8,7 @@ import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 
 @Service
 @Transactional(readOnly = true)
-public class AdminQueryService implements AdminQueryUseCase {
+class AdminQueryService implements AdminQueryUseCase {
 
     private final AdminPersistencePort adminPersistencePort;
 

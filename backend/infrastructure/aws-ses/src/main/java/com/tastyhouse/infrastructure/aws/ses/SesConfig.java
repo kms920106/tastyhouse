@@ -13,7 +13,7 @@ import com.tastyhouse.application.mail.port.out.MailSender;
 
 @Configuration
 @ConditionalOnProperty(name = "mail.provider", havingValue = "ses")
-public class SesConfig {
+class SesConfig {
 
     @Bean
     public SesClient sesClient(

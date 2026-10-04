@@ -14,7 +14,7 @@ import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOrderNoticeJpaEntity.shopOrderNoticeJpaEntity;
 
 @Repository
-public class ShopOrderNoticeQueryAdapter implements ShopOrderNoticeQueryPort, ShopOrderNoticeManagementQueryPort {
+class ShopOrderNoticeQueryAdapter implements ShopOrderNoticeQueryPort, ShopOrderNoticeManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

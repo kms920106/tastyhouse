@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQueryUseCase {
+class ShopConvenienceInfoQueryService implements ShopConvenienceInfoQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

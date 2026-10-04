@@ -15,7 +15,7 @@ import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 @Repository
-public class MemberPersistenceAdapter implements MemberPersistencePort {
+class MemberPersistenceAdapter implements MemberPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberJpaRepository memberJpaRepository;

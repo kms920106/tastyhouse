@@ -14,7 +14,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QPro
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class ProductShopLinkQueryAdapter implements ProductShopLinkQueryPort {
+class ProductShopLinkQueryAdapter implements ProductShopLinkQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

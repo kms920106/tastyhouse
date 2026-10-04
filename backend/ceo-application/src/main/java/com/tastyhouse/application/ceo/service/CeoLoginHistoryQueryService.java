@@ -18,7 +18,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase {
+class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase {
 
     private static final int RETENTION_DAYS = 90;
 

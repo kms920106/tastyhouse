@@ -32,7 +32,7 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 @Tag(name = "Partnership Admin", description = "제휴 신청 관리자 API")
 @RestController
 @RequestMapping("/api/partnership-requests")
-public class PartnershipApiController {
+class PartnershipApiController {
 
     private final PartnershipManagementCommandUseCase partnershipCommandUseCase;
     private final PartnershipQueryUseCase partnershipQueryUseCase;

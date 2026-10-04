@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "PRODUCT_OPTION_GROUP_MERGE_HISTORY")
-public class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
+class ProductOptionGroupMergeHistoryJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

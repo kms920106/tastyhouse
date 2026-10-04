@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.BlacklistRepository;
 
 @Component
-public class RedisBlacklistRepository implements BlacklistRepository {
+class RedisBlacklistRepository implements BlacklistRepository {
 
     private static final String BLACKLIST_SUFFIX = "bl:";
     private static final String BLACKLISTED_VALUE = "logout";

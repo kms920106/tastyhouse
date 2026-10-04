@@ -14,7 +14,7 @@ import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 
 @Service
 @Transactional
-public class AdminCommandService implements AdminCommandUseCase {
+class AdminCommandService implements AdminCommandUseCase {
 
     private final AdminPersistencePort adminPersistencePort;
     private final PasswordEncoder passwordEncoder;

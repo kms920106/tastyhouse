@@ -78,6 +78,12 @@ file:
 
 ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.**~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 분리 당시에는 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되는 것이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈마다 겹치지 않는 하위 패키지(지금 `com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3` — 루트 통일 전 `external.firebase` / `external.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

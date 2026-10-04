@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CeoJpaRepository extends JpaRepository<CeoJpaEntity, Long> {
+interface CeoJpaRepository extends JpaRepository<CeoJpaEntity, Long> {
 
     Optional<CeoJpaEntity> findByUsername(String username);
 

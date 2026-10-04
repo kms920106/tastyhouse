@@ -56,7 +56,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QStatio
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QTagJpaEntity.tagJpaEntity;
 
 @Repository
-public class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
+class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
 
     private static final QReviewImageJpaEntity subReviewImage = new QReviewImageJpaEntity("subReviewImage");
     private static final QReviewLikeJpaEntity subReviewLike = new QReviewLikeJpaEntity("subReviewLike");

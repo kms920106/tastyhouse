@@ -28,7 +28,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 @Service
 @Transactional
-public class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseCase {
+class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseCase {
 
     private static final int MAX_NOTICE_IMAGE_COUNT = 3;
 

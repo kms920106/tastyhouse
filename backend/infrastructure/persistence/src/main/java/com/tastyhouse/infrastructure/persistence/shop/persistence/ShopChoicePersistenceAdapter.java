@@ -8,7 +8,7 @@ import com.tastyhouse.domain.shop.model.ShopChoice;
 import com.tastyhouse.application.shop.port.out.write.ShopChoicePersistencePort;
 
 @Repository
-public class ShopChoicePersistenceAdapter implements ShopChoicePersistencePort {
+class ShopChoicePersistenceAdapter implements ShopChoicePersistencePort {
 
     private final ShopChoiceJpaRepository shopChoiceJpaRepository;
 

@@ -34,7 +34,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourRespon
 @Tag(name = "Ceo Shop Business Hour", description = "점주 가게 운영시간·브레이크타임 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopBusinessHourApiController {
+class ShopBusinessHourApiController {
 
     private final ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase;
     private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;

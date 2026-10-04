@@ -13,7 +13,7 @@ import com.tastyhouse.application.member.referral.port.out.write.MemberReferralP
 import static com.tastyhouse.infrastructure.persistence.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 
 @Repository
-public class MemberReferralPersistenceAdapter implements MemberReferralPersistencePort {
+class MemberReferralPersistenceAdapter implements MemberReferralPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberReferralJpaRepository memberReferralJpaRepository;

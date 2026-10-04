@@ -86,6 +86,12 @@ dependencies {
 
 `[BODY]` 로그에 요청 바디를 원본 객체로 넘기면 record `toString()`이 비밀번호·토큰을 그대로 찍는다. 로그 형식을 예전처럼 보이게 하려고 마스킹을 빼지 않는다. 과거 이 자리의 봉인 대상이던 `SensitiveFieldMasker`의 `@SuppressWarnings("unused")`는 배선과 함께 삭제됐다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/logging-module/src/test/java/com/tastyhouse/logging/architecture/VisibilityRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+`SensitiveFieldMasker`·`ApiLoggingAspect`·`ApiLoggingFilter`를 package-private으로 좁혔다. 앱 `ModuleScanConfig`의 문자열 스캔으로만 등록되고 다른 모듈이 이름으로 부르지 않는다. 이 가드를 위해 이 모듈 `build.gradle`에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 추가했다(이 모듈의 첫 ArchUnit 테스트). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

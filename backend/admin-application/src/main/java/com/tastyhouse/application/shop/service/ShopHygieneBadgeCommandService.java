@@ -17,7 +17,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistenc
 
 @Service
 @Transactional
-public class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUseCase {
+class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUseCase {
 
     private final ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort;
 

@@ -17,7 +17,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_review_image_review_id", columnList = "review_id")
     }
 )
-public class ReviewImageJpaEntity extends BaseEntity {
+class ReviewImageJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

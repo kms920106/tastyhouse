@@ -73,7 +73,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopSu
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopTemporaryClosureJpaEntity.shopTemporaryClosureJpaEntity;
 
 @Repository
-public class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort {
+class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort {
 
     private static final QUploadedFileJpaEntity activeFile = new QUploadedFileJpaEntity("activeFile");
     private static final QUploadedFileJpaEntity inactiveFile = new QUploadedFileJpaEntity("inactiveFile");

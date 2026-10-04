@@ -4,5 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ShopChangeHistoryJpaRepository extends JpaRepository<ShopChangeHistoryJpaEntity, Long> {
+interface ShopChangeHistoryJpaRepository extends JpaRepository<ShopChangeHistoryJpaEntity, Long> {
 }

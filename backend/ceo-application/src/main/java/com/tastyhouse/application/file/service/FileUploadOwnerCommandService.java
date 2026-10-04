@@ -12,7 +12,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 
 @Service
-public class FileUploadOwnerCommandService implements FileUploadOwnerCommandUseCase {
+class FileUploadOwnerCommandService implements FileUploadOwnerCommandUseCase {
 
     private final FileUploadService fileUploadService;
 

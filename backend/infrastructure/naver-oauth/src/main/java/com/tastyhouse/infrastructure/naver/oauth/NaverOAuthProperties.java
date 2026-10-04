@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.naver.oauth;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "oauth.naver")
-public record NaverOAuthProperties(
+record NaverOAuthProperties(
     String clientId,
     String clientSecret,
     String redirectUri

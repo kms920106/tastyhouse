@@ -27,7 +27,7 @@ import com.tastyhouse.application.shop.service.CachingProhibitedWordPersistenceP
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 @Configuration(proxyBeanMethods = false)
-public class SharedBeanConfig {
+class SharedBeanConfig {
 
     @Bean
     public DomainEventPublisher domainEventPublisher(ApplicationEventPublisher applicationEventPublisher) {

@@ -31,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse
 @Tag(name = "Ceo Shop Closed Day", description = "점주 가게 휴무(공휴일·정기·임시) 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopClosedDayApiController {
+class ShopClosedDayApiController {
 
     private final ShopClosedDayQueryUseCase shopClosedDayQueryUseCase;
     private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;

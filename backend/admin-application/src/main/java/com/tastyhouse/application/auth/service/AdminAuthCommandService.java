@@ -12,7 +12,7 @@ import com.tastyhouse.application.auth.port.out.AdminJwtResult;
 import com.tastyhouse.application.auth.token.AdminTokenService;
 
 @Service
-public class AdminAuthCommandService implements AdminAuthCommandUseCase {
+class AdminAuthCommandService implements AdminAuthCommandUseCase {
 
     private final AuthenticationManager authenticationManager;
     private final AdminTokenService tokenService;

@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.naver.oauth.dto;
+package com.tastyhouse.infrastructure.naver.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record NaverUserInfoResponse(
+record NaverUserInfoResponse(
     @JsonProperty("resultcode") String resultCode,
     @JsonProperty("message") String message,
     @JsonProperty("response") NaverProfile response

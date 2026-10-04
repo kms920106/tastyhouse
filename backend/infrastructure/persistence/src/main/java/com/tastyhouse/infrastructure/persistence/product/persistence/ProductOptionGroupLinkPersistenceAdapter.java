@@ -11,7 +11,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
 
 @Repository
-public class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLinkPersistencePort {
+class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLinkPersistencePort {
 
     private final ProductOptionGroupLinkJpaRepository productOptionGroupLinkJpaRepository;
 

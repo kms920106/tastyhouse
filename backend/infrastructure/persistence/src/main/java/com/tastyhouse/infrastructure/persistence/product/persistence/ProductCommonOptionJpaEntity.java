@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "PRODUCT_COMMON_OPTION")
-public class ProductCommonOptionJpaEntity extends BaseEntity {
+class ProductCommonOptionJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -24,7 +24,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreat
 @Tag(name = "Ceo Review Owner Reply", description = "점주 사장님 답변 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ReviewOwnerReplyApiController {
+class ReviewOwnerReplyApiController {
 
     private final ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase;
 

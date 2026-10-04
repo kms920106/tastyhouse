@@ -6,7 +6,7 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
 
 @Repository
-public class ShopCeoAssignmentHistoryPersistenceAdapter implements ShopCeoAssignmentHistoryPersistencePort {
+class ShopCeoAssignmentHistoryPersistenceAdapter implements ShopCeoAssignmentHistoryPersistencePort {
 
     private final ShopCeoAssignmentHistoryJpaRepository shopCeoAssignmentHistoryJpaRepository;
 

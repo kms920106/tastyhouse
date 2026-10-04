@@ -6,7 +6,7 @@ import com.tastyhouse.domain.payment.model.TossPaymentRecord;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 
 @Repository
-public class TossPaymentRecordPersistenceAdapter implements TossPaymentRecordPersistencePort {
+class TossPaymentRecordPersistenceAdapter implements TossPaymentRecordPersistencePort {
 
     private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
 

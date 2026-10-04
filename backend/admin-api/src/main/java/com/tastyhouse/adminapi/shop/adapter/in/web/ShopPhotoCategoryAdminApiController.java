@@ -37,7 +37,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopPhotoCategoryRes
 @Tag(name = "Shop Photo Category Admin", description = "가게 포토 카테고리 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopPhotoCategoryAdminApiController {
+class ShopPhotoCategoryAdminApiController {
 
     private final ShopPhotoCategoryCreateUseCase shopPhotoCategoryCreateUseCase;
     private final ShopPhotoCategoryUpdateUseCase shopPhotoCategoryUpdateUseCase;

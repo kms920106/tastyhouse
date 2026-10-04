@@ -39,4 +39,18 @@ class VendorLayerRulesTest {
             .because("infrastructure 모듈의 루트 패키지는 com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로} 하나다")
             .check(moduleClasses);
     }
+
+    @Test
+    void topLevelClassesShouldNotBePublic() {
+        JavaClasses moduleClasses = new ClassFileImporter()
+            .importPath(Path.of("build/classes/java/main"));
+
+        assertThat(moduleClasses).as("모듈 산출물 클래스가 0건이면 규칙이 공허하게 통과한다").isNotEmpty();
+
+        classes()
+            .that().areTopLevelClasses()
+            .should().notBePublic()
+            .because("벤더 모듈의 클래스는 앱 ModuleScanConfig의 문자열 스캔으로만 등록되고 어느 모듈도 import하지 않는다 — public이 없어야 다른 모듈이 벤더 구현에 직접 결합하는 것을 컴파일러가 막는다")
+            .check(moduleClasses);
+    }
 }

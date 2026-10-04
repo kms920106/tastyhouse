@@ -12,7 +12,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentStatusC
 
 @Service
 @Transactional
-public class ShopDeliveryAreaAdjustmentManagementCommandService implements ShopDeliveryAreaAdjustmentManagementCommandUseCase {
+class ShopDeliveryAreaAdjustmentManagementCommandService implements ShopDeliveryAreaAdjustmentManagementCommandUseCase {
 
     private final ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService;
 

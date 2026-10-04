@@ -35,7 +35,7 @@ import static com.tastyhouse.infrastructure.persistence.payment.persistence.QPay
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class OrderQueryAdapter implements OrderQueryPort, OrderManagementQueryPort {
+class OrderQueryAdapter implements OrderQueryPort, OrderManagementQueryPort {
 
     private static final QUploadedFileJpaEntity ORDER_PRODUCT_IMAGE_FILE =
         new QUploadedFileJpaEntity("orderProductImageFile");

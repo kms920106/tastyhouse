@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.apple.oauth.dto;
+package com.tastyhouse.infrastructure.apple.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record AppleIdTokenPayload(
+record AppleIdTokenPayload(
 
     @JsonProperty("sub")
     String sub,

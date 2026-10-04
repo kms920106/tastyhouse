@@ -38,7 +38,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListIt
 @Tag(name = "Shop Rider Guide Admin", description = "라이더 가게방문 안내 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopRiderGuideAdminApiController {
+class ShopRiderGuideAdminApiController {
 
     private final ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase;
     private final ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase;

@@ -22,7 +22,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeRes
 @RestController
 @RequestMapping("/api/reviews")
 @Tag(name = "Review Blind Consent", description = "게시중단 리뷰 삭제 동의 API")
-public class ReviewBlindConsentApiController {
+class ReviewBlindConsentApiController {
 
     private final ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase;
     private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryUseCase;

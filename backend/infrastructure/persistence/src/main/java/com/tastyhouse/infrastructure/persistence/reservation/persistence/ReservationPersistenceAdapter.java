@@ -17,7 +17,7 @@ import com.tastyhouse.application.reservation.port.out.write.ReservationPersiste
 import static com.tastyhouse.infrastructure.persistence.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
 
 @Repository
-public class ReservationPersistenceAdapter implements ReservationPersistencePort {
+class ReservationPersistenceAdapter implements ReservationPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReservationJpaRepository reservationJpaRepository;

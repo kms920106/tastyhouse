@@ -25,7 +25,7 @@ import com.tastyhouse.application.reservation.port.out.write.ReservationPersiste
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 
 @Service
-public class ReservationCommandService implements ReservationCommandUseCase {
+class ReservationCommandService implements ReservationCommandUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationCommandService.class);
 

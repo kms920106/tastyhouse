@@ -17,7 +17,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_shop_notice_image_notice_id", columnList = "shop_notice_id")
     }
 )
-public class ShopNoticeImageJpaEntity extends BaseEntity {
+class ShopNoticeImageJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

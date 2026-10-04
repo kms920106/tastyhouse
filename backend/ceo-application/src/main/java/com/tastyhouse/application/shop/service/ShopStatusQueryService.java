@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.out.ShopStatusResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopStatusQueryService implements ShopStatusQueryUseCase {
+class ShopStatusQueryService implements ShopStatusQueryUseCase {
 
     private final ShopOwnershipValidator shopOwnershipValidator;
 

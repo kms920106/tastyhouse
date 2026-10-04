@@ -11,7 +11,7 @@ import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
 
 @Component
-public class PointEventListener {
+class PointEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PointEventListener.class);
 

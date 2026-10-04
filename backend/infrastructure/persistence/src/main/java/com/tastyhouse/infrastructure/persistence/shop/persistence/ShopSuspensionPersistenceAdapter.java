@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
 
 @Repository
-public class ShopSuspensionPersistenceAdapter implements ShopSuspensionPersistencePort {
+class ShopSuspensionPersistenceAdapter implements ShopSuspensionPersistencePort {
 
     private final ShopSuspensionJpaRepository shopSuspensionJpaRepository;
 

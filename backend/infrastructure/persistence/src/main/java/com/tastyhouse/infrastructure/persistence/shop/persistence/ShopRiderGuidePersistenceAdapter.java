@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
 @Repository
-public class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort {
+class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort {
 
     private final ShopRiderGuideJpaRepository shopRiderGuideJpaRepository;
     private final ShopRiderGuideHistoryJpaRepository shopRiderGuideHistoryJpaRepository;

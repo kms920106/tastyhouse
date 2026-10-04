@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.grade.port.in.SettleMemberGradesUseCase;
 
 @Component
-public class GradeScheduler {
+class GradeScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(GradeScheduler.class);
 

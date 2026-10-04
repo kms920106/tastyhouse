@@ -6,7 +6,7 @@ import com.tastyhouse.domain.order.model.OrderProductOption;
 import com.tastyhouse.application.order.port.out.write.OrderProductOptionPersistencePort;
 
 @Repository
-public class OrderProductOptionPersistenceAdapter implements OrderProductOptionPersistencePort {
+class OrderProductOptionPersistenceAdapter implements OrderProductOptionPersistencePort {
 
     private final OrderProductOptionJpaRepository orderProductOptionJpaRepository;
 

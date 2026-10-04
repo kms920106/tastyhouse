@@ -13,7 +13,7 @@ import com.tastyhouse.application.sms.port.out.SmsSender;
 
 @Configuration
 @ConditionalOnProperty(name = "sms.provider", havingValue = "sns")
-public class SnsConfig {
+class SnsConfig {
 
     @Bean
     public SnsClient snsClient(

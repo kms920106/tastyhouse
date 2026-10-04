@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Long> {
+interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Long> {
 
     Optional<ProductJpaEntity> findByIdAndDeletedFalse(Long id);
 

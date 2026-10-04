@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QTagJpaEntity.tagJpaEntity;
 
 @Repository
-public class TagPersistenceAdapter implements TagPersistencePort {
+class TagPersistenceAdapter implements TagPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final TagJpaRepository tagJpaRepository;

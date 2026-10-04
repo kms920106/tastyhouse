@@ -10,6 +10,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,5 +63,16 @@ class LayerRulesTest {
         String packageName = javaClass.getPackageName();
         return javaClass.isInterface()
             && (packageName.endsWith(".port.in") || packageName.contains(".port.in."));
+    }
+
+    @Test
+    void schedulersShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that().haveSimpleNameEndingWith("Scheduler")
+            .and().areTopLevelClasses()
+            .should().notBePublic()
+            .because("@Scheduled 트리거는 컴포넌트 스캔으로만 등록되고 어떤 클래스도 직접 참조하지 않는다");
+
+        rule.check(classes);
     }
 }

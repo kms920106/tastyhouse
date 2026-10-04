@@ -25,7 +25,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopHygieneBadgeResp
 @Tag(name = "Shop Hygiene Badge Admin", description = "가게 위생 인증 뱃지 등록 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopHygieneBadgeAdminApiController {
+class ShopHygieneBadgeAdminApiController {
 
     private final ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeQueryUseCase;
     private final ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase;

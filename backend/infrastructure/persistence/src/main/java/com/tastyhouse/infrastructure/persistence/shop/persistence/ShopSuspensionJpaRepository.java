@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ShopSuspensionJpaRepository extends JpaRepository<ShopSuspensionJpaEntity, Long> {
+interface ShopSuspensionJpaRepository extends JpaRepository<ShopSuspensionJpaEntity, Long> {
 
     List<ShopSuspensionJpaEntity> findByShopId(Long shopId);
 }

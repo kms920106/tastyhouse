@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "PRODUCT_COMMON_OPTION_GROUP")
-public class ProductCommonOptionGroupJpaEntity extends BaseEntity {
+class ProductCommonOptionGroupJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

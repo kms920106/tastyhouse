@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductPriceQueryService implements ProductPriceQueryUseCase {
+class ProductPriceQueryService implements ProductPriceQueryUseCase {
 
     private final ProductPriceService productPriceService;
     private final ShopOwnershipValidator shopOwnershipValidator;

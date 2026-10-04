@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
 
 @Repository
-public class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianRequestPersistencePort {
+class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianRequestPersistencePort {
 
     private final ProductVegetarianRequestJpaRepository productVegetarianRequestJpaRepository;
 

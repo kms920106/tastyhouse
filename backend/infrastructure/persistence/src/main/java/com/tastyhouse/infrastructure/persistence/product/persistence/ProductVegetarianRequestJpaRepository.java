@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProductVegetarianRequestJpaRepository
+interface ProductVegetarianRequestJpaRepository
     extends JpaRepository<ProductVegetarianRequestJpaEntity, Long> {
 
     List<ProductVegetarianRequestJpaEntity> findAllByProductId(Long productId);

@@ -11,7 +11,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class NotificationQueryService implements NotificationQueryUseCase {
+class NotificationQueryService implements NotificationQueryUseCase {
 
     private final NotificationQueryPort notificationQueryPort;
 

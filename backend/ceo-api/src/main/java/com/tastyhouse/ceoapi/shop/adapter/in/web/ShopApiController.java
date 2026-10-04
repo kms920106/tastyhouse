@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @Tag(name = "Ceo Shop", description = "점주 가게 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopApiController {
+class ShopApiController {
 
     private final ShopOwnerQueryUseCase shopQueryUseCase;
 

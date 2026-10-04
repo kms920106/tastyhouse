@@ -26,7 +26,7 @@ import static com.tastyhouse.infrastructure.persistence.reservation.persistence.
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class ReservationQueryAdapter implements ReservationQueryPort {
+class ReservationQueryAdapter implements ReservationQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

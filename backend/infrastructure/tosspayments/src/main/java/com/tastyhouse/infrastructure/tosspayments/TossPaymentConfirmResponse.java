@@ -1,10 +1,10 @@
-package com.tastyhouse.infrastructure.tosspayments.dto;
+package com.tastyhouse.infrastructure.tosspayments;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TossPaymentConfirmResponse {
+class TossPaymentConfirmResponse {
 
     private String mId;
     private String version;

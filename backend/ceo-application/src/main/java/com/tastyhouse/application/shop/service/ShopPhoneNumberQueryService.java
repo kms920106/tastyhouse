@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopPhoneNumberResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopPhoneNumberQueryService implements ShopPhoneNumberQueryUseCase {
+class ShopPhoneNumberQueryService implements ShopPhoneNumberQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

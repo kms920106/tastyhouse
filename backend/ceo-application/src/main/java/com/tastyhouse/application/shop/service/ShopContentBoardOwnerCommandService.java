@@ -24,7 +24,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistenc
 
 @Service
 @Transactional
-public class ShopContentBoardOwnerCommandService implements ShopContentBoardOwnerCommandUseCase {
+class ShopContentBoardOwnerCommandService implements ShopContentBoardOwnerCommandUseCase {
 
     private static final long MAX_CONTENT_BOARD_COUNT = 4;
 

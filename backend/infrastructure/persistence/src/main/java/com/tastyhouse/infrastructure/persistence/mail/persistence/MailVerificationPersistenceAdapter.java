@@ -12,7 +12,7 @@ import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistenc
 import static com.tastyhouse.infrastructure.persistence.mail.persistence.QMailVerificationJpaEntity.mailVerificationJpaEntity;
 
 @Repository
-public class MailVerificationPersistenceAdapter implements MailVerificationPersistencePort {
+class MailVerificationPersistenceAdapter implements MailVerificationPersistencePort {
 
     private final MailVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;

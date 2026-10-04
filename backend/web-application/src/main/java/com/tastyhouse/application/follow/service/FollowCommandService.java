@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.follow.service.MemberFollowService;
 
 @Service
 @Transactional
-public class FollowCommandService implements FollowCommandUseCase {
+class FollowCommandService implements FollowCommandUseCase {
 
     private final MemberFollowService memberFollowService;
 

@@ -15,7 +15,7 @@ import com.tastyhouse.application.payment.service.PaymentConfirmationService;
 import com.tastyhouse.application.point.service.PointLedgerService;
 
 @Component
-public class PaymentEventListener {
+class PaymentEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentEventListener.class);
 

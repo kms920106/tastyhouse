@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ProductFeedbackJpaRepository extends JpaRepository<ProductFeedbackJpaEntity, Long> {
+interface ProductFeedbackJpaRepository extends JpaRepository<ProductFeedbackJpaEntity, Long> {
 
     boolean existsByMemberIdAndProductIdAndFeedbackTypeAndCreatedAtAfter(
         Long memberId,

@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.facebook.oauth;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "oauth.facebook")
-public record FacebookOAuthProperties(
+record FacebookOAuthProperties(
     String appId,
     String appSecret
 ) {

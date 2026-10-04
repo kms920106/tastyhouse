@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
 
 @Component
-public class ProductScheduler {
+class ProductScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ProductScheduler.class);
 

@@ -24,7 +24,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QSto
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class StorePriceVerificationQueryAdapter implements StorePriceVerificationQueryPort {
+class StorePriceVerificationQueryAdapter implements StorePriceVerificationQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

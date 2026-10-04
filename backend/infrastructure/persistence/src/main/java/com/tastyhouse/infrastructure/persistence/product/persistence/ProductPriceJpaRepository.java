@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ProductPriceJpaRepository extends JpaRepository<ProductPriceJpaEntity, Long> {
+interface ProductPriceJpaRepository extends JpaRepository<ProductPriceJpaEntity, Long> {
 
     List<ProductPriceJpaEntity> findAllByProductIdOrderBySortAsc(Long productId);
 

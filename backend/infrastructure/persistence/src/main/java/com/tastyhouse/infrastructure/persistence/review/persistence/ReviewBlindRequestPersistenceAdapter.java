@@ -16,7 +16,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersis
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewBlindRequestJpaEntity.reviewBlindRequestJpaEntity;
 
 @Repository
-public class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersistencePort {
+class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersistencePort {
 
     private static final List<String> TERMINATED_STATUSES = List.of(
         ReviewBlindStatus.APPROVED.name(),

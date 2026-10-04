@@ -29,7 +29,7 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemRes
 @Tag(name = "Rank Prize Admin", description = "랭킹 경품 관리자 API")
 @RestController
 @RequestMapping("/api/ranks")
-public class RankPrizeAdminApiController {
+class RankPrizeAdminApiController {
 
     private final RankCommandUseCase rankCommandUseCase;
     private final RankManagementQueryUseCase rankQueryUseCase;

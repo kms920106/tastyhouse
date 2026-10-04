@@ -34,7 +34,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopFoodTypeResponse
 @Tag(name = "Shop Food Type Admin", description = "가게 음식종류 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopFoodTypeAdminApiController {
+class ShopFoodTypeAdminApiController {
 
     private final ShopFoodTypeCategoryCreateUseCase shopFoodTypeCategoryCreateUseCase;
     private final ShopFoodTypeCategoryUpdateUseCase shopFoodTypeCategoryUpdateUseCase;

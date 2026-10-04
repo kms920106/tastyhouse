@@ -29,7 +29,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductOwnerCommandService implements ProductOwnerCreateUseCase, ProductOwnerUpdateUseCase, ProductDeleteUseCase {
+class ProductOwnerCommandService implements ProductOwnerCreateUseCase, ProductOwnerUpdateUseCase, ProductDeleteUseCase {
 
     private static final boolean DEFAULT_VISIBLE = true;
 

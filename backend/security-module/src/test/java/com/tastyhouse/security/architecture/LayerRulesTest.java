@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +25,16 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
             .because("표현 계층은 application만 본다(엄격 레이어드) — 401/403 계약은 ErrorContracts로 읽는다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void configurationsShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that().areAnnotatedWith("org.springframework.context.annotation.Configuration")
+            .should().notBePublic()
+            .because("모듈 설정 클래스는 앱 ModuleScanConfig의 문자열 스캔으로만 등록되고 어떤 클래스도 직접 참조하지 않는다");
 
         rule.check(classes);
     }

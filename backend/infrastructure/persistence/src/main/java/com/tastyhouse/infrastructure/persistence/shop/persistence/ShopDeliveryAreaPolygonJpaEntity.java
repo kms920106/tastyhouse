@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         columnNames = "shop_id"
     )
 )
-public class ShopDeliveryAreaPolygonJpaEntity extends BaseEntity {
+class ShopDeliveryAreaPolygonJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -26,7 +26,7 @@ import com.tastyhouse.application.shop.port.out.ShopPriceBadgeViewResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
+class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
 
     private static final int BUSINESS_DAY_WINDOW_DAYS = 7;
 

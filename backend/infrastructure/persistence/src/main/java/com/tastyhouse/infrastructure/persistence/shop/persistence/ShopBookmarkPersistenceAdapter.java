@@ -10,7 +10,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePor
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 
 @Repository
-public class ShopBookmarkPersistenceAdapter implements ShopBookmarkPersistencePort {
+class ShopBookmarkPersistenceAdapter implements ShopBookmarkPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;

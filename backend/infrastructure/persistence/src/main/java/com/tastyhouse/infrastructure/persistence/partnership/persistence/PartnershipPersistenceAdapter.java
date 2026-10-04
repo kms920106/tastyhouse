@@ -12,7 +12,7 @@ import com.tastyhouse.application.partnership.port.out.write.PartnershipPersiste
 import static com.tastyhouse.infrastructure.persistence.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 
 @Repository
-public class PartnershipPersistenceAdapter implements PartnershipPersistencePort {
+class PartnershipPersistenceAdapter implements PartnershipPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final PartnershipRequestJpaRepository partnershipRequestJpaRepository;

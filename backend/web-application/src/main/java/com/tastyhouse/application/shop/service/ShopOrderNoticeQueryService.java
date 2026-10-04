@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
+class ShopOrderNoticeQueryService implements ShopOrderNoticeQueryUseCase {
 
     private final ShopOrderNoticeQueryPort shopOrderNoticeQueryPort;
 

@@ -20,7 +20,7 @@ import static com.tastyhouse.infrastructure.persistence.order.persistence.QOrder
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
 
 @Repository
-public class MenuReviewQueryAdapter implements MenuReviewQueryPort {
+class MenuReviewQueryAdapter implements MenuReviewQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

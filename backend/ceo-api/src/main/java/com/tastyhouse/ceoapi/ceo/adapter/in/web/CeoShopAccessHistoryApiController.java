@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryLis
 @Tag(name = "Ceo Shop Access History", description = "점주 시스템 접근권한 부여·말소 이력 조회 API")
 @RestController
 @RequestMapping("/api/ceos")
-public class CeoShopAccessHistoryApiController {
+class CeoShopAccessHistoryApiController {
 
     private final CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryUseCase;
 

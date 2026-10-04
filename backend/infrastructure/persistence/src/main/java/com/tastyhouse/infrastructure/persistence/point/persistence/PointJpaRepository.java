@@ -2,5 +2,5 @@ package com.tastyhouse.infrastructure.persistence.point.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PointJpaRepository extends JpaRepository<PointJpaEntity, Long> {
+interface PointJpaRepository extends JpaRepository<PointJpaEntity, Long> {
 }

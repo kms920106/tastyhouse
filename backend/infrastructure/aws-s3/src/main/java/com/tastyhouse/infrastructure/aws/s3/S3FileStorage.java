@@ -13,7 +13,7 @@ import com.tastyhouse.application.file.port.out.FileStoragePort;
 
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "s3")
-public class S3FileStorage implements FileStoragePort {
+class S3FileStorage implements FileStoragePort {
 
     private static final Logger log = LoggerFactory.getLogger(S3FileStorage.class);
 

@@ -27,7 +27,7 @@ import static com.tastyhouse.infrastructure.persistence.rank.persistence.QRankPe
 import static com.tastyhouse.infrastructure.persistence.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
 @Repository
-public class RankQueryAdapter implements RankQueryPort, RankManagementQueryPort {
+class RankQueryAdapter implements RankQueryPort, RankManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

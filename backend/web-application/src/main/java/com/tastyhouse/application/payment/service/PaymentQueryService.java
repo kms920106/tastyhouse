@@ -18,7 +18,7 @@ import com.tastyhouse.application.payment.port.out.PaymentViewResult;
 
 @Service
 @Transactional(readOnly = true)
-public class PaymentQueryService implements PaymentQueryUseCase {
+class PaymentQueryService implements PaymentQueryUseCase {
 
     private final PaymentQueryPort paymentQueryPort;
 

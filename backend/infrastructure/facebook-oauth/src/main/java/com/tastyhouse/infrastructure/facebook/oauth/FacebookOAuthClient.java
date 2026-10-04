@@ -10,11 +10,9 @@ import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
-import com.tastyhouse.infrastructure.facebook.oauth.dto.FacebookTokenDebugResponse;
-import com.tastyhouse.infrastructure.facebook.oauth.dto.FacebookUserInfoResponse;
 
 @Component
-public class FacebookOAuthClient implements SocialOAuthClient {
+class FacebookOAuthClient implements SocialOAuthClient {
 
     private static final String GRAPH_BASE_URL = "https://graph.facebook.com";
     private static final String USER_FIELDS = "id,name,email,picture.type(large)";

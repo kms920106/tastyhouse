@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.search.port.in.AggregatePopularKeywordsUseCase;
 
 @Component
-public class SearchKeywordScheduler {
+class SearchKeywordScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(SearchKeywordScheduler.class);
 

@@ -69,6 +69,12 @@ com.tastyhouse.infrastructure.aws.sns/
 
 `com.tastyhouse.infrastructure.aws` 루트를 스캔하지 않는다. 형제 모듈이 같은 클래스패스에 있으면 그 빈까지 등록하게 된다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/aws-sns/src/test/java/com/tastyhouse/infrastructure/aws/sns/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

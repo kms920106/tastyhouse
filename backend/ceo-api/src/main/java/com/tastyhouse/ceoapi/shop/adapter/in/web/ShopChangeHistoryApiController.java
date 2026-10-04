@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListI
 @Tag(name = "Ceo Shop Change History", description = "점주 가게 변경이력 조회 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopChangeHistoryApiController {
+class ShopChangeHistoryApiController {
 
     private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase;
 

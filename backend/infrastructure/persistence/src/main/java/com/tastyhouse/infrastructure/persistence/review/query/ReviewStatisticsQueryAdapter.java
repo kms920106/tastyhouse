@@ -19,7 +19,7 @@ import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
 @Repository
-public class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, ShopReviewStatisticsQueryPort {
+class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, ShopReviewStatisticsQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

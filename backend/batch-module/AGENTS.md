@@ -211,6 +211,12 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 챕터 01로 잡 서비스가 `application`으로 떠나면서, 이 규칙은 "모듈 안의 구체 클래스"가 아니라 **모듈 경계를 넘는 구체 클래스**를 막는 규칙이 됐다. 그래서 클래스 이름(`*SchedulerService`)이 아니라 **패키지**(`com.tastyhouse.application..service..`)로 대상을 잡는다 — 이렇게 해야 `*Executor`(예: `ProductSoldOutReleaseExecutor`)처럼 `SchedulerService`로 끝나지 않는 내부 구현까지 함께 막힌다. **이름 기준으로 되돌리지 않는다.** 정방향인 `..port.in..`의 UseCase 인터페이스 주입은 이 규칙에 걸리지 않으며, 실존 스케줄러 7종에 anchor하므로 공허하지 않다.
 
+### 스케줄러에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java` → `schedulersShouldNotBePublic`
+
+`*Scheduler` 7개를 package-private으로 좁혔다. 스캔으로만 등록되고 각자 `batch-application`의 UseCase(`*SchedulerService`, 역시 package-private)를 인터페이스로 주입받으므로 이름이 패키지 밖에 나타날 필요가 없다. `@Scheduled` 메서드의 가시성은 손대지 않는다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

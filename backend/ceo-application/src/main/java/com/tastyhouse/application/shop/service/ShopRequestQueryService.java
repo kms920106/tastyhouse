@@ -38,7 +38,7 @@ import com.tastyhouse.application.shop.port.out.ShopRequestTypeView;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopRequestQueryService implements ShopRequestQueryUseCase {
+class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
     private final ShopRequestQueryPort shopRequestQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

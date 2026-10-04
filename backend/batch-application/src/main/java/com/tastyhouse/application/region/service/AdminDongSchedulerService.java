@@ -22,7 +22,7 @@ import com.tastyhouse.application.region.port.out.BoundaryRing;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 @Service
-public class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
+class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongSchedulerService.class);
 

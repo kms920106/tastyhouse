@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.review.query.MemberReviewCountQ
 import com.tastyhouse.infrastructure.persistence.review.query.MemberReviewCountResult;
 
 @Component
-public class MemberGradeReviewCountAdapter implements MemberReviewCountPort {
+class MemberGradeReviewCountAdapter implements MemberReviewCountPort {
 
     private final MemberReviewCountQueryAdapter memberReviewCountQueryAdapter;
 

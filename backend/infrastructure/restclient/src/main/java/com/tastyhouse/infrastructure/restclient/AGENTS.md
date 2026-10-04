@@ -63,6 +63,12 @@
 
 ~~`infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하므로, 벤더 패키지를 그 아래로 옮기면 **의존하지 않은 어댑터까지 스캔 대상이 되어 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 코어만 `com.tastyhouse.restclient`로 옮긴 것은 코어에 그 스캔 트리에 걸리는 벤더 빈이 없기 때문이며, 벤더 9모듈에는 이 제약이 그대로 적용된다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌고, 코어와 벤더가 모두 `com.tastyhouse.infrastructure.*`로 옮겨졌다. 지금 이 디렉터리의 규칙은 반대 방향이다 — **이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.restclient` 아래에 둔다**(`PackageRootTest`가 강제, ArchUnit은 `testImplementation`으로만 선언). 하위 패키지를 새로 만들 수는 있지만 루트 밖(`com.tastyhouse.restclient` 등)으로 되돌리지 않는다. 모듈 차원의 서술은 `../../../../../../../AGENTS.md`.
 
+### 최상위 클래스는 `HttpRequestFactories`만 public
+
+**대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 패키지의 최상위 타입은 `HttpRequestFactories`(다른 모듈 `bbq`·`admdongkor`가 호출)를 빼고 전부 package-private이다. 상세는 모듈 문서 `backend/infrastructure/restclient/AGENTS.md`의 같은 항목과 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

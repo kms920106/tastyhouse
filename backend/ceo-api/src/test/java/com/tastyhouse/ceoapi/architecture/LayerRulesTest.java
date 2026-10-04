@@ -2,6 +2,7 @@ package com.tastyhouse.ceoapi.architecture;
 
 import java.util.List;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -166,5 +167,25 @@ class LayerRulesTest {
         String packageName = javaClass.getPackageName();
         return javaClass.isInterface()
             && (packageName.endsWith(".port.in") || packageName.contains(".port.in."));
+    }
+
+    @Test
+    void controllersAndConfigsShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that(DescribedPredicate.describe(
+                "@RestController·@RestControllerAdvice 또는 config 패키지의 클래스(*SeedProperties 제외)",
+                javaClass -> javaClass.isAnnotatedWith("org.springframework.web.bind.annotation.RestController")
+                    || javaClass.isAnnotatedWith("org.springframework.web.bind.annotation.RestControllerAdvice")
+                    || (isConfigPackage(javaClass.getPackageName()) && !javaClass.getSimpleName().endsWith("SeedProperties"))))
+            .and().areTopLevelClasses()
+            .should().notBePublic()
+            .because("컨트롤러·예외 핸들러·설정은 컴포넌트 스캔으로만 등록되고 어떤 클래스도 직접 참조하지 않는다 — "
+                + "*SeedProperties는 부트스트랩이 @EnableConfigurationProperties로 참조하므로 public이다");
+
+        rule.check(classes);
+    }
+
+    private static boolean isConfigPackage(String packageName) {
+        return packageName.endsWith(".config") || packageName.contains(".config.");
     }
 }

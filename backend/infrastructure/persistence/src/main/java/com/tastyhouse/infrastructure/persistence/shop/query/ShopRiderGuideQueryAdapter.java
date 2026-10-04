@@ -21,7 +21,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRi
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRiderGuideJpaEntity.shopRiderGuideJpaEntity;
 
 @Repository
-public class ShopRiderGuideQueryAdapter implements ShopRiderGuideQueryPort, ShopRiderGuideManagementQueryPort {
+class ShopRiderGuideQueryAdapter implements ShopRiderGuideQueryPort, ShopRiderGuideManagementQueryPort {
 
     private static final int HISTORY_LIMIT = 20;
 

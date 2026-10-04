@@ -25,7 +25,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItem
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Member Me Activity", description = "내 활동 조회 API")
-public class MemberMeActivityApiController {
+class MemberMeActivityApiController {
 
     private final MemberScreenUseCase memberUseCase;
 

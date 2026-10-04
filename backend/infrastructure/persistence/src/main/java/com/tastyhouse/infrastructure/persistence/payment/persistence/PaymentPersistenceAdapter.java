@@ -13,7 +13,7 @@ import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import static com.tastyhouse.infrastructure.persistence.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 
 @Repository
-public class PaymentPersistenceAdapter implements PaymentPersistencePort {
+class PaymentPersistenceAdapter implements PaymentPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final PaymentJpaRepository paymentJpaRepository;

@@ -16,7 +16,7 @@ import com.tastyhouse.adminapi.ceo.adapter.in.web.response.CeoListItemResponse;
 @Tag(name = "Ceo Admin", description = "점주 관리자 API")
 @RestController
 @RequestMapping("/api/ceos")
-public class CeoApiController {
+class CeoApiController {
 
     private final CeoManagementQueryUseCase ceoQueryUseCase;
 

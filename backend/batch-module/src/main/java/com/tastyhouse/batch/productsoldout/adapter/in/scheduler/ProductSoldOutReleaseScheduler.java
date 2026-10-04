@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 
 @Component
-public class ProductSoldOutReleaseScheduler {
+class ProductSoldOutReleaseScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSoldOutReleaseScheduler.class);
 

@@ -1003,6 +1003,35 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 - **URL 슬롯은 Row 투영 안에서 `fileUrlResolver.urlOf(...)`로 채운다**(`ShopChoiceRow`·`ProductAvailabilityRow`). 경로 **값**을 모아 `resolve(Objects.toString(path, ""))`·`resolveAll(map)` 하는 수집(리뷰 이미지·썸네일·대표 이미지)은 빈 문자열 처리 동작을 보존하려고 post-fetch로 둔다.
 - **가드가 재발을 막는다.** `queryAdaptersShouldNotUseTuple`은 persistence 클래스가 `com.querydsl.core.Tuple`·`QTuple`·`MappingProjection`에 의존하면 실패한다. 도입 시점에 구현 전 코드에서 9개 클래스(8개 DAO + `FileUrlProjection`)가 실패하는 것을 확인했다. 생성 Q타입은 이 타입들을 참조하지 않아 오탐이 없다.
 
+### 엔티티·JPA 리포지토리·어댑터·설정에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java` → `topLevelClassesShouldNotBePublic` · `publicByNecessityShouldStillBePublic` · `publicByCategory()` · 상수 `PUBLIC_BY_NECESSITY`
+
+403개를 package-private으로 좁혔다 — `*JpaEntity` 123, `*JpaRepository` 123, `*PersistenceAdapter` 106, `*QueryAdapter` 45, `@Component` 어댑터 4(`MemberGradeReviewCountAdapter`·`ProductReviewStatisticsAdapter`·`KeywordCountAdapter`·`MemberReviewCountAdapter`), 설정 2(`InfrastructurePersistenceConfig`·`QueryDslConfig`). 이 클래스들은 앱 `ModuleScanConfig`의 문자열 스캔과 `@EnableJpaRepositories`로만 등록되고, 소비자는 `application`의 `port.out` 포트로만 주입받는다. `public`이 없어야 다른 패키지가 구현에 직접 결합하는 것을 컴파일러가 막는다. 생성자·메서드의 `public`은 유지한다(`@Transactional`은 public 메서드에만 적용된다).
+
+**범주상 public (`publicByCategory()`)** — 이름·위치로 판정하므로 목록 관리가 필요 없다.
+
+| 범주 | 이유 |
+|---|---|
+| `query` 패키지의 record(`*Row`/`*Result`/`*Projection`) | `Projections.constructor`가 `Class#getConstructors()`로 **public 생성자만** 찾는다. package-private이면 컴파일은 통과하고 그 쿼리가 실행될 때 500이 난다(`ShopRiderGuidePickupPresenceResult` 선례) |
+| `*QueryPort`(`MemberReviewCountQueryPort`) | infra 소유 읽기 계약 — 다른 패키지의 어댑터가 주입받는다 |
+| `BaseEntity`, `*Embeddable` | 다른 패키지의 엔티티가 상속·임베드한다 |
+| QueryDSL 생성 Q타입(`BeanPath` 하위) | 생성 코드이며 다른 패키지의 조회 어댑터가 쓴다 |
+
+**허용 목록 (`PUBLIC_BY_NECESSITY`, FQN 5개)** — 다른 패키지가 타입 이름으로 참조한다.
+
+| FQN | 참조하는 쪽 |
+|---|---|
+| `com.tastyhouse.infrastructure.persistence.file.query.FileUrlResolver` | 여러 컨텍스트의 조회 어댑터가 파일 URL 조립에 주입받는다 |
+| `com.tastyhouse.infrastructure.persistence.review.query.MemberReviewCountQueryAdapter` | `member/adapter/MemberGradeReviewCountAdapter`, `rank/persistence/MemberReviewCountAdapter` |
+| `com.tastyhouse.infrastructure.persistence.menureview.query.MenuReviewStatisticsQueryAdapter` | `product/persistence/ProductReviewStatisticsAdapter`, `review/query/MemberReviewCountQueryAdapter` |
+| `com.tastyhouse.infrastructure.persistence.search.query.SearchQueryAdapter` | `search/persistence/KeywordCountAdapter` |
+| `com.tastyhouse.infrastructure.persistence.shop.persistence.ShopJpaEntity` | `shop/query/ShopSearchQueryAdapter`가 `List<ShopJpaEntity>`를 쓴다 |
+
+`publicByNecessityShouldStillBePublic`은 목록의 FQN이 아직 public인지 검사해 낡은 허용을 잡는다. 새 public이 필요하면 FQN을 상수에 추가하고 이 표에 참조하는 쪽을 적는다.
+
+**엔티티를 package-private으로 해도 다른 패키지의 QueryDSL 조회는 동작한다(스파이크 확인).** Q타입이 public이므로 `notice/query/NoticeQueryAdapter`가 package-private `NoticeJpaEntity`의 `QNoticeJpaEntity`로 조회해도 컴파일되고, `ddl-auto: validate`에서 Hibernate가 부팅되며, 쿼리도 실행된다. **막히는 것은 다른 패키지에서 엔티티 타입 이름을 직접 쓰는 경우뿐이다**(`ShopJpaEntity`가 허용 목록에 있는 이유). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거. 챕터 05에서 코드 주석을 제거하며 이관 -->

@@ -26,7 +26,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequ
 @Tag(name = "Ceo Product Representative", description = "점주 사장님 추천(대표 메뉴) API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductRepresentativeApiController {
+class ProductRepresentativeApiController {
 
     private final ProductRepresentativeCommandUseCase productRepresentativeCommandUseCase;
 

@@ -13,7 +13,7 @@ import com.tastyhouse.application.review.port.out.ReviewBlindRequestQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUseCase {
+class ReviewBlindConsentQueryService implements ReviewBlindConsentQueryUseCase {
 
     private final ReviewBlindRequestQueryPort reviewBlindRequestQueryPort;
 

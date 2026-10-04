@@ -23,7 +23,7 @@ import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyUpdateRequest
 @Tag(name = "Policy Admin", description = "약관 및 정책 관리자 API")
 @RestController
 @RequestMapping("/api/policies")
-public class PolicyAdminApiController {
+class PolicyAdminApiController {
 
     private final PolicyCommandUseCase policyCommandUseCase;
 

@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductVegetarianCommandService implements ProductVegetarianCommandUseCase {
+class ProductVegetarianCommandService implements ProductVegetarianCommandUseCase {
 
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
     private final ProductPersistencePort productPersistencePort;

@@ -12,11 +12,9 @@ import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
-import com.tastyhouse.infrastructure.kakao.oauth.dto.KakaoTokenResponse;
-import com.tastyhouse.infrastructure.kakao.oauth.dto.KakaoUserInfoResponse;
 
 @Component
-public class KakaoOAuthClient implements SocialOAuthClient {
+class KakaoOAuthClient implements SocialOAuthClient {
 
     private static final String KAUTH_BASE_URL = "https://kauth.kakao.com";
     private static final String KAPI_BASE_URL = "https://kapi.kakao.com";

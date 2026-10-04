@@ -23,7 +23,7 @@ import com.tastyhouse.application.shop.port.out.ShopChangeHistorySearchCondition
 
 @Service
 @Transactional(readOnly = true)
-public class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseCase {
+class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseCase {
 
     private static final int RETENTION_MONTHS = 6;
 

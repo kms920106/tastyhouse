@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankMemberListItemRe
 @Tag(name = "Rank Admin", description = "랭킹 관리자 API")
 @RestController
 @RequestMapping("/api/ranks")
-public class RankApiController {
+class RankApiController {
 
     private final RankCommandUseCase rankCommandUseCase;
     private final RankManagementQueryUseCase rankQueryUseCase;

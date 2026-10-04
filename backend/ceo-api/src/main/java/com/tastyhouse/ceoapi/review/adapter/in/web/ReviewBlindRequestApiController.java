@@ -22,7 +22,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewBlindRequestCre
 @Tag(name = "Ceo Review Blind Request", description = "점주 리뷰 게시중단 요청 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ReviewBlindRequestApiController {
+class ReviewBlindRequestApiController {
 
     private final ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase;
 

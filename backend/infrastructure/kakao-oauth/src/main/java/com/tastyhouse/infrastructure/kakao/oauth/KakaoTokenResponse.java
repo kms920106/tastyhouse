@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.kakao.oauth.dto;
+package com.tastyhouse.infrastructure.kakao.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record KakaoTokenResponse(
+record KakaoTokenResponse(
     @JsonProperty("token_type") String tokenType,
     @JsonProperty("access_token") String accessToken,
     @JsonProperty("expires_in") Integer expiresIn,

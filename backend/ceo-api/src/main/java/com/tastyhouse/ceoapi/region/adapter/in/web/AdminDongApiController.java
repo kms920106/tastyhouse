@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongTreeRespons
 @Tag(name = "Ceo Admin Dong", description = "점주 행정동 검색 API")
 @RestController
 @RequestMapping("/api/admin-dongs")
-public class AdminDongApiController {
+class AdminDongApiController {
 
     private final AdminDongQueryUseCase adminDongQueryUseCase;
 

@@ -15,7 +15,7 @@ import com.tastyhouse.application.shop.port.out.ShopVisitGuideValidationResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopRiderGuideOwnerQueryService implements ShopRiderGuideOwnerQueryUseCase {
+class ShopRiderGuideOwnerQueryService implements ShopRiderGuideOwnerQueryUseCase {
 
     private final ShopRiderGuideQueryPort shopRiderGuideQueryPort;
     private final ShopRiderGuideValidator shopRiderGuideValidator;

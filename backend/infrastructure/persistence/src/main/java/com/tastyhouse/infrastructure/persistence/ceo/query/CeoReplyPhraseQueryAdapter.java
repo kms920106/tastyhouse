@@ -12,7 +12,7 @@ import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoReplyPhraseJpaEntity.ceoReplyPhraseJpaEntity;
 
 @Repository
-public class CeoReplyPhraseQueryAdapter implements CeoReplyPhraseQueryPort {
+class CeoReplyPhraseQueryAdapter implements CeoReplyPhraseQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

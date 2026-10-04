@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.port.out.MemberDeliveryAddressQueryPort
 
 @Service
 @Transactional(readOnly = true)
-public class MemberDeliveryAddressQueryService implements MemberDeliveryAddressQueryUseCase {
+class MemberDeliveryAddressQueryService implements MemberDeliveryAddressQueryUseCase {
 
     private final MemberDeliveryAddressQueryPort memberDeliveryAddressQueryPort;
 

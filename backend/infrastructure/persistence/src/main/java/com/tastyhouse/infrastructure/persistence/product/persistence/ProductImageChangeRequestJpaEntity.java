@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "PRODUCT_IMAGE_CHANGE_REQUEST")
-public class ProductImageChangeRequestJpaEntity extends BaseEntity {
+class ProductImageChangeRequestJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

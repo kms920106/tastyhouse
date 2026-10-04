@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "SHOP_AMENITY_CATEGORY")
-public class ShopAmenityCategoryJpaEntity extends BaseEntity {
+class ShopAmenityCategoryJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -24,7 +24,7 @@ import static com.tastyhouse.infrastructure.persistence.banner.persistence.QBann
 import static com.tastyhouse.infrastructure.persistence.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
 
 @Repository
-public class BannerQueryAdapter implements BannerQueryPort, BannerManagementQueryPort {
+class BannerQueryAdapter implements BannerQueryPort, BannerManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

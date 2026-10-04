@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
 
 @Repository
-public class StationPersistenceAdapter implements StationPersistencePort {
+class StationPersistenceAdapter implements StationPersistencePort {
 
     private final StationJpaRepository stationJpaRepository;
 

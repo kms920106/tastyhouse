@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 @Entity
 @Table(name = "POPULAR_KEYWORD",
     indexes = @Index(name = "idx_popular_keyword_active_rank", columnList = "is_visible, `rank`"))
-public class PopularKeywordJpaEntity extends BaseEntity {
+class PopularKeywordJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

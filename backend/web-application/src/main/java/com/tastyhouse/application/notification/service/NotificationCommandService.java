@@ -13,7 +13,7 @@ import com.tastyhouse.application.notification.port.in.NotificationMarkAsReadCom
 
 @Service
 @Transactional
-public class NotificationCommandService implements NotificationCommandUseCase {
+class NotificationCommandService implements NotificationCommandUseCase {
 
     private final NotificationService notificationService;
 

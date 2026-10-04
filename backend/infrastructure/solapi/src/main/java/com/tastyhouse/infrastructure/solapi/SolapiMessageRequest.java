@@ -1,10 +1,10 @@
-package com.tastyhouse.infrastructure.solapi.dto;
+package com.tastyhouse.infrastructure.solapi;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-public record SolapiMessageRequest(
+record SolapiMessageRequest(
     List<SolapiMessage> messages
 ) {
 

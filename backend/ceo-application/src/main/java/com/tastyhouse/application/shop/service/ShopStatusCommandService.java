@@ -10,7 +10,7 @@ import com.tastyhouse.application.shop.port.in.ShopStatusUpdateCommand;
 
 @Service
 @Transactional
-public class ShopStatusCommandService implements ShopStatusCommandUseCase {
+class ShopStatusCommandService implements ShopStatusCommandUseCase {
 
     private static final String STATUS_HIDDEN = "HIDDEN";
 

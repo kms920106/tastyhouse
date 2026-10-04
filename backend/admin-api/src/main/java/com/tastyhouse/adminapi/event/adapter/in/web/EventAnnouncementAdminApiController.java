@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventAnnouncementRe
 @Tag(name = "Event Announcement Admin", description = "이벤트 당첨자 발표 공지 관리자 API")
 @RestController
 @RequestMapping("/api/events")
-public class EventAnnouncementAdminApiController {
+class EventAnnouncementAdminApiController {
 
     private final EventCommandUseCase eventCommandUseCase;
     private final EventManagementQueryUseCase eventQueryUseCase;

@@ -18,7 +18,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_shop_delivery_area_adjustment_status", columnList = "status")
     }
 )
-public class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
+class ShopDeliveryAreaAdjustmentRequestJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -32,7 +32,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistenc
 
 @Service
 @Transactional
-public class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUseCase {
+class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUseCase {
 
     private final ShopDeliveryAreaService shopDeliveryAreaService;
     private final ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService;

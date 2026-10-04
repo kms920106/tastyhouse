@@ -33,7 +33,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupR
 @Tag(name = "Ceo Product Option Group", description = "점주 옵션그룹 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductOptionGroupApiController {
+class ProductOptionGroupApiController {
 
     private final ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase;
     private final ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase;

@@ -9,7 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.tastyhouse.domain.file.event.FileUploadedEvent;
 
 @Component
-public class FileUploadedEventListener {
+class FileUploadedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(FileUploadedEventListener.class);
 

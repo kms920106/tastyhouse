@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(FacebookOAuthProperties.class)
-public class FacebookOAuthModuleConfig {
+class FacebookOAuthModuleConfig {
 }

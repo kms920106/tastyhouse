@@ -14,7 +14,7 @@ import com.tastyhouse.security.token.BlacklistRepository;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @EnableConfigurationProperties(JwtProperties.class)
-public class SecurityModuleConfig {
+class SecurityModuleConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(

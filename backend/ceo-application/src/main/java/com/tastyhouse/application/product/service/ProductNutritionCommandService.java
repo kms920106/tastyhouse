@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductNutritionCommandService implements ProductNutritionCommandUseCase {
+class ProductNutritionCommandService implements ProductNutritionCommandUseCase {
 
     private final ProductNutritionService productNutritionService;
     private final ProductPersistencePort productPersistencePort;

@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.out.ShopLocationResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiusQueryUseCase {
+class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiusQueryUseCase {
 
     private final AdminDongQueryPort adminDongQueryPort;
     private final ShopDeliveryAreaQueryPort shopDeliveryAreaQueryPort;

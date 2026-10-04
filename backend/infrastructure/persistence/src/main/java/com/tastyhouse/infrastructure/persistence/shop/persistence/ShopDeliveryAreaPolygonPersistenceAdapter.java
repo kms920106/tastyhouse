@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
 
 @Repository
-public class ShopDeliveryAreaPolygonPersistenceAdapter implements ShopDeliveryAreaPolygonPersistencePort {
+class ShopDeliveryAreaPolygonPersistenceAdapter implements ShopDeliveryAreaPolygonPersistencePort {
 
     private final ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository;
 

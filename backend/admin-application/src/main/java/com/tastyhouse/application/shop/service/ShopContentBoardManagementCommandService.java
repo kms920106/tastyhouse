@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistenc
 
 @Service
 @Transactional
-public class ShopContentBoardManagementCommandService implements ShopContentBoardManagementCommandUseCase {
+class ShopContentBoardManagementCommandService implements ShopContentBoardManagementCommandUseCase {
 
     private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
 

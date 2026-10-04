@@ -13,7 +13,7 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
+class ProductNutritionQueryService implements ProductNutritionQueryUseCase {
 
     private final ProductQueryPort productQueryPort;
 

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
 
 @Repository
-public class BugReportPersistenceAdapter implements BugReportPersistencePort {
+class BugReportPersistenceAdapter implements BugReportPersistencePort {
 
     private final BugReportJpaRepository bugReportJpaRepository;
 

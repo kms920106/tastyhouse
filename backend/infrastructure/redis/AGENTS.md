@@ -143,6 +143,18 @@ com.tastyhouse.infrastructure.redis/
 
 이 두 테스트에 적힌 문자열은 **운영 Redis에 실재하는 키 공간**이며, 앱별 접두사(`""`/`"admin:"`/`"ceo:"`)는 불변 계약이다. 접두사 조합이 어긋나도 **컴파일·기동은 성공하고 기존 세션만 조용히 무효화**되며, 블랙리스트 쪽은 **로그아웃한 토큰이 걸리지 않아 예외 없이 계속 통과**한다. 이 고정값 단정이 그 유일한 자동 방어선이므로 "하드코딩"이라고 상수화·파라미터화하지 않는다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용, 허용 목록 1개)
+
+**대상**: `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/architecture/PackageRootTest.java` → `topLevelClassesShouldNotBePublic` · `publicByNecessityShouldStillBePublic` · 상수 `PUBLIC_BY_NECESSITY`
+
+이 모듈의 최상위 타입은 허용 목록 하나를 빼고 전부 package-private이다. 앱 `ModuleScanConfig`의 문자열 스캔으로만 조립되므로 타입 이름이 모듈 밖에 나타날 필요가 없다.
+
+| 허용 목록(`PUBLIC_BY_NECESSITY`) | 이유 |
+|---|---|
+| `com.tastyhouse.infrastructure.redis.token.RedisTokenStoreProperties` | 상위 패키지의 `RedisModuleConfig`가 `@EnableConfigurationProperties`로 이 타입을 참조한다 — 패키지가 다르므로 package-private이면 컴파일되지 않는다 |
+
+`publicByNecessityShouldStillBePublic`은 허용 목록이 낡지 않았는지(그 FQN이 아직 public인지) 검사한다. 새로 public이 필요해지면 FQN을 이 상수에 추가하고 이 표에 이유를 적는다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

@@ -26,7 +26,7 @@ import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePor
 
 @Service
 @Transactional
-public class EventCommandService implements EventCommandUseCase {
+class EventCommandService implements EventCommandUseCase {
 
     private final EventPersistencePort eventPersistencePort;
     private final EventAnnouncementPersistencePort eventAnnouncementPersistencePort;

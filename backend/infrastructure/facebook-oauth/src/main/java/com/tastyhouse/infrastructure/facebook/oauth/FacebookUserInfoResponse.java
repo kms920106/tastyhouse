@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.facebook.oauth.dto;
+package com.tastyhouse.infrastructure.facebook.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record FacebookUserInfoResponse(
+record FacebookUserInfoResponse(
     @JsonProperty("id") String id,
     @JsonProperty("name") String name,
     @JsonProperty("email") String email,

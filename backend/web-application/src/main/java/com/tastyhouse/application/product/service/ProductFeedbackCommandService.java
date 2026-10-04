@@ -13,7 +13,7 @@ import com.tastyhouse.application.product.port.in.ProductFeedbackCreateCommand;
 
 @Service
 @Transactional
-public class ProductFeedbackCommandService implements ProductFeedbackCommandUseCase {
+class ProductFeedbackCommandService implements ProductFeedbackCommandUseCase {
 
     private final ProductFeedbackService productFeedbackService;
 

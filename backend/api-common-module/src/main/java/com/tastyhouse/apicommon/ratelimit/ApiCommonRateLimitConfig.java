@@ -8,7 +8,7 @@ import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-public class ApiCommonRateLimitConfig {
+class ApiCommonRateLimitConfig {
 
     @Bean
     public RateLimitAspect rateLimitAspect(RateLimitCounterPort rateLimitCounter) {

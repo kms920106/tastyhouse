@@ -11,7 +11,7 @@ import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
 
-public class SnsSmsSender implements SmsSender {
+class SnsSmsSender implements SmsSender {
 
     private static final Logger log = LoggerFactory.getLogger(SnsSmsSender.class);
 

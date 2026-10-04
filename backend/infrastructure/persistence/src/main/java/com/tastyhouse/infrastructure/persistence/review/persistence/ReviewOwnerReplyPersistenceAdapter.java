@@ -13,7 +13,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersiste
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewOwnerReplyJpaEntity.reviewOwnerReplyJpaEntity;
 
 @Repository
-public class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyPersistencePort {
+class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository;

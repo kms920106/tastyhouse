@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductPriceRespons
 @Tag(name = "Ceo Product Price", description = "점주 메뉴 가격 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductPriceApiController {
+class ProductPriceApiController {
 
     private final ProductPriceQueryUseCase productPriceQueryUseCase;
     private final ProductPriceCommandUseCase productPriceCommandUseCase;

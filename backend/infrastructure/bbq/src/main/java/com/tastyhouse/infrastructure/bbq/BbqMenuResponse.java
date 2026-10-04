@@ -1,10 +1,10 @@
-package com.tastyhouse.infrastructure.bbq.dto;
+package com.tastyhouse.infrastructure.bbq;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class BbqMenuResponse {
+class BbqMenuResponse {
 
     @JsonProperty("id")
     private Long id;

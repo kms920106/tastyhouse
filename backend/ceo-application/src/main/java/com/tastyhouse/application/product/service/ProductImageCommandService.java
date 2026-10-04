@@ -24,7 +24,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductImageCommandService implements ProductImageCommandUseCase {
+class ProductImageCommandService implements ProductImageCommandUseCase {
 
     private final ProductImageApprovalService productImageApprovalService;
     private final ProductPersistencePort productPersistencePort;

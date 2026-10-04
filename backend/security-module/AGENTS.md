@@ -118,6 +118,12 @@
 실제로 호출하는 시점에 `NoUniqueBeanDefinitionException`으로 기동이 실패한다. 즉 **필터 재정의로
 provider 모호성을 우회하려는 시도는 실패한다.**
 
+### 설정 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/security-module/src/test/java/com/tastyhouse/security/architecture/LayerRulesTest.java` → `configurationsShouldNotBePublic`
+
+`SecurityModuleConfig`를 package-private으로 좁혔다(앱 `ModuleScanConfig`의 문자열 스캔으로만 등록). 가드는 이 모듈의 `@Configuration` 전부에 `public`을 금지한다. **public으로 남는 것**: `CurrentUser`, `jwt/*` — 각 앱 `SecurityConfig`·컨트롤러가 다른 모듈에서 주입·참조한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

@@ -32,7 +32,7 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddres
 @RestController
 @RequestMapping("/api/members")
 @Tag(name = "Member Delivery Address", description = "회원 배달 주소록 API")
-public class MemberDeliveryAddressApiController {
+class MemberDeliveryAddressApiController {
 
     private final MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase;
     private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase;

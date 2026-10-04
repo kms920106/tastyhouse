@@ -25,7 +25,7 @@ backend/infrastructure/oauth/
 
 **web-api를 건드리지 않는다.**
 
-1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.infrastructure.{vendor}.oauth`(wire DTO는 `.dto` 하위), 클라이언트가 `SocialOAuthClient`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
+1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.infrastructure.{vendor}.oauth`(~~wire DTO는 `.dto` 하위~~ **(번복됨 — package-private 적용)** wire DTO도 루트 패키지에 package-private으로 두고, 최상위 타입 전부에 `public`을 붙이지 않는다 — `VendorLayerRulesTest#topLevelClassesShouldNotBePublic`을 함께 복사한다), 클라이언트가 `SocialOAuthClient`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
 2. 이 모듈 `build.gradle`에 `runtimeOnly project(':infrastructure:{vendor}-oauth')` 한 줄.
 3. `application-oauth.yml`에 `classpath:application-{vendor}-oauth.yml` import 한 줄.
 4. `.env`에 벤더 키.

@@ -35,7 +35,7 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatistics
 @Tag(name = "Ceo Shop Review", description = "점주 리뷰 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopReviewApiController {
+class ShopReviewApiController {
 
     private final ShopReviewQueryUseCase shopReviewQueryUseCase;
     private final ShopReviewCommandUseCase shopReviewCommandUseCase;

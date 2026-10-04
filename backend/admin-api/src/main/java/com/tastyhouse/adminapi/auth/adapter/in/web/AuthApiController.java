@@ -22,7 +22,7 @@ import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 @Tag(name = "Admin Auth", description = "관리자 인증 API")
 @RestController
 @RequestMapping("/api/auth")
-public class AuthApiController {
+class AuthApiController {
 
     private final AdminAuthCommandUseCase authCommandUseCase;
 

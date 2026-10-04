@@ -14,7 +14,7 @@ import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistenc
 import static com.tastyhouse.infrastructure.persistence.menureview.persistence.QMenuReviewJpaEntity.menuReviewJpaEntity;
 
 @Repository
-public class MenuReviewPersistenceAdapter implements MenuReviewPersistencePort {
+class MenuReviewPersistenceAdapter implements MenuReviewPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final MenuReviewJpaRepository menuReviewJpaRepository;

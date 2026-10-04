@@ -12,7 +12,7 @@ import com.tastyhouse.application.review.service.ReviewBlindRequestService;
 import com.tastyhouse.application.reviewblind.port.in.ExpireBlindedReviewsUseCase;
 
 @Service
-public class ReviewBlindSchedulerService implements ExpireBlindedReviewsUseCase {
+class ReviewBlindSchedulerService implements ExpireBlindedReviewsUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindSchedulerService.class);
 

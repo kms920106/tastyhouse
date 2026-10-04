@@ -190,6 +190,18 @@ override는 `MockRestServiceServer.bindTo(builder)`가 심어 둔 목 팩토리�
 
 `NoReactiveHttpClientTest`는 이 모듈이 아니라 `backend/infrastructure/*/src/**/*.java`와 `*/build.gradle`을 읽는다. Gradle에 그 파일들을 입력으로 선언하지 않으면 그 파일들이 바뀌어도 이 모듈의 `test` 태스크가 UP-TO-DATE로 건너뛰어 회귀를 못 잡는 것을 실측으로 확인했다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용, 허용 목록 1개)
+
+**대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `topLevelClassesShouldNotBePublic` · `publicByNecessityShouldStillBePublic` · 상수 `PUBLIC_BY_NECESSITY`
+
+이 모듈의 최상위 타입은 허용 목록 하나를 빼고 전부 package-private이다. 앱 `ModuleScanConfig`의 문자열 스캔으로만 조립되므로 타입 이름이 모듈 밖에 나타날 필요가 없다.
+
+| 허용 목록(`PUBLIC_BY_NECESSITY`) | 이유 |
+|---|---|
+| `com.tastyhouse.infrastructure.restclient.HttpRequestFactories` | `infrastructure:bbq`·`infrastructure:admdongkor`가 다른 모듈에서 per-client 타임아웃용으로 호출한다 |
+
+`publicByNecessityShouldStillBePublic`은 허용 목록이 낡지 않았는지(그 FQN이 아직 public인지) 검사한다. 새로 public이 필요해지면 FQN을 이 상수에 추가하고 이 표에 이유를 적는다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

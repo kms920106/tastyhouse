@@ -23,7 +23,7 @@ import com.tastyhouse.webapi.policy.adapter.in.web.response.PolicyListItemRespon
 @RestController
 @RequestMapping("/api/policies")
 @Tag(name = "Policy", description = "약관 및 정책 관리 API")
-public class PolicyApiController {
+class PolicyApiController {
 
     private final PolicyDetailQueryUseCase policyDetailQueryUseCase;
     private final PolicyVersionListQueryUseCase policyVersionListQueryUseCase;

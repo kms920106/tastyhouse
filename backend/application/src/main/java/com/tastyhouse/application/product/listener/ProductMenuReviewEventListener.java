@@ -13,7 +13,7 @@ import com.tastyhouse.domain.menureview.event.MenuReviewRatingChangedEvent;
 import com.tastyhouse.application.product.service.ProductReviewStatsService;
 
 @Component
-public class ProductMenuReviewEventListener {
+class ProductMenuReviewEventListener {
 
     private final ProductReviewStatsService productReviewStatsService;
 

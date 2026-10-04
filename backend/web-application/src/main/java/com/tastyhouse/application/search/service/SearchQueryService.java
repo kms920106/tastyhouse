@@ -24,7 +24,7 @@ import com.tastyhouse.application.shop.port.out.ShopSearchQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class SearchQueryService implements SearchQueryUseCase {
+class SearchQueryService implements SearchQueryUseCase {
 
     private final SearchQueryPort searchQueryPort;
     private final ProductQueryUseCase productQueryUseCase;

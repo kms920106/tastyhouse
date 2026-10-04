@@ -2,5 +2,5 @@ package com.tastyhouse.infrastructure.persistence.notice.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface NoticeJpaRepository extends JpaRepository<NoticeJpaEntity, Long> {
+interface NoticeJpaRepository extends JpaRepository<NoticeJpaEntity, Long> {
 }

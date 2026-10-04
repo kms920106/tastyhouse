@@ -4,7 +4,7 @@
 
 네이버 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.naver.oauth`가 됐고, wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.naver.oauth.dto`로 모였다. 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
+옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.naver.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.naver.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.naver.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
 ## 무엇을 소유하는가
 
@@ -13,9 +13,8 @@ com.tastyhouse.infrastructure.naver.oauth/
 ├── NaverOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(NaverOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 NaverOAuthModuleAutoConfiguration에서 리네임
 ├── NaverOAuthProperties.java               oauth.naver.* (client-id, client-secret, redirect-uri)
 ├── NaverOAuthClient.java                   SocialOAuthClient 구현 — 토큰 교환(nid.naver.com, state 포함) + userinfo(openapi.naver.com), 동기 RestClient
-└── dto/
-    ├── NaverTokenResponse.java             wire DTO
-    └── NaverUserInfoResponse.java          wire DTO — response 중첩 해제·gender 정규화·birthday 분해
+├── NaverTokenResponse.java             wire DTO (package-private, 과거 dto/ 하위)
+└── NaverUserInfoResponse.java          wire DTO — response 중첩 해제·gender 정규화·birthday 분해 (package-private, 과거 dto/ 하위)
 ```
 
 `NaverOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `NaverOAuthProperties`를 받아 같은 이름의 `final` 필드(`clientId`·`clientSecret`·`redirectUri`)로 옮긴다.
@@ -70,9 +69,17 @@ oauth:
 
 ### 외부 응답 DTO는 도메인 enum을 반환하지 않는다
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/dto/NaverUserInfoResponse.java` → `getGender()` 정규화 매퍼
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/NaverUserInfoResponse.java` → `getGender()` 정규화 매퍼
 
 gender 매퍼는 도메인 enum `MemberGender`가 아니라 **그 상수명 문자열**(`"MALE"`/`"FEMALE"`/`null`)을 반환한다. 외부 응답 DTO가 도메인 타입을 보유하면 어댑터 → domain 역방향 결합이 생기기 때문이다. 도메인 enum 승격은 소비 측(web-api 서비스)이 `MemberGender.from(String)`으로 수행한다. 편의를 이유로 enum을 반환하도록 되돌리지 않는다.
+
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/naver-oauth/src/test/java/com/tastyhouse/infrastructure/naver/oauth/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다.
+
+외부 API wire DTO(`NaverTokenResponse`·`NaverUserInfoResponse`)도 예외가 아니다. **`{루트}.dto` 하위 패키지로 되돌리지 않는다** — package-private 타입은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 Client와 같은 루트 패키지에 있어야 한다. Jackson은 별도 가시성 설정 없이(기본 `CAN_OVERRIDE_ACCESS_MODIFIERS`) package-private record를 (역)직렬화한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -86,7 +93,7 @@ gender 매퍼는 도메인 enum `MemberGender`가 아니라 **그 상수명 문�
 
 ### 네이버 응답의 결측·형식 처리
 
-**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/dto/NaverUserInfoResponse.java`
+**대상**: `backend/infrastructure/naver-oauth/src/main/java/com/tastyhouse/infrastructure/naver/oauth/NaverUserInfoResponse.java`
 
 - 프로필 응답(`GET https://openapi.naver.com/v1/nid/me`)은 사용자 정보를 **최상위 `response` 객체 안에 중첩**해 돌려준다. 다른 3종과 달리 한 겹 더 벗겨야 한다.
 - `response.gender()`는 **사용자가 성별 제공에 동의하지 않으면 `null`** 이므로 반드시 가드한다(카카오 형제와 동일한 이유).

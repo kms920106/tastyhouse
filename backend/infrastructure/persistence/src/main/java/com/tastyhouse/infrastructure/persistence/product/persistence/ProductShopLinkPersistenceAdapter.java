@@ -11,7 +11,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
 
 @Repository
-public class ProductShopLinkPersistenceAdapter implements ProductShopLinkPersistencePort {
+class ProductShopLinkPersistenceAdapter implements ProductShopLinkPersistencePort {
 
     private final ProductShopLinkJpaRepository productShopLinkJpaRepository;
 

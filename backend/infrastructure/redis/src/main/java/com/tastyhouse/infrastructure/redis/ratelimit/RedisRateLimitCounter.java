@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.ratelimit.RateLimitCounterPort;
 
 @Component
-public class RedisRateLimitCounter implements RateLimitCounterPort {
+class RedisRateLimitCounter implements RateLimitCounterPort {
 
     private final StringRedisTemplate stringRedisTemplate;
 

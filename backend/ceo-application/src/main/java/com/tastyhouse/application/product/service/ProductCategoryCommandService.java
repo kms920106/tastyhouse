@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductCategoryCommandService implements ProductCategoryCommandUseCase {
+class ProductCategoryCommandService implements ProductCategoryCommandUseCase {
 
     private static final boolean DEFAULT_VISIBLE = true;
 

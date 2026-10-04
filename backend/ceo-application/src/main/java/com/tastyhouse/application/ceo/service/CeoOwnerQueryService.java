@@ -8,7 +8,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 @Service
 @Transactional(readOnly = true)
-public class CeoOwnerQueryService implements CeoOwnerQueryUseCase {
+class CeoOwnerQueryService implements CeoOwnerQueryUseCase {
 
     private final CeoPersistencePort ceoPersistencePort;
 

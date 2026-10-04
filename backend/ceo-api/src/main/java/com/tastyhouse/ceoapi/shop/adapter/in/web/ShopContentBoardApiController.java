@@ -31,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardRespon
 @Tag(name = "Ceo Shop Content Board", description = "점주 가게 콘텐츠보드 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopContentBoardApiController {
+class ShopContentBoardApiController {
 
     private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase;

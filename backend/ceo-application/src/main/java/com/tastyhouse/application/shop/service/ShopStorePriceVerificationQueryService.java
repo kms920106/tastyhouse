@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewRe
 
 @Service
 @Transactional(readOnly = true)
-public class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificationQueryUseCase {
+class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
     private final StorePriceVerificationOwnerReader storePriceVerificationReader;

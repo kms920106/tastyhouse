@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopOrderNoticeResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderNoticeManagementQueryService implements ShopOrderNoticeManagementQueryUseCase {
+class ShopOrderNoticeManagementQueryService implements ShopOrderNoticeManagementQueryUseCase {
 
     private final ShopOrderNoticeManagementQueryPort shopOrderNoticeManagementQueryPort;
 

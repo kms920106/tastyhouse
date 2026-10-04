@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.persistence.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 
 @Repository
-public class PolicyQueryAdapter implements PolicyQueryPort {
+class PolicyQueryAdapter implements PolicyQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

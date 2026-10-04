@@ -6,7 +6,7 @@ import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistencePort;
 
 @Repository
-public class CeoLoginHistoryPersistenceAdapter implements CeoLoginHistoryPersistencePort {
+class CeoLoginHistoryPersistenceAdapter implements CeoLoginHistoryPersistencePort {
 
     private final CeoLoginHistoryJpaRepository ceoLoginHistoryJpaRepository;
 

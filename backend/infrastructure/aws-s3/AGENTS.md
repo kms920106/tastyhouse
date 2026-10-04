@@ -95,6 +95,12 @@ com.tastyhouse.infrastructure.aws.s3/
 
 앱 `build.gradle`에 이 모듈을 직접 추가하지 않는다. 벤더 선택은 스타터가 소유한다(`backend/CLAUDE.md` §벤더 선택은 앱이 아니라 스타터 모듈이 한다).
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

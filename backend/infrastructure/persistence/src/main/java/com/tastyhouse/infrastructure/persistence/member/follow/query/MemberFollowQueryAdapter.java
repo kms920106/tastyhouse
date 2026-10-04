@@ -22,7 +22,7 @@ import static com.tastyhouse.infrastructure.persistence.member.follow.persistenc
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 @Repository
-public class MemberFollowQueryAdapter implements MemberFollowQueryPort {
+class MemberFollowQueryAdapter implements MemberFollowQueryPort {
 
     private static final QMemberFollowJpaEntity viewerFollow = new QMemberFollowJpaEntity("viewerFollow");
 

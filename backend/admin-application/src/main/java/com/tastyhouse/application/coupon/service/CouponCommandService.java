@@ -18,7 +18,7 @@ import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
 
 @Service
 @Transactional
-public class CouponCommandService implements CouponCommandUseCase {
+class CouponCommandService implements CouponCommandUseCase {
 
     private final CouponPersistencePort couponPersistencePort;
     private final CouponIssueService couponIssueService;

@@ -30,7 +30,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionIm
 @Tag(name = "Shop Menu Collection Image Admin", description = "메뉴모음컷 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopMenuCollectionImageAdminApiController {
+class ShopMenuCollectionImageAdminApiController {
 
     private final ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase;
     private final ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase;

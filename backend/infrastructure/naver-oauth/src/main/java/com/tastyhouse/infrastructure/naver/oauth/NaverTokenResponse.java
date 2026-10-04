@@ -1,8 +1,8 @@
-package com.tastyhouse.infrastructure.naver.oauth.dto;
+package com.tastyhouse.infrastructure.naver.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record NaverTokenResponse(
+record NaverTokenResponse(
     @JsonProperty("token_type") String tokenType,
     @JsonProperty("access_token") String accessToken,
     @JsonProperty("expires_in") String expiresIn,

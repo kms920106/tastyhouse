@@ -30,7 +30,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionRes
 @Tag(name = "Ceo Product Nutrition", description = "점주 메뉴 영양성분·알레르기 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductNutritionApiController {
+class ProductNutritionApiController {
 
     private final ProductNutritionOwnerQueryUseCase productNutritionQueryUseCase;
     private final ProductNutritionCommandUseCase productNutritionCommandUseCase;

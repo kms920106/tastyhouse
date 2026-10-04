@@ -14,7 +14,7 @@ import com.tastyhouse.application.coupon.port.out.MyCouponListItemResult;
 
 @Service
 @Transactional(readOnly = true)
-public class CouponQueryService implements CouponQueryUseCase {
+class CouponQueryService implements CouponQueryUseCase {
 
     private final CouponQueryPort couponQueryPort;
 

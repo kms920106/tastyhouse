@@ -41,7 +41,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @Transactional
-public class ProductManagementCommandService implements
+class ProductManagementCommandService implements
     ProductManagementCreateUseCase,
     ProductManagementUpdateUseCase,
     ProductSoldOutManagementUseCase,

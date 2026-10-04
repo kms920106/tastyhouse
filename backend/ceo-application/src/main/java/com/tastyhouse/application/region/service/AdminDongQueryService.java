@@ -24,7 +24,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class AdminDongQueryService implements AdminDongQueryUseCase {
+class AdminDongQueryService implements AdminDongQueryUseCase {
 
     private static final String LEVEL_SIDO = "SIDO";
     private static final String LEVEL_SIGUNGU = "SIGUNGU";

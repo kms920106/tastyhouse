@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(FirebaseStorageProperties.class)
-public class FirebaseModuleConfig {
+class FirebaseModuleConfig {
 }

@@ -31,7 +31,7 @@ import static com.tastyhouse.infrastructure.persistence.file.persistence.QUpload
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 @Repository
-public class MemberQueryAdapter implements MemberQueryPort, MemberManagementQueryPort {
+class MemberQueryAdapter implements MemberQueryPort, MemberManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;

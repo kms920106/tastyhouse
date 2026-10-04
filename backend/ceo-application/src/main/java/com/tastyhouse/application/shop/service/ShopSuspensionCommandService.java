@@ -25,7 +25,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistenceP
 
 @Service
 @Transactional
-public class ShopSuspensionCommandService implements ShopSuspensionCommandUseCase {
+class ShopSuspensionCommandService implements ShopSuspensionCommandUseCase {
 
     private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;

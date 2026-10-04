@@ -12,7 +12,7 @@ import com.tastyhouse.application.shop.port.out.ShopOwnerMessageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopIntroductionQueryService implements ShopIntroductionQueryUseCase {
+class ShopIntroductionQueryService implements ShopIntroductionQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ProhibitedWordValidator prohibitedWordValidator;

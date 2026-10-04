@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(BbqProperties.class)
-public class BbqModuleConfig {
+class BbqModuleConfig {
 }

@@ -10,7 +10,7 @@ import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUnhideCommand;
 
 @Service
 @Transactional
-public class ShopOrderNoticeManagementCommandService implements ShopOrderNoticeManagementCommandUseCase {
+class ShopOrderNoticeManagementCommandService implements ShopOrderNoticeManagementCommandUseCase {
 
     private final ShopOrderNoticeService shopOrderNoticeService;
 

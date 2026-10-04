@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ShopReviewCommandService implements ShopReviewCommandUseCase {
+class ShopReviewCommandService implements ShopReviewCommandUseCase {
 
     private final ShopReviewDisplaySettingPersistencePort shopReviewDisplaySettingPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;

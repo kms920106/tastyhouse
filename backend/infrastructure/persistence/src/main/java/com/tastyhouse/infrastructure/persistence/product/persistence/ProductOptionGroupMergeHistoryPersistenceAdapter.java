@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
 
 @Repository
-public class ProductOptionGroupMergeHistoryPersistenceAdapter implements ProductOptionGroupMergeHistoryPersistencePort {
+class ProductOptionGroupMergeHistoryPersistenceAdapter implements ProductOptionGroupMergeHistoryPersistencePort {
 
     private final ProductOptionGroupMergeHistoryJpaRepository jpaRepository;
 

@@ -21,7 +21,7 @@ import com.tastyhouse.webapi.auth.adapter.in.web.response.AuthPasswordResetToken
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth Password Reset", description = "비밀번호 재설정 API")
-public class AuthPasswordResetApiController {
+class AuthPasswordResetApiController {
 
     private final MemberAuthCommandUseCase authCommandUseCase;
 

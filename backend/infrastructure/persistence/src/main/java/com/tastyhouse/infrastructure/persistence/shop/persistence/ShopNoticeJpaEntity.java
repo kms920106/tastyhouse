@@ -18,7 +18,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_shop_notice_exposed", columnList = "shop_id, is_exposed, is_hidden")
     }
 )
-public class ShopNoticeJpaEntity extends BaseEntity {
+class ShopNoticeJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

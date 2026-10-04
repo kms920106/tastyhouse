@@ -14,7 +14,7 @@ import com.tastyhouse.application.point.port.out.PointQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class PointQueryService implements PointQueryUseCase {
+class PointQueryService implements PointQueryUseCase {
 
     private final PointQueryPort pointQueryPort;
 

@@ -99,7 +99,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQueryUseCase, ShopOrderInfoQueryUseCase {
+class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQueryUseCase, ShopOrderInfoQueryUseCase {
 
     private static final String UNCATEGORIZED_CATEGORY_NAME = "미분류";
 

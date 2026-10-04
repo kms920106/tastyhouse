@@ -9,7 +9,7 @@ import com.tastyhouse.domain.review.vo.ReviewReplyId;
 import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
 
 @Repository
-public class ReviewReplyPersistenceAdapter implements ReviewReplyPersistencePort {
+class ReviewReplyPersistenceAdapter implements ReviewReplyPersistencePort {
 
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
 

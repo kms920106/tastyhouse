@@ -11,7 +11,7 @@ import com.tastyhouse.application.order.port.in.OrderStatusChangeCommand;
 
 @Service
 @Transactional
-public class OrderManagementCommandService implements OrderManagementCommandUseCase {
+class OrderManagementCommandService implements OrderManagementCommandUseCase {
 
     private final OrderTransitionService orderTransitionService;
 

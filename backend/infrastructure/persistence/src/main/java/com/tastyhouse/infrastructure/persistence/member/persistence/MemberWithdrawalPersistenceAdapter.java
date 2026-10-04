@@ -6,7 +6,7 @@ import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersistencePort;
 
 @Repository
-public class MemberWithdrawalPersistenceAdapter implements MemberWithdrawalPersistencePort {
+class MemberWithdrawalPersistenceAdapter implements MemberWithdrawalPersistencePort {
 
     private final MemberWithdrawalJpaRepository memberWithdrawalJpaRepository;
 

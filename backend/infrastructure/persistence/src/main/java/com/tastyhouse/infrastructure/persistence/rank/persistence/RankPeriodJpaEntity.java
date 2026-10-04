@@ -20,7 +20,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_rank_period_range", columnList = "start_at, end_at")
     }
 )
-public class RankPeriodJpaEntity extends BaseEntity {
+class RankPeriodJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

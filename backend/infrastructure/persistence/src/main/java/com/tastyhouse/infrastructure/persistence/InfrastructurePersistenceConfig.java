@@ -11,5 +11,5 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackageClasses = InfrastructurePersistenceConfig.class)
 @EnableJpaAuditing
 @EnableTransactionManagement
-public class InfrastructurePersistenceConfig {
+class InfrastructurePersistenceConfig {
 }

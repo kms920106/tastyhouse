@@ -12,7 +12,7 @@ import com.tastyhouse.application.faq.port.out.FaqResult;
 
 @Service
 @Transactional(readOnly = true)
-public class FaqQueryService implements FaqQueryUseCase {
+class FaqQueryService implements FaqQueryUseCase {
 
     private final FaqQueryPort faqQueryPort;
 

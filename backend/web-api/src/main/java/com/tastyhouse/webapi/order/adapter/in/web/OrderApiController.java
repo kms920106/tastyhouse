@@ -29,7 +29,7 @@ import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 @RestController
 @RequestMapping("/api/orders")
 @Tag(name = "Order", description = "주문 API")
-public class OrderApiController {
+class OrderApiController {
 
     private final OrderCommandUseCase orderCommandUseCase;
     private final OrderQueryUseCase orderQueryUseCase;

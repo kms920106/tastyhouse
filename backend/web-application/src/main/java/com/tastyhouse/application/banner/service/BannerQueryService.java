@@ -12,7 +12,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class BannerQueryService implements BannerQueryUseCase {
+class BannerQueryService implements BannerQueryUseCase {
 
     private final BannerQueryPort bannerQueryPort;
 

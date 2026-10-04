@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @Aspect
 @Component
-public class ApiLoggingAspect {
+class ApiLoggingAspect {
 
     private static final Logger log = LoggerFactory.getLogger(ApiLoggingAspect.class);
 

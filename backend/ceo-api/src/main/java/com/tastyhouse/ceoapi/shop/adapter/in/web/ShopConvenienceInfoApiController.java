@@ -31,7 +31,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
 @Tag(name = "Ceo Shop Convenience Info", description = "점주 가게 편의정보·편의시설 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopConvenienceInfoApiController {
+class ShopConvenienceInfoApiController {
 
     private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase;
     private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;

@@ -22,7 +22,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 @Service
 @Transactional
-public class ShopBusinessHourCommandService implements ShopBusinessHourCommandUseCase {
+class ShopBusinessHourCommandService implements ShopBusinessHourCommandUseCase {
 
     private final ShopBusinessHourService shopBusinessHourService;
     private final ShopDetailPersistencePort shopDetailPersistencePort;

@@ -2,5 +2,5 @@ package com.tastyhouse.infrastructure.persistence.event.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EventJpaRepository extends JpaRepository<EventJpaEntity, Long> {
+interface EventJpaRepository extends JpaRepository<EventJpaEntity, Long> {
 }

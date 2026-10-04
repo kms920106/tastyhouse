@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "PARTNERSHIP_REQUEST")
-public class PartnershipRequestJpaEntity extends BaseEntity {
+class PartnershipRequestJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.KakaoTempTokenRepository;
 
 @Component
-public class RedisKakaoTempTokenRepository implements KakaoTempTokenRepository {
+class RedisKakaoTempTokenRepository implements KakaoTempTokenRepository {
 
     private static final String PREFIX = "kakao_temp:";
     private static final long TTL_MINUTES = 10;

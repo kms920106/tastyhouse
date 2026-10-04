@@ -20,7 +20,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMinOrderAmountUpdat
 @Tag(name = "Ceo Shop Min Order Amount", description = "점주 가게 최소주문금액 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopMinOrderAmountApiController {
+class ShopMinOrderAmountApiController {
 
     private final ShopMinOrderAmountCommandUseCase shopMinOrderAmountCommandUseCase;
 

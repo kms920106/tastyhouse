@@ -35,7 +35,7 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResp
 @Tag(name = "Notice Admin", description = "공지사항 관리자 API")
 @RestController
 @RequestMapping("/api/notices")
-public class NoticeApiController {
+class NoticeApiController {
 
     private final NoticeCommandUseCase noticeCommandUseCase;
     private final NoticeManagementQueryUseCase noticeQueryUseCase;

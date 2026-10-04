@@ -39,7 +39,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDe
 @Tag(name = "Review Admin", description = "리뷰 관리자 API")
 @RestController
 @RequestMapping("/api/reviews")
-public class ReviewApiController {
+class ReviewApiController {
 
     private final ReviewManagementCommandUseCase reviewCommandUseCase;
     private final ReviewManagementQueryUseCase reviewQueryUseCase;

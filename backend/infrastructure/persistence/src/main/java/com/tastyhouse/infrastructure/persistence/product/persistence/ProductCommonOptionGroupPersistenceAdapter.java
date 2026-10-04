@@ -9,7 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
 
 @Repository
-public class ProductCommonOptionGroupPersistenceAdapter implements ProductCommonOptionGroupPersistencePort {
+class ProductCommonOptionGroupPersistenceAdapter implements ProductCommonOptionGroupPersistencePort {
 
     private final ProductCommonOptionGroupJpaRepository productCommonOptionGroupJpaRepository;
 

@@ -11,7 +11,7 @@ import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
 
 @Repository
-public class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionImagePersistencePort {
+class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionImagePersistencePort {
 
     private final ShopMenuCollectionImageJpaRepository shopMenuCollectionImageJpaRepository;
 

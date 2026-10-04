@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResp
 @Tag(name = "Ceo Product Exposure", description = "점주 메뉴 노출기간 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductExposureApiController {
+class ProductExposureApiController {
 
     private final ProductExposureQueryUseCase productExposureQueryUseCase;
     private final ProductExposureCommandUseCase productExposureCommandUseCase;

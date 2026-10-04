@@ -30,7 +30,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductOptionGroupCommandService implements ProductOptionGroupCommandUseCase {
+class ProductOptionGroupCommandService implements ProductOptionGroupCommandUseCase {
 
     private static final boolean DEFAULT_VISIBLE = true;
 

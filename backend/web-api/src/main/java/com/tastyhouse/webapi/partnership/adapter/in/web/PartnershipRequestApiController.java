@@ -17,7 +17,7 @@ import com.tastyhouse.webapi.partnership.adapter.in.web.request.PartnershipReque
 @RestController
 @RequestMapping("/api/partnership-requests")
 @Tag(name = "Partnership", description = "광고 및 제휴 API")
-public class PartnershipRequestApiController {
+class PartnershipRequestApiController {
 
     private final PartnershipCommandUseCase partnershipCommandUseCase;
 

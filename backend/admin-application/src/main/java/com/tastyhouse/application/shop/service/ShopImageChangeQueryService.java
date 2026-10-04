@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
+class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
 
     private final ShopManagementQueryPort shopManagementQueryPort;
 

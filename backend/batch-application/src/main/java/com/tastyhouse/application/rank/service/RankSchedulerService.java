@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.rank.port.in.AggregateRanksUseCase;
 
 @Service
-public class RankSchedulerService implements AggregateRanksUseCase {
+class RankSchedulerService implements AggregateRanksUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(RankSchedulerService.class);
 

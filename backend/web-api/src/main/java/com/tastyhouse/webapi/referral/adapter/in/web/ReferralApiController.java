@@ -18,7 +18,7 @@ import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberList
 @RestController
 @RequestMapping("/api/referrals")
 @Tag(name = "Referral", description = "추천인 API")
-public class ReferralApiController {
+class ReferralApiController {
 
     private final ReferralQueryUseCase referralQueryUseCase;
 

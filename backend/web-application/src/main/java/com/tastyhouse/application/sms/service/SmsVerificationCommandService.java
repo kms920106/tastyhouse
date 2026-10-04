@@ -10,7 +10,7 @@ import com.tastyhouse.application.sms.port.in.SmsVerificationConfirmCommand;
 import com.tastyhouse.application.sms.port.in.SmsVerificationSendCommand;
 
 @Service
-public class SmsVerificationCommandService implements SmsVerificationCommandUseCase {
+class SmsVerificationCommandService implements SmsVerificationCommandUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(SmsVerificationCommandService.class);
 

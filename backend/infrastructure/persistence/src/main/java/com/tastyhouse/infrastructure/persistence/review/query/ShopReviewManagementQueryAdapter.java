@@ -45,7 +45,7 @@ import static com.tastyhouse.infrastructure.persistence.review.persistence.QRevi
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QTagJpaEntity.tagJpaEntity;
 
 @Repository
-public class ShopReviewManagementQueryAdapter implements ShopReviewManagementQueryPort {
+class ShopReviewManagementQueryAdapter implements ShopReviewManagementQueryPort {
 
     private static final QReviewLikeJpaEntity sortReviewLike = new QReviewLikeJpaEntity("sortReviewLike");
 

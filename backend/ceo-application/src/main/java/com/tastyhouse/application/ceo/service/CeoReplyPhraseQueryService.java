@@ -11,7 +11,7 @@ import com.tastyhouse.application.ceo.port.out.CeoReplyPhraseResult;
 
 @Service
 @Transactional(readOnly = true)
-public class CeoReplyPhraseQueryService implements CeoReplyPhraseQueryUseCase {
+class CeoReplyPhraseQueryService implements CeoReplyPhraseQueryUseCase {
 
     private final CeoReplyPhraseQueryPort ceoReplyPhraseQueryPort;
 

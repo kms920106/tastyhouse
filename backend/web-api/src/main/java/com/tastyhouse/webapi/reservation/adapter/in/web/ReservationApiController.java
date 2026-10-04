@@ -36,7 +36,7 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot
 @RestController
 @RequestMapping("/api/reservations")
 @Tag(name = "Reservation", description = "예약 API")
-public class ReservationApiController {
+class ReservationApiController {
 
     private final ReservationCommandUseCase reservationCommandUseCase;
     private final ReservationQueryUseCase reservationQueryUseCase;

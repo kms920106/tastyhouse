@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
 @Repository
-public class ShopOrderNoticePersistenceAdapter implements ShopOrderNoticePersistencePort {
+class ShopOrderNoticePersistenceAdapter implements ShopOrderNoticePersistencePort {
 
     private final ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository;
 

@@ -14,7 +14,7 @@ import com.tastyhouse.application.product.port.out.write.ProductCategoryPersiste
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCategoryJpaEntity.productCategoryJpaEntity;
 
 @Repository
-public class ProductCategoryPersistenceAdapter implements ProductCategoryPersistencePort {
+class ProductCategoryPersistenceAdapter implements ProductCategoryPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductCategoryJpaRepository productCategoryJpaRepository;

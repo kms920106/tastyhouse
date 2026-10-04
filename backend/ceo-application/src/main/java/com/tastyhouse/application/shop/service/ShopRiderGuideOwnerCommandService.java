@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateCommand;
 
 @Service
 @Transactional
-public class ShopRiderGuideOwnerCommandService implements ShopRiderGuideOwnerCommandUseCase {
+class ShopRiderGuideOwnerCommandService implements ShopRiderGuideOwnerCommandUseCase {
 
     private final ShopRiderGuideService shopRiderGuideService;
     private final ShopOwnershipValidator shopOwnershipValidator;

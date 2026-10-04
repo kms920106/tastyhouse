@@ -443,6 +443,42 @@ class LayerRulesTest {
             .isEmpty();
     }
 
+    @Test
+    void useCaseImplementationsShouldNotBePublic() {
+        List<JavaClass> useCaseImplementations = classes.stream()
+            .filter(javaClass -> !javaClass.isInterface())
+            .filter(javaClass -> javaClass.getEnclosingClass().isEmpty())
+            .filter(LayerRulesTest::implementsPortInInterface)
+            .toList();
+
+        assertThat(useCaseImplementations)
+            .as("UseCase 구현 클래스 집합이 비면 이 규칙은 공허하게 통과한다")
+            .hasSizeGreaterThanOrEqualTo(200);
+
+        List<String> violations = useCaseImplementations.stream()
+            .filter(javaClass -> javaClass.getModifiers().contains(JavaModifier.PUBLIC))
+            .map(JavaClass::getName)
+            .toList();
+
+        assertThat(violations)
+            .as("UseCase 구현 서비스는 port.in 인터페이스로만 주입되므로 public이 아니다 — "
+                + "다른 패키지가 구체 타입을 주입하려 하면 컴파일 에러가 나게 한다")
+            .isEmpty();
+    }
+
+    @Test
+    void listenersAndConfigsShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that(DescribedPredicate.describe(
+                "..listener.. 의 클래스 또는 @Configuration",
+                javaClass -> javaClass.getPackageName().endsWith(".listener") || javaClass.isAnnotatedWith(CONFIGURATION)))
+            .and().areTopLevelClasses()
+            .should().notBePublic()
+            .because("도메인 이벤트 리스너와 @Configuration은 컴포넌트 스캔으로만 등록되고 어떤 클래스도 직접 참조하지 않는다");
+
+        rule.check(classes);
+    }
+
     private static boolean implementsPortInInterface(JavaClass javaClass) {
         return javaClass.getAllRawInterfaces().stream().anyMatch(LayerRulesTest::isPortInInterface);
     }

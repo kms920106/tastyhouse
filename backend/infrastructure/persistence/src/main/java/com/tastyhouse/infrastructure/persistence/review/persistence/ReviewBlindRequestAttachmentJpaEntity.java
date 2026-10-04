@@ -15,7 +15,7 @@ import jakarta.persistence.Table;
         @Index(name = "idx_review_blind_request_attachment_request_id", columnList = "blind_request_id")
     }
 )
-public class ReviewBlindRequestAttachmentJpaEntity {
+class ReviewBlindRequestAttachmentJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

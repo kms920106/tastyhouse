@@ -15,7 +15,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopPriceBadgeResponse
 @Tag(name = "Shop Price Badge", description = "가게 매장가격 뱃지 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopPriceBadgeApiController {
+class ShopPriceBadgeApiController {
 
     private final ShopPriceBadgeQueryUseCase shopPriceBadgeQueryUseCase;
 

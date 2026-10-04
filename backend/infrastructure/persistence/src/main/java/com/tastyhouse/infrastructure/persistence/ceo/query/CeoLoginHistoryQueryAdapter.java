@@ -18,7 +18,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoLoginHistoryJpaEntity.ceoLoginHistoryJpaEntity;
 
 @Repository
-public class CeoLoginHistoryQueryAdapter implements CeoLoginHistoryQueryPort {
+class CeoLoginHistoryQueryAdapter implements CeoLoginHistoryQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

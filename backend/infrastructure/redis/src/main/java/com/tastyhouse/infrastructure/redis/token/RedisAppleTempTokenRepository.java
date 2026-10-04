@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.AppleTempTokenRepository;
 
 @Component
-public class RedisAppleTempTokenRepository implements AppleTempTokenRepository {
+class RedisAppleTempTokenRepository implements AppleTempTokenRepository {
 
     private static final String PREFIX = "apple_temp:";
     private static final long TTL_MINUTES = 10;

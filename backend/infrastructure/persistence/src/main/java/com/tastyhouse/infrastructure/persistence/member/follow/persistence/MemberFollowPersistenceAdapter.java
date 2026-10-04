@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersi
 import static com.tastyhouse.infrastructure.persistence.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
 
 @Repository
-public class MemberFollowPersistenceAdapter implements MemberFollowPersistencePort {
+class MemberFollowPersistenceAdapter implements MemberFollowPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberFollowJpaRepository memberFollowJpaRepository;

@@ -12,7 +12,7 @@ import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersiste
 import static com.tastyhouse.infrastructure.persistence.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;
 
 @Repository
-public class EventAnnouncementPersistenceAdapter implements EventAnnouncementPersistencePort {
+class EventAnnouncementPersistenceAdapter implements EventAnnouncementPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;

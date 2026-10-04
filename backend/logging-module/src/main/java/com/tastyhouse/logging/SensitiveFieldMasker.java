@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SensitiveFieldMasker {
+class SensitiveFieldMasker {
 
     private static final Logger log = LoggerFactory.getLogger(SensitiveFieldMasker.class);
     private static final String MASKED = "***";

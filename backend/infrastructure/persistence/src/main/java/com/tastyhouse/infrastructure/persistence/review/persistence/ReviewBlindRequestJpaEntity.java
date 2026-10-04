@@ -13,7 +13,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "REVIEW_BLIND_REQUEST")
-public class ReviewBlindRequestJpaEntity extends BaseEntity {
+class ReviewBlindRequestJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

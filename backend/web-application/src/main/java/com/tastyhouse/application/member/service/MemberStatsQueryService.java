@@ -9,7 +9,7 @@ import com.tastyhouse.application.member.port.out.MemberStatsResult;
 import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 
 @Service
-public class MemberStatsQueryService implements MemberStatsQueryUseCase {
+class MemberStatsQueryService implements MemberStatsQueryUseCase {
 
     private final ReviewQueryUseCase reviewQueryUseCase;
     private final FollowQueryUseCase followQueryUseCase;

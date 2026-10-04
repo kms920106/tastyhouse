@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopClosedDayRespons
 @Tag(name = "Shop Closed Day Admin", description = "가게 정기 휴무일 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopClosedDayAdminApiController {
+class ShopClosedDayAdminApiController {
 
     private final ShopClosedDayCreateUseCase shopClosedDayCreateUseCase;
     private final ShopClosedDayDeleteUseCase shopClosedDayDeleteUseCase;

@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 @Tag(name = "Ceo Reply Phrase", description = "점주 자주 쓰는 문구 API")
 @RestController
 @RequestMapping("/api/ceos")
-public class CeoReplyPhraseApiController {
+class CeoReplyPhraseApiController {
 
     private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
     private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase;

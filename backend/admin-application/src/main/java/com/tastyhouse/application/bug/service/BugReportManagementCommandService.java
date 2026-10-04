@@ -20,7 +20,7 @@ import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
 
 @Service
 @Transactional
-public class BugReportManagementCommandService implements BugReportManagementCommandUseCase {
+class BugReportManagementCommandService implements BugReportManagementCommandUseCase {
 
     private final BugReportPersistencePort bugReportPersistencePort;
 

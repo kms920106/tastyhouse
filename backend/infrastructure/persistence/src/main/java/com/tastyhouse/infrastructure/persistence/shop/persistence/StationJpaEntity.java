@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "STATION")
-public class StationJpaEntity {
+class StationJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

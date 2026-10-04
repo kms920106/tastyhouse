@@ -30,7 +30,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDe
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipTierJpaEntity.shopDeliveryTipTierJpaEntity;
 
 @Repository
-public class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
+class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
 
     private static final double MAX_DELIVERY_DISTANCE_METERS = 5000.0;
 

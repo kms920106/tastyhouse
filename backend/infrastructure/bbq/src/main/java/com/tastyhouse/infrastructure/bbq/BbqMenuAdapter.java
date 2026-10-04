@@ -10,12 +10,9 @@ import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryRespon
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductSubOptionResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.SubOptionItemDetailResponse;
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuCategoryResponse;
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuResponse;
-import com.tastyhouse.infrastructure.bbq.dto.BbqMenuSubOptionResponse;
 
 @Component
-public class BbqMenuAdapter implements BbqMenuPort {
+class BbqMenuAdapter implements BbqMenuPort {
 
     private final BbqApiClient bbqApiClient;
 

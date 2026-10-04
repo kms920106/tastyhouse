@@ -15,7 +15,7 @@ import com.tastyhouse.application.partnership.port.out.write.PartnershipPersiste
 
 @Service
 @Transactional
-public class PartnershipManagementCommandService implements PartnershipManagementCommandUseCase {
+class PartnershipManagementCommandService implements PartnershipManagementCommandUseCase {
 
     private final PartnershipPersistencePort partnershipPersistencePort;
 

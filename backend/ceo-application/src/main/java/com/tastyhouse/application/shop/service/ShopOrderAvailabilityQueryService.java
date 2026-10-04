@@ -17,7 +17,7 @@ import com.tastyhouse.application.shop.port.out.ShopOrderMethodResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQueryUseCase {
+class ShopOrderAvailabilityQueryService implements ShopOrderAvailabilityQueryUseCase {
 
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopOperatingStatusService shopOperatingStatusService;

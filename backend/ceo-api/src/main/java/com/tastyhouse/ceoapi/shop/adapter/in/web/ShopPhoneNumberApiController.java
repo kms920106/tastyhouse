@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberRespons
 @Tag(name = "Ceo Shop Phone Number", description = "점주 가게 전화번호 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopPhoneNumberApiController {
+class ShopPhoneNumberApiController {
 
     private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase;
     private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;

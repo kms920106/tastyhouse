@@ -16,7 +16,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase {
+class ProductFeedbackQueryService implements ProductFeedbackQueryUseCase {
 
     private final ProductFeedbackQueryPort productFeedbackQueryPort;
     private final ProductFeedbackService productFeedbackService;

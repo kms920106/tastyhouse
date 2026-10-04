@@ -26,7 +26,7 @@ import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
 
 @Service
 @Transactional
-public class RankCommandService implements RankCommandUseCase {
+class RankCommandService implements RankCommandUseCase {
 
     private static final int DEFAULT_AGGREGATE_LIMIT = 10;
 

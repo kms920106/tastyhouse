@@ -15,7 +15,7 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentManage
 
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaAdjustmentManagementQueryService implements ShopDeliveryAreaAdjustmentManagementQueryUseCase {
+class ShopDeliveryAreaAdjustmentManagementQueryService implements ShopDeliveryAreaAdjustmentManagementQueryUseCase {
 
     private final ShopDeliveryAreaAdjustmentManagementQueryPort shopDeliveryAreaAdjustmentManagementQueryPort;
 

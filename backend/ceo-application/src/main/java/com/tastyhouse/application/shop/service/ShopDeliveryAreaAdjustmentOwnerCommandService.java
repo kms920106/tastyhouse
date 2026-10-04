@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCo
 
 @Service
 @Transactional
-public class ShopDeliveryAreaAdjustmentOwnerCommandService implements ShopDeliveryAreaAdjustmentOwnerCommandUseCase {
+class ShopDeliveryAreaAdjustmentOwnerCommandService implements ShopDeliveryAreaAdjustmentOwnerCommandUseCase {
 
     private final ShopDeliveryAreaAdjustmentService shopDeliveryAreaAdjustmentService;
     private final ShopOwnershipValidator shopOwnershipValidator;

@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProductAllergenJpaRepository extends JpaRepository<ProductAllergenJpaEntity, Long> {
+interface ProductAllergenJpaRepository extends JpaRepository<ProductAllergenJpaEntity, Long> {
 
     List<ProductAllergenJpaEntity> findAllByProductId(Long productId);
 

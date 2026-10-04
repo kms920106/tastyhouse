@@ -31,7 +31,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductOptionCommandService implements ProductOptionCommandUseCase {
+class ProductOptionCommandService implements ProductOptionCommandUseCase {
 
     private static final boolean DEFAULT_SOLD_OUT = false;
     private static final boolean DEFAULT_VISIBLE = true;

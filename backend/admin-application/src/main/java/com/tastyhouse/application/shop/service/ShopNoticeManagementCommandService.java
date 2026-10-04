@@ -17,7 +17,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
 @Service
 @Transactional
-public class ShopNoticeManagementCommandService implements ShopNoticeManagementCommandUseCase {
+class ShopNoticeManagementCommandService implements ShopNoticeManagementCommandUseCase {
 
     private final ShopNoticePersistencePort shopNoticePersistencePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;

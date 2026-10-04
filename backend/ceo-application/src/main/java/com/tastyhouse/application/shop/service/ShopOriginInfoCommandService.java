@@ -10,7 +10,7 @@ import com.tastyhouse.application.shop.port.in.ShopOriginInfoUpdateCommand;
 
 @Service
 @Transactional
-public class ShopOriginInfoCommandService implements ShopOriginInfoCommandUseCase {
+class ShopOriginInfoCommandService implements ShopOriginInfoCommandUseCase {
 
     private final ShopOriginInfoService shopOriginInfoService;
     private final ShopOwnershipValidator shopOwnershipValidator;

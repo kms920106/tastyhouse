@@ -11,7 +11,7 @@ import com.tastyhouse.application.grade.port.in.SettleMemberGradesUseCase;
 import com.tastyhouse.application.member.service.GradeSettlementService;
 
 @Service
-public class GradeSchedulerService implements SettleMemberGradesUseCase {
+class GradeSchedulerService implements SettleMemberGradesUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(GradeSchedulerService.class);
 

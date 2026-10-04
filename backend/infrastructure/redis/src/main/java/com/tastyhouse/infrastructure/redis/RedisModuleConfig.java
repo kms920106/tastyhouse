@@ -7,5 +7,5 @@ import com.tastyhouse.infrastructure.redis.token.RedisTokenStoreProperties;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(RedisTokenStoreProperties.class)
-public class RedisModuleConfig {
+class RedisModuleConfig {
 }

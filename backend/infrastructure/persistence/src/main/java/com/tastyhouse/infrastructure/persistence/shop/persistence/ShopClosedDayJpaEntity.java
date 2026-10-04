@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "SHOP_CLOSED_DAY")
-public class ShopClosedDayJpaEntity {
+class ShopClosedDayJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianSt
 @Tag(name = "Ceo Product Vegetarian", description = "점주 메뉴 채식 설정 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductVegetarianApiController {
+class ProductVegetarianApiController {
 
     private final ProductVegetarianQueryUseCase productVegetarianQueryUseCase;
     private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;

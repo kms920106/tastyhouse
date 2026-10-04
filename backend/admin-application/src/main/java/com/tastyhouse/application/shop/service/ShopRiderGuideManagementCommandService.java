@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionComman
 
 @Service
 @Transactional
-public class ShopRiderGuideManagementCommandService implements ShopRiderGuideManagementCommandUseCase {
+class ShopRiderGuideManagementCommandService implements ShopRiderGuideManagementCommandUseCase {
 
     private final ShopRiderGuideService shopRiderGuideService;
 

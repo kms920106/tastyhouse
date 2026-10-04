@@ -18,7 +18,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class CouponManagementQueryService implements CouponManagementQueryUseCase {
+class CouponManagementQueryService implements CouponManagementQueryUseCase {
 
     private final CouponManagementQueryPort couponManagementQueryPort;
 

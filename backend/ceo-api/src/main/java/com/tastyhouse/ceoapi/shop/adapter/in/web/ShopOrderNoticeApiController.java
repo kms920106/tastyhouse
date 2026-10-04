@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @Tag(name = "Ceo Shop Order Notice", description = "점주 주문안내 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOrderNoticeApiController {
+class ShopOrderNoticeApiController {
 
     private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase;
     private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;

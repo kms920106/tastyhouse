@@ -10,7 +10,7 @@ import com.tastyhouse.application.mail.port.in.MailVerificationConfirmCommand;
 import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;
 
 @Service
-public class MailVerificationCommandService implements MailVerificationCommandUseCase {
+class MailVerificationCommandService implements MailVerificationCommandUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(MailVerificationCommandService.class);
 

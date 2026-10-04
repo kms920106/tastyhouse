@@ -27,7 +27,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopCl
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
 
 @Repository
-public class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
+class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopBusinessHourJpaRepository shopBusinessHourJpaRepository;

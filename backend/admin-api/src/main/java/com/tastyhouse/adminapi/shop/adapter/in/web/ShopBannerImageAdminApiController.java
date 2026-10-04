@@ -26,7 +26,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopBannerImageItemR
 @Tag(name = "Shop Banner Image Admin", description = "가게 배너 이미지 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopBannerImageAdminApiController {
+class ShopBannerImageAdminApiController {
 
     private final ShopBannerImageCreateUseCase shopBannerImageCreateUseCase;
     private final ShopBannerImageDeleteUseCase shopBannerImageDeleteUseCase;

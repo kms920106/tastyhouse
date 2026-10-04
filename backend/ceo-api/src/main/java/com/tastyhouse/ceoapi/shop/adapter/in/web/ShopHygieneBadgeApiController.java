@@ -19,7 +19,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopHygieneBadgeRespon
 @Tag(name = "Ceo Shop Hygiene Badge", description = "점주 가게 위생 인증 뱃지 조회 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopHygieneBadgeApiController {
+class ShopHygieneBadgeApiController {
 
     private final ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryUseCase;
 

@@ -12,7 +12,7 @@ import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 @Service
 @Transactional
-public class CeoCommandService implements CeoCommandUseCase {
+class CeoCommandService implements CeoCommandUseCase {
 
     private final CeoPersistencePort ceoPersistencePort;
 

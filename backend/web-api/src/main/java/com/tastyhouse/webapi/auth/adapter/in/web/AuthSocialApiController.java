@@ -27,7 +27,7 @@ import com.tastyhouse.webapi.auth.adapter.in.web.response.AuthSocialLoginRespons
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth Social", description = "소셜 인증 API")
-public class AuthSocialApiController {
+class AuthSocialApiController {
 
     private final MemberAuthCommandUseCase authCommandUseCase;
 

@@ -33,7 +33,7 @@ import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResp
 @Tag(name = "Member Admin", description = "회원 관리자 API")
 @RestController
 @RequestMapping("/api/members")
-public class MemberApiController {
+class MemberApiController {
 
     private final MemberManagementQueryUseCase memberQueryUseCase;
     private final MemberManagementCommandUseCase memberCommandUseCase;

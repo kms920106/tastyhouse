@@ -30,7 +30,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
 @RestController
 @RequestMapping("/api/shops")
 @Tag(name = "Shop", description = "가게 관리 API")
-public class ShopApiController {
+class ShopApiController {
 
     private final ShopSearchQueryUseCase shopSearchQueryUseCase;
 

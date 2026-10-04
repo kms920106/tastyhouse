@@ -12,7 +12,7 @@ import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePo
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 
 @Repository
-public class ProductBbqPersistenceAdapter implements ProductBbqPersistencePort {
+class ProductBbqPersistenceAdapter implements ProductBbqPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductBbqJpaRepository productBbqJpaRepository;

@@ -165,6 +165,12 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 추가하면 방향이 뒤집힌다(로깅은 api 계층 아래에 있는 횡단 관심사다). 중복을 감수하는 쪽을 택한 것이며,
 "DRY 위반"으로 보고 합치지 않는다.
 
+### 스캔 대상 컴포넌트에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java` → `scannedComponentsShouldNotBePublic`
+
+`RateLimitAspect`·`ApiCommonRateLimitConfig`·`exception/GlobalExceptionHandler`를 package-private으로 좁혔다. 가드는 `@Configuration`·`@Aspect`·`@RestControllerAdvice`의 `public`을 금지한다. **public으로 남는 것**: `ApiResponse`·`PageRequest`·`PaginationResponse`·`RateLimit`·`RateLimitKeyType`·`RateLimitException`·`ProblemDetails`·`ClientIpResolver` — 3개 api 모듈이 공용 계약으로 import한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

@@ -22,7 +22,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ReviewManagementQueryService implements ReviewManagementQueryUseCase {
+class ReviewManagementQueryService implements ReviewManagementQueryUseCase {
 
     private final ReviewManagementQueryPort reviewManagementQueryPort;
     private final ReviewTagQueryPort reviewTagQueryPort;

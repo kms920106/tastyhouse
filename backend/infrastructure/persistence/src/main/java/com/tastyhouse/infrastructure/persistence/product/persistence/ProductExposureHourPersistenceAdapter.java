@@ -9,7 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
 
 @Repository
-public class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersistencePort {
+class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersistencePort {
 
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;
 

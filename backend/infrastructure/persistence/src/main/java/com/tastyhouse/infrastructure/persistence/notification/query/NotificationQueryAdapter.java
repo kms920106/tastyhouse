@@ -14,7 +14,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.persistence.notification.persistence.QNotificationJpaEntity.notificationJpaEntity;
 
 @Repository
-public class NotificationQueryAdapter implements NotificationQueryPort {
+class NotificationQueryAdapter implements NotificationQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

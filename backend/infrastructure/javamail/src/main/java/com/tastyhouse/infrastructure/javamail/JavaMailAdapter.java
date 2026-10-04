@@ -15,7 +15,7 @@ import com.tastyhouse.application.mail.port.out.MailSender;
 
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
-public class JavaMailAdapter implements MailSender {
+class JavaMailAdapter implements MailSender {
 
     private static final Logger log = LoggerFactory.getLogger(JavaMailAdapter.class);
 

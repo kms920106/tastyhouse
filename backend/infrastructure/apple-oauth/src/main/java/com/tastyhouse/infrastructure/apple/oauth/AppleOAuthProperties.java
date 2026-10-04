@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.apple.oauth;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "oauth.apple")
-public record AppleOAuthProperties(
+record AppleOAuthProperties(
     String teamId,
     String clientId,
     String keyId,

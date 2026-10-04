@@ -31,7 +31,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardList
 @Tag(name = "Shop Content Board Admin", description = "가게 콘텐츠보드 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopContentBoardAdminApiController {
+class ShopContentBoardAdminApiController {
 
     private final ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase;
     private final ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase;

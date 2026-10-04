@@ -8,7 +8,7 @@ import com.tastyhouse.domain.admin.model.Admin;
 import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 
 @Repository
-public class AdminPersistenceAdapter implements AdminPersistencePort {
+class AdminPersistenceAdapter implements AdminPersistencePort {
 
     private final AdminJpaRepository adminJpaRepository;
 

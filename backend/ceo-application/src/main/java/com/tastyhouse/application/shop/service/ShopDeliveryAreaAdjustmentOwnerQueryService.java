@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentQueryP
 
 @Service
 @Transactional(readOnly = true)
-public class ShopDeliveryAreaAdjustmentOwnerQueryService implements ShopDeliveryAreaAdjustmentOwnerQueryUseCase {
+class ShopDeliveryAreaAdjustmentOwnerQueryService implements ShopDeliveryAreaAdjustmentOwnerQueryUseCase {
 
     private final ShopDeliveryAreaAdjustmentQueryPort shopDeliveryAreaAdjustmentQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

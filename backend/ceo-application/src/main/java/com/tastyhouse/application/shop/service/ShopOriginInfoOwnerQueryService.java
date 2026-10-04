@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOriginInfoOwnerQueryService implements ShopOriginInfoOwnerQueryUseCase {
+class ShopOriginInfoOwnerQueryService implements ShopOriginInfoOwnerQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;

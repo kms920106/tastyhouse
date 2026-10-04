@@ -16,7 +16,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @Tag(name = "Shop Order Notice", description = "가게 주문안내 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOrderNoticeApiController {
+class ShopOrderNoticeApiController {
 
     private final ShopOrderNoticeQueryUseCase shopOrderNoticeQueryUseCase;
 

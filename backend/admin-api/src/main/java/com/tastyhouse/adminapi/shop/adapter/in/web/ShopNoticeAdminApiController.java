@@ -32,7 +32,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagement
 @Tag(name = "Shop Notice Admin", description = "점주 공지 검수 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopNoticeAdminApiController {
+class ShopNoticeAdminApiController {
 
     private final ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase;
     private final ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase;

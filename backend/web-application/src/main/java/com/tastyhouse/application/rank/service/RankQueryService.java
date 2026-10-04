@@ -21,7 +21,7 @@ import com.tastyhouse.application.rank.port.out.RankQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class RankQueryService implements RankQueryUseCase {
+class RankQueryService implements RankQueryUseCase {
 
     private final RankQueryPort rankQueryPort;
     private final MemberQueryPort memberQueryPort;

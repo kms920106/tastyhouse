@@ -12,7 +12,7 @@ import com.tastyhouse.application.sms.port.out.write.SmsVerificationPersistenceP
 import static com.tastyhouse.infrastructure.persistence.sms.persistence.QSmsVerificationJpaEntity.smsVerificationJpaEntity;
 
 @Repository
-public class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePort {
+class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePort {
 
     private final SmsVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;

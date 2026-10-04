@@ -10,7 +10,7 @@ import com.tastyhouse.application.point.port.in.PointEarnCommand;
 
 @Service
 @Transactional
-public class PointCommandService implements PointCommandUseCase {
+class PointCommandService implements PointCommandUseCase {
 
     private final PointLedgerService pointLedgerService;
 

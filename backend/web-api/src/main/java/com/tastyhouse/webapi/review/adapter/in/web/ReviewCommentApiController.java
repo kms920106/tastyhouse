@@ -26,7 +26,7 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewCommentListRes
 @RestController
 @RequestMapping("/api/reviews")
 @Tag(name = "Review Comment", description = "리뷰 댓글 API")
-public class ReviewCommentApiController {
+class ReviewCommentApiController {
 
     private final ReviewCommandUseCase reviewCommandUseCase;
     private final ReviewQueryUseCase reviewQueryUseCase;

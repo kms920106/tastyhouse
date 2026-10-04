@@ -49,7 +49,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.StationResponse;
 @Tag(name = "Shop Admin", description = "가게 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopApiController {
+class ShopApiController {
 
     private final ShopCreateUseCase shopCreateUseCase;
     private final ShopCeoAssignUseCase shopCeoAssignUseCase;

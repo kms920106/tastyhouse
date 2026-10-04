@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "pg.tosspayments")
-public record TossPaymentProperties(
+record TossPaymentProperties(
     String secretKey,
     @DefaultValue("https://api.tosspayments.com") String baseUrl,
     @DefaultValue("/v1/payments/confirm") String confirmPath,

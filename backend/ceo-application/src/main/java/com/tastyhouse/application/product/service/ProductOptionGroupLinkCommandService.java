@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductOptionGroupLinkCommandService implements ProductOptionGroupLinkCommandUseCase {
+class ProductOptionGroupLinkCommandService implements ProductOptionGroupLinkCommandUseCase {
 
     private final ProductOptionGroupLinkService productOptionGroupLinkService;
     private final ProductPersistencePort productPersistencePort;

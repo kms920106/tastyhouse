@@ -663,6 +663,13 @@ Bean Validation은 프론트에 필드 단위 오류를 빠르게 돌려주기 �
 
 과거에는 admin·ceo가 바이트 동일하다는 이유로 `api-common-module`이 이 record들을 단독 소유했으나, 그 위치는 **표현 계약을 공유 웹 어댑터 모듈이 갖는** 배치라 application 계층이 조립하려면 `api-common`에 의존해야 했다. 지금은 앱별로 각자 소유한다 — admin·ceo가 같은 필드 구성을 갖는 것은 중복이 아니라 **우연히 일치한 앱별 응답 계약**이며, 한쪽 화면 요구가 바뀌면 다른 쪽을 건드리지 않고 갈라질 수 있어야 한다. **중복 제거를 이유로 공유 모듈로 되돌리지 말 것.**
 
+### 컨트롤러·설정에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/ceo-api/src/test/java/com/tastyhouse/ceoapi/architecture/LayerRulesTest.java` → `controllersAndConfigsShouldNotBePublic`
+
+`@RestController` 53개, `config` 패키지의 `SecurityConfig`·`PublicPaths`, `CeoSeeder`, `OpenApiConfig`·`AsyncConfig` 등 `config` 패키지 클래스를 package-private으로 좁혔다. 가드는 `@RestController`·`@RestControllerAdvice`와 `config` 패키지(단 `*SeedProperties` 제외)의 `public`을 금지한다. 이 클래스들은 부트스트랩 스캔으로만 등록되고 다른 패키지가 이름으로 부르지 않는다. **핸들러 메서드의 `public`은 유지한다** — `RateLimitAspect`·`@PreAuthorize`가 프록시로 감싸는 대상이다.
+
+**public으로 남는 것**: `request/`·`response/`의 Request/Response record(컨트롤러와 다른 하위 패키지 — 옮기지 않기로 결정), `*Application`, `*SeedProperties`(부트스트랩 `@EnableConfigurationProperties`가 참조). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 

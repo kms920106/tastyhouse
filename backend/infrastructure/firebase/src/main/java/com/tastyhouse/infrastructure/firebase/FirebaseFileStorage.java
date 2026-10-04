@@ -16,7 +16,7 @@ import com.tastyhouse.application.file.port.out.FileStoragePort;
 
 @Component
 @ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
-public class FirebaseFileStorage implements FileStoragePort {
+class FirebaseFileStorage implements FileStoragePort {
 
     private static final Logger log = LoggerFactory.getLogger(FirebaseFileStorage.class);
 

@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,6 +25,19 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
             .because("표현 계층은 application만 본다(엄격 레이어드) — 에러 계약은 application.shared.error가 소유한다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void scannedComponentsShouldNotBePublic() {
+        ArchRule rule = classes()
+            .that().areAnnotatedWith("org.springframework.context.annotation.Configuration")
+            .or().areAnnotatedWith("org.aspectj.lang.annotation.Aspect")
+            .or().areAnnotatedWith("org.springframework.web.bind.annotation.RestControllerAdvice")
+            .should().notBePublic()
+            .because("rate limit 설정·aspect와 공용 예외 핸들러는 앱 ModuleScanConfig의 문자열 스캔으로만 등록된다 — "
+                + "앱이 쓰는 표현 계약(ApiResponse·@RateLimit·ProblemDetails 등)만 public이다");
 
         rule.check(classes);
     }

@@ -28,7 +28,7 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqCategoryResponse;
 @Tag(name = "FAQ Category Admin", description = "FAQ 카테고리 관리자 API")
 @RestController
 @RequestMapping("/api/faqs")
-public class FaqCategoryAdminApiController {
+class FaqCategoryAdminApiController {
 
     private final FaqCategoryCommandUseCase faqCategoryCommandUseCase;
     private final FaqManagementQueryUseCase faqQueryUseCase;

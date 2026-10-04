@@ -12,7 +12,7 @@ import com.tastyhouse.application.ceo.port.out.CeoQueryPort;
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoJpaEntity.ceoJpaEntity;
 
 @Repository
-public class CeoQueryAdapter implements CeoQueryPort {
+class CeoQueryAdapter implements CeoQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

@@ -28,7 +28,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionUpdateR
 @Tag(name = "Ceo Product Option", description = "점주 옵션 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductOptionApiController {
+class ProductOptionApiController {
 
     private final ProductOptionCommandUseCase productOptionCommandUseCase;
 

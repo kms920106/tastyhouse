@@ -18,7 +18,7 @@ import com.tastyhouse.application.shop.port.out.ShopSearchManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOwnerQueryService implements ShopOwnerQueryUseCase {
+class ShopOwnerQueryService implements ShopOwnerQueryUseCase {
 
     private final ShopSearchManagementQueryPort shopSearchManagementQueryPort;
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;

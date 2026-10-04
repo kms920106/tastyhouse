@@ -16,7 +16,7 @@ import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 
 @Service
-public class ProductSoldOutReleaseSchedulerService implements ReleaseExpiredSoldOutUseCase {
+class ProductSoldOutReleaseSchedulerService implements ReleaseExpiredSoldOutUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSoldOutReleaseSchedulerService.class);
 

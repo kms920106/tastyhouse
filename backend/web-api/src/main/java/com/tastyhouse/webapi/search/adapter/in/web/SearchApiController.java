@@ -29,7 +29,7 @@ import com.tastyhouse.webapi.search.adapter.in.web.response.SearchShopListItemRe
 @RestController
 @RequestMapping("/api/search")
 @Tag(name = "Search", description = "검색 API")
-public class SearchApiController {
+class SearchApiController {
 
     private final SearchQueryUseCase searchQueryUseCase;
 

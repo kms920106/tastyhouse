@@ -23,7 +23,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopBookmarkedItemResult;
 
 @Component
-public class MemberService implements MemberScreenUseCase {
+class MemberService implements MemberScreenUseCase {
 
     private final MemberQueryUseCase memberQueryUseCase;
     private final MemberCommandUseCase memberCommandUseCase;

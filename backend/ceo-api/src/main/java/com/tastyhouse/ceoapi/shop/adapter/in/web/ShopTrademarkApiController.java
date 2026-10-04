@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusRespons
 @Tag(name = "Ceo Shop Trademark", description = "점주 가게 상표/대표이미지 변경요청 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopTrademarkApiController {
+class ShopTrademarkApiController {
 
     private final ShopTrademarkQueryUseCase shopTrademarkQueryUseCase;
     private final ShopTrademarkCommandUseCase shopTrademarkCommandUseCase;

@@ -23,7 +23,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_member_follow_following_id", columnList = "following_id")
     }
 )
-public class MemberFollowJpaEntity extends BaseEntity {
+class MemberFollowJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

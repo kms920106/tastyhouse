@@ -15,7 +15,7 @@ import com.tastyhouse.application.shop.port.out.ShopTemporaryClosureResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
+class ShopClosedDayQueryService implements ShopClosedDayQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
     private final ShopOwnerQueryPort shopOwnerQueryPort;

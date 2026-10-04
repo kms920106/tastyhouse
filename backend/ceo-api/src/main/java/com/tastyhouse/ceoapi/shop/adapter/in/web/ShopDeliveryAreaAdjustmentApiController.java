@@ -29,7 +29,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjust
 @Tag(name = "Ceo Shop Delivery Area Adjustment", description = "점주 프랜차이즈 배달지역 조정 신청 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopDeliveryAreaAdjustmentApiController {
+class ShopDeliveryAreaAdjustmentApiController {
 
     private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
     private final ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;

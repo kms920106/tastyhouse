@@ -23,7 +23,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderMethodRespons
 @RestController
 @RequestMapping("/api/shops")
 @Tag(name = "Shop Order Info", description = "가게 주문 정보 API")
-public class ShopOrderInfoApiController {
+class ShopOrderInfoApiController {
 
     private final ShopOrderInfoQueryUseCase shopOrderInfoQueryUseCase;
 

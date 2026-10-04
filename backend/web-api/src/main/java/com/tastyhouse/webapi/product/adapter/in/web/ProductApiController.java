@@ -34,7 +34,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscoun
 @RestController
 @RequestMapping("/api/products")
 @Tag(name = "Product", description = "상품 관리 API")
-public class ProductApiController {
+class ProductApiController {
 
     private final ProductQueryUseCase productQueryUseCase;
 

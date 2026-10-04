@@ -15,7 +15,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
 @Transactional
-public class ShopScheduledOrderCommandService implements ShopScheduledOrderCommandUseCase {
+class ShopScheduledOrderCommandService implements ShopScheduledOrderCommandUseCase {
 
     private final ShopPersistencePort shopPersistencePort;
     private final ShopOwnershipValidator shopOwnershipValidator;

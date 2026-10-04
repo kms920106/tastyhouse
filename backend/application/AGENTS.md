@@ -1203,6 +1203,22 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 03b 이전에는 `MemberReviewCount.memberId`가 `MemberId`여서 persistence가 **조회된 모든 행**을 `MemberId.of`로 변환했고, 0 이하·null id가 한 행이라도 있으면 정산 전체가 실패했다. `Long`으로 강등된 뒤에도 그 동작을 지키려고 `settle`은 상위 `limit`개가 아니라 **전 행**을 `MemberId`로 변환해 두고, `buildRanks`는 그중 앞 `limit`개만 쓴다. 변환 대상을 `limit`개로 좁히면 잘못된 id가 조용히 통과한다.
 
+### UseCase 구현 서비스·리스너·설정에 `public`을 붙이지 않는다 (package-private 적용, 5모듈 공통 정본)
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseImplementationsShouldNotBePublic` · `listenersAndConfigsShouldNotBePublic`
+
+5모듈(`application`·`{web,admin,ceo,batch}-application`)에서 215개를 package-private으로 좁혔다 — `..service..`에서 `port.in` UseCase를 구현하는 서비스 202개(web 48 · admin 59 · ceo 88 · batch 7 `*SchedulerService`), 리스너(`<ctx>/listener`) 12개, `SharedBeanConfig` 1개. 컨트롤러·협력 서비스는 UseCase 인터페이스로만 주입받고, 빈은 앱의 `ApplicationLayerScanConfig` 문자열 스캔으로 등록되므로 구현 클래스 이름이 패키지 밖에 나타날 필요가 없다. `useCaseImplementationsShouldNotBePublic`은 대상이 200개 이상인지(하한) 함께 확인해, 술어가 어긋나 대상을 잃고 공허하게 통과하는 것을 막는다. 생성자·메서드의 `public`은 유지한다(`@Transactional`은 public 메서드에만 적용된다).
+
+**public으로 남는 것**:
+
+| 대상 | 이유 |
+|---|---|
+| `port.in`·`port.out`·`*Result`·`*Command` | 모듈 간 계약 |
+| UseCase 없는 도메인 서비스 | 약 48개가 다른 패키지에서 import된다(리스너→서비스, api 모듈→`CeoUserDetails`·`ShopOwnershipValidator` 등). 같은 패키지에서만 쓰이는 나머지는 **아직 좁히지 않았다**(후속 과제 — 좁히기 전에 다른 패키지 참조가 없는지 확인한다) |
+| `SpringDomainEventPublisher`·`ProhibitedWordValidator`·`CachingProhibitedWordPersistencePort` | 다른 패키지의 `SharedBeanConfig`가 참조한다 |
+
+새 UseCase 구현 서비스·리스너·`@Configuration`은 `public` 없이 만든다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->

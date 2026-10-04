@@ -9,10 +9,9 @@ import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGateway;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
-import com.tastyhouse.infrastructure.tosspayments.dto.TossPaymentConfirmResponse;
 
 @Component
-public class TossPaymentGatewayAdapter implements PgProviderGateway {
+class TossPaymentGatewayAdapter implements PgProviderGateway {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentGatewayAdapter.class);
 

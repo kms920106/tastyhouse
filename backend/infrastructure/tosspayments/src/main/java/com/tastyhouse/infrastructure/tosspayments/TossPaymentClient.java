@@ -11,12 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.tastyhouse.infrastructure.tosspayments.dto.TossPaymentCancelRequest;
-import com.tastyhouse.infrastructure.tosspayments.dto.TossPaymentConfirmRequest;
-import com.tastyhouse.infrastructure.tosspayments.dto.TossPaymentConfirmResponse;
-
 @Component
-public class TossPaymentClient {
+class TossPaymentClient {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentClient.class);
 

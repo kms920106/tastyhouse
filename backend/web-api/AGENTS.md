@@ -293,6 +293,14 @@ Shop-owner 연결 후 **점주 본인 검증을 추가해야 한다.** 현재 �
 
 **플래그 2개만 내려주고 판정 근거(매장가·픽업가·커버리지 비율)는 담지 않는다.** 근거를 함께 내리면 손님 앱이 자체 판정을 시도할 수 있고, 매장가는 결제에 쓰이지 않는 표시 전용 값이라 손님 계약에 노출할 것이 아니다.
 
+### 컨트롤러·설정에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/web-api/src/test/java/com/tastyhouse/webapi/architecture/LayerRulesTest.java` → `controllersAndConfigsShouldNotBePublic`
+
+`@RestController` 44개, `exception/GlobalExceptionHandler`(`@RestControllerAdvice`), `config` 패키지의 `SecurityConfig`·`PublicPaths`, `OpenApiConfig`·`AsyncConfig` 등 `config` 패키지 클래스를 package-private으로 좁혔다. 가드는 `@RestController`·`@RestControllerAdvice`와 `config` 패키지(단 `*SeedProperties` 제외)의 `public`을 금지한다. 이 클래스들은 부트스트랩 스캔으로만 등록되고 다른 패키지가 이름으로 부르지 않는다. **핸들러 메서드의 `public`은 유지한다** — `RateLimitAspect`·`@PreAuthorize`가 프록시로 감싸는 대상이다.
+
+**public으로 남는 것**: `request/`·`response/`의 Request/Response record(컨트롤러와 다른 하위 패키지 — 옮기지 않기로 결정), `*Application`, `*SeedProperties`(부트스트랩 `@EnableConfigurationProperties`가 참조). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ---
 
 ## 코드 주석에서 이관된 설계 근거

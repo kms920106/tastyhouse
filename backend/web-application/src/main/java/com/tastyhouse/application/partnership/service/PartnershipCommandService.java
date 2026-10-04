@@ -10,7 +10,7 @@ import com.tastyhouse.application.partnership.port.out.write.PartnershipPersiste
 
 @Service
 @Transactional
-public class PartnershipCommandService implements PartnershipCommandUseCase {
+class PartnershipCommandService implements PartnershipCommandUseCase {
 
     private final PartnershipPersistencePort partnershipPersistencePort;
 

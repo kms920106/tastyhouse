@@ -20,7 +20,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBookmarkResponse;
 @RestController
 @RequestMapping("/api/shops")
 @Tag(name = "Shop Bookmark", description = "가게 북마크 API")
-public class ShopBookmarkApiController {
+class ShopBookmarkApiController {
 
     private final ShopCommandUseCase shopCommandUseCase;
     private final ShopDetailQueryUseCase shopDetailQueryUseCase;

@@ -22,7 +22,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDe
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-public class ShopDeliveryAreaQueryAdapter implements ShopDeliveryAreaQueryPort {
+class ShopDeliveryAreaQueryAdapter implements ShopDeliveryAreaQueryPort {
 
     private final JPAQueryFactory queryFactory;
 

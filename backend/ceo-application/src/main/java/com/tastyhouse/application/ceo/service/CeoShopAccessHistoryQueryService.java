@@ -17,7 +17,7 @@ import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistorySearchCo
 
 @Service
 @Transactional(readOnly = true)
-public class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQueryUseCase {
+class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQueryUseCase {
 
     private static final int RETENTION_YEARS = 5;
 

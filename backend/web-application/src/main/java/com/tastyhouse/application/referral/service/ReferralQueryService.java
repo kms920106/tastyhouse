@@ -12,7 +12,7 @@ import com.tastyhouse.application.referral.port.in.ReferralQueryUseCase;
 
 @Service
 @Transactional(readOnly = true)
-public class ReferralQueryService implements ReferralQueryUseCase {
+class ReferralQueryService implements ReferralQueryUseCase {
 
     private final MemberReferralQueryPort memberReferralQueryPort;
 

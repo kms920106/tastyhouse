@@ -27,7 +27,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygo
 @Tag(name = "Ceo Shop Delivery Area Polygon", description = "점주 가게 배달지역 도형 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopDeliveryAreaPolygonApiController {
+class ShopDeliveryAreaPolygonApiController {
 
     private final ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryUseCase;
     private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;

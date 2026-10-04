@@ -36,7 +36,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopChoiceListItemRe
 @Tag(name = "Shop Choice Admin", description = "가게 테하 초이스 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopChoiceAdminApiController {
+class ShopChoiceAdminApiController {
 
     private final ShopChoiceCreateUseCase shopChoiceCreateUseCase;
     private final ShopChoiceUpdateUseCase shopChoiceUpdateUseCase;

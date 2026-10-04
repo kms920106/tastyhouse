@@ -18,7 +18,7 @@ import com.tastyhouse.application.product.port.in.SyncProductOptionsUseCase;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
 
 @Service
-public class ProductSchedulerService implements SyncProductOptionsUseCase {
+class ProductSchedulerService implements SyncProductOptionsUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSchedulerService.class);
 

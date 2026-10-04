@@ -36,7 +36,7 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopAmenityResponse;
 @Tag(name = "Shop Amenity Admin", description = "가게 편의시설 관리자 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopAmenityAdminApiController {
+class ShopAmenityAdminApiController {
 
     private final ShopAmenityCategoryCreateUseCase shopAmenityCategoryCreateUseCase;
     private final ShopAmenityCategoryUpdateUseCase shopAmenityCategoryUpdateUseCase;

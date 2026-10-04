@@ -34,7 +34,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailRespon
 @Tag(name = "Ceo Product", description = "점주 메뉴 CRUD API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductApiController {
+class ProductApiController {
 
     private final ProductOwnerQueryUseCase productQueryUseCase;
     private final ProductOwnerCreateUseCase productCreateUseCase;

@@ -19,7 +19,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class MemberManagementQueryService implements MemberManagementQueryUseCase {
+class MemberManagementQueryService implements MemberManagementQueryUseCase {
 
     private final MemberManagementQueryPort memberManagementQueryPort;
 

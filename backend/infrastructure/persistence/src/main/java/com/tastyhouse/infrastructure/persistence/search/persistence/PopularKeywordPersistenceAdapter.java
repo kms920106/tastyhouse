@@ -13,7 +13,7 @@ import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistenc
 import static com.tastyhouse.infrastructure.persistence.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 
 @Repository
-public class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort {
+class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;

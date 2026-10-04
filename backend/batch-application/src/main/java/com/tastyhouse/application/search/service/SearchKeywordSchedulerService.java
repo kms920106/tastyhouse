@@ -7,7 +7,7 @@ import com.tastyhouse.application.search.port.in.AggregatePopularKeywordsUseCase
 
 @Service
 @Transactional
-public class SearchKeywordSchedulerService implements AggregatePopularKeywordsUseCase {
+class SearchKeywordSchedulerService implements AggregatePopularKeywordsUseCase {
 
     private final PopularKeywordRefreshService popularKeywordRefreshService;
 

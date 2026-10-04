@@ -11,7 +11,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePor
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;
 
 @Repository
-public class ReviewLikePersistenceAdapter implements ReviewLikePersistencePort {
+class ReviewLikePersistenceAdapter implements ReviewLikePersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;

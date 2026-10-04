@@ -21,7 +21,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ProductManagementQueryService implements ProductManagementQueryUseCase {
+class ProductManagementQueryService implements ProductManagementQueryUseCase {
 
     private final ProductManagementQueryPort productManagementQueryPort;
     private final CupDepositPolicy cupDepositPolicy;

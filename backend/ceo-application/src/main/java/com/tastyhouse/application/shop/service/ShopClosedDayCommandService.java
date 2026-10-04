@@ -26,7 +26,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersis
 
 @Service
 @Transactional
-public class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase {
+class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase {
 
     private static final long MAX_ACCUMULATED_CLOSURE_DAYS = 30;
 

@@ -34,7 +34,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipSetting
 @Tag(name = "Ceo Shop Delivery Tip", description = "점주 가게 배달팁 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopDeliveryTipApiController {
+class ShopDeliveryTipApiController {
 
     private final ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase;
     private final ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase;

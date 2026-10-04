@@ -25,7 +25,7 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItem
 @Tag(name = "Ceo Login History", description = "점주 개인정보 접속기록(로그인 이력) 조회 API")
 @RestController
 @RequestMapping("/api/ceos")
-public class CeoLoginHistoryApiController {
+class CeoLoginHistoryApiController {
 
     private final CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase;
 

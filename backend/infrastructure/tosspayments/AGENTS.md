@@ -4,7 +4,7 @@
 
 토스페이먼츠 **벤더 모듈**(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유하는 벤더 SPI `PgProviderGateway`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 `web-application` 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 채널의 라우터(`PgPaymentGatewayRouter`, 지금은 `application/payment/service/`에 있다)가 이 어댑터로 넘긴다.
 
-옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.tosspayments`가 됐다(`dto/` 구성은 불변).
+옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.tosspayments`가 됐다(`dto/` 구성은 불변). **(번복됨 — package-private 적용)** 이후 `dto/`의 wire DTO는 루트 패키지로 옮겨 package-private이 됐고 `dto/` 하위 패키지는 없어졌다(아래 봉인·가드 목록).
 
 ## 무엇을 소유하는가
 
@@ -15,13 +15,12 @@ com.tastyhouse.infrastructure.tosspayments/
 ├── TossPaymentClient.java                    결제 승인(confirmPayment)·취소(cancelPayment) HTTP 호출 — 동기 RestClient
 ├── TossPaymentUtils.java                     카드사 코드 매핑·일시 파싱
 ├── TossPaymentProperties.java                pg.tosspayments.*
-└── dto/
-    ├── TossPaymentConfirmRequest.java
-    ├── TossPaymentCancelRequest.java
-    └── TossPaymentConfirmResponse.java
+├── TossPaymentConfirmRequest.java (package-private, 과거 dto/ 하위)
+├── TossPaymentCancelRequest.java (package-private, 과거 dto/ 하위)
+└── TossPaymentConfirmResponse.java (package-private, 과거 dto/ 하위)
 ```
 
-**wire DTO(`dto/`)는 이 모듈에 잔류한다.** 반환 타입은 `application`이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`(`com.tastyhouse.application.payment.port.out`, 과거 `domain/payment/port/dto/`에서 이관됨)이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — `RestClient`·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
+**wire DTO는 이 모듈의 루트 패키지에 package-private으로 잔류한다**(과거 `dto/` 하위 패키지 — **번복됨 — package-private 적용**: `TossPaymentClient`와 같은 패키지여야 해서 옮겼다). 반환 타입은 `application`이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`(`com.tastyhouse.application.payment.port.out`, 과거 `domain/payment/port/dto/`에서 이관됨)이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — `RestClient`·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
 
 `TossPaymentDetail`(토스 응답 원본)은 아직 `PgConfirmResult.detail`의 타입이고 `TOSS_PAYMENT_RECORD` 원장으로 저장된다. 이 원장의 PG 중립화는 두 번째 벤더 도입 시 함께 판단할 후속 항목이다. 다른 벤더는 그전까지 `detail`을 null로 돌려주고, 도메인 서비스는 null이면 원장 저장을 건너뛴다.
 
@@ -78,12 +77,20 @@ pg:
 
 `PgPaymentGateway`의 구현은 라우터 하나여야 한다. 벤더가 그것을 구현하면 두 번째 벤더가 들어오는 순간 application의 단일 주입이 모호해져 web-api 기동이 실패한다.
 
+### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
+
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/` 의 모든 최상위 타입 · 가드 `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `topLevelClassesShouldNotBePublic`
+
+이 모듈의 최상위 타입은 전부 package-private이다(허용 목록 없음). 앱이 이 모듈을 타입 이름으로 부르지 않고 `ModuleScanConfig`의 문자열 스캔으로만 조립하며, 소비자는 `application`이 소유한 포트로만 주입받기 때문이다. `public`을 붙이면 다른 모듈이 구현에 직접 결합할 수 있게 되므로 가드가 `build/classes/java/main`의 최상위 클래스를 검사해 빌드를 실패시킨다. 생성자·메서드의 `public`은 유지한다.
+
+외부 API wire DTO(`TossPaymentConfirmRequest`·`TossPaymentCancelRequest`·`TossPaymentConfirmResponse`)도 예외가 아니다. **`{루트}.dto` 하위 패키지로 되돌리지 않는다** — package-private 타입은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 Client와 같은 루트 패키지에 있어야 한다. Jackson은 별도 가시성 설정 없이(기본 `CAN_OVERRIDE_ACCESS_MODIFIERS`) package-private record를 (역)직렬화한다. `TossPaymentClientTest`가 역직렬화를 확인한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
 ## 코드 주석에서 이관된 설계 근거
 
 <!-- 분류 B. 모듈 구조와 그 근거 -->
 
 ### 토스 승인 응답의 에러 필드는 성공 응답과 한 타입에 담긴다
 
-**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/dto/TossPaymentConfirmResponse.java`
+**대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentConfirmResponse.java`
 
 승인 응답 wire DTO 안에 **에러 응답 필드가 함께 선언돼 있다.** 토스가 성공·실패를 같은 엔드포인트에서 돌려주기 때문이며, 실패 판별은 `TossPaymentGatewayAdapter`가 수행한다. 이 필드들을 별도 DTO로 떼어내면 어댑터가 응답 본문을 두 번 역직렬화해야 하므로 분리 대상이 아니다.

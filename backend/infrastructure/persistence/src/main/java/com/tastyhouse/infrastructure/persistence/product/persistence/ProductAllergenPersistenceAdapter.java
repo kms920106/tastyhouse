@@ -9,7 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
 
 @Repository
-public class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePort {
+class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePort {
 
     private final ProductAllergenJpaRepository productAllergenJpaRepository;
 

@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
 @Repository
-public class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
+class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
 
     private final ProductPriceJpaRepository productPriceJpaRepository;
 

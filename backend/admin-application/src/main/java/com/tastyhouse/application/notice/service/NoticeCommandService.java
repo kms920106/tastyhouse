@@ -15,7 +15,7 @@ import com.tastyhouse.application.notice.port.out.write.NoticePersistencePort;
 
 @Service
 @Transactional
-public class NoticeCommandService implements NoticeCommandUseCase {
+class NoticeCommandService implements NoticeCommandUseCase {
 
     private final NoticePersistencePort noticePersistencePort;
 

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 
 @Repository
-public class UploadedFilePersistenceAdapter implements UploadedFilePersistencePort {
+class UploadedFilePersistenceAdapter implements UploadedFilePersistencePort {
 
     private final UploadedFileJpaRepository uploadedFileJpaRepository;
 

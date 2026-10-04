@@ -27,7 +27,7 @@ import com.tastyhouse.application.region.port.out.BoundaryRing;
 import com.tastyhouse.infrastructure.restclient.HttpRequestFactories;
 
 @Component
-public class AdminDongBoundaryClient implements AdminDongBoundaryPort {
+class AdminDongBoundaryClient implements AdminDongBoundaryPort {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongBoundaryClient.class);
 

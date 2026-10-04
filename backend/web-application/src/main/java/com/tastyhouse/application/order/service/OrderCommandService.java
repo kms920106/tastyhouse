@@ -18,7 +18,7 @@ import com.tastyhouse.application.order.port.in.OrderLineCommand;
 
 @Service
 @Transactional
-public class OrderCommandService implements OrderCommandUseCase {
+class OrderCommandService implements OrderCommandUseCase {
 
     private final OrderPlacementService orderPlacementService;
 

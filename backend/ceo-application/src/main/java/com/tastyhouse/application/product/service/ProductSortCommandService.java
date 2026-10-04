@@ -18,7 +18,7 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
-public class ProductSortCommandService implements ProductSortCommandUseCase {
+class ProductSortCommandService implements ProductSortCommandUseCase {
 
     private final ProductSortService productSortService;
     private final ShopOwnershipValidator shopOwnershipValidator;

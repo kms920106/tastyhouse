@@ -21,7 +21,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResp
 @Tag(name = "Product Image Admin", description = "상품 이미지 관리자 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductImageAdminApiController {
+class ProductImageAdminApiController {
 
     private final ProductImageCreateUseCase productImageCreateUseCase;
     private final ProductManagementQueryUseCase productQueryUseCase;

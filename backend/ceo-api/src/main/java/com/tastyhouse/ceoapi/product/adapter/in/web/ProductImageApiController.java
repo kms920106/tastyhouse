@@ -33,7 +33,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusR
 @Tag(name = "Ceo Product Image", description = "점주 메뉴 이미지 관리 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductImageApiController {
+class ProductImageApiController {
 
     private final ProductImageQueryUseCase productImageQueryUseCase;
     private final ProductImageCommandUseCase productImageCommandUseCase;

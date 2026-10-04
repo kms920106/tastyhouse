@@ -14,7 +14,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.PhoneNumberE
 
 @Entity
 @Table(name = "CEO")
-public class CeoJpaEntity extends BaseEntity {
+class CeoJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

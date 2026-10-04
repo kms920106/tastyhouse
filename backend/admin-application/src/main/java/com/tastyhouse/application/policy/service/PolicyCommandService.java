@@ -16,7 +16,7 @@ import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistenc
 
 @Service
 @Transactional
-public class PolicyCommandService implements PolicyCommandUseCase {
+class PolicyCommandService implements PolicyCommandUseCase {
 
     private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
     private final PolicyActivationService policyActivationService;

@@ -11,7 +11,7 @@ import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePor
 import static com.tastyhouse.infrastructure.persistence.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
 
 @Repository
-public class EventWinnerPersistenceAdapter implements EventWinnerPersistencePort {
+class EventWinnerPersistenceAdapter implements EventWinnerPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final EventWinnerJpaRepository eventWinnerJpaRepository;

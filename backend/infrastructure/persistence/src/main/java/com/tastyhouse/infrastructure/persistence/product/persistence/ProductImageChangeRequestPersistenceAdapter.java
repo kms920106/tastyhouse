@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
 
 @Repository
-public class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestPersistencePort {
+class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestPersistencePort {
 
     private final ProductImageChangeRequestJpaRepository productImageChangeRequestJpaRepository;
 

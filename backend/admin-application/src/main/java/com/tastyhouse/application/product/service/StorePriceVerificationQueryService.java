@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class StorePriceVerificationQueryService implements StorePriceVerificationQueryUseCase {
+class StorePriceVerificationQueryService implements StorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationQueryPort storePriceVerificationQueryPort;
 

@@ -1,11 +1,11 @@
-package com.tastyhouse.infrastructure.solapi.dto;
+package com.tastyhouse.infrastructure.solapi;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SolapiMessageResponse {
+class SolapiMessageResponse {
 
     private List<FailedMessage> failedMessageList;
     private GroupInfo groupInfo;

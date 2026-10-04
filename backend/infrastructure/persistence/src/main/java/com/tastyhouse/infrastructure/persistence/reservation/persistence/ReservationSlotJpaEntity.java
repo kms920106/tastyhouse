@@ -22,7 +22,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         columnNames = {"shop_id", "slot_date", "slot_time"}
     )
 )
-public class ReservationSlotJpaEntity extends BaseEntity {
+class ReservationSlotJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

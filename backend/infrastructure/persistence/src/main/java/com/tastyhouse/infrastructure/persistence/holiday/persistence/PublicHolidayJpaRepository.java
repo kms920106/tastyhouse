@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PublicHolidayJpaRepository extends JpaRepository<PublicHolidayJpaEntity, Long> {
+interface PublicHolidayJpaRepository extends JpaRepository<PublicHolidayJpaEntity, Long> {
 
     boolean existsByHolidayDate(LocalDate holidayDate);
 

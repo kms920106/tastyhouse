@@ -39,7 +39,7 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemRe
 @Tag(name = "Coupon Admin", description = "쿠폰 관리자 API")
 @RestController
 @RequestMapping("/api/coupons")
-public class CouponApiController {
+class CouponApiController {
 
     private final CouponCommandUseCase couponCommandUseCase;
     private final CouponManagementQueryUseCase couponQueryUseCase;

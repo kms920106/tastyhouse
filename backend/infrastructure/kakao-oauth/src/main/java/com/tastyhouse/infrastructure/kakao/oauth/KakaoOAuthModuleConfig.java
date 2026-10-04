@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KakaoOAuthProperties.class)
-public class KakaoOAuthModuleConfig {
+class KakaoOAuthModuleConfig {
 }

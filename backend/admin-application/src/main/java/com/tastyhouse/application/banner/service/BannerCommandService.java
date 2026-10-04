@@ -17,7 +17,7 @@ import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
 
 @Service
 @Transactional
-public class BannerCommandService implements BannerCommandUseCase {
+class BannerCommandService implements BannerCommandUseCase {
 
     private final BannerPersistencePort bannerPersistencePort;
 

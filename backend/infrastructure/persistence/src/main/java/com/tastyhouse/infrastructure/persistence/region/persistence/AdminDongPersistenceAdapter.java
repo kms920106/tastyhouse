@@ -19,7 +19,7 @@ import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 @Repository
-public class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
+class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
 
     private final AdminDongJpaRepository adminDongJpaRepository;
 

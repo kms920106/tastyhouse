@@ -11,7 +11,7 @@ import com.tastyhouse.application.ceo.port.out.CeoQueryPort;
 
 @Service
 @Transactional(readOnly = true)
-public class CeoManagementQueryService implements CeoManagementQueryUseCase {
+class CeoManagementQueryService implements CeoManagementQueryUseCase {
 
     private final CeoQueryPort ceoQueryPort;
 

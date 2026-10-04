@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
 
 @Service
 @Transactional
-public class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase {
+class ShopTrademarkCommandService implements ShopTrademarkCommandUseCase {
 
     private final ShopImageApprovalService shopImageApprovalService;
     private final ShopOwnershipValidator shopOwnershipValidator;

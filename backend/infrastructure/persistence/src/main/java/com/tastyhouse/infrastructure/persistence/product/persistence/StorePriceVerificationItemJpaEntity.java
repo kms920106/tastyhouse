@@ -11,7 +11,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
 
 @Entity
 @Table(name = "SHOP_STORE_PRICE_VERIFICATION_ITEM")
-public class StorePriceVerificationItemJpaEntity extends BaseEntity {
+class StorePriceVerificationItemJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

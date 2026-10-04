@@ -9,7 +9,7 @@ import com.tastyhouse.application.shop.port.out.ShopOriginInfoResult;
 
 @Service
 @Transactional(readOnly = true)
-public class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
+class ShopOriginInfoQueryService implements ShopOriginInfoQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
 

@@ -12,7 +12,7 @@ import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
 import static com.tastyhouse.infrastructure.persistence.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
 @Repository
-public class RankPrizePersistenceAdapter implements RankPrizePersistencePort {
+class RankPrizePersistenceAdapter implements RankPrizePersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final RankPrizeJpaRepository rankPrizeJpaRepository;

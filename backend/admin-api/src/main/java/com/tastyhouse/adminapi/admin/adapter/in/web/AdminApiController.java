@@ -19,7 +19,7 @@ import com.tastyhouse.adminapi.admin.adapter.in.web.request.AdminCreateRequest;
 @Tag(name = "Admin", description = "관리자 계정 관리 API")
 @RestController
 @RequestMapping("/api/admins")
-public class AdminApiController {
+class AdminApiController {
 
     private final AdminCommandUseCase adminCommandUseCase;
 

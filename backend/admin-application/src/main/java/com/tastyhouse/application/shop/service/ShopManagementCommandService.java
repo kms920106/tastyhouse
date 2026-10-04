@@ -112,7 +112,7 @@ import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
 @Service
 @Transactional
-public class ShopManagementCommandService implements
+class ShopManagementCommandService implements
     ShopCreateUseCase,
     ShopCeoAssignUseCase,
     ShopCeoRevokeUseCase,

@@ -5,5 +5,5 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(S3FileStorageProperties.class)
-public class AwsS3ModuleConfig {
+class AwsS3ModuleConfig {
 }

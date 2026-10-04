@@ -9,7 +9,7 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
 
 @Repository
-public class OrderProductPersistenceAdapter implements OrderProductPersistencePort {
+class OrderProductPersistenceAdapter implements OrderProductPersistencePort {
 
     private final OrderProductJpaRepository orderProductJpaRepository;
 

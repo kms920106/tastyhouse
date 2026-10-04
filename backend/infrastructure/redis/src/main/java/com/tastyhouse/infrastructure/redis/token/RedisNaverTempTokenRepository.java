@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.security.token.NaverTempTokenRepository;
 
 @Component
-public class RedisNaverTempTokenRepository implements NaverTempTokenRepository {
+class RedisNaverTempTokenRepository implements NaverTempTokenRepository {
 
     private static final String PREFIX = "naver_temp:";
     private static final long TTL_MINUTES = 10;

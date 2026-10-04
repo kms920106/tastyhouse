@@ -6,7 +6,7 @@ import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
 import com.tastyhouse.infrastructure.persistence.menureview.query.MenuReviewStatisticsQueryAdapter;
 
 @Component
-public class ProductReviewStatisticsAdapter implements ProductReviewStatisticsPort {
+class ProductReviewStatisticsAdapter implements ProductReviewStatisticsPort {
 
     private final MenuReviewStatisticsQueryAdapter menuReviewStatisticsQueryAdapter;
 

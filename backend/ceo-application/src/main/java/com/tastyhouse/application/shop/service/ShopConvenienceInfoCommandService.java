@@ -13,7 +13,7 @@ import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateCommand;
 
 @Service
 @Transactional
-public class ShopConvenienceInfoCommandService implements ShopConvenienceInfoCommandUseCase {
+class ShopConvenienceInfoCommandService implements ShopConvenienceInfoCommandUseCase {
 
     private final ShopConvenienceInfoService shopConvenienceInfoService;
     private final ShopOwnershipValidator shopOwnershipValidator;

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ProductExposureHourJpaRepository extends JpaRepository<ProductExposureHourJpaEntity, Long> {
+interface ProductExposureHourJpaRepository extends JpaRepository<ProductExposureHourJpaEntity, Long> {
 
     List<ProductExposureHourJpaEntity> findAllByProductId(Long productId);
 

@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
 @Tag(name = "Ceo Shop Status", description = "점주 가게 노출 상태 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopStatusApiController {
+class ShopStatusApiController {
 
     private final ShopStatusQueryUseCase shopStatusQueryUseCase;
     private final ShopStatusCommandUseCase shopStatusCommandUseCase;

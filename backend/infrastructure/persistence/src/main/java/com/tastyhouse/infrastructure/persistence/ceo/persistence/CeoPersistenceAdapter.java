@@ -9,7 +9,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
 @Repository
-public class CeoPersistenceAdapter implements CeoPersistencePort {
+class CeoPersistenceAdapter implements CeoPersistencePort {
 
     private final CeoJpaRepository ceoJpaRepository;
 

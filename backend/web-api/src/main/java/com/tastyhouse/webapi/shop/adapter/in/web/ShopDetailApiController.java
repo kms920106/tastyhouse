@@ -31,7 +31,7 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingRes
 @RestController
 @RequestMapping("/api/shops")
 @Tag(name = "Shop Detail", description = "가게 상세 조회 API")
-public class ShopDetailApiController {
+class ShopDetailApiController {
 
     private final ShopDetailQueryUseCase shopDetailQueryUseCase;
 

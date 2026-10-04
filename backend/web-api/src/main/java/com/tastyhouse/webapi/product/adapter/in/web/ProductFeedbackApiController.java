@@ -21,7 +21,7 @@ import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreat
 @Tag(name = "Product Feedback", description = "메뉴 정보 고객 의견 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductFeedbackApiController {
+class ProductFeedbackApiController {
 
     private final ProductFeedbackCommandUseCase productFeedbackCommandUseCase;
 

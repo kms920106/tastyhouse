@@ -14,7 +14,7 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class FollowQueryService implements FollowQueryUseCase {
+class FollowQueryService implements FollowQueryUseCase {
 
     private final MemberFollowQueryPort memberFollowQueryPort;
     private final MemberQueryPort memberQueryPort;

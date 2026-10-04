@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
 
 @Repository
-public class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestPersistencePort {
+class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestPersistencePort {
 
     private final ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository;
 

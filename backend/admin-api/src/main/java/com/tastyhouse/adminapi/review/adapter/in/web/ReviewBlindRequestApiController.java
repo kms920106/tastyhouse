@@ -31,7 +31,7 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequest
 @Tag(name = "Review Blind Request Admin", description = "리뷰 게시중단 요청 심사 API")
 @RestController
 @RequestMapping("/api/reviews")
-public class ReviewBlindRequestApiController {
+class ReviewBlindRequestApiController {
 
     private final ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase;
     private final ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase;

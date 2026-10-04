@@ -28,7 +28,7 @@ import com.tastyhouse.infrastructure.persistence.shared.persistence.BaseEntity;
         @Index(name = "idx_member_coupon_used", columnList = "member_id, is_used")
     }
 )
-public class MemberCouponJpaEntity extends BaseEntity {
+class MemberCouponJpaEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

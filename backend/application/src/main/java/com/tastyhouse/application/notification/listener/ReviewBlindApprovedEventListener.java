@@ -13,7 +13,7 @@ import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.application.notification.service.NotificationService;
 
 @Component
-public class ReviewBlindApprovedEventListener {
+class ReviewBlindApprovedEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindApprovedEventListener.class);
 

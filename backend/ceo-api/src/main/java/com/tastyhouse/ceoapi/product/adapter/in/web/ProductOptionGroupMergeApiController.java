@@ -31,7 +31,7 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 @Tag(name = "Ceo Product Option Group Merge", description = "점주 옵션그룹 합치기 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductOptionGroupMergeApiController {
+class ProductOptionGroupMergeApiController {
 
     private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase;
     private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;

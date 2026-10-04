@@ -23,7 +23,7 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @Tag(name = "Ceo Shop Origin Info", description = "점주 가게 원산지 표시 관리 API")
 @RestController
 @RequestMapping("/api/shops")
-public class ShopOriginInfoApiController {
+class ShopOriginInfoApiController {
 
     private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase;
     private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;

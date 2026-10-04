@@ -16,7 +16,7 @@ import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand
 
 @Service
 @Transactional
-public class ProductApprovalCommandService implements ProductApprovalCommandUseCase {
+class ProductApprovalCommandService implements ProductApprovalCommandUseCase {
 
     private final ProductImageApprovalService productImageApprovalService;
     private final ProductVegetarianApprovalService productVegetarianApprovalService;

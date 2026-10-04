@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
 
 @Component
-public class AdminDongScheduler {
+class AdminDongScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongScheduler.class);
 

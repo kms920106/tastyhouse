@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TossPaymentUtils {
+final class TossPaymentUtils {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentUtils.class);
 

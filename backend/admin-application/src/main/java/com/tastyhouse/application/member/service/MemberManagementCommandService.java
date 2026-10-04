@@ -16,7 +16,7 @@ import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 
 @Service
 @Transactional
-public class MemberManagementCommandService implements MemberManagementCommandUseCase {
+class MemberManagementCommandService implements MemberManagementCommandUseCase {
 
     private final MemberPersistencePort memberPersistencePort;
     private final MemberWithdrawalService memberWithdrawalService;

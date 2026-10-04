@@ -12,7 +12,7 @@ import com.tastyhouse.application.member.port.in.MemberDeliveryAddressUpdateComm
 
 @Service
 @Transactional
-public class MemberDeliveryAddressCommandService implements MemberDeliveryAddressCommandUseCase {
+class MemberDeliveryAddressCommandService implements MemberDeliveryAddressCommandUseCase {
 
     private final MemberDeliveryAddressService memberDeliveryAddressService;
 

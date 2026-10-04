@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductCategoryRe
 @Tag(name = "Product Category Admin", description = "상품 카테고리 관리자 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductCategoryAdminApiController {
+class ProductCategoryAdminApiController {
 
     private final ProductCategoryCreateUseCase productCategoryCreateUseCase;
     private final ProductManagementQueryUseCase productQueryUseCase;

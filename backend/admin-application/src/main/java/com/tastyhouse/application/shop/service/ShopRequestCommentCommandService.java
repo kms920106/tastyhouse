@@ -8,7 +8,7 @@ import com.tastyhouse.application.shop.port.in.ShopRequestCommentManagementCreat
 
 @Service
 @Transactional
-public class ShopRequestCommentCommandService implements ShopRequestCommentCommandUseCase {
+class ShopRequestCommentCommandService implements ShopRequestCommentCommandUseCase {
 
     private final ShopRequestCommentService shopRequestCommentService;
 

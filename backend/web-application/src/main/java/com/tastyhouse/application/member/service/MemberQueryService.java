@@ -14,7 +14,7 @@ import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
 
 @Service
 @Transactional(readOnly = true)
-public class MemberQueryService implements MemberQueryUseCase {
+class MemberQueryService implements MemberQueryUseCase {
 
     private final MemberQueryPort memberQueryPort;
 

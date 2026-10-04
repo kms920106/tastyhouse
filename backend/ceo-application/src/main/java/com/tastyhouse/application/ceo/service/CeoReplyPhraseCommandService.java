@@ -10,7 +10,7 @@ import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
 
 @Service
 @Transactional
-public class CeoReplyPhraseCommandService implements CeoReplyPhraseCommandUseCase {
+class CeoReplyPhraseCommandService implements CeoReplyPhraseCommandUseCase {
 
     private final CeoReplyPhraseService ceoReplyPhraseService;
 

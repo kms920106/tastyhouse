@@ -19,7 +19,7 @@ import com.tastyhouse.webapi.bug.adapter.in.web.request.BugReportCreateRequest;
 @RestController
 @RequestMapping("/api/bug-reports")
 @Tag(name = "BugReport", description = "버그 제보 API")
-public class BugReportApiController {
+class BugReportApiController {
 
     private final BugReportCommandUseCase bugReportCommandUseCase;
 

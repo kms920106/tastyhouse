@@ -36,7 +36,7 @@ import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePo
 
 @Service
 @Transactional
-public class ReviewCommandService implements ReviewCommandUseCase {
+class ReviewCommandService implements ReviewCommandUseCase {
 
     private final ReviewLifecycleService reviewLifecycleService;
     private final ReviewPersistencePort reviewPersistencePort;

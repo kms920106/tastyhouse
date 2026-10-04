@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.in.ShopPhoneNumberPrimaryDesignateCo
 
 @Service
 @Transactional
-public class ShopPhoneNumberCommandService implements ShopPhoneNumberCommandUseCase {
+class ShopPhoneNumberCommandService implements ShopPhoneNumberCommandUseCase {
 
     private final ShopPhoneNumberRegistryService shopPhoneNumberRegistryService;
     private final ShopOwnershipValidator shopOwnershipValidator;

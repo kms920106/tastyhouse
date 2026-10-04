@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(name = "file.provider", havingValue = "firebase")
-public class FirebaseStorageConfig {
+class FirebaseStorageConfig {
 
     private final FirebaseStorageProperties properties;
 

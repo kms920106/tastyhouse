@@ -24,7 +24,7 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGrou
 @Tag(name = "Product Option Admin", description = "상품 옵션 관리자 API")
 @RestController
 @RequestMapping("/api/products")
-public class ProductOptionAdminApiController {
+class ProductOptionAdminApiController {
 
     private final ProductOptionGroupCreateUseCase productOptionGroupCreateUseCase;
     private final ProductOptionCreateUseCase productOptionCreateUseCase;
